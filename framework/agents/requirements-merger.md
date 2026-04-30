@@ -27,7 +27,7 @@ Merge the requirements draft and the captured consultant answers into a single, 
 
 ## Inputs
 
-- `requirements/requirements-draft.md` — the populated draft from the requirements-drafter agent, containing `[AI-SUGGESTED]` markers with unique IDs.
+- `requirements/requirements-draft.md` — the populated draft from the requirements-drafter agent, containing `[AI-SUGGESTED]` markers in the form `[AI-SUGGESTED: AI-NNN | blocking]` or `[AI-SUGGESTED: AI-NNN | non-blocking]` (each marker carries a unique ID and a classification per the drafter's spec).
 - `requirements/consultant-answers.md` — captured consultant answers from the requirements-resolver agent, keyed by AI-SUGGESTED unique ID.
 - `framework/assets/template-requirements.md` — the canonical structure to preserve.
 - `framework/skills/reconcile.md` — the skill that folds Q&A answers and resolution decisions back into the in-progress spec, in place.
@@ -35,7 +35,7 @@ Merge the requirements draft and the captured consultant answers into a single, 
 
 ## Output
 
-- `requirements/requirements.md` — the finalised, merged requirements document. No `[AI-SUGGESTED]` markers. No unique IDs left in the body (they belong only to the answers ledger). Structure matches `framework/assets/template-requirements.md`.
+- `requirements/requirements.md` — the finalised, merged requirements document. No `[AI-SUGGESTED]` markers (regardless of classification suffix). No unique IDs left in the body (they belong only to the answers ledger). No `blocking` / `non-blocking` annotations left in the body — classification belongs only to the answers ledger. Structure matches `framework/assets/template-requirements.md`.
 
 ## Tools
 
@@ -51,7 +51,8 @@ Verify all of the following against the merged document. If any check fails, fix
 
 - The template structure is preserved and no `{{placeholders}}` remain.
 - Every field is populated.
-- The merged document contains zero `[AI-SUGGESTED]` markers.
+- The merged document contains zero `[AI-SUGGESTED]` markers (in any classification variant — `blocking` and `non-blocking` suffixes must also be gone).
+- The merged document contains zero residual `| blocking]` or `| non-blocking]` fragments and zero `AI-NNN` IDs in the body.
 - Every AI-SUGGESTED unique ID present in the draft has been applied per its `consultant-answers.md` entry — none ignored, none invented.
 - Every `dropped` item has been fully removed and its surrounding text repaired; no dangling cross-references remain.
 - No two fields contradict each other; no field is ambiguous or incoherent in context.

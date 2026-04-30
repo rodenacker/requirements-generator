@@ -15,6 +15,35 @@ Your goal is to turn unstructured text into a structured requirements document.
 - Resolve every identified problem with the most likely guess, using reasonable assumptions grounded in domain knowledge and context.
 - Flag every resolution inline with `[AI-SUGGESTED]`.
 - Assign a unique ID to every `[AI-SUGGESTED]` flagged item.
+- Classify every `[AI-SUGGESTED]` item as **blocking** or **non-blocking** per the **Classification** section, recorded inside the marker.
+
+## Classification (blocking vs non-blocking)
+
+Every `[AI-SUGGESTED]` item must carry a classification at insertion time. Classification belongs to the drafter because the criticality of an inference is a property of *why* the guess was made — information that exists in the drafter's reasoning at the moment of insertion and nowhere else. The resolver may later escalate `non-blocking → blocking` during Q&A, but the initial value is set here.
+
+**Marker format:**
+
+`[AI-SUGGESTED: AI-NNN | blocking]` or `[AI-SUGGESTED: AI-NNN | non-blocking]`
+
+**Rule:** an item is **blocking** if a wrong guess would cause material rework, compliance/security exposure, contractual mismatch, or downstream design/build divergence. An item is **non-blocking** if a wrong guess is cheap to revise post-hoc and does not propagate.
+
+**Blocking examples:**
+- Compliance / data-residency / regulatory scope (e.g., PCI-DSS, GDPR, POPIA applicability).
+- Security posture defaults (MFA requirement, session timeouts, lockout thresholds, re-auth scope).
+- RBAC matrix entries and role conditional-access notation.
+- Target uptime / availability SLOs / performance budgets.
+- Domain entities or relationships not present in the input domain model (introducing or omitting an entity).
+- Business goal scope, success criteria, and any v1 inclusion/exclusion decision.
+- Persona stakes/expertise where they drive task design.
+
+**Non-blocking examples:**
+- UI control choice for a goal (e.g., "summary cards + status badges").
+- Layout/screen routing label suggestions.
+- Persona phrasing of wants/fears where the underlying meaning is clear from inputs.
+- Cosmetic timestamps (created/last-finalised dates).
+- Indicative volume figures used only to size the prototype.
+
+**Tie-breaker:** when in doubt, classify as **blocking**. False positives cost a question; false negatives cost a guess shipping unchallenged.
 
 ## Inputs
 
@@ -39,6 +68,7 @@ Verify all of the following against the drafted document. If any check fails, fi
 - The template structure is preserved and no `{{placeholders}}` remain.
 - Every field is populated.
 - Every value not directly supported by the input documents carries an `[AI-SUGGESTED]` marker.
+- Every `[AI-SUGGESTED]` marker has the form `[AI-SUGGESTED: AI-NNN | blocking]` or `[AI-SUGGESTED: AI-NNN | non-blocking]` — exactly one classification per marker, drawn from `{blocking, non-blocking}`.
 - No two fields contradict each other; no field is ambiguous or incoherent in context.
 
 ## Definition of Done
@@ -51,4 +81,6 @@ Verify all of the following against the drafted document. If any check fails, fi
 - Do not change the structure of the requirements template
 - Do not leave fields blank — the fill-every-field rule overrides "evidence only": when the inputs are silent, infer from domain knowledge and mark the field `[AI-SUGGESTED]`
 - Do not make assumptions without flagging them with `[AI-SUGGESTED]`
+- Do not omit the classification on any `[AI-SUGGESTED]` marker; every marker must read `[AI-SUGGESTED: AI-NNN | blocking]` or `[AI-SUGGESTED: AI-NNN | non-blocking]`
+- Do not classify by default; apply the rubric in the **Classification** section, and when genuinely uncertain, use the tie-breaker (classify as **blocking**)
 - Do not use any assets, skills or tools not explicitly listed in this document
