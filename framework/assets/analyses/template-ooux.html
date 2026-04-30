@@ -1,0 +1,43 @@
+<!--
+  ROLE: asset (HTML template). STATUS: stub — author during phase-2 build-order step 8 or 9.
+
+  Purpose: HTML/CSS skeleton for the OOUX object-map grid. Self-contained
+  (`<!doctype html>` + inlined `<style>` + `<body>` with `<table>` skeleton).
+  Grid columns: Object / Relationships / CTAs / Attributes. CSS classes:
+  `.ccp-highlight`, `.nested-relationship`, `.rev-marker`. No external CSS/JS
+  dependencies; viewable by opening `file://` in a browser; shareable with
+  clients without tooling.
+
+  Used by: `framework/agents/analyses/ooux-analyser/agent.md` — populates
+  rows from the requirements + reference-asset analysis.
+
+  Output: `artifacts/requirements/analyses/ooux.html`.
+
+  Content TBD per `plan/v7b-Brief.md > §analyses/template-ooux.html`.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>OOUX Object Map — TBD</title>
+  <style>
+    /* TBD — minimal grid styling, no external deps. */
+  </style>
+</head>
+<body>
+  <h1>OOUX Object Map — TBD</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Object</th>
+        <th>Relationships</th>
+        <th>CTAs</th>
+        <th>Attributes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- rows populated by ooux-analyser -->
+    </tbody>
+  </table>
+</body>
+</html>
