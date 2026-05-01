@@ -16,6 +16,7 @@ Your goal is to turn unstructured text into a structured requirements document.
 - Flag every resolution inline with `[AI-SUGGESTED]`.
 - Assign a unique ID to every `[AI-SUGGESTED]` flagged item.
 - Classify every `[AI-SUGGESTED]` item as **blocking** or **non-blocking** per the **Classification** section, recorded inside the marker.
+- Generate the §2.4 Domain-model diagram inline as a Mermaid code block, authored per `framework/skills/mermaid-diagrams.md`. Use the skill's guidance to pick the right diagram type for a domain model (typically `classDiagram` or `erDiagram`), apply correct syntax, and keep the layout readable. The block is embedded directly in `requirements/requirements-draft.md`; no separate SVG artefact is produced and the skill's `mermaid_preview` / `mermaid_save` MCP tools are not invoked. The §2.4 stub from the template (comments-only / empty block) must be replaced with the real diagram.
 
 ## Classification (blocking vs non-blocking)
 
@@ -49,6 +50,7 @@ Every `[AI-SUGGESTED]` item must carry a classification at insertion time. Class
 
 - All readable documents in the input/ folder
 - The requirements template at framework/assets/template-requirements.md
+- `framework/skills/mermaid-diagrams.md` — authoring guidance for the §2.4 Domain-model diagram (diagram-type selection, syntax, layout). The skill's MCP preview/save workflow is **not** used here; only the authoring guidance applies.
 
 ## Output
 
@@ -69,6 +71,7 @@ Verify all of the following against the drafted document. If any check fails, fi
 - Every field is populated.
 - Every value not directly supported by the input documents carries an `[AI-SUGGESTED]` marker.
 - Every `[AI-SUGGESTED]` marker has the form `[AI-SUGGESTED: AI-NNN | blocking]` or `[AI-SUGGESTED: AI-NNN | non-blocking]` — exactly one classification per marker, drawn from `{blocking, non-blocking}`.
+- §2.4 Diagram contains a non-empty Mermaid block authored per `framework/skills/mermaid-diagrams.md`: the diagram type matches the domain model (`classDiagram` or `erDiagram`), the block is not the template stub (comment-only / empty), and the syntax follows the skill's guidance (no obvious authoring errors).
 - No two fields contradict each other; no field is ambiguous or incoherent in context.
 
 ## Definition of Done
@@ -83,4 +86,6 @@ Verify all of the following against the drafted document. If any check fails, fi
 - Do not make assumptions without flagging them with `[AI-SUGGESTED]`
 - Do not omit the classification on any `[AI-SUGGESTED]` marker; every marker must read `[AI-SUGGESTED: AI-NNN | blocking]` or `[AI-SUGGESTED: AI-NNN | non-blocking]`
 - Do not classify by default; apply the rubric in the **Classification** section, and when genuinely uncertain, use the tie-breaker (classify as **blocking**)
+- Do not leave §2.4 Diagram as the template stub or empty — it must contain a real Mermaid domain-model diagram authored per `framework/skills/mermaid-diagrams.md`
+- Do not invoke the mermaid-diagrams skill's `mermaid_preview` or `mermaid_save` MCP tools from this agent — only the skill's authoring guidance is used; the diagram is emitted inline in the markdown
 - Do not use any assets, skills or tools not explicitly listed in this document

@@ -1,8 +1,8 @@
 # Requirements: Operations Portal
 
-**Domain:** Cloud application operations / PaaS-style operator portal for custom software [AI-SUGGESTED: AI-001 | non-blocking] **Created:** 2026-05-01 **Status:** draft **Last finalised at:** n/a — document is in draft state [AI-SUGGESTED: AI-002 | non-blocking]
+**Domain:** Cloud application operations / PaaS-style operator portal for custom software **Created:** 2026-05-01 **Status:** final **Last finalised at:** 2026-05-01
 
-> Inferred content is marked `[AI-SUGGESTED]` inline. Field-level marking when only some sub-fields are inferred; heading-level marking when the whole item is invented. The fill-every-field rule applies — no blanks.
+> This document is the finalised requirements for the Operations Portal. All fields are populated and all consultant-resolution items have been applied.
 
 ---
 
@@ -12,7 +12,7 @@
 
 **Purpose / business value:** A web portal that lets technically strong business users build, deploy, run, observe, and lifecycle-manage the custom applications produced by the platform's AI agents, abstracting the underlying container orchestration so users work in business terms (application, instance, environment) rather than infrastructure terms (pod, namespace, replica set).
 
-**Domain:** Cloud application operations / PaaS-style operator portal for custom software [AI-SUGGESTED: AI-003 | non-blocking]
+**Domain:** Cloud application operations / PaaS-style operator portal for custom software
 
 **Business goal:** Deliver an interactive, demo-ready prototype of the Operations Portal to validate the concept with stakeholders and gather feedback before committing to full development. The prototype must convey end-to-end operator workflows (register → build → deploy → observe → manage) with realistic mock data, but does not require backend integration. Mobile responsiveness is out of scope.
 
@@ -47,7 +47,7 @@
 | Audit Entry | persistent | An immutable record of a significant action (who, what, where, when, outcome), retained for at least one year. |
 | Backup | persistent | A record of an automatic or manual backup of a database or bucket, including status and retention expiry. |
 | Invitation | persistent | A pending invitation for a user to join a tenant by email; deleted on acceptance or expiry, with history captured via audit entries. |
-| Notification | persistent | A user-scoped completion notice for an asynchronous operation (build, deployment, resource provisioning), retained per NOT-03. [AI-SUGGESTED: AI-004 | non-blocking] |
+| Notification | persistent | A user-scoped completion notice for an asynchronous operation (build, deployment, resource provisioning), retained per NOT-03. |
 | Instance Health | derived | The aggregate health of an instance (`running`, `degraded`, `stopped`, `failed`) computed from replica health-check outcomes and desired replica count. |
 | Public Routing | policy | The mapping that exposes an instance via the API gateway at `<app>.<env>.<project>.<tenant>.<portal-domain>` when at least one InstancePort exists. |
 | Image Retention Policy | policy | The rule that retains the latest build image, currently deployed images, and the two most recent previously-deployed images per instance, deleting all others. |
@@ -216,11 +216,11 @@ classDiagram
 | Field | Value |
 | --- | --- |
 | Role / job title | Platform Administrator (system-level operator running the portal itself) |
-| Expertise level | High — comfortable with multi-tenant SaaS administration; not necessarily a Kubernetes specialist [AI-SUGGESTED: AI-005 | non-blocking] |
-| Stakes | Very high — actions span all tenants; tenant suspension/deletion are destructive and recorded in audit. [AI-SUGGESTED: AI-006 | blocking] |
+| Expertise level | High — comfortable with multi-tenant SaaS administration; not necessarily a Kubernetes specialist |
+| Stakes | Very high — actions span all tenants; tenant suspension/deletion are destructive and recorded in audit. |
 | Frequency of use | Very low — initial setup and infrequent tenant lifecycle events (per task frequencies T-PADM-*). |
-| Driving forces — wants | Clear visibility of all tenants, fast and explicit tenant lifecycle controls, a strong audit trail of every platform-level action. [AI-SUGGESTED: AI-007 | non-blocking] |
-| Driving forces — fears | Accidentally suspending or deleting a live tenant; leaking tenant-internal data through the platform view. [AI-SUGGESTED: AI-008 | non-blocking] |
+| Driving forces — wants | Clear visibility of all tenants, fast and explicit tenant lifecycle controls, a strong audit trail of every platform-level action. |
+| Driving forces — fears | Accidentally suspending or deleting a live tenant; leaking tenant-internal data through the platform view. |
 
 ### Tenant Administrator
 
@@ -228,10 +228,10 @@ classDiagram
 | --- | --- |
 | Role / job title | Tenant Administrator (consulting company or business-unit lead managing the tenant) |
 | Expertise level | Technically strong business user; understands users/projects/SSO concepts but not container orchestration. |
-| Stakes | High — controls memberships, roles, projects, and identity-provider configuration for the entire tenant. [AI-SUGGESTED: AI-009 | blocking] |
+| Stakes | High — controls memberships, roles, projects, and identity-provider configuration for the entire tenant. |
 | Frequency of use | Low to medium — directory and audit reviews are medium; invitations, role changes and project creation are infrequent (per T-TEN-*). |
-| Driving forces — wants | A clean directory view, frictionless invite/assign flows, easy tenant settings (display name, identity providers). [AI-SUGGESTED: AI-010 | non-blocking] |
-| Driving forces — fears | Locking out the tenant by removing the last admin; accidentally enabling/disabling SSO incorrectly; granting the wrong role. [AI-SUGGESTED: AI-011 | non-blocking] |
+| Driving forces — wants | A clean directory view, frictionless invite/assign flows, easy tenant settings (display name, identity providers). |
+| Driving forces — fears | Locking out the tenant by removing the last admin; accidentally enabling/disabling SSO incorrectly; granting the wrong role. |
 
 ### Project Administrator
 
@@ -239,10 +239,10 @@ classDiagram
 | --- | --- |
 | Role / job title | Project Administrator (project lead within a tenant) |
 | Expertise level | Technically strong business user; familiar with the application portfolio they own; not a DevOps specialist. |
-| Stakes | High for that project — controls environments, project members, and Git provider credentials. [AI-SUGGESTED: AI-012 | blocking] |
+| Stakes | High for that project — controls environments, project members, and Git provider credentials. |
 | Frequency of use | Very high for the project dashboard (T-PRJ-01); low for membership and environment lifecycle changes. |
-| Driving forces — wants | A single overview screen showing the project's environments, applications, statuses; quick environment creation; clear control of project-level Git credentials. [AI-SUGGESTED: AI-013 | non-blocking] |
-| Driving forces — fears | Misconfiguring environments or Git credentials; missing failed builds or deployments because of a noisy UI. [AI-SUGGESTED: AI-014 | non-blocking] |
+| Driving forces — wants | A single overview screen showing the project's environments, applications, statuses; quick environment creation; clear control of project-level Git credentials. |
+| Driving forces — fears | Misconfiguring environments or Git credentials; missing failed builds or deployments because of a noisy UI. |
 
 ### Operator
 
@@ -250,21 +250,21 @@ classDiagram
 | --- | --- |
 | Role / job title | Operator (the day-to-day operator of applications and environments) |
 | Expertise level | Technical business user; comfortable with application/instance/build concepts; expects abstraction over Kubernetes (NFR-02). |
-| Stakes | High — drives almost all production-affecting actions: builds, deploys, scaling, configuration, secrets, resource provisioning and linking. [AI-SUGGESTED: AI-015 | blocking] |
+| Stakes | High — drives almost all production-affecting actions: builds, deploys, scaling, configuration, secrets, resource provisioning and linking. |
 | Frequency of use | Very high — primary daily user; the bulk of portal traffic. |
-| Driving forces — wants | Fastest path to instance health and logs (priorities 1–5 in the frequency summary); confident, low-friction deploy with rollback; visible build progress and clear failure output; minimal click count for routine work (NFR-03). [AI-SUGGESTED: AI-016 | non-blocking] |
-| Driving forces — fears | Deploying a broken build to production; losing logs or context during an incident; accidentally deleting a database or bucket; a surprise restart caused by a config change without warning. [AI-SUGGESTED: AI-017 | non-blocking] |
+| Driving forces — wants | Fastest path to instance health and logs (priorities 1–5 in the frequency summary); confident, low-friction deploy with rollback; visible build progress and clear failure output; minimal click count for routine work (NFR-03). |
+| Driving forces — fears | Deploying a broken build to production; losing logs or context during an incident; accidentally deleting a database or bucket; a surprise restart caused by a config change without warning. |
 
 ### Viewer
 
 | Field | Value |
 | --- | --- |
 | Role / job title | Viewer (read-only stakeholder — e.g. business analyst, support lead) |
-| Expertise level | Mixed — may be less technical than operators; should be guided by clear visualisations rather than infrastructure jargon. [AI-SUGGESTED: AI-018 | non-blocking] |
-| Stakes | Low — cannot mutate state but relies on accurate read-only views. [AI-SUGGESTED: AI-019 | blocking] |
+| Expertise level | Mixed — may be less technical than operators; should be guided by clear visualisations rather than infrastructure jargon. |
+| Stakes | Low — cannot mutate state but relies on accurate read-only views. |
 | Frequency of use | Very high for dashboards and logs (T-VIEW-01..VIEW-06); medium for configuration, resources and backup status. |
-| Driving forces — wants | A clear at-a-glance picture of project and environment health; logs and metrics they can read without help. [AI-SUGGESTED: AI-020 | non-blocking] |
-| Driving forces — fears | Silent failures hidden from view; secrets accidentally exposed in their read-only views (mitigated by SEC-04). [AI-SUGGESTED: AI-021 | non-blocking] |
+| Driving forces — wants | A clear at-a-glance picture of project and environment health; logs and metrics they can read without help. |
+| Driving forces — fears | Silent failures hidden from view; secrets accidentally exposed in their read-only views (mitigated by SEC-04). |
 
 <!-- repeat per persona; every persona MUST have ≥1 user story in §4 and may be referenced as actor in §5 Task flows -->
 
@@ -280,22 +280,22 @@ classDiagram
 
 | ID | Goal statement | Quality signals | Goal kind | Layout pref (optional) | UX-pattern pref (optional) |
 | --- | --- | --- | --- | --- | --- |
-| G-01 | Sign in to the portal and operate within the correct tenant context. | Low-friction, fast, secure, auditable [AI-SUGGESTED: AI-022 | non-blocking] | top-level | Login + tenant switcher in top bar [AI-SUGGESTED: AI-023 | non-blocking] | SSO buttons + email/password fallback; tenant picker dropdown [AI-SUGGESTED: AI-024 | non-blocking] |
-| G-02 | Manage the platform's tenants and platform-administrator roster. | Auditable, explicit, hard-to-misuse [AI-SUGGESTED: AI-025 | non-blocking] | top-level | Dedicated platform-admin area, separate from tenant scope [AI-SUGGESTED: AI-026 | non-blocking] | List + detail with destructive-action confirmation typeahead [AI-SUGGESTED: AI-027 | non-blocking] |
-| G-03 | Manage tenant users, projects, and identity-provider settings. | Auditable, role-aware, low-friction [AI-SUGGESTED: AI-028 | non-blocking] | top-level | Tenant-scoped settings area in sidebar [AI-SUGGESTED: AI-029 | non-blocking] | User directory + invite modal; project list [AI-SUGGESTED: AI-030 | non-blocking] |
-| G-04 | Manage a project — its environments, members, and Git provider credentials. | Discoverable, role-aware, audit-clear [AI-SUGGESTED: AI-031 | non-blocking] | top-level | Project dashboard as landing surface (T-PRJ-01) [AI-SUGGESTED: AI-032 | non-blocking] | Summary cards for environments/applications + quick actions [AI-SUGGESTED: AI-033 | non-blocking] |
-| G-05 | Register and maintain applications within a project. | Low-friction, validated, visible Git status [AI-SUGGESTED: AI-034 | non-blocking] | top-level | Application list + detail in project scope [AI-SUGGESTED: AI-035 | non-blocking] | Wizard for registration; metadata form for edits [AI-SUGGESTED: AI-036 | non-blocking] |
-| G-06 | Build applications and watch builds in progress. | Real-time, transparent, troubleshootable [AI-SUGGESTED: AI-037 | non-blocking] | top-level | Build history list with detail/log drawer [AI-SUGGESTED: AI-038 | non-blocking] | Streaming log viewer + status badges [AI-SUGGESTED: AI-039 | non-blocking] |
-| G-07 | Deploy and operate instances across environments. | Confidence-building, reversible, fastest-to-reach [AI-SUGGESTED: AI-040 | non-blocking] | top-level | Environment overview with instance cards (T-INS-01) [AI-SUGGESTED: AI-041 | non-blocking] | Deploy/rollback dialogs; lifecycle action menus [AI-SUGGESTED: AI-042 | non-blocking] |
-| G-08 | Observe an instance — logs, metrics, and request/latency dashboards. | Real-time, filterable, comparable [AI-SUGGESTED: AI-043 | non-blocking] | top-level | Tab inside instance detail [AI-SUGGESTED: AI-044 | non-blocking] | Filterable log viewer; chart grid for metrics [AI-SUGGESTED: AI-045 | non-blocking] |
-| G-09 | Manage configuration values and secrets at environment and instance scope. | Predictable precedence, auditable, write-only secrets [AI-SUGGESTED: AI-046 | non-blocking] | top-level | Configuration tab with environment/instance toggles [AI-SUGGESTED: AI-047 | non-blocking] | Key-value editor; rotation flow [AI-SUGGESTED: AI-048 | non-blocking] |
-| G-10 | Provision and manage databases and object storage buckets. | Self-serve, isolation-aware, deletion-safe [AI-SUGGESTED: AI-049 | non-blocking] | top-level | Environment-scoped resource lists [AI-SUGGESTED: AI-050 | non-blocking] | Provision wizard; type-name-to-confirm delete [AI-SUGGESTED: AI-051 | non-blocking] |
-| G-11 | Link and unlink data resources to instances. | Predictable, visible-side-effects (restart), auditable [AI-SUGGESTED: AI-052 | non-blocking] | sub-level | Linked-resources panel on instance + drawer on resource [AI-SUGGESTED: AI-053 | non-blocking] | Picker scoped to same environment [AI-SUGGESTED: AI-054 | non-blocking] |
-| G-12 | Expose instances publicly via the API gateway and view their addresses. | Explicit, reversible, URL-clear [AI-SUGGESTED: AI-055 | non-blocking] | sub-level | Networking tab on instance [AI-SUGGESTED: AI-056 | non-blocking] | Toggle + URL display + port mapping editor [AI-SUGGESTED: AI-057 | non-blocking] |
-| G-13 | Back up data resources and restore from a backup point. | Predictable, recoverable, confirmation-gated [AI-SUGGESTED: AI-058 | non-blocking] | sub-level | Backups tab on each resource [AI-SUGGESTED: AI-059 | non-blocking] | Backup list; restore wizard with target selector [AI-SUGGESTED: AI-060 | non-blocking] |
-| G-14 | Audit operational activity across the system. | Immutable, searchable, scoped-by-permission [AI-SUGGESTED: AI-061 | non-blocking] | top-level | Audit page available at platform/tenant/project scopes [AI-SUGGESTED: AI-062 | non-blocking] | Faceted search + entry detail [AI-SUGGESTED: AI-063 | non-blocking] |
-| G-15 | Be notified of completion of asynchronous operations the user invoked. | Timely, low-noise, retained per NOT-03 [AI-SUGGESTED: AI-064 | non-blocking] | interaction-level | Notification tray in top bar [AI-SUGGESTED: AI-065 | non-blocking] | Toast + tray history list [AI-SUGGESTED: AI-066 | non-blocking] |
-| G-16 | View read-only project, environment, and observability state (Viewer). | Clear, comprehensive, no-mutation paths [AI-SUGGESTED: AI-067 | non-blocking] | top-level | Same surfaces as Operator with action affordances disabled [AI-SUGGESTED: AI-068 | non-blocking] | Same dashboards/lists with read-only badges [AI-SUGGESTED: AI-069 | non-blocking] |
+| G-01 | Sign in to the portal and operate within the correct tenant context. | Low-friction, fast, secure, auditable | top-level | Login + tenant switcher in top bar | SSO buttons + email/password fallback; tenant picker dropdown |
+| G-02 | Manage the platform's tenants and platform-administrator roster. | Auditable, explicit, hard-to-misuse | top-level | Dedicated platform-admin area, separate from tenant scope | List + detail with destructive-action confirmation typeahead |
+| G-03 | Manage tenant users, projects, and identity-provider settings. | Auditable, role-aware, low-friction | top-level | Tenant-scoped settings area in sidebar | User directory + invite modal; project list |
+| G-04 | Manage a project — its environments, members, and Git provider credentials. | Discoverable, role-aware, audit-clear | top-level | Project dashboard as landing surface (T-PRJ-01) | Summary cards for environments/applications + quick actions |
+| G-05 | Register and maintain applications within a project. | Low-friction, validated, visible Git status | top-level | Application list + detail in project scope | Wizard for registration; metadata form for edits |
+| G-06 | Build applications and watch builds in progress. | Real-time, transparent, troubleshootable | top-level | Build history list with detail/log drawer | Streaming log viewer + status badges |
+| G-07 | Deploy and operate instances across environments. | Confidence-building, reversible, fastest-to-reach | top-level | Environment overview with instance cards (T-INS-01) | Deploy/rollback dialogs; lifecycle action menus |
+| G-08 | Observe an instance — logs, metrics, and request/latency dashboards. | Real-time, filterable, comparable | top-level | Tab inside instance detail | Filterable log viewer; chart grid for metrics |
+| G-09 | Manage configuration values and secrets at environment and instance scope. | Predictable precedence, auditable, write-only secrets | top-level | Configuration tab with environment/instance toggles | Key-value editor; rotation flow |
+| G-10 | Provision and manage databases and object storage buckets. | Self-serve, isolation-aware, deletion-safe | top-level | Environment-scoped resource lists | Provision wizard; type-name-to-confirm delete |
+| G-11 | Link and unlink data resources to instances. | Predictable, visible-side-effects (restart), auditable | sub-level | Linked-resources panel on instance + drawer on resource | Picker scoped to same environment |
+| G-12 | Expose instances publicly via the API gateway and view their addresses. | Explicit, reversible, URL-clear | sub-level | Networking tab on instance | Toggle + URL display + port mapping editor |
+| G-13 | Back up data resources and restore from a backup point. | Predictable, recoverable, confirmation-gated | sub-level | Backups tab on each resource | Backup list; restore wizard with target selector |
+| G-14 | Audit operational activity across the system. | Immutable, searchable, scoped-by-permission | top-level | Audit page available at platform/tenant/project scopes | Faceted search + entry detail |
+| G-15 | Be notified of completion of asynchronous operations the user invoked. | Timely, low-noise, retained per NOT-03 | interaction-level | Notification tray in top bar | Toast + tray history list |
+| G-16 | View read-only project, environment, and observability state (Viewer). | Clear, comprehensive, no-mutation paths | top-level | Same surfaces as Operator with action affordances disabled | Same dashboards/lists with read-only badges |
 
 <!-- repeat per goal; IDs are stable and referenced from §4.2 stories and §5 task flows -->
 
@@ -527,7 +527,7 @@ classDiagram
 | Trigger | Platform Admin opens platform-admin roster. |
 | Steps | Grant: enter user email → confirm. Revoke: select admin → confirm. System enforces "last platform admin" invariant (PADM-08). |
 | Decision points | Revoke last admin → blocked. |
-| Exception paths | Granting to unknown email → user is created at system level on next login; warning shown. [AI-SUGGESTED: AI-070 | blocking] |
+| Exception paths | Granting to unknown email → user is created at system level on next login; warning shown. |
 | Role-conditional behaviour | Only Platform Admins. |
 
 ### Flow: Invite & assign user (tenant)
@@ -559,7 +559,7 @@ classDiagram
 | Actor | Project Administrator |
 | Trigger | Project dashboard → "Create environment". |
 | Steps | Enter display name and url_id → confirm. Environment becomes available. |
-| Decision points | Duplicate url_id within project → validation error; tenant environment limit reached (NFR-41) → soft warning [AI-SUGGESTED: AI-071 | non-blocking]. |
+| Decision points | Duplicate url_id within project → validation error; tenant environment limit reached (NFR-41) → soft warning. |
 | Exception paths | url_id violates pattern → validation error. |
 | Role-conditional behaviour | Project Admin (or Tenant Admin acting in project context). |
 
@@ -571,7 +571,7 @@ classDiagram
 | Trigger | Project settings → integrations. |
 | Steps | Choose provider (GitHub or BitBucket), provide credentials, validate, save as project-level secret (APP-02). |
 | Decision points | Validation against provider — succeed/fail. |
-| Exception paths | Validation failure → reason surfaced; credentials not stored on failure. [AI-SUGGESTED: AI-072 | blocking] |
+| Exception paths | Validation failure → reason surfaced; credentials not stored on failure. |
 | Role-conditional behaviour | Project Admin only. |
 
 ### Flow: Register application
@@ -614,7 +614,7 @@ classDiagram
 | Actor | Operator |
 | Trigger | Environment overview → "Add instance". |
 | Steps | 1) Pick application. 2) Set url_id (immutable) and resource profile. 3) Set replica count (1–10). 4) Optionally override health check path/port. 5) Optionally select build to deploy now. 6) Confirm. |
-| Decision points | If no build selected, instance is created without a current build and shown as `stopped` until first deploy. [AI-SUGGESTED: AI-073 | blocking] |
+| Decision points | If no build selected, instance is created without a current build and shown as `stopped` until first deploy. |
 | Exception paths | Duplicate url_id within env → validation error. |
 | Role-conditional behaviour | env_operator or higher. |
 
@@ -626,7 +626,7 @@ classDiagram
 | Trigger | Configuration → secret detail → "Rotate". |
 | Steps | 1) Provide new value. 2) Confirm. 3) New secret version stored; metadata recorded; instance restarts (CFG-03). |
 | Decision points | None. |
-| Exception paths | Encryption write fails → no version stored, error surfaced. [AI-SUGGESTED: AI-074 | non-blocking] |
+| Exception paths | Encryption write fails → no version stored, error surfaced. |
 | Role-conditional behaviour | env_operator or higher. |
 
 ### Flow: Link database to instance
@@ -637,7 +637,7 @@ classDiagram
 | Trigger | Instance → Linked Resources → "Link" or environment overview → resource drawer → "Link to instance". |
 | Steps | 1) Pick resource (database or bucket) within same environment. 2) Confirm. 3) Connection details auto-injected; instance restarts. |
 | Decision points | Cross-environment selection prevented (LNK-01). |
-| Exception paths | Resource not in `available` state → blocked. [AI-SUGGESTED: AI-075 | non-blocking] |
+| Exception paths | Resource not in `available` state → blocked. |
 | Role-conditional behaviour | env_operator or higher. |
 
 ### Flow: Expose instance publicly
@@ -660,7 +660,7 @@ classDiagram
 | Steps | 1) Choose target environment within the same project. 2) Confirm with explicit acknowledgement that target will be overwritten. 3) Restore runs. 4) Linked instances on target are restarted (NFR-64). |
 | Decision points | Target may be the same resource (overwrite) or a different resource within the same project. |
 | Exception paths | Restore fails → resource state retained; failure surfaced and audited (NFR-65). |
-| Role-conditional behaviour | env_operator or higher in source and target environments. [AI-SUGGESTED: AI-076 | blocking] |
+| Role-conditional behaviour | env_operator or higher in source and target environments. |
 
 ### Flow: Audit search
 
@@ -730,8 +730,8 @@ The portal must support the following functional capabilities, drawn directly fr
 | BR-20 | When any audited action occurs, then an immutable AuditEntry must be written with the fields specified in AUD-03. | service / data | AUD-01..AUD-05 | blocker |
 | BR-21 | When a tenant member with `is_active = false` attempts an action, then it must be blocked, but their attribution and audit history are preserved. | service | USR-05 | blocker |
 | BR-22 | When an instance has zero InstancePort records, then it must not be reachable from the public network. | service | NET-02 | blocker |
-| BR-23 [AI-SUGGESTED: AI-077 | blocking] | When the user types into a name-confirmation field for a destructive action, then the value must match exactly (case-sensitive); otherwise the action is blocked. | UI | PADM-06, DB-06, OBJ-02 | major |
-| BR-24 [AI-SUGGESTED: AI-105 | blocking] | When an authenticated session is idle past the idle timeout, then the user must be redirected to the login screen and a new authentication required (per §6.6.1 idle session timeout AI-081). | service / UI | AUTH-06 + §6.6.1 (inferred) | blocker |
+| BR-23 | When the user types into a name-confirmation field for a destructive action, then the value must match exactly (case-sensitive); otherwise the action is blocked. | UI | PADM-06, DB-06, OBJ-02 | major |
+| BR-24 | When an authenticated session is idle past the idle timeout (§6.6.1), then the user must be redirected to the login screen and a new authentication required. | service / UI | AUTH-06 + §6.6.1 | blocker |
 
 <!-- repeat per business rule; IDs are stable and may be referenced from §5 task flows (decision points) and §6.5 access control (action gating) -->
 
@@ -744,7 +744,7 @@ The portal must support the following functional capabilities, drawn directly fr
 - Logs are retained for 30 days; metrics for 90 days (OBS-13). Older data is purged automatically.
 - Backups follow a single platform-defined schedule: daily backups retained for 7 days; weekly backups retained for 30 days (NFR-61). RPO 24h / RTO 4h (NFR-66).
 - Build numbers are strictly increasing per application; container image tags use the Git commit SHA (BLD-03).
-- Mock-data note (prototype only): all data shown in the prototype must be realistic mock data, not lorem ipsum, and no backend is required (per `brief.md` constraints). [AI-SUGGESTED: AI-078 | non-blocking]
+- Mock-data note (prototype only): all data shown in the prototype must be realistic mock data, not lorem ipsum, and no backend is required (per `brief.md` constraints).
 
 ### 6.4 User-facing
 
@@ -759,7 +759,7 @@ The portal must support the following functional capabilities, drawn directly fr
 - Notifications: completion toasts and a tray history scoped per user, retained per NOT-03.
 - Browser support: modern evergreen browsers (Chrome, Firefox, Edge, Safari); desktop only — no mobile, no offline (NFR-04).
 - English only — no localisation in v1.
-- Read-only roles see all action affordances disabled rather than hidden, with hover/cursor cues. [AI-SUGGESTED: AI-079 | non-blocking]
+- Read-only roles see all action affordances disabled rather than hidden, with hover/cursor cues.
 
 ### 6.5 Access control (RBAC)
 
@@ -767,7 +767,7 @@ The portal must support the following functional capabilities, drawn directly fr
 
 **Action vocabulary:** `C` create · `R` read · `U` update · `D` delete · `X` execute / invoke · `A` approve · `—` no access. Suffix with a BR ref for conditional access (e.g. `U†BR-07` = update gated by BR-07).
 
-> Notes: `Platform Admin` operates at system scope and has no access to tenant-internal data. `Tenant Admin`, `Project Admin`, `Operator`, and `Viewer` all operate within a single tenant context. Project Admin and Operator scopes apply only to the projects/environments where the user holds the role; Viewer applies only where assigned. Role-prefix-to-scope rules from `domain-model-v1.md` §2.4 govern the matrix and are referenced by BR-17. The matrix below is the primary source of truth for portal action gating; cells were derived from the `requirements-v1.md` text and `user-tasks-v1.md` role assignments. [AI-SUGGESTED: AI-080 | blocking]
+> Notes: `Platform Admin` operates at system scope and has no access to tenant-internal data. `Tenant Admin`, `Project Admin`, `Operator`, and `Viewer` all operate within a single tenant context. Project Admin and Operator scopes apply only to the projects/environments where the user holds the role; Viewer applies only where assigned. Role-prefix-to-scope rules from `domain-model-v1.md` §2.4 govern the matrix and are referenced by BR-17. The matrix below is the primary source of truth for portal action gating; cells were derived from the `requirements-v1.md` text and `user-tasks-v1.md` role assignments.
 
 | Role (→ §3) | Tenant | Project | Environment | Application | Build | Instance | InstancePort | Database | Bucket | ResourceLink | Configuration (env) | Configuration (instance) | Secret | Backup | AuditEntry | TenantMembership | RoleAssignment | Invitation | Sign-in flow | Tenant lifecycle (PADM) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -785,12 +785,12 @@ The portal must support the following functional capabilities, drawn directly fr
 
 | Field | Value | Source |
 | --- | --- | --- |
-| Idle session timeout | 30 minutes [AI-SUGGESTED: AI-081 | blocking] | inferred — typical SaaS operator-portal default; balances NFR-04 desktop usage with NFR-12 isolation guarantees |
-| Absolute session timeout | 12 hours [AI-SUGGESTED: AI-082 | blocking] | inferred — long enough for an operator's working day, short enough to limit exposure of high-privilege roles |
-| Idle warning lead-time | 60 seconds [AI-SUGGESTED: AI-083 | blocking] | inferred |
-| Re-auth scope | Step-up re-authentication required for: granting/revoking platform admin (PADM-08), deleting a tenant (PADM-06), deleting a project (PRJ-07), deleting a database or bucket (DB-06, OBJ-02), and rotating tenant identity-provider settings (TEN-07). [AI-SUGGESTED: AI-084 | blocking] | inferred from rubric: high-impact destructive or privilege-elevating actions |
-| Account lockout policy | 10 failed login attempts in 15 minutes triggers a 15-minute cooldown lockout; lockout events are audited (AUTH-05). [AI-SUGGESTED: AI-085 | blocking] | inferred |
-| MFA requirement | MFA delegated to the configured identity provider (Google / Microsoft / OIDC). For email/password (when enabled), MFA is required for Platform Admins and Tenant Admins; optional but recommended for Project Admins and Operators; not required for Viewers. [AI-SUGGESTED: AI-086 | blocking] | inferred — platform/tenant admins carry the highest blast radius |
+| Idle session timeout | 30 minutes | inferred — typical SaaS operator-portal default; balances NFR-04 desktop usage with NFR-12 isolation guarantees |
+| Absolute session timeout | 12 hours | inferred — long enough for an operator's working day, short enough to limit exposure of high-privilege roles |
+| Idle warning lead-time | 60 seconds | inferred |
+| Re-auth scope | Step-up re-authentication required for: granting/revoking platform admin (PADM-08), deleting a tenant (PADM-06), deleting a project (PRJ-07), deleting a database or bucket (DB-06, OBJ-02), and rotating tenant identity-provider settings (TEN-07). | inferred from rubric: high-impact destructive or privilege-elevating actions |
+| Account lockout policy | 10 failed login attempts in 15 minutes triggers a 15-minute cooldown lockout; lockout events are audited (AUTH-05). | inferred |
+| MFA requirement | MFA delegated to the configured identity provider (Google / Microsoft / OIDC). For email/password (when enabled), MFA is required for Platform Admins and Tenant Admins; optional but recommended for Project Admins and Operators; not required for Viewers. | inferred — platform/tenant admins carry the highest blast radius |
 
 #### 6.6.2 Performance
 
@@ -798,27 +798,27 @@ The portal must support the following functional capabilities, drawn directly fr
 | --- | --- | --- |
 | Portal UI response under normal load | ≤ 2 seconds | stated (NFR-30) |
 | Log/metrics queries (last 24h) | ≤ 5 seconds | stated (NFR-31) |
-| Project dashboard p95 TTI (PRJ-08) | ≤ 2 seconds [AI-SUGGESTED: AI-087 | non-blocking] | inferred (specialisation of NFR-30 to the most frequent surface) |
-| Streaming log latency (display behind producer) | ≤ 3 seconds [AI-SUGGESTED: AI-088 | non-blocking] | inferred |
+| Project dashboard p95 TTI (PRJ-08) | ≤ 2 seconds | inferred (specialisation of NFR-30 to the most frequent surface) |
+| Streaming log latency (display behind producer) | ≤ 3 seconds | inferred |
 
 #### 6.6.3 Availability
 
 | Field | Value | Source |
 | --- | --- | --- |
-| Target uptime | 99.9% (≈ 8.8h/yr unplanned downtime) [AI-SUGGESTED: AI-089 | blocking] | inferred — typical SaaS operator-portal target consistent with NFR-20 (HA, no SPOF) |
-| Maintenance window | Outside business hours of the consulting tenant; scheduled, with advance notice; portal downtime does not affect running applications (NFR-21). [AI-SUGGESTED: AI-090 | blocking] | inferred |
+| Target uptime | 99.9% (≈ 8.8h/yr unplanned downtime) | inferred — typical SaaS operator-portal target consistent with NFR-20 (HA, no SPOF) |
+| Maintenance window | Outside business hours of the consulting tenant; scheduled, with advance notice; portal downtime does not affect running applications (NFR-21). | inferred |
 | RTO / RPO | 4 hours / 24 hours | stated (NFR-66) |
 
 #### 6.6.4 Compliance & audit
 
-- No specific regulatory regime is in scope for v1 of the prototype; the portal must be designed so that future PCI-DSS / GDPR / POPIA scoping (e.g. for a tenant in scope) is feasible without a re-architecture, primarily through tenant isolation (TEN-01..TEN-04) and audit immutability (AUD-05). [AI-SUGGESTED: AI-091 | blocking]
+- No specific regulatory regime is in scope for v1 of the prototype; the portal must be designed so that future PCI-DSS / GDPR / POPIA scoping (e.g. for a tenant in scope) is feasible without a re-architecture, primarily through tenant isolation (TEN-01..TEN-04) and audit immutability (AUD-05).
 - Audit-log retention: ≥ 1 year, archive to cold storage permitted but archived entries remain retrievable (AUD-06).
-- Data residency: not specified in inputs; for the prototype, treat as single-region. [AI-SUGGESTED: AI-092 | blocking]
+- Data residency: not specified in inputs; for the prototype, treat as single-region.
 
 #### 6.6.5 Accessibility
 
-- Target: WCAG 2.2 AA for the prototype's primary operator surfaces (project dashboard, environment overview, instance detail, logs/metrics, configuration), with full coverage planned for the productionised release. Assistive-tech scope: keyboard navigation and screen-reader labelling for all interactive elements (tables, buttons, modals, toasts). [AI-SUGGESTED: AI-093 | blocking]
-- Colour contrast must meet WCAG 2.2 AA against the supplied tokens; status colours (`success`, `warning`, `danger`) must always pair with text or icon to avoid colour-only signalling. [AI-SUGGESTED: AI-094 | non-blocking]
+- Target: WCAG 2.2 AA for the prototype's primary operator surfaces (project dashboard, environment overview, instance detail, logs/metrics, configuration), with full coverage planned for the productionised release. Assistive-tech scope: keyboard navigation and screen-reader labelling for all interactive elements (tables, buttons, modals, toasts).
+- Colour contrast must meet WCAG 2.2 AA against the supplied tokens; status colours (`success`, `warning`, `danger`) must always pair with text or icon to avoid colour-only signalling.
 
 ---
 
@@ -838,7 +838,7 @@ The portal must support the following functional capabilities, drawn directly fr
 
 **Domain concept:** User
 
-**Relationships:** User 1..* TenantMembership; User 0..* Notification (per NOT-03). [AI-SUGGESTED: AI-095 | non-blocking]
+**Relationships:** User 1..* TenantMembership; User 0..* Notification (per NOT-03).
 
 **Enums:** —
 
@@ -847,7 +847,7 @@ The portal must support the following functional capabilities, drawn directly fr
 | Field | Type | Required | Validation | Notes |
 | --- | --- | --- | --- | --- |
 | id | UUID | yes | PK | — |
-| url_id | String | yes | Unique system-wide, immutable, regex `^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$` [AI-SUGGESTED: AI-096 | non-blocking] | Naming Convention |
+| url_id | String | yes | Unique system-wide, immutable, regex `^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$` | Naming Convention |
 | display_name | String | yes | Non-empty | TEN-07 |
 | status | Enum(`active`,`suspended`) | yes | Default `active` | PADM-05 |
 | identity_providers | List<String> | yes | Non-empty; values in {`google`,`microsoft`,`oidc`,`email_password`}; `email_password` removable only if at least one SSO provider remains | AUTH-04, TEN-07 |
@@ -1176,19 +1176,19 @@ The portal must support the following functional capabilities, drawn directly fr
 | --- | --- | --- | --- | --- |
 | id | UUID | yes | PK | — |
 | user_id | UUID | yes | FK → User | NOT-01 |
-| tenant_id | UUID | yes | FK → Tenant (scope of notification) [AI-SUGGESTED: AI-097 | non-blocking] | NOT-01 |
+| tenant_id | UUID | yes | FK → Tenant (scope of notification) | NOT-01 |
 | event_type | Enum(`build.completed`,`deployment.completed`,`resource.provisioned`) | yes | Maps to NOT-02 | NOT-02 |
 | target_resource_type | String | yes | — | NOT-02 |
 | target_resource_id | UUID | yes | — | NOT-02 |
 | outcome | Enum(`succeeded`,`failed`,`cancelled`,`rolled_back`) | yes | — | NOT-02 |
 | created_at | Timestamp | yes | — | NOT-03 |
-| seen_at | Timestamp | no | — | [AI-SUGGESTED: AI-098 | non-blocking] |
+| seen_at | Timestamp | no | — | |
 
 **Domain concept:** Notification
 
 **Relationships:** Notification *..1 User.
 
-**Enums:** Mixed event/outcome enums above. [AI-SUGGESTED: AI-099 | non-blocking]
+**Enums:** Mixed event/outcome enums above.
 
 ---
 
@@ -1199,7 +1199,7 @@ The portal must support the following functional capabilities, drawn directly fr
 | AWS Console | (referenced) | Cited in `brief.md` as a layout precedent — top bar, persistent left sidebar, main content area. |
 | Azure Portal | (referenced) | Cited in `brief.md` as a layout precedent. |
 | Vercel | (referenced) | Cited in `brief.md` as a layout precedent — clean enterprise SaaS feel. |
-| (No screenshots / wireframes supplied) | — | The brief contains no consultant-supplied screenshots, mock-ups, or links to existing tools. UI structure must be proposed within the constraints of `brief.md` (design system, layout, density). [AI-SUGGESTED: AI-100 | non-blocking] |
+| (No screenshots / wireframes supplied) | — | The brief contains no consultant-supplied screenshots, mock-ups, or links to existing tools. UI structure must be proposed within the constraints of `brief.md` (design system, layout, density). |
 
 <!-- consultant-supplied screenshots, wireframes, existing-tool screens -->
 
@@ -1248,11 +1248,11 @@ The portal must support the following functional capabilities, drawn directly fr
 | Audit retention | ≥ 1 year (cold archive permitted) | stated (AUD-06) |
 | Notifications per user | last 50 or 30 days, whichever smaller | stated (NOT-03) |
 | Backup retention | 7 days daily / 30 days weekly | stated (NFR-61) |
-| Concurrent portal users (prototype demo) | ≈ 10 stakeholders concurrently in demo sessions | inferred [AI-SUGGESTED: AI-101 | non-blocking] |
-| Steady-state operators per tenant | ≈ 5–25 across roles | inferred from "consulting company / project teams" framing [AI-SUGGESTED: AI-102 | non-blocking] |
-| Applications per project | ≈ 1–20 | inferred [AI-SUGGESTED: AI-103 | non-blocking] |
-| Builds per application per day | ≈ 0–10 | inferred [AI-SUGGESTED: AI-104 | non-blocking] |
+| Concurrent portal users (prototype demo) | ≈ 10 stakeholders concurrently in demo sessions | inferred |
+| Steady-state operators per tenant | ≈ 5–25 across roles | inferred from "consulting company / project teams" framing |
+| Applications per project | ≈ 1–20 | inferred |
+| Builds per application per day | ≈ 0–10 | inferred |
 
-<!-- volumes are commonly absent in client briefs — flag [AI-SUGGESTED] when inferred from domain heuristics -->
+<!-- volumes are derived from inputs where stated and from domain heuristics where inferred -->
 
 ---

@@ -51,20 +51,42 @@ If there are zero `blocking` items, the agent skips Phase 1 and auto-launches di
 
 ## Progress indicator
 
-Every question (Phase 1) and every batch (Phase 2) presented to the consultant **must** carry a progress indicator showing completed and remaining counts, prefixed to the question or batch text. The indicator covers all `[AI-SUGGESTED]` IDs found in the draft, not just the current phase or batch. Format:
+Every question (Phase 1) and every batch (Phase 2) presented to the consultant **must** open with a two-line counter, followed by a blank line, the question or batch text on its own line(s), and the `AskUserQuestion` answer-selection block. The counters are split by classification and cover all `[AI-SUGGESTED]` IDs found in the draft (not just the current phase or batch). Format:
 
-`[<answered>/<total> — <remaining> remaining | phase <n>/2: <phase-name>] <question or batch text>`
+```
+Blocking issues: <blocking-resolved>/<blocking-total>
+Non-blocking issues: <non-blocking-resolved>/<non-blocking-total>
 
-- `<total>` is the count of unique AI-SUGGESTED IDs enumerated from the draft (the denominator is fixed at the start of the run).
-- `<answered>` is the count of items already captured in `requirements/consultant-answers.md` for this run, **excluding** the item or batch currently being asked.
-- `<remaining>` is `<total> - <answered> - <items-in-current-question-or-batch>` (everything still un-captured beyond the current question or batch).
-- `<phase-name>` is `blocking — Level 1 (one-by-one)` or `non-blocking — Level 2 (grouped, ≤10 per batch)`.
+<question or batch text>
+```
+
+The answer selection block (numbered options + free-text "Other") is rendered by `AskUserQuestion` immediately below the question text and is not part of the counter prefix.
+
+- `<blocking-total>` is the number of `[AI-SUGGESTED]` items in the draft whose classification is `blocking` (denominator fixed at the start of the run).
+- `<non-blocking-total>` is the number of `[AI-SUGGESTED]` items in the draft whose classification is `non-blocking` (denominator fixed at the start of the run).
+- `<blocking-resolved>` is the count of `blocking` items already captured in `requirements/consultant-answers.md` for this run, **excluding** the item or batch currently being asked. The same rule applies to `<non-blocking-resolved>` for the non-blocking set.
+- An item that was escalated `non-blocking → blocking` mid-run is counted against the **revised** classification — it leaves the non-blocking total/resolved bookkeeping and joins the blocking bookkeeping at the moment of escalation.
+- For follow-up questions on an item or batch that is not yet captured, hold both counters at the same `resolved` values — follow-ups do not advance either counter.
 
 Examples:
-- Phase 1, first question of an 87-item run with 12 blocking items: `[0/87 — 86 remaining | phase 1/2: blocking — Level 1 (one-by-one)] AI-064 — MFA requirement. …` (one item in the current question).
-- Phase 2, a batch of 7 items from `### NFR Performance`: `[12/87 — 68 remaining | phase 2/2: non-blocking — Level 2 (grouped, ≤10 per batch)] Section "NFR Performance" — 7 items …` (seven items in the current batch).
 
-For follow-up questions on an already-counted item (Phase 1) or batch (Phase 2), hold the indicator at the same `<answered>` value (the item/batch is not yet captured) and keep `<remaining>` unchanged — follow-ups do not advance the counter.
+Phase 1, first question of a run with 12 blocking and 75 non-blocking items:
+
+```
+Blocking issues: 0/12
+Non-blocking issues: 0/75
+
+AI-064 — MFA requirement. …
+```
+
+Phase 2, a batch of 7 items from `### NFR Performance` (all 12 blocking already captured, 5 non-blocking captured before this batch):
+
+```
+Blocking issues: 12/12
+Non-blocking issues: 5/75
+
+Section "NFR Performance" — 7 items …
+```
 
 ## Responsibilities
 

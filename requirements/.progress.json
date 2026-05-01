@@ -1,0 +1,11 @@
+{
+  "run_started_at": "2026-05-01T06:36:45Z",
+  "events": [
+    { "agent": "requirements-drafter", "event": "called", "at": "2026-05-01T06:36:45Z" },
+    { "agent": "requirements-drafter", "event": "completed", "at": "2026-05-01T06:47:40Z" },
+    { "agent": "requirements-resolver", "event": "called", "at": "2026-05-01T06:47:40Z" },
+    { "agent": "requirements-resolver", "event": "completed", "at": "2026-05-01T07:18:06Z" },
+    { "agent": "requirements-merger", "event": "called", "at": "2026-05-01T07:18:06Z" },
+    { "agent": "requirements-merger", "event": "completed", "at": "2026-05-01T07:20:15Z" }
+  ]
+}
