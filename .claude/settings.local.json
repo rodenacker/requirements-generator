@@ -22,7 +22,9 @@
       "Bash(echo \"exit=$? size=$\\(wc -c < tiny10.svg || echo none\\)\")",
       "Bash(npx -y -p @mermaid-js/mermaid-cli@9 mmdc -i tiny.mmd -o tiny9.svg)",
       "Bash(echo \"exit=$? size=$\\(wc -c < tiny9.svg || echo none\\)\")",
-      "Bash(npx *)"
+      "Bash(npx *)",
+      "Bash(mkdir -p framework/state)",
+      "Bash(git mv *)"
     ]
   }
 }

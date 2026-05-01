@@ -22,7 +22,7 @@ Run the three requirements agents in the prescribed order, gating each transitio
 
 ## Progress file
 
-- **Path:** `requirements/.progress.json`
+- **Path:** `framework/state/.progress.json`
 - **Shape:**
 
     ```json
@@ -60,12 +60,12 @@ Each step is strictly sequential. Do not start a step until the previous step ha
 
 Run this once, at the very start of every invocation, before Step 1.
 
-1. **Inspect state.** Read `requirements/.progress.json` if it exists, and check for the existence of each of:
+1. **Inspect state.** Read `framework/state/.progress.json` if it exists, and check for the existence of each of:
     - `requirements/requirements-draft.md`
     - `requirements/consultant-answers.md`
     - `requirements/requirements.md`
 2. **Classify.**
-    - **No progress detected** — `requirements/.progress.json` is absent or has an empty `events` array, **and** none of the three artefacts above exists.
+    - **No progress detected** — `framework/state/.progress.json` is absent or has an empty `events` array, **and** none of the three artefacts above exists.
     - **Some progress detected** — anything else (any event present, any artefact present, or both).
 3. **Prompt the consultant.** Use `AskUserQuestion` with the appropriate choice set:
     - **No progress detected** — present a single-option prompt: `{ start-fresh }`. State plainly that no prior progress was found and a fresh run will begin.
@@ -81,11 +81,11 @@ This procedure runs **only** when the consultant chose `start-fresh` **and** som
 
 Perform the steps in this order. If any step fails, stop and surface the failure to the consultant; do not proceed to the next step.
 
-1. **Git commit.** Stage and commit any current state of `requirements/` so the prior run is preserved in history before deletion.
-    - `git add requirements/`
+1. **Git commit.** Stage and commit any current state of `requirements/` and `framework/state/.progress.json` so the prior run is preserved in history before deletion.
+    - `git add requirements/ framework/state/.progress.json`
     - `git commit -m "checkpoint: prior requirements run before reset"` (use `--allow-empty` only if there are no staged changes, so the checkpoint marker exists in history regardless).
     - Do not push, do not amend, do not bypass hooks.
-2. **Reset the progress file.** Overwrite `requirements/.progress.json` with an empty events array:
+2. **Reset the progress file.** Overwrite `framework/state/.progress.json` with an empty events array:
 
     ```json
     { "run_started_at": "<new ISO-8601 UTC>", "events": [] }
@@ -97,6 +97,12 @@ Perform the steps in this order. If any step fails, stop and surface the failure
     - `requirements/requirements.md`
 
    Do not delete anything else under `requirements/` — only the three artefacts produced by the pipeline. Leave the (now-empty) progress file in place.
+
+4. **Delete agent working-state sidecars.** Delete each of the following files under `framework/state/` if it exists, so stale resume state does not survive the reset:
+    - `framework/state/resolver-manifest.json`
+    - `framework/state/resolver-answers.json`
+
+   Do not delete anything else under `framework/state/` — only the named sidecars and (separately, in step 2) the progress file overwrite.
 
 After the reset completes, the pipeline starts cleanly at Step 1.
 
@@ -113,19 +119,19 @@ If a gate is not met, do not advance and do not write a `completed` event. Surfa
 - `framework/agents/requirements-drafter.md`
 - `framework/agents/requirements-resolver.md`
 - `framework/agents/requirements-merger.md`
-- `requirements/.progress.json` (read at startup, written by this orchestrator across the run)
+- `framework/state/.progress.json` (read at startup, written by this orchestrator across the run)
 
 ## Output
 
 - `requirements/requirements.md` — produced by the merger at the end of step 3.
-- `requirements/.progress.json` — written by the orchestrator across the run. The orchestrator produces no other artefact.
+- `framework/state/.progress.json` — written by the orchestrator across the run. The orchestrator produces no other artefact.
 
 ## Tools
 
-- Read — read `requirements/.progress.json` at startup and check for the existence of the three generated artefacts.
-- Write — create `requirements/.progress.json` on first run and overwrite it during a start-fresh reset.
-- Edit — append `called` and `completed` events to `requirements/.progress.json` as the pipeline progresses.
-- Bash — run `git add` / `git commit` during the start-fresh reset, and delete the three generated artefacts. Never use destructive operations beyond the three explicitly named files. Never push or skip hooks.
+- Read — read `framework/state/.progress.json` at startup and check for the existence of the three generated artefacts.
+- Write — create `framework/state/.progress.json` on first run and overwrite it during a start-fresh reset.
+- Edit — append `called` and `completed` events to `framework/state/.progress.json` as the pipeline progresses.
+- Bash — run `git add` / `git commit` during the start-fresh reset, and delete the three generated artefacts plus the two resolver working-state sidecars (`framework/state/resolver-manifest.json`, `framework/state/resolver-answers.json`). Never use destructive operations beyond those five explicitly named files. Never push or skip hooks.
 - AskUserQuestion — prompt the consultant at startup with the `{ start-fresh }` or `{ continue, start-fresh }` choice set.
 
 The orchestrator's tools are limited to the operations above. Every other read or write of requirements content belongs to the invoked agent; each agent uses the tools listed in its own agent file.
@@ -134,7 +140,7 @@ The orchestrator's tools are limited to the operations above. Every other read o
 
 - Step 0 (detect prior progress) ran and the consultant's choice was honoured (continued from the correct resume point, or reset cleanly).
 - Steps 1, 2, and 3 each completed in order, with their respective handback gate met.
-- For each agent that ran in this invocation, `requirements/.progress.json` contains both a `called` event and a `completed` event in that order, with the `completed` event written only after the gate was met.
+- For each agent that ran in this invocation, `framework/state/.progress.json` contains both a `called` event and a `completed` event in that order, with the `completed` event written only after the gate was met.
 - For each agent whose work was reused via `continue`, the prior `completed` event was preserved untouched and the agent was not re-invoked.
 - `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, and `requirements/requirements.md` all exist.
 - `requirements/requirements.md` contains zero `[AI-SUGGESTED]` markers.
@@ -143,14 +149,14 @@ The orchestrator's tools are limited to the operations above. Every other read o
 
 - All three agents have run (in this invocation, in a prior invocation that the consultant chose to continue, or some combination of the two), in order, each handing control back at its gate.
 - `requirements/requirements.md` exists and has been accepted by the consultant.
-- `requirements/.progress.json` records a `completed` event for every agent whose artefact is present.
+- `framework/state/.progress.json` records a `completed` event for every agent whose artefact is present.
 
 ## Anti-Patterns
 
 - Do not perform any task other than the steps listed above.
 - Do not skip, reorder, parallelise, or merge the three pipeline steps.
 - Do not advance past a gate that has not been met.
-- Do not read, write, or edit any requirements artefact directly during the pipeline — every read/write of `requirements-draft.md`, `consultant-answers.md`, and `requirements.md` belongs to the invoked agent. The orchestrator's only direct writes are to `requirements/.progress.json` and (during a start-fresh reset) the deletion of the three named generated artefacts.
+- Do not read, write, or edit any requirements artefact directly during the pipeline — every read/write of `requirements-draft.md`, `consultant-answers.md`, and `requirements.md` belongs to the invoked agent. The orchestrator's only direct writes are to `framework/state/.progress.json` and (during a start-fresh reset) the deletion of the three named generated artefacts plus the two resolver working-state sidecars under `framework/state/`.
 - Do not call any skill, asset, or tool not invoked transitively by the three named agents or listed in this orchestrator's **Tools** section.
 - Do not loop back to an earlier agent unless its gate explicitly fails — handback is one-way per run.
 - Do not run any of the three agents as a background / sub / async agent. Each agent must run in the foreground in the same thread as the orchestrator so consultant Q&A and acceptance happen in-thread. Off-thread delegation (Agent tool, Task tool, fork, etc.) is forbidden for these agents.
