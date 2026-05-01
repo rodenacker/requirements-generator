@@ -3,7 +3,26 @@
     "allow": [
       "Bash(awk '$1 > 1')",
       "Bash(awk -F' \\\\\\\\| ' '{print $2, $1}')",
-      "Bash(grep *)"
+      "Bash(grep *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "WebSearch",
+      "WebFetch(domain:mermaid.js.org)",
+      "Bash(npx --version)",
+      "Read(//e/tmp/**)",
+      "Bash(npx -y -p @mermaid-js/mermaid-cli@latest mmdc -i diagram.mmd -o diagram.svg)",
+      "Read(//tmp/**)",
+      "Bash(npx -y -p @mermaid-js/mermaid-cli@latest mmdc -i diagram.mmd -o diagram.svg --verbose)",
+      "Bash(npx -y -p @mermaid-js/mermaid-cli@latest mmdc -i diagram.mmd -o diagram2.svg)",
+      "Bash(echo \"---exit: $?---\")",
+      "Bash(awk *)",
+      "Bash(npx -y -p @mermaid-js/mermaid-cli@11 mmdc -i tiny.mmd -o tiny11.svg)",
+      "Bash(echo \"exit=$? size=$\\(wc -c < tiny11.svg || echo none\\)\")",
+      "Bash(npx -y -p @mermaid-js/mermaid-cli@10 mmdc -i tiny.mmd -o tiny10.svg)",
+      "Bash(echo \"exit=$? size=$\\(wc -c < tiny10.svg || echo none\\)\")",
+      "Bash(npx -y -p @mermaid-js/mermaid-cli@9 mmdc -i tiny.mmd -o tiny9.svg)",
+      "Bash(echo \"exit=$? size=$\\(wc -c < tiny9.svg || echo none\\)\")",
+      "Bash(npx *)"
     ]
   }
 }

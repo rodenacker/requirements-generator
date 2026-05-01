@@ -17,6 +17,7 @@ Turn unstructured input documents into a structured, **self-contained** requirem
 5. For any value not directly supported by the inputs, infer the most likely value from domain knowledge and flag it `[AI-SUGGESTED: AI-NNN | blocking]` or `[AI-SUGGESTED: AI-NNN | non-blocking]` per the **Classification** section. IDs are unique within the draft.
 6. Author §2.4 as an inline Mermaid block per the **Domain-model diagram** section.
 7. Run **Self-validation**; fix and re-run until it passes; Write the draft.
+8. Run the `framework/skills/mermaid-validator.md` skill against the written draft to confirm the §2.4 Mermaid block parses and renders. If validation fails, edit the diagram in place, re-run **Self-validation**, and re-validate; loop until the validator passes. This step must complete cleanly **before** the draft is considered done — i.e., before the orchestrator's handback gate can present it to the consultant for acceptance.
 
 If any single input exceeds ~30k tokens, segment it section-by-section but still read each segment only once.
 
@@ -63,12 +64,13 @@ erDiagram
     }
 ```
 
-Do not invoke any external Mermaid preview/save tools; the diagram is emitted inline in the markdown.
+Do not save the rendered SVG into the requirements artefact and do not present a preview of the diagram to the consultant; the diagram is emitted inline in the markdown. The `mermaid-validator` skill — which runs `mmdc` against the written draft to a throw-away SVG purely to verify syntax — is required (see **Workflow** step 8) and is the only permitted use of an external Mermaid renderer.
 
 ## Inputs
 
 - All readable documents in `input/`.
 - `framework/assets/template-requirements.md` — the canonical structure to populate.
+- `framework/skills/mermaid-validator.md` — the validator skill invoked at **Workflow** step 8 to confirm the §2.4 Mermaid block parses and renders.
 
 ## Output
 
@@ -80,6 +82,8 @@ Do not invoke any external Mermaid preview/save tools; the diagram is emitted in
 - Read — read inputs and the template.
 - Grep — cross-check the populated draft.
 - Write — emit the final document.
+- Edit — fix the §2.4 Mermaid block in place when the validator at **Workflow** step 8 reports an error, so the rest of the draft does not need to be rewritten.
+- Bash — invoke `mmdc` per the `mermaid-validator` skill at **Workflow** step 8. No other Bash usage is permitted.
 
 ## Self-validation (run before writing the file)
 
@@ -87,7 +91,7 @@ If any check fails, fix the draft and re-run.
 
 - Template structure preserved; no `{{placeholders}}` remain; every field populated.
 - Every value not directly supported by the inputs carries an `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` marker — exactly one classification, drawn from `{blocking, non-blocking}`, with a unique AI-NNN ID.
-- §2.4 contains a non-stub Mermaid block (`classDiagram` or `erDiagram`) with valid syntax.
+- §2.4 contains a non-stub Mermaid block (`classDiagram` or `erDiagram`) with valid syntax that passes the `mermaid-validator` skill (mmdc exit 0, no parse errors). The validator runs at **Workflow** step 8 against the written draft; this self-validation bullet is the in-spec acceptance criterion that step 8 satisfies.
 - The draft is self-contained: no field defers to an input by reference (e.g., "see `requirements-v1.md` §3"). Provenance citations ("Source: stated") are allowed; replacement-by-reference is not.
 - No two fields contradict each other; no field is ambiguous or incoherent in context.
 
@@ -95,6 +99,7 @@ If any check fails, fix the draft and re-run.
 
 - `requirements/requirements-draft.md` exists and reflects the inputs accurately, with conflicts reconciled.
 - All self-validation checks pass.
+- The `mermaid-validator` skill has been run against the written draft (per **Workflow** step 8) and reports the §2.4 Mermaid block as valid.
 
 ## Anti-Patterns
 
@@ -102,3 +107,4 @@ If any check fails, fix the draft and re-run.
 - Do not leave fields blank — when inputs are silent, infer and mark `[AI-SUGGESTED]`.
 - Do not classify by default; apply the **Classification** rubric, and use the tie-breaker (**blocking**) when uncertain.
 - Do not use any assets, skills, or tools not explicitly listed in this document.
+- Do not skip **Workflow** step 8 (`mermaid-validator`) under any circumstance, and do not declare the draft complete while the validator is failing. Edit the §2.4 Mermaid block and re-validate until it passes.
