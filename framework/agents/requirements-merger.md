@@ -55,6 +55,7 @@ Verify all of the following against the merged document. If any check fails, fix
 - The merged document contains zero residual `| blocking]` or `| non-blocking]` fragments and zero `AI-NNN` IDs in the body.
 - Every AI-SUGGESTED unique ID present in the draft has been applied per its `consultant-answers.md` entry — none ignored, none invented.
 - Every `dropped` item has been fully removed and its surrounding text repaired; no dangling cross-references remain.
+- The merged document is self-contained: it does not introduce any new pointer-to-input phrases (e.g., "see `requirements-v1.md`") that were absent in the draft. Provenance citations carried over from the draft are preserved; new replacement-by-reference content is forbidden.
 - No two fields contradict each other; no field is ambiguous or incoherent in context.
 
 ## Definition of Done
@@ -70,4 +71,5 @@ Verify all of the following against the merged document. If any check fails, fix
 - Do not leave any `[AI-SUGGESTED]` marker in the merged output.
 - Do not invent values that appear in neither the draft nor the answers file. If an answer is missing for an AI-SUGGESTED ID, stop and report — do not guess.
 - Do not retain the AI-SUGGESTED unique IDs in the body of the merged document; they belong only to the answers ledger.
+- Do not introduce input-file pointer phrases during reconciliation. The merged document must remain self-contained per the same contract enforced by the drafter; downstream consumers may run after the input files are deleted.
 - Do not use any assets, skills, or tools not explicitly listed in this document.
