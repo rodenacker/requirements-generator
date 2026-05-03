@@ -57,7 +57,7 @@ To avoid re-reading the 1,000+-line draft on every turn, the resolver maintains 
 
     Updated via Write of the full file after each Phase 1 resolution and after each Phase 2 batch. This is the durability anchor: an interrupted session can resume from this file plus the manifest without re-asking already-resolved items.
 
-The canonical `requirements/consultant-answers.md` is **rendered from `resolver-answers.json`** via a single `Write` at end of Phase 1, end of Phase 2, and on self-validation completion. It is not edited per item.
+The canonical `requirements/consultant-answers.md` is **rendered from `resolver-answers.json`** via a single `Write` once self-validation passes. It is not edited per item, and it is not re-rendered at intermediate phase boundaries — `resolver-answers.json` is the durability anchor during the run, and the orchestrator's handback gate only requires `consultant-answers.md` to exist at the end.
 
 ## Reading and revising classification
 
@@ -138,9 +138,9 @@ Section "NFR Performance" — 7 items …
 The Q&A modes section is the spec. This list is the runnable checklist:
 
 1. On first turn, load supporting files once and build the manifest from the draft.
-2. Run Phase 1 (blocking, one-by-one). Append each resolution to `resolver-answers.json`. At Phase 1 close, render `requirements/consultant-answers.md`.
-3. Run Phase 2 (non-blocking, grouped batches ≤10 by section). Append each batch's resolutions to `resolver-answers.json`. At Phase 2 close, re-render `requirements/consultant-answers.md`.
-4. Run self-validation; on pass, render `requirements/consultant-answers.md` once more.
+2. Run Phase 1 (blocking, one-by-one). Append each resolution to `resolver-answers.json`. Do not render `requirements/consultant-answers.md` at Phase 1 close — the JSON is the working durability anchor.
+3. Run Phase 2 (non-blocking, grouped batches ≤10 by section). Append each batch's resolutions to `resolver-answers.json`. Do not render `requirements/consultant-answers.md` at Phase 2 close.
+4. Run self-validation; on pass, render `requirements/consultant-answers.md` from `resolver-answers.json` via a single `Write`. This is the only render of the markdown file in the run.
 5. Do not modify `requirements/requirements-draft.md`. Reconciliation is a downstream step.
 
 ## Inputs
@@ -153,7 +153,7 @@ The Q&A modes section is the spec. This list is the runnable checklist:
 
 ## Output
 
-- `requirements/consultant-answers.md` — captured answers, one entry per AI-SUGGESTED ID. Rendered from `resolver-answers.json` at end of Phase 1, end of Phase 2, and on self-validation. Entry shape:
+- `requirements/consultant-answers.md` — captured answers, one entry per AI-SUGGESTED ID. Rendered from `resolver-answers.json` once, after self-validation passes. Entry shape:
 
     ```
     ### {{AI-SUGGESTED-ID}}
@@ -176,13 +176,13 @@ Working-state files (`framework/state/resolver-manifest.json`, `framework/state/
 - **AskUserQuestion** — the question tool.
     - Phase 1: one focused question + `{confirm, correct, drop, accept-all-remaining-blocking}` + free-text.
     - Phase 2: one section-batch (≤10 items) + `{accept-all-in-batch, review-individually, drop-all-in-batch, accept-all-remaining-non-blocking}` + free-text for per-AI-NNN exceptions.
-- **Write** — write/overwrite `framework/state/resolver-manifest.json` (first turn), `framework/state/resolver-answers.json` (after each Phase 1 resolution and each Phase 2 batch), and `requirements/consultant-answers.md` (at phase boundaries and on self-validation). Do not Edit `consultant-answers.md` per item.
+- **Write** — write/overwrite `framework/state/resolver-manifest.json` (first turn), `framework/state/resolver-answers.json` (after each Phase 1 resolution and each Phase 2 batch), and `requirements/consultant-answers.md` (once, after self-validation passes). Do not Edit `consultant-answers.md` per item, and do not render it at intermediate phase boundaries.
 
 ## Self-validation (run before declaring done)
 
 Verify all of the following. On any failure, return to Q&A and resolve the gap.
 
-- Every `[AI-SUGGESTED]` ID present in `requirements/requirements-draft.md` has exactly one entry in `resolver-answers.json` and in the rendered `requirements/consultant-answers.md`.
+- Every `[AI-SUGGESTED]` ID present in `requirements/requirements-draft.md` has exactly one entry in `resolver-answers.json`. (The markdown rendering at `requirements/consultant-answers.md` is produced mechanically from this file in step 4 and inherits the same coverage.)
 - Every entry has all required fields: `Source location`, `Original suggestion`, `Initial classification` matching the draft, `Revised classification` (`unchanged` or `blocking` with reason), `Status` (one of `confirmed | corrected | dropped | accepted-as-is`), `Consultant answer`, `Follow-ups`, and `Resolved value` (populated unless status is `dropped`).
 - Every `blocking` item (initial or revised) was answered individually in Phase 1; `accepted-as-is` is permitted for a blocking item only via explicit `accept-all-remaining-blocking` in Phase 1.
 - Phase order held: no `non-blocking` item was asked before Phase 1 closed.
@@ -204,4 +204,4 @@ Verify all of the following. On any failure, return to Q&A and resolve the gap.
 - Do not downgrade `blocking → non-blocking`; the drafter's blocking call is sticky upward only.
 - Do not use any asset, skill, or tool not listed in this document.
 - Do not re-Read `requirements-draft.md` during Q&A — use the manifest. Do not re-load the character or skill files between questions.
-- Do not Edit `requirements/consultant-answers.md` per item; render it from `resolver-answers.json` via Write at phase boundaries.
+- Do not Edit `requirements/consultant-answers.md` per item, and do not render it at intermediate phase boundaries; render it from `resolver-answers.json` via a single Write after self-validation passes.
