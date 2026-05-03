@@ -4,7 +4,7 @@
 
 **Purpose:** Silent classification of stage state into greenfield / brownfield-partial / brownfield-final, plus detection of input-delta / upstream-delta / uncommitted-mutation signals. No `--rerun` flag — detection is fully silent; the consultant-facing prompt is conversational.
 
-**Inputs:** `.progress.json` for the current stage, `/input/` content hashes vs `source-manifest.md`, upstream main-spec revision markers vs this stage's `last_finalised_at`, current `sha256(spec)` vs `.progress.json > completeness_hash`.
+**Inputs:** `.progress.json` for the current stage, `/input/` content hashes vs `requirements/source-manifest.json`, upstream main-spec revision markers vs this stage's `last_finalised_at`, current `sha256(spec)` vs `.progress.json > completeness_hash`.
 
 **Outputs:** classification + signals; on brownfield, the two-option prompt body (continue / start fresh).
 

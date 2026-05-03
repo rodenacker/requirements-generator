@@ -10,14 +10,18 @@ Turn unstructured input documents into a structured, **self-contained** requirem
 
 ## Workflow
 
-1. Glob `input/` and Read each file **once** into context.
+1. Read `requirements/source-manifest.json`. For each row in `rows`:
+    - If `tier ∈ {"Native-text", "Native-multimodal"}` — `Read` `original_path` once into context.
+    - If `tier = "Supported-via-MCP"` — `Read` `converted_sibling` once into context. Do not read the original; the sibling is the drafter-facing surface.
+    - If `tier = "Unsupported"` — skip. The row is a forensic record only.
+   The manifest is the sole enumeration of inputs; do not Glob `input/` directly.
 2. Extract facts mentally by template section as you read; do not re-read inputs per section.
 3. Populate `framework/assets/template-requirements.md` top-to-bottom in a single pass; no `{{placeholders}}` and no blanks. **In this pass, fill only from input-stated facts and domain defaults — emit no `[AI-SUGGESTED]`, `[STANDARD-RULE]`, or `[OUT-OF-SCOPE]` markers yet, and leave §2.4 as an empty placeholder.** Markers and §2.4 are applied later (steps 5–6).
 4. Use Grep only to cross-check the populated draft, not to re-read inputs.
 5. **Gap pass.** Run the `framework/skills/completeness-gap-pass.md` skill against the in-memory populated draft. For each gap tuple emitted by the skill, walk the decision tree in **Classification** below and apply the corresponding marker (`[STANDARD-RULE: GR-NN]`, `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]`, or `[OUT-OF-SCOPE: domain-default]`). Fabricate missing elements (entities, stories, RBAC rows/columns, BR rows, etc.) as the gap pass directs. AI-NNN IDs are unique within the draft and assigned monotonically.
 6. Author §2.4 as an inline Mermaid block per the **Domain-model diagram** section. This must run **after** the gap pass so §2.4 reflects any §2.1 concepts added in step 5.
-7. Run **Self-validation**; fix and re-run until it passes; Write the draft.
-8. Run the `framework/skills/mermaid-validator.md` skill against the written draft to confirm the §2.4 Mermaid block parses and renders. If validation fails, edit the diagram in place, re-run **Self-validation**, and re-validate; loop until the validator passes. This step must complete cleanly **before** the draft is considered done — i.e., before the orchestrator's handback gate can present it to the consultant for acceptance.
+7. Run **Self-validation**; fix and re-run until it passes; Write the draft. Immediately after the Write, call `framework/skills/verify-artifact-write.md` with `path: "requirements/requirements-draft.md"`, `expected_sha256: <hash of the rendered draft bytes>`, `expected_min_bytes: <byte length of the rendered draft>`. On `RF-04 trigger`, halt per `framework/shared/refusal-registry.md > RF-04`; do not advance.
+8. Run the `framework/skills/mermaid-validator.md` skill against the written draft to confirm the §2.4 Mermaid block parses and renders. If validation fails, edit the diagram in place, re-run **Self-validation**, re-Write, re-`verify-artifact-write`, and re-validate; loop until the validator passes. This step must complete cleanly **before** the draft is considered done — i.e., before the orchestrator's handback gate can present it to the consultant for acceptance.
 
 If any single input exceeds ~30k tokens, segment it section-by-section but still read each segment only once.
 
@@ -80,10 +84,13 @@ Do not save the rendered SVG into the requirements artefact and do not present a
 
 ## Inputs
 
-- All readable documents in `input/`.
+- `requirements/source-manifest.json` — the sole enumeration of input files. The drafter Reads every row's `original_path` (Native tiers) or `converted_sibling` (Supported-via-MCP) and skips Unsupported rows.
+- The files registered in the manifest, under `input/`.
 - `framework/assets/template-requirements.md` — the canonical structure to populate.
 - `framework/shared/prototype-scope.md` — in-scope vs out-of-scope predicate; consulted by the gap pass.
 - `framework/shared/general-rules.md` — catalogue of `GR-NN` deterministic rules; consulted by the gap pass before any `[AI-SUGGESTED]` marker.
+- `framework/shared/refusal-registry.md` — `RF-04 artifact_write_unverified` semantics for the post-Write verification.
+- `framework/skills/verify-artifact-write.md` — read-back / hash-check called immediately after the draft Write.
 - `framework/skills/completeness-gap-pass.md` — the gap-pass skill invoked at **Workflow** step 6.
 - `framework/skills/mermaid-validator.md` — the validator skill invoked at **Workflow** step 8 to confirm the §2.4 Mermaid block parses and renders.
 
@@ -93,17 +100,17 @@ Do not save the rendered SVG into the requirements artefact and do not present a
 
 ## Tools
 
-- Glob — enumerate input files.
-- Read — read inputs, the template, `framework/shared/prototype-scope.md`, `framework/shared/general-rules.md`, and `framework/skills/completeness-gap-pass.md`.
+- Read — read `requirements/source-manifest.json`, the manifest-registered input files (originals for Native tiers, `*.converted.md` siblings for Supported-via-MCP), the template, `framework/shared/prototype-scope.md`, `framework/shared/general-rules.md`, `framework/skills/completeness-gap-pass.md`, and the just-written draft for the post-Write verification.
 - Grep — cross-check the populated draft.
 - Write — emit the final document.
 - Edit — apply gap-pass tuples to the populated draft (insert markers, fabricated elements) at **Workflow** step 6, and fix the §2.4 Mermaid block in place when the validator at **Workflow** step 8 reports an error, so the rest of the draft does not need to be rewritten.
-- Bash — invoke `mmdc` per the `mermaid-validator` skill at **Workflow** step 8. No other Bash usage is permitted.
+- Bash — invoke `mmdc` per the `mermaid-validator` skill at **Workflow** step 8, and compute sha256 of the rendered draft bytes for the post-Write verification call. No other Bash usage is permitted.
 
 ## Self-validation (run before writing the file)
 
 If any check fails, fix the draft and re-run.
 
+- `requirements/source-manifest.json` was read; every row with `tier ∈ {"Native-text", "Native-multimodal"}` had its `original_path` Read; every row with `tier = "Supported-via-MCP"` had its `converted_sibling` Read; every row with `tier = "Unsupported"` was skipped. No file under `input/` was Read except via the manifest.
 - Template structure preserved; no `{{placeholders}}` remain; every field populated.
 - Every inferred value carries exactly one of three markers per the **Classification** decision tree: `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` (with a unique AI-NNN ID and a single classification from `{blocking, non-blocking}`), `[STANDARD-RULE: GR-NN]`, or `[OUT-OF-SCOPE: domain-default]`. Stated-from-input values carry no marker.
 - **Relatedness invariants (Tier A bijections from `completeness-gap-pass.md`):**
@@ -130,6 +137,9 @@ If any check fails, fix the draft and re-run.
 
 ## Anti-Patterns
 
+- Do not Glob `input/` directly. Read only the files registered in `requirements/source-manifest.json` — Native tiers via `original_path`, Supported-via-MCP via `converted_sibling`. Unsupported rows are skipped.
+- Do not Read the original of a `Supported-via-MCP` row. The `*.converted.md` sibling is the drafter-facing surface; reading the original `.docx`/`.xlsx`/`.pdf` produces unreliable text.
+- Do not skip `framework/skills/verify-artifact-write.md` after writing the draft. A truncated draft that schema-validates against itself in memory will fail the resolver in confusing ways far from the failure site.
 - Do not change the structure of the requirements template.
 - Do not leave fields blank — when inputs are silent, walk the **Classification** decision tree to apply the correct marker.
 - Do not emit `[AI-SUGGESTED]` for any field that is (a) covered by `framework/shared/general-rules.md`, (b) out-of-scope per `framework/shared/prototype-scope.md`, or (c) not gated by a Tier A/B/D rule in `framework/skills/completeness-gap-pass.md`. Use `[STANDARD-RULE]` or `[OUT-OF-SCOPE]` respectively.
