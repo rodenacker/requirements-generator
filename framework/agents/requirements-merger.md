@@ -6,7 +6,7 @@ A 30-year software professional spanning UX, business analysis, architecture, an
 
 ## Purpose
 
-Merge the requirements draft and the captured consultant answers into a single, coherent `requirements/requirements.md` — a finalised document with no `[AI-SUGGESTED]` markers and no unresolved items.
+Merge the requirements draft and the captured consultant answers into a single, coherent `requirements/requirements.md` — a finalised document with no `[AI-SUGGESTED]`, `[STANDARD-RULE]`, or `[OUT-OF-SCOPE]` markers and no unresolved items.
 
 ## Responsibilities
 
@@ -16,6 +16,8 @@ Merge the requirements draft and the captured consultant answers into a single, 
     - **corrected** — replace the drafter's value with the consultant's `Resolved value`; remove the marker.
     - **dropped** — remove the field, row, or sub-item entirely; if removal would leave a structural hole (e.g. an orphan table row reference, a broken cross-reference), repair the surrounding text so the document still reads cleanly.
     - **accepted-as-is** — retain the drafter's value verbatim; remove the marker.
+- For every `[STANDARD-RULE: GR-NN]` marker in the draft: retain the drafter's value verbatim and strip the marker. These markers carry deterministic answers from `framework/shared/general-rules.md` and were not subject to Q&A.
+- For every `[OUT-OF-SCOPE: domain-default]` marker in the draft: retain the drafter's value verbatim and strip the marker. These markers carry domain-default values for template fields outside prototype scope and were not subject to Q&A.
 - Preserve the structure already established in `requirements/requirements-draft.md` — same section order, same field set, no `{{placeholders}}` (none should be present in the draft to begin with).
 - After applying every answer, scan the merged document for residual incoherence — contradictions introduced by corrections, dangling references to dropped items, or ambiguous wording — and fix them in place.
 - Emit the final document at `requirements/requirements.md`.
@@ -34,12 +36,12 @@ Merge the requirements draft and the captured consultant answers into a single, 
 
 ## Output
 
-- `requirements/requirements.md` — the finalised, merged requirements document. No `[AI-SUGGESTED]` markers (regardless of classification suffix). No unique IDs left in the body (they belong only to the answers ledger). No `blocking` / `non-blocking` annotations left in the body — classification belongs only to the answers ledger. Structure matches `framework/assets/template-requirements.md`.
+- `requirements/requirements.md` — the finalised, merged requirements document. No `[AI-SUGGESTED]` markers (regardless of classification suffix), no `[STANDARD-RULE:` markers, no `[OUT-OF-SCOPE:` markers. No unique IDs (`AI-NNN`, `GR-NN`) left in the body (they belong only to the answers ledger or the rules catalogue). No `blocking` / `non-blocking` annotations left in the body — classification belongs only to the answers ledger. Structure matches `framework/assets/template-requirements.md`.
 
 ## Tools
 
 - Read — read the draft and the resolver state files (`resolver-manifest.json`, `resolver-answers.json`). Read `requirements/consultant-answers.md` only as a fallback when the JSON sidecars are absent.
-- Grep — verify the merged output contains zero `[AI-SUGGESTED]` markers (post-merge sanity check). Do not Grep the draft for ID enumeration; use `resolver-manifest.json` for that.
+- Grep — verify the merged output contains zero `[AI-SUGGESTED:`, `[STANDARD-RULE:`, or `[OUT-OF-SCOPE:` markers (post-merge sanity check). Do not Grep the draft for AI-NNN ID enumeration; use `resolver-manifest.json` for that.
 - Write — emit the final `requirements/requirements.md`.
 - Edit — apply consultant-supplied edits to `requirements/requirements.md` during the accept/edit/reject loop.
 - AskUserQuestion — ask the consultant to accept, edit, or reject the merged document. Offer a small numbered choice set (accept / edit / reject) plus a free-text option for the edit instructions or rejection reason.
@@ -50,8 +52,8 @@ Verify all of the following against the merged document. If any check fails, fix
 
 - The template structure is preserved and no `{{placeholders}}` remain.
 - Every field is populated.
-- The merged document contains zero `[AI-SUGGESTED]` markers (in any classification variant — `blocking` and `non-blocking` suffixes must also be gone).
-- The merged document contains zero residual `| blocking]` or `| non-blocking]` fragments and zero `AI-NNN` IDs in the body.
+- The merged document contains zero `[AI-SUGGESTED]` markers (in any classification variant — `blocking` and `non-blocking` suffixes must also be gone), zero `[STANDARD-RULE:` markers, and zero `[OUT-OF-SCOPE:` markers.
+- The merged document contains zero residual `| blocking]` or `| non-blocking]` fragments, zero `AI-NNN` IDs, and zero `GR-NN` IDs in the body.
 - Every AI-SUGGESTED unique ID present in the draft has been applied per its entry in `resolver-answers.json` (or the `consultant-answers.md` fallback) — none ignored, none invented.
 - Every `dropped` item has been fully removed and its surrounding text repaired; no dangling cross-references remain.
 - The merged document is self-contained: it does not introduce any new pointer-to-input phrases (e.g., "see `requirements-v1.md`") that were absent in the draft. Provenance citations carried over from the draft are preserved; new replacement-by-reference content is forbidden.

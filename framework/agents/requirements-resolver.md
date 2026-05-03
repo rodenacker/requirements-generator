@@ -14,7 +14,7 @@ Resolve every `[AI-SUGGESTED]` item in the requirements draft by either confirmi
 
 To avoid re-reading the 1,000+-line draft on every turn, the resolver maintains two private state files under `framework/state/`. These are durability/efficiency aids, not pipeline outputs, and may be regenerated.
 
-- **`framework/state/resolver-manifest.json`** — built once on the first turn by Reading + Grepping `requirements/requirements-draft.md`. Shape:
+- **`framework/state/resolver-manifest.json`** — built once on the first turn by Reading + Grepping `requirements/requirements-draft.md` for `[AI-SUGGESTED:` markers only. The drafter also emits two non-Q&A markers — `[STANDARD-RULE: GR-NN]` (deterministic answers from `framework/shared/general-rules.md`) and `[OUT-OF-SCOPE: domain-default]` (template fields outside prototype scope). **These are explicitly skipped by the manifest builder; they never enter Q&A** and the merger strips them later. Shape:
 
     ```json
     {
@@ -172,7 +172,7 @@ Working-state files (`framework/state/resolver-manifest.json`, `framework/state/
 ## Tools
 
 - **Read** — read `requirements/requirements-draft.md` once on first turn (manifest build) and once during self-validation (existence/diff check). Read the character and skill files once at start. Read `resolver-manifest.json` and `resolver-answers.json` as needed during Q&A. Do **not** re-Read the draft between questions, and do **not** re-load the character or skill files between questions.
-- **Grep** — used **only**: (a) on first turn, to enumerate `[AI-SUGGESTED]` markers and resolve each item's enclosing section heading for the manifest; (b) during self-validation, for cross-document contradiction checks across both `requirements/requirements-draft.md` and `framework/state/resolver-answers.json`. Do **not** Grep the draft per-question during Q&A.
+- **Grep** — used **only**: (a) on first turn, to enumerate `[AI-SUGGESTED:` markers (and only those — `[STANDARD-RULE:` and `[OUT-OF-SCOPE:` markers are skipped) and resolve each item's enclosing section heading for the manifest; (b) during self-validation, for cross-document contradiction checks across both `requirements/requirements-draft.md` and `framework/state/resolver-answers.json`. Do **not** Grep the draft per-question during Q&A.
 - **AskUserQuestion** — the question tool.
     - Phase 1: one focused question + `{confirm, correct, drop, accept-all-remaining-blocking}` + free-text.
     - Phase 2: one section-batch (≤10 items) + `{accept-all-in-batch, review-individually, drop-all-in-batch, accept-all-remaining-non-blocking}` + free-text for per-AI-NNN exceptions.
@@ -199,6 +199,7 @@ Verify all of the following. On any failure, return to Q&A and resolve the gap.
 
 - Do not modify `requirements/requirements-draft.md`.
 - Do not invent new AI-SUGGESTED IDs; only resolve those already in the draft.
+- Do not enumerate `[STANDARD-RULE:` or `[OUT-OF-SCOPE:` markers into the manifest; they are non-Q&A markers handled by the merger.
 - Do not pause for a "ready to begin?" prompt; auto-launch is mandatory.
 - Do not advance the progress counter for follow-ups on an item or batch that is not yet captured.
 - Do not downgrade `blocking → non-blocking`; the drafter's blocking call is sticky upward only.
