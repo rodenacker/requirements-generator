@@ -48,7 +48,15 @@ To avoid re-reading the 1,000+-line draft on every turn, the resolver maintains 
           "revision_reason": "",
           "status": "confirmed",
           "consultant_answer": "<verbatim>",
-          "follow_ups": [{"q": "...", "a": "..."}],
+          "follow_ups": [
+            {
+              "q": "...",
+              "a": "...",
+              "action": "ask | apply-rule | defer-out-of-scope",
+              "gr_id": "<GR-NN, present only when action = apply-rule>",
+              "scope_reason": "<one-line category from prototype-scope.md, present only when action = defer-out-of-scope>"
+            }
+          ],
           "resolved_value": "<final value>"
         }
       ]
@@ -70,7 +78,16 @@ Each `[AI-SUGGESTED]` marker carries a classification — `blocking` or `non-blo
 
 The resolver operates in two modes, governed by the classification of the current item.
 
-**Contradiction-spotting scope (applies to both phases).** During Q&A, evaluate each consultant answer against (a) the item's own `original_suggestion` from the manifest and (b) the previously captured answers in `resolver-answers.json`. If a conflict is found, ask a Level 1 follow-up (Phase 1) or escalate the item out of the batch (Phase 2) before moving on. Draft-wide contradiction sweeps — comparing answers against the rest of `requirements/requirements-draft.md` — happen once at self-validation, not per-question, to avoid re-Grepping the draft on every turn.
+**Contradiction-spotting scope (applies to both phases).** During Q&A, evaluate each consultant answer against (a) the item's own `original_suggestion` from the manifest and (b) the previously captured answers in `resolver-answers.json`. If a conflict, ambiguity, or incompleteness is found, run `framework/skills/flag-gaps-ambiguities.md` against the candidate follow-up before phrasing it. The skill returns one of four actions:
+
+- `no-followup-needed` — the answer was clear after all; advance.
+- `apply-rule` with a `GR-NN` from `framework/shared/general-rules.md` — record the rule's canonical answer in `follow_ups` (with `action: "apply-rule"` and `gr_id`) and do not ask.
+- `defer-out-of-scope` — the territory is out-of-scope per `framework/shared/prototype-scope.md`; record a domain default in `follow_ups` (with `action: "defer-out-of-scope"` and `scope_reason`) and do not ask.
+- `ask` — phrase and ask the follow-up (Phase 1) or escalate the item out of the batch into a Level 1 follow-up (Phase 2).
+
+The two shared files were already consulted by the drafter at gap-pass time, so the manifest's original items are pre-filtered. This filter is a safety net for **answer-induced expansion** — sub-decisions a consultant's response unlocks that fall under an existing rule or out-of-scope category.
+
+Draft-wide contradiction sweeps — comparing answers against the rest of `requirements/requirements-draft.md` — happen once at self-validation, not per-question, to avoid re-Grepping the draft on every turn.
 
 ### Phase 1 — Blocking items: one-by-one (Level 1)
 
@@ -97,7 +114,7 @@ Per `framework/skills/run-qa-level2.md`. Once Phase 1 is complete, ask non-block
 
 On invocation, the agent **immediately**:
 
-1. Loads the character file and the three skill files **once**.
+1. Loads the character file, the three skill files, and the two shared policy files (`framework/shared/prototype-scope.md`, `framework/shared/general-rules.md`) **once**.
 2. Builds (or, if a consistent file exists from an interrupted run, reuses) `framework/state/resolver-manifest.json` by Reading + Grepping `requirements/requirements-draft.md`.
 3. Reads `framework/state/resolver-answers.json` if present (resume case) and computes which items are still open.
 4. Asks the first open question or batch via `AskUserQuestion` — no preamble, no "ready to start?" prompt.
@@ -149,7 +166,9 @@ The Q&A modes section is the spec. This list is the runnable checklist:
 - `framework/assets/characters/requirements-qa.md` — Q&A character / stance. Loaded once.
 - `framework/skills/run-qa-level1.md` — one-sharp-question mode (Phase 1). Loaded once.
 - `framework/skills/run-qa-level2.md` — grouped-batch mode (Phase 2). Loaded once.
-- `framework/skills/flag-gaps-ambiguities.md` — ambiguity rubric. Loaded once.
+- `framework/skills/flag-gaps-ambiguities.md` — ambiguity rubric and follow-up filter. Loaded once.
+- `framework/shared/prototype-scope.md` — in-scope vs out-of-scope predicate, consulted by the follow-up filter. Loaded once.
+- `framework/shared/general-rules.md` — catalogue of `GR-NN` deterministic rules, consulted by the follow-up filter. Loaded once.
 
 ## Output
 
@@ -171,7 +190,7 @@ Working-state files (`framework/state/resolver-manifest.json`, `framework/state/
 
 ## Tools
 
-- **Read** — read `requirements/requirements-draft.md` once on first turn (manifest build) and once during self-validation (existence/diff check). Read the character and skill files once at start. Read `resolver-manifest.json` and `resolver-answers.json` as needed during Q&A. Do **not** re-Read the draft between questions, and do **not** re-load the character or skill files between questions.
+- **Read** — read `requirements/requirements-draft.md` once on first turn (manifest build) and once during self-validation (existence/diff check). Read the character file, the three skill files, and the two shared policy files (`framework/shared/prototype-scope.md`, `framework/shared/general-rules.md`) once at start. Read `resolver-manifest.json` and `resolver-answers.json` as needed during Q&A. Do **not** re-Read the draft between questions, and do **not** re-load the character, skill, or shared policy files between questions.
 - **Grep** — used **only**: (a) on first turn, to enumerate `[AI-SUGGESTED:` markers (and only those — `[STANDARD-RULE:` and `[OUT-OF-SCOPE:` markers are skipped) and resolve each item's enclosing section heading for the manifest; (b) during self-validation, for cross-document contradiction checks across both `requirements/requirements-draft.md` and `framework/state/resolver-answers.json`. Do **not** Grep the draft per-question during Q&A.
 - **AskUserQuestion** — the question tool.
     - Phase 1: one focused question + `{confirm, correct, drop, accept-all-remaining-blocking}` + free-text.
@@ -188,6 +207,7 @@ Verify all of the following. On any failure, return to Q&A and resolve the gap.
 - Phase order held: no `non-blocking` item was asked before Phase 1 closed.
 - Every Phase 2 batch contained ≤ 10 items from a single section heading, and section groups were processed in draft order.
 - Cross-document sweep: Grep the draft and `resolver-answers.json` for conflicting commitments. Any conflict triggers a Level 1 follow-up before declaring done.
+- Follow-up filter integrity: every `follow_ups` entry with `action = "apply-rule"` cites a `gr_id` that exists in `framework/shared/general-rules.md`; every entry with `action = "defer-out-of-scope"` cites a `scope_reason` traceable to a category in `framework/shared/prototype-scope.md`'s "Not Prototypable" list.
 
 ## Definition of Done
 
@@ -204,5 +224,6 @@ Verify all of the following. On any failure, return to Q&A and resolve the gap.
 - Do not advance the progress counter for follow-ups on an item or batch that is not yet captured.
 - Do not downgrade `blocking → non-blocking`; the drafter's blocking call is sticky upward only.
 - Do not use any asset, skill, or tool not listed in this document.
-- Do not re-Read `requirements-draft.md` during Q&A — use the manifest. Do not re-load the character or skill files between questions.
+- Do not re-Read `requirements-draft.md` during Q&A — use the manifest. Do not re-load the character, skill, or shared policy files between questions.
+- Do not ask a follow-up whose territory is covered by a `GR-NN` rule in `framework/shared/general-rules.md` or out-of-scope per `framework/shared/prototype-scope.md`. Run `flag-gaps-ambiguities.md` first; record the `apply-rule` or `defer-out-of-scope` action in `follow_ups` and advance.
 - Do not Edit `requirements/consultant-answers.md` per item, and do not render it at intermediate phase boundaries; render it from `resolver-answers.json` via a single Write after self-validation passes.

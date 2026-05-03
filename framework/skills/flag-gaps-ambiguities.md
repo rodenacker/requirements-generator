@@ -1,15 +1,63 @@
-<!-- ROLE: skill. STATUS: stub — author during phase-1 build-order step 2. -->
-
 # flag-gaps-ambiguities.md
 
-**Purpose:** Surface gaps, ambiguities, and inconsistencies in categorised facts before drafting begins; mark items for AI-suggested enrichment vs Q&A vs reconciliation.
+**Purpose:** Decide whether a candidate follow-up question on an answered Q&A item should be asked, short-circuited by a `general-rules.md` answer, or recorded as an out-of-scope domain default. Applies inside the resolver's contradiction-spotting / ambiguity check, after the consultant has answered an `[AI-SUGGESTED]` item but before the resolver phrases a follow-up.
 
-**Inputs:** categorised fact list from `categorise-by-topic.md`.
+**Inputs:**
+- The current Q&A item (manifest entry): `id`, `section_heading`, `source_location`, `original_suggestion`, `classification`.
+- The consultant's most recent answer for the item, plus any follow-ups already captured for it in `framework/state/resolver-answers.json`.
+- The candidate follow-up the resolver is considering.
+- `framework/shared/prototype-scope.md` — in-scope vs out-of-scope predicate.
+- `framework/shared/general-rules.md` — catalogue of `GR-NN` deterministic rules.
 
-**Outputs:** list of flagged items with category (AI-suggested / vague / contradictory) + recommended resolution path.
+**Outputs:** exactly one action per candidate follow-up, recorded in the item's `follow_ups` array.
 
-**Used by:** `framework/agents/requirements-drafter/agent.md`.
+| Action | When | Recorded as |
+|---|---|---|
+| `no-followup-needed` | Answer is already unambiguous, consistent, and complete | nothing — resolver advances to the next item or batch |
+| `apply-rule` | A `GR-NN` rule's scope predicate covers the territory the follow-up would probe | `{q, a: "<rule canonical answer>", action: "apply-rule", gr_id: "GR-NN"}` |
+| `defer-out-of-scope` | The territory is out-of-scope per `prototype-scope.md` (e.g. backend internals, infra, DB schema, performance optimisation) | `{q, a: "<domain default>", action: "defer-out-of-scope", scope_reason: "<one-line scope category>"}` |
+| `ask` | Territory is in-scope and no `GR-NN` covers it | `{q, a: "<consultant answer>", action: "ask"}` after the consultant responds |
 
-**Used how:** Called after categorisation. Pre-feeds the completeness-report finding categories so the drafter knows which fields to mark `[AI-SUGGESTED]` and which to leave for Q&A.
+**Used by:**
+- `framework/agents/requirements-resolver.md` — Phase 1 follow-ups on a single blocking item, and Phase 2 escalations of an unclear non-blocking item out of its batch into a Level 1 follow-up.
 
-> Content TBD per `plan/v7b-Brief.md > §Approach > skills`.
+## Decision tree (per candidate follow-up)
+
+Walk in order. Stop at the first match.
+
+1. **Ambiguity check.** A follow-up is only justified if the most recent answer is ambiguous, contradictory, or incomplete with respect to (a) the item's `original_suggestion` or (b) the previously captured answers. If the answer is already clear, output `no-followup-needed` — the resolver advances.
+2. **General-rules lookup.** Read `framework/shared/general-rules.md`. If a `GR-NN` rule's scope predicate matches the field/territory the follow-up would probe, output `apply-rule` with that rule's canonical answer as the `a` value. The resolver records the action and does not ask.
+3. **Scope check.** Read `framework/shared/prototype-scope.md`. If the territory is out-of-scope (Tier C-equivalent: backend implementation, DB schema, infra, performance optimisation, security implementation, third-party SDK internals), output `defer-out-of-scope` with a one-line `scope_reason` quoting the relevant scope category and a sensible domain default as the `a` value. The resolver records the action and does not ask.
+4. **Otherwise.** Output `ask`. The resolver phrases and asks the candidate follow-up; the consultant's verbatim response becomes `a`.
+
+The filter is a safety net for **answer-induced expansion** — a follow-up the consultant's response unlocks. It is not a re-check of manifest items, which the drafter has already filtered at gap-pass time via `framework/skills/completeness-gap-pass.md`.
+
+## Match strictness
+
+- **General-rules match** is exact: the candidate follow-up must concern the same template field/element the rule's *Applies to* clause names. Adjacent territory does not match — when in doubt, fall through to step 3.
+- **Out-of-scope match** uses `prototype-scope.md`'s "Not Prototypable (Filter Out)" list as the strict predicate. Anything in "Prototypable (In Scope)" — including the conditional clauses that admit a topic only as visual manifestation — is in-scope and falls through to step 4.
+- Ambiguity defaults to `ask`. False positives cost a question; false negatives cost a guess shipping unchallenged.
+
+## Recording the action
+
+The resolver appends one entry per candidate follow-up to the item's `follow_ups` array in `framework/state/resolver-answers.json`. Schema (additive — `q` and `a` remain primary; the merger reads only those):
+
+```json
+{
+  "q": "<candidate question text>",
+  "a": "<consultant answer | rule canonical answer | domain default>",
+  "action": "ask | apply-rule | defer-out-of-scope",
+  "gr_id": "<GR-NN, present only when action = apply-rule>",
+  "scope_reason": "<one-line category from prototype-scope.md, present only when action = defer-out-of-scope>"
+}
+```
+
+`no-followup-needed` is not recorded — the absence of an entry is the signal.
+
+## Anti-Patterns
+
+- Do not consult this skill to re-filter the manifest's original `[AI-SUGGESTED]` items; those have already been filtered by the drafter. This skill applies only to follow-ups the answer unlocks.
+- Do not output `ask` when an exact `GR-NN` match exists; the rule is canonical and skipping it re-introduces the cycle the rule was added to remove.
+- Do not output `defer-out-of-scope` for territory that is in-scope but inconveniently broad. Apply the `prototype-scope.md` predicate strictly.
+- Do not silently drop a follow-up. Every candidate produces exactly one of `{no-followup-needed, ask, apply-rule, defer-out-of-scope}`.
+- Do not invent a `GR-NN` ID. If no rule covers the territory, fall through.

@@ -20,6 +20,7 @@ Merge the requirements draft and the captured consultant answers into a single, 
 - For every `[OUT-OF-SCOPE: domain-default]` marker in the draft: retain the drafter's value verbatim and strip the marker. These markers carry domain-default values for template fields outside prototype scope and were not subject to Q&A.
 - Preserve the structure already established in `requirements/requirements-draft.md` — same section order, same field set, no `{{placeholders}}` (none should be present in the draft to begin with).
 - After applying every answer, scan the merged document for residual incoherence — contradictions introduced by corrections, dangling references to dropped items, or ambiguous wording — and fix them in place.
+- Append the contents of `framework/shared/prototype-invariants.md` to the end of the merged document under a single `## Prototype invariants` heading. The block is included verbatim — do not edit, summarise, paraphrase, reorder, or interleave the invariants with other content. The file's own top-level heading and preamble are stripped; only the per-invariant subsections (`### PI-NN — …`) are appended below the new `## Prototype invariants` heading.
 - Emit the final document at `requirements/requirements.md`.
 - Present the merged document to the consultant and ask them to **accept**, **edit**, or **reject** it:
     - **accept** — the document is final; hand control back to the orchestrator.
@@ -33,14 +34,15 @@ Merge the requirements draft and the captured consultant answers into a single, 
 - `framework/state/resolver-answers.json` — primary source for per-ID resolution (`status`, `consultant_answer`, `resolved_value`, follow-ups). Written by the resolver after each Phase 1 resolution and Phase 2 batch.
 - `requirements/requirements-draft.md` — the populated draft from the requirements-drafter agent, containing `[AI-SUGGESTED]` markers in the form `[AI-SUGGESTED: AI-NNN | blocking]` or `[AI-SUGGESTED: AI-NNN | non-blocking]`.
 - `requirements/consultant-answers.md` — fallback only, when the JSON sidecars above are absent (e.g., they were cleaned up between the resolver's run and this merger run). The markdown is rendered from `resolver-answers.json`, so the JSON sidecar is preferred when available.
+- `framework/shared/prototype-invariants.md` — list of prototype-wide behavioural invariants (`PI-NN`). Appended verbatim to the merged output. Not consulted upstream by the drafter or resolver — this file's contents reach the spec only via the merger's append step.
 
 ## Output
 
-- `requirements/requirements.md` — the finalised, merged requirements document. No `[AI-SUGGESTED]` markers (regardless of classification suffix), no `[STANDARD-RULE:` markers, no `[OUT-OF-SCOPE:` markers. No unique IDs (`AI-NNN`, `GR-NN`) left in the body (they belong only to the answers ledger or the rules catalogue). No `blocking` / `non-blocking` annotations left in the body — classification belongs only to the answers ledger. Structure matches `framework/assets/template-requirements.md`.
+- `requirements/requirements.md` — the finalised, merged requirements document. No `[AI-SUGGESTED]` markers (regardless of classification suffix), no `[STANDARD-RULE:` markers, no `[OUT-OF-SCOPE:` markers. No unique IDs (`AI-NNN`, `GR-NN`) left in the body (they belong only to the answers ledger or the rules catalogue). No `blocking` / `non-blocking` annotations left in the body — classification belongs only to the answers ledger. Structure matches `framework/assets/template-requirements.md`, with a `## Prototype invariants` section appended at the end, sourced verbatim from `framework/shared/prototype-invariants.md`.
 
 ## Tools
 
-- Read — read the draft and the resolver state files (`resolver-manifest.json`, `resolver-answers.json`). Read `requirements/consultant-answers.md` only as a fallback when the JSON sidecars are absent.
+- Read — read the draft and the resolver state files (`resolver-manifest.json`, `resolver-answers.json`). Read `requirements/consultant-answers.md` only as a fallback when the JSON sidecars are absent. Read `framework/shared/prototype-invariants.md` once for the append step.
 - Grep — verify the merged output contains zero `[AI-SUGGESTED:`, `[STANDARD-RULE:`, or `[OUT-OF-SCOPE:` markers (post-merge sanity check). Do not Grep the draft for AI-NNN ID enumeration; use `resolver-manifest.json` for that.
 - Write — emit the final `requirements/requirements.md`.
 - Edit — apply consultant-supplied edits to `requirements/requirements.md` during the accept/edit/reject loop.
@@ -58,6 +60,7 @@ Verify all of the following against the merged document. If any check fails, fix
 - Every `dropped` item has been fully removed and its surrounding text repaired; no dangling cross-references remain.
 - The merged document is self-contained: it does not introduce any new pointer-to-input phrases (e.g., "see `requirements-v1.md`") that were absent in the draft. Provenance citations carried over from the draft are preserved; new replacement-by-reference content is forbidden.
 - The post-merge coherence sweep (see Responsibilities) ran and produced no remaining contradictions, ambiguities, or incoherence.
+- The merged document ends with a `## Prototype invariants` heading followed by every `### PI-NN — …` subsection from `framework/shared/prototype-invariants.md`, byte-for-byte from the per-invariant subsections onward (the file's own top-level heading and preamble are not included). No PI-NN is missing, reordered, paraphrased, or interleaved with other content.
 
 ## Definition of Done
 
@@ -71,4 +74,6 @@ Verify all of the following against the merged document. If any check fails, fix
 - Do not change the structure of the requirements template.
 - Do not invent values that appear in neither the draft nor the answers file. If an answer is missing for an AI-SUGGESTED ID, stop and report — do not guess.
 - Do not introduce input-file pointer phrases during reconciliation. The merged document must remain self-contained per the same contract enforced by the drafter; downstream consumers may run after the input files are deleted.
+- Do not edit, summarise, paraphrase, reorder, or interleave the contents of `framework/shared/prototype-invariants.md`. Append the per-invariant subsections verbatim under a single `## Prototype invariants` heading at the end of the merged document.
+- Do not consult `framework/shared/prototype-invariants.md` for any purpose other than the verbatim append. It is not a policy input and must not influence reconciliation, marker stripping, or the coherence sweep.
 - Do not use any assets, skills, or tools not explicitly listed in this document.
