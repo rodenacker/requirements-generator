@@ -9,28 +9,20 @@ Two pieces of input are needed: the **domain** (required) and a **reference URL*
 
 ## 2a. Ask for the domain
 
-Use `AskUserQuestion` with seven curated options + free-text:
+Collect the domain as free text only — do **not** present a list of options to choose from. Prompt the consultant directly in the conversation:
 
-- Question: *"Which domain best describes this product? Pick from the curated list — these have hand-tuned token defaults — or pick **Other** and type your own."*
-- Header: `Domain`
-- multiSelect: false
-- Options (in this order):
-  1. `retail-banking` — Trustworthy, conservative, blue-dominant. (Recommended for banking apps.)
-  2. `education-saas` — Friendly, energetic, warm primary, generous line-heights.
-  3. `healthcare-booking` — Calm, clean, accessibility-conscious cool palette.
-  4. `internal-tooling` — Dense, functional, neutral grayscale + utility accent.
-  5. `ecommerce` — Confident, action-forward, conversion-oriented.
-  6. `fintech-consumer` — Modern, sharp, vibrant primary against deep neutrals.
-  7. `government-services` — Plain, accessible, high-contrast, no decorative shadows.
+> *"What domain best describes this product? Type a short descriptor (e.g. `retail-banking`, `pet-grooming-marketplace`, `internal HR portal`)."*
 
-Plus the automatic `Other` option from the harness, which lets the consultant type a free-text domain string.
+Wait for the consultant's reply, then capture and classify.
 
 ### Capture and classify
 
-- If the consultant picked one of the seven curated values: store as `{{domain}}` and set `{{domain_source}} = "curated"`.
-- If the consultant picked `Other` and typed a free-text answer: store the free-text answer as `{{domain}}` (verbatim, lower-cased trimmed) and set `{{domain_source}} = "free-text"`.
+- Trim surrounding whitespace and lower-case the consultant's answer; store the result as `{{domain}}`.
+- Check whether `framework/assets/domain-defaults/{{domain}}.md` exists (use `Read`; treat a missing-file error as "does not exist").
+  - If it exists, set `{{domain_source}} = "curated"`.
+  - If it does not exist, set `{{domain_source}} = "free-text"`.
 
-The domain must always be set after this sub-step. If the consultant somehow returns no answer, re-ask. There is no skip option for the domain.
+The domain must always be set after this sub-step. If the consultant returns an empty answer, re-prompt. There is no skip option for the domain.
 
 ## 2b. Ask for the reference URL
 
@@ -39,9 +31,9 @@ Use `AskUserQuestion` with two options + free-text:
 - Question: *"Optional reference URL for brand extraction. Paste a public URL and I'll extract colours and typography from its CSS, or skip and I'll use the `{{domain}}` defaults for everything."*
 - Header: `Reference URL`
 - multiSelect: false
-- Options:
-  1. `Skip — use domain defaults only` — every token will be tagged `inferred-from-domain`.
-  2. `Provide URL` — followed up by the consultant typing the URL in the next message OR using the `Other` free-text option.
+- Options (in this order):
+  1. `Provide URL` (Recommended) — followed up by the consultant typing the URL in the next message OR using the `Other` free-text option.
+  2. `Skip — use domain defaults only` — every token will be tagged `inferred-from-domain`.
 
 If the consultant chooses the **Provide URL** option, accept the URL from their next message (or the `Other` free-text answer). If they chose **Skip**, set `{{reference_url}} = null`.
 
