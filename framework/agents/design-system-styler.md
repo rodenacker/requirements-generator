@@ -17,7 +17,7 @@ This agent is **stand-alone**. During its run it must not, under any circumstanc
 - Load `framework/shared/general-rules.md`, `framework/shared/prototype-scope.md`, or `framework/shared/prototype-invariants.md`.
 - Reference, summarise, or reconcile against any other agent's output (drafter, resolver, merger, or any future pipeline).
 
-The only inputs are: the consultant's typed answers (collected in step-02), the CSS fetched in step-04 (if a URL was given), and the curated/free-text domain defaults applied in step-05b. This invariant is restated at activation in step-01 and is enforced by the agent's `Tools` list — no read path into `requirements/` or `framework/state/` is granted.
+The only inputs are: the consultant's typed answers (collected in step-02), the CSS fetched in step-04 (if a URL was given), the curated/free-text domain defaults applied in step-05b, and — only on the RF-06 preflight branch in step-04 — the registry entry at `framework/shared/refusal-registry.md` and the install copy at `framework/shared/setup-instructions/playwright.md`. These two files are static reference docs, not any other agent's working state, so reading them does not breach the stand-alone constraint. This invariant is restated at activation in step-01 and is enforced by the agent's `Tools` list — no read path into `requirements/` or `framework/state/` is granted.
 
 ## Workflow
 
@@ -26,7 +26,7 @@ Steps live under `framework/agents/design-system-styler/steps/`. Read each step 
 1. `step-01-activate.md` — Load the character file. Re-affirm the stand-alone constraint. Announce readiness.
 2. `step-02-inputs.md` — Collect `{{domain}}` (required, curated list + free-text) and `{{reference_url}}` (optional) via `AskUserQuestion`.
 3. *Step 3 (re-run gating) is intentionally absent in this agent — the orchestrator handles it at startup.*
-4. `step-04-site-fetching.md` — Two-pass WebFetch: homepage → primary stylesheet. Skipped if `{{reference_url}}` is null.
+4. `step-04-site-fetching.md` — Playwright fetch (preferred): resize to desktop viewport → navigate → settle → aggregate stylesheets + computed `:root` + sample elements. Falls back to two-pass WebFetch only when the consultant elects it at the preflight prompt (RF-06). Skipped entirely if `{{reference_url}}` is null.
 5. `step-05-brand-extraction.md` — Apply data files in sequence to extract colours, typography, effects from `{{primary_css_content}}`. Status colours never extracted here.
 5b. `step-05b-domain-fill.md` — Always runs. Fills every unset token from `framework/assets/domain-defaults/{{domain}}.md` (curated) or per-run inference (free-text). Runs WCAG AA contrast validation across the final token set with auto-adjustment.
 6. `step-06-artifact-generation.md` — Render `framework/assets/template-design-system.md` with the in-memory token set; write to `design-system/design-system.md`; verify the write via `framework/skills/verify-artifact-write.md`.
@@ -34,8 +34,9 @@ Steps live under `framework/agents/design-system-styler/steps/`. Read each step 
 
 ## Inputs
 
-- Consultant typed answers (via `AskUserQuestion` in step-02): `{{domain}}`, `{{domain_source}}`, `{{reference_url}}` (optional).
+- Consultant typed answers (via `AskUserQuestion` in step-02): `{{domain}}`, `{{domain_source}}`, `{{reference_url}}` (optional). The step-04 preflight may surface a second `AskUserQuestion` (RF-06 three-way choice) if Playwright MCP is not installed.
 - Fetched CSS content (only if a URL was given): `{{primary_css_content}}`, persisted in `design-system/.workspace/css-content.txt` between steps.
+- Computed-style payload (only on the Playwright path): persisted in `design-system/.workspace/computed-tokens.json`. Contains `customProperties` (filtered brand tokens), `frameworkProperties` (filtered framework noise), and `sampleElements` (computed styles for body / h1–h6 / link / button / input). **Absent on the WebFetch fallback path** — the rules files detect this and use legacy text-pattern matching exclusively.
 - Curated domain defaults: `framework/assets/domain-defaults/{{domain}}.md` (only if `{{domain}}` is one of the seven curated values).
 - Template: `framework/assets/template-design-system.md`.
 - Character: `framework/assets/characters/style-extraction.md` (read once at activation).
@@ -48,12 +49,17 @@ Steps live under `framework/agents/design-system-styler/steps/`. Read each step 
 
 ## Tools
 
-- `Read` — read the character file, the prompt templates, the data files, the template, the curated domain-defaults file, and the workspace files. **Read is not authorised against any path under `requirements/`, `framework/state/`, or `framework/shared/`.**
-- `Write` — write `design-system/.workspace/css-content.txt`, `design-system/.workspace/metadata.json`, and `design-system/design-system.md`.
+- `Read` — read the character file, the prompt templates, the data files, the template, the curated domain-defaults file, the refusal-registry entry for RF-06, the Playwright setup-instructions copy, and the workspace files. **Read is not authorised against any path under `requirements/`, `framework/state/`, or `framework/shared/` *except* `framework/shared/refusal-registry.md` and `framework/shared/setup-instructions/playwright.md`, which are required for the RF-06 surface in step-04.**
+- `Write` — write `design-system/.workspace/css-content.txt`, `design-system/.workspace/computed-tokens.json` (Playwright path only), `design-system/.workspace/metadata.json`, and `design-system/design-system.md`.
 - `Edit` — apply consultant-supplied revisions to `design-system/design-system.md` during the accept/revise loop in step-07.
 - `Bash` — `mkdir -p design-system/.workspace`, `mkdir -p design-system`, and `rm -rf design-system/.workspace` for the cleanup step. No other Bash usage.
-- `AskUserQuestion` — collect `{{domain}}` and `{{reference_url}}` in step-02; present the accept/revise/restart prompt in step-07.
-- `WebFetch` — Pass 1 (homepage) and Pass 2 (primary stylesheet) in step-04.
+- `AskUserQuestion` — collect `{{domain}}` and `{{reference_url}}` in step-02; surface the RF-06 three-way choice in step-04 if Playwright MCP is missing; present the accept/revise/restart prompt in step-07.
+- `mcp__playwright__browser_resize` — set the viewport to 1440x900 before navigation in step-04, so captured tokens reflect desktop breakpoints.
+- `mcp__playwright__browser_navigate` — Pass 1 of the Playwright path in step-04 (load `{{reference_url}}`).
+- `mcp__playwright__browser_evaluate` — Pass 1 (HTML capture, settling wait) and Pass 2 (stylesheet aggregation + computed-style sampling) in step-04.
+- `mcp__playwright__browser_network_request` — CORS fallback in step-04: fetch cross-origin stylesheets that `document.styleSheets` could not read.
+- `mcp__playwright__browser_close` — close the browser at the end of step-04 (or on early exit due to `fetch_failed` / `no_css`).
+- `WebFetch` — **fallback path only**, used in step-04 when the consultant explicitly selects "Use WebFetch instead" at the RF-06 preflight prompt. Not the default. Preserved so the run can still complete on machines without Playwright when the consultant accepts the degraded fidelity.
 
 ## Self-validation (run before declaring done)
 
@@ -63,7 +69,8 @@ Before handing back, verify all of the following against the written artefact an
 - The artefact contains zero literal `{{...}}` placeholders.
 - Every Provenance cell in the Extraction Summary is non-empty and is one of `extracted-from-url` or `inferred-from-domain`. No third marker.
 - Status-colour rows (success/warning/error/info) all carry `inferred-from-domain` regardless of the URL outcome.
-- The frontmatter `extraction_status` field is one of `success | no_url | fetch_failed | no_css | css_fetch_failed | insufficient_data | workspace_read_failed`.
+- The frontmatter `extraction_status` field is one of `success | no_url | fetch_failed | no_css | css_fetch_failed | insufficient_data | workspace_read_failed | playwright_unavailable`.
+- When `{{reference_url}}` was non-null at step-02 and the run did not exit via `playwright_unavailable`, `metadata.json`'s `extraction_method` field is one of `playwright | webfetch-fallback`. (Absent on the no-URL path.)
 - The frontmatter `domain` field equals `{{domain}}` and `domain_source` is `curated` (when `{{domain}}` matches a file in `framework/assets/domain-defaults/`) or `free-text` (otherwise).
 - The artefact was *not* read from `requirements/`, `framework/state/`, or `framework/shared/` during this run. (The agent's tool list makes this true by construction; the check is a deliberate restatement at handback time.)
 - The consultant has chosen Accept in step-07.
@@ -86,3 +93,5 @@ Before handing back, verify all of the following against the written artefact an
 - Do not loop the accept/revise/restart prompt without a consultant response. The loop terminates on Accept; Revise applies a specific change and re-presents; Restart returns to step-02.
 - Do not leave `design-system/.workspace/` on disk after a successful run. Best-effort cleanup is part of the Definition of Done.
 - Do not use any tool not explicitly listed in the Tools section. In particular, do not use the Agent tool to delegate steps to a sub-agent — every step runs in the foreground in this thread.
+- Do not silently route to WebFetch when Playwright is unavailable. WebFetch is degraded-fidelity and must only be reached by an explicit consultant choice at the RF-06 preflight prompt in step-04.
+- Do not flag minor run-to-run variance in computed values as a defect. Playwright resolves font fallbacks, animation states, and font metrics at navigation time, so two runs against the same URL may produce slightly different `extracted-from-url` values for typography and shadow tokens. v3 was deterministic by virtue of static parsing; this agent accepts small drift in exchange for closing the CSS-in-JS extraction gap.

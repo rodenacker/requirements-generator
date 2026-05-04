@@ -4,6 +4,39 @@
 
 ---
 
+## 0. Highest-signal source: `computed-tokens.json`
+
+If `design-system/.workspace/computed-tokens.json` exists (Playwright path in step-04), prefer values from it over text-pattern matches against `{{primary_css_content}}`. Computed `fontSize` / `fontWeight` / `lineHeight` arrive as fully-resolved values (already in pixels for sizes, in unitless or px for line-heights), which removes the `clamp()` / `calc()` / `em` ambiguity the legacy logic has to deal with.
+
+**Sizes (`text-xs` … `text-4xl`):**
+- The 1rem base is `sampleElements.body.fontSize` (in px).
+- Map heading sizes by relative scale against the 1rem base:
+  - `text-4xl` ← `sampleElements.h1.fontSize` if ≥ 2.5 × base, else fall through to `text-3xl`.
+  - `text-3xl` ← `sampleElements.h1.fontSize` if 1.875–2.5 × base, otherwise `sampleElements.h2.fontSize` if ≥ 1.875 × base.
+  - `text-2xl` ← `sampleElements.h2.fontSize` if 1.5–1.875 × base, otherwise `sampleElements.h3.fontSize` if ≥ 1.5 × base.
+  - `text-xl`  ← `sampleElements.h3.fontSize` if 1.25–1.5 × base, otherwise `sampleElements.h4.fontSize`.
+  - `text-lg`  ← `sampleElements.h4.fontSize` if 1.0625–1.25 × base, otherwise `sampleElements.h5.fontSize`.
+  - `text-base` ← `sampleElements.body.fontSize`.
+  - `text-sm`  ← prefer `customProperties` key matching `text-sm` / `font-size-sm`. Otherwise leave for step-05b.
+  - `text-xs`  ← prefer `customProperties` key matching `text-xs` / `font-size-xs`. Otherwise leave for step-05b.
+- Convert px → rem using `value_px / sampleElements.body.fontSize_px` and round to 4 decimals.
+- Apply the existing coverage threshold (§A): if fewer than 3 of the 8 size tokens can be confidently filled, leave **all 8** unset and let step-05b fill the entire scale from domain defaults.
+
+**Weights:**
+- `heading-weight` ← `sampleElements.h1.fontWeight`. Round to nearest 100 unless an exact variable-font value is present.
+- `body-weight` ← `sampleElements.body.fontWeight`.
+
+**Line-heights:**
+- `line-height-tight` ← `sampleElements.h1.lineHeight` (or `h2`/`h3`). If returned as px, divide by `fontSize_px` for unitless ratio. Accept only if ≤ 1.3.
+- `line-height-base` ← `sampleElements.body.lineHeight` as unitless ratio.
+- `line-height-loose` ← `customProperties` key matching `line-height-loose` / `leading-loose` / `--lh-relaxed`. Otherwise leave for step-05b.
+
+Tag computed-source extractions `extracted-from-url`; record the source as `sampleElements.<element>.<property>`.
+
+**If `computed-tokens.json` is absent (WebFetch fallback path):** skip this section entirely and use the legacy text-pattern logic in §A–§C below against `{{primary_css_content}}` only.
+
+---
+
 ## A. Font-Size Scale (`text-xs` … `text-4xl`)
 
 ### Token Targets

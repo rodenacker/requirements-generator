@@ -70,10 +70,26 @@ Add new predicates by appending; never renumber.
 
 **Recovery:** The standard path is `/clear` then re-invoke. `proceed-without-clear` is the override for short cases where the consultant judges the bloat tolerable.
 
+## RF-06 — style_extraction_dependency_missing
+
+**Severity:** pause.
+
+**Trigger:** The design-system-styler's preflight in `step-04-site-fetching.md` does not find `mcp__playwright__browser_navigate` in the available tool list, AND the consultant supplied a non-null `{{reference_url}}` in step-02. Distinct from `RF-01` because the styler has a degraded-fidelity fallback path (WebFetch) that the input-handler does not, so the choice set is three-way rather than two-way.
+
+**Surface:** `AskUserQuestion` with the choice set `{ install-and-retry, use-webfetch-fallback, drop-url }` plus an "Other" override. The question text must include the install instructions path (`advice_path`) and the verbatim fidelity warning for the WebFetch option.
+
+- `install-and-retry` — the agent halts step-04, writes `status: setup-pending` and `pending_setup: { predicate: "RF-06", advice_path: "framework/shared/setup-instructions/playwright.md", since: <ISO-8601 UTC> }` semantics into the styler's own state (the styler does not write `framework/state/.progress.json` per the stand-alone constraint — it surfaces the install path in the handback message and exits cleanly so the consultant installs Playwright and re-runs `/design-system`). Highest-fidelity outcome.
+- `use-webfetch-fallback` — the agent proceeds via the legacy WebFetch two-pass path. Sets `extraction_method = "webfetch-fallback"` in `metadata.json`, does not write `computed-tokens.json`. The consultant's choice is the contract — the agent does not re-warn during the run. Lower-fidelity outcome; many tokens may end up `inferred-from-domain` instead of `extracted-from-url`.
+- `drop-url` — the agent sets `{{reference_url}} = null`, records `extraction_status = playwright_unavailable`, and skips to `step-05b-domain-fill.md`. Most predictable outcome; tokens uniformly `inferred-from-domain`.
+
+**Recovery:** `install-and-retry` exits cleanly so the consultant installs Playwright per `framework/shared/setup-instructions/playwright.md` and re-invokes `/design-system`. `use-webfetch-fallback` and `drop-url` continue the run.
+
+**Refusal-registry schema field:** `setup_instructions_path` — same field as RF-01, pointing here at `framework/shared/setup-instructions/playwright.md`.
+
 ## Anti-Patterns
 
 - Do not invent a predicate ID. If no `RF-NN` covers the condition, append a new entry rather than overload an existing one.
 - Do not surface a `pause` predicate via plain-text halt. The choice set is the contract — without it, the consultant cannot machine-readably resume.
 - Do not surface a `hard` predicate via `AskUserQuestion`. There is no meaningful choice when prior work is at risk; halting cleanly is the only safe response.
-- Do not write `status: setup-pending` or `status: context-bloated` for any predicate other than `RF-01` and `RF-05` respectively. The `pending_setup` block is reserved for `RF-01` until a future predicate explicitly registers as a setup-required pause.
+- Do not write `status: setup-pending` or `status: context-bloated` for any predicate other than `RF-01` and `RF-05` respectively. The `pending_setup` block is reserved for `RF-01` until a future predicate explicitly registers as a setup-required pause. RF-06 deliberately does **not** write to `framework/state/.progress.json` because the design-system-styler is bound by a stand-alone constraint that prohibits any writes outside `design-system/` — its `install-and-retry` path surfaces the advice in the handback message instead.
 - Do not silently downgrade a `hard` predicate to `pause`. `RF-04` halts; conflating it with a pausable refusal hides write failures.

@@ -4,6 +4,23 @@
 
 ---
 
+## 0. Highest-signal source: `computed-tokens.json`
+
+If `design-system/.workspace/computed-tokens.json` exists (Playwright path in step-04), prefer values from it over text-pattern matches against `{{primary_css_content}}`.
+
+| Token             | Preferred source from `computed-tokens.json`                                                                                                  |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `heading-family`  | `sampleElements.h1.fontFamily`. If null, try `h2` then `h3`.                                                                                  |
+| `body-family`     | `sampleElements.body.fontFamily`.                                                                                                             |
+
+The values arrive as full font-family chains, e.g. `"Inter", "Helvetica Neue", sans-serif`. Strip surrounding quotes from each name and pick the first **non-generic** family per the existing rules below. Generic families to skip (existing list): `sans-serif`, `serif`, `monospace`, `cursive`, `fantasy`, `system-ui`, `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`.
+
+If the first family is generic across the entire chain (e.g. the body resolves to `system-ui, sans-serif`), leave the token unset — step-05b fills it from domain defaults. Tag computed-source extractions `extracted-from-url` and record the source as `sampleElements.h1` / `sampleElements.body`.
+
+**If `computed-tokens.json` is absent (WebFetch fallback path):** skip this section and use the legacy text-pattern logic in §4 below against `{{primary_css_content}}` only.
+
+---
+
 ## 4. Font Extraction
 
 ### Find Font Declarations

@@ -50,7 +50,15 @@
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(xargs wc *)",
       "Bash(Get-ChildItem -Path \"E:\\\\Development\\\\AIProjects\\\\branch\\\\prototyping-systemv3\" -Directory)",
-      "Bash(Select-Object Name)"
+      "Bash(Select-Object Name)",
+      "WebFetch(domain:www.digiata.com)",
+      "Bash(gh repo *)",
+      "Bash(gh api *)",
+      "mcp__playwright__browser_resize",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_network_request",
+      "mcp__playwright__browser_close"
     ]
   }
 }

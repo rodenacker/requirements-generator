@@ -4,6 +4,28 @@
 
 ---
 
+## 0. Highest-signal source: `computed-tokens.json`
+
+If `design-system/.workspace/computed-tokens.json` exists (Playwright path in step-04), prefer values from it over text-pattern matches against `{{primary_css_content}}`. The CSS string remains the fallback for tokens not present in the computed payload.
+
+**Mapping from `computed-tokens.json` to colour tokens:**
+
+| Token         | Preferred source from `computed-tokens.json`                                                                                                                          |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `primary`     | `customProperties` key matching `primary` / `brand` (case-insensitive substring). If multiple match, pick the one most frequently referenced in the rest of the CSS.    |
+| `secondary`   | `customProperties` key matching `secondary`. Otherwise next most-frequent chromatic non-primary value across `sampleElements`.                                          |
+| `accent`      | `customProperties` key matching `accent`. Otherwise the most saturated chromatic value not already assigned.                                                            |
+| `background`  | `sampleElements.body.backgroundColor`.                                                                                                                                  |
+| `surface`     | `customProperties` key matching `surface` / `card` / `panel`. Otherwise derive from `background` per §3.                                                                |
+| `text`        | `sampleElements.body.color`.                                                                                                                                            |
+| `text-muted`  | `customProperties` key matching `muted` / `subtle` / `secondary-text`. Otherwise derive from `text` per §3.                                                             |
+
+Computed values arrive as `rgb(...)` / `rgba(...)` — run them through the existing rgb→hex normalization rule in §2. Custom-property values may already be hex; use as-is.
+
+**If `computed-tokens.json` is absent (WebFetch fallback path):** skip this section entirely and use the legacy text-pattern logic in §1–§3 below against `{{primary_css_content}}` only. The synthetic `:root` block prepended to `{{primary_css_content}}` on the Playwright path is what makes the legacy heuristics still effective; without it (WebFetch path), the heuristics scan the raw fetched CSS as v3 did.
+
+---
+
 ## 1. CSS Analysis Strategy
 
 Analyze `{{primary_css_content}}` systematically by scanning these CSS constructs in order:

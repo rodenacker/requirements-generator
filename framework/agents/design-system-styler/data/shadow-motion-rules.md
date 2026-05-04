@@ -4,6 +4,27 @@
 
 ---
 
+## 0. Highest-signal source: `computed-tokens.json`
+
+If `design-system/.workspace/computed-tokens.json` exists (Playwright path in step-04), prefer values from it over text-pattern matches against `{{primary_css_content}}`.
+
+**Shadows:**
+- Prefer `customProperties` keys matching `shadow-sm` / `shadow-md` / `shadow-lg` / `elevation-1` / `elevation-2` / `elevation-3` for direct mapping.
+- Otherwise, collect non-`none` `boxShadow` values from `sampleElements` (typically present on `button`, `input`, and occasionally `body`). Apply the existing classification bands in §E.3 (small / medium / large by y-offset and blur).
+- The legacy strategy (§E.2 — collect every distinct value across the CSS string and rank by frequency) remains valid for shadows that don't appear on the sampled elements; treat the computed-source pass as a higher-priority *first* pass, then fall through to the CSS-string scan.
+
+**Motion:**
+- `transition-fast` / `transition-base` / `transition-slow`: prefer `customProperties` keys matching `duration-fast` / `duration-base` / `duration-slow` / `transition-fast` / `transition-slow`. Otherwise use `sampleElements.button.transitionDuration` (and `.link.transitionDuration` as a secondary source) — classify into the existing bands in §F.3 (fast ≤ 180ms, base 181–280ms, slow > 280ms).
+- `easing-standard`: prefer `customProperties` keys matching `ease-standard` / `easing-standard` / `ease`. Otherwise use `sampleElements.button.transitionTimingFunction`. Apply the existing keyword-to-cubic-bezier translation in §F's Easing section.
+
+Computed `transitionDuration` arrives as `0.2s` or `200ms`; normalize to `ms` per §F's existing rule. `transitionTimingFunction` arrives as either a `cubic-bezier(...)` literal or a keyword — apply the existing translation table.
+
+Tag computed-source extractions `extracted-from-url`; record the source as `sampleElements.<element>.<property>` or the matched custom-property name.
+
+**If `computed-tokens.json` is absent (WebFetch fallback path):** skip this section entirely and use the legacy text-pattern logic in §E–§F below against `{{primary_css_content}}` only.
+
+---
+
 ## E. Shadows (`shadow-sm` / `shadow-md` / `shadow-lg`)
 
 ### Token Targets
