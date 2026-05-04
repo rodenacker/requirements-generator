@@ -1,8 +1,8 @@
 {
-  "run_started_at": "2026-05-01T08:49:13Z",
+  "run_started_at": "2026-05-04T00:00:00Z",
+  "status": "running",
+  "pending_setup": null,
   "events": [
-    { "agent": "requirements-drafter", "event": "called", "at": "2026-05-01T08:49:23Z" },
-    { "agent": "requirements-drafter", "event": "completed", "at": "2026-05-01T09:01:41Z" },
-    { "agent": "requirements-resolver", "event": "called", "at": "2026-05-01T09:01:41Z" }
+    { "agent": "requirements-input-handler", "event": "called", "at": "2026-05-04T00:00:01Z" }
   ]
 }
