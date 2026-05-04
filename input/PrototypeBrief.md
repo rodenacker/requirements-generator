@@ -285,15 +285,3 @@ This is where most prototypes fail.
 - Upload (Importer only)
 
 ---
-
-## 8. Key Screens to Prototype
-
-1. Login
-2. File Log List (Dashboard)
-3. File Upload (Importer)
-4. Transaction Table (Shared core)
-5. Transaction Detail / Action modal
-6. File Summary view
-7. Export interaction
-
----

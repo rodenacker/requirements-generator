@@ -40,7 +40,17 @@
       "PowerShell(Get-FileHash *)",
       "Bash(command -v mmdc)",
       "PowerShell(Test-Path *)",
-      "PowerShell(Copy-Item *)"
+      "PowerShell(Copy-Item *)",
+      "Bash(mmdc --version)",
+      "Bash(where mmdc *)",
+      "Bash(where node *)",
+      "Read(//c/Users/Franz/AppData/Roaming/npm//**)",
+      "Bash(mmdc *)",
+      "Bash(Get-ChildItem -Recurse -Force)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(xargs wc *)",
+      "Bash(Get-ChildItem -Path \"E:\\\\Development\\\\AIProjects\\\\branch\\\\prototyping-systemv3\" -Directory)",
+      "Bash(Select-Object Name)"
     ]
   }
 }
