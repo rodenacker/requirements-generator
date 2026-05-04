@@ -48,7 +48,7 @@ Turn the contents of `input/` into `requirements/source-manifest.json` and the p
 ## Tools
 
 - Glob — enumerate `input/`.
-- Read — read `framework/state/.progress.json` for the `pending_setup` write, read input files for sha256 computation.
+- Read — read `framework/state/.progress.json` for the `pending_setup` write, read input files for sha256 computation, and read bounded byte prefixes (≤ 8192 bytes) of input files for the content-sniff invoked transitively by `framework/skills/classify-input-tier.md`.
 - Write — write `*.converted.md` siblings (via `convert-input-file.md`) and `requirements/source-manifest.json` (via `build-source-manifest.md`).
 - Edit — append a `pending_setup` block and `status` field to `framework/state/.progress.json` on the `RF-01 continue-later` branch.
 - Bash — compute sha256 of input files for the manifest's `sha256` field. No other Bash usage is permitted.

@@ -24,7 +24,14 @@
       "Bash(echo \"exit=$? size=$\\(wc -c < tiny9.svg || echo none\\)\")",
       "Bash(npx *)",
       "Bash(mkdir -p framework/state)",
-      "Bash(git mv *)"
+      "Bash(git mv *)",
+      "PowerShell(Get-ChildItem 'E:\\\\Development\\\\AIProjects\\\\v7b-test' | Where-Object {$_.PSIsContainer -eq $false})",
+      "PowerShell(Get-ChildItem 'E:\\\\Development\\\\AIProjects\\\\v7b-test' | Where-Object {$_.PSIsContainer -eq $false} | Select-Object Name)",
+      "Bash(git -C E:/Development/AIProjects/v7b-test status)",
+      "Bash(git -C E:/Development/AIProjects/v7b-test diff --stat)",
+      "Bash(git -C E:/Development/AIProjects/v7b-test log --oneline -5)",
+      "Bash(git -C E:/Development/AIProjects/v7b-test add .mcp.json README.md framework/agents/requirements-input-handler.md framework/agents/requirements-drafter.md framework/orchestrators/requirements-orch.md framework/shared/refusal-registry.md framework/shared/setup-instructions/markitdown.md framework/skills/build-source-manifest.md framework/skills/check-context-bloat.md framework/skills/classify-input-tier.md framework/skills/convert-input-file.md framework/skills/detect-rerun.md framework/skills/extract-facts.md framework/skills/preflight-mcp.md framework/skills/verify-artifact-write.md)",
+      "Bash(git -C E:/Development/AIProjects/v7b-test commit -m ' *)"
     ]
   }
 }

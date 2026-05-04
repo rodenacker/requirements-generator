@@ -1,0 +1,1026 @@
+openapi: 3.0.3
+info:
+  title: AugmentRiskPaymentsPOC API
+  version: 1.0.19
+  description: Augment Risk Payments App POC
+servers:
+  - url: http://localhost:8040
+    description: Localhost
+
+tags:
+  - name: Beneficiary
+    description: Operations on Beneficiaries
+  - name: Payment
+    description: Operations on Payments
+  - name: Approval
+    description: Operations on Approvals
+  - name: ReleaseQueue
+    description: Operations on Release Queue and batching
+  - name: Configuration
+    description: Operations on Configuration settings
+  - name: BankReceipt
+    description: Operations on Bank Receipts
+  - name: Demo Administration
+    description: Operations for demo administration and resets
+
+paths:
+  /beneficiaries:
+    get:
+      tags: [Beneficiary]
+      operationId: BeneficiaryGetList
+      summary: Get list of beneficiaries
+      parameters:
+        - name: IsActive
+          in: query
+          required: false
+          schema: { type: boolean }
+      responses:
+        '200':
+          description: List of beneficiaries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BeneficiaryRead'
+    post:
+      tags: [Beneficiary]
+      operationId: BeneficiaryCreate
+      summary: Create a beneficiary
+      parameters:
+        - name: IncomingUser
+          in: header
+          required: true
+          description: Upstream user identifier propagated to the service.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BeneficiaryWrite'
+      responses:
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BeneficiaryCreateResult'
+
+  /beneficiaries/{id}:
+    get:
+      tags: [Beneficiary]
+      operationId: BeneficiaryGetById
+      summary: Get beneficiary by Id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Beneficiary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BeneficiaryRead'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Beneficiary]
+      operationId: BeneficiaryUpdate
+      summary: Update a beneficiary
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: IncomingUser
+          in: header
+          required: true
+          description: Upstream user identifier propagated to the service.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BeneficiaryWrite'
+      responses:
+        '200':
+          description: Updated
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Beneficiary]
+      operationId: BeneficiaryDelete
+      summary: Delete a beneficiary
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: IncomingUser
+          in: header
+          required: true
+          description: Upstream user identifier propagated to the service.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /beneficiaries/duplicate-check:
+    get:
+      tags: [Beneficiary]
+      operationId: BeneficiaryDuplicateCheck
+      summary: Check for duplicate beneficiaries
+      parameters:
+        - name: Currency
+          in: query
+          required: true
+          schema: { type: string }
+        - name: AccountNumber
+          in: query
+          required: false
+          schema: { type: string }
+        - name: SortCode
+          in: query
+          required: false
+          schema: { type: string }
+        - name: SwiftCode
+          in: query
+          required: false
+          schema: { type: string }
+        - name: IBAN
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: Duplicate check result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuplicateCheckResult'
+  /beneficiaries/account-verification:
+    get:
+      tags: [Beneficiary]
+      operationId: BeneficiaryAccountVerification
+      summary: Verify beneficiary account
+      parameters:
+        - name: BeneficiaryName
+          in: query
+          required: true
+          schema: { type: string }
+        - name: Currency
+          in: query
+          required: true
+          schema: { type: string }
+        - name: SwiftCode
+          in: query
+          required: false
+          schema: { type: string }
+        - name: SortCode
+          in: query
+          required: false
+          schema: { type: string }
+        - name: AccountNumber
+          in: query
+          required: false
+          schema: { type: string }
+        - name: IBAN
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BeneficiaryVerificationResult'
+
+  /payments:
+    get:
+      tags: [Payment]
+      operationId: PaymentGetList
+      summary: Get list of payments
+      parameters:
+        - name: PaymentType
+          in: query
+          required: false
+          schema: { type: string }
+        - name: Reference
+          in: query
+          required: false
+          schema: { type: string }
+        - name: IsERP
+          in: query
+          required: false
+          schema: { type: boolean }
+        - name: Status
+          in: query
+          required: false
+          description: Optional status filter (e.g., Draft, Submitted, Approved, Released).
+          schema: { type: string }
+        - name: CreatedBy
+          in: query
+          required: false
+          schema: { type: string }
+        - name: BatchId
+          in: query
+          required: false
+          schema: { type: integer }
+      responses:
+        '200':
+          description: List of payments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentRead'
+    post:
+      tags: [Payment]
+      operationId: PaymentCreate
+      summary: Create a payment
+      parameters:
+        - name: IncomingUser
+          in: header
+          required: true
+          description: Upstream user identifier propagated to the service.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentWrite'
+      responses:
+        '200':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentCreateResult'
+
+  /payments/{id}:
+    get:
+      tags: [Payment]
+      operationId: PaymentGetById
+      summary: Get payment by Id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Payment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRead'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Payment]
+      operationId: PaymentUpdate
+      summary: Update a payment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: IncomingUser
+          in: header
+          required: true
+          description: Upstream user identifier propagated to the service.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentWrite'
+      responses:
+        '200':
+           description: Approved. No response body.
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /payments/{id}/submit-for-approval:
+    post:
+      tags: [Payment]
+      operationId: PaymentSubmitForApproval
+      summary: Submit a payment for approval
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+        - name: IncomingUser
+          in: header
+          required: false
+          description: Upstream user identifier propagated to the service.
+          schema:
+            type: string
+            default: System
+      responses:
+        '200':
+          description: Submission accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmitForApprovalResult'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /payments/{id}/import-receipts:
+    post:
+      tags: [Payment]
+      operationId: PaymentImportReceipts
+      summary: Import bank receipts for the specified payment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Import completed. No response body.
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /payments/duplicate-check:
+    get:
+      tags: [Payment]
+      operationId: PaymentDuplicateCheck
+      summary: Check for duplicate payments
+      parameters:
+        - name: BeneficiaryId
+          in: query
+          required: false
+          schema: { type: integer }
+        - name: InvoiceNumber
+          in: query
+          required: false
+          schema: { type: string }
+        - name: Amount
+          in: query
+          required: false
+          schema: { type: number }
+        - name: Date
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: Duplicate check result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DuplicateCheckResult'
+
+  /payments/dashboard-items:
+    get:
+      tags: [Payment]
+      operationId: PaymentGetDashboardItems
+      summary: Get dashboard items
+      parameters:
+        - name: FromDate
+          in: query
+          required: true
+          schema: { type: string }
+        - name: ToDate
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Dashboard items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardItemsRead'
+
+  /approvals:
+    get:
+      tags: [Approval]
+      operationId: ApprovalGetList
+      summary: Get list of approvals
+      parameters:
+        - name: Status
+          in: query
+          required: false
+          schema: { type: string }
+        - name: CFOHighValuePayments
+          in: query
+          required: false
+          schema: { type: boolean }
+        - name: PaymentType
+          in: query
+          required: false
+          schema: { type: string }
+        - name: IsOverdue
+          in: query
+          required: false
+          schema: { type: boolean }
+      responses:
+        '200':
+          description: List of approvals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApprovalRead'
+
+  /approvals/{id}:
+    get:
+      tags: [Approval]
+      operationId: ApprovalGetById
+      summary: Get approval by Id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Approval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalRead'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /approvals/approve:
+    post:
+      tags: [Approval]
+      operationId: ApprovalApprove
+      summary: Approve a list of approvals
+      parameters:
+        - name: IncomingUser
+          in: header
+          required: true
+          description: Upstream user identifier propagated to the service.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovalBulkAction'
+      responses:
+        '200':
+          description: Approved. No response body.
+
+  /approvals/reject:
+    post:
+      tags: [Approval]
+      operationId: ApprovalReject
+      summary: Reject a list of approvals
+      parameters:
+        - name: IncomingUser
+          in: header
+          required: true
+          description: Upstream user identifier propagated to the service.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovalBulkAction'
+      responses:
+        '200':
+          description: Rejected. No response body.
+
+  /release-queue:
+    get:
+      tags: [ReleaseQueue]
+      operationId: ReleaseQueueGetList
+      summary: Get list of release queue items
+      parameters:
+        - name: PaymentType
+          in: query
+          required: false
+          schema: { type: string }
+        - name: Status
+          in: query
+          required: false
+          schema: { type: string }
+        - name: Date
+          in: query
+          required: false
+          schema: { type: string }
+        - name: Amount
+          in: query
+          required: false
+          schema: { type: number }
+        - name: Beneficiary
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: List of release queue items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReleaseQueueRead'
+
+  /release-queue/{id}:
+    get:
+      tags: [ReleaseQueue]
+      operationId: ReleaseQueueGetById
+      summary: Get release queue item by Id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Release queue item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleaseQueueRead'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /release-queue/release:
+    post:
+      tags: [ReleaseQueue]
+      operationId: ReleaseQueueRelease
+      summary: Create a batch from release queue items
+      parameters:
+        - name: IncomingUser
+          in: header
+          required: true
+          description: Upstream user identifier propagated to the service.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBatchRequest'
+      responses:
+        '200':
+          description: Batch created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateBatchResult'
+
+  /release-queue/reject:
+    post:
+      tags: [ReleaseQueue]
+      operationId: ReleaseQueueReject
+      summary: Reject a list of release queue items
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReleaseQueueBulkAction'
+            example:
+              ReleaseQueueIds: [0]
+      responses:
+        '200':
+          description: Rejected. No response body.
+
+  /release-queue/batch-logs:
+    get:
+      tags: [ReleaseQueue]
+      operationId: ReleaseQueueGetBatchLogs
+      summary: Get release batch logs
+      parameters:
+        - name: DateFrom
+          in: query
+          required: false
+          schema: { type: string }
+        - name: DateTo
+          in: query
+          required: false
+          schema: { type: string }
+        - name: ReleasedBy
+          in: query
+          required: false
+          schema: { type: string }
+        - name: Status
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: List of release batch logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BatchLogRead'
+
+  /configurations:
+    get:
+      tags: [Configuration]
+      operationId: ConfigurationGetList
+      summary: Get list of configurations
+      responses:
+        '200':
+          description: List of configurations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConfigurationRead'
+
+  /configurations/{id}:
+    put:
+      tags: [Configuration]
+      operationId: ConfigurationUpdate
+      summary: Update a configuration setting by Id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfigurationWrite'
+      responses:
+        '200':
+          description: Updated
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /bank-receipts:
+    get:
+      tags: [BankReceipt]
+      operationId: BankReceiptGetList
+      summary: Get list of bank receipts
+      responses:
+        '200':
+          description: List of bank receipts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BankReceiptRead'
+
+  /demo/reset-demo:
+    post:
+      tags: [Demo Administration]
+      operationId: DemoAdministrationResetDemo
+      summary: Reset demo data
+      responses:
+        '200':
+          description: Reset started. No response body.
+
+components:
+  parameters:
+    UserHeader:
+      name: User
+      in: header
+      required: true
+      description: Username or identifier of the actor performing the bulk action.
+      schema:
+        type: string
+
+  responses:
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        Code: { type: string }
+        Message: { type: string }
+        Details:
+          type: object
+          additionalProperties: true
+
+    SubmitForApprovalResult:
+      type: object
+      properties:
+        ApprovalId:
+          type: integer
+
+    DuplicateCheckResult:
+      type: object
+      properties:
+        IsDuplicate:
+          type: boolean
+
+    DashboardItemsRead:
+      type: object
+      properties:
+        ReadyToRelease: { type: integer }
+        ApprovalRequired: { type: integer }
+        BankReceipts: { type: integer }
+        AccountVerificationStatistics:
+          type: object
+          properties:
+            Passed:
+              type: object
+              properties:
+                LastWeek: { type: integer }
+                LastMonth: { type: integer }
+                LastYear: { type: integer }
+            Outstanding:
+              type: object
+              properties:
+                LastWeek: { type: integer }
+                LastMonth: { type: integer }
+                LastYear: { type: integer }
+            Failed:
+              type: object
+              properties:
+                LastWeek: { type: integer }
+                LastMonth: { type: integer }
+                LastYear: { type: integer }
+        AnomaliesDetected: { type: integer }
+        EscalationsTriggered: { type: integer }
+        NearSLA:
+          type: object
+          properties:
+            Within30Minutes: { type: integer }
+            Within1Hour: { type: integer }
+            Within2Hours: { type: integer }
+
+    BeneficiaryWrite:
+      type: object
+      description: Write model for creating/updating a Beneficiary.
+      properties:
+        BeneficiaryName: { type: string }
+        SortCode: { type: string }
+        AccountNumber: { type: string }
+        IBAN: { type: string }
+        SwiftCode: { type: string }
+        Currency: { type: string }
+        Country: { type: string }
+        AddressLine1: { type: string }
+        City: { type: string }
+        PostalCode: { type: string }
+
+    BeneficiaryRead:
+      type: object
+      description: Read model for a Beneficiary.
+      properties:
+        Id: { type: integer }
+        BeneficiaryName: { type: string }
+        SortCode: { type: string }
+        AccountNumber: { type: string }
+        IBAN: { type: string }
+        SwiftCode: { type: string }
+        Currency: { type: string }
+        Country: { type: string }
+        IsActive: { type: boolean }
+        AddressLine1: { type: string }
+        City: { type: string }
+        PostalCode: { type: string }
+        VerificationStatus: { type: string }
+        VerificationNote: { type: string }
+        LastChangedBy: { type: string }
+        LastChangedDate: { type: string }
+        ValidFrom: { type: string }
+        ValidTo: { type: string }
+
+    PaymentWrite:
+      type: object
+      description: Write model for creating/updating a Payment.
+      properties:
+        Reference: { type: string }
+        InvoiceNumber: { type: string }
+        PaymentDate: { type: string }
+        Amount: { type: number }
+        Currency: { type: string }
+        PaymentType: { type: string }
+        BeneficiaryId: { type: integer }
+        PaymentMethod: { type: string }
+        RemittanceAdvice: { type: string }
+        CostCentre: { type: string }
+        GLCode: { type: string }
+        ReasonCode: { type: string }
+        IsERP: { type: boolean }
+        ERPRef: { type: string }
+
+    PaymentRead:
+      type: object
+      description: Read model for a Payment (includes beneficiary details; no BeneficiaryId).
+      properties:
+        Id: { type: integer }
+        Reference: { type: string }
+        InvoiceNumber: { type: string }
+        PaymentDate: { type: string }
+        Amount: { type: number }
+        Currency: { type: string }
+        PaymentType: { type: string }
+        PaymentMethod: { type: string }
+        RemittanceAdvice: { type: string }
+        CostCentre: { type: string }
+        GLCode: { type: string }
+        ReasonCode: { type: string }
+        IsERP: { type: boolean }
+        ERPRef: { type: string }
+        Status: { type: string }
+        IsDuplicate: { type: boolean }
+        BeneficiaryName: { type: string }
+        SortCode: { type: string }
+        AccountNumber: { type: string }
+        IBAN: { type: string }
+        SwiftCode: { type: string }
+        ValidFrom: { type: string }
+        ValidTo: { type: string }
+        CreatedBy: { type: string }
+        CreatedDate: { type: string }
+
+    ApprovalRead:
+      type: object
+      description: Read model for an Approval (Payment summary fields instead of PaymentId).
+      properties:
+        Id: { type: integer }
+        Status: { type: string }
+        CreatedBy: { type: string }
+        CreatedDate: { type: string }
+        IsDuplicate: { type: boolean }
+        IsOutOfRange: { type: boolean }
+        IsEscalated: { type: boolean }
+        Comments: { type: string }
+        Approver1: { type: string }
+        Approver2: { type: string }
+        Deadline: { type: string }
+        VerificationStatus: { type: string }
+        VerificationNote: { type: string }
+        PaymentRef: { type: string }
+        BeneficiaryName: { type: string }
+        Amount: { type: number }
+        Currency: { type: string }
+        PaymentType: { type: string }
+        ApprovalCount: { type: integer }
+        CfoApprovalRequired: { type: boolean }
+        CfoApproved: { type: boolean }
+        ApprovedCount: { type: integer }
+        ValidFrom: { type: string }
+        ValidTo: { type: string }
+
+    ApprovalBulkAction:
+      type: object
+      description: List of approval IDs to act on.
+      properties:
+        ApprovalIds:
+          type: array
+          items:
+            type: integer
+
+    ReleaseQueueRead:
+      type: object
+      description: Read model for a Release Queue item (includes payment summary; no PaymentId).
+      properties:
+        Id: { type: integer }
+        ApprovalStatus: { type: string }
+        ReleaseStatus: { type: string }
+        ReleasedBy: { type: string }
+        ReleasedDate: { type: string }
+        BatchId: { type: integer }
+        PaymentRef: { type: string }
+        BeneficiaryName: { type: string }
+        Amount: { type: number }
+        Currency: { type: string }
+        PaymentType: { type: string }
+        CreatedBy: { type: string }
+        CreatedDate: { type: string }
+        VerificationStatus: { type: string }
+        DuplicateFlag: { type: boolean }
+        OutOfRangeFlag: { type: boolean }
+        ValidFrom: { type: string }
+        ValidTo: { type: string }
+        Comments: { type: string }
+        Deadline: { type: string }
+
+    CreateBatchRequest:
+      type: object
+      description: IDs of release queue items to include in the batch.
+      properties:
+        ReleaseQueueIds:
+          type: array
+          items:
+            type: integer
+
+    CreateBatchResult:
+      type: object
+      properties:
+        BatchId:
+          type: integer
+        Count:
+          type: integer
+        TotalAmount:
+          type: number
+
+    ReleaseQueueBulkAction:
+      type: object
+      description: IDs of release queue items to reject.
+      properties:
+        ReleaseQueueIds:
+          type: array
+          items:
+            type: integer
+
+    ConfigurationWrite:
+      type: object
+      description: Write model for Configuration.
+      properties:
+        Value: { type: string }
+
+    ConfigurationRead:
+      type: object
+      description: Read model for Configuration.
+      properties:
+        Id: { type: integer }
+        Key: { type: string }
+        DataType: { type: string }
+        Value: { type: string }
+
+    PaymentCreateResult:
+      type: object
+      description: Result of creating a payment.
+      properties:
+        Id:
+          type: integer
+          
+    BeneficiaryCreateResult:
+      type: object
+      description: Result of creating a beneficiary.
+      properties:
+        Id:
+          type: integer
+          
+    BeneficiaryVerificationResult:
+      type: object
+      description: Result of verifying beneficiary details.
+      properties:
+        VerificationStatus:
+          type: string
+        VerificationMessage:
+          type: string
+
+    BankReceiptRead:
+      type: object
+      description: Read model for a Bank Receipt.
+      properties:
+        Id: { type: integer }
+        BankRef: { type: string }
+        MatchedPaymentId: { type: integer }
+        PaymentRef: { type: string }
+        BeneficiaryName: { type: string }
+        Amount: { type: number }
+        Currency: { type: string }
+        Method: { type: string }
+        Status: { type: string }
+        StatusReason: { type: string }
+        ValueDate: { type: string }
+        ReceivedDate: { type: string }
+        MatchStatus: { type: string }
+        AckStatus: { type: string }
+        ValidFrom: { type: string }
+        ValidTo: { type: string }
+
+    BatchLogRead:
+      type: object
+      description: Read model for a Release Batch log entry.
+      properties:
+        BatchId:        { type: integer }
+        ReleasedDate:    { type: string }
+        ReleasedBy:      { type: string }
+        PaymentCount:   { type: integer }
+        TotalAmount:    { type: number }
+        Status:         { type: string }
+        ReceiptCount:   { type: integer }
+        Comments:       { type: string }

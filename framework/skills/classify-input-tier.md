@@ -12,32 +12,49 @@
 
 ## Tier rubric
 
-Match by file extension, case-insensitive. The first row whose extension list contains the file's extension wins.
+Resolve in order. The first step that produces a tier wins.
 
-| Tier | Extensions | Read mechanism |
-|---|---|---|
-| `Native-text` | `.md`, `.txt`, `.drawio` | `Read` directly into the drafter's context. |
-| `Native-multimodal` | `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp` | `Read` directly via Claude's multimodal vision. No conversion. |
-| `Supported-via-MCP` | `.docx`, `.xlsx`, `.pptx`, `.pdf` | Convert to a sibling `*.converted.md` via `framework/skills/convert-input-file.md`; the drafter reads the sibling, not the original. |
-| `Unsupported` | everything else | Recorded in the manifest with `tier: "Unsupported"` and `conversions_applied: "none"`. The drafter skips Unsupported rows. |
+1. **Extension match — closed lists.** Match by file extension, case-insensitive.
+
+    | Tier | Extensions | Read mechanism |
+    |---|---|---|
+    | `Native-multimodal` | `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp` | `Read` directly via Claude's multimodal vision. No conversion. |
+    | `Supported-via-MCP` | `.docx`, `.xlsx`, `.pptx`, `.pdf` | Convert to a sibling `*.converted.md` via `framework/skills/convert-input-file.md`; the drafter reads the sibling, not the original. |
+
+    These two lists stay closed because each tier is bound to a specific read mechanism (vision input, markitdown MCP). New extensions land here only when the corresponding read path is actually available.
+
+2. **Content sniff — open default.** For every other file (including extensionless files), read the first 8192 bytes of `original_path` and apply this test, in order:
+
+    - Empty file (0 bytes) → `Native-text`.
+    - Buffer contains any `0x00` (NUL) byte → `Unsupported`. NUL bytes are the standard binary indicator (same heuristic git and `file(1)` use).
+    - Strict UTF-8 decode succeeds (after stripping a leading UTF-8 / UTF-16 BOM if present) → `Native-text`.
+    - Printable-ratio over the buffer (ASCII `0x20`–`0x7E` plus `\t \n \r`) is ≥ 0.95 → `Native-text`. Catches single-byte legacy encodings (Latin-1, Windows-1252) without forcing a decode guess.
+    - Otherwise → `Unsupported`.
+
+    Sniffing is **only** used to decide text-vs-binary for the open default. It never overrides an extension that already matched a closed list in step 1.
+
+The drafter `Read`s `Native-text` rows directly regardless of extension; downstream behaviour is identical for a `.md`, a `LICENSE`, or a `Makefile` once classified as `Native-text`.
 
 ## Edge cases
 
-- **No extension** — classify as `Unsupported`. The input-handler does not attempt to sniff content. The consultant can rename the file to add an extension and re-run.
-- **Compound extension** (e.g. `report.tar.gz`, `chart.svg.png`) — match on the *last* extension only. `chart.svg.png` is `Native-multimodal`; `report.tar.gz` is `Unsupported`.
+- **No extension** — falls through to the content sniff. A `LICENSE`, `Dockerfile`, or `Makefile` whose bytes decode as text classifies as `Native-text`; a binary blob with no extension classifies as `Unsupported`.
+- **Compound extension** (e.g. `report.tar.gz`, `chart.svg.png`) — match on the *last* extension only against the closed lists. `chart.svg.png` matches `Native-multimodal`. `report.tar.gz` does not match a closed list and falls through to the sniff (which will see binary bytes and return `Unsupported`).
 - **Standalone images vs embedded images** — standalone `.png`/`.jpg`/etc. files in `input/` are `Native-multimodal`. Images embedded inside a `.docx` or `.pdf` are not separately registered; they are handled as part of the parent file's conversion (markitdown extracts captions or summaries inline) and recorded on the parent row's `conversions_applied` string.
 - **`.converted.md` siblings** — these are produced by the input-handler itself for `Supported-via-MCP` files. They are not classified by this skill; they are referenced from the parent file's manifest row's `converted_sibling` field.
 - **Encrypted or password-protected Office files** — classify as `Supported-via-MCP` based on extension; the conversion skill handles the runtime failure (markitdown errors out) and reclassifies the row to `Unsupported` with `conversions_applied: "failed — encrypted"`.
+- **Text dump of binary data** (e.g. a Base64 payload) — classifies as `Native-text` because that is what the bytes are. The drafter sees text; the manifest's `sha256` still pins the original.
 
 ## Self-validation
 
 - Every input file produces exactly one row. No file is dropped without classification.
 - No row has `tier: null` or `tier: undefined`. Every file lands in one of the four tiers.
-- The skill performs no `Read` and no `Write`. Classification is purely extension-based; content is not inspected.
+- The skill performs no `Write`. It performs at most one bounded prefix `Read` (≤ 8192 bytes) per file, and only for files that did not match a closed-list extension in step 1. Classification is deterministic: same bytes → same tier across runs.
 
 ## Anti-Patterns
 
-- Do not sniff file content to "fix" a wrong-extension file. Classification is deterministic on extension; content sniffing makes the manifest non-reproducible across runs.
+- Do not use the content sniff to override an extension that already matched the `Native-multimodal` or `Supported-via-MCP` closed list. A `.docx` whose first 8 KB look like text is still `Supported-via-MCP` — the closed lists are bound to read mechanisms, not to content shape.
+- Do not extend the sniff to guess between `Supported-via-MCP` and `Native-text` (e.g. "this looks like markdown, treat it as `Native-text` even though it's a `.docx`"). The sniff's only job is text-vs-binary for the open default.
 - Do not invent new tiers. The four-tier set is the contract between this skill, the manifest schema, and the drafter. New tiers require coordinated edits across all three.
 - Do not classify dotfiles or scratch files. The input-handler excludes them before calling this skill; classifying them would record private consultant notes in the manifest.
-- Do not promote `Unsupported` to `Supported-via-MCP` because a future markitdown release might handle it. Add the extension to this rubric only when the conversion path is actually available.
+- Do not promote `Unsupported` to `Supported-via-MCP` because a future markitdown release might handle it. Add the extension to the closed list only when the conversion path is actually available.
+- Do not read more than the prefix for the sniff. Reading the whole file pulls binary content into context on every classification; the 8 KB cap keeps the sniff cheap and bounded.

@@ -15,12 +15,12 @@ pip install markitdown-mcp==0.0.1a4
 
 After install, restart Claude Code so the MCP server declared in `.mcp.json` is loaded. See `framework/shared/setup-instructions/markitdown.md` for verification and troubleshooting.
 
-If `markitdown-mcp` is not installed, the pipeline still runs on `.md`/`.txt`/`.drawio` and standalone images — the input-handler's preflight surfaces `RF-01 dependency_missing` only when an Office or PDF input is present.
+If `markitdown-mcp` is not installed, the pipeline still runs on `.md`/`.txt`/`.drawio`/`.yml`/`.yaml`/`.xml` and standalone images — the input-handler's preflight surfaces `RF-01 dependency_missing` only when an Office or PDF input is present.
 
 ## Run
 
 1. Drop input documents into `input/`. Supported tiers:
-    - **Native-text** — `.md`, `.txt`, `.drawio`. Read directly.
+    - **Native-text** — `.md`, `.txt`, `.drawio`, `.yml`, `.yaml`, `.xml`. Read directly.
     - **Native-multimodal** — `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`. Read directly via Claude's multimodal vision.
     - **Supported-via-MCP** — `.docx`, `.xlsx`, `.pptx`, `.pdf`. Converted to a sibling `*.converted.md` via markitdown.
     - **Unsupported** — everything else. Recorded in the manifest for forensic record; not read.
