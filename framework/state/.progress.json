@@ -2,5 +2,7 @@
   "run_started_at": "2026-05-04T00:00:00Z",
   "status": "running",
   "pending_setup": null,
-  "events": []
+  "events": [
+    { "agent": "requirements-input-handler", "event": "called", "at": "2026-05-04T00:01:00Z" }
+  ]
 }
