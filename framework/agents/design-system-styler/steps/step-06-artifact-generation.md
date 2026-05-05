@@ -23,7 +23,8 @@ Read tool: framework/agents/design-system-styler/prompt-templates/artifact-gener
 - `{{extracted_typography}}` — 15 typography tokens
 - `{{extracted_effects}}` — 7 effect tokens
 - `{{contrast_validation}}` — 4 pair ratios + adjustments line
-- `{{extraction_status}}`, `{{extraction_date}}`, `{{domain}}`, `{{domain_source}}`, `{{reference_url}}`, `{{css_source_type}}`, `{{css_source_url}}`
+- `{{voice}}` — one-line Voice statement synthesised in step-05b
+- `{{extraction_status}}`, `{{extraction_date}}`, `{{domain}}`, `{{reference_url}}`, `{{css_source_type}}`, `{{css_source_url}}`
 
 ## A. Source the Template
 
@@ -33,12 +34,12 @@ Read `framework/assets/template-design-system.md`. Use it as the structural base
 
 Apply the prompt template's instructions in order:
 
-1. Section 3 — Frontmatter: write the YAML frontmatter with all eight provenance fields.
+1. Section 3 — Frontmatter: write the YAML frontmatter with all seven provenance fields.
 2. Section 4 — Attribution paragraph: pick the variant per `{{extraction_status}}` and `{{reference_url}}` state.
 3. Section 5 — Provenance tagging: every token row gets `extracted-from-url` or `inferred-from-domain`.
 4. Section 6 — Populate the Extraction Summary tables (Colours, Typography, Effects, Contrast Validation) and the machine-readable Brand sections.
 
-The artefact is generated even when `{{extraction_status}}` ≠ `"success"`. The doc is always complete (every token filled from domain defaults if extraction was skipped); the frontmatter `extraction_status` field records *why* the URL path didn't yield extracted values.
+The artefact is generated even when `{{extraction_status}}` ≠ `"success"`. The doc is always complete (every token domain-inferred if extraction was skipped); the frontmatter `extraction_status` field records *why* the URL path didn't yield extracted values.
 
 ## B-bis. Append the Static Standards Appendix
 

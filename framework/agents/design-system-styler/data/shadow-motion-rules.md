@@ -1,6 +1,6 @@
 # Shadow & Motion Extraction Rules — Design-System-Styler Data File
 
-**Role:** Pure reference knowledge consumed by step-05 (Brand Extraction). Defines extraction heuristics for `box-shadow` elevation tokens and `transition-duration` / `transition-timing-function` tokens from CSS content. Authored for v7b-test (no v3 equivalent). Tokens that cannot be confidently extracted fall through to step-05b for domain-defaults fill.
+**Role:** Pure reference knowledge consumed by step-05 (Brand Extraction). Defines extraction heuristics for `box-shadow` elevation tokens and `transition-duration` / `transition-timing-function` tokens from CSS content. Authored for v7b-test (no v3 equivalent). Tokens that cannot be confidently extracted fall through to step-05b for domain-inference.
 
 ---
 
@@ -58,7 +58,7 @@ Tag computed-source extractions `extracted-from-url`; record the source as `samp
 ### Coverage Threshold
 
 - If **none** of the three bands have any matching shadows, leave all three tokens unset.
-- If **at least one** band has a value, fill what was found; step-05b backfills the missing bands by interpolation against the domain defaults (the same band that was found stays as `extracted-from-url`; the others are tagged `inferred-from-domain`).
+- If **at least one** band has a value, fill what was found; step-05b backfills the missing bands per-run from the domain inference (the same band that was found stays as `extracted-from-url`; the others are tagged `inferred-from-domain`).
 
 ---
 

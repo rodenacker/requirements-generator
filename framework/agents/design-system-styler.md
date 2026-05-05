@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **s
 
 ## Purpose
 
-Produce `design-system/design-system.md` — a complete design-system document spanning 11 colour tokens, 15 typography tokens, and 7 effect tokens — from inputs the consultant supplies *directly*: a domain (required) and an optional reference URL. The agent extracts tokens from the URL's CSS where possible and fills the remainder from `framework/assets/domain-defaults/{{domain}}.md` (curated) or per-run inference (free-text). Every token carries a provenance marker (`extracted-from-url` or `inferred-from-domain`) and a Source Context entry.
+Produce `design-system/design-system.md` — a complete design-system document spanning 11 colour tokens, 15 typography tokens, and 7 effect tokens — from inputs the consultant supplies *directly*: a domain (required) and an optional reference URL. The agent extracts tokens from the URL's CSS where possible and infers the remainder per-run from the consultant's `{{domain}}` string. Every token carries a provenance marker (`extracted-from-url` or `inferred-from-domain`) and a Source Context entry.
 
 ## Stand-alone constraint (non-negotiable)
 
@@ -17,27 +17,27 @@ This agent is **stand-alone**. During its run it must not, under any circumstanc
 - Load `framework/shared/general-rules.md`, `framework/shared/prototype-scope.md`, or `framework/shared/prototype-invariants.md`.
 - Reference, summarise, or reconcile against any other agent's output (drafter, resolver, merger, or any future pipeline).
 
-The only inputs are: the consultant's typed answers (collected in step-02), the CSS fetched in step-04 (if a URL was given), the curated/free-text domain defaults applied in step-05b, and — only on the RF-06 preflight branch in step-04 — the registry entry at `framework/shared/refusal-registry.md` and the install copy at `framework/shared/setup-instructions/playwright.md`. These two files are static reference docs, not any other agent's working state, so reading them does not breach the stand-alone constraint. This invariant is restated at activation in step-01 and is enforced by the agent's `Tools` list — no read path into `requirements/` or `framework/state/` is granted.
+The only inputs are: the consultant's typed answers (collected in step-02), the CSS fetched in step-04 (if a URL was given), the per-run domain inference applied in step-05b, and — only on the RF-06 preflight branch in step-04 — the registry entry at `framework/shared/refusal-registry.md` and the install copy at `framework/shared/setup-instructions/playwright.md`. These two files are static reference docs, not any other agent's working state, so reading them does not breach the stand-alone constraint. This invariant is restated at activation in step-01 and is enforced by the agent's `Tools` list — no read path into `requirements/` or `framework/state/` is granted.
 
 ## Workflow
 
 Steps live under `framework/agents/design-system-styler/steps/`. Read each step file fully before executing it; advance only as the step file directs. Steps in execution order:
 
 1. `step-01-activate.md` — Load the character file. Re-affirm the stand-alone constraint. Announce readiness.
-2. `step-02-inputs.md` — Collect `{{domain}}` (required, curated list + free-text) and `{{reference_url}}` (optional) via `AskUserQuestion`.
+2. `step-02-inputs.md` — Collect `{{domain}}` (required, free-text) and `{{reference_url}}` (optional) via `AskUserQuestion`.
 3. *Step 3 (re-run gating) is intentionally absent in this agent — the orchestrator handles it at startup.*
 4. `step-04-site-fetching.md` — Playwright fetch (preferred): resize to desktop viewport → navigate → settle → aggregate stylesheets + computed `:root` + sample elements. Falls back to two-pass WebFetch only when the consultant elects it at the preflight prompt (RF-06). Skipped entirely if `{{reference_url}}` is null.
 5. `step-05-brand-extraction.md` — Apply data files in sequence to extract colours, typography, effects from `{{primary_css_content}}`. Status colours never extracted here.
-5b. `step-05b-domain-fill.md` — Always runs. Fills every unset token from `framework/assets/domain-defaults/{{domain}}.md` (curated) or per-run inference (free-text). Runs WCAG AA contrast validation across the final token set with auto-adjustment.
+5b. `step-05b-domain-inference.md` — Always runs. Synthesises a Voice statement from `{{domain}}` and infers every unset token per-run via `prompt-templates/domain-inference.md`. Runs WCAG AA contrast validation across the final token set with auto-adjustment.
 6. `step-06-artifact-generation.md` — Render `framework/assets/template-design-system.md` with the in-memory token set; write to `design-system/design-system.md`; verify the write via `framework/skills/verify-artifact-write.md`.
 7. `step-07-handback.md` — Present the Unicorn-voice summary. Run the accept/revise/restart loop. Clean up `design-system/.workspace/`. Hand back to the orchestrator.
 
 ## Inputs
 
-- Consultant typed answers (via `AskUserQuestion` in step-02): `{{domain}}`, `{{domain_source}}`, `{{reference_url}}` (optional). The step-04 preflight may surface a second `AskUserQuestion` (RF-06 three-way choice) if Playwright MCP is not installed.
+- Consultant typed answers (via `AskUserQuestion` in step-02): `{{domain}}`, `{{reference_url}}` (optional). The step-04 preflight may surface a second `AskUserQuestion` (RF-06 three-way choice) if Playwright MCP is not installed.
 - Fetched CSS content (only if a URL was given): `{{primary_css_content}}`, persisted in `design-system/.workspace/css-content.txt` between steps.
 - Computed-style payload (only on the Playwright path): persisted in `design-system/.workspace/computed-tokens.json`. Contains `customProperties` (filtered brand tokens), `frameworkProperties` (filtered framework noise), and `sampleElements` (computed styles for body / h1–h6 / link / button / input). **Absent on the WebFetch fallback path** — the rules files detect this and use legacy text-pattern matching exclusively.
-- Curated domain defaults: `framework/assets/domain-defaults/{{domain}}.md` (only if `{{domain}}` is one of the seven curated values).
+- Domain-inference contract: `framework/agents/design-system-styler/prompt-templates/domain-inference.md` (loaded by step-05b).
 - Template: `framework/assets/template-design-system.md`.
 - Character: `framework/assets/characters/style-extraction.md` (read once at activation).
 - Persona: `framework/assets/persona-llm.md` (loaded by the activation invariant; not re-read here).
@@ -49,7 +49,7 @@ Steps live under `framework/agents/design-system-styler/steps/`. Read each step 
 
 ## Tools
 
-- `Read` — read the character file, the prompt templates, the data files, the template, the curated domain-defaults file, the refusal-registry entry for RF-06, the Playwright setup-instructions copy, and the workspace files. **Read is not authorised against any path under `requirements/`, `framework/state/`, or `framework/shared/` *except* `framework/shared/refusal-registry.md` and `framework/shared/setup-instructions/playwright.md`, which are required for the RF-06 surface in step-04.**
+- `Read` — read the character file, the prompt templates (including `domain-inference.md`), the data files, the template, the design-system standards, the refusal-registry entry for RF-06, the Playwright setup-instructions copy, and the workspace files. **Read is not authorised against any path under `requirements/`, `framework/state/`, or `framework/shared/` *except* `framework/shared/refusal-registry.md` and `framework/shared/setup-instructions/playwright.md`, which are required for the RF-06 surface in step-04.**
 - `Write` — write `design-system/.workspace/css-content.txt`, `design-system/.workspace/computed-tokens.json` (Playwright path only), `design-system/.workspace/metadata.json`, and `design-system/design-system.md`.
 - `Edit` — apply consultant-supplied revisions to `design-system/design-system.md` during the accept/revise loop in step-07.
 - `Bash` — `mkdir -p design-system/.workspace`, `mkdir -p design-system`, and `rm -rf design-system/.workspace` for the cleanup step. No other Bash usage.
@@ -71,7 +71,7 @@ Before handing back, verify all of the following against the written artefact an
 - Status-colour rows (success/warning/error/info) all carry `inferred-from-domain` regardless of the URL outcome.
 - The frontmatter `extraction_status` field is one of `success | no_url | fetch_failed | no_css | css_fetch_failed | insufficient_data | workspace_read_failed | playwright_unavailable`.
 - When `{{reference_url}}` was non-null at step-02 and the run did not exit via `playwright_unavailable`, `metadata.json`'s `extraction_method` field is one of `playwright | webfetch-fallback`. (Absent on the no-URL path.)
-- The frontmatter `domain` field equals `{{domain}}` and `domain_source` is `curated` (when `{{domain}}` matches a file in `framework/assets/domain-defaults/`) or `free-text` (otherwise).
+- The frontmatter `domain` field equals `{{domain}}` (lowercased, trimmed). The artefact contains a `Voice:` line in the diagnostic summary derived from that domain.
 - The artefact was *not* read from `requirements/`, `framework/state/`, or `framework/shared/` during this run. (The agent's tool list makes this true by construction; the check is a deliberate restatement at handback time.)
 - The consultant has chosen Accept in step-07.
 - `design-system/.workspace/` has been removed.

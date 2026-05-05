@@ -1,6 +1,6 @@
 # Color Extraction Rules — Design-System-Styler Data File
 
-**Role:** Pure reference knowledge consumed by step-05 (Brand Extraction). Contains CSS analysis strategy, color extraction rules, and color-to-token mapping heuristics. Ported from v3 b3-style-extractor with the status-color exclusion rule replaced by status-color *fallback to domain-defaults* (status colours are populated by step-05b, not by this rules file).
+**Role:** Pure reference knowledge consumed by step-05 (Brand Extraction). Contains CSS analysis strategy, color extraction rules, and color-to-token mapping heuristics. Ported from v3 b3-style-extractor with the status-color exclusion rule replaced by status-color *fallback to domain-inference* (status colours are populated by step-05b, not by this rules file).
 
 ---
 
@@ -146,4 +146,4 @@ When fewer than 7 distinct colors are available:
 
 ### Status-Colour Exclusion (Routed to step-05b)
 
-Do NOT map any extracted colors to `success`, `warning`, `error`, or `info` tokens during this step. Even if the CSS contains green/yellow/red/blue colors that appear to be status indicators, leave the four status tokens unset here. Step-05b populates them from the domain defaults — that is the only path for status colours under the stand-alone constraint.
+Do NOT map any extracted colors to `success`, `warning`, `error`, or `info` tokens during this step. Even if the CSS contains green/yellow/red/blue colors that appear to be status indicators, leave the four status tokens unset here. Step-05b infers them per-run from the domain — that is the only path for status colours under the stand-alone constraint.

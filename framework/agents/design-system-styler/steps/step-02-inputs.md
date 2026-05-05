@@ -13,27 +13,24 @@ Collect the domain as free text only — do **not** present a list of options to
 
 > *"What domain best describes this product? Type a short descriptor (e.g. `retail-banking`, `pet-grooming-marketplace`, `internal HR portal`)."*
 
-Wait for the consultant's reply, then capture and classify.
+Wait for the consultant's reply, then capture.
 
-### Capture and classify
+### Capture
 
 - Trim surrounding whitespace and lower-case the consultant's answer; store the result as `{{domain}}`.
-- Check whether `framework/assets/domain-defaults/{{domain}}.md` exists (use `Read`; treat a missing-file error as "does not exist").
-  - If it exists, set `{{domain_source}} = "curated"`.
-  - If it does not exist, set `{{domain_source}} = "free-text"`.
 
-The domain must always be set after this sub-step. If the consultant returns an empty answer, re-prompt. There is no skip option for the domain.
+The domain must always be set after this sub-step. If the consultant returns an empty answer, re-prompt. There is no skip option for the domain. The styler always infers tokens per-run from this string in step-05b.
 
 ## 2b. Ask for the reference URL
 
 Use `AskUserQuestion` with two options + free-text:
 
-- Question: *"Optional reference URL for brand extraction. Paste a public URL and I'll extract colours and typography from its CSS, or skip and I'll use the `{{domain}}` defaults for everything."*
+- Question: *"Optional reference URL for brand extraction. Paste a public URL and I'll extract colours and typography from its CSS, or skip and I'll infer every token from `{{domain}}`."*
 - Header: `Reference URL`
 - multiSelect: false
 - Options (in this order):
   1. `Provide URL` (Recommended) — followed up by the consultant typing the URL in the next message OR using the `Other` free-text option.
-  2. `Skip — use domain defaults only` — every token will be tagged `inferred-from-domain`.
+  2. `Skip — infer everything from the domain` — every token will be tagged `inferred-from-domain`.
 
 If the consultant chooses the **Provide URL** option, accept the URL from their next message (or the `Other` free-text answer). If they chose **Skip**, set `{{reference_url}} = null`.
 
@@ -51,12 +48,12 @@ If no URL was provided (`{{reference_url}}` is null), record this as a deliberat
 
 Before advancing, echo the captured inputs back to the consultant in one short Unicorn-voice line:
 
-- With URL: *"Domain: `{{domain}}` (`{{domain_source}}`). URL: `{{reference_url}}`. Fetching CSS now."*
-- Without URL: *"Domain: `{{domain}}` (`{{domain_source}}`). No URL — filling everything from defaults."*
+- With URL: *"Domain: `{{domain}}`. URL: `{{reference_url}}`. Fetching CSS now."*
+- Without URL: *"Domain: `{{domain}}`. No URL — inferring every token from the domain."*
 
 ---
 
 **Next:**
 
 - If `{{reference_url}}` is set, read fully and follow `step-04-site-fetching.md`. (Step 3 is intentionally a no-op in this agent — the orchestrator handles re-run gating.)
-- If `{{reference_url}}` is null, set `{{extraction_status}} = "no_url"` and skip directly to `step-05b-domain-fill.md`.
+- If `{{reference_url}}` is null, set `{{extraction_status}} = "no_url"` and skip directly to `step-05b-domain-inference.md`.

@@ -10,7 +10,7 @@ description: 'Playwright-driven site fetching: resize → navigate → settle �
 
 # Step 4: Site Fetching (Playwright-preferred, WebFetch fallback)
 
-**Skip condition:** if `{{reference_url}}` is null (consultant skipped the URL prompt in step-02), do not run any sub-step here. Skip directly to `step-05b-domain-fill.md` with `{{extraction_status}} = "no_url"`. No preflight, no Playwright invocation.
+**Skip condition:** if `{{reference_url}}` is null (consultant skipped the URL prompt in step-02), do not run any sub-step here. Skip directly to `step-05b-domain-inference.md` with `{{extraction_status}} = "no_url"`. No preflight, no Playwright invocation.
 
 ---
 
@@ -36,13 +36,13 @@ Apply the skill's procedure with the following inputs:
 | ------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Install       | Install Playwright and retry           | Highest fidelity. Stop now, install per `framework/shared/setup-instructions/playwright.md`, then re-run `/design-system`. The agent will exit cleanly after this prompt.                                                                                                                                          |
 | WebFetch      | Use WebFetch instead (degraded fidelity) | WebFetch returns LLM-summarised content rather than raw CSS. Exact hex codes, custom properties, and computed font/shadow values are typically lost. Brand-token extraction will be lower fidelity than Playwright; many tokens may end up `inferred-from-domain` instead of `extracted-from-url`.                  |
-| Drop URL      | Drop the URL and use domain defaults     | Most predictable. The run proceeds without any URL extraction; every token is filled from `framework/assets/domain-defaults/{{domain}}.md` and tagged `inferred-from-domain`.                                                                                                                                       |
+| Drop URL      | Drop the URL and infer from the domain   | Most predictable. The run proceeds without any URL extraction; every token is inferred per-run from `{{domain}}` and tagged `inferred-from-domain`.                                                                                                                                                                |
 
 **Branch on the consultant's selection:**
 
 - **Install** → emit a single-line handback note pointing at `framework/shared/setup-instructions/playwright.md`, set `{{extraction_status}} = "playwright_unavailable"` in agent memory, and exit step-04 by terminating the agent run cleanly. Do NOT advance to step-05 or step-05b on this branch — the consultant must install and re-run.
 - **WebFetch** → set `{{extraction_method}} = "webfetch-fallback"` in agent memory and advance to §4.B (WebFetch fallback path).
-- **Drop URL** → set `{{reference_url}} = null`, set `{{extraction_status}} = "playwright_unavailable"`, and skip to `step-05b-domain-fill.md`.
+- **Drop URL** → set `{{reference_url}} = null`, set `{{extraction_status}} = "playwright_unavailable"`, and skip to `step-05b-domain-inference.md`.
 
 ---
 
@@ -77,13 +77,13 @@ Reached when preflight returned `ok`. Sets `{{extraction_method}} = "playwright"
 - Log: "Fetched content from {{reference_url}} is not HTML (likely an API endpoint or non-web-page URL)"
 - Set `{{extraction_status}} = "fetch_failed"`
 - Set `{{extraction_error}} = "Response is not an HTML page"`
-- Close the browser (`mcp__playwright__browser_close()`) and skip to `step-05b-domain-fill.md`.
+- Close the browser (`mcp__playwright__browser_close()`) and skip to `step-05b-domain-inference.md`.
 
 **On any navigation/evaluate error** (timeout, DNS failure, HTTP 4xx/5xx surfaced by Playwright):
 
 - Log: "Playwright failed to load {{reference_url}}: {error_description}"
 - Set `{{extraction_status}} = "fetch_failed"` and `{{extraction_error}} = "{error_description}"`
-- Close the browser if it is still open. Skip to `step-05b-domain-fill.md`.
+- Close the browser if it is still open. Skip to `step-05b-domain-inference.md`.
 
 ### 4.A.2 Pass 2 — Aggregate stylesheets and computed tokens
 
@@ -207,7 +207,7 @@ then:
 
 - Log: "No identifiable CSS content captured from {{reference_url}}"
 - Set `{{extraction_status}} = "no_css"`
-- Skip to `step-05b-domain-fill.md`. (The browser is already closed.)
+- Skip to `step-05b-domain-inference.md`. (The browser is already closed.)
 
 ### 4.A.8 Content size management
 
@@ -279,14 +279,14 @@ Apply its instructions to perform the two-pass fetch.
 - Log: "Failed to fetch homepage: {error_description}"
 - Set `{{extraction_status}} = "fetch_failed"`
 - Set `{{extraction_error}} = "{error_description}"`
-- Skip to `step-05b-domain-fill.md`. Do NOT halt.
+- Skip to `step-05b-domain-inference.md`. Do NOT halt.
 
 **If WebFetch succeeds:** Verify the response is HTML by checking that the content contains `<html`, `<!doctype`, or `<head` (case-insensitive). If not HTML (e.g., JSON, plain text, binary):
 
 - Log: "Fetched content from {{reference_url}} is not HTML (likely an API endpoint or non-web-page URL)"
 - Set `{{extraction_status}} = "fetch_failed"`
 - Set `{{extraction_error}} = "Response is not an HTML page"`
-- Skip to `step-05b-domain-fill.md`.
+- Skip to `step-05b-domain-inference.md`.
 
 ### 4.B.2 CSS Source Identification
 
@@ -306,7 +306,7 @@ Apply its classification rules to `{{homepage_html}}`:
 
 - Log: "No identifiable CSS sources in homepage HTML"
 - Set `{{extraction_status}} = "no_css"`
-- Skip to `step-05b-domain-fill.md`.
+- Skip to `step-05b-domain-inference.md`.
 
 **If CSS sources found:** Select the primary source per the prompt template heuristics and store as `{{primary_css_source}}` with `{{css_source_type}}` (`"external"` or `"inline"`).
 
@@ -322,7 +322,7 @@ Apply its classification rules to `{{homepage_html}}`:
 
 - Check if an inline `<style>` block exists as fallback.
 - If fallback available: use the largest inline `<style>` block as `{{primary_css_content}}`; log "External stylesheet fetch failed, using inline style fallback".
-- If no fallback: set `{{extraction_status}} = "css_fetch_failed"`, skip to `step-05b-domain-fill.md`.
+- If no fallback: set `{{extraction_status}} = "css_fetch_failed"`, skip to `step-05b-domain-inference.md`.
 
 **If `{{primary_css_source}}` is inline:**
 

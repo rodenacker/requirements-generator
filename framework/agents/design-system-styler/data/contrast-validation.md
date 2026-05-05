@@ -6,7 +6,7 @@
 
 ## 6. WCAG AA Contrast Validation
 
-After assigning all 7 brand color tokens (regardless of whether they came from the URL or from domain defaults), validate text/background contrast for accessibility compliance.
+After assigning all 7 brand color tokens (regardless of whether they came from the URL or from domain inference), validate text/background contrast for accessibility compliance.
 
 ### Required Passing Pairs
 

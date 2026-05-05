@@ -1,6 +1,6 @@
 # Typography Scale Extraction Rules — Design-System-Styler Data File
 
-**Role:** Pure reference knowledge consumed by step-05 (Brand Extraction). Defines extraction heuristics for the font-size scale, font-weight set, and line-height set from CSS content. Authored for v7b-test (no v3 equivalent). Tokens that cannot be confidently extracted fall through to step-05b for domain-defaults fill.
+**Role:** Pure reference knowledge consumed by step-05 (Brand Extraction). Defines extraction heuristics for the font-size scale, font-weight set, and line-height set from CSS content. Authored for v7b-test (no v3 equivalent). Tokens that cannot be confidently extracted fall through to step-05b for domain-inference.
 
 ---
 
@@ -20,7 +20,7 @@ If `design-system/.workspace/computed-tokens.json` exists (Playwright path in st
   - `text-sm`  ← prefer `customProperties` key matching `text-sm` / `font-size-sm`. Otherwise leave for step-05b.
   - `text-xs`  ← prefer `customProperties` key matching `text-xs` / `font-size-xs`. Otherwise leave for step-05b.
 - Convert px → rem using `value_px / sampleElements.body.fontSize_px` and round to 4 decimals.
-- Apply the existing coverage threshold (§A): if fewer than 3 of the 8 size tokens can be confidently filled, leave **all 8** unset and let step-05b fill the entire scale from domain defaults.
+- Apply the existing coverage threshold (§A): if fewer than 3 of the 8 size tokens can be confidently filled, leave **all 8** unset and let step-05b infer the entire scale per-run.
 
 **Weights:**
 - `heading-weight` ← `sampleElements.h1.fontWeight`. Round to nearest 100 unless an exact variable-font value is present.
@@ -72,7 +72,7 @@ Tag computed-source extractions `extracted-from-url`; record the source as `samp
 
 ### Coverage Threshold
 
-- If **fewer than 3** of the 8 size tokens can be confidently extracted, leave **all 8** unset — partial scales are confusing. Step-05b will fill the entire scale from domain defaults.
+- If **fewer than 3** of the 8 size tokens can be confidently extracted, leave **all 8** unset — partial scales are confusing. Step-05b will infer the entire scale per-run.
 - If **3 or more** can be extracted, fill what was found and let step-05b backfill the gaps.
 
 ---
@@ -115,4 +115,4 @@ Extract three line-height tokens.
 For every typography token written by this rules file:
 
 - If the value was found in the CSS, tag the token `extracted-from-url` and record the source selector or custom-property name in the Source Context column.
-- If the token was left unset and later filled by step-05b, the agent tags it `inferred-from-domain` and writes the source as `domain-default ({{domain}})` (curated) or `domain-inference ({{domain}})` (free-text).
+- If the token was left unset and later filled by step-05b, the agent tags it `inferred-from-domain` and writes the source as `domain-inference ({{domain}})`.

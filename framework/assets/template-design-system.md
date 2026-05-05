@@ -5,7 +5,6 @@ reference_url: "{{reference_url}}"
 extraction_date: "{{extraction_date}}"
 extraction_status: "{{extraction_status}}"
 domain: "{{domain}}"
-domain_source: "{{domain_source}}"
 css_source_type: "{{css_source_type}}"
 css_source_url: "{{css_source_url}}"
 ---
@@ -14,7 +13,7 @@ css_source_url: "{{css_source_url}}"
 
 > {{attribution_paragraph}}
 >
-> Every token below carries a provenance marker — `extracted-from-url` if the value was found in the fetched CSS, `inferred-from-domain` if it came from the `{{domain}}` defaults. Review before consuming.
+> Every token below carries a provenance marker — `extracted-from-url` if the value was found in the fetched CSS, `inferred-from-domain` if it was inferred per-run from the `{{domain}}` string. Review before consuming.
 
 ---
 

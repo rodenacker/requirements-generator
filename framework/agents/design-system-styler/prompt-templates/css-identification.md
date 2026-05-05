@@ -52,7 +52,7 @@ Note: No external stylesheets found; using inline styles for brand analysis
 **Action:**
 - Set `{{extraction_status}}` = `"no_css"`
 - Log the diagnostic output below
-- Skip URL extraction; route every token through step-05b (domain-defaults fill)
+- Skip URL extraction; route every token through step-05b (domain-inference)
 
 **Diagnostic output:**
 ```
@@ -61,20 +61,20 @@ HTML size: {{html_size}} characters
 Analysis: Homepage contains no identifiable CSS sources
   - External stylesheets (<link rel="stylesheet">): 0
   - Inline style blocks (<style>): 0
-Impact: All tokens will be filled from `framework/assets/domain-defaults/{{domain}}.md`.
+Impact: All tokens will be inferred per-run from `{{domain}}`.
 ```
 
 ---
 
 ## 2. Graceful Exit Conditions
 
-The styler never halts. These are the exit conditions that bypass CSS fetching and route every token through step-05b for domain-defaults fill:
+The styler never halts. These are the exit conditions that bypass CSS fetching and route every token through step-05b for domain-inference:
 
 ### Exit: No Reference URL
 
 **Trigger:** Consultant skipped the URL prompt in step-02.
 **Status:** `extraction_status: "no_url"`
-**Log message:** "No reference site URL provided. Filling every token from `{{domain}}` defaults."
+**Log message:** "No reference site URL provided. Inferring every token per-run from `{{domain}}`."
 
 ### Exit: Homepage Fetch Failed
 
@@ -129,5 +129,5 @@ Inline style blocks found: {{inline_count}}
 Primary CSS source: none
 Extraction status: {{extraction_status}}
 Reason: {{extraction_error}}
-Impact: All tokens will be filled from `framework/assets/domain-defaults/{{domain}}.md`.
+Impact: All tokens will be inferred per-run from `{{domain}}`.
 ```

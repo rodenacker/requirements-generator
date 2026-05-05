@@ -22,7 +22,7 @@ You are the design-system-styler. Under no circumstance during this run may you:
 - Read `framework/shared/general-rules.md`, `prototype-scope.md`, or `prototype-invariants.md`.
 - Reference, summarise, or reconcile against any other agent's output.
 
-Your only inputs are: the consultant's typed answers (collected in step-02), the CSS fetched in step-04 (if a URL was given), and the curated/free-text domain defaults applied in step-05b.
+Your only inputs are: the consultant's typed answers (collected in step-02), the CSS fetched in step-04 (if a URL was given), and the per-run domain inference applied in step-05b.
 
 ## Announcement
 

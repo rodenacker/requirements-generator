@@ -1,8 +1,8 @@
 # Artifact Generation — Prompt Template
 
-**Purpose:** Reusable instruction block for writing the populated design-system doc to `design-system/design-system.md`. The design-system-styler workflow loads this file after extraction (step-05) and domain-defaults fill (step-05b), then applies its instructions to serialize the in-memory token set into the structured artefact.
+**Purpose:** Reusable instruction block for writing the populated design-system doc to `design-system/design-system.md`. The design-system-styler workflow loads this file after extraction (step-05) and domain-inference fill (step-05b), then applies its instructions to serialize the in-memory token set into the structured artefact.
 
-**Usage:** Read this file using the Read tool. Apply the instructions to the in-memory results: `{{extracted_colors}}`, `{{extracted_typography}}`, `{{extracted_effects}}`, `{{contrast_validation}}`, `{{extraction_status}}`, plus the domain-defaults fill outputs and the consultant inputs (`{{domain}}`, `{{domain_source}}`, `{{reference_url}}`).
+**Usage:** Read this file using the Read tool. Apply the instructions to the in-memory results: `{{extracted_colors}}`, `{{extracted_typography}}`, `{{extracted_effects}}`, `{{contrast_validation}}`, `{{extraction_status}}`, `{{voice}}`, plus the consultant inputs (`{{domain}}`, `{{reference_url}}`).
 
 Adapted from v3 b3-style-extractor: the output path moved from `genesis/extracted-brand.md` to `design-system/design-system.md`, all references to a B5 downstream consumer have been removed, and the schema has been extended to cover status colours, typography scale, and effects.
 
@@ -53,7 +53,6 @@ reference_url: "{{reference_url_or_null}}"
 extraction_date: "{{extraction_date}}"
 extraction_status: "{{extraction_status}}"
 domain: "{{domain}}"
-domain_source: "{{domain_source}}"        # "curated" or "free-text"
 css_source_type: "{{css_source_type_or_null}}"
 css_source_url: "{{css_source_url_or_null}}"
 ---
@@ -61,8 +60,8 @@ css_source_url: "{{css_source_url_or_null}}"
 
 - `reference_url`: the URL the consultant supplied, or `null` if they skipped the URL prompt.
 - `extraction_date`: ISO date (e.g. `2026-05-04`).
-- `extraction_status`: one of `success | no_url | fetch_failed | no_css | css_fetch_failed | insufficient_data | workspace_read_failed`. Still write the artefact even on non-success — the doc is complete (filled from domain defaults), the status records *why* the URL path didn't yield extracted values.
-- `domain_source`: `curated` if `{{domain}}` matches a file in `framework/assets/domain-defaults/`, `free-text` otherwise.
+- `extraction_status`: one of `success | no_url | fetch_failed | no_css | css_fetch_failed | insufficient_data | workspace_read_failed`. Still write the artefact even on non-success — the doc is complete (every unset token domain-inferred in step-05b); the status records *why* the URL path didn't yield extracted values.
+- `domain`: the consultant's typed domain string, lowercased and trimmed in step-02. Drives the Voice synthesis in step-05b.
 
 ---
 
@@ -72,11 +71,11 @@ The single blockquote line under the H1. Pick the variant per status:
 
 | Condition | Attribution paragraph |
 | --- | --- |
-| `extraction_status = success`, `reference_url` set | `Tokens extracted from [{{reference_url}}]({{reference_url}}). Status colours and any unset tokens are filled from `framework/assets/domain-defaults/{{domain}}.md` (or per-run inference if {{domain_source}} is free-text).` |
-| `reference_url` is null (consultant skipped) | `Tokens generated from `{{domain}}` defaults — no reference URL was provided.` |
-| Any other non-success status (fetch_failed, no_css, css_fetch_failed, insufficient_data, workspace_read_failed) | `Tokens generated from `{{domain}}` defaults. URL extraction was attempted from {{reference_url}} but did not complete: {{extraction_status}}.` |
+| `extraction_status = success`, `reference_url` set | `Tokens extracted from [{{reference_url}}]({{reference_url}}). Status colours and any unset tokens are inferred per-run from the `{{domain}}` string.` |
+| `reference_url` is null (consultant skipped) | `Tokens inferred per-run from `{{domain}}` — no reference URL was provided.` |
+| Any other non-success status (fetch_failed, no_css, css_fetch_failed, insufficient_data, workspace_read_failed) | `Tokens inferred per-run from `{{domain}}`. URL extraction was attempted from {{reference_url}} but did not complete: {{extraction_status}}.` |
 
-Always end the blockquote with the standing line from the template: *"Every token below carries a provenance marker — `extracted-from-url` if the value was found in the fetched CSS, `inferred-from-domain` if it came from the `{{domain}}` defaults. Review before proceeding."*
+Always end the blockquote with the standing line from the template: *"Every token below carries a provenance marker — `extracted-from-url` if the value was found in the fetched CSS, `inferred-from-domain` if it was inferred per-run from the `{{domain}}` string. Review before proceeding."*
 
 ---
 
@@ -85,7 +84,7 @@ Always end the blockquote with the standing line from the template: *"Every toke
 For every token in the doc:
 
 - If the in-memory token came from step-05 (CSS extraction), tag it `extracted-from-url`. Source Context = the CSS selector or custom-property name the value came from.
-- If the in-memory token came from step-05b (domain-defaults fill), tag it `inferred-from-domain`. Source Context = `domain-default ({{domain}})` if the domain is curated, `domain-inference ({{domain}})` if it is free-text.
+- If the in-memory token came from step-05b (domain-inference fill), tag it `inferred-from-domain`. Source Context = `domain-inference ({{domain}})`.
 - Never leave a Provenance cell empty. Never invent a third marker.
 - For status colours (success/warning/error/info), the marker is **always** `inferred-from-domain` — they are not extracted by this agent under any condition.
 
@@ -100,8 +99,8 @@ Format identical to the template. Hex values in `#RRGGBB` (uppercase hash, 6-dig
 - `.btn background-color` (class declaration)
 - `body color` (element selector)
 - `derived: primary hue +120°` (extraction derivation; still tag `extracted-from-url` because the seed came from CSS)
-- `domain-default (retail-banking)` (curated fill)
-- `domain-inference (legal services SaaS)` (free-text fill)
+- `domain-inference (retail-banking)` (per-run inference)
+- `domain-inference (legal services SaaS)` (per-run inference; free-text)
 
 ### Extraction Summary > Typography (15 rows)
 

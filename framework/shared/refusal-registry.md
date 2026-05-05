@@ -80,7 +80,7 @@ Add new predicates by appending; never renumber.
 
 - `install-and-retry` — the agent halts step-04, writes `status: setup-pending` and `pending_setup: { predicate: "RF-06", advice_path: "framework/shared/setup-instructions/playwright.md", since: <ISO-8601 UTC> }` semantics into the styler's own state (the styler does not write `framework/state/.progress.json` per the stand-alone constraint — it surfaces the install path in the handback message and exits cleanly so the consultant installs Playwright and re-runs `/design-system`). Highest-fidelity outcome.
 - `use-webfetch-fallback` — the agent proceeds via the legacy WebFetch two-pass path. Sets `extraction_method = "webfetch-fallback"` in `metadata.json`, does not write `computed-tokens.json`. The consultant's choice is the contract — the agent does not re-warn during the run. Lower-fidelity outcome; many tokens may end up `inferred-from-domain` instead of `extracted-from-url`.
-- `drop-url` — the agent sets `{{reference_url}} = null`, records `extraction_status = playwright_unavailable`, and skips to `step-05b-domain-fill.md`. Most predictable outcome; tokens uniformly `inferred-from-domain`.
+- `drop-url` — the agent sets `{{reference_url}} = null`, records `extraction_status = playwright_unavailable`, and skips to `step-05b-domain-inference.md`. Most predictable outcome; tokens uniformly `inferred-from-domain`.
 
 **Recovery:** `install-and-retry` exits cleanly so the consultant installs Playwright per `framework/shared/setup-instructions/playwright.md` and re-invokes `/design-system`. `use-webfetch-fallback` and `drop-url` continue the run.
 

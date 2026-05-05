@@ -21,7 +21,7 @@ The extraction logic is organized into focused data files, loaded by step-05 in 
 | 5 | `data/shadow-motion-rules.md` | `box-shadow` elevation tokens, `transition-duration`, `transition-timing-function` (Sections E–F). |
 | 6 | `data/contrast-validation.md` | WCAG AA contrast ratio validation and adjustment strategy (Section 6). |
 
-**Note:** This table reflects the actual execution order in step-05. The insufficient-data check runs before colour extraction to avoid unnecessary work when CSS lacks sufficient data. Contrast validation runs last so it can validate against any token (extracted *or* domain-default) — step-05b runs *before* contrast validation in the step-05 ordering.
+**Note:** This table reflects the actual execution order in step-05. The insufficient-data check runs before colour extraction to avoid unnecessary work when CSS lacks sufficient data. Contrast validation runs last so it can validate against any token (extracted *or* domain-inferred) — step-05b runs *before* contrast validation in the step-05 ordering.
 
 ---
 
@@ -41,7 +41,7 @@ extracted_colors:
   text:        { hex: "#RRGGBB" | null, source: "{source_context}" | null }
   text-muted:  { hex: "#RRGGBB" | null, source: "{source_context}" | null }
   # Status colours (success/warning/error/info) are NOT extracted here.
-  # They are always populated by step-05b from the domain defaults.
+  # They are always populated by step-05b via per-run domain inference.
 
 extracted_typography:
   heading_family:  { value: "Font Name" | null, source: "{source_context}" | null }

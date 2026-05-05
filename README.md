@@ -83,7 +83,7 @@ flowchart LR
     A[Ask domain<br/>free-text] --> B[Ask reference URL<br/>optional]
     B --> C{URL given?}
     C -- yes --> D[Playwright fetch<br/>extract tokens from CSS]
-    C -- no --> E[domain-fill<br/>fill all tokens from defaults]
+    C -- no --> E[domain-inference<br/>infer all tokens from domain]
     D --> E
     E --> F[Render design-system.md]
     F --> G{Consultant<br/>accepts?}
@@ -95,8 +95,8 @@ flowchart LR
 
 Two in-thread questions:
 
-1. **Domain** (required, free text) — e.g. `retail-banking`, `pet-grooming-marketplace`, `internal HR portal`. No picklist. If `framework/assets/domain-defaults/{{domain}}.md` exists for that value, it supplies deterministic defaults and `domain_source` is `curated`; otherwise `domain_source` is `free-text` and defaults are inferred per run.
-2. **Reference URL** (optional). Given a URL, the styler resizes a Playwright browser to 1440×900, navigates, settles, and extracts colours, typography, and effects from aggregated stylesheets and computed `:root`. Without one, every token is filled from domain defaults.
+1. **Domain** (required, free text) — e.g. `retail-banking`, `pet-grooming-marketplace`, `internal HR portal`. No picklist. The styler always infers a coherent token set per-run from this string via `framework/agents/design-system-styler/prompt-templates/domain-inference.md` — no curated lookup table.
+2. **Reference URL** (optional). Given a URL, the styler resizes a Playwright browser to 1440×900, navigates, settles, and extracts colours, typography, and effects from aggregated stylesheets and computed `:root`. Without one, every token is inferred per-run from the domain.
 
 If `design-system/design-system.md` already exists, the orchestrator first prompts `Overwrite` / `Keep` / `Cancel`. `Overwrite` git-checkpoints the prior artefact before deletion.
 
@@ -104,7 +104,7 @@ If `design-system/design-system.md` already exists, the orchestrator first promp
 
 The styler writes `design-system/design-system.md` covering 11 colour tokens, 15 typography tokens, and 7 effect tokens. The artefact contains:
 
-- Frontmatter with provenance metadata (`domain`, `domain_source`, `extraction_status`, `extraction_method`).
+- Frontmatter with provenance metadata (`domain`, `extraction_status`, `extraction_method`).
 - A human-readable Extraction Summary with Source Context and Provenance per token. Every token is marked `extracted-from-url` or `inferred-from-domain` — no third marker.
 - Machine-readable Brand sections with the resolved token values.
 
@@ -160,4 +160,4 @@ npx -y @playwright/mcp@latest --help
 
 Restart Claude Code afterwards so the MCP server registers. Setup verification and troubleshooting: `framework/shared/setup-instructions/playwright.md`.
 
-Without Playwright, supplying a reference URL surfaces `RF-06` and offers a `WebFetch` fallback at degraded fidelity, or a clean exit while you install. With no reference URL, every token is filled from domain defaults and Playwright is not needed.
+Without Playwright, supplying a reference URL surfaces `RF-06` and offers a `WebFetch` fallback at degraded fidelity, or a clean exit while you install. With no reference URL, every token is inferred per-run from the domain string and Playwright is not needed.

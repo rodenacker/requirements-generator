@@ -14,7 +14,7 @@ description: 'Orchestrate brand extraction by loading data files in sequence and
 
 # Step 5: Brand Extraction (URL-driven)
 
-**Skip condition:** if step-04 set a non-success `{{extraction_status}}` (`fetch_failed`, `no_css`, `css_fetch_failed`), or step-02 set `{{extraction_status}} = "no_url"`, skip this step entirely and route to `step-05b-domain-fill.md`. Step 5b will fill every token from the domain defaults.
+**Skip condition:** if step-04 set a non-success `{{extraction_status}}` (`fetch_failed`, `no_css`, `css_fetch_failed`), or step-02 set `{{extraction_status}} = "no_url"`, skip this step entirely and route to `step-05b-domain-inference.md`. Step 5b will infer every token per-run from the `{{domain}}`.
 
 ## Workspace Read
 
@@ -27,7 +27,7 @@ Read CSS content from disk (not from in-memory state of step-04):
 
 - Log: "Workspace read failed — css-content.txt not found or unreadable".
 - Set `{{extraction_status}} = "workspace_read_failed"`.
-- Skip to `step-05b-domain-fill.md`.
+- Skip to `step-05b-domain-inference.md`.
 
 ## Extraction Orchestration
 
@@ -45,7 +45,7 @@ Read `framework/agents/design-system-styler/prompt-templates/brand-extraction.md
 Read `framework/agents/design-system-styler/data/insufficient-data-handling.md` and apply its threshold check:
 
 - Count distinct non-white/non-black hex colors in `{{primary_css_content}}`.
-- **If fewer than 3:** Set `{{extraction_status}} = "insufficient_data"`, log the diagnostic, and skip to `step-05b-domain-fill.md`. Do NOT halt.
+- **If fewer than 3:** Set `{{extraction_status}} = "insufficient_data"`, log the diagnostic, and skip to `step-05b-domain-inference.md`. Do NOT halt.
 - **If 3 or more:** Continue.
 
 ### 3. Colour Extraction (7 brand tokens)
@@ -72,7 +72,7 @@ Read `framework/agents/design-system-styler/data/typography-scale-rules.md` and 
 - font weights (already covered by Section 4 — re-confirm against the heading/body-weight heuristics if those weren't found)
 - 3 line-height tokens (`lh_tight`, `lh_base`, `lh_loose`)
 
-Apply the coverage threshold from Section A: if fewer than 3 of the 8 size tokens can be confidently extracted, leave **all 8** unset and let step-05b fill the entire size scale.
+Apply the coverage threshold from Section A: if fewer than 3 of the 8 size tokens can be confidently extracted, leave **all 8** unset and let step-05b infer the entire size scale per-run.
 
 ### 6. Effects — Shadows and Motion
 
@@ -92,8 +92,8 @@ Assemble the structured output per Section 7 format from `brand-extraction.md`:
 - `{{extracted_effects}}` — 7 effect tokens
 - `{{extraction_status}} = "success"` (only if extraction completed without an early skip; otherwise the prior status is preserved)
 
-Contrast validation runs **after** step-05b, not here — it must validate against the final token set, including any domain-default fills.
+Contrast validation runs **after** step-05b, not here — it must validate against the final token set, including any domain-inferred fills.
 
 ---
 
-**Next:** Read fully and follow `step-05b-domain-fill.md`.
+**Next:** Read fully and follow `step-05b-domain-inference.md`.

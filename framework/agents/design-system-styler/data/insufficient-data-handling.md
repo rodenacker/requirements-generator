@@ -1,6 +1,6 @@
 # Insufficient Data Handling — Design-System-Styler Data File
 
-**Role:** Pure reference knowledge consumed by step-05 (Brand Extraction). Defines the minimum color threshold for URL extraction and the procedure when CSS lacks enough data. Adapted from v3 b3-style-extractor: instead of a hard exit, "insufficient data" routes the entire token set to step-05b for domain-defaults fill.
+**Role:** Pure reference knowledge consumed by step-05 (Brand Extraction). Defines the minimum color threshold for URL extraction and the procedure when CSS lacks enough data. Adapted from v3 b3-style-extractor: instead of a hard exit, "insufficient data" routes the entire token set to step-05b for domain-inference.
 
 ---
 
@@ -13,7 +13,7 @@ Before attempting color-to-token mapping (Section 3 of `color-extraction-rules.m
 Count the number of **distinct non-white/non-black hex colors** (excluding near-white and near-black, but **including** neutral grays) found in the CSS:
 
 - **3 or more distinct non-white/non-black colors:** Proceed with extraction.
-- **Fewer than 3 distinct non-white/non-black colors:** Insufficient data — skip extraction; all tokens fall through to step-05b for domain-defaults fill.
+- **Fewer than 3 distinct non-white/non-black colors:** Insufficient data — skip extraction; all tokens fall through to step-05b for domain-inference.
 
 ### Insufficient-Data Path
 
@@ -29,7 +29,7 @@ If the threshold is not met:
    Distinct chromatic colors found: {{color_count}} (minimum required: 3)
    Total color values scanned: {{total_colors}}
    Analysis: CSS lacks sufficient brand color variety for meaningful extraction.
-   Impact: All tokens will be filled from `framework/assets/domain-defaults/{{domain}}.md` (or per-run inference if {{domain}} is free-text).
+   Impact: All tokens will be inferred per-run from `{{domain}}`.
    ```
 3. Skip the remaining extraction sub-steps (font, contrast). Step-05b handles every token.
 4. Continue to step-05b — do NOT halt. The agent always produces a complete artefact under the stand-alone constraint, even when the URL yielded nothing usable.
