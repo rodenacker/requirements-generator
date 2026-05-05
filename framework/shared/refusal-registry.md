@@ -62,13 +62,21 @@ Add new predicates by appending; never renumber.
 
 **Severity:** pause.
 
-**Trigger:** `framework/skills/check-context-bloat.md` reports the bloat heuristic exceeded immediately before an agent's `called` event when the prior agent has a `completed` event in `framework/state/.progress.json`.
+**Trigger:** `framework/skills/check-context-bloat.md` reports the bloat heuristic exceeded. Surfaced by both orchestrators that call the skill, with caller-specific recovery semantics described in **Surface variants** below.
 
-**Surface:** `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`.
-- `proceed-without-clear` — the agent runs anyway. The orchestrator records the override in the progress-file events stream as a free-text note on the `called` event.
-- `continue-later` — the agent writes `status: context-bloated` to `framework/state/.progress.json` and exits cleanly. The consultant runs `/clear` and re-invokes the pipeline; rerun detection resumes at the same step.
+**Surface:** `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`. The `proceed-without-clear` branch always advances; the `continue-later` branch always exits cleanly. What differs between callers is whether `continue-later` writes a `status` field to `framework/state/.progress.json` before exiting.
 
-**Recovery:** The standard path is `/clear` then re-invoke. `proceed-without-clear` is the override for short cases where the consultant judges the bloat tolerable.
+### Surface variants
+
+- **requirements-orch variant** — fired immediately before each `called` event after the input-handler's `completed` event has been written. Skill is invoked with `artefact_dir = requirements/`, `manifest_path = requirements/source-manifest.json`, `progress_path = framework/state/.progress.json`.
+    - `proceed-without-clear` — the orchestrator writes the `called` event and proceeds. The override is recorded by the `called` event itself; no additional sidecar.
+    - `continue-later` — the orchestrator writes `status: "context-bloated"` to `framework/state/.progress.json`, does **not** write the `called` event, and exits cleanly. The consultant runs `/clear` and re-invokes `/requirements`; rerun detection resumes at the same step.
+
+- **design-system-orch variant** — fired once at startup in step-0b (after the prior-artefact gate, before the styler is invoked). Skill is invoked with the same three parameter values as the requirements variant — the design-system pipeline uses prior `/requirements` state on disk as a proxy for in-conversation bloat. The design-system pipeline has no progress file of its own and is bound by a no-write-outside-`design-system/` invariant, so this variant deliberately omits the `status` write.
+    - `proceed-without-clear` — the orchestrator proceeds to step 1 and invokes the styler.
+    - `continue-later` — the orchestrator surfaces a *"run `/clear` and re-invoke `/design-system`"* message and exits cleanly. **No write to `framework/state/.progress.json`.** No `design-system/` side effects. This mirrors the RF-06 `install-and-retry` pattern, which already documents that the design-system pipeline cannot write to `framework/state/.progress.json`.
+
+**Recovery:** The standard path is `/clear` then re-invoke the same orchestrator. `proceed-without-clear` is the override for short cases where the consultant judges the bloat tolerable.
 
 ## RF-06 — style_extraction_dependency_missing
 
@@ -91,5 +99,5 @@ Add new predicates by appending; never renumber.
 - Do not invent a predicate ID. If no `RF-NN` covers the condition, append a new entry rather than overload an existing one.
 - Do not surface a `pause` predicate via plain-text halt. The choice set is the contract — without it, the consultant cannot machine-readably resume.
 - Do not surface a `hard` predicate via `AskUserQuestion`. There is no meaningful choice when prior work is at risk; halting cleanly is the only safe response.
-- Do not write `status: setup-pending` or `status: context-bloated` for any predicate other than `RF-01` and `RF-05` respectively. The `pending_setup` block is reserved for `RF-01` until a future predicate explicitly registers as a setup-required pause. RF-06 deliberately does **not** write to `framework/state/.progress.json` because the design-system-styler is bound by a stand-alone constraint that prohibits any writes outside `design-system/` — its `install-and-retry` path surfaces the advice in the handback message instead.
+- Do not write `status: setup-pending` or `status: context-bloated` for any predicate other than `RF-01` and `RF-05` respectively. The `pending_setup` block is reserved for `RF-01` until a future predicate explicitly registers as a setup-required pause. `RF-05`'s `status: context-bloated` write is specific to the **requirements-orch surface variant**; the **design-system-orch variant** of `RF-05` deliberately does not write, for the same reason `RF-06` does not — the design-system pipeline is bound by a no-write-outside-`design-system/` invariant. RF-06 deliberately does **not** write to `framework/state/.progress.json` either; its `install-and-retry` path surfaces the advice in the handback message instead.
 - Do not silently downgrade a `hard` predicate to `pause`. `RF-04` halts; conflating it with a pausable refusal hides write failures.

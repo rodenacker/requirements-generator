@@ -182,6 +182,11 @@ graph TD
     subgraph Skills
       skill_preflight_ds[preflight-mcp.md]
       skill_verifywrite_ds[verify-artifact-write.md]
+      skill_bloat_ds[check-context-bloat.md]
+    end
+
+    subgraph State
+      state_progress_ds[state/.progress.json]
     end
 
     subgraph Assets
@@ -200,6 +205,12 @@ graph TD
     end
 
     orch_ds --> agent_styler
+    orch_ds --> skill_bloat_ds
+    orch_ds --> shared_refusal_ds
+    orch_ds --> state_progress_ds
+
+    skill_bloat_ds --> shared_refusal_ds
+    skill_bloat_ds --> state_progress_ds
 
     agent_styler --> step01
     agent_styler --> step02
@@ -245,18 +256,22 @@ graph TD
     class step01,step02,step04,step05,step05b,step06,step07 step
     class pt_site,pt_css,pt_brand,pt_domain,pt_artifact prompt
     class data_color,data_font,data_typo,data_shadow,data_contrast,data_insuff data
-    class skill_preflight_ds,skill_verifywrite_ds skill
+    class skill_preflight_ds,skill_verifywrite_ds,skill_bloat_ds skill
     class asset_persona,asset_template_ds,asset_standards asset
     class char_style char
     class shared_refusal_ds,shared_setup_pw shared
+    class state_progress_ds state
+    classDef state fill:#525252,color:#fff,stroke:#262626
 ```
 
-**Stats:** 27 nodes / 35 edges / depth 5.
+**Stats:** 29 nodes / 40 edges / depth 5.
 
 **Notes:**
 - Step-05b (domain-inference) loads `prompt-templates/domain-inference.md` to derive an inferred token set per-run from the consultant's `{{domain}}` string. Status colours and any token unset after step-05 are filled here.
 - `template-design-system.md` is shared between `step-06-artifact-generation.md` (the operative loader) and `prompt-templates/artifact-generation.md` (which instructs step-06 to read it).
-- `refusal-registry.md` is shared between `step-04-site-fetching.md`, `preflight-mcp.md`, and `verify-artifact-write.md`.
+- `refusal-registry.md` is shared between `step-04-site-fetching.md`, `preflight-mcp.md`, `verify-artifact-write.md`, and `check-context-bloat.md`.
+- `check-context-bloat.md` is shared between both orchestrators (`requirements-orch.md` and `design-system-orch.md`); the design-system caller passes `requirements/` as `artefact_dir` because prior `/requirements` state on disk is the meaningful proxy for in-conversation bloat against the styler.
+- `state/.progress.json` is read (existence + at-least-one-`completed`-event check) by `check-context-bloat.md` from both orchestrators; the design-system orchestrator never writes to it.
 - `design-system-standards.md` references `framework/assets/template-design-spec.md` only as a passing comment ("document exceptions in the design-spec, not the design-system output") — not a load target. Not drawn as an edge.
-- Per the styler's stand-alone constraint, no edges reach `requirements/`, `framework/state/`, `prototype-scope.md`, `general-rules.md`, or `prototype-invariants.md` — by design.
+- Per the styler's stand-alone constraint, no edges reach `requirements/`, `framework/state/`, `prototype-scope.md`, `general-rules.md`, or `prototype-invariants.md` from the styler subtree. The orchestrator's narrow read exception for the step-0b preflight (read-only access to `requirements/`, `requirements/source-manifest.json`, `framework/state/.progress.json`) is captured by the `orch_ds → skill_bloat_ds → state_progress_ds` edges and a documented stand-alone-constraint clause in the orchestrator.
 - No cycles.

@@ -67,7 +67,7 @@ Each step is strictly sequential. Do not start a step until the previous step ha
 
 ### Context-bloat guard
 
-Immediately before each `called` event after the input-handler's `completed` event has been written (i.e. before steps 2, 3, and 4), call `framework/skills/check-context-bloat.md`. On `ok`, proceed normally. On `RF-05 trigger`, surface the predicate per `framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` via `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`.
+Immediately before each `called` event after the input-handler's `completed` event has been written (i.e. before steps 2, 3, and 4), call `framework/skills/check-context-bloat.md` with `artefact_dir = requirements/`, `manifest_path = requirements/source-manifest.json`, and `progress_path = framework/state/.progress.json`. On `ok`, proceed normally. On `RF-05 trigger`, surface the predicate per `framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` (requirements-orch surface variant) via `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`.
 - `proceed-without-clear` — write the `called` event and proceed. The override is recorded by the `called` event itself; no additional sidecar.
 - `continue-later` — write `status: "context-bloated"` to `framework/state/.progress.json`, do not write the `called` event, and exit cleanly. The consultant runs `/clear` and re-invokes `/requirements`; rerun detection resumes at the same step.
 
