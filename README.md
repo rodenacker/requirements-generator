@@ -4,32 +4,30 @@
 
 - [1. Overview](#1-overview)
 - [2. Commands](#2-commands)
-  - [2.1 `/requirements`](#21-requirements)
-    - [2.1.1 Inputs](#211-inputs)
-    - [2.1.2 Draft](#212-draft)
-    - [2.1.3 Q&A](#213-qa)
-    - [2.1.4 Final doc](#214-final-doc)
-  - [2.2 `/design-system`](#22-design-system)
-    - [2.2.1 Inputs](#221-inputs)
-    - [2.2.2 Doc](#222-doc)
+    - [2.1 `/requirements`](#21-requirements)
+        - [2.1.1 Inputs](#211-inputs)
+        - [2.1.2 Draft](#212-draft)
+        - [2.1.3 Q&A](#213-qa)
+        - [2.1.4 Final doc](#214-final-doc)
+    - [2.2 `/design-system`](#22-design-system)
+        - [2.2.1 Inputs](#221-inputs)
+        - [2.2.2 Doc](#222-doc)
 - [3. Dependencies](#3-dependencies)
-  - [3.1 Claude Code](#31-claude-code)
-  - [3.2 VS Code](#32-vs-code)
-    - [3.2.1 Claude Code extension](#321-claude-code-extension)
-  - [3.3 Node.js](#33-nodejs)
-  - [3.4 Python](#34-python)
-  - [3.5 git](#35-git)
-  - [3.6 markitdown (requirements)](#36-markitdown-requirements)
-  - [3.7 playwright (design system)](#37-playwright-design-system)
+    - [3.1 Claude Code](#31-claude-code)
+    - [3.2 VS Code](#32-vs-code)
+        - [3.2.1 Claude Code extension](#321-claude-code-extension)
+    - [3.3 Node.js](#33-nodejs)
+    - [3.4 Python](#34-python)
+    - [3.5 git](#35-git)
+    - [3.6 markitdown (requirements)](#36-markitdown-requirements)
+    - [3.7 playwright (design system)](#37-playwright-design-system)
 
 ## 1. Overview
 
 This repository hosts two consultant-driven pipelines that turn loose client material into structured artefacts. Each pipeline is invoked by its own slash command inside Claude Code:
 
-- **`/requirements`** — turns whatever you have (briefs, decks, screenshots, diagrams, spreadsheets, PDFs) into a structured `requirements/requirements.md`. The orchestrator runs four agents in order — input-handler → drafter → resolver → merger — pausing for you at acceptance gates and at refusal predicates.
-- **`/design-system`** — a stand-alone styler. You give it a domain (free-text descriptor) and an optional reference URL; it extracts brand tokens from the URL's CSS where possible, fills the rest from a domain-defaults file (when one happens to exist for the typed domain) or per-run inference, and writes `design-system/design-system.md` with provenance per token.
-
-The two pipelines are isolated. `/design-system` does not read anything from `requirements/`, and `/requirements` does not read anything from `design-system/`.
+- **`/requirements`** — turns whatever you have (briefs, decks, screenshots, diagrams, spreadsheets, PDFs) into a structured `requirements/requirements.md`.
+- **`/design-system`** — a stand-alone styler. You give it a domain (free-text descriptor) and an optional reference URL; it extracts brand tokens from the URL's CSS and writes `design-system/design-system.md`.
 
 ## 2. Commands
 
