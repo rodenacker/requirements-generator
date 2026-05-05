@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__markitdown-mcp__convert_to_markdown",
+      "mcp__playwright__browser_resize",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_network_request",
+      "mcp__playwright__browser_close",
+
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git add requirements/*)",
+      "Bash(git add framework/state/*)",
+      "Bash(git add design-system/*)",
+      "Bash(git add input/*)",
+      "Bash(git commit -m *)",
+      "Bash(git commit --allow-empty -m *)",
+
+      "Bash(mkdir -p design-system)",
+      "Bash(mkdir -p design-system/.workspace)",
+      "Bash(mkdir -p framework/state)",
+
+      "Bash(rm -f requirements/source-manifest.json)",
+      "Bash(rm -f requirements/requirements-draft.md)",
+      "Bash(rm -f requirements/consultant-answers.md)",
+      "Bash(rm -f requirements/requirements.md)",
+      "Bash(rm -f framework/state/resolver-manifest.json)",
+      "Bash(rm -f framework/state/resolver-answers.json)",
+      "Bash(rm -f input/*.converted.md)",
+      "Bash(rm -f design-system/design-system.md)",
+      "Bash(rm -rf design-system/.workspace)",
+
+      "Bash(npx *)",
+      "Bash(claude mcp *)",
+      "Bash(python *)"
+    ]
+  }
+}
