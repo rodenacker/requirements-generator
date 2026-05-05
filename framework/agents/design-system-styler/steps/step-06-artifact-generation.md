@@ -1,9 +1,10 @@
 ---
 name: step-06-artifact-generation
-description: 'Render the populated template, write to design-system/design-system.md, then verify the write.'
+description: 'Render the populated template, append the static standards appendix, write to design-system/design-system.md, then verify the write.'
 # Variables referenced (inherited from agent):
 # prompt_artifact_generation: 'framework/agents/design-system-styler/prompt-templates/artifact-generation.md'
 # template_path: 'framework/assets/template-design-system.md'
+# standards_path: 'framework/assets/design-system-standards.md'
 # output_path: 'design-system/design-system.md'
 ---
 
@@ -39,16 +40,25 @@ Apply the prompt template's instructions in order:
 
 The artefact is generated even when `{{extraction_status}}` ≠ `"success"`. The doc is always complete (every token filled from domain defaults if extraction was skipped); the frontmatter `extraction_status` field records *why* the URL path didn't yield extracted values.
 
+## B-bis. Append the Static Standards Appendix
+
+After the template is fully rendered (all placeholders replaced) and before the pre-write self-check, append the static standards file:
+
+1. Read `framework/assets/design-system-standards.md`.
+2. Concatenate its full contents to the rendered template string, separated by exactly one blank line. The standards file opens with its own `---` separator and an `## Design System Standards` heading, so it slots in cleanly after the `## Brand Effects > Motion` table.
+3. **Do not modify the standards content.** No placeholder substitution, no rewording, no truncation. It is static reference material that ships verbatim with every output. If the file cannot be read, halt — do not write a partial artefact.
+
 ## C. Pre-Write Self-Check
 
 Before calling `Write`:
 
-- Render the full artefact as one string in memory.
-- Confirm: every `{{placeholder}}` has been replaced. No literal `{{...}}` substrings remain.
+- Render the full artefact (template body + appended standards) as one string in memory.
+- Confirm: every `{{placeholder}}` has been replaced. No literal `{{...}}` substrings remain. (The standards appendix contains no placeholders.)
 - Confirm: every Provenance cell in the Extraction Summary is non-empty and is one of `extracted-from-url` or `inferred-from-domain`. No third marker.
 - Confirm: status-colour rows (success/warning/error/info) all carry `inferred-from-domain` regardless of the URL outcome.
-- Confirm: the document ends with the `## Brand Effects > Motion` table (last row `easing-standard`). No content beyond it.
-- Compute `sha256` of the rendered byte string. Store as `{{expected_sha256}}`.
+- Confirm: the `## Brand Effects > Motion` table appears in its required position with `easing-standard` as its final row.
+- Confirm: the document continues after the Motion table with the static `## Design System Standards` section sourced from `framework/assets/design-system-standards.md`. The document ends with the final line of that standards file.
+- Compute `sha256` of the rendered byte string (template + standards). Store as `{{expected_sha256}}`.
 
 ## D. Write
 
