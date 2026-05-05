@@ -1,0 +1,2502 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "TransactionManagement",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:10005/transactions-api"
+    }
+  ],
+  "paths": {
+    "/v1/file-settings": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Gets a list of all File Settings",
+        "operationId": "FileSettingGetList",
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileSettingReadList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/file-settings/{SettingId}": {
+      "put": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Update an existing File Settings",
+        "operationId": "FileSettingUpdate",
+        "parameters": [
+          {
+            "name": "SettingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "LastChangedUser",
+            "in": "header",
+            "required": true,
+            "description": "Name of user performing the action",
+            "schema": {
+              "type": "string",
+              "example": "John Doe"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileSettingWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/file-sources": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Gets a list of all File Sources",
+        "operationId": "FileSourceGetList",
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdNameTypeList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/file-types": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Gets a list of all File types",
+        "operationId": "FileTypeGetList",
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdNameTypeList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/file-location-types": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Gets a list of all File Location Types",
+        "operationId": "FileLocationTypeGetList",
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdNameTypeList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/file-locations": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Gets a list of all File Locations for the specified file setting",
+        "operationId": "FileLocationGetList",
+        "parameters": [
+          {
+            "name": "SettingId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileLocationReadList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/file-locations/{LocationId}": {
+      "put": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Update an existing File Location",
+        "operationId": "FileLocationUpdate",
+        "parameters": [
+          {
+            "name": "LocationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "LastChangedUser",
+            "in": "header",
+            "required": true,
+            "description": "Name of user performing the action",
+            "schema": {
+              "type": "string",
+              "example": "John Doe"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FileLocationWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/bulk-file-setting-databases": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Gets a list of all Bulk File Setting Databases",
+        "operationId": "BulkFileSettingDatabaseGetList",
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdNameTypeList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/bulk-file-settings": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Gets a list of all Bulk File Settings for the specified file setting",
+        "operationId": "BulkFileSettingGetList",
+        "parameters": [
+          {
+            "name": "SettingId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkFileSettingReadList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/bulk-file-settings/{BulkFileSettingId}": {
+      "put": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Update an existing Bulk File Setting",
+        "operationId": "BulkFileSettingUpdate",
+        "parameters": [
+          {
+            "name": "BulkFileSettingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "LastChangedUser",
+            "in": "header",
+            "required": true,
+            "description": "Name of user performing the action",
+            "schema": {
+              "type": "string",
+              "example": "John Doe"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkFileSettingWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/file-logs": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Gets a list of file log entries",
+        "operationId": "FileLogGetList",
+        "parameters": [
+          {
+            "name": "IsActive",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "Yes"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileLogList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/file-process-logs/{LogId}": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Gets a list of file process log entries for a file log entry",
+        "operationId": "FileProcessLogGetList",
+        "parameters": [
+          {
+            "name": "LogId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileProcessLogList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/file-logs/data": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Download a data file with input ID",
+        "description": "Downloads a file from the server as a stream, using the provided file path.",
+        "operationId": "FileLogDataDownload",
+        "parameters": [
+          {
+            "name": "LogId",
+            "in": "query",
+            "required": true,
+            "description": "Id of the file in the log",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/files/download": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Download a file with input ID",
+        "description": "Downloads a file from the server as a stream, using the provided file path.",
+        "operationId": "FilesDownload",
+        "parameters": [
+          {
+            "name": "FileLogId",
+            "in": "query",
+            "required": true,
+            "description": "Absolute or relative path to the file on the server",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/files/bulk-errors/download": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Download a bulk error file with input ID",
+        "description": "Downloads a file from the server as a stream, using the provided file path.",
+        "operationId": "FilesBulkErrorsDownload",
+        "parameters": [
+          {
+            "name": "FileLogId",
+            "in": "query",
+            "required": true,
+            "description": "Absolute or relative path to the file on the server",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/process-definitions": {
+      "get": {
+        "tags": [
+          "ProcessAutomation"
+        ],
+        "summary": "Gets a list of all Process Definitions",
+        "operationId": "ProcessDefinitionGetList",
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessDefinitionReadList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/files": {
+      "delete": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Cancel a file by LogId",
+        "description": "Deactivate and delete a file from the staging table using its LogId",
+        "operationId": "FilesDelete",
+        "parameters": [
+          {
+            "name": "LogId",
+            "in": "query",
+            "required": true,
+            "description": "The LogId of the file to be deleted",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "LastChangedUser",
+            "in": "header",
+            "required": true,
+            "description": "Name of user performing the action",
+            "schema": {
+              "type": "string",
+              "example": "John Doe"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/files/retry-validation": {
+      "post": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Retry validation for a file",
+        "description": "Retry validation for a file and attempt to fix data",
+        "operationId": "FilesRetryValidation",
+        "parameters": [
+          {
+            "name": "LogId",
+            "in": "query",
+            "required": true,
+            "description": "The LogId of the file to retry validation",
+            "schema": {
+              "type": "integer",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/files/upload": {
+      "post": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Upload a file",
+        "description": "Upload a file.",
+        "operationId": "FilesUpload",
+        "parameters": [
+          {
+            "name": "FileSettingId",
+            "in": "query",
+            "required": true,
+            "description": "The FileSettingId associated with the file",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "FileSettingName",
+            "in": "query",
+            "required": true,
+            "description": "The FileSettingName associated with the file",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "FileName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the file being uploaded",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/files/validation-errors/columns": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Get stadium column definitions for a specific table",
+        "description": "Returns UI column definitions for the requested table and schema.",
+        "operationId": "FileValidationErrorColumnGetList",
+        "parameters": [
+          {
+            "name": "FileLogId",
+            "in": "query",
+            "required": true,
+            "description": "Target table name",
+            "schema": {
+              "type": "integer",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColumnList"
+                },
+                "examples": {
+                  "sample": {
+                    "value": {
+                      "ColumnList": [
+                        {
+                          "Name": "Name",
+                          "HeaderText": "User Name",
+                          "Visible": "true",
+                          "CellAlignment": "left",
+                          "CellDisplay": "text",
+                          "Classes": "col-name"
+                        },
+                        {
+                          "Name": "Age",
+                          "HeaderText": "Age",
+                          "Visible": "true",
+                          "CellAlignment": "right",
+                          "CellDisplay": "number",
+                          "Classes": "col-age"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/v1/files/validation-errors": {
+      "get": {
+        "tags": [
+          "File"
+        ],
+        "summary": "Get invalid rows for a specific file as a single JSON array",
+        "description": "Returns a ValidationErrors object containing JsonArray (a JSON array string of all per-row objects that have errors).\n",
+        "operationId": "FileValidationErrorGetList",
+        "parameters": [
+          {
+            "name": "FileLogId",
+            "in": "query",
+            "required": true,
+            "description": "LogId of the file being inspected",
+            "schema": {
+              "type": "integer",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrors"
+                },
+                "examples": {
+                  "sample": {
+                    "value": {
+                      "ValidationErrors": {
+                        "JsonArray": "[{\"Id\":23,\"PrimaryKeyValue\":100,\"ChangeType\":\"UPDATE\",\"ChangedBy\":\"System\",\"ChangedAt\":\"2025-09-29T15:28:56.2470934\",\"Age\":\"19\",\"Diet\":\"Herbivore\",\"HabitatId\":\"5\",\"LastChangedDate\":\"2025-09-29 13:20:11.9185595\",\"LastChangedUser\":\"System\",\"Name\":\"Bison\",\"Species\":\"Bison bison\"}]"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/v1/transactions": {
+      "get": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Get a list of all transactions",
+        "description": "Get a list of all transactions with their status",
+        "operationId": "TransactionGetList",
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransactionReadList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/transactions/approve": {
+      "post": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Approve a transaction by Id",
+        "description": "Sets the Status of the transaction to 'Approved'.",
+        "operationId": "TransactionApprove",
+        "parameters": [
+          {
+            "name": "TransactionId",
+            "in": "query",
+            "required": true,
+            "description": "Id of the transaction to approve",
+            "schema": {
+              "type": "integer",
+              "example": "1"
+            }
+          },
+          {
+            "name": "LastChangedUser",
+            "in": "header",
+            "required": true,
+            "description": "Name of user performing the action",
+            "schema": {
+              "type": "string",
+              "example": "John Doe"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/transactions/reject": {
+      "post": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Reject a transaction by Id",
+        "description": "Sets the Status of the transaction to 'Rejected' and records the supplied user note.",
+        "operationId": "TransactionReject",
+        "parameters": [
+          {
+            "name": "TransactionId",
+            "in": "query",
+            "required": true,
+            "description": "Id of the transaction to reject",
+            "schema": {
+              "type": "integer",
+              "example": "1"
+            }
+          },
+          {
+            "name": "LastChangedUser",
+            "in": "header",
+            "required": true,
+            "description": "Name of user performing the action",
+            "schema": {
+              "type": "string",
+              "example": "John Doe"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionRejectWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get a list of all users",
+        "description": "Get a list of all users",
+        "operationId": "UserGetList",
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserReadList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Create a new user",
+        "operationId": "UserCreate",
+        "parameters": [
+          {
+            "name": "LastChangedUser",
+            "in": "header",
+            "required": true,
+            "description": "Name of user performing the action",
+            "schema": {
+              "type": "string",
+              "example": "John Doe"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/{Id}": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Get a specific user by Id",
+        "description": "Get a specific user by Id",
+        "operationId": "UserGetById",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "description": "Unique Id of User",
+            "schema": {
+              "type": "integer",
+              "example": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRead"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Update an existing user by Id",
+        "operationId": "UserUpdate",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "description": "Id of the user to update",
+            "schema": {
+              "type": "integer",
+              "example": "1"
+            }
+          },
+          {
+            "name": "LastChangedUser",
+            "in": "header",
+            "required": true,
+            "description": "Name of user performing the action",
+            "schema": {
+              "type": "string",
+              "example": "John Doe"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Delete a user by Id",
+        "operationId": "UserDelete",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "description": "Id of the user to delete",
+            "schema": {
+              "type": "integer",
+              "example": "1"
+            }
+          },
+          {
+            "name": "LastChangedUser",
+            "in": "header",
+            "required": true,
+            "description": "Name of user performing the action",
+            "schema": {
+              "type": "string",
+              "example": "John Doe"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/users/login": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Authenticate a user with email and password",
+        "description": "Verifies the supplied email and password. Returns 200 on a valid match and 401 when the credentials do not match.",
+        "operationId": "UserLogin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLoginWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/pages": {
+      "get": {
+        "tags": [
+          "Pages"
+        ],
+        "summary": "Get a list of all pages",
+        "description": "Get a list of all pages",
+        "operationId": "PageGetList",
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageReadList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/roles": {
+      "get": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Get a list of all roles",
+        "description": "Get a list of all roles",
+        "operationId": "RoleGetList",
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleReadList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Create a new role",
+        "operationId": "RoleCreate",
+        "parameters": [
+          {
+            "name": "LastChangedUser",
+            "in": "header",
+            "required": true,
+            "description": "Name of user performing the action",
+            "schema": {
+              "type": "string",
+              "example": "John Doe"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/roles/{Id}": {
+      "put": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Update an existing role by Id",
+        "operationId": "RoleUpdate",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "description": "Id of the role to update",
+            "schema": {
+              "type": "integer",
+              "example": "1"
+            }
+          },
+          {
+            "name": "LastChangedUser",
+            "in": "header",
+            "required": true,
+            "description": "Name of user performing the action",
+            "schema": {
+              "type": "string",
+              "example": "John Doe"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleWrite"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Roles"
+        ],
+        "summary": "Delete a role by Id",
+        "operationId": "RoleDelete",
+        "parameters": [
+          {
+            "name": "Id",
+            "in": "path",
+            "required": true,
+            "description": "Id of the role to delete",
+            "schema": {
+              "type": "integer",
+              "example": "1"
+            }
+          },
+          {
+            "name": "LastChangedUser",
+            "in": "header",
+            "required": true,
+            "description": "Name of user performing the action",
+            "schema": {
+              "type": "string",
+              "example": "John Doe"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK (200)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (401)"
+          },
+          "500": {
+            "description": "Internal Server Error (500)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DefaultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DefaultResponse": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer"
+          },
+          "MessageType": {
+            "type": "string"
+          },
+          "Messages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "IdNameType": {
+        "properties": {
+          "Id": {
+            "type": "integer"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "LastChangedUser": {
+            "type": "string"
+          },
+          "LastChangedDate": {
+            "type": "string"
+          }
+        }
+      },
+      "IdNameTypeList": {
+        "type": "object",
+        "properties": {
+          "IdNames": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IdNameType"
+            }
+          }
+        }
+      },
+      "ProcessDefinitionRead": {
+        "properties": {
+          "DefinitionId": {
+            "type": "string"
+          },
+          "Name": {
+            "type": "string"
+          }
+        }
+      },
+      "ProcessDefinitionReadList": {
+        "type": "object",
+        "properties": {
+          "ProcessDefinitions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProcessDefinitionRead"
+            }
+          }
+        }
+      },
+      "FileLocationRead": {
+        "properties": {
+          "Id": {
+            "type": "integer"
+          },
+          "SettingId": {
+            "type": "integer"
+          },
+          "SettingName": {
+            "type": "string"
+          },
+          "LocationTypeId": {
+            "type": "integer"
+          },
+          "LocationTypeName": {
+            "type": "string"
+          },
+          "FileName": {
+            "type": "string"
+          },
+          "Folder": {
+            "type": "string"
+          },
+          "LastChangedUser": {
+            "type": "string"
+          },
+          "LastChangedDate": {
+            "type": "string"
+          }
+        }
+      },
+      "FileLocationReadList": {
+        "type": "object",
+        "properties": {
+          "FileLocations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileLocationRead"
+            }
+          }
+        }
+      },
+      "FileLocationWrite": {
+        "properties": {
+          "SettingId": {
+            "type": "integer"
+          },
+          "LocationTypeId": {
+            "type": "integer"
+          },
+          "FileName": {
+            "type": "string"
+          },
+          "Folder": {
+            "type": "string"
+          }
+        }
+      },
+      "BulkFileSettingRead": {
+        "properties": {
+          "Id": {
+            "type": "integer"
+          },
+          "SettingId": {
+            "type": "integer"
+          },
+          "SettingName": {
+            "type": "string"
+          },
+          "BulkSettingDatabaseId": {
+            "type": "integer"
+          },
+          "BulkSettingDatabaseName": {
+            "type": "string"
+          },
+          "SchemaName": {
+            "type": "string"
+          },
+          "TableName": {
+            "type": "string"
+          },
+          "ErrorFile": {
+            "type": "string"
+          },
+          "FormatFile": {
+            "type": "string"
+          },
+          "FirstRow": {
+            "type": "integer"
+          },
+          "RowTerminator": {
+            "type": "string"
+          },
+          "FieldTerminator": {
+            "type": "string"
+          },
+          "QuotedIdentifier": {
+            "type": "boolean"
+          },
+          "LastChangedUser": {
+            "type": "string"
+          },
+          "LastChangedDate": {
+            "type": "string"
+          }
+        }
+      },
+      "BulkFileSettingReadList": {
+        "type": "object",
+        "properties": {
+          "BulkFileSettings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BulkFileSettingRead"
+            }
+          }
+        }
+      },
+      "BulkFileSettingWrite": {
+        "properties": {
+          "SettingId": {
+            "type": "integer"
+          },
+          "BulkSettingDatabaseId": {
+            "type": "integer"
+          },
+          "SchemaName": {
+            "type": "string"
+          },
+          "TableName": {
+            "type": "string"
+          },
+          "ErrorFile": {
+            "type": "string"
+          },
+          "FormatFile": {
+            "type": "string"
+          },
+          "FirstRow": {
+            "type": "integer"
+          },
+          "RowTerminator": {
+            "type": "string"
+          },
+          "FieldTerminator": {
+            "type": "string"
+          },
+          "QuotedIdentifier": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FileSettingWrite": {
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string"
+          },
+          "SourceId": {
+            "type": "integer"
+          },
+          "TypeId": {
+            "type": "integer"
+          },
+          "Direction": {
+            "type": "string"
+          },
+          "StagingSchema": {
+            "type": "string"
+          },
+          "StagingTable": {
+            "type": "string"
+          },
+          "TargetSchema": {
+            "type": "string"
+          },
+          "TargetTable": {
+            "type": "string"
+          },
+          "ProcessDefinitionId": {
+            "type": "string"
+          },
+          "IsActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FileSettingRead": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "SourceId": {
+            "type": "integer"
+          },
+          "SourceName": {
+            "type": "string"
+          },
+          "TypeId": {
+            "type": "integer"
+          },
+          "TypeName": {
+            "type": "string"
+          },
+          "Direction": {
+            "type": "string"
+          },
+          "StagingSchema": {
+            "type": "string"
+          },
+          "StagingTable": {
+            "type": "string"
+          },
+          "TargetSchema": {
+            "type": "string"
+          },
+          "TargetTable": {
+            "type": "string"
+          },
+          "ProcessDefinitionId": {
+            "type": "string"
+          },
+          "ProcessDefinitionName": {
+            "type": "string"
+          },
+          "IsActive": {
+            "type": "boolean"
+          },
+          "LastChangedUser": {
+            "type": "string"
+          },
+          "LastChangedDate": {
+            "type": "string"
+          }
+        }
+      },
+      "FileSettingReadList": {
+        "type": "object",
+        "properties": {
+          "FileSettings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileSettingRead"
+            }
+          }
+        }
+      },
+      "FileLog": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer"
+          },
+          "ProcessDate": {
+            "type": "string"
+          },
+          "SettingId": {
+            "type": "integer"
+          },
+          "SettingName": {
+            "type": "string"
+          },
+          "ProcessInstanceId": {
+            "type": "string"
+          },
+          "CurrentFolder": {
+            "type": "string"
+          },
+          "CurrentFileName": {
+            "type": "string"
+          },
+          "FileHash": {
+            "type": "string"
+          },
+          "RecordCount": {
+            "type": "string"
+          },
+          "Direction": {
+            "type": "string"
+          },
+          "CurrentStatus": {
+            "type": "string"
+          },
+          "LastExecutedActivityName": {
+            "type": "string"
+          },
+          "ProcessDefinitionId": {
+            "type": "string"
+          },
+          "ProcessName": {
+            "type": "string"
+          },
+          "IsActive": {
+            "type": "boolean"
+          },
+          "BulkErrorFile": {
+            "type": "string"
+          },
+          "HasBulkErrorFile": {
+            "type": "string"
+          }
+        }
+      },
+      "FileLogList": {
+        "type": "object",
+        "properties": {
+          "FileLog": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileLog"
+            }
+          }
+        }
+      },
+      "FileProcessLog": {
+        "type": "object",
+        "properties": {
+          "FileName": {
+            "type": "string"
+          },
+          "ActivityName": {
+            "type": "string"
+          },
+          "DecisionResult": {
+            "type": "string"
+          },
+          "LastExecutedActivityName": {
+            "type": "string"
+          },
+          "StartDate": {
+            "type": "string"
+          },
+          "EndDate": {
+            "type": "string"
+          }
+        }
+      },
+      "FileProcessLogList": {
+        "type": "object",
+        "properties": {
+          "FileLog": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FileProcessLog"
+            }
+          }
+        }
+      },
+      "ColumnDefinition": {
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string"
+          },
+          "HeaderText": {
+            "type": "string"
+          },
+          "Visible": {
+            "type": "boolean"
+          },
+          "CellAlignment": {
+            "type": "string"
+          },
+          "CellDisplay": {
+            "type": "string"
+          },
+          "Classes": {
+            "type": "string"
+          }
+        }
+      },
+      "ColumnList": {
+        "type": "object",
+        "properties": {
+          "ColumnList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ColumnDefinition"
+            }
+          }
+        }
+      },
+      "ValidationErrors": {
+        "type": "object",
+        "properties": {
+          "ValidationErrors": {
+            "type": "object",
+            "properties": {
+              "JsonArray": {
+                "type": "string",
+                "description": "JSON array string of per-row version objects"
+              }
+            }
+          }
+        }
+      },
+      "UserReadList": {
+        "type": "object",
+        "properties": {
+          "Users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserRead"
+            }
+          }
+        }
+      },
+      "RoleReadList": {
+        "type": "object",
+        "properties": {
+          "Roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleRead"
+            }
+          }
+        }
+      },
+      "PageReadList": {
+        "type": "object",
+        "properties": {
+          "Pages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PageRead"
+            }
+          }
+        }
+      },
+      "UserRead": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "example": "1"
+          },
+          "Email": {
+            "type": "string",
+            "example": "Test@gmail.com"
+          },
+          "FirstName": {
+            "type": "string",
+            "example": "John"
+          },
+          "LastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "RolesString": {
+            "type": "string",
+            "example": "Viewer"
+          },
+          "Roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleRead"
+            }
+          },
+          "Pages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PageRead"
+            }
+          },
+          "LastChangedUser": {
+            "type": "string",
+            "example": "Sarah"
+          },
+          "LastChangedDate": {
+            "type": "string",
+            "example": "2025-04-30 15:00:00"
+          }
+        }
+      },
+      "UserWrite": {
+        "type": "object",
+        "properties": {
+          "Email": {
+            "type": "string",
+            "example": "Test@gmail.com"
+          },
+          "FirstName": {
+            "type": "string",
+            "example": "John"
+          },
+          "LastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "Password": {
+            "type": "string",
+            "example": "Testing123"
+          },
+          "Roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoleItem"
+            }
+          }
+        }
+      },
+      "UserLoginWrite": {
+        "type": "object",
+        "properties": {
+          "Email": {
+            "type": "string",
+            "example": "Test@gmail.com"
+          },
+          "Password": {
+            "type": "string",
+            "example": "Testing123"
+          }
+        }
+      },
+      "TransactionRejectWrite": {
+        "type": "object",
+        "properties": {
+          "UserNote": {
+            "type": "string",
+            "example": "Amount does not match supporting document"
+          }
+        }
+      },
+      "TransactionRead": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "example": "1"
+          },
+          "FileLogId": {
+            "type": "integer",
+            "example": "1"
+          },
+          "FileName": {
+            "type": "string",
+            "example": "transactions_2025_04_30.csv"
+          },
+          "Reference": {
+            "type": "string",
+            "example": "TXN-00001"
+          },
+          "TransactionDate": {
+            "type": "string",
+            "example": "2025-04-30 15:00:00"
+          },
+          "AccountNumber": {
+            "type": "string",
+            "example": "1234567890"
+          },
+          "Description": {
+            "type": "string",
+            "example": "Payment for invoice 1234"
+          },
+          "Amount": {
+            "type": "number",
+            "example": "1500.50"
+          },
+          "TransactionType": {
+            "type": "string",
+            "example": "Debit"
+          },
+          "Currency": {
+            "type": "string",
+            "example": "ZAR"
+          },
+          "Status": {
+            "type": "string",
+            "example": "Imported"
+          },
+          "UserNote": {
+            "type": "string",
+            "example": "Reviewed and approved"
+          },
+          "LastChangedUser": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "LastChangedDate": {
+            "type": "string",
+            "example": "2025-04-30 15:00:00"
+          }
+        }
+      },
+      "TransactionReadList": {
+        "type": "object",
+        "properties": {
+          "Transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransactionRead"
+            }
+          }
+        }
+      },
+      "RoleItem": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "example": "1"
+          }
+        }
+      },
+      "PageItem": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "example": "1"
+          }
+        }
+      },
+      "PageRead": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "example": "1"
+          },
+          "Name": {
+            "type": "string",
+            "example": "Dashboard"
+          },
+          "Route": {
+            "type": "string",
+            "example": "/dashboard"
+          }
+        }
+      },
+      "RoleWrite": {
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string",
+            "example": "Viewer"
+          },
+          "Pages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PageItem"
+            }
+          }
+        }
+      },
+      "RoleRead": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "example": "1"
+          },
+          "Name": {
+            "type": "string",
+            "example": "Viewer"
+          },
+          "Pages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PageRead"
+            }
+          },
+          "LastChangedUser": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "LastChangedDate": {
+            "type": "string",
+            "example": "2025-04-30 15:00:00"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "name": "X-API-KEY",
+        "in": "header"
+      }
+    }
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ]
+}

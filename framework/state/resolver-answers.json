@@ -1,24 +1,94 @@
 {
   "answers": [
     {
-      "id": "AI-001",
+      "id": "AI-005",
       "initial_classification": "blocking",
       "revised_classification": "unchanged",
       "revision_reason": "",
-      "status": "confirmed",
-      "consultant_answer": "Confirm",
+      "status": "accepted-as-is",
+      "consultant_answer": "accept-all-remaining-blocking",
       "follow_ups": [],
-      "resolved_value": "Financial services / back-office transaction processing"
+      "resolved_value": "Importer lands on Upload page; Approver lands on Transactions page."
+    },
+    {
+      "id": "AI-008",
+      "initial_classification": "blocking",
+      "revised_classification": "unchanged",
+      "revision_reason": "",
+      "status": "accepted-as-is",
+      "consultant_answer": "accept-all-remaining-blocking",
+      "follow_ups": [],
+      "resolved_value": "When a File Log is in Processing state, then the row must show a non-clickable in-progress indicator and not allow drill-through into Transactions yet."
+    },
+    {
+      "id": "AI-009",
+      "initial_classification": "blocking",
+      "revised_classification": "unchanged",
+      "revision_reason": "",
+      "status": "accepted-as-is",
+      "consultant_answer": "accept-all-remaining-blocking",
+      "follow_ups": [],
+      "resolved_value": "When a user's session reaches the §6.6.1 idle timeout, then a re-auth prompt must replace the screen content while preserving the active Filter Set on resume."
+    },
+    {
+      "id": "AI-010",
+      "initial_classification": "blocking",
+      "revised_classification": "unchanged",
+      "revision_reason": "",
+      "status": "accepted-as-is",
+      "consultant_answer": "accept-all-remaining-blocking",
+      "follow_ups": [],
+      "resolved_value": "POPIA (South African Protection of Personal Information Act) — drives consent banner on first login and PII handling for Account Number / Description fields."
+    },
+    {
+      "id": "AI-015",
+      "initial_classification": "blocking",
+      "revised_classification": "unchanged",
+      "revision_reason": "",
+      "status": "accepted-as-is",
+      "consultant_answer": "accept-all-remaining-blocking",
+      "follow_ups": [],
+      "resolved_value": "10²–10⁴ Transactions retained over 90 days (≈ 100 – 10 000 active rows; sample shows ~150 / day)"
+    },
+    {
+      "id": "AI-016",
+      "initial_classification": "blocking",
+      "revised_classification": "unchanged",
+      "revision_reason": "",
+      "status": "accepted-as-is",
+      "consultant_answer": "accept-all-remaining-blocking",
+      "follow_ups": [],
+      "resolved_value": "1–10 file uploads per day; review cycle daily within business hours"
+    },
+    {
+      "id": "AI-017",
+      "initial_classification": "blocking",
+      "revised_classification": "unchanged",
+      "revision_reason": "",
+      "status": "accepted-as-is",
+      "consultant_answer": "accept-all-remaining-blocking",
+      "follow_ups": [],
+      "resolved_value": "5–20 concurrent users (small ops team)"
+    },
+    {
+      "id": "AI-001",
+      "initial_classification": "non-blocking",
+      "revised_classification": "unchanged",
+      "revision_reason": "",
+      "status": "accepted-as-is",
+      "consultant_answer": "accept-all-remaining-non-blocking",
+      "follow_ups": [],
+      "resolved_value": "Provide an auditable approval trail for every imported transaction, enforce role-segregation between upload and approval, and make rejection grounds explicit so downstream reconciliation has a documented reason for every non-approval."
     },
     {
       "id": "AI-002",
-      "initial_classification": "blocking",
+      "initial_classification": "non-blocking",
       "revised_classification": "unchanged",
       "revision_reason": "",
-      "status": "confirmed",
-      "consultant_answer": "Confirm",
+      "status": "accepted-as-is",
+      "consultant_answer": "accept-all-remaining-non-blocking",
       "follow_ups": [],
-      "resolved_value": "Enforce a separation-of-duties workflow over batch-imported financial transactions so that no transaction reaches a downstream system without an Approver's explicit decision, while preserving a per-file audit trail of file logs, transaction status, and reject reasons."
+      "resolved_value": "Operations user responsible for getting transaction files into the system"
     },
     {
       "id": "AI-003",
@@ -26,9 +96,9 @@
       "revised_classification": "unchanged",
       "revision_reason": "",
       "status": "accepted-as-is",
-      "consultant_answer": "Accept all in batch (### Importer)",
+      "consultant_answer": "accept-all-remaining-non-blocking",
       "follow_ups": [],
-      "resolved_value": "Operations clerk / data-ingest specialist"
+      "resolved_value": "Senior operations user / financial controller responsible for transaction decisions"
     },
     {
       "id": "AI-004",
@@ -36,19 +106,9 @@
       "revised_classification": "unchanged",
       "revision_reason": "",
       "status": "accepted-as-is",
-      "consultant_answer": "Accept all in batch (### Importer)",
+      "consultant_answer": "accept-all-remaining-non-blocking",
       "follow_ups": [],
-      "resolved_value": "Comfortable with file-upload tools and tabular data; not a transaction reviewer"
-    },
-    {
-      "id": "AI-005",
-      "initial_classification": "non-blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "accepted-as-is",
-      "consultant_answer": "Accept all in batch (### Importer)",
-      "follow_ups": [],
-      "resolved_value": "Late or failed uploads delay the Approver queue and hold up downstream settlement"
+      "resolved_value": "Re-trigger validation against the existing File Log row."
     },
     {
       "id": "AI-006",
@@ -56,9 +116,9 @@
       "revised_classification": "unchanged",
       "revision_reason": "",
       "status": "accepted-as-is",
-      "consultant_answer": "Accept all in batch (### Importer)",
+      "consultant_answer": "accept-all-remaining-non-blocking",
       "follow_ups": [],
-      "resolved_value": "Daily, batch-driven (one or more uploads per business day)"
+      "resolved_value": "Trigger browser download with timestamped filename `transactions_<YYYY-MM-DD>_<HHmm>.csv`."
     },
     {
       "id": "AI-007",
@@ -66,39 +126,9 @@
       "revised_classification": "unchanged",
       "revision_reason": "",
       "status": "accepted-as-is",
-      "consultant_answer": "Accept all in batch (### Approver)",
+      "consultant_answer": "accept-all-remaining-non-blocking",
       "follow_ups": [],
-      "resolved_value": "Finance officer / authorised signatory"
-    },
-    {
-      "id": "AI-008",
-      "initial_classification": "non-blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "accepted-as-is",
-      "consultant_answer": "Accept all in batch (### Approver)",
-      "follow_ups": [],
-      "resolved_value": "Strong domain knowledge of transactions, reconciliation, and policy; modest tolerance for UI friction"
-    },
-    {
-      "id": "AI-009",
-      "initial_classification": "blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "confirmed",
-      "consultant_answer": "Confirm",
-      "follow_ups": [],
-      "resolved_value": "Approving an erroneous transaction causes downstream financial impact and audit exposure; rejecting valid ones causes operational delay."
-    },
-    {
-      "id": "AI-010",
-      "initial_classification": "non-blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "accepted-as-is",
-      "consultant_answer": "Accept all in batch (### Approver)",
-      "follow_ups": [],
-      "resolved_value": "Several sessions per day; longer working sessions per file batch"
+      "resolved_value": "When a transaction is rejected, then the recorded UserNote must accompany the status change in the audit trail."
     },
     {
       "id": "AI-011",
@@ -106,9 +136,9 @@
       "revised_classification": "unchanged",
       "revision_reason": "",
       "status": "accepted-as-is",
-      "consultant_answer": "Accept all in batch (### 4.1 Goals catalogue)",
+      "consultant_answer": "accept-all-remaining-non-blocking",
       "follow_ups": [],
-      "resolved_value": "Single-step credentials"
+      "resolved_value": "Audit fields visible on transaction detail: LastChangedUser, LastChangedDate, UserNote (if Rejected)."
     },
     {
       "id": "AI-012",
@@ -116,9 +146,9 @@
       "revised_classification": "unchanged",
       "revision_reason": "",
       "status": "accepted-as-is",
-      "consultant_answer": "Accept all in batch (### 4.1 Goals catalogue)",
+      "consultant_answer": "accept-all-remaining-non-blocking",
       "follow_ups": [],
-      "resolved_value": "Upload-with-progress"
+      "resolved_value": "WCAG 2.2 AA."
     },
     {
       "id": "AI-013",
@@ -126,9 +156,9 @@
       "revised_classification": "unchanged",
       "revision_reason": "",
       "status": "accepted-as-is",
-      "consultant_answer": "Accept all in batch (### 4.1 Goals catalogue)",
+      "consultant_answer": "accept-all-remaining-non-blocking",
       "follow_ups": [],
-      "resolved_value": "Sortable/filterable list"
+      "resolved_value": "Keyboard support: full keyboard navigation including row-level Approve / Reject and modal flows."
     },
     {
       "id": "AI-014",
@@ -136,195 +166,9 @@
       "revised_classification": "unchanged",
       "revision_reason": "",
       "status": "accepted-as-is",
-      "consultant_answer": "Accept all in batch (### 4.1 Goals catalogue)",
+      "consultant_answer": "accept-all-remaining-non-blocking",
       "follow_ups": [],
-      "resolved_value": "CSV download"
-    },
-    {
-      "id": "AI-015",
-      "initial_classification": "non-blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "accepted-as-is",
-      "consultant_answer": "Accept all in batch (### 4.1 Goals catalogue)",
-      "follow_ups": [],
-      "resolved_value": "Multi-facet filtering with chips"
-    },
-    {
-      "id": "AI-016",
-      "initial_classification": "blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "corrected",
-      "consultant_answer": "Drop dual-role support; users hold exactly one role.",
-      "follow_ups": [],
-      "resolved_value": "A User holds exactly one of { Importer, Approver }. No role-switch control. Authentication routes deterministically by the User's single role: Importer → Upload + File Logs landing; Approver → File Logs landing. The User × Role cardinality is 1..1, not many-to-many."
-    },
-    {
-      "id": "AI-017",
-      "initial_classification": "non-blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "accepted-as-is",
-      "consultant_answer": "Accept all in batch (### Flow: Transaction Export (Approver))",
-      "follow_ups": [],
-      "resolved_value": "On Export click, the browser triggers a direct CSV download (no email/queue/async pickup pattern)."
-    },
-    {
-      "id": "AI-018",
-      "initial_classification": "blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "confirmed",
-      "consultant_answer": "Confirm threshold rule",
-      "follow_ups": [
-        {
-          "q": "BR-09 threshold value (ZAR) above which step-up authentication is required for Approve.",
-          "a": "ZAR 100 000",
-          "action": "ask"
-        }
-      ],
-      "resolved_value": "BR-09: When an Approver attempts to Approve a Transaction whose Amount ≥ ZAR 100 000, then a step-up authentication is required before the status transitions to Approved. Below the threshold, no step-up is required (only the standard confirmation modal per GR-04)."
-    },
-    {
-      "id": "AI-019",
-      "initial_classification": "non-blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "accepted-as-is",
-      "consultant_answer": "Accept all in batch (### 6.3 Data)",
-      "follow_ups": [],
-      "resolved_value": "TransactionType (`C` / `D`) is surfaced as a labelled badge (e.g., 'Credit' green, 'Debit' grey, paired with text per GR-16)."
-    },
-    {
-      "id": "AI-020",
-      "initial_classification": "non-blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "accepted-as-is",
-      "consultant_answer": "Accept all in batch (### 6.3 Data)",
-      "follow_ups": [],
-      "resolved_value": "File Log table includes a 'Setting Name' column alongside File Name, Process Date, Record Count, Status, and Bulk-Error indicator."
-    },
-    {
-      "id": "AI-021",
-      "initial_classification": "non-blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "accepted-as-is",
-      "consultant_answer": "Accept all in batch (### 6.3 Data)",
-      "follow_ups": [],
-      "resolved_value": "Reject Reason (UserNote on rejection) length: 1–500 characters; required when status transitions to Rejected (BR-02)."
-    },
-    {
-      "id": "AI-022",
-      "initial_classification": "non-blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "accepted-as-is",
-      "consultant_answer": "Accept all remaining non-blocking",
-      "follow_ups": [],
-      "resolved_value": "Login form does not include a 'Forgot password' link in this prototype."
-    },
-    {
-      "id": "AI-023",
-      "initial_classification": "blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "confirmed",
-      "consultant_answer": "Confirm",
-      "follow_ups": [],
-      "resolved_value": "Bulk select with bulk Approve and bulk Reject is included for the Approver. Bulk Reject opens a single shared User Note dialog; the entered note is applied to every selected row. Bulk actions remain gated by BR-01 (only `Imported` rows participate) and BR-09 (any selected Transaction with Amount ≥ ZAR 100 000 forces step-up before the bulk Approve completes)."
-    },
-    {
-      "id": "AI-024",
-      "initial_classification": "non-blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "accepted-as-is",
-      "consultant_answer": "Accept all remaining non-blocking",
-      "follow_ups": [],
-      "resolved_value": "Notification badge counts (e.g., 'Files awaiting your decision' for Approvers) use the 99+ cap per GR-15."
-    },
-    {
-      "id": "AI-025",
-      "initial_classification": "blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "dropped",
-      "consultant_answer": "Drop",
-      "follow_ups": [],
-      "resolved_value": "Compliance regime is not asserted for this prototype. Account numbers continue to be displayed in full (matching the input sample format `NNNN-NNNN-NNNN`); no public-facing exposure of the system is implied. Remove POPIA-specific copy from §6.6.4."
-    },
-    {
-      "id": "AI-026",
-      "initial_classification": "blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "corrected",
-      "consultant_answer": "Correct — backend only",
-      "follow_ups": [],
-      "resolved_value": "Audit capture (actor, timestamp, prior status, reject note) is server-side only and is NOT surfaced in this prototype's UI. No per-Transaction history panel, no detail-view audit drawer. Remove the corresponding UI bullet from §6.6.4 and from §6.4."
-    },
-    {
-      "id": "AI-027",
-      "initial_classification": "non-blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "accepted-as-is",
-      "consultant_answer": "Accept all remaining non-blocking",
-      "follow_ups": [],
-      "resolved_value": "WCAG 2.2 AA target across all interactive views."
-    },
-    {
-      "id": "AI-028",
-      "initial_classification": "blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "confirmed",
-      "consultant_answer": "Confirm",
-      "follow_ups": [],
-      "resolved_value": "Role.Name is constrained to { Importer, Approver } for this prototype. No role-management UI is included; the API's role/page CRUD endpoints are out of scope for the prototype's screens."
-    },
-    {
-      "id": "AI-029",
-      "initial_classification": "non-blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "accepted-as-is",
-      "consultant_answer": "Accept all remaining non-blocking",
-      "follow_ups": [],
-      "resolved_value": "No source UI references (screenshots, wireframes, existing-tool screens) were supplied; the prototype is greenfield from PrototypeBrief.md and openapi.json."
-    },
-    {
-      "id": "AI-030",
-      "initial_classification": "blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "confirmed",
-      "consultant_answer": "Confirm",
-      "follow_ups": [],
-      "resolved_value": "~10²–10⁴ Transactions per File Log; tens of File Logs per business day; cumulative ~10⁵–10⁶ Transactions in a working window."
-    },
-    {
-      "id": "AI-031",
-      "initial_classification": "non-blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "accepted-as-is",
-      "consultant_answer": "Accept all remaining non-blocking",
-      "follow_ups": [],
-      "resolved_value": "Multiple uploads per business day; review activity throughout the working day."
-    },
-    {
-      "id": "AI-032",
-      "initial_classification": "non-blocking",
-      "revised_classification": "unchanged",
-      "revision_reason": "",
-      "status": "accepted-as-is",
-      "consultant_answer": "Accept all remaining non-blocking",
-      "follow_ups": [],
-      "resolved_value": "5–20 concurrent users across both roles in a single tenant."
+      "resolved_value": "Reference: non-empty; expected pattern `TXN-YYYYMMDD-NNNN` (sample format)."
     }
   ]
 }
