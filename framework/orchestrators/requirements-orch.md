@@ -118,8 +118,9 @@ Perform the steps in this order. If any step fails, stop and surface the failure
 4. **Delete input-handler converted siblings.** Delete every file under `input/` whose name ends in `.converted.md`. These are produced by the input-handler from `Supported-via-MCP` originals; the originals (`.docx`/`.xlsx`/`.pptx`/`.pdf` and any other consultant-dropped files) are **never** deleted. If no `.converted.md` siblings exist, this step is a no-op.
 
 5. **Delete agent working-state sidecars.** Delete each of the following files under `framework/state/` if it exists, so stale resume state does not survive the reset:
-    - `framework/state/resolver-manifest.json`
-    - `framework/state/resolver-answers.json`
+    - `framework/state/resolver-manifest.ndjson`
+    - `framework/state/resolver-answers.ndjson`
+    - `framework/state/resolver-cursor.json`
 
    Do not delete anything else under `framework/state/` — only the named sidecars and (separately, in step 2) the progress file overwrite.
 
@@ -154,7 +155,7 @@ If a gate is not met, do not advance and do not write a `completed` event. Surfa
 - Read — read `framework/state/.progress.json` at startup and check for the existence of the four generated artefacts.
 - Write — create `framework/state/.progress.json` on first run and overwrite it during a start-fresh reset.
 - Edit — append `called` and `completed` events and update the `status` and `pending_setup` fields on `framework/state/.progress.json` as the pipeline progresses.
-- Bash — run `git add` / `git commit` during the start-fresh reset, and delete the four generated artefacts (`requirements/source-manifest.json`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/requirements.md`), every `input/*.converted.md` sibling produced by the input-handler, and the two resolver working-state sidecars (`framework/state/resolver-manifest.json`, `framework/state/resolver-answers.json`). Never use destructive operations beyond those explicitly named paths. Never push or skip hooks.
+- Bash — run `git add` / `git commit` during the start-fresh reset, and delete the four generated artefacts (`requirements/source-manifest.json`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/requirements.md`), every `input/*.converted.md` sibling produced by the input-handler, and the three resolver working-state sidecars (`framework/state/resolver-manifest.ndjson`, `framework/state/resolver-answers.ndjson`, `framework/state/resolver-cursor.json`). Never use destructive operations beyond those explicitly named paths. Never push or skip hooks.
 - AskUserQuestion — prompt the consultant at startup with the `{ start-fresh }` or `{ continue, start-fresh }` choice set, and surface `RF-05 prior_stage_context_bloated` with the `{ proceed-without-clear, continue-later }` choice set when the context-bloat guard fires.
 
 The orchestrator's tools are limited to the operations above. Every other read or write of requirements content belongs to the invoked agent; each agent uses the tools listed in its own agent file.

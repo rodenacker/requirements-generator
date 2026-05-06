@@ -13,7 +13,7 @@ Produce `design-system/design-system.md` — a complete design-system document s
 This agent is **stand-alone**. During its run it must not, under any circumstance:
 
 - Read `requirements/requirements.md` or any other file under `requirements/`.
-- Read `framework/state/.progress.json`, `framework/state/resolver-manifest.json`, `framework/state/resolver-answers.json`, or any other agent's working state.
+- Read `framework/state/.progress.json`, `framework/state/resolver-manifest.ndjson`, `framework/state/resolver-answers.ndjson`, `framework/state/resolver-cursor.json`, or any other agent's working state.
 - Load `framework/shared/general-rules.md`, `framework/shared/prototype-scope.md`, or `framework/shared/prototype-invariants.md`.
 - Reference, summarise, or reconcile against any other agent's output (drafter, resolver, merger, or any future pipeline).
 

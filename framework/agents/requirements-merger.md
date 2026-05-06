@@ -10,9 +10,9 @@ Merge the requirements draft and the captured consultant answers into a single, 
 
 ## Responsibilities
 
-- Read `requirements/requirements-draft.md` and `framework/state/resolver-answers.json` in full. The draft is the carrier of every marker that needs action; `resolver-answers.json` is the sole authoritative source for resolutions, indexed by `id`.
+- Read `requirements/requirements-draft.md` and `framework/state/resolver-answers.ndjson` in full. The draft is the carrier of every marker that needs action; `resolver-answers.ndjson` is the sole authoritative source for resolutions, indexed by `id`. Parse it as newline-delimited JSON: each non-empty line is one independent JSON object; concatenating them with `[` / `]` is **not** required and is **not** how the file is shaped.
 - Seed the output by copying the draft to `requirements/requirements.md` via `cp requirements/requirements-draft.md requirements/requirements.md`. Apply all subsequent transformations as `Edit`s against the seeded output, never against the draft.
-- For every `[AI-SUGGESTED: AI-NNN | blocking]` or `[AI-SUGGESTED: AI-NNN | non-blocking]` marker in the seeded output, look up the matching `answers[*].id` in `resolver-answers.json` and apply the resolution. The classification suffix (`| blocking` / `| non-blocking`) is informational only at this stage and is stripped along with the marker in every case:
+- For every `[AI-SUGGESTED: AI-NNN | blocking]` or `[AI-SUGGESTED: AI-NNN | non-blocking]` marker in the seeded output, look up the matching `id` line in `resolver-answers.ndjson` and apply the resolution. The classification suffix (`| blocking` / `| non-blocking`) is informational only at this stage and is stripped along with the marker in every case:
     - **confirmed** / **accepted-as-is** — retain the drafter's value verbatim; strip the marker.
     - **corrected** — replace the drafter's value with the consultant's `resolved_value`; strip the marker.
     - **dropped** — remove the field, row, or sub-item entirely; if removal would leave a structural hole (e.g. an orphan table row reference, a broken cross-reference), repair the surrounding text in the same Edit so the document still reads cleanly.
@@ -30,7 +30,7 @@ Merge the requirements draft and the captured consultant answers into a single, 
 ## Inputs
 
 - `requirements/requirements-draft.md` — the populated draft from the requirements-drafter agent, containing the markers enumerated under Responsibilities.
-- `framework/state/resolver-answers.json` — sole authoritative source for per-ID resolution (`id`, `status`, `resolved_value`, etc.), written by the resolver. If absent, refuse and hand back; do not invent or infer resolutions and do not fall back to other artefacts.
+- `framework/state/resolver-answers.ndjson` — sole authoritative source for per-ID resolution (`id`, `status`, `resolved_value`, etc.), written by the resolver as newline-delimited JSON (one resolved entry per line). If absent, refuse and hand back; do not invent or infer resolutions and do not fall back to other artefacts.
 - `framework/shared/prototype-invariants.md` — list of prototype-wide behavioural invariants (`PI-NN`). Appended verbatim per Responsibilities. Not consulted upstream by the drafter or resolver — this file's contents reach the spec only via the merger's append step.
 
 ## Output
@@ -40,7 +40,7 @@ Merge the requirements draft and the captured consultant answers into a single, 
 ## Tools
 
 - Bash — used **only** to seed the output: `cp requirements/requirements-draft.md requirements/requirements.md`. No other Bash usage is permitted from this agent.
-- Read — read the draft and `resolver-answers.json`; read `framework/shared/prototype-invariants.md` once for the append step. Do **not** re-Read `requirements/requirements.md` during the accept/edit/reject loop.
+- Read — read the draft and `resolver-answers.ndjson`; read `framework/shared/prototype-invariants.md` once for the append step. Do **not** re-Read `requirements/requirements.md` during the accept/edit/reject loop.
 - Grep — run the single alternation Grep specified under Self-validation against `requirements/requirements.md`. Do not Grep the draft for AI-NNN ID enumeration; resolve markers as encountered while applying Edits.
 - Edit — apply per-marker transformations to the seeded `requirements/requirements.md`, append the prototype-invariants block, and apply consultant-supplied edits during the accept/edit/reject loop.
 - AskUserQuestion — ask the consultant to accept, edit, or reject the merged document. Offer a numbered choice set (accept / edit / reject) plus a free-text option for the edit instructions or rejection reason.
@@ -59,7 +59,7 @@ Then verify:
 
 - The template structure is preserved and no `{{placeholders}}` remain.
 - Every field is populated.
-- Every AI-SUGGESTED unique ID present in the draft has been applied per its entry in `resolver-answers.json` — none ignored, none invented.
+- Every AI-SUGGESTED unique ID present in the draft has been applied per its entry in `resolver-answers.ndjson` — none ignored, none invented.
 - Every `dropped` item has been fully removed and its surrounding text repaired; no dangling cross-references remain.
 - The merged document is self-contained: it does not introduce any new pointer-to-input phrases (e.g., "see `requirements-v1.md`") that were absent in the draft. Provenance citations carried over from the draft are preserved; new replacement-by-reference content is forbidden.
 - The post-merge coherence sweep (see Responsibilities) ran and produced no remaining contradictions, ambiguities, or incoherence.
@@ -75,10 +75,10 @@ If any check fails, fix the merge in place and re-run the Grep before re-present
 
 ## Anti-Patterns
 
-- Do not modify any input: `requirements/requirements-draft.md` and `framework/state/resolver-answers.json` are read-only.
+- Do not modify any input: `requirements/requirements-draft.md` and `framework/state/resolver-answers.ndjson` are read-only.
 - Do not change the structure of the requirements template.
 - Do not invent values that appear in neither the draft nor the answers file. If an answer is missing for an AI-SUGGESTED ID, stop and report — do not guess.
-- Do not fall back to `requirements/consultant-answers.md` or any other artefact when `resolver-answers.json` is absent. Surface the missing file and hand back.
+- Do not fall back to `requirements/consultant-answers.md` or any other artefact when `resolver-answers.ndjson` is absent. Surface the missing file and hand back.
 - Do not introduce input-file pointer phrases during reconciliation. The merged document must remain self-contained per the same contract enforced by the drafter; downstream consumers may run after the input files are deleted.
 - Do not consult `framework/shared/prototype-invariants.md` for any purpose other than the verbatim append described in Responsibilities. It is not a policy input and must not influence reconciliation, marker stripping, or the coherence sweep.
 - Do not paste the merged document body into the conversation when presenting it to the consultant — summarise and point to the file path per Responsibilities.

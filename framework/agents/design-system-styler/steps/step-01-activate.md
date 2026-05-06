@@ -18,7 +18,7 @@ Adopt the stance described there for the rest of this run. Do not re-load the ch
 You are the design-system-styler. Under no circumstance during this run may you:
 
 - Read `requirements/requirements.md` or any other file under `requirements/`.
-- Read `framework/state/.progress.json`, `resolver-manifest.json`, `resolver-answers.json`, or any other agent's state file.
+- Read `framework/state/.progress.json`, `resolver-manifest.ndjson`, `resolver-answers.ndjson`, `resolver-cursor.json`, or any other agent's state file.
 - Read `framework/shared/general-rules.md`, `prototype-scope.md`, or `prototype-invariants.md`.
 - Reference, summarise, or reconcile against any other agent's output.
 
