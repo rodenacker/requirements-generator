@@ -6,7 +6,7 @@ A 30-year software professional spanning UX, business analysis, architecture, an
 
 ## Purpose
 
-Merge the requirements draft and the captured consultant answers into a single, coherent `requirements/requirements.md` — a finalised document with no `[AI-SUGGESTED]`, `[STANDARD-RULE]`, or `[OUT-OF-SCOPE]` markers and no unresolved items.
+Merge the requirements draft and the captured consultant answers into a single, coherent `requirements/requirements.md` — a finalised document with no `[AI-SUGGESTED]`, `[STANDARD-RULE]`, `[OUT-OF-SCOPE]` markers, no `[SRC: C-NNN]` source-quote tags, and no unresolved items.
 
 ## Responsibilities
 
@@ -18,6 +18,7 @@ Merge the requirements draft and the captured consultant answers into a single, 
     - **dropped** — remove the field, row, or sub-item entirely; if removal would leave a structural hole (e.g. an orphan table row reference, a broken cross-reference), repair the surrounding text in the same Edit so the document still reads cleanly.
 - For every `[STANDARD-RULE: GR-NN]` marker: retain the drafter's value verbatim and strip the marker. These markers carry deterministic answers from `framework/shared/general-rules.md` and were not subject to Q&A.
 - For every `[OUT-OF-SCOPE: domain-default]` marker: retain the drafter's value verbatim and strip the marker. These markers carry domain-default values for template fields outside prototype scope and were not subject to Q&A.
+- For every `[SRC: C-NNN]` tag: retain the drafter's value verbatim and strip the tag, including the single space that precedes it (e.g., `Hit quarterly target [SRC: C-027]` → `Hit quarterly target`). These tags carry source-quote citations into the draft for grounding verification at draft time; they are not consumed by the merger or by downstream design phases. The merger does **not** read `requirements/draft-claims.ndjson` — the sidecar remains in `requirements/` as a forensic record only.
 - Preserve the structure established in the draft — same section order, same field set, no `{{placeholders}}` (none should be present in the draft to begin with).
 - After applying every answer, scan the merged document for residual incoherence — contradictions introduced by corrections, dangling references to dropped items, or ambiguous wording — and fix them in place via `Edit`.
 - Append the contents of `framework/shared/prototype-invariants.md` to the end of the merged document under a single `## Prototype invariants` heading. The per-invariant subsections (`### PI-NN — …`) are appended verbatim — do not edit, summarise, paraphrase, reorder, or interleave with other content. The source file's own top-level heading and preamble are stripped; only the per-invariant subsections are appended below the new `## Prototype invariants` heading.
@@ -35,7 +36,7 @@ Merge the requirements draft and the captured consultant answers into a single, 
 
 ## Output
 
-- `requirements/requirements.md` — the finalised, merged requirements document. Structure matches `framework/assets/template-requirements.md`, with a `## Prototype invariants` section appended at the end per Responsibilities. The output must contain zero of the forbidden tokens listed under Self-validation.
+- `requirements/requirements.md` — the finalised, merged requirements document. Structure matches `framework/assets/template-requirements.md`, with a `## Prototype invariants` section appended at the end per Responsibilities. The output must contain zero of the forbidden tokens listed under Self-validation — including no `[SRC: C-NNN]` source-quote tags, which are stripped from the draft body during merge.
 
 ## Tools
 
@@ -50,10 +51,10 @@ Merge the requirements draft and the captured consultant answers into a single, 
 Run a single alternation Grep against `requirements/requirements.md` with `output_mode: count`. The count must be `0`:
 
 ```
-\[AI-SUGGESTED:|\[STANDARD-RULE:|\[OUT-OF-SCOPE:|\| (?:non-)?blocking\]|AI-\d{3}|GR-\d{2}
+\[AI-SUGGESTED:|\[STANDARD-RULE:|\[OUT-OF-SCOPE:|\[SRC:|\| (?:non-)?blocking\]|AI-\d{3}|GR-\d{2}|C-\d{3}
 ```
 
-This pattern catches: residual marker prefixes (in any classification variant), residual `| blocking` / `| non-blocking` fragments, and any `AI-NNN` or `GR-NN` IDs left in the body (those IDs belong only to the answers ledger or the rules catalogue, never to the merged spec).
+This pattern catches: residual marker prefixes (in any classification variant), residual `[SRC: ...]` source-quote tags, residual `| blocking` / `| non-blocking` fragments, and any `AI-NNN`, `GR-NN`, or `C-NNN` IDs left in the body (those IDs belong only to the answers ledger, the rules catalogue, or the draft-claims sidecar respectively, never to the merged spec).
 
 Then verify:
 
@@ -61,7 +62,7 @@ Then verify:
 - Every field is populated.
 - Every AI-SUGGESTED unique ID present in the draft has been applied per its entry in `resolver-answers.ndjson` — none ignored, none invented.
 - Every `dropped` item has been fully removed and its surrounding text repaired; no dangling cross-references remain.
-- The merged document is self-contained: it does not introduce any new pointer-to-input phrases (e.g., "see `requirements-v1.md`") that were absent in the draft. Provenance citations carried over from the draft are preserved; new replacement-by-reference content is forbidden.
+- The merged document is self-contained: it does not introduce any new pointer-to-input phrases (e.g., "see `requirements-v1.md`") that were absent in the draft. All `[SRC: C-NNN]` source-quote tags from the draft are stripped during merge; the merged document carries no inline provenance, and no replacement-by-reference content is introduced.
 - The post-merge coherence sweep (see Responsibilities) ran and produced no remaining contradictions, ambiguities, or incoherence.
 - The merged document ends with the prototype-invariants append per Responsibilities; no PI-NN is missing, reordered, paraphrased, or interleaved.
 
@@ -75,7 +76,7 @@ If any check fails, fix the merge in place and re-run the Grep before re-present
 
 ## Anti-Patterns
 
-- Do not modify any input: `requirements/requirements-draft.md` and `framework/state/resolver-answers.ndjson` are read-only.
+- Do not modify any input: `requirements/requirements-draft.md` and `framework/state/resolver-answers.ndjson` are read-only. `requirements/draft-claims.ndjson` is also read-only — the merger does not consume it and must not edit, delete, or rely on it during merge.
 - Do not change the structure of the requirements template.
 - Do not invent values that appear in neither the draft nor the answers file. If an answer is missing for an AI-SUGGESTED ID, stop and report — do not guess.
 - Do not fall back to `requirements/consultant-answers.md` or any other artefact when `resolver-answers.ndjson` is absent. Surface the missing file and hand back.

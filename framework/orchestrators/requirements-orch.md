@@ -110,10 +110,12 @@ Perform the steps in this order. If any step fails, stop and surface the failure
 3. **Delete generated requirements artefacts.** Delete each of the following files if it exists:
     - `requirements/source-manifest.json`
     - `requirements/requirements-draft.md`
+    - `requirements/draft-claims.ndjson`
+    - `requirements/draft-claims-verification.ndjson`
     - `requirements/consultant-answers.md`
     - `requirements/requirements.md`
 
-   Do not delete anything else under `requirements/` — only the four artefacts produced by the pipeline. Leave the (now-empty) progress file in place.
+   Do not delete anything else under `requirements/` — only the six artefacts produced by the pipeline. Leave the (now-empty) progress file in place.
 
 4. **Delete input-handler converted siblings.** Delete every file under `input/` whose name ends in `.converted.md`. These are produced by the input-handler from `Supported-via-MCP` originals; the originals (`.docx`/`.xlsx`/`.pptx`/`.pdf` and any other consultant-dropped files) are **never** deleted. If no `.converted.md` siblings exist, this step is a no-op.
 
@@ -129,7 +131,7 @@ After the reset completes, the pipeline starts cleanly at Step 1.
 ## Handback gates
 
 - **After Input-handle:** the input-handler has handed control back when `requirements/source-manifest.json` exists, parses as JSON per the schema in `framework/skills/build-source-manifest.md`, contains at least one row with `tier ≠ "Unsupported"`, has been verified via `framework/skills/verify-artifact-write.md` (a `pass`), the agent's self-validation has passed, and the consultant has accepted the manifest. Only then write the `completed` event for `requirements-input-handler`. If the agent fails its handback via `RF-01 continue-later` or `RF-03 abort`, do not write a `completed` event; the orchestrator stops cleanly.
-- **After Draft:** the drafter has handed control back when `requirements/requirements-draft.md` exists, the drafter's self-validation has passed, the post-Write `verify-artifact-write` returned `pass`, and the consultant has accepted the draft. Only then write the `completed` event for `requirements-drafter`.
+- **After Draft:** the drafter has handed control back when `requirements/requirements-draft.md` exists, the drafter's self-validation has passed, the post-Write `verify-artifact-write` returned `pass`, `requirements/draft-claims.ndjson` and `requirements/draft-claims-verification.ndjson` both exist, the verification file's summary line shows `failed: 0` (i.e., every `[SRC: C-NNN]` tag in the draft has a sidecar entry whose `source_quote` is a verbatim substring of its `source_file`, and the bidirectional cross-check passes), and the consultant has accepted the draft. Only then write the `completed` event for `requirements-drafter`. If the verification summary shows `failed: > 0`, refuse the gate and surface the FAIL list — the drafter must remediate per its workflow step 7b before the gate can be re-evaluated.
 - **After Resolve:** the resolver has handed control back when `requirements/consultant-answers.md` exists with one entry per `[AI-SUGGESTED]` ID in the draft, the resolver's self-validation has passed, and either every question has been answered individually or the consultant has explicitly chosen accept-all-remaining for any residual. Only then write the `completed` event for `requirements-resolver`.
 - **After Merge:** the merger has handed control back when `requirements/requirements.md` exists with zero `[AI-SUGGESTED]` markers, the merger's self-validation has passed, and the consultant has accepted the merged document. Only then write the `completed` event for `requirements-merger` and set `status: "complete"`.
 
@@ -152,10 +154,10 @@ If a gate is not met, do not advance and do not write a `completed` event. Surfa
 
 ## Tools
 
-- Read — read `framework/state/.progress.json` at startup and check for the existence of the four generated artefacts.
+- Read — read `framework/state/.progress.json` at startup; check for the existence of the four agent-handoff artefacts listed in **Startup: detect prior progress**; and at the After-Draft handback gate, read `requirements/draft-claims-verification.ndjson` to inspect its summary line for `failed: 0`.
 - Write — create `framework/state/.progress.json` on first run and overwrite it during a start-fresh reset.
 - Edit — append `called` and `completed` events and update the `status` and `pending_setup` fields on `framework/state/.progress.json` as the pipeline progresses.
-- Bash — run `git add` / `git commit` during the start-fresh reset, and delete the four generated artefacts (`requirements/source-manifest.json`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/requirements.md`), every `input/*.converted.md` sibling produced by the input-handler, and the three resolver working-state sidecars (`framework/state/resolver-manifest.ndjson`, `framework/state/resolver-answers.ndjson`, `framework/state/resolver-cursor.json`). Never use destructive operations beyond those explicitly named paths. Never push or skip hooks.
+- Bash — run `git add` / `git commit` during the start-fresh reset, and delete the six generated artefacts (`requirements/source-manifest.json`, `requirements/requirements-draft.md`, `requirements/draft-claims.ndjson`, `requirements/draft-claims-verification.ndjson`, `requirements/consultant-answers.md`, `requirements/requirements.md`), every `input/*.converted.md` sibling produced by the input-handler, and the three resolver working-state sidecars (`framework/state/resolver-manifest.ndjson`, `framework/state/resolver-answers.ndjson`, `framework/state/resolver-cursor.json`). Never use destructive operations beyond those explicitly named paths. Never push or skip hooks.
 - AskUserQuestion — prompt the consultant at startup with the `{ start-fresh }` or `{ continue, start-fresh }` choice set, and surface `RF-05 prior_stage_context_bloated` with the `{ proceed-without-clear, continue-later }` choice set when the context-bloat guard fires.
 
 The orchestrator's tools are limited to the operations above. Every other read or write of requirements content belongs to the invoked agent; each agent uses the tools listed in its own agent file.
@@ -183,7 +185,7 @@ The orchestrator's tools are limited to the operations above. Every other read o
 - Do not perform any task other than the steps listed above.
 - Do not skip, reorder, parallelise, or merge the four pipeline steps.
 - Do not advance past a gate that has not been met.
-- Do not read, write, or edit any requirements artefact directly during the pipeline — every read/write of `source-manifest.json`, `requirements-draft.md`, `consultant-answers.md`, and `requirements.md` belongs to the invoked agent. The orchestrator's only direct writes are to `framework/state/.progress.json` and (during a start-fresh reset) the deletion of the four named generated artefacts, the `input/*.converted.md` siblings, and the two resolver working-state sidecars under `framework/state/`.
+- Do not read, write, or edit any requirements artefact directly during the pipeline — every read/write of `source-manifest.json`, `requirements-draft.md`, `draft-claims.ndjson`, `draft-claims-verification.ndjson`, `consultant-answers.md`, and `requirements.md` belongs to the invoked agent. The orchestrator's only direct reads of an agent-owned artefact are the drafter-handoff gate's read of `requirements/draft-claims-verification.ndjson` (to inspect the `failed:` count) and the existence checks listed in **Startup: detect prior progress**. The orchestrator's only direct writes are to `framework/state/.progress.json` and (during a start-fresh reset) the deletion of the six named generated artefacts, the `input/*.converted.md` siblings, and the three resolver working-state sidecars under `framework/state/`.
 - Do not call any skill, asset, or tool not invoked transitively by the four named agents or listed in this orchestrator's **Tools** section.
 - Do not loop back to an earlier agent unless its gate explicitly fails — handback is one-way per run.
 - Do not run any of the four agents as a background / sub / async agent. Each agent must run in the foreground in the same thread as the orchestrator so consultant Q&A and acceptance happen in-thread. Off-thread delegation (Agent tool, Task tool, fork, etc.) is forbidden for these agents.
@@ -191,7 +193,7 @@ The orchestrator's tools are limited to the operations above. Every other read o
 - Do not skip Step 0a (one-message wait) on a fresh run, and do not run it on a rerun where the input-handler already has a `completed` event for this run.
 - Do not skip the context-bloat guard before any of steps 2, 3, or 4. Skipping it re-introduces the silent quality drift the guard was added to prevent.
 - Do not run the reset procedure when no prior progress was detected, and do not run it when the consultant chose `continue`.
-- Do not delete anything in `requirements/` other than the four named generated artefacts during a reset. Do not delete anything in `input/` other than `*.converted.md` siblings during a reset. The progress file is overwritten with an empty events array, not deleted.
+- Do not delete anything in `requirements/` other than the six named generated artefacts during a reset. Do not delete anything in `input/` other than `*.converted.md` siblings during a reset. The progress file is overwritten with an empty events array, not deleted.
 - Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the reset checkpoint commit.
 - Do not write a `completed` event before the corresponding handback gate is met, and do not write a `called` event after the agent has already been invoked.
 - Do not advance past `Input-handle` while `framework/state/.progress.json > status` is `"setup-pending"` or `"context-bloated"`. The status field is the orchestrator's halt signal; only the consultant's resume action (resolving the predicate and re-invoking) returns it to `"running"`.
