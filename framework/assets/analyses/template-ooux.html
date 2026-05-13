@@ -1,10 +1,14 @@
 <!--
   ROLE: asset (HTML template). Populated by framework/agents/analyses/ooux-analyser.md.
 
-  Purpose: HTML/CSS skeleton for the OOUX object-map grid. Self-contained
-  (`<!doctype html>` + inlined `<style>` + `<body>`). No external CSS/JS
-  dependencies; viewable by opening `file://` in a browser; shareable with
-  clients without tooling.
+  Purpose: HTML/CSS skeleton for the canonical OOUX sticky-note column-board.
+  Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`). No external
+  CSS/JS dependencies; viewable by opening `file://` in a browser; shareable
+  with clients without tooling.
+
+  Layout: one `<section class="object-column">` per object, arranged left-to-right
+  via CSS Grid (`repeat(auto-fit, minmax(240px, 1fr))`). Columns auto-wrap to
+  the next row on narrow viewports; no horizontal scroll, no JS.
 
   Placeholders the analyser substitutes (string substitution, all values
   pre-escaped for HTML):
@@ -14,64 +18,99 @@
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered
     {{REQUIREMENTS_SHA256}}    — sha256 of requirements/requirements.md at read time
     {{OBJECT_COUNT}}           — total objects on the map
-    {{RELATIONSHIP_COUNT}}     — total recorded relationships
+    {{RELATIONSHIP_COUNT}}     — total recorded relationships (matrix-unique)
     {{CTA_COUNT}}              — total CTAs across all objects
     {{ATTRIBUTE_COUNT}}        — total attributes across all objects
     {{CCP_COUNT}}              — total CCP-marked attributes
-    {{DIAGNOSTICS_BLOCK}}      — pre-rendered HTML block: provenance summary,
-                                 quality-check results (all 7), any flagged
-                                 items. Wrapped in <section class="diagnostics">.
-    {{OBJECT_ROWS}}            — pre-rendered <tr> rows for the object-map table.
-                                 Each row populated per the OBJECT ROW SCHEMA below.
+    {{DIAGNOSTICS_BLOCK}}      — pre-rendered HTML block per DIAGNOSTICS SCHEMA below.
+    {{OBJECT_COLUMNS}}         — pre-rendered <section class="object-column">
+                                 blocks per the OBJECT COLUMN SCHEMA below.
 
   Output: analyses/OOUX/ooux-object-map.html.
 
-  OBJECT ROW SCHEMA — each <tr> the analyser emits has the shape:
+  OBJECT COLUMN SCHEMA — each column the analyser emits has the shape:
 
-      <tr id="obj-<slug>" class="object-row">
-        <th class="object-name">
-          <span class="provenance provenance-<from-domain-model|derived>" title="...">●</span>
-          <span class="name">{{object_name}}</span>
-          <span class="derived-source" data-source="{{section}}"></span>  <!-- only when derived -->
-        </th>
-        <td class="relationships">
-          <ul>
-            <li>
-              <span class="rel-label">{{label}}</span>
-              <a href="#obj-{{target-slug}}" class="rel-target">{{target}}</a>
-              <span class="rel-cardinality">{{1:1|1:N|N:M}}</span>
-              <span class="nested-relationship" hidden></span>  <!-- present when nested in attrs -->
-            </li>
-          </ul>
-        </td>
-        <td class="ctas">
-          <ul>
-            <li><span class="cta">{{verb-phrase}}</span></li>
-          </ul>
-        </td>
-        <td class="attributes">
-          <ul>
-            <li class="ccp-highlight"><span class="attr">{{name}}</span><span class="ccp-marker">CCP</span></li>
-            <li><span class="attr">{{name}}</span></li>
-          </ul>
-        </td>
-      </tr>
+      <section id="obj-<slug>" class="object-column" aria-labelledby="obj-<slug>-name">
+
+        <ul class="sticky-stack ctas" aria-label="CTAs">
+          <li class="sticky cta">{{verb-phrase}}</li>
+        </ul>
+
+        <header class="sticky object-header">
+          <span class="provenance provenance-<from-domain-model|derived>"
+                title="..." aria-hidden="true">●</span>
+          <span id="obj-<slug>-name" class="object-name">{{object_name}}</span>
+          <span class="derived-source" data-source="{{section}}" hidden></span>
+        </header>
+
+        <ul class="sticky-stack core-content" aria-label="Core content (CCP)">
+          <li class="sticky core ccp-highlight">
+            <span class="attr">{{name}}</span><span class="ccp-marker">CCP</span>
+          </li>
+        </ul>
+
+        <ul class="sticky-stack metadata" aria-label="Metadata">
+          <li class="sticky meta"><span class="attr">{{name}}</span></li>
+        </ul>
+
+        <ul class="sticky-stack nested-refs" aria-label="Nested object references">
+          <li class="sticky nested-relationship">
+            <span class="rel-label">{{label}}</span>
+            <a href="#obj-{{target-slug}}" class="rel-target">{{target}}</a>
+            <span class="rel-cardinality">{{1:1|1:N|N:M}}</span>
+          </li>
+        </ul>
+
+      </section>
+
+  Within every column the five sticky stacks render in fixed order:
+    CTAs → Object header → Core content (CCP) → Metadata (non-CCP) → Nested refs.
+  Empty stacks render with the `hidden` attribute so the column rhythm is
+  preserved without empty whitespace.
+
+  DIAGNOSTICS SCHEMA — the analyser's {{DIAGNOSTICS_BLOCK}} substitutes a
+  single <section class="diagnostics">. The template wraps the placeholder in
+  a <details class="diagnostics-toggle"> element (collapsed by default) so the
+  diagnostics section is hidden behind a toggle and only revealed on click.
+  The analyser does not emit the <details>/<summary> wrapper — it is template
+  scaffolding. The inner section contains, in order:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>OOUX object map — N objects.</p>
+        <p>Provenance: X from domain model, Y derived.</p>
+        <ul>
+          <li class="check-pass|check-fail">Check 1 — Every Object has ≥1 CTA.</li>
+          ... (all 7 checks listed in order)
+        </ul>
+        <table class="rel-matrix">
+          <thead>
+            <tr><th>Source</th><th>Label</th><th>Target</th><th>Cardinality</th><th>Nested?</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>...</td><td>...</td><td>...</td><td>1:N</td><td>yes|no</td></tr>
+          </tbody>
+        </table>
+        <!-- Override-only: flagged-items <ul> per failed check. -->
+      </section>
 
   CSS classes used by the analyser:
-    .ccp-highlight        — wrap any <li> attribute that is a Core Content Priority.
-    .nested-relationship  — wrap any relationship that is also expressed as a nested
-                            attribute reference; signals "this is the same edge as
-                            seen in the Attributes column".
-    .rev-marker           — wrap any cell or item the analyser flagged for review
-                            on this run (failed quality check or carries a provenance
-                            warning).
+    .ccp-highlight        — applied to any <li> attribute that is a Core
+                            Content Priority (renders on the .sticky.core stack).
+    .nested-relationship  — applied to any <li> in the .nested-refs stack;
+                            signals "this relationship is also expressed as a
+                            nested attribute reference on this object".
+    .rev-marker           — applied to any cell or item the analyser flagged
+                            for review on this run (failed quality check or
+                            provenance warning).
     .provenance-from-domain-model
-    .provenance-derived   — provenance dots on each object name.
+    .provenance-derived   — provenance dots on each object header.
 
   Content TBD-able by the analyser:
-    The diagnostics block, the row count, and the per-object cell content are
-    fully driven by the analyser. The CSS below is fixed scaffolding and should
-    not be edited by the analyser — only the {{placeholders}} above are substituted.
+    The diagnostics block, the column count, and the per-column sticky content
+    are fully driven by the analyser. The CSS below is fixed scaffolding and
+    should not be edited by the analyser — only the {{placeholders}} above are
+    substituted.
 -->
 <!doctype html>
 <html lang="en">
@@ -85,18 +124,19 @@
       --muted: #5a5a5a;
       --border: #d4d4d4;
       --border-strong: #8a8a8a;
-      --ccp-bg: #fff7cc;
-      --ccp-fg: #5a4500;
-      --ccp-border: #e6c200;
-      --nested-bg: #e8f0ff;
-      --nested-fg: #1a3a7a;
-      --rev-bg: #ffeaea;
-      --rev-fg: #8a1a1a;
-      --rev-border: #d44a4a;
+      --col-bg: #ffffff;
+      --sticky-shadow: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+
+      --cta-bg: #c8e6b2;     --cta-border: #7fb069;   --cta-fg: #1f3d12;
+      --obj-bg: #b9d7f0;     --obj-border: #4f8fbf;   --obj-fg: #0c2a44;
+      --core-bg: #fff3a8;    --core-border: #e0c34a;  --core-fg: #4a3a00;
+      --meta-bg: #f6c6d5;    --meta-border: #c97a92;  --meta-fg: #4a1a2a;
+      --nested-bg: #dbe9f7;  --nested-border: #4f8fbf;--nested-fg: #0c2a44;
+
       --prov-domain: #2a8a2a;
       --prov-derived: #b86a00;
+      --rev-bg: #ffeaea;     --rev-border: #d44a4a;   --rev-fg: #8a1a1a;
       --header-bg: #efefef;
-      --row-alt: #f3f3f3;
     }
 
     * { box-sizing: border-box; }
@@ -155,6 +195,41 @@
       font-variant-numeric: tabular-nums;
     }
 
+    details.diagnostics-toggle {
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.diagnostics-toggle[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.diagnostics-toggle[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
     .diagnostics {
       padding: 16px;
       border: 1px solid var(--border);
@@ -163,66 +238,134 @@
       background: #fff;
       margin-bottom: 24px;
     }
+    details.diagnostics-toggle > .diagnostics {
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      margin-bottom: 0;
+    }
+    details.diagnostics-toggle > .diagnostics > h2 {
+      /* The <summary> already labels the section; avoid a duplicated heading. */
+      display: none;
+    }
 
     .diagnostics h2 {
       font-size: 16px;
       margin: 0 0 8px 0;
     }
 
-    .diagnostics ul {
-      margin: 0;
+    .diagnostics > ul {
+      margin: 0 0 12px 0;
       padding-left: 20px;
     }
 
     .diagnostics .check-pass::before { content: "PASS "; color: var(--prov-domain); font-weight: 600; }
     .diagnostics .check-fail::before { content: "FAIL "; color: var(--rev-fg); font-weight: 600; }
 
-    table.object-map {
+    .diagnostics table.rel-matrix {
       width: 100%;
       border-collapse: collapse;
-      background: #fff;
-      border: 1px solid var(--border);
+      margin: 12px 0 0 0;
+      font-size: 12px;
     }
-
-    table.object-map thead th {
-      background: var(--header-bg);
-      text-align: left;
-      padding: 10px 12px;
-      font-weight: 600;
-      font-size: 13px;
-      border-bottom: 2px solid var(--border-strong);
-      vertical-align: bottom;
-    }
-
-    table.object-map tbody tr.object-row:nth-child(even) {
-      background: var(--row-alt);
-    }
-
-    table.object-map td,
-    table.object-map th {
-      padding: 10px 12px;
+    .diagnostics table.rel-matrix th,
+    .diagnostics table.rel-matrix td {
+      padding: 6px 8px;
       border-top: 1px solid var(--border);
+      text-align: left;
       vertical-align: top;
     }
-
-    table.object-map th.object-name {
-      width: 18%;
+    .diagnostics table.rel-matrix thead th {
+      background: var(--header-bg);
       font-weight: 600;
-      font-size: 14px;
-      text-align: left;
+      border-top: none;
+      border-bottom: 2px solid var(--border-strong);
+    }
+    .diagnostics table.rel-matrix td.nested-yes { color: var(--nested-fg); font-weight: 600; }
+    .diagnostics table.rel-matrix td.nested-no  { color: var(--muted); }
+
+    /* ------- column-board layout ------- */
+
+    .object-board {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      align-items: start;
     }
 
-    table.object-map td.relationships { width: 28%; }
-    table.object-map td.ctas          { width: 22%; }
-    table.object-map td.attributes    { width: 32%; }
+    .object-column {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px;
+      background: var(--col-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
 
-    table.object-map ul {
+    .sticky-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      list-style: none;
       margin: 0;
-      padding-left: 18px;
+      padding: 0;
+    }
+    .sticky-stack[hidden] { display: none; }
+
+    .sticky {
+      padding: 8px 10px;
+      border-radius: 4px;
+      border-left: 3px solid transparent;
+      box-shadow: var(--sticky-shadow);
+      font-size: 13px;
+      line-height: 1.35;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
 
-    table.object-map li {
-      margin: 0 0 4px 0;
+    .sticky.cta {
+      background: var(--cta-bg);
+      border-left-color: var(--cta-border);
+      color: var(--cta-fg);
+      font-weight: 500;
+    }
+
+    header.sticky.object-header {
+      background: var(--obj-bg);
+      border-left-color: var(--obj-border);
+      color: var(--obj-fg);
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sticky.core {
+      background: var(--core-bg);
+      border-left-color: var(--core-border);
+      color: var(--core-fg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .sticky.meta {
+      background: var(--meta-bg);
+      border-left-color: var(--meta-border);
+      color: var(--meta-fg);
+    }
+
+    .sticky.nested-relationship {
+      background: var(--nested-bg);
+      border: 1px dashed var(--nested-border);
+      border-left: 3px dashed var(--nested-border);
+      color: var(--nested-fg);
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px 6px;
     }
 
     .provenance {
@@ -230,10 +373,10 @@
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      margin-right: 6px;
       vertical-align: middle;
       font-size: 0;
       line-height: 0;
+      flex: 0 0 auto;
     }
     .provenance-from-domain-model { background: var(--prov-domain); }
     .provenance-derived           { background: var(--prov-derived); }
@@ -241,93 +384,98 @@
     .rel-label {
       font-style: italic;
       color: var(--muted);
-      margin-right: 4px;
     }
     .rel-cardinality {
       display: inline-block;
-      margin-left: 6px;
       padding: 1px 6px;
       font-size: 11px;
       font-variant-numeric: tabular-nums;
-      color: var(--muted);
-      border: 1px solid var(--border);
+      color: var(--nested-fg);
+      border: 1px solid var(--nested-border);
       border-radius: 4px;
       background: #fff;
     }
     .rel-target {
-      color: var(--fg);
+      color: var(--nested-fg);
       text-decoration: underline;
-      text-decoration-color: var(--border-strong);
+      text-decoration-color: var(--nested-border);
+      font-weight: 600;
     }
     .rel-target:hover { text-decoration-color: var(--fg); }
 
-    .nested-relationship {
-      display: inline-block;
-      margin-left: 6px;
-      padding: 1px 6px;
-      font-size: 10px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: var(--nested-fg);
-      background: var(--nested-bg);
-      border-radius: 3px;
-    }
-    .nested-relationship:not([hidden])::before {
-      content: "nested";
-    }
-
-    .cta {
-      display: inline-block;
-      padding: 1px 6px;
-      font-weight: 500;
-      background: #f0f0f0;
-      border-radius: 3px;
-    }
-
-    li.ccp-highlight {
-      background: var(--ccp-bg);
-      border-left: 3px solid var(--ccp-border);
-      padding-left: 6px;
-      color: var(--ccp-fg);
-    }
     .ccp-marker {
       display: inline-block;
-      margin-left: 6px;
       padding: 0 5px;
       font-size: 10px;
       font-weight: 700;
       letter-spacing: 0.06em;
       color: #fff;
-      background: var(--ccp-border);
+      background: var(--core-border);
       border-radius: 3px;
+      flex: 0 0 auto;
+    }
+
+    .stack-label {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 4px 0 -2px 2px;
     }
 
     .rev-marker,
-    li.rev-marker {
+    .sticky.rev-marker {
       background: var(--rev-bg);
-      border-left: 3px solid var(--rev-border);
-      padding-left: 6px;
+      border-color: var(--rev-border);
       color: var(--rev-fg);
     }
 
     footer {
       margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
       color: var(--muted);
       font-size: 11px;
-      text-align: right;
     }
+    footer .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+    }
+    footer .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    footer .legend-swatch {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border-left: 3px solid transparent;
+    }
+    footer .legend-swatch.s-cta    { background: var(--cta-bg);    border-left-color: var(--cta-border); }
+    footer .legend-swatch.s-obj    { background: var(--obj-bg);    border-left-color: var(--obj-border); }
+    footer .legend-swatch.s-core   { background: var(--core-bg);   border-left-color: var(--core-border); }
+    footer .legend-swatch.s-meta   { background: var(--meta-bg);   border-left-color: var(--meta-border); }
+    footer .legend-swatch.s-nested { background: var(--nested-bg); border: 1px dashed var(--nested-border); border-left: 3px dashed var(--nested-border); }
+    footer .provenance { vertical-align: -1px; }
+    footer .credit { margin-top: 6px; text-align: right; }
 
     @media print {
       body { background: #fff; }
       main { padding: 0; }
-      table.object-map { font-size: 11px; }
+      .object-board { gap: 8px; }
+      .object-column { break-inside: avoid; }
+      .sticky { box-shadow: none; }
     }
   </style>
 </head>
 <body>
   <main>
     <h1>{{TITLE}}</h1>
-    <p class="subtitle">OOUX object map — Object / Relationships / CTAs / Attributes (CCPs highlighted).</p>
+    <p class="subtitle">OOUX object map — sticky-board (one column per object: CTAs · Object · Core content · Metadata · Nested refs).</p>
 
     <dl class="meta-grid">
       <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
@@ -340,27 +488,26 @@
       <div><dt>CCPs</dt><dd>{{CCP_COUNT}}</dd></div>
     </dl>
 
-    {{DIAGNOSTICS_BLOCK}}
+    <details class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
 
-    <table class="object-map">
-      <thead>
-        <tr>
-          <th>Object</th>
-          <th>Relationships</th>
-          <th>CTAs</th>
-          <th>Attributes</th>
-        </tr>
-      </thead>
-      <tbody>
-        {{OBJECT_ROWS}}
-      </tbody>
-    </table>
+    <section class="object-board" aria-label="OOUX object map">
+      {{OBJECT_COLUMNS}}
+    </section>
 
     <footer>
-      Provenance legend:
-      <span class="provenance provenance-from-domain-model" aria-hidden="true"></span> from domain model &nbsp;
-      <span class="provenance provenance-derived" aria-hidden="true"></span> derived from another section.
-      &nbsp; Generated by `framework/agents/analyses/ooux-analyser.md`.
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-cta" aria-hidden="true"></span> CTA (verb)</span>
+        <span class="legend-item"><span class="legend-swatch s-obj" aria-hidden="true"></span> Object</span>
+        <span class="legend-item"><span class="legend-swatch s-core" aria-hidden="true"></span> Core content (CCP)</span>
+        <span class="legend-item"><span class="legend-swatch s-meta" aria-hidden="true"></span> Metadata</span>
+        <span class="legend-item"><span class="legend-swatch s-nested" aria-hidden="true"></span> Nested object reference</span>
+        <span class="legend-item"><span class="provenance provenance-from-domain-model" aria-hidden="true"></span> from §2.1</span>
+        <span class="legend-item"><span class="provenance provenance-derived" aria-hidden="true"></span> derived</span>
+      </div>
+      <div class="credit">Generated by `framework/agents/analyses/ooux-analyser.md`.</div>
     </footer>
   </main>
 </body>
