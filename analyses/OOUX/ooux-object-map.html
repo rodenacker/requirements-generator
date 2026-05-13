@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>OOUX Object Map — Financial services / banking back-office</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --ccp-bg: #fff7cc;
+      --ccp-fg: #5a4500;
+      --ccp-border: #e6c200;
+      --nested-bg: #e8f0ff;
+      --nested-fg: #1a3a7a;
+      --rev-bg: #ffeaea;
+      --rev-fg: #8a1a1a;
+      --rev-border: #d44a4a;
+      --prov-domain: #2a8a2a;
+      --prov-derived: #b86a00;
+      --header-bg: #efefef;
+      --row-alt: #f3f3f3;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 0 24px 0;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px 24px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+
+    .meta-grid dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+
+    .meta-grid dd {
+      margin: 0 0 6px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .diagnostics {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+
+    .diagnostics h2 {
+      font-size: 16px;
+      margin: 0 0 8px 0;
+    }
+
+    .diagnostics ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .diagnostics .check-pass::before { content: "PASS "; color: var(--prov-domain); font-weight: 600; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--rev-fg); font-weight: 600; }
+
+    table.object-map {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border: 1px solid var(--border);
+    }
+
+    table.object-map thead th {
+      background: var(--header-bg);
+      text-align: left;
+      padding: 10px 12px;
+      font-weight: 600;
+      font-size: 13px;
+      border-bottom: 2px solid var(--border-strong);
+      vertical-align: bottom;
+    }
+
+    table.object-map tbody tr.object-row:nth-child(even) {
+      background: var(--row-alt);
+    }
+
+    table.object-map td,
+    table.object-map th {
+      padding: 10px 12px;
+      border-top: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    table.object-map th.object-name {
+      width: 18%;
+      font-weight: 600;
+      font-size: 14px;
+      text-align: left;
+    }
+
+    table.object-map td.relationships { width: 28%; }
+    table.object-map td.ctas          { width: 22%; }
+    table.object-map td.attributes    { width: 32%; }
+
+    table.object-map ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    table.object-map li {
+      margin: 0 0 4px 0;
+    }
+
+    .provenance {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+      font-size: 0;
+      line-height: 0;
+    }
+    .provenance-from-domain-model { background: var(--prov-domain); }
+    .provenance-derived           { background: var(--prov-derived); }
+
+    .rel-label {
+      font-style: italic;
+      color: var(--muted);
+      margin-right: 4px;
+    }
+    .rel-cardinality {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 6px;
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: #fff;
+    }
+    .rel-target {
+      color: var(--fg);
+      text-decoration: underline;
+      text-decoration-color: var(--border-strong);
+    }
+    .rel-target:hover { text-decoration-color: var(--fg); }
+
+    .nested-relationship {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 6px;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--nested-fg);
+      background: var(--nested-bg);
+      border-radius: 3px;
+    }
+    .nested-relationship:not([hidden])::before {
+      content: "nested";
+    }
+
+    .cta {
+      display: inline-block;
+      padding: 1px 6px;
+      font-weight: 500;
+      background: #f0f0f0;
+      border-radius: 3px;
+    }
+
+    li.ccp-highlight {
+      background: var(--ccp-bg);
+      border-left: 3px solid var(--ccp-border);
+      padding-left: 6px;
+      color: var(--ccp-fg);
+    }
+    .ccp-marker {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 0 5px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #fff;
+      background: var(--ccp-border);
+      border-radius: 3px;
+    }
+
+    .rev-marker,
+    li.rev-marker {
+      background: var(--rev-bg);
+      border-left: 3px solid var(--rev-border);
+      padding-left: 6px;
+      color: var(--rev-fg);
+    }
+
+    footer {
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: 11px;
+      text-align: right;
+    }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      table.object-map { font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>OOUX Object Map — Financial services / banking back-office</h1>
+    <p class="subtitle">OOUX object map — Object / Relationships / CTAs / Attributes (CCPs highlighted).</p>
+
+    <dl class="meta-grid">
+      <div><dt>Domain</dt><dd>Financial services / banking back-office</dd></div>
+      <div><dt>Generated</dt><dd>2026-05-13T14:04:23Z</dd></div>
+      <div><dt>Source SHA-256</dt><dd>6f9272bbb30d1dce025b843f5319e790bdaa5ac2a07103204bbea7144694f0ae</dd></div>
+      <div><dt>Objects</dt><dd>3</dd></div>
+      <div><dt>Relationships</dt><dd>4</dd></div>
+      <div><dt>CTAs</dt><dd>13</dd></div>
+      <div><dt>Attributes</dt><dd>34</dd></div>
+      <div><dt>CCPs</dt><dd>13</dd></div>
+    </dl>
+
+    <section class="diagnostics">
+      <h2>Diagnostics</h2>
+      <p>OOUX object map — 3 objects.</p>
+      <p>Provenance: 3 from domain model, 0 derived.</p>
+      <ul>
+        <li class="check-pass">Check 1 — Every Object has ≥1 CTA.</li>
+        <li class="check-pass">Check 2 — Every CTA attaches to exactly one Object.</li>
+        <li class="check-pass">Check 3 — Every nested Relationship declares cardinality.</li>
+        <li class="check-pass">Check 4 — Every Object has ≥1 CCP attribute.</li>
+        <li class="check-pass">Check 5 — No orphan Attributes.</li>
+        <li class="check-pass">Check 6 — Object names match §2.1 concept names verbatim.</li>
+        <li class="check-pass">Check 7 — Relationship matrix and nested references agree.</li>
+      </ul>
+      <p>Round-2 demotions (recorded for traceability — §2.1 concepts not surfaced as objects):</p>
+      <ul>
+        <li>File State (§2.1 policy concept) — demoted to attribute LastExecutedActivityName on File Log; lifecycle enum, not a navigable object.</li>
+        <li>Transaction Status (§2.1 policy concept) — demoted to attribute Status on Transaction; lifecycle enum, not a navigable object.</li>
+        <li>User Note (§2.3 Transaction aggregate member concept) — demoted to attribute UserNote on Transaction; free-text rejection rationale.</li>
+        <li>FileSetting (§9 terminology; §7 SettingId / SettingName) — demoted to attributes on File Log; no user-facing navigation surface in the requirements.</li>
+        <li>Importer / Approver (§3 personas; §7 User Roles enum) — demoted to values of the Roles attribute on User; role labels, not navigable objects.</li>
+      </ul>
+    </section>
+
+    <table class="object-map">
+      <thead>
+        <tr>
+          <th>Object</th>
+          <th>Relationships</th>
+          <th>CTAs</th>
+          <th>Attributes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr id="obj-file-log" class="object-row">
+          <th class="object-name">
+            <span class="provenance provenance-from-domain-model" title="From §2.1 Concepts">●</span>
+            <span class="name">File Log</span>
+          </th>
+          <td class="relationships">
+            <ul>
+              <li>
+                <span class="rel-label">produces</span>
+                <a href="#obj-transaction" class="rel-target">Transaction</a>
+                <span class="rel-cardinality">1:N</span>
+                <span class="nested-relationship" hidden></span>
+              </li>
+              <li>
+                <span class="rel-label">uploaded by</span>
+                <a href="#obj-user" class="rel-target">User</a>
+                <span class="rel-cardinality">N:1</span>
+                <span class="nested-relationship"></span>
+              </li>
+            </ul>
+          </td>
+          <td class="ctas">
+            <ul>
+              <li><span class="cta">Upload file</span></li>
+              <li><span class="cta">Browse file logs</span></li>
+              <li><span class="cta">Filter file logs</span></li>
+              <li><span class="cta">Sort file logs</span></li>
+              <li><span class="cta">View file summary</span></li>
+            </ul>
+          </td>
+          <td class="attributes">
+            <ul>
+              <li class="ccp-highlight"><span class="attr">FileName</span><span class="ccp-marker">CCP</span></li>
+              <li class="ccp-highlight"><span class="attr">LastExecutedActivityName</span><span class="ccp-marker">CCP</span></li>
+              <li class="ccp-highlight"><span class="attr">ProcessDate</span><span class="ccp-marker">CCP</span></li>
+              <li class="ccp-highlight"><span class="attr">RecordCount</span><span class="ccp-marker">CCP</span></li>
+              <li><span class="attr">Id</span></li>
+              <li><span class="attr">SettingId</span></li>
+              <li><span class="attr">SettingName</span></li>
+              <li><span class="attr">IsActive</span></li>
+              <li><span class="attr">CurrentStatus</span></li>
+              <li><span class="attr">FileHash</span></li>
+              <li><span class="attr">LastChangedUser</span></li>
+              <li><span class="attr">LastChangedDate</span></li>
+            </ul>
+          </td>
+        </tr>
+        <tr id="obj-transaction" class="object-row">
+          <th class="object-name">
+            <span class="provenance provenance-from-domain-model" title="From §2.1 Concepts">●</span>
+            <span class="name">Transaction</span>
+          </th>
+          <td class="relationships">
+            <ul>
+              <li>
+                <span class="rel-label">belongs to</span>
+                <a href="#obj-file-log" class="rel-target">File Log</a>
+                <span class="rel-cardinality">N:1</span>
+                <span class="nested-relationship"></span>
+              </li>
+              <li>
+                <span class="rel-label">approved by</span>
+                <a href="#obj-user" class="rel-target">User</a>
+                <span class="rel-cardinality">N:1</span>
+                <span class="nested-relationship"></span>
+              </li>
+              <li>
+                <span class="rel-label">rejected by</span>
+                <a href="#obj-user" class="rel-target">User</a>
+                <span class="rel-cardinality">N:1</span>
+                <span class="nested-relationship"></span>
+              </li>
+            </ul>
+          </td>
+          <td class="ctas">
+            <ul>
+              <li><span class="cta">Browse transactions</span></li>
+              <li><span class="cta">Approve transaction</span></li>
+              <li><span class="cta">Reject transaction</span></li>
+              <li><span class="cta">Filter transactions</span></li>
+              <li><span class="cta">Sort transactions</span></li>
+              <li><span class="cta">Export transactions</span></li>
+            </ul>
+          </td>
+          <td class="attributes">
+            <ul>
+              <li class="ccp-highlight"><span class="attr">Reference</span><span class="ccp-marker">CCP</span></li>
+              <li class="ccp-highlight"><span class="attr">TransactionDate</span><span class="ccp-marker">CCP</span></li>
+              <li class="ccp-highlight"><span class="attr">AccountNumber</span><span class="ccp-marker">CCP</span></li>
+              <li class="ccp-highlight"><span class="attr">Amount</span><span class="ccp-marker">CCP</span></li>
+              <li class="ccp-highlight"><span class="attr">Status</span><span class="ccp-marker">CCP</span></li>
+              <li><span class="attr">Id</span></li>
+              <li><span class="attr">FileLogId</span></li>
+              <li><span class="attr">FileName</span></li>
+              <li><span class="attr">Description</span></li>
+              <li><span class="attr">TransactionType</span></li>
+              <li><span class="attr">Currency</span></li>
+              <li><span class="attr">UserNote</span></li>
+              <li><span class="attr">LastChangedUser</span></li>
+              <li><span class="attr">LastChangedDate</span></li>
+            </ul>
+          </td>
+        </tr>
+        <tr id="obj-user" class="object-row">
+          <th class="object-name">
+            <span class="provenance provenance-from-domain-model" title="From §2.1 Concepts">●</span>
+            <span class="name">User</span>
+          </th>
+          <td class="relationships">
+            <ul>
+              <li>
+                <span class="rel-label">uploads</span>
+                <a href="#obj-file-log" class="rel-target">File Log</a>
+                <span class="rel-cardinality">1:N</span>
+                <span class="nested-relationship" hidden></span>
+              </li>
+              <li>
+                <span class="rel-label">approves</span>
+                <a href="#obj-transaction" class="rel-target">Transaction</a>
+                <span class="rel-cardinality">1:N</span>
+                <span class="nested-relationship" hidden></span>
+              </li>
+              <li>
+                <span class="rel-label">rejects</span>
+                <a href="#obj-transaction" class="rel-target">Transaction</a>
+                <span class="rel-cardinality">1:N</span>
+                <span class="nested-relationship" hidden></span>
+              </li>
+            </ul>
+          </td>
+          <td class="ctas">
+            <ul>
+              <li><span class="cta">Log in</span></li>
+              <li><span class="cta">Log out</span></li>
+            </ul>
+          </td>
+          <td class="attributes">
+            <ul>
+              <li class="ccp-highlight"><span class="attr">Email</span><span class="ccp-marker">CCP</span></li>
+              <li class="ccp-highlight"><span class="attr">FirstName</span><span class="ccp-marker">CCP</span></li>
+              <li class="ccp-highlight"><span class="attr">LastName</span><span class="ccp-marker">CCP</span></li>
+              <li class="ccp-highlight"><span class="attr">Roles</span><span class="ccp-marker">CCP</span></li>
+              <li><span class="attr">Id</span></li>
+              <li><span class="attr">Password</span></li>
+              <li><span class="attr">LastChangedUser</span></li>
+              <li><span class="attr">LastChangedDate</span></li>
+            </ul>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <footer>
+      Provenance legend:
+      <span class="provenance provenance-from-domain-model" aria-hidden="true"></span> from domain model &nbsp;
+      <span class="provenance provenance-derived" aria-hidden="true"></span> derived from another section.
+      &nbsp; Generated by `framework/agents/analyses/ooux-analyser.md`.
+    </footer>
+  </main>
+</body>
+</html>
