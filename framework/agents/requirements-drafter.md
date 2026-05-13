@@ -10,7 +10,7 @@ Turn unstructured input documents into a structured, **self-contained** requirem
 
 ## Workflow
 
-1. Read `requirements/source-manifest.json`. For each row in `rows`:
+1. Read `requirements/source-manifest.json`. Capture the root-level `target` field into the in-memory variable `manifest_target` — exactly one of `"prototype"` or `"application"`. On a legacy manifest where the field is absent or explicitly `null` (one-time additive migration), default `manifest_target` to `"prototype"` and continue without rewriting the manifest. The orchestrator's Step 1b guarantees `target` is non-null on fresh runs; the legacy fallback only fires when this agent is invoked against a manifest produced before the build-target feature shipped. Then, for each row in `rows`:
     - If `tier ∈ {"Native-text", "Native-multimodal"}` — `Read` `original_path` once into context.
     - If `tier = "Supported-via-MCP"` — `Read` `converted_sibling` once into context. Do not read the original; the sibling is the drafter-facing surface.
     - If `tier = "Unsupported"` — skip. The row is a forensic record only.
@@ -18,7 +18,7 @@ Turn unstructured input documents into a structured, **self-contained** requirem
 2. Extract facts mentally by template section as you read; do not re-read inputs per section.
 3. Populate `framework/assets/template-requirements.md` top-to-bottom in a single pass; no `{{placeholders}}` and no blanks. **In this pass, fill only from input-stated facts and domain defaults — emit no `[AI-SUGGESTED]`, `[STANDARD-RULE]`, or `[OUT-OF-SCOPE]` markers yet, and leave §2.4 as an empty placeholder.** Markers and §2.4 are applied later (steps 5–6). For every value populated from an **input-stated fact**, append a trailing `[SRC: C-NNN]` tag with a unique, monotonically assigned id (C-001, C-002, …) and remember the verbatim source quote that grounds it — these citations are materialised to a sidecar at step 7a. Domain-default tentative fills carry no `[SRC:]` tag at step 3; the gap pass at step 5 will assign them the appropriate marker. The `[SRC:]` tagging covers every unmarked, template-defined field value in the scope list under **Citation scope** below; free-prose narrative is excluded.
 4. Use Grep only to cross-check the populated draft, not to re-read inputs.
-5. **Gap pass.** Run the `framework/skills/completeness-gap-pass.md` skill against the in-memory populated draft. For each gap tuple emitted by the skill, walk the decision tree in **Classification** below and apply the corresponding marker (`[STANDARD-RULE: GR-NN]`, `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]`, or `[OUT-OF-SCOPE: domain-default]`). Fabricate missing elements (entities, stories, RBAC rows/columns, BR rows, etc.) as the gap pass directs. AI-NNN IDs are unique within the draft and assigned monotonically.
+5. **Gap pass.** Run the `framework/skills/completeness-gap-pass.md` skill against the in-memory populated draft, passing `manifest_target` as the skill's `target` parameter. For each gap tuple emitted by the skill, walk the decision tree in **Classification** below and apply the corresponding marker per the tuple's `marker_kind`: `[STANDARD-RULE: GR-NN]`, `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]`, `[OUT-OF-SCOPE: domain-default]` (emitted only when `manifest_target == "prototype"`), or no marker at all (emitted by the gap pass for OOS-routed tuples when `manifest_target == "application"`; the tuple's value is applied without any surrounding marker). Fabricate missing elements (entities, stories, RBAC rows/columns, BR rows, etc.) as the gap pass directs. AI-NNN IDs are unique within the draft and assigned monotonically. **The set of `[AI-SUGGESTED]` markers emitted is identical under both targets** — only the `[OUT-OF-SCOPE]` markers differ (emitted under prototype, suppressed under application).
 6. Author §2.4 as an inline Mermaid block per the **Domain-model diagram** section. This must run **after** the gap pass so §2.4 reflects any §2.1 concepts added in step 5.
 7. Run **Self-validation**; fix and re-run until it passes; Write the draft. Immediately after the Write, call `framework/skills/verify-artifact-write.md` with `path: "requirements/requirements-draft.md"`, `expected_sha256: <hash of the rendered draft bytes>`, `expected_min_bytes: <byte length of the rendered draft>`. On `RF-04 trigger`, halt per `framework/shared/refusal-registry.md > RF-04`; do not advance.
 7a. **Emit the claims sidecar.** Write `requirements/draft-claims.ndjson` — one NDJSON line per `[SRC: C-NNN]` tag in the just-written draft, with shape `{claim_id, draft_locator, claim_text, source_file, source_quote}` per the **Claims sidecar** section below. Immediately after the Write, call `framework/skills/verify-artifact-write.md` with `path: "requirements/draft-claims.ndjson"`, `expected_sha256: <hash of the rendered sidecar bytes>`, `expected_min_bytes: <byte length of the rendered sidecar>`. On `RF-04 trigger`, halt per `framework/shared/refusal-registry.md > RF-04`; do not advance.
@@ -34,14 +34,15 @@ For any field or element required by the template, walk the following ordered de
 1. **Stated in inputs** → use the stated value. **No marker.**
 2. **Covered by `framework/shared/general-rules.md`** → apply the rule's canonical answer. Marker: `[STANDARD-RULE: GR-NN]`. No Q&A — the resolver skips this marker.
 3. **Required for completeness per the relatedness graph (Tier A/B in `completeness-gap-pass.md`)?**
-    - **Yes, and in-scope per `framework/shared/prototype-scope.md`** → fabricate the missing element + apply the blocking/non-blocking sub-rule below. Marker: `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]`. Q&A required.
-    - **Yes, but out-of-scope** (Tier C/D out-of-scope cases) → fill with a domain default. Marker: `[OUT-OF-SCOPE: domain-default]`. No Q&A.
-    - **No** (template field but not gated by any relatedness rule) → fill with a domain default. Marker: `[OUT-OF-SCOPE: domain-default]`. No Q&A.
+    - **Yes, and in-scope per `framework/shared/prototype-scope.md`** → fabricate the missing element + apply the blocking/non-blocking sub-rule below. Marker: `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]`. Q&A required. **Identical under both `manifest_target` values.**
+    - **Yes, but out-of-scope** (Tier C/D out-of-scope cases) → fill with a domain default. **Marker depends on `manifest_target`:** `[OUT-OF-SCOPE: domain-default]` under `prototype`; no marker (value-only) under `application`. No Q&A in either case.
+    - **No** (template field but not gated by any relatedness rule) → fill with a domain default. **Marker depends on `manifest_target`:** `[OUT-OF-SCOPE: domain-default]` under `prototype`; no marker (value-only) under `application`. No Q&A in either case.
 
-Three markers, three semantics:
-- `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` — drafter inferred a completeness-gating, in-scope value. Resolver asks the consultant.
-- `[STANDARD-RULE: GR-NN]` — deterministic answer from `general-rules.md`. Resolver skips.
-- `[OUT-OF-SCOPE: domain-default]` — required by template but outside completeness/prototype scope. Resolver skips. Consultant can scan-review.
+Three markers, three semantics (plus one value-only routing under application mode):
+- `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` — drafter inferred a completeness-gating, in-scope value. Resolver asks the consultant. Emitted identically under both targets.
+- `[STANDARD-RULE: GR-NN]` — deterministic answer from `general-rules.md`. Resolver skips. Emitted identically under both targets.
+- `[OUT-OF-SCOPE: domain-default]` — required by template but outside completeness/prototype scope. Resolver skips. Consultant can scan-review. **Emitted under `manifest_target == "prototype"` only.**
+- *(no marker)* — under `manifest_target == "application"`, every tuple that would have been `[OUT-OF-SCOPE: domain-default]` is applied as a value-only fill with no surrounding marker. The set of resulting unmarked fields is identical (in count, location, and value) to the prototype-mode draft's set of `[OUT-OF-SCOPE]`-marked fields, just without the marker.
 
 The blocking / non-blocking sub-rule applies only to `[AI-SUGGESTED]` markers. Only the drafter knows *why* the guess was made, so classification belongs here. The resolver may later escalate non-blocking → blocking during Q&A.
 
@@ -133,7 +134,7 @@ The grounding-verifier emits one or more NDJSON lines per FAIL. Reasons and reme
 - `requirements/source-manifest.json` — the sole enumeration of input files. The drafter Reads every row's `original_path` (Native tiers) or `converted_sibling` (Supported-via-MCP) and skips Unsupported rows.
 - The files registered in the manifest, under `input/`.
 - `framework/assets/template-requirements.md` — the canonical structure to populate.
-- `framework/shared/prototype-scope.md` — in-scope vs out-of-scope predicate; consulted by the gap pass.
+- `framework/shared/prototype-scope.md` — in-scope vs out-of-scope predicate; consulted by the gap pass under both `manifest_target` values (to identify which fields are historically out-of-prototype-scope so the gap pass can route them to the `[OUT-OF-SCOPE]` marker under `prototype` or to a no-marker value-only fill under `application`).
 - `framework/shared/general-rules.md` — catalogue of `GR-NN` deterministic rules; consulted by the gap pass before any `[AI-SUGGESTED]` marker.
 - `framework/shared/refusal-registry.md` — `RF-04 artifact_write_unverified` semantics for the post-Write verification.
 - `framework/skills/verify-artifact-write.md` — read-back / hash-check called immediately after the draft Write.
@@ -176,7 +177,7 @@ Most bullets are checked **before** the Write at **Workflow** step 7 — they as
     - Every §7 entity's "Domain concept" field names an existing §2.1 concept (A7).
     - Every §5 flow's Actor names an existing §3 persona (A8).
     - §10 Volumes has all three fields filled (A9).
-- **Tier C / out-of-scope hygiene:** §6.6.1, §6.6.2, §6.6.3, FK/index/DB-only fields in §7, and any §2.3→§6.2 BR with no visual manifestation contain no `[AI-SUGGESTED]` markers — they carry `[OUT-OF-SCOPE: domain-default]` instead. §6.6.5 Accessibility may carry `[AI-SUGGESTED]` when inferred.
+- **Tier C / out-of-scope hygiene:** §6.6.1, §6.6.2, §6.6.3, FK/index/DB-only fields in §7, and any §2.3→§6.2 BR with no visual manifestation contain **no `[AI-SUGGESTED]` markers under either target**. Under `manifest_target == "prototype"` they carry `[OUT-OF-SCOPE: domain-default]`; under `manifest_target == "application"` they carry the same domain-default values with **no marker at all** (no `[OUT-OF-SCOPE]`, no `[AI-SUGGESTED]`). §6.6.5 Accessibility may carry `[AI-SUGGESTED]` when inferred, under both targets.
 - **General-rules precedence:** for every `[AI-SUGGESTED]` marker, no rule in `framework/shared/general-rules.md` covered the gap (general-rules consultation must precede any AI-suggestion).
 - §2.4 contains a non-stub Mermaid block (`classDiagram` or `erDiagram`) with valid syntax that passes the `mermaid-validator` skill (mmdc exit 0, no parse errors). The validator runs at **Workflow** step 8 against the written draft; this self-validation bullet is the in-spec acceptance criterion that step 8 satisfies.
 - The draft is self-contained: no field defers to an input by reference (e.g., "see `requirements-v1.md` §3"). The only permitted form of in-body provenance is the structured `[SRC: C-NNN]` tag system on field values per **Citation scope**; ad-hoc inline citations (e.g., "Source: stated", footnote-style references) are not permitted. Replacement-by-reference is not permitted under any form.
@@ -197,7 +198,7 @@ Most bullets are checked **before** the Write at **Workflow** step 7 — they as
 - Do not skip `framework/skills/verify-artifact-write.md` after writing the draft. A truncated draft that schema-validates against itself in memory will fail the resolver in confusing ways far from the failure site.
 - Do not change the structure of the requirements template.
 - Do not leave fields blank — when inputs are silent, walk the **Classification** decision tree to apply the correct marker.
-- Do not emit `[AI-SUGGESTED]` for any field that is (a) covered by `framework/shared/general-rules.md`, (b) out-of-scope per `framework/shared/prototype-scope.md`, or (c) not gated by a Tier A/B/D rule in `framework/skills/completeness-gap-pass.md`. Use `[STANDARD-RULE]` or `[OUT-OF-SCOPE]` respectively.
+- Do not emit `[AI-SUGGESTED]` for any field that is (a) covered by `framework/shared/general-rules.md`, (b) out-of-scope per `framework/shared/prototype-scope.md`, or (c) not gated by a Tier A/B/D rule in `framework/skills/completeness-gap-pass.md`. Use `[STANDARD-RULE]` or `[OUT-OF-SCOPE]` respectively under `manifest_target == "prototype"`; under `manifest_target == "application"` the `[STANDARD-RULE]` path is unchanged, and the `[OUT-OF-SCOPE]` path becomes a value-only fill (no marker). Under no circumstances does `manifest_target == "application"` promote an OOS-routed tuple to `[AI-SUGGESTED]`.
 - Do not skip the `general-rules.md` lookup before producing an `[AI-SUGGESTED]` marker.
 - Do not classify by default; apply the **Classification** rubric, and use the tie-breaker (**blocking**) when uncertain.
 - Do not skip **Workflow** step 6 (`completeness-gap-pass`) — the draft is incomplete without it.

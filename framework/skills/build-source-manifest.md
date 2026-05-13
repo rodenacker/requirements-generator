@@ -21,6 +21,7 @@
 {
   "schema_version": 1,
   "generated_at": "<ISO-8601 UTC>",
+  "target": "prototype | application | null",
   "rows": [
     {
       "filename": "<basename>",
@@ -43,6 +44,7 @@ Field rules:
 - `conversions_applied` — `"none"` for Native-text, Native-multimodal, and originally-Unsupported rows. `"markitdown-mcp[; sub-tag...]"` for successful conversions. `"failed — <reason>"` for `Supported-via-MCP` rows whose conversion failed (the row's tier in the same emit is `"Unsupported"`).
 - `original_path` — repo-relative.
 - `converted_sibling` — repo-relative path of the `*.converted.md` sibling for successful `Supported-via-MCP` rows; `null` otherwise.
+- `target` — exactly one of `"prototype"`, `"application"`, or `null`. The input-handler always emits this field as `null` (the build-target choice has not yet been captured at manifest-build time). The orchestrator's Step 1b populates it via `framework/skills/set-build-target.md` after the consultant accepts the manifest. Downstream agents (drafter, merger) Read this field on a legacy manifest that omits the field entirely and treat the absence as `"prototype"` (one-time additive migration; no rewrite). The resolver does not Read this field — its behaviour is target-agnostic.
 
 ## Row-construction algorithm
 
@@ -56,7 +58,7 @@ For each classified row from `classify-input-tier.md`, in input-order:
     - `Supported-via-MCP` and conversion failed — `tier: "Unsupported"`, `conversions_applied: "failed — <reason>"`, `converted_sibling: null`.
     - `Unsupported` (originally) — `tier: "Unsupported"`, `conversions_applied: "none"`, `converted_sibling: null`.
 
-After all rows are constructed, set `schema_version: 1` and `generated_at: <ISO-8601 UTC of manifest-build time>`. Serialise the JSON with two-space indentation and a trailing newline. `Write` to `requirements/source-manifest.json`.
+After all rows are constructed, set `schema_version: 1`, `generated_at: <ISO-8601 UTC of manifest-build time>`, and `target: null`. Serialise the JSON with two-space indentation and a trailing newline. `Write` to `requirements/source-manifest.json`. The `target` field is populated later by `framework/skills/set-build-target.md` at the orchestrator's Step 1b; this skill never sets it to a non-null value.
 
 ## Self-validation
 
@@ -64,7 +66,7 @@ After all rows are constructed, set `schema_version: 1` and `generated_at: <ISO-
 - Every row has all seven fields, with the correct types per the schema.
 - For every row with `tier = "Supported-via-MCP"`, `converted_sibling` is non-null and points to an existing file under `input/`.
 - For every row with `tier ≠ "Supported-via-MCP"`, `converted_sibling` is `null`.
-- `schema_version` is `1`. `generated_at` parses as ISO-8601 UTC.
+- `schema_version` is `1`. `generated_at` parses as ISO-8601 UTC. `target` is `null`.
 - The manifest is written via `Write` and verified via `framework/skills/verify-artifact-write.md` with `expected_min_bytes` set to the byte length of the smallest legal manifest (a manifest with `rows: []` is the lower bound — the input-handler only reaches this skill when `input/` is non-empty, but the schema permits it).
 
 After self-validation passes, the input-handler inspects the manifest to decide whether to surface `RF-03 input_no_supported_files`: if every row has `tier: "Unsupported"`, fire `RF-03`. Otherwise hand back to the orchestrator.
@@ -77,3 +79,4 @@ After self-validation passes, the input-handler inspects the manifest to decide 
 - Do not compute `sha256` over the `*.converted.md` sibling. The manifest's `sha256` is on the original — that is what `detect-rerun.md` compares against to detect input changes.
 - Do not write the manifest before every per-file conversion has completed (or failed). Partial manifests cause the drafter to read stale or absent siblings.
 - Do not skip `verify-artifact-write.md` on the manifest write. A truncated manifest masquerades as a successful write and the drafter's first `Read` produces a JSON parse error far from the failure site.
+- Do not set `target` to anything other than `null`. The build-target selection happens at the orchestrator's Step 1b via `framework/skills/set-build-target.md`; this skill must never anticipate or infer the choice.

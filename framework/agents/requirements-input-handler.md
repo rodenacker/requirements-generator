@@ -41,7 +41,7 @@ Turn the contents of `input/` into `requirements/source-manifest.json` and the p
 
 ## Output
 
-- `requirements/source-manifest.json` — every readable file the drafter will consume, plus forensic rows for unsupported files.
+- `requirements/source-manifest.json` — every readable file the drafter will consume, plus forensic rows for unsupported files. The manifest's root-level `target` field (per `framework/skills/build-source-manifest.md`) is always emitted as `null` by this agent; the orchestrator's Step 1b populates it via `framework/skills/set-build-target.md` after the consultant accepts the manifest.
 - For every successfully converted `Supported-via-MCP` file: a sibling `input/<basename>.converted.md`.
 - On `RF-01 continue-later`: `framework/state/.progress.json` updated with `status` and `pending_setup`.
 
