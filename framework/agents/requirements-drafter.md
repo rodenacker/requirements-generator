@@ -105,6 +105,8 @@ The blocking / non-blocking sub-rule applies only to `[AI-SUGGESTED]` markers. O
 
 **Tie-breaker:** when in doubt, classify as **blocking**. False positives cost a question; false negatives cost a guess shipping unchallenged.
 
+**`draft_context` emission.** Alongside every `[AI-SUGGESTED]` marker (and only those — not for `[STANDARD-RULE]`, `[OUT-OF-SCOPE]`, or no-marker fills), emit a one-line `draft_context` string on the gap-pass tuple per `framework/skills/completeness-gap-pass.md > Outputs`. The string is consumed by the resolver's Q&A — it is carried onto the manifest line at the resolver's first-turn build (per `framework/agents/requirements-resolver.md > Working state`) and rendered into the question body so the consultant can answer without flipping back to the draft. The string is **not** written into the draft body. Phrase it as a brief, plain-English orientation: what the field represents, what kind of answer is expected, and (when a small candidate value set exists, e.g. RBAC CRUD letters) the candidate values. Example for an RBAC matrix cell: `"RBAC matrix cell — what access does the Importer role need to the User entity? (typical answers: R = Read, X = none, C = Create, U = Update)"`. Example for a volumes row: `"§10 Volumes — data volume band (transactions per file and overall retained per active file log). Inferred range: 10²–10⁴ per file, 10³–10⁵ overall."`. The field is optional only in the sense that legacy gap-pass output without it does not break the resolver; for new drafter runs, emit `draft_context` on every AI-SUGGESTED tuple.
+
 ## Domain-model diagram (Mermaid)
 
 §2.4 must contain a real, inline Mermaid block — not the template's empty/comment-only stub.

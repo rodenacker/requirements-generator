@@ -10,8 +10,10 @@
 - `framework/assets/topics-requirements.md` — bijection invariants.
 
 **Outputs:**
-- A list of `(rule_id, location, action, marker_kind, marker_payload)` tuples that the drafter applies to the draft via Edit / Write.
+- A list of `(rule_id, location, action, marker_kind, marker_payload, draft_context)` tuples that the drafter applies to the draft via Edit / Write.
 - The next-available `AI-NNN` index, continuing the existing counter.
+
+`draft_context` is a single, optional, one-line string emitted on tuples whose `marker_kind = "AI-SUGGESTED"` (only). It is a brief, plain-English orientation for the consultant — what the field represents, what kind of answer is expected, and (when useful) the candidate value set — phrased so the consultant can answer without re-locating the cell in the draft. Example for an RBAC matrix cell: `"RBAC matrix cell — what access does the Importer role need to the User entity? (typical answers: R = Read, X = none, C = Create, U = Update)"`. Tuples with `marker_kind ∈ {"STANDARD-RULE", "OUT-OF-SCOPE", "none"}` do not carry `draft_context` (those markers do not surface to the resolver's Q&A). The drafter is the sole author of `draft_context`; the resolver copies it onto the manifest line on first turn (per `framework/agents/requirements-resolver.md > Working state`) and never invents one.
 
 ## Decision tree (per gap)
 
@@ -93,9 +95,9 @@ Tier C sections are completeness-required by the template (`fill every field`) b
 
 1. Walk the populated draft section-by-section.
 2. For each rule in Tier A, B, D, evaluate the predicate against the draft state.
-3. For each violation, run the decision tree above (parameterised by `target`) to produce a `(rule_id, location, action, marker_kind, marker_payload)` tuple. Under `target == "application"`, any tuple whose decision tree resolves to "OUT-OF-SCOPE" is emitted with `marker_kind = "none"` and a domain-default `marker_payload` value — the drafter still applies the value via Edit, but no `[OUT-OF-SCOPE: domain-default]` tag is written into the draft.
+3. For each violation, run the decision tree above (parameterised by `target`) to produce a `(rule_id, location, action, marker_kind, marker_payload, draft_context)` tuple. Under `target == "application"`, any tuple whose decision tree resolves to "OUT-OF-SCOPE" is emitted with `marker_kind = "none"` and a domain-default `marker_payload` value — the drafter still applies the value via Edit, but no `[OUT-OF-SCOPE: domain-default]` tag is written into the draft. For tuples with `marker_kind = "AI-SUGGESTED"`, emit a one-line `draft_context` derived from the tuple's `rule_id` + `location` + (when useful) the candidate value set — this is consumed by the resolver's Q&A presentation, not written into the draft body. Tuples with any other `marker_kind` carry no `draft_context`.
 4. Emit the tuple list to the drafter, plus the running `AI-NNN` counter.
-5. The drafter applies the tuples to the draft (via Edit) before writing the final file.
+5. The drafter applies the tuples to the draft (via Edit) before writing the final file. The drafter also carries each `AI-SUGGESTED` tuple's `draft_context` into the resolver's manifest at the resolver's first-turn build step (per `framework/agents/requirements-resolver.md > Working state`); the field is observability for the resolver and never written into the draft body itself.
 
 **Invariant.** For the same draft state, the set of tuples with `marker_kind = "AI-SUGGESTED"` is byte-for-byte identical under `target == "prototype"` and `target == "application"`. Only `marker_kind = "OUT-OF-SCOPE"` tuples differ between targets (emitted as OOS under prototype; emitted with `marker_kind = "none"` under application).
 
