@@ -2,44 +2,21 @@
 role: asset
 kind: registry
 methodologies:
-  # MVP — fully implemented in Phase 2; listed alphabetically; none privileged.
-  - name: jtbd
-    status: mvp
-    description: Jobs-to-be-Done — situation / motivation / expected outcome
-    output_path: artifacts/requirements/analyses/jtbd.md
-    reference_asset: assets/analyses/jtbd-reference.md
-    template_asset: null
-    map_skill: skills/map-jtbd-to-ui.md
-    analyser_agent: agents/analyses/jtbd-analyser/agent.md
-    character: assets/characters/jtbd-analysis.md
+  # MVP — fully implemented and selectable via /analyse. Listed alphabetically; none privileged.
   - name: ooux
     status: mvp
     description: Object-oriented UX analysis (ORCA process — objects / relationships / CTAs / attributes / CCPs)
-    output_path: artifacts/requirements/analyses/ooux.html
-    reference_asset: assets/analyses/ooux-reference.md
-    template_asset: assets/analyses/template-ooux.html
-    map_skill: skills/map-ooux-to-ui.md
-    analyser_agent: agents/analyses/ooux-analyser/agent.md
-    character: assets/characters/ooux-analysis.md
-  - name: user-journeys
-    status: mvp
-    description: Per-persona temporal flow maps with stages / touchpoints / actions / thoughts / emotions / pain-points / opportunities
-    output_path: artifacts/requirements/analyses/user-journeys.md
-    reference_asset: assets/analyses/user-journeys-reference.md
-    template_asset: null
-    map_skill: skills/map-user-journeys-to-ui.md
-    analyser_agent: agents/analyses/user-journeys-analyser/agent.md
-    character: assets/characters/user-journeys-analysis.md
-  - name: user-stories
-    status: mvp
-    description: As-a / I want / so that with Given/When/Then acceptance criteria
-    output_path: artifacts/requirements/analyses/user-stories.md
-    reference_asset: assets/analyses/user-stories-reference.md
-    template_asset: null
-    map_skill: skills/map-user-stories-to-ui.md
-    analyser_agent: agents/analyses/user-stories-analyser/agent.md
-    character: assets/characters/user-stories-analysis.md
-  # Future — stub-only; no reference asset, no analyser agent.
+    output_path: analyses/OOUX/ooux-object-map.html
+    reference_asset: framework/assets/analyses/ooux-reference.md
+    template_asset: framework/assets/analyses/template-ooux.html
+    map_skill: framework/skills/map-ooux-to-ui.md
+    analyser_agent: framework/agents/analyses/ooux-analyser.md
+    character: framework/assets/characters/ooux-analysis.md
+  # Future — stub-only; no analyser agent on disk. Promote by flipping status, populating
+  # the remaining fields, and authoring the analyser + reference + character + template.
+  - { name: jtbd, status: future }
+  - { name: user-journeys, status: future }
+  - { name: user-stories, status: future }
   - { name: use-cases, status: future }
   - { name: quality-signals-analysis, status: future }
   - { name: glossary-domain, status: future }
@@ -58,18 +35,31 @@ methodologies:
   - { name: decision-matrix, status: future }
 ---
 
-<!-- ROLE: asset. STATUS: stub — author during phase-2 build-order step 8. -->
-
 # analyses/registry.md
 
-**Purpose:** Methodology registry. The frontmatter above is the **machine-readable** contract — `analysis-selector` filters `status == "mvp"` to present options to the consultant; `design-spec-drafter` looks up `output_path` and `map_skill` per file in `artifacts/requirements/analyses/`; `persona-llm.md` loads `reference_asset` for every MVP-status row that exists on disk.
+**Purpose:** Methodology registry for `/analyse`. The frontmatter above is the **machine-readable** contract — `framework/skills/analysis-selector.md` filters `status == "mvp"` to present options to the consultant; `framework/orchestrators/analyse-orch.md` looks up `analyser_agent` for the chosen methodology and invokes it; downstream design-spec consumers (when they exist) look up `output_path` and `map_skill` per file produced.
 
 **Used by:**
-- `framework/skills/analysis-selector.md` — reads MVP-status rows; presents to consultant.
-- `framework/agents/design-spec-drafter/agent.md` — iterates `artifacts/requirements/analyses/` and maps each file by name → registry row → map skill.
-- `framework/assets/persona-llm.md` — loads MVP reference assets at activation (if registered + present on disk).
-- `framework/skills/recommend-next-option.md` — when offering `/analyse` as a side action, recommends among registered MVP methodologies.
 
-**Used how:** Adding a new methodology = append a frontmatter row + author analyser agent + reference asset + (optionally) template asset + `map-*-to-ui` skill + character file. **No orchestrator changes.** Promoting a future row to MVP = flip `status` and add the missing fields.
+- `framework/skills/analysis-selector.md` — reads MVP-status rows; presents them via `AskUserQuestion`.
+- `framework/orchestrators/analyse-orch.md` — reads the chosen row's `analyser_agent` and `output_path` to drive invocation and the prior-artefact gate.
+- `framework/agents/analyses/<method>-analyser.md` — each analyser reads its own `reference_asset`, `character`, and `template_asset` paths at activation.
 
-> Body narrative TBD; the frontmatter is the source of truth.
+**Adding a new methodology:**
+
+1. Append a row to the frontmatter (or flip an existing `future` row to `mvp`).
+2. Populate all eight fields: `name`, `status`, `description`, `output_path`, `reference_asset`, `template_asset` (may be `null`), `map_skill`, `analyser_agent`, `character`.
+3. Author the analyser agent, the reference asset, the character file, and (if needed) the template asset.
+4. No orchestrator changes required — the selector skill picks the new row up automatically.
+
+**Field semantics:**
+
+- `name` — kebab-case slug. Used as the subdirectory name under `analyses/` and as the path component in the analyser agent file.
+- `status` — `mvp` (selectable now) or `future` (not yet built).
+- `description` — one-line label surfaced in the `AskUserQuestion` choice list.
+- `output_path` — relative path of the artefact the analyser writes. Drives the prior-artefact gate in the orchestrator.
+- `reference_asset` — the methodology reference the analyser follows.
+- `template_asset` — file scaffold the analyser populates (may be `null` for methodologies that emit pure Markdown).
+- `map_skill` — translates the analysis output into UI inventory entries for downstream design consumption. Stub for OOUX; not invoked by `/analyse`.
+- `analyser_agent` — the foreground agent invoked by the orchestrator.
+- `character` — stance the Unicorn adopts while running the analyser.
