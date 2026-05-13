@@ -95,6 +95,22 @@ For every object, mark a small subset of attributes — typically 2 to 5 — as 
 
 ---
 
+## Output presentation
+
+The artefact renders as the canonical OOUX **sticky-note column-board**: one column per object, stickies stacked vertically. Color contract follows the canonical Prater/OOUX vocabulary:
+
+| Sticky kind        | Color               | What it carries                                                                |
+|--------------------|---------------------|--------------------------------------------------------------------------------|
+| CTA                | green               | Round 4 verbs (top of column)                                                  |
+| Object header      | blue                | Object name + provenance dot                                                   |
+| Core Content       | yellow              | Round 6 CCP-marked attributes, ordered by visual prominence                    |
+| Metadata           | pink                | Round 5 attributes NOT marked CCP                                              |
+| Nested object ref  | blue, dashed border | Round 3 relationships where `also_nested = true`, with cardinality chip        |
+
+Pure (non-nested) relationships are recorded in the diagnostics block as a small relationship matrix; the column-board itself does not draw edge-lines between columns (canonical Prater templates omit them and rely on the nested stickies plus the matrix for audit).
+
+---
+
 ## Quality checks (run after Round 6, before write)
 
 Every check is a hard gate. If any check fails, the analyser does **not** write the artefact — it surfaces a structured error to the consultant and halts. (See `framework/agents/analyses/ooux-analyser.md > Step 8 — Validate` for the halt contract.)

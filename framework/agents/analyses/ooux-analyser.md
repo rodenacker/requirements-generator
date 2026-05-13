@@ -143,12 +143,12 @@ Per `framework/assets/analyses/template-ooux.html`:
     - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
     - `{{REQUIREMENTS_SHA256}}` — the SHA-256 captured in Step 2.
     - `{{OBJECT_COUNT}}`, `{{RELATIONSHIP_COUNT}}`, `{{CTA_COUNT}}`, `{{ATTRIBUTE_COUNT}}`, `{{CCP_COUNT}}` — derived counts.
-    - `{{DIAGNOSTICS_BLOCK}}` — pre-rendered `<section class="diagnostics">` containing: provenance summary (count of `from-domain-model` vs `derived-from-*` objects), per-check result lines (PASS/FAIL), and per-flagged-item lines (only present on Override runs).
-    - `{{OBJECT_ROWS}}` — pre-rendered `<tr>` rows per the OBJECT ROW SCHEMA in the template header. One row per object, in `§2.1` concept order where applicable, derived objects appended in discovery order.
+    - `{{DIAGNOSTICS_BLOCK}}` — pre-rendered `<section class="diagnostics">` containing: provenance summary (count of `from-domain-model` vs `derived-from-*` objects), per-check result lines (PASS/FAIL), a `<table class="rel-matrix">` listing every Round-3 relationship (source, label, target, cardinality, nested?), and per-flagged-item lines (only present on Override runs).
+    - `{{OBJECT_COLUMNS}}` — pre-rendered `<section class="object-column">` blocks per the OBJECT COLUMN SCHEMA in the template header. One column per object, in `§2.1` concept order where applicable, derived objects appended in discovery order. Inside each column, the five sticky stacks render in fixed order: **CTAs → Object header → Core content (CCP) → Metadata (non-CCP) → Nested references**. Empty stacks render with the `hidden` attribute so the column rhythm is preserved.
 - **HTML-escape every substituted value** before injection. `<`, `>`, `&`, `"`, `'` must be encoded. The template's CSS class names are the only fixed strings the agent does not escape — those are CSS class identifiers, not consultant content.
 - Compose the full HTML in memory. Compute SHA-256 of the in-memory bytes.
 
-The template scaffold itself is **not edited**. Only the documented `{{placeholders}}` are substituted. CSS classes used by the analyser are listed in the template header — wrap CCP attributes with `.ccp-highlight`, mark nested relationships with `.nested-relationship`, and flag review items with `.rev-marker` per that contract.
+The template scaffold itself is **not edited**. Only the documented `{{placeholders}}` are substituted. CSS classes used by the analyser are listed in the template header — wrap CCP attributes with `.ccp-highlight`, mark nested relationships with `.nested-relationship`, and flag review items with `.rev-marker` per that contract. Each attribute renders as `<li class="sticky core ccp-highlight">` when CCP-marked, or `<li class="sticky meta">` otherwise — the partition between the `core-content` and `metadata` sticky stacks is driven by the Round 6 partition produced in Step 7.
 
 ### Step 10 — Write
 
@@ -224,9 +224,12 @@ Before handing back, verify all of the following against the written artefact an
 
 - `analyses/OOUX/ooux-object-map.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
-- Every `<tr class="object-row">` has its provenance dot set to exactly one of `provenance-from-domain-model` or `provenance-derived`. No unmarked rows.
+- Every `<section class="object-column">` has its provenance dot set to exactly one of `provenance-from-domain-model` or `provenance-derived`. No unmarked columns.
+- Every column emits all five sticky stacks (`ctas`, `object-header`, `core-content`, `metadata`, `nested-refs`); empty stacks are present with the `hidden` attribute rather than omitted.
+- Every attribute `<li>` appears in exactly one of `.core-content` (when CCP-marked) or `.metadata` (when not CCP-marked) — never in both, never in neither.
 - All seven quality-check results are reported in the diagnostics block (either as PASS lines or as FAIL lines with flagged items).
-- The diagnostics block reports `OOUX object map — N objects.` where `N` matches the row count in the `<tbody>`.
+- The diagnostics block reports `OOUX object map — N objects.` where `N` matches the count of `<section class="object-column">` elements.
+- The relationship matrix `<table class="rel-matrix">` in the diagnostics block has exactly `{{RELATIONSHIP_COUNT}}` body rows.
 - The artefact's `REQUIREMENTS_SHA256` field equals the SHA-256 captured in Step 2 — proving the analysis matched the requirements doc as-read, not a stale copy.
 - No file under `requirements/` other than `requirements/requirements.md` was read during this run. (The agent's tool list makes this true by construction; the check is a deliberate restatement at handback time.)
 - No file under `framework/state/` or `framework/shared/` was read during this run.
@@ -251,6 +254,6 @@ Before handing back, verify all of the following against the written artefact an
 - Do not write the artefact on a Step 8 failure unless the consultant explicitly chose Override. A defective map written silently is the worst failure mode.
 - Do not loop the accept/revise/restart prompt without a consultant response. The loop terminates on Accept; Revise applies a specific change and re-presents; Restart returns to Step 3.
 - Do not loop the Step 8 fail-Restart-fail cycle more than three times. On the fourth fail, force the Revise path with a one-line note that further iteration is not productive without consultant input.
-- Do not edit the HTML scaffold in `framework/assets/analyses/template-ooux.html`. Only the documented `{{placeholders}}` are substituted; CSS class names, table structure, and CSS variables are fixed.
+- Do not edit the HTML scaffold in `framework/assets/analyses/template-ooux.html`. Only the documented `{{placeholders}}` are substituted; CSS class names, column-board structure, and CSS variables are fixed.
 - Do not paste the artefact body into the conversation. The file is on disk and the consultant can open it directly in a browser.
 - Do not use any tool not explicitly listed in the Tools section. In particular, do not use the Agent / Task tool to delegate steps to a sub-agent — every step runs in the foreground in this thread.
