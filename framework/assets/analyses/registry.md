@@ -3,6 +3,15 @@ role: asset
 kind: registry
 methodologies:
   # MVP — fully implemented and selectable via /analyse. Listed alphabetically; none privileged.
+  - name: jtbd
+    status: mvp
+    description: Jobs-to-be-Done analysis (situations × jobs × outcomes; hybrid Christensen-Moesta + Ulwick)
+    output_path: analyses/JTBD/jtbd-job-map.html
+    reference_asset: framework/assets/analyses/jtbd-reference.md
+    template_asset: framework/assets/analyses/template-jtbd.html
+    map_skill: framework/skills/map-jtbd-to-ui.md
+    analyser_agent: framework/agents/analyses/jtbd-analyser.md
+    character: framework/assets/characters/jtbd-analysis.md
   - name: ooux
     status: mvp
     description: Object-oriented UX analysis (ORCA process — objects / relationships / CTAs / attributes / CCPs)
@@ -14,7 +23,6 @@ methodologies:
     character: framework/assets/characters/ooux-analysis.md
   # Future — stub-only; no analyser agent on disk. Promote by flipping status, populating
   # the remaining fields, and authoring the analyser + reference + character + template.
-  - { name: jtbd, status: future }
   - { name: user-journeys, status: future }
   - { name: user-stories, status: future }
   - { name: use-cases, status: future }
