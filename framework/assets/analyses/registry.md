@@ -3,6 +3,15 @@ role: asset
 kind: registry
 methodologies:
   # MVP — fully implemented and selectable via /analyse. Listed alphabetically; none privileged.
+  - name: erd
+    status: mvp
+    description: Logical Data Model (entities × attributes × relationships × cardinalities × business rules × normalisation notes) plus consultant-selected ERD views — none/one/several/all of Crow's Foot, Chen, UML. Data Model always rendered; ERD views optional.
+    output_path: analyses/ERD/data-model.html
+    reference_asset: framework/assets/analyses/erd-reference.md
+    template_asset: framework/assets/analyses/template-erd.html
+    map_skill: framework/skills/map-erd-to-ui.md
+    analyser_agent: framework/agents/analyses/erd-analyser.md
+    character: framework/assets/characters/erd-analysis.md
   - name: jtbd
     status: mvp
     description: Jobs-to-be-Done analysis (situations × jobs × outcomes; hybrid Christensen-Moesta + Ulwick)
