@@ -137,7 +137,57 @@ The placeholders are substituted at dispatch time:
     - The strict-BMAD re-run log — populated from each worker's `strict_bmad_rerun` flag and `anti_confirmation_prompts` list. The log line for a dimension reports either *"Dimension `N` triggered the strict-BMAD re-run; anti-confirmation prompts attempted: {{list}}; outcome: {{found-K-findings | Justification block}}"* or, if `strict_bmad_rerun: false`, the dimension is not listed.
     - The Variant-A / Variant-B map per dimension (which becomes the `{{DIMENSION_N_BLOCK}}` selector at Step 11).
 
-After Step 3b completes, the in-memory state is identical in shape to what the sequential pipeline produced after Step 9b. All downstream steps (10, 11, 12, 13) operate on this merged state without modification.
+After Step 3b completes, the in-memory state is identical in shape to what the sequential pipeline produced after Step 9b.
+
+### Step 3c — Consolidate (cluster findings sharing a root cause)
+
+After deterministic ID assignment in Step 3b, the reviewer runs one consolidation pass over the merged finding list to identify **clusters** — groups of ≥2 findings that share a root cause. The pass is a navigation aid for the consultant, not a methodology change: no finding is dropped, rewritten, or merged; every `ADV-NN` retains its full Severity / Disposition / Location / Evidence / Problem / Recommendation, and the per-dimension sections render unchanged at Step 11.
+
+**Clustering heuristic** (applied to all findings together — clusters may span dimensions):
+
+1. **Shared root concern.** Two findings cluster when their `problem` text shares a load-bearing concept that the requirements doc surfaces under one canonical name. Concrete signals, in priority order:
+    - **Shared location prefix at the section level** — `§N` (not `§N.N.N`). All findings citing `§6.6.1` are candidates for a shared cluster.
+    - **Shared concept keywords** in the `problem` field — recognise canonical adversarial-review themes such as: MFA / step-up auth, lockout, idle / session expiry, retry, POPIA / data residency, RBAC matrix, FileSetting (or any entity that the data model under-defines), availability / RTO / RPO, accessibility, validation rules, scope / MVP boundary, audit trail. The keyword list is illustrative, not exhaustive — match by concept, not by string.
+    - **Shared anchor ID** — multiple findings citing `BR-07` or `G-04` cluster.
+2. **Minimum size.** A cluster has ≥2 members. Singleton findings carry an empty `cluster_id`; they are not clustered with anything.
+3. **Minimum cohesion.** A finding only joins a cluster when at least *two* of the three signals above match another cluster member. A finding that only shares a section prefix but no concept is not clustered (`§6` is too broad; `§6.6.1 + MFA keyword` is a cluster signal).
+4. **No cross-membership.** Every finding belongs to **at most one** cluster. If a finding could match two cluster candidates, assign it to the cluster whose lead `ADV-NN` is lower.
+
+**Deterministic cluster ID assignment.**
+
+- Compute the cluster set above.
+- Sort clusters by their **lead member's `ADV-NN`** (the lowest `ADV-NN` within the cluster), ascending.
+- Assign `CL-01` to the first cluster, `CL-02` to the next, etc., zero-padded to two digits (three when the total exceeds 99).
+- For each finding in the merged list, set its `cluster_id` field to the assigned `CL-NN` (or leave empty for singletons).
+
+**Cluster metadata** (kept in memory for Step 11):
+
+- `cluster_id` — `CL-NN`.
+- `theme` — a one-line title (≤60 chars) summarising the shared root concern; the reviewer composes this from the cluster members' `problem` fields. Examples: *"MFA / step-up auth never wired into flows"*, *"FileSetting entity referenced but never defined"*, *"`§6.6.1` security controls lack UI requirements"*. The theme is descriptive, not directive — it names the concern, not the fix.
+- `member_ids` — the ordered list of `ADV-NN` IDs in the cluster, ascending.
+- `max_severity` — the highest severity in the cluster (`Blocker > Major > Minor`).
+- `member_count` — `len(member_ids)`.
+
+**Triage selection** (also kept in memory for Step 11). Compute the "Top issues to address first" list per the TRIAGE BLOCK SCHEMA in `framework/assets/reviews/template-adversarial.md`:
+
+1. All findings with `disposition: Reject`, in `ADV-NN` ascending order.
+2. All findings with `severity: Blocker` not already included, in `ADV-NN` ascending order.
+3. If <10 entries so far: append Major findings that are the **lead** of a cluster of size ≥3, ordered by cluster size descending then lead `ADV-NN` ascending.
+4. If <10 entries so far: append remaining Major findings in `ADV-NN` ascending order.
+5. Cap at 10. Never include Minor findings.
+
+**Invariants this pass preserves** (re-checked at Step 10):
+
+- The finding count is unchanged. Gate 1 (eight schema fields per finding) is unaffected — `cluster_id` is metadata, not a required schema field. Gate 10 (Findings Table row count = sum of per-dimension counts) is unaffected.
+- `ADV-NN` IDs are unchanged. The deterministic merge at Step 3b is authoritative for IDs; Step 3c only annotates.
+- The strict-BMAD re-run log, the dimension Variant-A/B map, and the severity/disposition tallies are unchanged.
+
+**Anti-patterns specific to this step:**
+
+- Do **not** rewrite a finding's `problem` or `recommendation` to fit a cluster theme. The theme summarises; the finding stands as the worker emitted it.
+- Do **not** drop a finding because it is "covered by" a cluster member. Every finding is independently cited and dispositioned.
+- Do **not** create a cluster of size 1. Singletons get no `CL-NN`.
+- Do **not** let cluster boundaries shift IDs around. Step 3b's ID assignment is final; Step 3c is annotation only.
 
 ### Step 10 — Validate (quality-gate sweep)
 
@@ -181,8 +231,10 @@ Per `framework/assets/reviews/template-adversarial.md`:
     - `{{REVIEWER_IDENTITY}}` — fixed string *"Adversarial Review (BMAD-style, strict mode)"*.
     - `{{TOTAL_FINDINGS}}`, `{{BLOCKER_COUNT}}`, `{{MAJOR_COUNT}}`, `{{MINOR_COUNT}}`, `{{PATCH_COUNT}}`, `{{DEFER_COUNT}}`, `{{REJECT_COUNT}}` — derived counts.
     - `{{VERDICT}}` — derived per the reference's disposition-to-verdict mapping.
-    - `{{FINDINGS_TABLE}}` — pre-rendered markdown table body (one row per finding) per the FINDINGS TABLE SCHEMA in the template header. Pipe characters inside Problem strings are escaped as `\|`.
-    - `{{DIMENSION_1_BLOCK}}` … `{{DIMENSION_8_BLOCK}}` — pre-rendered dimension sections per the DIMENSION BLOCK SCHEMA. Each block is either Variant A (findings list) or Variant B (Justification block) — never both, never neither.
+    - `{{TRIAGE_BLOCK}}` — pre-rendered "Top issues to address first" callout per the TRIAGE BLOCK SCHEMA. Sourced from the triage selection computed in Step 3c. If the triage selection is empty (zero findings run-wide), substitute the single line *"No findings — strict-BMAD justification blocks below cover all eight dimensions."*
+    - `{{CLUSTERS_BLOCK}}` — pre-rendered cluster summary per the CLUSTERS BLOCK SCHEMA. Sourced from the cluster metadata computed in Step 3c. If Step 3c produced zero clusters, substitute the single line *"No clusters — every finding stands on its own root cause."*
+    - `{{FINDINGS_TABLE}}` — pre-rendered markdown table body (one row per finding) per the FINDINGS TABLE SCHEMA in the template header. Rows are sorted by (Severity descending: Blocker → Major → Minor) then (Dimension ascending: 1..8) then (within bucket: worker emission order = ADV-NN ascending). The `Cluster` column contains the finding's `CL-NN` from Step 3c, or is blank for singletons. Pipe characters inside Problem strings are escaped as `\|`. ADV-NN IDs are **not** renumbered by the sort.
+    - `{{DIMENSION_1_BLOCK}}` … `{{DIMENSION_8_BLOCK}}` — pre-rendered dimension sections per the DIMENSION BLOCK SCHEMA. Each block is either Variant A (findings list) or Variant B (Justification block) — never both, never neither. Per-dimension findings retain their original within-dimension emission order (the severity-driven sort at Step 11 applies **only** to the Findings Table).
     - `{{DIAGNOSTICS_BLOCK}}` — pre-rendered diagnostics per the DIAGNOSTICS SCHEMA: quality-gate table (11 gates with PASS/FAIL/flagged items), coverage map (one row per dimension), strict-BMAD re-run log (one line per dimension that triggered the rule, or "No dimensions triggered the strict-BMAD re-run rule."), override log (gates and flags if Override invoked, or "All quality gates passed; no override invoked.").
 - **Escape every substituted value** for markdown before injection:
     - In table cells, escape `|` as `\|`.
@@ -206,7 +258,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-dimension counts, the verdict, and the gate result. No marketing language. Template:
 
-> *"Wrote `reviews/ADVERSARIAL/adversarial-review.md` — `{{TOTAL_FINDINGS}}` findings across 8 dimensions (Blocker: `{{BLOCKER_COUNT}}`, Major: `{{MAJOR_COUNT}}`, Minor: `{{MINOR_COUNT}}`). Disposition: Patch `{{PATCH_COUNT}}` · Defer `{{DEFER_COUNT}}` · Reject `{{REJECT_COUNT}}`. Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/11` pass. Strict-BMAD re-run triggered on `{{n_dimensions_rerun}}` dimensions. Ready, or want changes?"*
+> *"Wrote `reviews/ADVERSARIAL/adversarial-review.md` — `{{TOTAL_FINDINGS}}` findings across 8 dimensions (Blocker: `{{BLOCKER_COUNT}}`, Major: `{{MAJOR_COUNT}}`, Minor: `{{MINOR_COUNT}}`), grouped into `{{n_clusters}}` clusters, triage callout lists top `{{n_triage}}` to fix first. Disposition: Patch `{{PATCH_COUNT}}` · Defer `{{DEFER_COUNT}}` · Reject `{{REJECT_COUNT}}`. Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/11` pass. Strict-BMAD re-run triggered on `{{n_dimensions_rerun}}` dimensions. Ready, or want changes?"*
 
 Variant:
 
@@ -227,13 +279,13 @@ Use `AskUserQuestion`:
 **Branches:**
 
 - **Accept** — declare done; hand back to the orchestrator.
-- **Revise** — accept the consultant's revision instructions in their next message. Apply the changes. This is the BMAD "human filter" stage where false positives are removed and dispositions tuned:
-    - **Strike a finding (false positive):** remove it from the in-memory list, re-number subsequent IDs, re-tally severity/disposition counts, re-derive verdict, re-run quality gates (gates 9 and 10 are affected), re-render, re-Write, re-verify, loop back to A.
-    - **Change a disposition:** update the finding's Disposition field, re-tally, re-derive verdict, re-run gates 4, 9, re-render, re-Write, re-verify, loop back to A.
-    - **Change a severity:** update the finding's Severity field, re-tally, re-derive verdict, re-run gates 3, 9, re-render, re-Write, re-verify, loop back to A.
-    - **Edit Recommendation text:** update the finding's Recommendation field, re-render, re-Write, re-verify, loop back to A.
-    - **Expand a Justification block:** update the block, re-run gate 8, re-render, re-Write, re-verify, loop back to A.
-    - **Strike all findings on a dimension:** treat as zero-finding outcome on that dimension; require the consultant to confirm whether they want the strict-BMAD re-run or a manually-supplied Justification block; either re-dispatch one dimension worker via `Agent` using the Step-3 worker prompt template (single call, dimension `N` only) and substitute its payload for that dimension, or substitute a consultant-supplied Justification block (≥3 sentences, citing specific evidence) directly into the in-memory state for that dimension; re-tally; re-derive verdict; re-run gate 7 (and gate 8 if a Justification was substituted); re-render; re-Write; re-verify; loop back to A.
+- **Revise** — accept the consultant's revision instructions in their next message. Apply the changes. This is the BMAD "human filter" stage where false positives are removed and dispositions tuned. Whenever a revision changes the finding set, its IDs, severities, or dispositions, **Step 3c is re-run** in full so that cluster membership and the triage selection reflect the post-revision state:
+    - **Strike a finding (false positive):** remove it from the in-memory list, re-number subsequent IDs, re-tally severity/disposition counts, re-derive verdict, **re-run Step 3c** (clusters and triage), re-run quality gates (gates 9 and 10 are affected), re-render, re-Write, re-verify, loop back to A.
+    - **Change a disposition:** update the finding's Disposition field, re-tally, re-derive verdict, **re-run Step 3c** (triage selection depends on Reject/Blocker membership), re-run gates 4, 9, re-render, re-Write, re-verify, loop back to A.
+    - **Change a severity:** update the finding's Severity field, re-tally, re-derive verdict, **re-run Step 3c** (triage selection and cluster `max_severity` depend on severity), re-run gates 3, 9, re-render, re-Write, re-verify, loop back to A.
+    - **Edit Recommendation text:** update the finding's Recommendation field, re-render, re-Write, re-verify, loop back to A. (Step 3c is **not** re-run — cluster keys do not depend on Recommendation prose.)
+    - **Expand a Justification block:** update the block, re-run gate 8, re-render, re-Write, re-verify, loop back to A. (Step 3c is **not** re-run — Justification blocks are not findings and do not participate in clustering.)
+    - **Strike all findings on a dimension:** treat as zero-finding outcome on that dimension; require the consultant to confirm whether they want the strict-BMAD re-run or a manually-supplied Justification block; either re-dispatch one dimension worker via `Agent` using the Step-3 worker prompt template (single call, dimension `N` only) and substitute its payload for that dimension, or substitute a consultant-supplied Justification block (≥3 sentences, citing specific evidence) directly into the in-memory state for that dimension; re-tally; re-derive verdict; **re-run Step 3c** (clusters and triage); re-run gate 7 (and gate 8 if a Justification was substituted); re-render; re-Write; re-verify; loop back to A.
 - **Restart** — re-enter Step 3 from a clean state. Reset the ID sequence; re-run all eight dimensions. The previously-written `reviews/ADVERSARIAL/adversarial-review.md` is left in place; the next Step 12 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 12).
@@ -281,6 +333,10 @@ Before handing back, verify all of the following against the written artefact an
 - Every finding's Location anchor matches an entry in the Step-2 anchor index.
 - Exactly eight dimension payloads were merged at Step 3b, one per dimension (1..8). No dimension was silently dropped or duplicated. Any payload sourced from a consultant-supplied Manual Justification at Step 3b is flagged in the diagnostics block's override log.
 - The `ADV-NN` ID sequence is contiguous from `ADV-01` through `ADV-{{TOTAL_FINDINGS}}` (or, when total ≥ 100, zero-padded to three digits), with IDs assigned in `dimension-order × within-dimension-emission-order` as documented in Step 3b. No ID gaps; no duplicate IDs; no IDs outside that range.
+- The `CL-NN` cluster IDs (if any) are contiguous from `CL-01`, assigned in order of each cluster's lead member ascending. Every finding's `cluster_id` is either an existing `CL-NN` or empty. No finding has more than one `cluster_id`.
+- The rendered Findings Table is sorted Blocker → Major → Minor, then Dimension ascending, then ADV-NN ascending — verified by scanning the table's Severity column for monotonic non-increasing severity and, within each severity run, monotonic non-decreasing Dimension.
+- The Triage callout contains at most 10 entries, includes every Reject and every Blocker, and never lists a Minor finding. If the requirements doc had zero findings run-wide, the Triage callout renders the documented "no findings" line instead.
+- The Clusters block lists every `CL-NN` that Step 3c assigned; every listed cluster has ≥2 members; every `member_ids` list is in ADV-NN ascending order; every `max_severity` matches the highest severity among its members.
 - The `Agent` tool was used only at Step 3 (fan-out), Step 3b (single-dimension Retry on malformed payload), and — if invoked — Step 13's *"Strike all findings on a dimension"* Revise branch. It was not used at any other step.
 - No file under `requirements/` other than `requirements/requirements.md` was read during this run, by the parent or by any worker. Worker compliance is enforced by the worker's tool-list scope (`Read` restricted to `requirements/requirements.md` only).
 - No file under `analyses/`, `design-system/`, `framework/state/`, or `framework/shared/` was read during this run.

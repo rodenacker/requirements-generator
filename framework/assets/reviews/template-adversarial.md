@@ -24,6 +24,8 @@
     {{DEFER_COUNT}}            — count of Disposition: Defer
     {{REJECT_COUNT}}           — count of Disposition: Reject
     {{VERDICT}}                — one of BLOCKED | NEEDS-REVISION | ACCEPTED-WITH-FIXES
+    {{TRIAGE_BLOCK}}           — pre-rendered "Top issues to address first" callout per TRIAGE BLOCK SCHEMA below
+    {{CLUSTERS_BLOCK}}         — pre-rendered cluster summary per CLUSTERS BLOCK SCHEMA below
     {{FINDINGS_TABLE}}         — pre-rendered markdown table body (one row per finding) per FINDINGS TABLE SCHEMA below
     {{DIMENSION_1_BLOCK}}      — pre-rendered dimension section: either findings list or Justification block
     {{DIMENSION_2_BLOCK}}      — (likewise)
@@ -39,15 +41,64 @@
 
   FINDINGS TABLE SCHEMA — each row the reviewer emits has the shape:
 
-      | ADV-NN | D | Sev | Disp | §loc | one-line problem |
+      | ADV-NN | D | Sev | Disp | CL-NN | §loc | one-line problem |
 
     where:
-      - ADV-NN is the finding ID (zero-padded sequence per run)
+      - ADV-NN is the finding ID (zero-padded sequence per run; assigned at Step 3b)
       - D is the Dimension integer 1..8
       - Sev is one of Blocker | Major | Minor
       - Disp is one of Patch | Defer | Reject
+      - CL-NN is the cluster ID assigned at Step 3c, or blank for singletons (findings not grouped with any other finding)
       - §loc is the Location field (§N.N, BR-NN, G-NN, FR-NN, or line-N)
       - one-line problem is the Problem field; pipe characters inside are escaped as \|
+
+    Row order is severity-driven, not ID-driven:
+      1. Sort key 1: Severity, descending — Blocker, then Major, then Minor.
+      2. Sort key 2: Dimension, ascending (1..8).
+      3. Sort key 3: within (Severity, Dimension), preserve the worker's emitted order (matches ADV-NN ascending within that bucket).
+    ADV-NN IDs are unchanged by this sort — they retain the dimension-order × within-dimension-order
+    assignment from Step 3b so audit trails that reference a specific ADV-NN still resolve.
+
+  TRIAGE BLOCK SCHEMA — the {{TRIAGE_BLOCK}} contains a "Top issues to address first"
+  callout (the outer "## Triage" heading is in the scaffold; the block body is just the table):
+
+      Top issues to address first, ordered by severity. Resolve these before scanning the full
+      Findings Table below.
+
+      | Rank | ID | Severity | Cluster | Location | Problem |
+      |------|----|----------|---------|----------|---------|
+      | 1 | ADV-NN | Blocker | CL-NN | §loc | one-line problem |
+      | 2 | ADV-NN | ... | ... | ... | ... |
+
+    Selection rule, applied deterministically:
+      1. Every finding with Disposition = Reject (in ADV-NN ascending order).
+      2. Every finding with Severity = Blocker not already included (in ADV-NN ascending order).
+      3. If fewer than 10 entries so far, fill with Major findings that are the *lead* finding of a
+         cluster (lowest ADV-NN within a cluster of size ≥3), ordered by cluster size descending,
+         tie-broken by lead ADV-NN ascending.
+      4. If still fewer than 10, fill with remaining Major findings in ADV-NN ascending order.
+      5. Hard cap at 10 entries. Never fill with Minor findings (the consultant can scan the full
+         table for minors). If total findings <10, render whatever exists; no padding.
+    Rank column is the 1-based row index after sorting. Cluster column is blank for singletons.
+    If zero findings exist run-wide, render the single line "No findings — strict-BMAD justification
+    blocks below cover all eight dimensions." instead of the table.
+
+  CLUSTERS BLOCK SCHEMA — the {{CLUSTERS_BLOCK}} contains a cluster summary (the outer
+  "## Clusters" heading is in the scaffold; the block body is the prose line plus the table):
+
+      Findings sharing a root cause are grouped below. Each cluster lists its member finding IDs;
+      the per-dimension sections still contain every finding in full detail.
+
+      | Cluster | Theme | Findings | Max severity |
+      |---------|-------|----------|--------------|
+      | CL-NN | one-line theme (e.g. "MFA / step-up auth") | ADV-AA, ADV-BB, ADV-CC | Blocker |
+
+    Cluster IDs are CL-01, CL-02, ... zero-padded, assigned at Step 3c in order of the lead
+    (lowest ADV-NN) finding's ID. A cluster has ≥2 members; singletons are not clustered.
+    Findings within a cluster are listed in ADV-NN ascending order. Max severity is the highest
+    severity among the cluster's members (Blocker > Major > Minor).
+    If Step 3c produced zero clusters, render the single line "No clusters — every finding stands
+    on its own root cause." instead of the table.
 
   DIMENSION BLOCK SCHEMA — each {{DIMENSION_N_BLOCK}} contains either:
 
@@ -143,10 +194,22 @@
 
 ---
 
+## Triage
+
+{{TRIAGE_BLOCK}}
+
+---
+
+## Clusters
+
+{{CLUSTERS_BLOCK}}
+
+---
+
 ## Findings Table
 
-| ID | Dim | Severity | Disposition | Location | Problem |
-|----|-----|----------|-------------|----------|---------|
+| ID | Dim | Severity | Disposition | Cluster | Location | Problem |
+|----|-----|----------|-------------|---------|----------|---------|
 {{FINDINGS_TABLE}}
 
 ---

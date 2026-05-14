@@ -296,11 +296,33 @@ The artefact renders as a structured markdown report following `framework/assets
 
 1. **Header** — title, generated-at timestamp, requirements SHA-256, reviewer identity.
 2. **Executive Summary** — total findings, severity tally, disposition tally, verdict line.
-3. **Findings Table** — compact tabular view of every finding (ID, Dim, Sev, Disp, Location, one-line problem).
-4. **Per-Dimension Sections (1–8)** — full findings for each dimension, or a Justification block if zero findings + strict-BMAD re-run passed.
-5. **Diagnostics** — quality-gate results, coverage map (which sections each dimension touched), re-run log (which dimensions triggered the strict-BMAD re-run), provenance summary.
+3. **Triage** — "Top issues to address first" callout (≤10 entries: every Reject and Blocker plus cluster-lead Majors). Lets the consultant resolve the highest-impact findings before scanning the full table.
+4. **Clusters** — findings sharing a root cause grouped under a `CL-NN` cluster ID. Each cluster lists its member ADV-NNs and a one-line theme; the full detail for each finding still appears in the per-dimension sections below.
+5. **Findings Table** — compact tabular view of every finding (ID, Dim, Sev, Disp, Cluster, Location, one-line problem), sorted Blocker → Major → Minor.
+6. **Per-Dimension Sections (1–8)** — full findings for each dimension, or a Justification block if zero findings + strict-BMAD re-run passed.
+7. **Diagnostics** — quality-gate results, coverage map (which sections each dimension touched), re-run log (which dimensions triggered the strict-BMAD re-run), provenance summary.
 
-The artefact is a punch-list, not a narrative. Prose between findings is minimised; the consultant should be able to scan the Findings Table and jump straight to the per-dimension section for context on any finding.
+The artefact is a punch-list, not a narrative. Prose between findings is minimised; the consultant should be able to read the Triage callout in under two minutes, scan the Clusters block to see which findings share a root cause, and jump straight to the per-dimension section for context on any finding.
+
+---
+
+## Consolidation & Triage
+
+After the eight-dimension sweep merges and IDs are assigned (Step 3b of `adversarial-reviewer.md`), one consolidation pass (Step 3c) annotates findings with **cluster IDs** and computes a **triage list**. The pass is a reader-aid: no finding is dropped, no finding's fields are rewritten, no `ADV-NN` is renumbered.
+
+**Cluster rule.** Two or more findings cluster when they share a root cause — detected from a combination of section-level Location prefix (`§N`), anchor ID (e.g., `BR-07`), and load-bearing concept keywords in their `problem` field (e.g., MFA / step-up auth, retry, POPIA, RBAC matrix, FileSetting, availability/RTO, lockout). A cluster has ≥2 members; singletons are never clustered. Each finding belongs to at most one cluster. Cluster IDs are `CL-01`, `CL-02`, … assigned in order of each cluster's lead (lowest-ADV-NN) member.
+
+**Triage rule.** The "Top issues to address first" callout selects up to 10 findings, deterministically, in this priority order:
+
+1. Every Reject, in `ADV-NN` ascending order.
+2. Every Blocker not already included, in `ADV-NN` ascending order.
+3. Major findings that are the lead of a cluster of size ≥3, ordered by cluster size descending then lead `ADV-NN` ascending. (A large cluster fronted by a single fix is high-leverage.)
+4. Remaining Major findings in `ADV-NN` ascending order.
+5. Hard cap at 10. Never includes Minor findings.
+
+**What this preserves.** Every quality gate is unaffected — `cluster_id` is metadata, not a 9th required schema field; the Findings Table row count still equals the sum of per-dimension counts (clustering does not drop, merge, or duplicate findings). The per-dimension sections render unchanged, in their original within-dimension order; the severity-driven sort applies only to the Findings Table. The deterministic ID assignment from Step 3b is final; Step 3c only annotates and selects.
+
+**Why it exists.** A run with 80+ findings is correct but un-scannable. The Triage callout lets a consultant fix the must-fix-now list (typically 5–10 entries) in one sitting; the Clusters block lets them see that nine separate findings citing "step-up auth" share one underlying gap, so the fix list is shorter than the finding count. Both are navigation aids over the audit-grade detail that remains in the per-dimension sections.
 
 ---
 

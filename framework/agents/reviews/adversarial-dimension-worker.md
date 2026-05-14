@@ -68,6 +68,8 @@ Apply Dimension `N`'s checks per the supplied dimension section. Emit findings u
 
 If a finding spans multiple dimensions, decompose it — return only the slice that belongs to Dimension `N`. The seven sibling workers will surface the other slices.
 
+**Prefer single-line evidence quotes.** The schema permits up to 5 lines but the rendered artefact is read by a human consultant; long evidence blocks inflate per-finding height and hurt scan-ability. When the requirements doc admits it, quote a single contiguous line that contains the defect. Multi-line quotes are permitted only when no single line preserves the defect — common legitimate cases: comparing two adjacent rows of an RBAC or security matrix (the contradiction lives between the rows, not within one), citing a multi-line bullet whose halves contradict each other, or quoting a Mermaid diagram fragment where the structural defect spans nodes. A multi-line quote is never used for prose that could be sliced to one line.
+
 **Strict-BMAD check.** If this pass produces zero findings:
 
 1. Re-run Dimension `N` with explicit anti-confirmation prompts. For each requirement, force-articulate at least one way it could fail Dimension `N`'s check. Record the prompts attempted.
