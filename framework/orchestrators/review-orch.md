@@ -14,6 +14,8 @@ Do **not** invoke any reviewer agent as a background / sub / async agent (e.g., 
 - The handback gate depends on consultant acceptance in the same thread.
 - Foreground execution keeps the full conversation context — including step-by-step Unicorn-voice updates — visible to the consultant.
 
+The reviewer agent **may** internally dispatch non-interactive analytical sub-agents (e.g., the adversarial reviewer's per-dimension workers per `framework/agents/reviews/adversarial-dimension-worker.md`); the foreground-thread rule applies to the reviewer agent itself and to every consultant-interactive surface (the methodology selector, quality-gate prompts, the accept/revise/restart loop), not to read-only sub-analyses the reviewer delegates inside its own steps. A reviewer's internal sub-agents must be non-interactive (no `AskUserQuestion`), read-only with respect to filesystem writes, and own no handback. This carve-out is the orchestrator's licence; whether and how a given reviewer uses it is entirely the reviewer agent's choice (the Adversarial reviewer uses it at its Step 3 parallel dimension sweep).
+
 ## Purpose
 
 Run a registry-driven, single-agent review pipeline. The orchestrator does not know which reviewer will be invoked at design time; it discovers the available reviewers at runtime via `framework/assets/reviews/registry.md` and the `review-selector` skill. The first methodology shipped is Adversarial Review (`framework/agents/reviews/adversarial-reviewer.md` writing `reviews/ADVERSARIAL/adversarial-review.md`). Adding methodologies later requires no orchestrator changes — only registry rows, reviewer agents, and supporting assets.
