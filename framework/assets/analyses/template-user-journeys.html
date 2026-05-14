@@ -1,0 +1,673 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses/user-journeys-analyser.md.
+
+  Purpose: HTML/CSS skeleton for a journey-map atlas. One file, N journey
+  cards stacked vertically. Each card carries:
+    - a tabular swimlane grid (phases x {actions, thoughts, emotions,
+      touchpoints, pain-points}),
+    - an inline-SVG emotion curve (no external dependencies).
+  Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`). No
+  external CSS / JS dependencies; viewable by opening `file://` in a
+  browser; shareable with clients without tooling.
+
+  Layout: cards stack vertically in a single column on screen; print
+  media query collapses to one card per page. Within each card the
+  swimlane uses CSS Grid with `grid-template-columns:
+  120px repeat(var(--phase-count), 1fr)` — the analyser sets
+  `--phase-count` on the card via inline `style`.
+
+  Placeholders the analyser substitutes (string substitution, all values
+  pre-escaped for HTML; XML-escaped inside <svg><text> nodes):
+
+    {{TITLE}}                  — short title (e.g. "User Journeys — Project X").
+    {{DOMAIN}}                 — domain string (from requirements §1 if present).
+    {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
+    {{REQUIREMENTS_SHA256}}    — sha256 of requirements/requirements.md at read time.
+    {{JOURNEY_COUNT}}          — number of journey cards.
+    {{PERSONA_COUNT}}          — distinct personas covered.
+    {{PHASE_COUNT}}            — total phases across all journeys.
+    {{ACTION_COUNT}}           — total actions across all journeys.
+    {{PAIN_POINT_COUNT}}       — total pain points across all journeys.
+    {{OPPORTUNITY_COUNT}}      — total opportunities across all journeys.
+    {{AI_SUGGESTED_COUNT}}     — total cells marked `ai-suggested`. Key
+                                 diagnostic affordance — high density
+                                 signals "user research needed, not more
+                                 analysis".
+    {{DIAGNOSTICS_BLOCK}}      — pre-rendered HTML block per DIAGNOSTICS
+                                 SCHEMA below.
+    {{JOURNEY_CARDS}}          — pre-rendered <section class="journey-card">
+                                 blocks per the JOURNEY CARD SCHEMA below.
+
+  Output: analyses/USER-JOURNEYS/user-journeys-map.html.
+
+  JOURNEY CARD SCHEMA — each card the analyser emits has the shape:
+
+      <section id="journey-<slug>" class="journey-card"
+               style="--phase-count: N"
+               aria-labelledby="journey-<slug>-title">
+
+        <header class="journey-header">
+          <h2 id="journey-<slug>-title">
+            <span class="persona-name">{{persona}}</span>
+            <span class="sep" aria-hidden="true">—</span>
+            <span class="scenario-name">{{scenario}}</span>
+          </h2>
+          <dl class="journey-meta">
+            <div><dt>Trigger</dt><dd class="provenance-...">{{trigger}}</dd></div>
+            <div><dt>Outcome</dt><dd class="provenance-...">{{outcome}}</dd></div>
+            <div><dt>Moments of truth</dt><dd>{{phase-labels}}</dd></div>
+          </dl>
+        </header>
+
+        <figure class="journey-flow" aria-labelledby="journey-<slug>-flow-cap">
+          <svg viewBox="0 0 720 200" role="img"
+               aria-label="Emotion curve for {{persona}} — {{scenario}}">
+            <!-- gridlines, axis ticks, polyline of phase scores, phase labels.
+                 y-axis fixed at -2..+2; one tick + one polyline point per phase. -->
+          </svg>
+          <figcaption id="journey-<slug>-flow-cap">Emotion curve over phases (−2 panic … +2 confident).</figcaption>
+        </figure>
+
+        <table class="journey-swimlane" role="grid">
+          <thead>
+            <tr>
+              <th class="lane-label" scope="col">Lane</th>
+              <th scope="col">{{phase-1}}</th>
+              ...
+              <th scope="col">{{phase-N}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="lane-actions">
+              <th scope="row">Actions</th>
+              <td class="provenance-..."><ul>...</ul></td>
+              ...
+            </tr>
+            <tr class="lane-thoughts">     <!-- typically ai-suggested heavy --> ... </tr>
+            <tr class="lane-emotion">      <!-- always ai-suggested unless /input/ research exists --> ... </tr>
+            <tr class="lane-touchpoints">  <!-- typically from-task-flow / from-prose --> ... </tr>
+            <tr class="lane-painpoints">   <!-- ai-suggested unless surfaced in §6 --> ... </tr>
+          </tbody>
+        </table>
+
+        <footer class="journey-footer">
+          <section class="opportunities">
+            <h3>Opportunities</h3>
+            <ul>
+              <li class="provenance-..."><span class="phase-tag">{{phase}}</span> {{opportunity}}</li>
+              ...
+            </ul>
+          </section>
+          <section class="ownership">
+            <h3>Ownership</h3>
+            <ul>
+              <li><span class="own-team">{{team}}</span> {{opportunity-ref}}</li>
+              ...
+            </ul>
+          </section>
+        </footer>
+
+      </section>
+
+  DIAGNOSTICS SCHEMA — the analyser's {{DIAGNOSTICS_BLOCK}} substitutes a
+  single <section class="diagnostics">. The template wraps the placeholder
+  in a <details class="diagnostics-toggle"> element (collapsed by default)
+  so the diagnostics section is hidden behind a toggle and only revealed
+  on click. The analyser does not emit the <details>/<summary> wrapper —
+  it is template scaffolding. The inner section contains, in order:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>User-journeys map — N journeys across M personas.</p>
+        <p>Provenance: A from-task-flow, B from-user-story, C from-persona, D derived, E ai-suggested.</p>
+        <ul>
+          <li class="check-pass|check-fail">Check 1 — Every journey has exactly one persona × one scenario.</li>
+          ... (all 8 checks listed in order)
+        </ul>
+        <p class="density-warning hidden|...">⚠ Density warning: ...</p>
+        <table class="density-table">
+          <thead><tr><th>Journey</th><th>AI-SUGGESTED cells</th><th>Total cells</th><th>Density</th></tr></thead>
+          <tbody>
+            <tr><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+          </tbody>
+        </table>
+        <!-- Override-only: flagged-items <ul> per failed check. -->
+      </section>
+
+  CSS classes used by the analyser:
+    .journey-card          — outer container per journey.
+    .journey-header        — title + meta-dl block.
+    .journey-flow          — <figure> wrapping the inline <svg>.
+    .journey-swimlane      — <table> with the phases x lanes grid.
+    .lane-actions
+    .lane-thoughts
+    .lane-emotion
+    .lane-touchpoints
+    .lane-painpoints       — applied to <tr> elements (one per lane).
+    .journey-footer        — opportunities + ownership block.
+    .ai-suggested          — applied to any cell whose content carries the
+                             [AI-SUGGESTED] prefix. Renders italic + dim.
+    .moment-of-truth       — applied to any <tr> or <td> at a phase where
+                             the emotion drops by >= 1 from the previous phase.
+    .provenance-from-task-flow
+    .provenance-from-user-story
+    .provenance-from-persona
+    .provenance-derived
+    .provenance-ai-suggested
+                           — exactly one per content cell. Coloured dot in
+                             the legend.
+    .rev-marker            — applied to any cell flagged by a failed
+                             quality check on an Override run.
+
+  SVG conventions (the analyser owns this content; the template only
+  provides containment + sizing in CSS):
+    - viewBox "0 0 720 200" — fixed aspect ratio for predictable print.
+    - role="img" + aria-label on the <svg>.
+    - The swimlane table below is the screen-reader-accessible equivalent
+      of the SVG; the SVG itself is a glance affordance.
+    - All <text> nodes XML-escape persona / phase strings.
+
+  Content TBD-able by the analyser:
+    The diagnostics block, the journey-card count, per-card phase count
+    (set via --phase-count inline), per-card content, and per-card SVG
+    polyline coordinates are fully driven by the analyser. The CSS below
+    is fixed scaffolding and should not be edited by the analyser — only
+    the {{placeholders}} above are substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --card-bg: #ffffff;
+      --header-bg: #efefef;
+      --row-alt: #fbfbfb;
+
+      --lane-actions-bg:     #e7f0fb;  --lane-actions-fg:     #0c2a44;
+      --lane-thoughts-bg:    #f3eafd;  --lane-thoughts-fg:    #2e1255;
+      --lane-emotion-bg:     #fff5d6;  --lane-emotion-fg:     #4a3a00;
+      --lane-touchpoints-bg: #e6f4ea;  --lane-touchpoints-fg: #14422a;
+      --lane-painpoints-bg:  #fde2e2;  --lane-painpoints-fg:  #6a1212;
+
+      --prov-task-flow:      #2a8a2a;
+      --prov-user-story:     #2a6aa0;
+      --prov-persona:        #6a3aa0;
+      --prov-derived:        #b86a00;
+      --prov-ai-suggested:   #a02a6a;
+
+      --ai-bg: #fdf3fa;
+      --moment-bg: #fff0e6;
+      --moment-border: #d97a1f;
+
+      --rev-bg: #ffeaea; --rev-border: #d44a4a; --rev-fg: #8a1a1a;
+
+      --svg-axis: #8a8a8a;
+      --svg-grid: #e0e0e0;
+      --svg-line: #2a6aa0;
+      --svg-point: #1a1a1a;
+      --svg-moment: #d97a1f;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 0 24px 0;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px 24px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+
+    .meta-grid dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+
+    .meta-grid dd {
+      margin: 0 0 6px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ------- diagnostics ------- */
+
+    details.diagnostics-toggle {
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.diagnostics-toggle[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.diagnostics-toggle[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
+    .diagnostics {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > .diagnostics {
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      margin-bottom: 0;
+    }
+    details.diagnostics-toggle > .diagnostics > h2 {
+      /* The <summary> already labels the section; avoid a duplicated heading. */
+      display: none;
+    }
+
+    .diagnostics h2 {
+      font-size: 16px;
+      margin: 0 0 8px 0;
+    }
+
+    .diagnostics > ul {
+      margin: 0 0 12px 0;
+      padding-left: 20px;
+    }
+
+    .diagnostics .check-pass::before { content: "PASS "; color: var(--prov-task-flow); font-weight: 600; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--rev-fg); font-weight: 600; }
+
+    .diagnostics .density-warning {
+      padding: 8px 10px;
+      background: var(--moment-bg);
+      border-left: 3px solid var(--moment-border);
+      border-radius: 3px;
+      margin: 8px 0;
+      font-size: 13px;
+    }
+    .diagnostics .density-warning.hidden { display: none; }
+
+    .diagnostics table.density-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 0 0;
+      font-size: 12px;
+    }
+    .diagnostics table.density-table th,
+    .diagnostics table.density-table td {
+      padding: 6px 8px;
+      border-top: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    .diagnostics table.density-table thead th {
+      background: var(--header-bg);
+      font-weight: 600;
+      border-top: none;
+      border-bottom: 2px solid var(--border-strong);
+    }
+    .diagnostics table.density-table td.density-high { color: var(--rev-fg); font-weight: 600; }
+
+    /* ------- journey card ------- */
+
+    .journey-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 24px;
+    }
+
+    .journey-header h2 {
+      font-size: 17px;
+      margin: 0 0 6px 0;
+      font-weight: 600;
+    }
+    .journey-header h2 .sep {
+      color: var(--muted);
+      margin: 0 6px;
+      font-weight: 400;
+    }
+    .journey-header h2 .persona-name { color: var(--prov-persona); }
+    .journey-header h2 .scenario-name { color: var(--fg); }
+
+    .journey-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 4px 24px;
+      margin: 0;
+      font-size: 13px;
+    }
+    .journey-meta dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+    .journey-meta dd {
+      margin: 0 0 4px 0;
+    }
+
+    /* ------- emotion curve SVG figure ------- */
+
+    .journey-flow {
+      margin: 0;
+      padding: 8px 0;
+    }
+    .journey-flow svg {
+      width: 100%;
+      height: auto;
+      max-height: 220px;
+      display: block;
+    }
+    .journey-flow figcaption {
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center;
+      margin-top: 4px;
+    }
+    /* SVG-internal styling (selectable by class on emitted shapes) */
+    .journey-flow svg .axis      { stroke: var(--svg-axis); stroke-width: 1; fill: none; }
+    .journey-flow svg .gridline  { stroke: var(--svg-grid); stroke-width: 1; fill: none; }
+    .journey-flow svg .curve     { stroke: var(--svg-line); stroke-width: 2; fill: none; stroke-linejoin: round; stroke-linecap: round; }
+    .journey-flow svg .point     { fill: var(--svg-point); }
+    .journey-flow svg .point.moment { fill: var(--svg-moment); }
+    .journey-flow svg text       { fill: var(--fg); font-family: inherit; font-size: 11px; }
+    .journey-flow svg text.axis-label { fill: var(--muted); font-size: 10px; }
+    .journey-flow svg text.phase-label { font-size: 11px; }
+
+    /* ------- swimlane table ------- */
+
+    .journey-swimlane {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      table-layout: fixed;
+      font-size: 13px;
+    }
+    .journey-swimlane thead th {
+      background: var(--header-bg);
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      border-bottom: 2px solid var(--border-strong);
+      vertical-align: bottom;
+    }
+    .journey-swimlane thead th.lane-label { width: 120px; }
+    .journey-swimlane tbody th {
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      width: 120px;
+      vertical-align: top;
+      border-top: 1px solid var(--border);
+    }
+    .journey-swimlane tbody td {
+      padding: 8px 10px;
+      border-top: 1px solid var(--border);
+      vertical-align: top;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    .journey-swimlane tbody td ul {
+      margin: 0;
+      padding-left: 16px;
+    }
+    .journey-swimlane tbody td ul li + li { margin-top: 4px; }
+
+    /* Per-lane backgrounds applied to the row-header <th> only — keep cell
+       bodies readable; row colour cues live on the lane label. */
+    .lane-actions     > th { background: var(--lane-actions-bg);     color: var(--lane-actions-fg); }
+    .lane-thoughts    > th { background: var(--lane-thoughts-bg);    color: var(--lane-thoughts-fg); }
+    .lane-emotion     > th { background: var(--lane-emotion-bg);     color: var(--lane-emotion-fg); }
+    .lane-touchpoints > th { background: var(--lane-touchpoints-bg); color: var(--lane-touchpoints-fg); }
+    .lane-painpoints  > th { background: var(--lane-painpoints-bg);  color: var(--lane-painpoints-fg); }
+
+    .lane-emotion td {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+
+    /* AI-SUGGESTED cells — visually distinct from sourced cells. */
+    .ai-suggested,
+    td.ai-suggested {
+      background: var(--ai-bg);
+      font-style: italic;
+      color: var(--prov-ai-suggested);
+    }
+
+    /* Moment-of-truth row highlight. */
+    .moment-of-truth > th,
+    .moment-of-truth > td {
+      border-top: 2px solid var(--moment-border);
+      background: var(--moment-bg);
+    }
+
+    /* Provenance dot — rendered as a small swatch at the start of the cell. */
+    td[class*="provenance-"]::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: 1px;
+    }
+    td.provenance-from-task-flow::before  { background: var(--prov-task-flow); }
+    td.provenance-from-user-story::before { background: var(--prov-user-story); }
+    td.provenance-from-persona::before    { background: var(--prov-persona); }
+    td.provenance-derived::before         { background: var(--prov-derived); }
+    td.provenance-ai-suggested::before    { background: var(--prov-ai-suggested); }
+
+    /* Rev marker — applied on Override runs to flagged cells. */
+    .rev-marker,
+    td.rev-marker {
+      background: var(--rev-bg);
+      border-left: 3px solid var(--rev-border);
+      color: var(--rev-fg);
+    }
+
+    /* ------- footer block (opportunities + ownership) ------- */
+
+    .journey-footer {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border);
+    }
+    .journey-footer h3 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin: 0 0 6px 0;
+    }
+    .journey-footer ul {
+      margin: 0;
+      padding-left: 16px;
+    }
+    .journey-footer li + li { margin-top: 4px; }
+    .journey-footer .phase-tag {
+      display: inline-block;
+      padding: 0 5px;
+      margin-right: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #fff;
+      background: var(--prov-user-story);
+      border-radius: 3px;
+      vertical-align: 1px;
+    }
+    .journey-footer .own-team {
+      display: inline-block;
+      padding: 0 5px;
+      margin-right: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #fff;
+      background: var(--prov-derived);
+      border-radius: 3px;
+      vertical-align: 1px;
+    }
+
+    /* ------- bottom legend ------- */
+
+    footer.bottom {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    footer.bottom .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+    }
+    footer.bottom .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    footer.bottom .legend-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    footer.bottom .legend-dot.s-task-flow  { background: var(--prov-task-flow); }
+    footer.bottom .legend-dot.s-user-story { background: var(--prov-user-story); }
+    footer.bottom .legend-dot.s-persona    { background: var(--prov-persona); }
+    footer.bottom .legend-dot.s-derived    { background: var(--prov-derived); }
+    footer.bottom .legend-dot.s-ai         { background: var(--prov-ai-suggested); }
+    footer.bottom .credit { margin-top: 6px; text-align: right; }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .journey-card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: 12px;
+        border-radius: 0;
+        border-color: #000;
+      }
+      details.diagnostics-toggle { display: none; }
+      .journey-flow svg { max-height: 180px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>{{TITLE}}</h1>
+    <p class="subtitle">User journey atlas — one card per (persona × scenario): emotion curve over phases, plus a swimlane grid of actions, thoughts, emotions, touchpoints, and pain points.</p>
+
+    <dl class="meta-grid">
+      <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+      <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+      <div><dt>Source SHA-256</dt><dd>{{REQUIREMENTS_SHA256}}</dd></div>
+      <div><dt>Journeys</dt><dd>{{JOURNEY_COUNT}}</dd></div>
+      <div><dt>Personas</dt><dd>{{PERSONA_COUNT}}</dd></div>
+      <div><dt>Phases</dt><dd>{{PHASE_COUNT}}</dd></div>
+      <div><dt>Actions</dt><dd>{{ACTION_COUNT}}</dd></div>
+      <div><dt>Pain points</dt><dd>{{PAIN_POINT_COUNT}}</dd></div>
+      <div><dt>Opportunities</dt><dd>{{OPPORTUNITY_COUNT}}</dd></div>
+      <div><dt>AI-suggested cells</dt><dd>{{AI_SUGGESTED_COUNT}}</dd></div>
+    </dl>
+
+    <details class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    <section class="journey-atlas" aria-label="User journeys">
+      {{JOURNEY_CARDS}}
+    </section>
+
+    <footer class="bottom">
+      <div class="legend">
+        <span class="legend-item"><span class="legend-dot s-task-flow" aria-hidden="true"></span> from §5 Task flows</span>
+        <span class="legend-item"><span class="legend-dot s-user-story" aria-hidden="true"></span> from §4 User stories</span>
+        <span class="legend-item"><span class="legend-dot s-persona" aria-hidden="true"></span> from §3 Personas</span>
+        <span class="legend-item"><span class="legend-dot s-derived" aria-hidden="true"></span> derived</span>
+        <span class="legend-item"><span class="legend-dot s-ai" aria-hidden="true"></span> [AI-SUGGESTED]</span>
+      </div>
+      <div class="credit">Generated by `framework/agents/analyses/user-journeys-analyser.md`.</div>
+    </footer>
+  </main>
+</body>
+</html>

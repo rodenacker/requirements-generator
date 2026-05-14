@@ -30,9 +30,17 @@ methodologies:
     map_skill: framework/skills/map-use-cases-to-ui.md
     analyser_agent: framework/agents/analyses/use-cases-analyser.md
     character: framework/assets/characters/use-cases-analysis.md
+  - name: user-journeys
+    status: mvp
+    description: User-journeys analysis (NN/G canonical — persona × scenario × phases × {actions, thoughts, emotions, touchpoints, pain-points, opportunities}; tabular swimlane + inline-SVG emotion curve)
+    output_path: analyses/USER-JOURNEYS/user-journeys-map.html
+    reference_asset: framework/assets/analyses/user-journeys-reference.md
+    template_asset: framework/assets/analyses/template-user-journeys.html
+    map_skill: framework/skills/map-user-journeys-to-ui.md
+    analyser_agent: framework/agents/analyses/user-journeys-analyser.md
+    character: framework/assets/characters/user-journeys-analysis.md
   # Future — stub-only; no analyser agent on disk. Promote by flipping status, populating
   # the remaining fields, and authoring the analyser + reference + character + template.
-  - { name: user-journeys, status: future }
   - { name: user-stories, status: future }
   - { name: quality-signals-analysis, status: future }
   - { name: glossary-domain, status: future }
