@@ -1,14 +1,14 @@
-<!-- ROLE: asset (analysis reference). Methodology definition for the ERD analyser. Modelled on framework/assets/analyses/user-journeys-reference.md. Industry framing: DAMA-DMBOK Data Modeling & Design — the Data Model is the deliverable (Logical level), an ERD is a *visualisation* of it in a chosen notation. -->
+<!-- ROLE: asset (analysis reference). Methodology definition for the data-model analyser. Modelled on framework/assets/analyses/user-journeys-reference.md. Industry framing: DAMA-DMBOK Data Modeling & Design — the Data Model is the deliverable (Logical level), an ERD is a *visualisation* of it in a chosen notation. -->
 
-# ERD analysis reference
+# Data Model analysis reference
 
 > **Method:** Extract the **Logical Data Model** (entities, attributes, relationships, cardinalities, business rules, normalisation notes) from `requirements/requirements.md` once. The Data Model is always rendered as tabular sections. The consultant then picks **none, one, several, or all** of three ER-diagram notations (Crow's Foot, Chen, UML class diagram) to add as visual `<figure>` blocks. Same data, multiple views.
 
-**Output file:** `analyses/ERD/data-model.html` — a self-contained HTML artefact containing the Data Model (always) plus zero or more ERD visualisations (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
+**Output file:** `analyses/DATA-MODEL/data-model.html` — a self-contained HTML artefact containing the Data Model (always) plus zero or more ERD visualisations (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
 
-**Analyser agent:** `framework/agents/analyses/erd-analyser.md`
+**Analyser agent:** `framework/agents/analyses/data-model-analyser.md`
 
-**Character:** `framework/assets/characters/erd-analysis.md`.
+**Character:** `framework/assets/characters/data-model-analysis.md`.
 
 ---
 
@@ -156,7 +156,7 @@ Richer inputs → richer Data Model. Methodology degrades gracefully: with thin 
 
 ## Output shape (HTML schema)
 
-The artefact is a single self-contained HTML file at `analyses/ERD/data-model.html`. The analyser populates `framework/assets/analyses/template-erd.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
+The artefact is a single self-contained HTML file at `analyses/DATA-MODEL/data-model.html`. The analyser populates `framework/assets/analyses/template-data-model.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
 
 ### Header placeholders
 
@@ -212,7 +212,7 @@ The analyser does **not** edit the template's CSS or layout — only the documen
 
 ---
 
-## Downstream consumption (handled by `framework/skills/map-erd-to-ui.md`)
+## Downstream consumption (handled by `framework/skills/map-data-model-to-ui.md`)
 
 - **Entities** → screen taxonomy. Each `persistent` entity becomes a candidate list-screen + detail-screen pair.
 - **Attributes** → form fields on the detail-screen. PK is read-only; nullable attributes are optional fields; enum attributes are dropdowns.
@@ -221,4 +221,4 @@ The analyser does **not** edit the template's CSS or layout — only the documen
 - **Business rules** → constraints + validation messages on screens.
 - **Normalisation notes** → may surface as global decisions (e.g., "approvals are first-class entities, not edge attributes — give them a dedicated screen").
 
-`framework/skills/map-erd-to-ui.md` is a stub at MVP — the mapping is documented here for the analyser's character file and for future downstream design-spec authors.
+`framework/skills/map-data-model-to-ui.md` is a stub at MVP — the mapping is documented here for the analyser's character file and for future downstream design-spec authors.
