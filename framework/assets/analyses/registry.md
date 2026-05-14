@@ -73,7 +73,15 @@ methodologies:
   - { name: highest-value-paths, status: future }
   - { name: storyboarding, status: future }
   - { name: scenarios, status: future }
-  - { name: activity-diagrams, status: future }
+  - name: activity-diagram
+    status: mvp
+    description: UML 2.5 Activity Diagrams — per-flow process views with horizontal swimlanes (actor + system components + external systems), decision/merge nodes for branching, fork/join for parallelism, initial/final markers. Consultant selects which flows to render; tabular catalogues always emitted, inline-SVG diagrams per selected flow.
+    output_path: analyses/ACTIVITY-DIAGRAM/activity-diagram.html
+    reference_asset: framework/assets/analyses/activity-diagram-reference.md
+    template_asset: framework/assets/analyses/template-activity-diagram.html
+    map_skill: framework/skills/map-activity-diagram-to-ui.md
+    analyser_agent: framework/agents/analyses/activity-diagram-analyser.md
+    character: framework/assets/characters/activity-diagram-analysis.md
   - { name: decision-matrix, status: future }
 ---
 

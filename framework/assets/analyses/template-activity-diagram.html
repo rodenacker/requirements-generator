@@ -1,0 +1,899 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses/activity-diagram-analyser.md.
+
+  Purpose: HTML/CSS skeleton for a UML 2.5 activity-diagram catalogue
+  artefact (system-level fidelity, swimlane-partitioned, control-flow only)
+  plus 0..N inline-SVG figures chosen by the consultant.
+
+  Two tiers:
+    - Tier 1 (always rendered): six Tier-1 sections — flows, swimlanes,
+      actions, control nodes, edges, cross-flow swimlane matrix — plus a
+      separate diagnostics block.
+    - Tier 2 (consultant-selected, 0..N): inline-SVG activity-diagram
+      figures, one per selected flow. All figures share the same
+      lane_height so swimlanes align horizontally across flows.
+
+  Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`). No
+  external CSS / JS dependencies; viewable by opening `file://` in a
+  browser; shareable with clients without tooling.
+
+  Placeholders the analyser substitutes (string substitution, all values
+  pre-escaped for HTML; XML-escaped inside <svg><text> nodes):
+
+    {{TITLE}}                  — short title (e.g. "Activity Diagrams — Project X").
+    {{DOMAIN}}                 — domain string (from requirements §1 if present).
+    {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
+    {{REQUIREMENTS_SHA256}}    — sha256 of requirements/requirements.md at read time.
+    {{FLOW_COUNT}}             — number of rows in the Flows table.
+    {{SWIMLANE_COUNT}}         — number of rows in the global Swimlanes table.
+    {{ACTION_COUNT}}           — number of rows in the Actions table.
+    {{CONTROL_NODE_COUNT}}     — number of rows in the Control nodes table.
+    {{EDGE_COUNT}}             — number of rows in the Edges table.
+    {{AI_SUGGESTED_COUNT}}     — total items marked `ai-suggested`. Key
+                                 diagnostic affordance.
+    {{FLOWS_RENDERED}}         — comma-separated flow display names
+                                 whose SVG was emitted, or
+                                 "none — catalogue only".
+    {{DIAGNOSTICS_BLOCK}}      — pre-rendered HTML block per DIAGNOSTICS
+                                 SCHEMA below.
+    {{CATALOGUE_BLOCK}}        — pre-rendered Tier-1 tables block per
+                                 CATALOGUE SCHEMA below.
+    {{SVG_DIAGRAMS_BLOCK}}     — pre-rendered Tier-2 <figure> blocks per
+                                 ACTIVITY DIAGRAM SCHEMA below; one
+                                 <figure> per selected flow. Empty
+                                 selection renders an empty-state <p>.
+    {{MERMAID_BLOCK}}          — pre-rendered <details> containing 0..N
+                                 <pre> blocks (one Mermaid
+                                 `flowchart TD` source per selected
+                                 flow). Empty if none selected.
+
+  Output: analyses/ACTIVITY-DIAGRAM/activity-diagram.html.
+
+  CATALOGUE SCHEMA — the analyser's {{CATALOGUE_BLOCK}} substitutes a
+  single <section class="catalogue">. The inner section contains, in
+  order:
+
+      <section class="catalogue">
+        <h2>Activity-diagram catalogue</h2>
+
+        <section class="flows-block">
+          <h3>Flows</h3>
+          <table class="flows-table">
+            <thead>
+              <tr>
+                <th>id</th>
+                <th>display name</th>
+                <th>type</th>
+                <th>actor</th>
+                <th>goal</th>
+                <th>source</th>
+                <th>actions</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{id}}</code></td>
+                <td>{{display_name}}</td>
+                <td><span class="flow-type-{{type}}">{{type}}</span></td>
+                <td><code>{{actor}}</code></td>
+                <td>{{goal}}</td>
+                <td>{{source}}</td>
+                <td>{{action_count}}</td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="swimlanes-block">
+          <h3>Swimlanes</h3>
+          <table class="swimlanes-table">
+            <thead>
+              <tr>
+                <th>id</th>
+                <th>display name</th>
+                <th>kind</th>
+                <th>role</th>
+                <th>flows</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{id}}</code></td>
+                <td>{{display_name}}</td>
+                <td><span class="kind-{{kind}}">{{kind}}</span></td>
+                <td>{{role}}</td>
+                <td>{{flows_csv}}</td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="actions-block">
+          <h3>Actions</h3>
+          <table class="actions-table">
+            <thead>
+              <tr>
+                <th>flow</th>
+                <th>seq</th>
+                <th>id</th>
+                <th>label</th>
+                <th>swimlane</th>
+                <th>kind</th>
+                <th>notes</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{flow_id}}</code></td>
+                <td class="seq">{{seq}}</td>
+                <td><code>{{id}}</code></td>
+                <td class="label">{{label}}</td>
+                <td><code>{{owning_swimlane}}</code></td>
+                <td><span class="action-kind-{{kind}}">{{kind}}</span></td>
+                <td>{{notes or ""}}</td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="control-nodes-block">
+          <h3>Control nodes</h3>
+          <table class="control-nodes-table">
+            <thead>
+              <tr>
+                <th>flow</th>
+                <th>id</th>
+                <th>type</th>
+                <th>swimlane</th>
+                <th>notes</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{flow_id}}</code></td>
+                <td><code>{{id}}</code></td>
+                <td><span class="node-type-{{type}}">{{type}}</span></td>
+                <td><code>{{owning_swimlane or "—"}}</code></td>
+                <td>{{notes or ""}}</td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="edges-block">
+          <h3>Edges</h3>
+          <table class="edges-table">
+            <thead>
+              <tr>
+                <th>flow</th>
+                <th>source</th>
+                <th>target</th>
+                <th>guard</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{flow_id}}</code></td>
+                <td><code>{{source}}</code></td>
+                <td><code>{{target}}</code></td>
+                <td class="guard">{{guard or "—"}}</td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="matrix-block">
+          <h3>Cross-flow swimlane matrix</h3>
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th>swimlane</th>
+                <th>flow-id-1</th>
+                <th>flow-id-2</th>
+                ...
+                <th>used in</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>{{swimlane_id}}</code></td>
+                <td class="matrix-cell-present|matrix-cell-absent">{{✓ or empty}}</td>
+                ...
+                <td class="usage-count">{{N}} / {{total}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+      </section>
+
+  ACTIVITY DIAGRAM SCHEMA — the analyser's {{SVG_DIAGRAMS_BLOCK}}
+  substitutes a single <section class="activity-diagrams">. The inner
+  section contains one <figure> per selected flow:
+
+      <section class="activity-diagrams">
+        <h2>Activity diagrams</h2>
+        <p class="activity-diagrams-meta">Diagrams rendered: {{FLOWS_RENDERED}}</p>
+
+        <figure class="activity-diagram flow-{slug}">
+          <figcaption>
+            <h3>{{flow_display_name}}</h3>
+            <p class="flow-meta"><code>{{flow_id}}</code> — {{type}} — {{action_count}} actions, {{control_node_count}} control nodes</p>
+          </figcaption>
+          <svg viewBox="0 0 W H" role="img" aria-label="Activity diagram for {{flow_display_name}}">
+            <defs>
+              <marker id="flow-arrow-{slug}" ...>open triangle</marker>
+            </defs>
+            <!-- swimlane bands: <rect class="swimlane"/> + <text class="swimlane-label"/> per swimlane -->
+            <!-- swimlane dividers: <line class="swimlane-divider"/> between bands -->
+            <!-- action nodes: <rect class="action-node action-kind-{kind}" rx="8"/> + <text class="action-label"/> per action -->
+            <!-- decision/merge nodes: <polygon class="decision-node|merge-node"/> (rotated square / diamond) per node -->
+            <!-- fork/join bars: <rect class="fork-bar|join-bar"/> per node -->
+            <!-- initial node: <circle class="initial-node"/> filled black, r=8 -->
+            <!-- activity-final node: <circle class="final-node final-activity-outer"/> + <circle class="final-node final-activity-inner"/> (bullseye) -->
+            <!-- flow-final node: <circle class="final-node final-flow-outer"/> + two <line class="final-flow-cross"/> (X) -->
+            <!-- control-flow edges: <path class="flow-edge" marker-end="url(#flow-arrow-{slug})"/> per edge -->
+            <!-- edge guards: <rect class="edge-guard-bg"/> + <text class="edge-guard"/> per guarded edge -->
+          </svg>
+        </figure>
+
+        ... one figure per selected flow ...
+      </section>
+
+    OR if the consultant selected zero flows:
+
+      <section class="activity-diagrams">
+        <p class="diagrams-empty">No diagrams were selected. The
+        catalogue tables above are the deliverable.</p>
+      </section>
+
+  DIAGNOSTICS SCHEMA — the analyser's {{DIAGNOSTICS_BLOCK}} substitutes a
+  single <section class="diagnostics">. The template wraps the placeholder
+  in a <details class="diagnostics-toggle"> element (collapsed by default).
+  The inner section contains, in order:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>Catalogue — F flows, S swimlanes, A actions, N control nodes, E edges.</p>
+        <p>Provenance: X from-task-flow, Y derived, Z ai-suggested.</p>
+        <ul>
+          <li class="check-pass|check-fail">Check 1 — Every flow has a kebab-case id and a display name.</li>
+          ... (all 10 checks listed in order)
+        </ul>
+        <p class="density-warning hidden|...">⚠ Density warning: ...</p>
+        <!-- Override-only: flagged-items <ul> per failed check. -->
+      </section>
+
+  CSS classes used by the analyser:
+    .catalogue            — outer container for Tier 1 tables.
+    .flows-table .swimlanes-table .actions-table
+    .control-nodes-table .edges-table .matrix-table
+                          — one per Tier-1 section.
+    .activity-diagrams    — outer container for Tier 2 figures.
+    .activity-diagram     — applied to every <figure>; one
+                            .flow-{slug} modifier per flow.
+    .diagrams-empty       — applied to the <p> when zero flows selected.
+    .mermaid-source       — applied to the <details> wrapping <pre> blocks.
+    .provenance-from-task-flow
+    .provenance-derived
+    .provenance-ai-suggested
+                          — exactly one per content row in any Tier-1
+                            table.
+    .ai-suggested         — applied to any cell whose content carries
+                            [AI-SUGGESTED]; renders italic + dim.
+    .kind-actor .kind-system-component .kind-external-system
+                          — pill badges in the swimlanes table.
+    .flow-type-primary .flow-type-extension .flow-type-recovery
+                          — pill badges in the flows table.
+    .action-kind-action .action-kind-decision-prep .action-kind-external-call
+                          — pill badges in the actions table; also applied
+                            to <rect class="action-node"> SVG elements.
+    .node-type-initial .node-type-activity-final .node-type-flow-final
+    .node-type-decision .node-type-merge .node-type-fork .node-type-join
+                          — pill badges in the control-nodes table.
+    .matrix-cell-present .matrix-cell-absent
+                          — matrix table cell variants.
+    .rev-marker           — applied to any row flagged by a failed
+                            quality check on an Override run.
+
+  SVG conventions (analyser owns content; template provides CSS
+  containment + per-element styling):
+    - viewBox "0 0 W H" — W and H computed by analyser from action
+      count, swimlane count, and column_width / lane_height.
+    - role="img" + aria-label on every <svg>.
+    - All <text> nodes XML-escape swimlane labels, action labels, guards.
+    - Shared lane_height across all flows in a single render.
+
+  Content TBD-able by the analyser:
+    The diagnostics block, catalogue table rows, SVG count and contents,
+    and Mermaid <pre> contents are fully driven by the analyser. The CSS
+    below is fixed scaffolding and should not be edited — only the
+    {{placeholders}} above are substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --card-bg: #ffffff;
+      --header-bg: #efefef;
+      --row-alt: #fbfbfb;
+
+      --prov-task-flow:     #2a6aa0;
+      --prov-derived:       #b86a00;
+      --prov-ai-suggested:  #a02a6a;
+
+      --kind-actor-bg:             #e7f0fb; --kind-actor-fg:             #0c2a44;
+      --kind-system-component-bg:  #eaf3ef; --kind-system-component-fg:  #14422a;
+      --kind-external-system-bg:   #fff5d6; --kind-external-system-fg:   #4a3a00;
+
+      --flow-primary-bg:    #e7f0fb; --flow-primary-fg:    #0c2a44;
+      --flow-extension-bg:  #eaf3ef; --flow-extension-fg:  #14422a;
+      --flow-recovery-bg:   #ffeaea; --flow-recovery-fg:   #8a1a1a;
+
+      --action-kind-action-bg:          #eaf3ef; --action-kind-action-fg:          #14422a;
+      --action-kind-decision-prep-bg:   #fff5d6; --action-kind-decision-prep-fg:   #4a3a00;
+      --action-kind-external-call-bg:   #f3eafd; --action-kind-external-call-fg:   #2e1255;
+
+      --node-type-initial-bg:           #1a1a1a; --node-type-initial-fg:           #fafafa;
+      --node-type-activity-final-bg:    #1a1a1a; --node-type-activity-final-fg:    #fafafa;
+      --node-type-flow-final-bg:        #ffeaea; --node-type-flow-final-fg:        #8a1a1a;
+      --node-type-decision-bg:          #e7f0fb; --node-type-decision-fg:          #0c2a44;
+      --node-type-merge-bg:             #eaf3ef; --node-type-merge-fg:             #14422a;
+      --node-type-fork-bg:              #f3eafd; --node-type-fork-fg:              #2e1255;
+      --node-type-join-bg:              #f3eafd; --node-type-join-fg:              #2e1255;
+
+      --ai-bg: #fdf3fa;
+
+      --rev-bg: #ffeaea; --rev-border: #d44a4a; --rev-fg: #8a1a1a;
+
+      --svg-swimlane-band-actor:           #f3f7fc;
+      --svg-swimlane-band-system:          #f5faf7;
+      --svg-swimlane-band-external:        #fffaeb;
+      --svg-swimlane-label:                #1a1a1a;
+      --svg-swimlane-divider:              #b0b0b0;
+      --svg-action-fill:                   #ffffff;
+      --svg-action-stroke:                 #5a5a5a;
+      --svg-action-label:                  #1a1a1a;
+      --svg-action-kind-action:            #eaf3ef;
+      --svg-action-kind-decision-prep:     #fff5d6;
+      --svg-action-kind-external-call:     #f3eafd;
+      --svg-decision-fill:                 #ffffff;
+      --svg-decision-stroke:               #5a5a5a;
+      --svg-merge-fill:                    #ffffff;
+      --svg-merge-stroke:                  #5a5a5a;
+      --svg-fork-fill:                     #1a1a1a;
+      --svg-join-fill:                     #1a1a1a;
+      --svg-initial-fill:                  #1a1a1a;
+      --svg-final-stroke:                  #1a1a1a;
+      --svg-final-inner-fill:              #1a1a1a;
+      --svg-flow-final-stroke:             #8a1a1a;
+      --svg-edge:                          #2a2a2a;
+      --svg-edge-guard-bg:                 #ffffff;
+      --svg-edge-guard-fg:                 #b86a00;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+    }
+
+    h2 {
+      font-size: 17px;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+    }
+
+    h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 0 24px 0;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      background: var(--row-alt);
+      padding: 1px 5px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px 24px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+
+    .meta-grid dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+
+    .meta-grid dd {
+      margin: 0 0 6px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ------- diagnostics ------- */
+
+    details.diagnostics-toggle {
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.diagnostics-toggle[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.diagnostics-toggle[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
+    .diagnostics {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > .diagnostics {
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      margin-bottom: 0;
+    }
+    details.diagnostics-toggle > .diagnostics > h2 {
+      display: none;
+    }
+
+    .diagnostics > ul {
+      margin: 0 0 12px 0;
+      padding-left: 20px;
+    }
+
+    .diagnostics .check-pass::before { content: "PASS "; color: #2a8a2a; font-weight: 600; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--rev-fg); font-weight: 600; }
+
+    .diagnostics .density-warning {
+      padding: 8px 10px;
+      background: #fff5d6;
+      border-left: 3px solid #d97a1f;
+      border-radius: 3px;
+      margin: 8px 0;
+      font-size: 13px;
+    }
+    .diagnostics .density-warning.hidden { display: none; }
+
+    .diagnostics .flagged-items {
+      margin: 8px 0 0 0;
+      padding: 8px 10px;
+      background: var(--rev-bg);
+      border-left: 3px solid var(--rev-border);
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    .diagnostics .flagged-items strong { color: var(--rev-fg); }
+
+    /* ------- catalogue tables ------- */
+
+    .catalogue {
+      margin-bottom: 32px;
+    }
+
+    .catalogue > section {
+      margin-bottom: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+    }
+
+    .catalogue table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+
+    .catalogue thead th {
+      background: var(--header-bg);
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 2px solid var(--border-strong);
+      vertical-align: bottom;
+    }
+
+    .catalogue tbody td {
+      padding: 8px 10px;
+      border-top: 1px solid var(--border);
+      vertical-align: top;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .catalogue tbody tr:nth-child(even) { background: var(--row-alt); }
+
+    /* Provenance row left-border + provenance cell content */
+    .catalogue tbody tr.provenance-from-task-flow { box-shadow: inset 3px 0 0 0 var(--prov-task-flow); }
+    .catalogue tbody tr.provenance-derived         { box-shadow: inset 3px 0 0 0 var(--prov-derived); }
+    .catalogue tbody tr.provenance-ai-suggested    { box-shadow: inset 3px 0 0 0 var(--prov-ai-suggested); background: var(--ai-bg); }
+    .catalogue tbody tr.provenance-ai-suggested td { font-style: italic; }
+
+    .catalogue td.prov-cell {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .catalogue td.prov-cell::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: 1px;
+    }
+    tr.provenance-from-task-flow td.prov-cell::before { background: var(--prov-task-flow); }
+    tr.provenance-derived         td.prov-cell::before { background: var(--prov-derived); }
+    tr.provenance-ai-suggested    td.prov-cell::before { background: var(--prov-ai-suggested); }
+
+    /* Pill badges — kind (swimlanes), flow type, action kind, node type */
+    .kind-actor, .kind-system-component, .kind-external-system,
+    .flow-type-primary, .flow-type-extension, .flow-type-recovery,
+    .action-kind-action, .action-kind-decision-prep, .action-kind-external-call,
+    .node-type-initial, .node-type-activity-final, .node-type-flow-final,
+    .node-type-decision, .node-type-merge, .node-type-fork, .node-type-join {
+      display: inline-block;
+      padding: 1px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-radius: 3px;
+    }
+    .kind-actor              { background: var(--kind-actor-bg);             color: var(--kind-actor-fg); }
+    .kind-system-component   { background: var(--kind-system-component-bg);  color: var(--kind-system-component-fg); }
+    .kind-external-system    { background: var(--kind-external-system-bg);   color: var(--kind-external-system-fg); }
+    .flow-type-primary       { background: var(--flow-primary-bg);   color: var(--flow-primary-fg); }
+    .flow-type-extension     { background: var(--flow-extension-bg); color: var(--flow-extension-fg); }
+    .flow-type-recovery      { background: var(--flow-recovery-bg);  color: var(--flow-recovery-fg); }
+    .action-kind-action          { background: var(--action-kind-action-bg);          color: var(--action-kind-action-fg); }
+    .action-kind-decision-prep   { background: var(--action-kind-decision-prep-bg);   color: var(--action-kind-decision-prep-fg); }
+    .action-kind-external-call   { background: var(--action-kind-external-call-bg);   color: var(--action-kind-external-call-fg); }
+    .node-type-initial           { background: var(--node-type-initial-bg);           color: var(--node-type-initial-fg); }
+    .node-type-activity-final    { background: var(--node-type-activity-final-bg);    color: var(--node-type-activity-final-fg); }
+    .node-type-flow-final        { background: var(--node-type-flow-final-bg);        color: var(--node-type-flow-final-fg); }
+    .node-type-decision          { background: var(--node-type-decision-bg);          color: var(--node-type-decision-fg); }
+    .node-type-merge             { background: var(--node-type-merge-bg);             color: var(--node-type-merge-fg); }
+    .node-type-fork              { background: var(--node-type-fork-bg);              color: var(--node-type-fork-fg); }
+    .node-type-join              { background: var(--node-type-join-bg);              color: var(--node-type-join-fg); }
+
+    .catalogue td.seq { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; text-align: right; width: 40px; }
+    .catalogue td.label { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; color: var(--prov-task-flow); }
+    .catalogue td.guard { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; font-style: italic; color: var(--prov-derived); }
+
+    /* AI-SUGGESTED cell highlight */
+    .ai-suggested,
+    td.ai-suggested {
+      background: var(--ai-bg);
+      font-style: italic;
+      color: var(--prov-ai-suggested);
+    }
+
+    /* Rev marker (override-only) */
+    .rev-marker,
+    tr.rev-marker {
+      background: var(--rev-bg);
+      box-shadow: inset 3px 0 0 0 var(--rev-border);
+      color: var(--rev-fg);
+    }
+
+    /* Cross-flow matrix */
+    .matrix-table td { text-align: center; font-size: 12px; }
+    .matrix-table td:first-child { text-align: left; }
+    .matrix-table td.matrix-cell-present { color: #2a8a2a; font-weight: 700; }
+    .matrix-table td.matrix-cell-absent  { color: var(--border); }
+    .matrix-table td.usage-count { font-variant-numeric: tabular-nums; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+    /* ------- activity diagrams ------- */
+
+    .activity-diagrams {
+      margin-bottom: 32px;
+    }
+    .activity-diagrams-meta {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 0 0 12px 0;
+    }
+    .diagrams-empty {
+      padding: 16px;
+      background: var(--card-bg);
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-style: italic;
+      margin: 0;
+    }
+
+    .activity-diagram {
+      margin: 0 0 24px 0;
+      padding: 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .activity-diagram figcaption {
+      margin: 0 0 12px 0;
+    }
+    .activity-diagram figcaption h3 {
+      margin: 0;
+      font-size: 13px;
+      color: var(--fg);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .activity-diagram figcaption .flow-meta {
+      margin: 4px 0 0 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .activity-diagram svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #fcfcfc;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+
+    /* SVG-internal styling (selectable by class on emitted shapes) */
+    .activity-diagram svg .swimlane.kind-actor             { fill: var(--svg-swimlane-band-actor); }
+    .activity-diagram svg .swimlane.kind-system-component  { fill: var(--svg-swimlane-band-system); }
+    .activity-diagram svg .swimlane.kind-external-system   { fill: var(--svg-swimlane-band-external); }
+    .activity-diagram svg .swimlane-label                  { fill: var(--svg-swimlane-label); font-weight: 700; font-size: 11px; }
+    .activity-diagram svg .swimlane-divider                { stroke: var(--svg-swimlane-divider); stroke-width: 1; }
+    .activity-diagram svg .action-node                     { fill: var(--svg-action-fill); stroke: var(--svg-action-stroke); stroke-width: 1.2; }
+    .activity-diagram svg .action-node.action-kind-action          { fill: var(--svg-action-kind-action); }
+    .activity-diagram svg .action-node.action-kind-decision-prep   { fill: var(--svg-action-kind-decision-prep); }
+    .activity-diagram svg .action-node.action-kind-external-call   { fill: var(--svg-action-kind-external-call); }
+    .activity-diagram svg .action-label                    { fill: var(--svg-action-label); font-size: 11px; text-anchor: middle; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .activity-diagram svg .decision-node                   { fill: var(--svg-decision-fill); stroke: var(--svg-decision-stroke); stroke-width: 1.2; }
+    .activity-diagram svg .merge-node                      { fill: var(--svg-merge-fill); stroke: var(--svg-merge-stroke); stroke-width: 1.2; }
+    .activity-diagram svg .fork-bar                        { fill: var(--svg-fork-fill); }
+    .activity-diagram svg .join-bar                        { fill: var(--svg-join-fill); }
+    .activity-diagram svg .initial-node                    { fill: var(--svg-initial-fill); }
+    .activity-diagram svg .final-node.final-activity-outer { fill: none; stroke: var(--svg-final-stroke); stroke-width: 1.5; }
+    .activity-diagram svg .final-node.final-activity-inner { fill: var(--svg-final-inner-fill); }
+    .activity-diagram svg .final-node.final-flow-outer     { fill: none; stroke: var(--svg-flow-final-stroke); stroke-width: 1.5; }
+    .activity-diagram svg .final-flow-cross                { stroke: var(--svg-flow-final-stroke); stroke-width: 1.5; }
+    .activity-diagram svg .flow-edge                       { fill: none; stroke: var(--svg-edge); stroke-width: 1.3; }
+    .activity-diagram svg .edge-guard                      { fill: var(--svg-edge-guard-fg); font-size: 10px; font-style: italic; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .activity-diagram svg .edge-guard-bg                   { fill: var(--svg-edge-guard-bg); }
+
+    /* ------- Mermaid fallback ------- */
+
+    details.mermaid-source {
+      margin-bottom: 24px;
+    }
+    details.mermaid-source > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--prov-derived);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--fg);
+      list-style: none;
+      user-select: none;
+    }
+    details.mermaid-source > summary::-webkit-details-marker { display: none; }
+    details.mermaid-source > summary::before {
+      content: "▶ ";
+      font-size: 10px;
+      color: var(--muted);
+    }
+    details.mermaid-source[open] > summary::before { content: "▼ "; }
+    details.mermaid-source > pre {
+      margin: 0;
+      padding: 12px 16px;
+      background: var(--row-alt);
+      border: 1px solid var(--border);
+      border-top: none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    details.mermaid-source > pre + pre {
+      border-top: 1px solid var(--border);
+    }
+    details.mermaid-source > pre:last-of-type {
+      border-radius: 0 0 6px 6px;
+    }
+    details.mermaid-source .mermaid-caption {
+      color: var(--muted);
+      font-size: 11px;
+      padding: 4px 16px;
+      background: var(--row-alt);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      font-style: italic;
+    }
+
+    /* ------- bottom legend ------- */
+
+    footer.bottom {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    footer.bottom .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    footer.bottom .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    footer.bottom .legend-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    footer.bottom .legend-dot.s-task-flow { background: var(--prov-task-flow); }
+    footer.bottom .legend-dot.s-derived   { background: var(--prov-derived); }
+    footer.bottom .legend-dot.s-ai        { background: var(--prov-ai-suggested); }
+    footer.bottom .credit { margin-top: 6px; text-align: right; }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .catalogue > section,
+      .activity-diagram {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        border-radius: 0;
+        border-color: #000;
+      }
+      details.diagnostics-toggle,
+      details.mermaid-source { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>{{TITLE}}</h1>
+    <p class="subtitle">UML 2.5 activity-diagram catalogue (system-level fidelity, swimlane-partitioned, control-flow only) — flows, swimlanes, actions, control nodes, edges — plus consultant-selected inline-SVG diagrams.</p>
+
+    <dl class="meta-grid">
+      <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+      <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+      <div><dt>Source SHA-256</dt><dd><code>{{REQUIREMENTS_SHA256}}</code></dd></div>
+      <div><dt>Flows</dt><dd>{{FLOW_COUNT}}</dd></div>
+      <div><dt>Swimlanes</dt><dd>{{SWIMLANE_COUNT}}</dd></div>
+      <div><dt>Actions</dt><dd>{{ACTION_COUNT}}</dd></div>
+      <div><dt>Control nodes</dt><dd>{{CONTROL_NODE_COUNT}}</dd></div>
+      <div><dt>Edges</dt><dd>{{EDGE_COUNT}}</dd></div>
+      <div><dt>AI-suggested items</dt><dd>{{AI_SUGGESTED_COUNT}}</dd></div>
+      <div><dt>Diagrams rendered</dt><dd>{{FLOWS_RENDERED}}</dd></div>
+    </dl>
+
+    <details class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    {{CATALOGUE_BLOCK}}
+
+    {{SVG_DIAGRAMS_BLOCK}}
+
+    {{MERMAID_BLOCK}}
+
+    <footer class="bottom">
+      <div class="legend">
+        <span class="legend-item"><span class="legend-dot s-task-flow" aria-hidden="true"></span> from §5 Task flows</span>
+        <span class="legend-item"><span class="legend-dot s-derived" aria-hidden="true"></span> derived from §2/§3/§4/§6/§7</span>
+        <span class="legend-item"><span class="legend-dot s-ai" aria-hidden="true"></span> [AI-SUGGESTED]</span>
+      </div>
+      <div class="credit">Generated by `framework/agents/analyses/activity-diagram-analyser.md`.</div>
+    </footer>
+  </main>
+</body>
+</html>
