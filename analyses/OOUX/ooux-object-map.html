@@ -10,18 +10,19 @@
       --muted: #5a5a5a;
       --border: #d4d4d4;
       --border-strong: #8a8a8a;
-      --ccp-bg: #fff7cc;
-      --ccp-fg: #5a4500;
-      --ccp-border: #e6c200;
-      --nested-bg: #e8f0ff;
-      --nested-fg: #1a3a7a;
-      --rev-bg: #ffeaea;
-      --rev-fg: #8a1a1a;
-      --rev-border: #d44a4a;
+      --col-bg: #ffffff;
+      --sticky-shadow: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+
+      --cta-bg: #c8e6b2;     --cta-border: #7fb069;   --cta-fg: #1f3d12;
+      --obj-bg: #b9d7f0;     --obj-border: #4f8fbf;   --obj-fg: #0c2a44;
+      --core-bg: #fff3a8;    --core-border: #e0c34a;  --core-fg: #4a3a00;
+      --meta-bg: #f6c6d5;    --meta-border: #c97a92;  --meta-fg: #4a1a2a;
+      --nested-bg: #dbe9f7;  --nested-border: #4f8fbf;--nested-fg: #0c2a44;
+
       --prov-domain: #2a8a2a;
       --prov-derived: #b86a00;
+      --rev-bg: #ffeaea;     --rev-border: #d44a4a;   --rev-fg: #8a1a1a;
       --header-bg: #efefef;
-      --row-alt: #f3f3f3;
     }
 
     * { box-sizing: border-box; }
@@ -80,6 +81,41 @@
       font-variant-numeric: tabular-nums;
     }
 
+    details.diagnostics-toggle {
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.diagnostics-toggle[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.diagnostics-toggle[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
     .diagnostics {
       padding: 16px;
       border: 1px solid var(--border);
@@ -88,66 +124,134 @@
       background: #fff;
       margin-bottom: 24px;
     }
+    details.diagnostics-toggle > .diagnostics {
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      margin-bottom: 0;
+    }
+    details.diagnostics-toggle > .diagnostics > h2 {
+      /* The <summary> already labels the section; avoid a duplicated heading. */
+      display: none;
+    }
 
     .diagnostics h2 {
       font-size: 16px;
       margin: 0 0 8px 0;
     }
 
-    .diagnostics ul {
-      margin: 0;
+    .diagnostics > ul {
+      margin: 0 0 12px 0;
       padding-left: 20px;
     }
 
     .diagnostics .check-pass::before { content: "PASS "; color: var(--prov-domain); font-weight: 600; }
     .diagnostics .check-fail::before { content: "FAIL "; color: var(--rev-fg); font-weight: 600; }
 
-    table.object-map {
+    .diagnostics table.rel-matrix {
       width: 100%;
       border-collapse: collapse;
-      background: #fff;
-      border: 1px solid var(--border);
+      margin: 12px 0 0 0;
+      font-size: 12px;
     }
-
-    table.object-map thead th {
-      background: var(--header-bg);
-      text-align: left;
-      padding: 10px 12px;
-      font-weight: 600;
-      font-size: 13px;
-      border-bottom: 2px solid var(--border-strong);
-      vertical-align: bottom;
-    }
-
-    table.object-map tbody tr.object-row:nth-child(even) {
-      background: var(--row-alt);
-    }
-
-    table.object-map td,
-    table.object-map th {
-      padding: 10px 12px;
+    .diagnostics table.rel-matrix th,
+    .diagnostics table.rel-matrix td {
+      padding: 6px 8px;
       border-top: 1px solid var(--border);
+      text-align: left;
       vertical-align: top;
     }
-
-    table.object-map th.object-name {
-      width: 18%;
+    .diagnostics table.rel-matrix thead th {
+      background: var(--header-bg);
       font-weight: 600;
-      font-size: 14px;
-      text-align: left;
+      border-top: none;
+      border-bottom: 2px solid var(--border-strong);
+    }
+    .diagnostics table.rel-matrix td.nested-yes { color: var(--nested-fg); font-weight: 600; }
+    .diagnostics table.rel-matrix td.nested-no  { color: var(--muted); }
+
+    /* ------- column-board layout ------- */
+
+    .object-board {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      align-items: start;
     }
 
-    table.object-map td.relationships { width: 28%; }
-    table.object-map td.ctas          { width: 22%; }
-    table.object-map td.attributes    { width: 32%; }
+    .object-column {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px;
+      background: var(--col-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
 
-    table.object-map ul {
+    .sticky-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      list-style: none;
       margin: 0;
-      padding-left: 18px;
+      padding: 0;
+    }
+    .sticky-stack[hidden] { display: none; }
+
+    .sticky {
+      padding: 8px 10px;
+      border-radius: 4px;
+      border-left: 3px solid transparent;
+      box-shadow: var(--sticky-shadow);
+      font-size: 13px;
+      line-height: 1.35;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
 
-    table.object-map li {
-      margin: 0 0 4px 0;
+    .sticky.cta {
+      background: var(--cta-bg);
+      border-left-color: var(--cta-border);
+      color: var(--cta-fg);
+      font-weight: 500;
+    }
+
+    header.sticky.object-header {
+      background: var(--obj-bg);
+      border-left-color: var(--obj-border);
+      color: var(--obj-fg);
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sticky.core {
+      background: var(--core-bg);
+      border-left-color: var(--core-border);
+      color: var(--core-fg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .sticky.meta {
+      background: var(--meta-bg);
+      border-left-color: var(--meta-border);
+      color: var(--meta-fg);
+    }
+
+    .sticky.nested-relationship {
+      background: var(--nested-bg);
+      border: 1px dashed var(--nested-border);
+      border-left: 3px dashed var(--nested-border);
+      color: var(--nested-fg);
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px 6px;
     }
 
     .provenance {
@@ -155,10 +259,10 @@
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      margin-right: 6px;
       vertical-align: middle;
       font-size: 0;
       line-height: 0;
+      flex: 0 0 auto;
     }
     .provenance-from-domain-model { background: var(--prov-domain); }
     .provenance-derived           { background: var(--prov-derived); }
@@ -166,97 +270,102 @@
     .rel-label {
       font-style: italic;
       color: var(--muted);
-      margin-right: 4px;
     }
     .rel-cardinality {
       display: inline-block;
-      margin-left: 6px;
       padding: 1px 6px;
       font-size: 11px;
       font-variant-numeric: tabular-nums;
-      color: var(--muted);
-      border: 1px solid var(--border);
+      color: var(--nested-fg);
+      border: 1px solid var(--nested-border);
       border-radius: 4px;
       background: #fff;
     }
     .rel-target {
-      color: var(--fg);
+      color: var(--nested-fg);
       text-decoration: underline;
-      text-decoration-color: var(--border-strong);
+      text-decoration-color: var(--nested-border);
+      font-weight: 600;
     }
     .rel-target:hover { text-decoration-color: var(--fg); }
 
-    .nested-relationship {
-      display: inline-block;
-      margin-left: 6px;
-      padding: 1px 6px;
-      font-size: 10px;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: var(--nested-fg);
-      background: var(--nested-bg);
-      border-radius: 3px;
-    }
-    .nested-relationship:not([hidden])::before {
-      content: "nested";
-    }
-
-    .cta {
-      display: inline-block;
-      padding: 1px 6px;
-      font-weight: 500;
-      background: #f0f0f0;
-      border-radius: 3px;
-    }
-
-    li.ccp-highlight {
-      background: var(--ccp-bg);
-      border-left: 3px solid var(--ccp-border);
-      padding-left: 6px;
-      color: var(--ccp-fg);
-    }
     .ccp-marker {
       display: inline-block;
-      margin-left: 6px;
       padding: 0 5px;
       font-size: 10px;
       font-weight: 700;
       letter-spacing: 0.06em;
       color: #fff;
-      background: var(--ccp-border);
+      background: var(--core-border);
       border-radius: 3px;
+      flex: 0 0 auto;
+    }
+
+    .stack-label {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 4px 0 -2px 2px;
     }
 
     .rev-marker,
-    li.rev-marker {
+    .sticky.rev-marker {
       background: var(--rev-bg);
-      border-left: 3px solid var(--rev-border);
-      padding-left: 6px;
+      border-color: var(--rev-border);
       color: var(--rev-fg);
     }
 
     footer {
       margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
       color: var(--muted);
       font-size: 11px;
-      text-align: right;
     }
+    footer .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+    }
+    footer .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    footer .legend-swatch {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border-left: 3px solid transparent;
+    }
+    footer .legend-swatch.s-cta    { background: var(--cta-bg);    border-left-color: var(--cta-border); }
+    footer .legend-swatch.s-obj    { background: var(--obj-bg);    border-left-color: var(--obj-border); }
+    footer .legend-swatch.s-core   { background: var(--core-bg);   border-left-color: var(--core-border); }
+    footer .legend-swatch.s-meta   { background: var(--meta-bg);   border-left-color: var(--meta-border); }
+    footer .legend-swatch.s-nested { background: var(--nested-bg); border: 1px dashed var(--nested-border); border-left: 3px dashed var(--nested-border); }
+    footer .provenance { vertical-align: -1px; }
+    footer .credit { margin-top: 6px; text-align: right; }
 
     @media print {
       body { background: #fff; }
       main { padding: 0; }
-      table.object-map { font-size: 11px; }
+      .object-board { gap: 8px; }
+      .object-column { break-inside: avoid; }
+      .sticky { box-shadow: none; }
     }
   </style>
 </head>
 <body>
   <main>
     <h1>OOUX Object Map — Financial services / banking back-office</h1>
-    <p class="subtitle">OOUX object map — Object / Relationships / CTAs / Attributes (CCPs highlighted).</p>
+    <p class="subtitle">OOUX object map — sticky-board (one column per object: CTAs · Object · Core content · Metadata · Nested refs).</p>
 
     <dl class="meta-grid">
       <div><dt>Domain</dt><dd>Financial services / banking back-office</dd></div>
-      <div><dt>Generated</dt><dd>2026-05-13T14:04:23Z</dd></div>
+      <div><dt>Generated</dt><dd>2026-05-13T14:24:49Z</dd></div>
       <div><dt>Source SHA-256</dt><dd>6f9272bbb30d1dce025b843f5319e790bdaa5ac2a07103204bbea7144694f0ae</dd></div>
       <div><dt>Objects</dt><dd>3</dd></div>
       <div><dt>Relationships</dt><dd>4</dd></div>
@@ -265,6 +374,8 @@
       <div><dt>CCPs</dt><dd>13</dd></div>
     </dl>
 
+    <details class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
     <section class="diagnostics">
       <h2>Diagnostics</h2>
       <p>OOUX object map — 3 objects.</p>
@@ -278,7 +389,18 @@
         <li class="check-pass">Check 6 — Object names match §2.1 concept names verbatim.</li>
         <li class="check-pass">Check 7 — Relationship matrix and nested references agree.</li>
       </ul>
-      <p>Round-2 demotions (recorded for traceability — §2.1 concepts not surfaced as objects):</p>
+      <table class="rel-matrix" aria-label="Round-3 relationship matrix">
+        <thead>
+          <tr><th>Source</th><th>Label</th><th>Target</th><th>Cardinality</th><th>Nested?</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>File Log</td><td>produces</td><td>Transaction</td><td>1:N</td><td class="nested-yes">yes</td></tr>
+          <tr><td>User</td><td>uploads</td><td>File Log</td><td>1:N</td><td class="nested-yes">yes</td></tr>
+          <tr><td>User</td><td>approves</td><td>Transaction</td><td>1:N</td><td class="nested-yes">yes</td></tr>
+          <tr><td>User</td><td>rejects</td><td>Transaction</td><td>1:N</td><td class="nested-yes">yes</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top: 12px;">Round-2 demotions (recorded for traceability — §2.1 concepts and aggregate members not surfaced as objects):</p>
       <ul>
         <li>File State (§2.1 policy concept) — demoted to attribute LastExecutedActivityName on File Log; lifecycle enum, not a navigable object.</li>
         <li>Transaction Status (§2.1 policy concept) — demoted to attribute Status on Transaction; lifecycle enum, not a navigable object.</li>
@@ -287,174 +409,132 @@
         <li>Importer / Approver (§3 personas; §7 User Roles enum) — demoted to values of the Roles attribute on User; role labels, not navigable objects.</li>
       </ul>
     </section>
+    </details>
 
-    <table class="object-map">
-      <thead>
-        <tr>
-          <th>Object</th>
-          <th>Relationships</th>
-          <th>CTAs</th>
-          <th>Attributes</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr id="obj-file-log" class="object-row">
-          <th class="object-name">
-            <span class="provenance provenance-from-domain-model" title="From §2.1 Concepts">●</span>
-            <span class="name">File Log</span>
-          </th>
-          <td class="relationships">
-            <ul>
-              <li>
-                <span class="rel-label">produces</span>
-                <a href="#obj-transaction" class="rel-target">Transaction</a>
-                <span class="rel-cardinality">1:N</span>
-                <span class="nested-relationship" hidden></span>
-              </li>
-              <li>
-                <span class="rel-label">uploaded by</span>
-                <a href="#obj-user" class="rel-target">User</a>
-                <span class="rel-cardinality">N:1</span>
-                <span class="nested-relationship"></span>
-              </li>
-            </ul>
-          </td>
-          <td class="ctas">
-            <ul>
-              <li><span class="cta">Upload file</span></li>
-              <li><span class="cta">Browse file logs</span></li>
-              <li><span class="cta">Filter file logs</span></li>
-              <li><span class="cta">Sort file logs</span></li>
-              <li><span class="cta">View file summary</span></li>
-            </ul>
-          </td>
-          <td class="attributes">
-            <ul>
-              <li class="ccp-highlight"><span class="attr">FileName</span><span class="ccp-marker">CCP</span></li>
-              <li class="ccp-highlight"><span class="attr">LastExecutedActivityName</span><span class="ccp-marker">CCP</span></li>
-              <li class="ccp-highlight"><span class="attr">ProcessDate</span><span class="ccp-marker">CCP</span></li>
-              <li class="ccp-highlight"><span class="attr">RecordCount</span><span class="ccp-marker">CCP</span></li>
-              <li><span class="attr">Id</span></li>
-              <li><span class="attr">SettingId</span></li>
-              <li><span class="attr">SettingName</span></li>
-              <li><span class="attr">IsActive</span></li>
-              <li><span class="attr">CurrentStatus</span></li>
-              <li><span class="attr">FileHash</span></li>
-              <li><span class="attr">LastChangedUser</span></li>
-              <li><span class="attr">LastChangedDate</span></li>
-            </ul>
-          </td>
-        </tr>
-        <tr id="obj-transaction" class="object-row">
-          <th class="object-name">
-            <span class="provenance provenance-from-domain-model" title="From §2.1 Concepts">●</span>
-            <span class="name">Transaction</span>
-          </th>
-          <td class="relationships">
-            <ul>
-              <li>
-                <span class="rel-label">belongs to</span>
-                <a href="#obj-file-log" class="rel-target">File Log</a>
-                <span class="rel-cardinality">N:1</span>
-                <span class="nested-relationship"></span>
-              </li>
-              <li>
-                <span class="rel-label">approved by</span>
-                <a href="#obj-user" class="rel-target">User</a>
-                <span class="rel-cardinality">N:1</span>
-                <span class="nested-relationship"></span>
-              </li>
-              <li>
-                <span class="rel-label">rejected by</span>
-                <a href="#obj-user" class="rel-target">User</a>
-                <span class="rel-cardinality">N:1</span>
-                <span class="nested-relationship"></span>
-              </li>
-            </ul>
-          </td>
-          <td class="ctas">
-            <ul>
-              <li><span class="cta">Browse transactions</span></li>
-              <li><span class="cta">Approve transaction</span></li>
-              <li><span class="cta">Reject transaction</span></li>
-              <li><span class="cta">Filter transactions</span></li>
-              <li><span class="cta">Sort transactions</span></li>
-              <li><span class="cta">Export transactions</span></li>
-            </ul>
-          </td>
-          <td class="attributes">
-            <ul>
-              <li class="ccp-highlight"><span class="attr">Reference</span><span class="ccp-marker">CCP</span></li>
-              <li class="ccp-highlight"><span class="attr">TransactionDate</span><span class="ccp-marker">CCP</span></li>
-              <li class="ccp-highlight"><span class="attr">AccountNumber</span><span class="ccp-marker">CCP</span></li>
-              <li class="ccp-highlight"><span class="attr">Amount</span><span class="ccp-marker">CCP</span></li>
-              <li class="ccp-highlight"><span class="attr">Status</span><span class="ccp-marker">CCP</span></li>
-              <li><span class="attr">Id</span></li>
-              <li><span class="attr">FileLogId</span></li>
-              <li><span class="attr">FileName</span></li>
-              <li><span class="attr">Description</span></li>
-              <li><span class="attr">TransactionType</span></li>
-              <li><span class="attr">Currency</span></li>
-              <li><span class="attr">UserNote</span></li>
-              <li><span class="attr">LastChangedUser</span></li>
-              <li><span class="attr">LastChangedDate</span></li>
-            </ul>
-          </td>
-        </tr>
-        <tr id="obj-user" class="object-row">
-          <th class="object-name">
-            <span class="provenance provenance-from-domain-model" title="From §2.1 Concepts">●</span>
-            <span class="name">User</span>
-          </th>
-          <td class="relationships">
-            <ul>
-              <li>
-                <span class="rel-label">uploads</span>
-                <a href="#obj-file-log" class="rel-target">File Log</a>
-                <span class="rel-cardinality">1:N</span>
-                <span class="nested-relationship" hidden></span>
-              </li>
-              <li>
-                <span class="rel-label">approves</span>
-                <a href="#obj-transaction" class="rel-target">Transaction</a>
-                <span class="rel-cardinality">1:N</span>
-                <span class="nested-relationship" hidden></span>
-              </li>
-              <li>
-                <span class="rel-label">rejects</span>
-                <a href="#obj-transaction" class="rel-target">Transaction</a>
-                <span class="rel-cardinality">1:N</span>
-                <span class="nested-relationship" hidden></span>
-              </li>
-            </ul>
-          </td>
-          <td class="ctas">
-            <ul>
-              <li><span class="cta">Log in</span></li>
-              <li><span class="cta">Log out</span></li>
-            </ul>
-          </td>
-          <td class="attributes">
-            <ul>
-              <li class="ccp-highlight"><span class="attr">Email</span><span class="ccp-marker">CCP</span></li>
-              <li class="ccp-highlight"><span class="attr">FirstName</span><span class="ccp-marker">CCP</span></li>
-              <li class="ccp-highlight"><span class="attr">LastName</span><span class="ccp-marker">CCP</span></li>
-              <li class="ccp-highlight"><span class="attr">Roles</span><span class="ccp-marker">CCP</span></li>
-              <li><span class="attr">Id</span></li>
-              <li><span class="attr">Password</span></li>
-              <li><span class="attr">LastChangedUser</span></li>
-              <li><span class="attr">LastChangedDate</span></li>
-            </ul>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <section class="object-board" aria-label="OOUX object map">
+      <section id="obj-file-log" class="object-column" aria-labelledby="obj-file-log-name">
+        <ul class="sticky-stack ctas" aria-label="CTAs">
+          <li class="sticky cta">Upload file</li>
+          <li class="sticky cta">Browse file logs</li>
+          <li class="sticky cta">Filter file logs</li>
+          <li class="sticky cta">Sort file logs</li>
+          <li class="sticky cta">View file summary</li>
+        </ul>
+        <header class="sticky object-header">
+          <span class="provenance provenance-from-domain-model" title="From §2.1 Concepts" aria-hidden="true">●</span>
+          <span id="obj-file-log-name" class="object-name">File Log</span>
+        </header>
+        <ul class="sticky-stack core-content" aria-label="Core content (CCP)">
+          <li class="sticky core ccp-highlight"><span class="attr">FileName</span><span class="ccp-marker">CCP</span></li>
+          <li class="sticky core ccp-highlight"><span class="attr">LastExecutedActivityName</span><span class="ccp-marker">CCP</span></li>
+          <li class="sticky core ccp-highlight"><span class="attr">ProcessDate</span><span class="ccp-marker">CCP</span></li>
+          <li class="sticky core ccp-highlight"><span class="attr">RecordCount</span><span class="ccp-marker">CCP</span></li>
+        </ul>
+        <ul class="sticky-stack metadata" aria-label="Metadata">
+          <li class="sticky meta"><span class="attr">Id</span></li>
+          <li class="sticky meta"><span class="attr">SettingId</span></li>
+          <li class="sticky meta"><span class="attr">SettingName</span></li>
+          <li class="sticky meta"><span class="attr">IsActive</span></li>
+          <li class="sticky meta"><span class="attr">CurrentStatus</span></li>
+          <li class="sticky meta"><span class="attr">FileHash</span></li>
+          <li class="sticky meta"><span class="attr">LastChangedUser</span></li>
+          <li class="sticky meta"><span class="attr">LastChangedDate</span></li>
+        </ul>
+        <ul class="sticky-stack nested-refs" aria-label="Nested object references">
+          <li class="sticky nested-relationship">
+            <span class="rel-label">uploaded by</span>
+            <a href="#obj-user" class="rel-target">User</a>
+            <span class="rel-cardinality">N:1</span>
+          </li>
+        </ul>
+      </section>
+
+      <section id="obj-transaction" class="object-column" aria-labelledby="obj-transaction-name">
+        <ul class="sticky-stack ctas" aria-label="CTAs">
+          <li class="sticky cta">Browse transactions</li>
+          <li class="sticky cta">Approve transaction</li>
+          <li class="sticky cta">Reject transaction</li>
+          <li class="sticky cta">Filter transactions</li>
+          <li class="sticky cta">Sort transactions</li>
+          <li class="sticky cta">Export transactions</li>
+        </ul>
+        <header class="sticky object-header">
+          <span class="provenance provenance-from-domain-model" title="From §2.1 Concepts" aria-hidden="true">●</span>
+          <span id="obj-transaction-name" class="object-name">Transaction</span>
+        </header>
+        <ul class="sticky-stack core-content" aria-label="Core content (CCP)">
+          <li class="sticky core ccp-highlight"><span class="attr">Reference</span><span class="ccp-marker">CCP</span></li>
+          <li class="sticky core ccp-highlight"><span class="attr">TransactionDate</span><span class="ccp-marker">CCP</span></li>
+          <li class="sticky core ccp-highlight"><span class="attr">AccountNumber</span><span class="ccp-marker">CCP</span></li>
+          <li class="sticky core ccp-highlight"><span class="attr">Amount</span><span class="ccp-marker">CCP</span></li>
+          <li class="sticky core ccp-highlight"><span class="attr">Status</span><span class="ccp-marker">CCP</span></li>
+        </ul>
+        <ul class="sticky-stack metadata" aria-label="Metadata">
+          <li class="sticky meta"><span class="attr">Id</span></li>
+          <li class="sticky meta"><span class="attr">FileLogId</span></li>
+          <li class="sticky meta"><span class="attr">FileName</span></li>
+          <li class="sticky meta"><span class="attr">Description</span></li>
+          <li class="sticky meta"><span class="attr">TransactionType</span></li>
+          <li class="sticky meta"><span class="attr">Currency</span></li>
+          <li class="sticky meta"><span class="attr">UserNote</span></li>
+          <li class="sticky meta"><span class="attr">LastChangedUser</span></li>
+          <li class="sticky meta"><span class="attr">LastChangedDate</span></li>
+        </ul>
+        <ul class="sticky-stack nested-refs" aria-label="Nested object references">
+          <li class="sticky nested-relationship">
+            <span class="rel-label">belongs to</span>
+            <a href="#obj-file-log" class="rel-target">File Log</a>
+            <span class="rel-cardinality">N:1</span>
+          </li>
+          <li class="sticky nested-relationship">
+            <span class="rel-label">approved by</span>
+            <a href="#obj-user" class="rel-target">User</a>
+            <span class="rel-cardinality">N:1</span>
+          </li>
+          <li class="sticky nested-relationship">
+            <span class="rel-label">rejected by</span>
+            <a href="#obj-user" class="rel-target">User</a>
+            <span class="rel-cardinality">N:1</span>
+          </li>
+        </ul>
+      </section>
+
+      <section id="obj-user" class="object-column" aria-labelledby="obj-user-name">
+        <ul class="sticky-stack ctas" aria-label="CTAs">
+          <li class="sticky cta">Log in</li>
+          <li class="sticky cta">Log out</li>
+        </ul>
+        <header class="sticky object-header">
+          <span class="provenance provenance-from-domain-model" title="From §2.1 Concepts" aria-hidden="true">●</span>
+          <span id="obj-user-name" class="object-name">User</span>
+        </header>
+        <ul class="sticky-stack core-content" aria-label="Core content (CCP)">
+          <li class="sticky core ccp-highlight"><span class="attr">Email</span><span class="ccp-marker">CCP</span></li>
+          <li class="sticky core ccp-highlight"><span class="attr">FirstName</span><span class="ccp-marker">CCP</span></li>
+          <li class="sticky core ccp-highlight"><span class="attr">LastName</span><span class="ccp-marker">CCP</span></li>
+          <li class="sticky core ccp-highlight"><span class="attr">Roles</span><span class="ccp-marker">CCP</span></li>
+        </ul>
+        <ul class="sticky-stack metadata" aria-label="Metadata">
+          <li class="sticky meta"><span class="attr">Id</span></li>
+          <li class="sticky meta"><span class="attr">Password</span></li>
+          <li class="sticky meta"><span class="attr">LastChangedUser</span></li>
+          <li class="sticky meta"><span class="attr">LastChangedDate</span></li>
+        </ul>
+        <ul class="sticky-stack nested-refs" aria-label="Nested object references" hidden></ul>
+      </section>
+    </section>
 
     <footer>
-      Provenance legend:
-      <span class="provenance provenance-from-domain-model" aria-hidden="true"></span> from domain model &nbsp;
-      <span class="provenance provenance-derived" aria-hidden="true"></span> derived from another section.
-      &nbsp; Generated by `framework/agents/analyses/ooux-analyser.md`.
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-cta" aria-hidden="true"></span> CTA (verb)</span>
+        <span class="legend-item"><span class="legend-swatch s-obj" aria-hidden="true"></span> Object</span>
+        <span class="legend-item"><span class="legend-swatch s-core" aria-hidden="true"></span> Core content (CCP)</span>
+        <span class="legend-item"><span class="legend-swatch s-meta" aria-hidden="true"></span> Metadata</span>
+        <span class="legend-item"><span class="legend-swatch s-nested" aria-hidden="true"></span> Nested object reference</span>
+        <span class="legend-item"><span class="provenance provenance-from-domain-model" aria-hidden="true"></span> from §2.1</span>
+        <span class="legend-item"><span class="provenance provenance-derived" aria-hidden="true"></span> derived</span>
+      </div>
+      <div class="credit">Generated by `framework/agents/analyses/ooux-analyser.md`.</div>
     </footer>
   </main>
 </body>
