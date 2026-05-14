@@ -1,0 +1,887 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>User Journeys — Financial services / banking back-office</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --card-bg: #ffffff;
+      --header-bg: #efefef;
+      --row-alt: #fbfbfb;
+
+      --lane-actions-bg:     #e7f0fb;  --lane-actions-fg:     #0c2a44;
+      --lane-thoughts-bg:    #f3eafd;  --lane-thoughts-fg:    #2e1255;
+      --lane-emotion-bg:     #fff5d6;  --lane-emotion-fg:     #4a3a00;
+      --lane-touchpoints-bg: #e6f4ea;  --lane-touchpoints-fg: #14422a;
+      --lane-painpoints-bg:  #fde2e2;  --lane-painpoints-fg:  #6a1212;
+
+      --prov-task-flow:      #2a8a2a;
+      --prov-user-story:     #2a6aa0;
+      --prov-persona:        #6a3aa0;
+      --prov-derived:        #b86a00;
+      --prov-ai-suggested:   #a02a6a;
+
+      --ai-bg: #fdf3fa;
+      --moment-bg: #fff0e6;
+      --moment-border: #d97a1f;
+
+      --rev-bg: #ffeaea; --rev-border: #d44a4a; --rev-fg: #8a1a1a;
+
+      --svg-axis: #8a8a8a;
+      --svg-grid: #e0e0e0;
+      --svg-line: #2a6aa0;
+      --svg-point: #1a1a1a;
+      --svg-moment: #d97a1f;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 0 24px 0;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px 24px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+
+    .meta-grid dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+
+    .meta-grid dd {
+      margin: 0 0 6px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ------- diagnostics ------- */
+
+    details.diagnostics-toggle {
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.diagnostics-toggle[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.diagnostics-toggle[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
+    .diagnostics {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > .diagnostics {
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      margin-bottom: 0;
+    }
+    details.diagnostics-toggle > .diagnostics > h2 {
+      /* The <summary> already labels the section; avoid a duplicated heading. */
+      display: none;
+    }
+
+    .diagnostics h2 {
+      font-size: 16px;
+      margin: 0 0 8px 0;
+    }
+
+    .diagnostics > ul {
+      margin: 0 0 12px 0;
+      padding-left: 20px;
+    }
+
+    .diagnostics .check-pass::before { content: "PASS "; color: var(--prov-task-flow); font-weight: 600; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--rev-fg); font-weight: 600; }
+
+    .diagnostics .density-warning {
+      padding: 8px 10px;
+      background: var(--moment-bg);
+      border-left: 3px solid var(--moment-border);
+      border-radius: 3px;
+      margin: 8px 0;
+      font-size: 13px;
+    }
+    .diagnostics .density-warning.hidden { display: none; }
+
+    .diagnostics table.density-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 0 0;
+      font-size: 12px;
+    }
+    .diagnostics table.density-table th,
+    .diagnostics table.density-table td {
+      padding: 6px 8px;
+      border-top: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    .diagnostics table.density-table thead th {
+      background: var(--header-bg);
+      font-weight: 600;
+      border-top: none;
+      border-bottom: 2px solid var(--border-strong);
+    }
+    .diagnostics table.density-table td.density-high { color: var(--rev-fg); font-weight: 600; }
+
+    /* ------- journey card ------- */
+
+    .journey-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 24px;
+    }
+
+    .journey-header h2 {
+      font-size: 17px;
+      margin: 0 0 6px 0;
+      font-weight: 600;
+    }
+    .journey-header h2 .sep {
+      color: var(--muted);
+      margin: 0 6px;
+      font-weight: 400;
+    }
+    .journey-header h2 .persona-name { color: var(--prov-persona); }
+    .journey-header h2 .scenario-name { color: var(--fg); }
+
+    .journey-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 4px 24px;
+      margin: 0;
+      font-size: 13px;
+    }
+    .journey-meta dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+    .journey-meta dd {
+      margin: 0 0 4px 0;
+    }
+
+    /* ------- emotion curve SVG figure ------- */
+
+    .journey-flow {
+      margin: 0;
+      padding: 8px 0;
+    }
+    .journey-flow svg {
+      width: 100%;
+      height: auto;
+      max-height: 220px;
+      display: block;
+    }
+    .journey-flow figcaption {
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center;
+      margin-top: 4px;
+    }
+    /* SVG-internal styling (selectable by class on emitted shapes) */
+    .journey-flow svg .axis      { stroke: var(--svg-axis); stroke-width: 1; fill: none; }
+    .journey-flow svg .gridline  { stroke: var(--svg-grid); stroke-width: 1; fill: none; }
+    .journey-flow svg .curve     { stroke: var(--svg-line); stroke-width: 2; fill: none; stroke-linejoin: round; stroke-linecap: round; }
+    .journey-flow svg .point     { fill: var(--svg-point); }
+    .journey-flow svg .point.moment { fill: var(--svg-moment); }
+    .journey-flow svg text       { fill: var(--fg); font-family: inherit; font-size: 11px; }
+    .journey-flow svg text.axis-label { fill: var(--muted); font-size: 10px; }
+    .journey-flow svg text.phase-label { font-size: 11px; }
+
+    /* ------- swimlane table ------- */
+
+    .journey-swimlane {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      table-layout: fixed;
+      font-size: 13px;
+    }
+    .journey-swimlane thead th {
+      background: var(--header-bg);
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      border-bottom: 2px solid var(--border-strong);
+      vertical-align: bottom;
+    }
+    .journey-swimlane thead th.lane-label { width: 120px; }
+    .journey-swimlane tbody th {
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      width: 120px;
+      vertical-align: top;
+      border-top: 1px solid var(--border);
+    }
+    .journey-swimlane tbody td {
+      padding: 8px 10px;
+      border-top: 1px solid var(--border);
+      vertical-align: top;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    .journey-swimlane tbody td ul {
+      margin: 0;
+      padding-left: 16px;
+    }
+    .journey-swimlane tbody td ul li + li { margin-top: 4px; }
+
+    /* Per-lane backgrounds applied to the row-header <th> only — keep cell
+       bodies readable; row colour cues live on the lane label. */
+    .lane-actions     > th { background: var(--lane-actions-bg);     color: var(--lane-actions-fg); }
+    .lane-thoughts    > th { background: var(--lane-thoughts-bg);    color: var(--lane-thoughts-fg); }
+    .lane-emotion     > th { background: var(--lane-emotion-bg);     color: var(--lane-emotion-fg); }
+    .lane-touchpoints > th { background: var(--lane-touchpoints-bg); color: var(--lane-touchpoints-fg); }
+    .lane-painpoints  > th { background: var(--lane-painpoints-bg);  color: var(--lane-painpoints-fg); }
+
+    .lane-emotion td {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+
+    /* AI-SUGGESTED cells — visually distinct from sourced cells. */
+    .ai-suggested,
+    td.ai-suggested {
+      background: var(--ai-bg);
+      font-style: italic;
+      color: var(--prov-ai-suggested);
+    }
+
+    /* Moment-of-truth row highlight. */
+    .moment-of-truth > th,
+    .moment-of-truth > td {
+      border-top: 2px solid var(--moment-border);
+      background: var(--moment-bg);
+    }
+
+    /* Provenance dot — rendered as a small swatch at the start of the cell. */
+    td[class*="provenance-"]::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: 1px;
+    }
+    td.provenance-from-task-flow::before  { background: var(--prov-task-flow); }
+    td.provenance-from-user-story::before { background: var(--prov-user-story); }
+    td.provenance-from-persona::before    { background: var(--prov-persona); }
+    td.provenance-derived::before         { background: var(--prov-derived); }
+    td.provenance-ai-suggested::before    { background: var(--prov-ai-suggested); }
+
+    /* Rev marker — applied on Override runs to flagged cells. */
+    .rev-marker,
+    td.rev-marker {
+      background: var(--rev-bg);
+      border-left: 3px solid var(--rev-border);
+      color: var(--rev-fg);
+    }
+
+    /* ------- footer block (opportunities + ownership) ------- */
+
+    .journey-footer {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border);
+    }
+    .journey-footer h3 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin: 0 0 6px 0;
+    }
+    .journey-footer ul {
+      margin: 0;
+      padding-left: 16px;
+    }
+    .journey-footer li + li { margin-top: 4px; }
+    .journey-footer .phase-tag {
+      display: inline-block;
+      padding: 0 5px;
+      margin-right: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #fff;
+      background: var(--prov-user-story);
+      border-radius: 3px;
+      vertical-align: 1px;
+    }
+    .journey-footer .own-team {
+      display: inline-block;
+      padding: 0 5px;
+      margin-right: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #fff;
+      background: var(--prov-derived);
+      border-radius: 3px;
+      vertical-align: 1px;
+    }
+
+    /* ------- bottom legend ------- */
+
+    footer.bottom {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    footer.bottom .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+    }
+    footer.bottom .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    footer.bottom .legend-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    footer.bottom .legend-dot.s-task-flow  { background: var(--prov-task-flow); }
+    footer.bottom .legend-dot.s-user-story { background: var(--prov-user-story); }
+    footer.bottom .legend-dot.s-persona    { background: var(--prov-persona); }
+    footer.bottom .legend-dot.s-derived    { background: var(--prov-derived); }
+    footer.bottom .legend-dot.s-ai         { background: var(--prov-ai-suggested); }
+    footer.bottom .credit { margin-top: 6px; text-align: right; }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .journey-card {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: 12px;
+        border-radius: 0;
+        border-color: #000;
+      }
+      details.diagnostics-toggle { display: none; }
+      .journey-flow svg { max-height: 180px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>User Journeys — Financial services / banking back-office</h1>
+    <p class="subtitle">User journey atlas — one card per (persona × scenario): emotion curve over phases, plus a swimlane grid of actions, thoughts, emotions, touchpoints, and pain points.</p>
+
+    <dl class="meta-grid">
+      <div><dt>Domain</dt><dd>Financial services / banking back-office</dd></div>
+      <div><dt>Generated</dt><dd>2026-05-14T11:13:00Z</dd></div>
+      <div><dt>Source SHA-256</dt><dd>6f9272bbb30d1dce025b843f5319e790bdaa5ac2a07103204bbea7144694f0ae</dd></div>
+      <div><dt>Journeys</dt><dd>3</dd></div>
+      <div><dt>Personas</dt><dd>2</dd></div>
+      <div><dt>Phases</dt><dd>16</dd></div>
+      <div><dt>Actions</dt><dd>20</dd></div>
+      <div><dt>Pain points</dt><dd>10</dd></div>
+      <div><dt>Opportunities</dt><dd>10</dd></div>
+      <div><dt>AI-suggested cells</dt><dd>41</dd></div>
+    </dl>
+
+    <details class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>User-journeys map — 3 journeys across 2 personas.</p>
+        <p>Provenance: 20 from-task-flow, 3 from-user-story, 0 from-persona, 16 derived, 41 ai-suggested.</p>
+        <ul>
+          <li class="check-pass">Check 1 — Every journey has exactly one persona (from §3) and one scenario (from §4 or §5).</li>
+          <li class="check-pass">Check 2 — Every journey has 3 ≤ phases ≤ 6.</li>
+          <li class="check-pass">Check 3 — Every phase has ≥ 1 action.</li>
+          <li class="check-pass">Check 4 — Every action has exactly one touchpoint.</li>
+          <li class="check-pass">Check 5 — Every phase has an integer emotion score in [−2, +2].</li>
+          <li class="check-pass">Check 6 — Every pain point has ≥ 1 opportunity addressing it.</li>
+          <li class="check-pass">Check 7 — Every ai-suggested cell carries .provenance-ai-suggested + [AI-SUGGESTED] prefix.</li>
+          <li class="check-pass">Check 8 — Personas verbatim-match §3 Target users.</li>
+        </ul>
+        <p class="density-warning hidden">⚠ Density warning: no journey exceeds 75% AI-SUGGESTED density.</p>
+        <table class="density-table">
+          <thead><tr><th>Journey</th><th>AI-SUGGESTED cells</th><th>Total cells</th><th>Density</th></tr></thead>
+          <tbody>
+            <tr><td>UJ-01 Importer — Upload a transaction file</td><td>13</td><td>25</td><td>52.0%</td></tr>
+            <tr><td>UJ-02 Importer — Monitor file processing status</td><td>13</td><td>25</td><td>52.0%</td></tr>
+            <tr><td>UJ-03 Approver — Review and decide on queued transactions</td><td>15</td><td>30</td><td>50.0%</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </details>
+
+    <section class="journey-atlas" aria-label="User journeys">
+
+      <!-- ============================== UJ-01 ============================== -->
+      <section id="journey-uj-01" class="journey-card" style="--phase-count: 5" aria-labelledby="journey-uj-01-title">
+        <header class="journey-header">
+          <h2 id="journey-uj-01-title">
+            <span class="persona-name">Importer</span>
+            <span class="sep" aria-hidden="true">—</span>
+            <span class="scenario-name">Upload a transaction file for processing</span>
+          </h2>
+          <dl class="journey-meta">
+            <div><dt>Goal</dt><dd>§4.1 G-01 — Upload transaction files for processing</dd></div>
+            <div><dt>Trigger</dt><dd>A new transaction file is ready for ingestion.</dd></div>
+            <div><dt>Outcome</dt><dd>File reaches Completed status; transactions visible in the table.</dd></div>
+            <div><dt>Moments of truth</dt><dd>P3 Engage — Select file &amp; metadata</dd></div>
+          </dl>
+        </header>
+
+        <figure class="journey-flow" aria-labelledby="journey-uj-01-flow-cap">
+          <svg viewBox="0 0 720 200" role="img" aria-label="Emotion curve for Importer — Upload a transaction file for processing">
+            <line class="gridline" x1="40" y1="20" x2="710" y2="20"/>
+            <line class="gridline" x1="40" y1="60" x2="710" y2="60"/>
+            <line class="gridline" x1="40" y1="100" x2="710" y2="100"/>
+            <line class="gridline" x1="40" y1="140" x2="710" y2="140"/>
+            <line class="gridline" x1="40" y1="180" x2="710" y2="180"/>
+            <line class="axis" x1="40" y1="10" x2="40" y2="190"/>
+            <text class="axis-label" x="32" y="24" text-anchor="end">+2</text>
+            <text class="axis-label" x="32" y="64" text-anchor="end">+1</text>
+            <text class="axis-label" x="32" y="104" text-anchor="end">0</text>
+            <text class="axis-label" x="32" y="144" text-anchor="end">−1</text>
+            <text class="axis-label" x="32" y="184" text-anchor="end">−2</text>
+            <polyline class="curve" points="60,100 220,100 380,140 540,140 700,60"/>
+            <circle class="point" cx="60" cy="100" r="4"/>
+            <circle class="point" cx="220" cy="100" r="4"/>
+            <circle class="point moment" cx="380" cy="140" r="4"/>
+            <circle class="point" cx="540" cy="140" r="4"/>
+            <circle class="point" cx="700" cy="60" r="4"/>
+            <text class="phase-label" x="60" y="195" text-anchor="middle">P1 Trigger</text>
+            <text class="phase-label" x="220" y="195" text-anchor="middle">P2 Approach</text>
+            <text class="phase-label" x="380" y="195" text-anchor="middle">P3 Engage</text>
+            <text class="phase-label" x="540" y="195" text-anchor="middle">P4 Commit</text>
+            <text class="phase-label" x="700" y="195" text-anchor="middle">P5 Outcome</text>
+          </svg>
+          <figcaption id="journey-uj-01-flow-cap">Emotion curve over phases (−2 panic … +2 confident).</figcaption>
+        </figure>
+
+        <table class="journey-swimlane" role="grid">
+          <thead>
+            <tr>
+              <th class="lane-label" scope="col">Lane</th>
+              <th scope="col">P1 Trigger — Receive file</th>
+              <th scope="col">P2 Approach — Land on Upload</th>
+              <th scope="col">P3 Engage — Select file &amp; metadata</th>
+              <th scope="col">P4 Commit — Submit upload</th>
+              <th scope="col">P5 Outcome — Confirm Completed</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="lane-actions">
+              <th scope="row">Actions</th>
+              <td class="provenance-derived" data-source="§3 Importer — Frequency of use">Pick up a new transaction file from upstream</td>
+              <td class="provenance-from-task-flow" data-source="§5 Authentication">Authenticate and land on the Upload screen (post-login)</td>
+              <td class="provenance-from-task-flow" data-source="§5 File Upload steps 1–2"><ul><li>Select transaction file (drag &amp; drop supported)</li><li>Provide FileSettingId, FileSettingName, FileName</li></ul></td>
+              <td class="provenance-from-task-flow" data-source="§5 File Upload step 3">Submit upload</td>
+              <td class="provenance-from-user-story" data-source="§4 Importer story 2">Open File Log dashboard; confirm file in non-failed state</td>
+            </tr>
+            <tr class="lane-thoughts">
+              <th scope="row">Thoughts</th>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Another file already — hope this one parses cleanly first try.</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Same login flow; just get me to Upload.</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Do I have to type FileSettingId by hand? Hope the metadata is right.</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Submitted — did it accept? I need to know now.</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Did it actually Complete, or still Processing? If Failed I need to act fast.</td>
+            </tr>
+            <tr class="lane-emotion">
+              <th scope="row">Emotion</th>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] 0 / neutral</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] 0 / neutral</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] −1 / anxious</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] −1 / uncertain</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] +1 / hopeful</td>
+            </tr>
+            <tr class="lane-touchpoints">
+              <th scope="row">Touchpoints</th>
+              <td class="provenance-derived" data-source="§1 Application context">Upstream operations channel (out-of-app)</td>
+              <td class="provenance-from-task-flow" data-source="§5 Authentication">Login page → Upload screen</td>
+              <td class="provenance-derived" data-source="§4.1 G-01 Layout pref">Upload panel / metadata form</td>
+              <td class="provenance-derived" data-source="§4.1 G-01 UX-pattern pref">Upload panel — Submit control</td>
+              <td class="provenance-from-task-flow" data-source="§5 File Log Overview">File Logs dashboard</td>
+            </tr>
+            <tr class="lane-painpoints">
+              <th scope="row">Pain points</th>
+              <td class="provenance-derived" data-source="analysis: no friction at this phase">—</td>
+              <td class="provenance-derived" data-source="analysis: no friction at this phase">—</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Typing FileSettingId by hand is error-prone for an intermediate user; no auto-fill noted in §5 File Upload.</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] §5 says "status shown in UI" but does not confirm whether parse-success feedback is synchronous; Importer fears silent fail.</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Confirming Completed requires switching screens to File Logs; no inline confirmation on the upload screen itself.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <footer class="journey-footer">
+          <section class="opportunities">
+            <h3>Opportunities</h3>
+            <ul>
+              <li class="provenance-ai-suggested"><span class="phase-tag">P3</span>[AI-SUGGESTED] Provide a typeahead/lookup for FileSettingId backed by the FileSetting table; auto-populate FileName from the selected file.</li>
+              <li class="provenance-ai-suggested"><span class="phase-tag">P4</span>[AI-SUGGESTED] Surface immediate parse-success confirmation (row count + first-error preview) on the upload screen, not just a status code.</li>
+              <li class="provenance-ai-suggested"><span class="phase-tag">P5</span>[AI-SUGGESTED] Render an inline "View in File Logs" toast/banner linking directly to the new file's row.</li>
+            </ul>
+          </section>
+          <section class="ownership">
+            <h3>Ownership <small>[heuristic]</small></h3>
+            <ul>
+              <li><span class="own-team">design + eng</span>Typeahead/lookup for FileSettingId (P3)</li>
+              <li><span class="own-team">design + eng</span>Parse-success confirmation on upload (P4)</li>
+              <li><span class="own-team">design</span>Inline "View in File Logs" toast (P5)</li>
+            </ul>
+          </section>
+        </footer>
+      </section>
+
+      <!-- ============================== UJ-02 ============================== -->
+      <section id="journey-uj-02" class="journey-card" style="--phase-count: 5" aria-labelledby="journey-uj-02-title">
+        <header class="journey-header">
+          <h2 id="journey-uj-02-title">
+            <span class="persona-name">Importer</span>
+            <span class="sep" aria-hidden="true">—</span>
+            <span class="scenario-name">Monitor the processing status of uploaded files</span>
+          </h2>
+          <dl class="journey-meta">
+            <div><dt>Goal</dt><dd>§4.1 G-04 — Monitor the processing status of uploaded files</dd></div>
+            <div><dt>Trigger</dt><dd>After uploading, confirm that previously submitted files have reached a non-failed state.</dd></div>
+            <div><dt>Outcome</dt><dd>All recent files visible in non-failed state; any Failed file is identified for escalation.</dd></div>
+            <div><dt>Moments of truth</dt><dd>P4 Progress — Drill into file summary</dd></div>
+          </dl>
+        </header>
+
+        <figure class="journey-flow" aria-labelledby="journey-uj-02-flow-cap">
+          <svg viewBox="0 0 720 200" role="img" aria-label="Emotion curve for Importer — Monitor the processing status of uploaded files">
+            <line class="gridline" x1="40" y1="20" x2="710" y2="20"/>
+            <line class="gridline" x1="40" y1="60" x2="710" y2="60"/>
+            <line class="gridline" x1="40" y1="100" x2="710" y2="100"/>
+            <line class="gridline" x1="40" y1="140" x2="710" y2="140"/>
+            <line class="gridline" x1="40" y1="180" x2="710" y2="180"/>
+            <line class="axis" x1="40" y1="10" x2="40" y2="190"/>
+            <text class="axis-label" x="32" y="24" text-anchor="end">+2</text>
+            <text class="axis-label" x="32" y="64" text-anchor="end">+1</text>
+            <text class="axis-label" x="32" y="104" text-anchor="end">0</text>
+            <text class="axis-label" x="32" y="144" text-anchor="end">−1</text>
+            <text class="axis-label" x="32" y="184" text-anchor="end">−2</text>
+            <polyline class="curve" points="60,140 220,100 380,100 540,140 700,60"/>
+            <circle class="point" cx="60" cy="140" r="4"/>
+            <circle class="point" cx="220" cy="100" r="4"/>
+            <circle class="point" cx="380" cy="100" r="4"/>
+            <circle class="point moment" cx="540" cy="140" r="4"/>
+            <circle class="point" cx="700" cy="60" r="4"/>
+            <text class="phase-label" x="60" y="195" text-anchor="middle">P1 Trigger</text>
+            <text class="phase-label" x="220" y="195" text-anchor="middle">P2 Approach</text>
+            <text class="phase-label" x="380" y="195" text-anchor="middle">P3 Engage</text>
+            <text class="phase-label" x="540" y="195" text-anchor="middle">P4 Progress</text>
+            <text class="phase-label" x="700" y="195" text-anchor="middle">P5 Outcome</text>
+          </svg>
+          <figcaption id="journey-uj-02-flow-cap">Emotion curve over phases (−2 panic … +2 confident).</figcaption>
+        </figure>
+
+        <table class="journey-swimlane" role="grid">
+          <thead>
+            <tr>
+              <th class="lane-label" scope="col">Lane</th>
+              <th scope="col">P1 Trigger — Need to verify</th>
+              <th scope="col">P2 Approach — Open dashboard</th>
+              <th scope="col">P3 Engage — Scan status column</th>
+              <th scope="col">P4 Progress — Drill into summary</th>
+              <th scope="col">P5 Outcome — Confirm or escalate</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="lane-actions">
+              <th scope="row">Actions</th>
+              <td class="provenance-derived" data-source="§3 Importer — Frequency of use">Recognise that uploaded files need verification</td>
+              <td class="provenance-from-task-flow" data-source="§5 File Log Overview step 1">Open the File Logs dashboard</td>
+              <td class="provenance-from-task-flow" data-source="§5 File Log Overview step 2">View list of uploaded files with columns: File Name, Process Date, Record Count, Status</td>
+              <td class="provenance-from-task-flow" data-source="§5 File Log Overview step 3">Click a file log row to drill into the summary</td>
+              <td class="provenance-from-user-story" data-source="§4 Importer story 2">Confirm file is in a non-failed state; otherwise escalate Failed file</td>
+            </tr>
+            <tr class="lane-thoughts">
+              <th scope="row">Thoughts</th>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Did that upload from earlier go through?</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Where's the dashboard — same place as last time, I hope.</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] At-a-glance scan — anything not Completed?</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] What's the record count? Does it match what I uploaded?</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Good — Completed. If it were Failed I'd retry per BR-07.</td>
+            </tr>
+            <tr class="lane-emotion">
+              <th scope="row">Emotion</th>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] −1 / uncertain</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] 0 / neutral</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] 0 / focused</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] −1 / anxious — awaiting verdict</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] +1 / relieved</td>
+            </tr>
+            <tr class="lane-touchpoints">
+              <th scope="row">Touchpoints</th>
+              <td class="provenance-derived" data-source="§3 Importer — Frequency of use">Out-of-app cadence / habit</td>
+              <td class="provenance-from-task-flow" data-source="§5 File Log Overview">File Logs dashboard</td>
+              <td class="provenance-from-task-flow" data-source="§5 File Log Overview">File Logs list (Status column)</td>
+              <td class="provenance-from-task-flow" data-source="§5 File Summary View">File Summary View</td>
+              <td class="provenance-from-task-flow" data-source="§5 File Summary View">File Summary View (state display)</td>
+            </tr>
+            <tr class="lane-painpoints">
+              <th scope="row">Pain points</th>
+              <td class="provenance-derived" data-source="analysis: no friction at this phase">—</td>
+              <td class="provenance-derived" data-source="analysis: no friction at this phase">—</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Without a default sort or quick filter on Status, large file lists could obscure Failed rows; §5 File Log Overview is silent on default sort.</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Drill-down is required to confirm record-count match; the dashboard Status column alone does not reveal partial parses.</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] BR-07 inhibits drill-down on Failed files, but §5 File Summary View does not specify an in-flow retry CTA.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <footer class="journey-footer">
+          <section class="opportunities">
+            <h3>Opportunities</h3>
+            <ul>
+              <li class="provenance-ai-suggested"><span class="phase-tag">P3</span>[AI-SUGGESTED] Default-sort the dashboard by Process Date DESC and surface a "Failed only" filter chip on the dashboard toolbar.</li>
+              <li class="provenance-ai-suggested"><span class="phase-tag">P4</span>[AI-SUGGESTED] Show inline record-count delta (uploaded vs. parsed) on each dashboard row to short-circuit the drill-down.</li>
+              <li class="provenance-ai-suggested"><span class="phase-tag">P5</span>[AI-SUGGESTED] Provide a "Retry upload" CTA inline on the Failed-state File Summary View per BR-07.</li>
+            </ul>
+          </section>
+          <section class="ownership">
+            <h3>Ownership <small>[heuristic]</small></h3>
+            <ul>
+              <li><span class="own-team">design + eng</span>Default sort + "Failed only" chip (P3)</li>
+              <li><span class="own-team">design + eng</span>Inline record-count delta (P4)</li>
+              <li><span class="own-team">design + eng</span>"Retry upload" CTA on Failed (P5)</li>
+            </ul>
+          </section>
+        </footer>
+      </section>
+
+      <!-- ============================== UJ-03 ============================== -->
+      <section id="journey-uj-03" class="journey-card" style="--phase-count: 6" aria-labelledby="journey-uj-03-title">
+        <header class="journey-header">
+          <h2 id="journey-uj-03-title">
+            <span class="persona-name">Approver</span>
+            <span class="sep" aria-hidden="true">—</span>
+            <span class="scenario-name">Review and decide on queued transactions</span>
+          </h2>
+          <dl class="journey-meta">
+            <div><dt>Goal</dt><dd>§4.1 G-02 — Review and approve or reject queued transactions</dd></div>
+            <div><dt>Trigger</dt><dd>Imported transactions await review at the start of a review cycle.</dd></div>
+            <div><dt>Outcome</dt><dd>Each reviewed transaction is Approved or Rejected with audit trail captured.</dd></div>
+            <div><dt>Moments of truth</dt><dd>P5 Decide/commit — Approve or Reject</dd></div>
+          </dl>
+        </header>
+
+        <figure class="journey-flow" aria-labelledby="journey-uj-03-flow-cap">
+          <svg viewBox="0 0 720 200" role="img" aria-label="Emotion curve for Approver — Review and decide on queued transactions">
+            <line class="gridline" x1="40" y1="20" x2="710" y2="20"/>
+            <line class="gridline" x1="40" y1="60" x2="710" y2="60"/>
+            <line class="gridline" x1="40" y1="100" x2="710" y2="100"/>
+            <line class="gridline" x1="40" y1="140" x2="710" y2="140"/>
+            <line class="gridline" x1="40" y1="180" x2="710" y2="180"/>
+            <line class="axis" x1="40" y1="10" x2="40" y2="190"/>
+            <text class="axis-label" x="32" y="24" text-anchor="end">+2</text>
+            <text class="axis-label" x="32" y="64" text-anchor="end">+1</text>
+            <text class="axis-label" x="32" y="104" text-anchor="end">0</text>
+            <text class="axis-label" x="32" y="144" text-anchor="end">−1</text>
+            <text class="axis-label" x="32" y="184" text-anchor="end">−2</text>
+            <polyline class="curve" points="60,60 188,100 316,100 444,100 572,140 700,60"/>
+            <circle class="point" cx="60" cy="60" r="4"/>
+            <circle class="point" cx="188" cy="100" r="4"/>
+            <circle class="point" cx="316" cy="100" r="4"/>
+            <circle class="point" cx="444" cy="100" r="4"/>
+            <circle class="point moment" cx="572" cy="140" r="4"/>
+            <circle class="point" cx="700" cy="60" r="4"/>
+            <text class="phase-label" x="60" y="195" text-anchor="middle">P1 Trigger</text>
+            <text class="phase-label" x="188" y="195" text-anchor="middle">P2 Approach</text>
+            <text class="phase-label" x="316" y="195" text-anchor="middle">P3 Engage</text>
+            <text class="phase-label" x="444" y="195" text-anchor="middle">P4 Progress</text>
+            <text class="phase-label" x="572" y="195" text-anchor="middle">P5 Commit</text>
+            <text class="phase-label" x="700" y="195" text-anchor="middle">P6 Outcome</text>
+          </svg>
+          <figcaption id="journey-uj-03-flow-cap">Emotion curve over phases (−2 panic … +2 confident).</figcaption>
+        </figure>
+
+        <table class="journey-swimlane" role="grid">
+          <thead>
+            <tr>
+              <th class="lane-label" scope="col">Lane</th>
+              <th scope="col">P1 Trigger — Queue open</th>
+              <th scope="col">P2 Approach — Land on table</th>
+              <th scope="col">P3 Engage — Apply filters</th>
+              <th scope="col">P4 Progress — Step through rows</th>
+              <th scope="col">P5 Commit — Approve / Reject</th>
+              <th scope="col">P6 Outcome — Status updates live</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="lane-actions">
+              <th scope="row">Actions</th>
+              <td class="provenance-derived" data-source="§3 Approver — Frequency of use">Acknowledge start of review cycle</td>
+              <td class="provenance-from-task-flow" data-source="§5 Authentication">Authenticate and land on the Transaction Table (post-login)</td>
+              <td class="provenance-from-task-flow" data-source="§5 Search &amp; Filtering steps 1–3"><ul><li>Open the filter panel</li><li>Choose Status, File, Date range, Amount range, Text search</li><li>Apply filters</li></ul></td>
+              <td class="provenance-from-task-flow" data-source="§5 Transaction Table step 2">Browse columns: Reference, Date, Account, Amount, Currency, Status</td>
+              <td class="provenance-from-task-flow" data-source="§5 Approve Transaction + §5 Reject Transaction"><ul><li>Approve: Select transaction → click Approve → confirm in modal</li><li>Reject: Select transaction → click Reject → enter mandatory note → submit</li></ul></td>
+              <td class="provenance-from-user-story" data-source="§4 Approver story 2 + BR-06">Observe status badge transitioning to Approved/Rejected without manual refresh</td>
+            </tr>
+            <tr class="lane-thoughts">
+              <th scope="row">Thoughts</th>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Queue's open — let me clear the backlog before more arrive.</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Straight to the table — same drill, same column order.</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Status = Imported only, this file, this date range — keep me in the right slice.</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Quick scan of Reference / Amount — does this look right against policy?</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Approve — confirm? — yes. Or reject with a defensible note.</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Status updated live. Move on.</td>
+            </tr>
+            <tr class="lane-emotion">
+              <th scope="row">Emotion</th>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] +1 / engaged</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] 0 / neutral</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] 0 / focused</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] 0 / scanning</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] −1 / anxious — accountable for the decision</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] +1 / confident</td>
+            </tr>
+            <tr class="lane-touchpoints">
+              <th scope="row">Touchpoints</th>
+              <td class="provenance-derived" data-source="§3 Approver — Frequency of use">Review cadence / shift</td>
+              <td class="provenance-from-task-flow" data-source="§5 Authentication">Login page → Transaction Table</td>
+              <td class="provenance-from-task-flow" data-source="§5 Search &amp; Filtering">Filter panel → Transaction table (post-filter)</td>
+              <td class="provenance-from-task-flow" data-source="§5 Transaction Table">Transaction table rows</td>
+              <td class="provenance-from-task-flow" data-source="§5 Approve Transaction + §5 Reject Transaction">Row Approve/Reject action → confirmation modal / reject modal with note</td>
+              <td class="provenance-derived" data-source="§6 BR-06 + §6.4 status badge rules">Transaction table row (status badge)</td>
+            </tr>
+            <tr class="lane-painpoints">
+              <th scope="row">Pain points</th>
+              <td class="provenance-derived" data-source="analysis: no friction at this phase">—</td>
+              <td class="provenance-derived" data-source="analysis: no friction at this phase">—</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] Filter chips with multiple active filters risk loss-of-context (§3 Approver fear: "losing context after a filter change").</td>
+              <td class="provenance-ai-suggested ai-suggested">[AI-SUGGESTED] No bulk actions in §5 — Approver steps through one row at a time despite the throughput quality signal in §4.1 G-02.</td>
+              <td class="provenance-ai-suggested ai-suggested"><ul><li>[AI-SUGGESTED] Rapid-fire approvals risk muscle-memory mistakes (§3 Approver fear: "approving the wrong transaction"); §6.4 Cancel-default focus mitigates only partially.</li><li>[AI-SUGGESTED] Reject note format is unspecified — Approver may agonise over phrasing for audit defensibility (BR-02 mandates the note but not its shape).</li></ul></td>
+              <td class="provenance-derived" data-source="analysis: no friction at this phase">—</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <footer class="journey-footer">
+          <section class="opportunities">
+            <h3>Opportunities</h3>
+            <ul>
+              <li class="provenance-ai-suggested"><span class="phase-tag">P3</span>[AI-SUGGESTED] Persist filter chips visibly in the toolbar with Clear-all (per §6.4) and add a "saved filter sets" affordance for common review slices.</li>
+              <li class="provenance-ai-suggested"><span class="phase-tag">P4</span>[AI-SUGGESTED] Offer Next/Previous keyboard shortcuts to step through Imported rows without breaking focus from the row detail.</li>
+              <li class="provenance-ai-suggested"><span class="phase-tag">P5</span>[AI-SUGGESTED] Surface a per-day approval count in the confirm modal as a pacing nudge; preserve the §6.4 Cancel default focus.</li>
+              <li class="provenance-ai-suggested"><span class="phase-tag">P5</span>[AI-SUGGESTED] Provide canonical rejection reasons (radio + free-text amplifier) so the audit artefact is structured without slowing the Approver.</li>
+            </ul>
+          </section>
+          <section class="ownership">
+            <h3>Ownership <small>[heuristic]</small></h3>
+            <ul>
+              <li><span class="own-team">design + eng</span>Saved filter sets + persistent chips (P3)</li>
+              <li><span class="own-team">design + eng</span>Keyboard Next/Previous step-through (P4)</li>
+              <li><span class="own-team">design</span>Per-day approval count in confirm modal (P5)</li>
+              <li><span class="own-team">design + content</span>Canonical rejection reasons (P5)</li>
+            </ul>
+          </section>
+        </footer>
+      </section>
+
+    </section>
+
+    <footer class="bottom">
+      <div class="legend">
+        <span class="legend-item"><span class="legend-dot s-task-flow" aria-hidden="true"></span> from §5 Task flows</span>
+        <span class="legend-item"><span class="legend-dot s-user-story" aria-hidden="true"></span> from §4 User stories</span>
+        <span class="legend-item"><span class="legend-dot s-persona" aria-hidden="true"></span> from §3 Personas</span>
+        <span class="legend-item"><span class="legend-dot s-derived" aria-hidden="true"></span> derived</span>
+        <span class="legend-item"><span class="legend-dot s-ai" aria-hidden="true"></span> [AI-SUGGESTED]</span>
+      </div>
+      <div class="credit">Generated by `framework/agents/analyses/user-journeys-analyser.md`.</div>
+    </footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,845 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses/sequence-diagram-analyser.md.
+
+  Purpose: HTML/CSS skeleton for a UML 2.5 sequence-diagram catalogue
+  artefact (system-level fidelity) plus 0..N inline-SVG figures chosen
+  by the consultant.
+
+  Two tiers:
+    - Tier 1 (always rendered): six Tier-1 sections — scenarios,
+      participants, messages, combined fragments, cross-scenario
+      participant matrix, diagnostics.
+    - Tier 2 (consultant-selected, 0..N): inline-SVG sequence-diagram
+      figures, one per selected scenario. All figures share the same
+      lane_width so participants align vertically across scenarios.
+
+  Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`). No
+  external CSS / JS dependencies; viewable by opening `file://` in a
+  browser; shareable with clients without tooling.
+
+  Placeholders the analyser substitutes (string substitution, all values
+  pre-escaped for HTML; XML-escaped inside <svg><text> nodes):
+
+    {{TITLE}}                  — short title (e.g. "Sequence Diagrams — Project X").
+    {{DOMAIN}}                 — domain string (from requirements §1 if present).
+    {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
+    {{REQUIREMENTS_SHA256}}    — sha256 of requirements/requirements.md at read time.
+    {{SCENARIO_COUNT}}         — number of rows in the Scenarios table.
+    {{PARTICIPANT_COUNT}}      — number of rows in the Participants table.
+    {{MESSAGE_COUNT}}          — number of rows in the Messages table.
+    {{FRAGMENT_COUNT}}         — number of rows in the Combined fragments table.
+    {{AI_SUGGESTED_COUNT}}     — total items marked `ai-suggested`. Key
+                                 diagnostic affordance.
+    {{SCENARIOS_RENDERED}}     — comma-separated scenario display names
+                                 whose SVG was emitted, or
+                                 "none — catalogue only".
+    {{DIAGNOSTICS_BLOCK}}      — pre-rendered HTML block per DIAGNOSTICS
+                                 SCHEMA below.
+    {{CATALOGUE_BLOCK}}        — pre-rendered Tier-1 tables block per
+                                 CATALOGUE SCHEMA below.
+    {{SVG_DIAGRAMS_BLOCK}}     — pre-rendered Tier-2 <figure> blocks per
+                                 SEQUENCE DIAGRAM SCHEMA below; one
+                                 <figure> per selected scenario. Empty
+                                 selection renders an empty-state <p>.
+    {{MERMAID_BLOCK}}          — pre-rendered <details> containing 0..N
+                                 <pre> blocks (one Mermaid
+                                 `sequenceDiagram` source per selected
+                                 scenario). Empty if none selected.
+
+  Output: analyses/SEQUENCE-DIAGRAM/sequence-diagram.html.
+
+  CATALOGUE SCHEMA — the analyser's {{CATALOGUE_BLOCK}} substitutes a
+  single <section class="catalogue">. The inner section contains, in
+  order:
+
+      <section class="catalogue">
+        <h2>Sequence-diagram catalogue</h2>
+
+        <section class="scenarios-block">
+          <h3>Scenarios</h3>
+          <table class="scenarios-table">
+            <thead>
+              <tr>
+                <th>id</th>
+                <th>display name</th>
+                <th>type</th>
+                <th>actor</th>
+                <th>goal</th>
+                <th>source</th>
+                <th>messages</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{id}}</code></td>
+                <td>{{display_name}}</td>
+                <td><span class="scenario-type-{{type}}">{{type}}</span></td>
+                <td><code>{{actor}}</code></td>
+                <td>{{goal}}</td>
+                <td>{{source}}</td>
+                <td>{{message_count}}</td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="participants-block">
+          <h3>Participants</h3>
+          <table class="participants-table">
+            <thead>
+              <tr>
+                <th>id</th>
+                <th>display name</th>
+                <th>kind</th>
+                <th>role</th>
+                <th>scenarios</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{id}}</code></td>
+                <td>{{display_name}}</td>
+                <td><span class="kind-{{kind}}">{{kind}}</span></td>
+                <td>{{role}}</td>
+                <td>{{scenarios_csv}}</td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="messages-block">
+          <h3>Messages</h3>
+          <table class="messages-table">
+            <thead>
+              <tr>
+                <th>scenario</th>
+                <th>seq</th>
+                <th>from</th>
+                <th>to</th>
+                <th>kind</th>
+                <th>label</th>
+                <th>data</th>
+                <th>notes</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{scenario_id}}</code></td>
+                <td class="seq">{{seq}}</td>
+                <td><code>{{from}}</code></td>
+                <td><code>{{to}}</code></td>
+                <td><span class="kind-{{kind}}">{{kind}}</span></td>
+                <td class="label">{{label}}</td>
+                <td><code>{{data or "—"}}</code></td>
+                <td>{{notes or ""}}</td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="fragments-block">
+          <h3>Combined fragments</h3>
+          <table class="fragments-table">
+            <thead>
+              <tr>
+                <th>scenario</th>
+                <th>id</th>
+                <th>type</th>
+                <th>guard</th>
+                <th>span</th>
+                <th>branch</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{scenario_id}}</code></td>
+                <td><code>{{frag_id}}</code></td>
+                <td><span class="fragment-type-{{type}}">{{type}}</span></td>
+                <td class="guard">{{guard}}</td>
+                <td class="span">{{span_first}}..{{span_last}}</td>
+                <td>{{branch or "—"}}</td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="matrix-block">
+          <h3>Cross-scenario participant matrix</h3>
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th>participant</th>
+                <th>scenario-id-1</th>
+                <th>scenario-id-2</th>
+                ...
+                <th>used in</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>{{participant_id}}</code></td>
+                <td class="matrix-cell-present|matrix-cell-absent">{{✓ or empty}}</td>
+                ...
+                <td class="usage-count">{{N}} / {{total}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+      </section>
+
+  SEQUENCE DIAGRAM SCHEMA — the analyser's {{SVG_DIAGRAMS_BLOCK}}
+  substitutes a single <section class="sequence-diagrams">. The inner
+  section contains one <figure> per selected scenario:
+
+      <section class="sequence-diagrams">
+        <h2>Sequence diagrams</h2>
+        <p class="sequence-diagrams-meta">Diagrams rendered: {{SCENARIOS_RENDERED}}</p>
+
+        <figure class="sequence-diagram seq-{slug}">
+          <figcaption>
+            <h3>{{scenario_display_name}}</h3>
+            <p class="seq-meta"><code>{{scenario_id}}</code> — {{type}} — {{message_count}} msgs</p>
+          </figcaption>
+          <svg viewBox="0 0 W H" role="img" aria-label="...">
+            <defs>
+              <marker id="sync-arrow-{slug}" ...>filled triangle</marker>
+              <marker id="async-arrow-{slug}" ...>open triangle</marker>
+              <marker id="return-arrow-{slug}" ...>open triangle</marker>
+            </defs>
+            <!-- participant header band: <rect class="participant-box"/> + <text class="participant-label"/> per participant -->
+            <!-- lifelines: <line class="lifeline" stroke-dasharray="4 4"/> per participant -->
+            <!-- activation bars: <rect class="activation-bar"/> per matched sync/return -->
+            <!-- fragment frames: <rect class="fragment-frame"/> + <rect class="fragment-tab"/> + <text class="fragment-label"/> per fragment -->
+            <!-- messages: <path class="message-arrow arrow-{kind}" marker-end="url(#...)"/> + <rect class="message-label-bg"/> + <text class="message-label"/> per message -->
+          </svg>
+        </figure>
+
+        ... one figure per selected scenario ...
+      </section>
+
+    OR if the consultant selected zero scenarios:
+
+      <section class="sequence-diagrams">
+        <p class="diagrams-empty">No diagrams were selected. The
+        catalogue tables above are the deliverable.</p>
+      </section>
+
+  DIAGNOSTICS SCHEMA — the analyser's {{DIAGNOSTICS_BLOCK}} substitutes a
+  single <section class="diagnostics">. The template wraps the placeholder
+  in a <details class="diagnostics-toggle"> element (collapsed by default).
+  The inner section contains, in order:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>Catalogue — S scenarios, P participants, M messages, F fragments.</p>
+        <p>Provenance: X from-task-flow, Y derived, Z ai-suggested.</p>
+        <ul>
+          <li class="check-pass|check-fail">Check 1 — Every scenario has a kebab-case id and a display name.</li>
+          ... (all 10 checks listed in order)
+        </ul>
+        <p class="density-warning hidden|...">⚠ Density warning: ...</p>
+        <!-- Override-only: flagged-items <ul> per failed check. -->
+      </section>
+
+  CSS classes used by the analyser:
+    .catalogue            — outer container for Tier 1 tables.
+    .scenarios-table .participants-table .messages-table
+    .fragments-table .matrix-table
+                          — one per Tier-1 section.
+    .sequence-diagrams    — outer container for Tier 2 figures.
+    .sequence-diagram     — applied to every <figure>; one
+                            .seq-{slug} modifier per scenario.
+    .diagrams-empty       — applied to the <p> when zero scenarios selected.
+    .mermaid-source       — applied to the <details> wrapping <pre> blocks.
+    .provenance-from-task-flow
+    .provenance-derived
+    .provenance-ai-suggested
+                          — exactly one per content row in any Tier-1
+                            table.
+    .ai-suggested         — applied to any cell whose content carries
+                            [AI-SUGGESTED]; renders italic + dim.
+    .kind-actor .kind-system-component .kind-external-system
+                          — pill badges in the participants and messages tables.
+    .scenario-type-primary .scenario-type-extension .scenario-type-recovery
+                          — pill badges in the scenarios table.
+    .fragment-type-alt .fragment-type-opt .fragment-type-loop
+                          — pill badges in the fragments table.
+    .matrix-cell-present .matrix-cell-absent
+                          — matrix table cell variants.
+    .rev-marker           — applied to any row flagged by a failed
+                            quality check on an Override run.
+
+  SVG conventions (analyser owns content; template provides CSS
+  containment + per-element styling):
+    - viewBox "0 0 W H" — W and H computed by analyser from participant
+      and message counts.
+    - role="img" + aria-label on every <svg>.
+    - All <text> nodes XML-escape participant ids / labels / guards.
+    - Shared lane_width across all scenarios in a single render.
+
+  Content TBD-able by the analyser:
+    The diagnostics block, catalogue table rows, SVG count and contents,
+    and Mermaid <pre> contents are fully driven by the analyser. The CSS
+    below is fixed scaffolding and should not be edited — only the
+    {{placeholders}} above are substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --card-bg: #ffffff;
+      --header-bg: #efefef;
+      --row-alt: #fbfbfb;
+
+      --prov-task-flow:     #2a6aa0;
+      --prov-derived:       #b86a00;
+      --prov-ai-suggested:  #a02a6a;
+
+      --kind-actor-bg:             #e7f0fb; --kind-actor-fg:             #0c2a44;
+      --kind-system-component-bg:  #eaf3ef; --kind-system-component-fg:  #14422a;
+      --kind-external-system-bg:   #fff5d6; --kind-external-system-fg:   #4a3a00;
+
+      --scenario-primary-bg:    #e7f0fb; --scenario-primary-fg:    #0c2a44;
+      --scenario-extension-bg:  #eaf3ef; --scenario-extension-fg:  #14422a;
+      --scenario-recovery-bg:   #ffeaea; --scenario-recovery-fg:   #8a1a1a;
+
+      --fragment-alt-bg:   #e7f0fb; --fragment-alt-fg:   #0c2a44;
+      --fragment-opt-bg:   #fff5d6; --fragment-opt-fg:   #4a3a00;
+      --fragment-loop-bg:  #f3eafd; --fragment-loop-fg:  #2e1255;
+
+      --kind-message-sync-bg:    #eaf3ef; --kind-message-sync-fg:    #14422a;
+      --kind-message-async-bg:   #fff5d6; --kind-message-async-fg:   #4a3a00;
+      --kind-message-return-bg:  #f3eafd; --kind-message-return-fg:  #2e1255;
+
+      --ai-bg: #fdf3fa;
+
+      --rev-bg: #ffeaea; --rev-border: #d44a4a; --rev-fg: #8a1a1a;
+
+      --svg-participant-bg:        #e7f0fb;
+      --svg-participant-fg:        #0c2a44;
+      --svg-participant-stroke:    #5a5a5a;
+      --svg-lifeline:              #8a8a8a;
+      --svg-arrow:                 #2a2a2a;
+      --svg-arrow-async:           #5a5a5a;
+      --svg-arrow-return:          #5a5a5a;
+      --svg-activation-bg:         #efefef;
+      --svg-activation-stroke:     #8a8a8a;
+      --svg-fragment-stroke:       #6a6a6a;
+      --svg-fragment-tab-bg:       #efefef;
+      --svg-fragment-tab-fg:       #1a1a1a;
+      --svg-label-bg:              #ffffff;
+      --svg-label-fg:              #2a6aa0;
+      --svg-label-fg-async:        #b86a00;
+      --svg-label-fg-return:       #5a5a5a;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+    }
+
+    h2 {
+      font-size: 17px;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+    }
+
+    h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 0 24px 0;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      background: var(--row-alt);
+      padding: 1px 5px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px 24px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+
+    .meta-grid dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+
+    .meta-grid dd {
+      margin: 0 0 6px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ------- diagnostics ------- */
+
+    details.diagnostics-toggle {
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.diagnostics-toggle[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.diagnostics-toggle[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
+    .diagnostics {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > .diagnostics {
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      margin-bottom: 0;
+    }
+    details.diagnostics-toggle > .diagnostics > h2 {
+      display: none;
+    }
+
+    .diagnostics > ul {
+      margin: 0 0 12px 0;
+      padding-left: 20px;
+    }
+
+    .diagnostics .check-pass::before { content: "PASS "; color: #2a8a2a; font-weight: 600; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--rev-fg); font-weight: 600; }
+
+    .diagnostics .density-warning {
+      padding: 8px 10px;
+      background: #fff5d6;
+      border-left: 3px solid #d97a1f;
+      border-radius: 3px;
+      margin: 8px 0;
+      font-size: 13px;
+    }
+    .diagnostics .density-warning.hidden { display: none; }
+
+    .diagnostics .flagged-items {
+      margin: 8px 0 0 0;
+      padding: 8px 10px;
+      background: var(--rev-bg);
+      border-left: 3px solid var(--rev-border);
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    .diagnostics .flagged-items strong { color: var(--rev-fg); }
+
+    /* ------- catalogue tables ------- */
+
+    .catalogue {
+      margin-bottom: 32px;
+    }
+
+    .catalogue > section {
+      margin-bottom: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+    }
+
+    .catalogue table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+
+    .catalogue thead th {
+      background: var(--header-bg);
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 2px solid var(--border-strong);
+      vertical-align: bottom;
+    }
+
+    .catalogue tbody td {
+      padding: 8px 10px;
+      border-top: 1px solid var(--border);
+      vertical-align: top;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .catalogue tbody tr:nth-child(even) { background: var(--row-alt); }
+
+    /* Provenance row left-border + provenance cell content */
+    .catalogue tbody tr.provenance-from-task-flow { box-shadow: inset 3px 0 0 0 var(--prov-task-flow); }
+    .catalogue tbody tr.provenance-derived         { box-shadow: inset 3px 0 0 0 var(--prov-derived); }
+    .catalogue tbody tr.provenance-ai-suggested    { box-shadow: inset 3px 0 0 0 var(--prov-ai-suggested); background: var(--ai-bg); }
+    .catalogue tbody tr.provenance-ai-suggested td { font-style: italic; }
+
+    .catalogue td.prov-cell {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .catalogue td.prov-cell::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: 1px;
+    }
+    tr.provenance-from-task-flow td.prov-cell::before { background: var(--prov-task-flow); }
+    tr.provenance-derived         td.prov-cell::before { background: var(--prov-derived); }
+    tr.provenance-ai-suggested    td.prov-cell::before { background: var(--prov-ai-suggested); }
+
+    /* Pill badges — kind (participants), kind (messages), scenario type, fragment type */
+    .kind-actor, .kind-system-component, .kind-external-system,
+    .scenario-type-primary, .scenario-type-extension, .scenario-type-recovery,
+    .fragment-type-alt, .fragment-type-opt, .fragment-type-loop,
+    .kind-sync, .kind-async, .kind-return {
+      display: inline-block;
+      padding: 1px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-radius: 3px;
+    }
+    .kind-actor              { background: var(--kind-actor-bg);             color: var(--kind-actor-fg); }
+    .kind-system-component   { background: var(--kind-system-component-bg);  color: var(--kind-system-component-fg); }
+    .kind-external-system    { background: var(--kind-external-system-bg);   color: var(--kind-external-system-fg); }
+    .scenario-type-primary   { background: var(--scenario-primary-bg);   color: var(--scenario-primary-fg); }
+    .scenario-type-extension { background: var(--scenario-extension-bg); color: var(--scenario-extension-fg); }
+    .scenario-type-recovery  { background: var(--scenario-recovery-bg);  color: var(--scenario-recovery-fg); }
+    .fragment-type-alt       { background: var(--fragment-alt-bg);  color: var(--fragment-alt-fg); }
+    .fragment-type-opt       { background: var(--fragment-opt-bg);  color: var(--fragment-opt-fg); }
+    .fragment-type-loop      { background: var(--fragment-loop-bg); color: var(--fragment-loop-fg); }
+    .kind-sync               { background: var(--kind-message-sync-bg);   color: var(--kind-message-sync-fg); }
+    .kind-async              { background: var(--kind-message-async-bg);  color: var(--kind-message-async-fg); }
+    .kind-return             { background: var(--kind-message-return-bg); color: var(--kind-message-return-fg); }
+
+    .catalogue td.seq { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; text-align: right; width: 40px; }
+    .catalogue td.span { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+    .catalogue td.label { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; color: var(--prov-task-flow); }
+    .catalogue td.guard { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; font-style: italic; color: var(--prov-derived); }
+
+    /* AI-SUGGESTED cell highlight */
+    .ai-suggested,
+    td.ai-suggested {
+      background: var(--ai-bg);
+      font-style: italic;
+      color: var(--prov-ai-suggested);
+    }
+
+    /* Rev marker (override-only) */
+    .rev-marker,
+    tr.rev-marker {
+      background: var(--rev-bg);
+      box-shadow: inset 3px 0 0 0 var(--rev-border);
+      color: var(--rev-fg);
+    }
+
+    /* Cross-scenario matrix */
+    .matrix-table td { text-align: center; font-size: 12px; }
+    .matrix-table td:first-child { text-align: left; }
+    .matrix-table td.matrix-cell-present { color: #2a8a2a; font-weight: 700; }
+    .matrix-table td.matrix-cell-absent  { color: var(--border); }
+    .matrix-table td.usage-count { font-variant-numeric: tabular-nums; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+    /* ------- sequence diagrams ------- */
+
+    .sequence-diagrams {
+      margin-bottom: 32px;
+    }
+    .sequence-diagrams-meta {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 0 0 12px 0;
+    }
+    .diagrams-empty {
+      padding: 16px;
+      background: var(--card-bg);
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-style: italic;
+      margin: 0;
+    }
+
+    .sequence-diagram {
+      margin: 0 0 24px 0;
+      padding: 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .sequence-diagram figcaption {
+      margin: 0 0 12px 0;
+    }
+    .sequence-diagram figcaption h3 {
+      margin: 0;
+      font-size: 13px;
+      color: var(--fg);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .sequence-diagram figcaption .seq-meta {
+      margin: 4px 0 0 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .sequence-diagram svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #fcfcfc;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+
+    /* SVG-internal styling (selectable by class on emitted shapes) */
+    .sequence-diagram svg .participant-box     { fill: var(--svg-participant-bg); stroke: var(--svg-participant-stroke); stroke-width: 1.2; }
+    .sequence-diagram svg .participant-label   { fill: var(--svg-participant-fg); font-weight: 700; font-size: 12px; text-anchor: middle; }
+    .sequence-diagram svg .lifeline            { stroke: var(--svg-lifeline); stroke-width: 1; stroke-dasharray: 4 4; }
+    .sequence-diagram svg .activation-bar      { fill: var(--svg-activation-bg); stroke: var(--svg-activation-stroke); stroke-width: 1; }
+    .sequence-diagram svg .message-arrow       { fill: none; stroke: var(--svg-arrow); stroke-width: 1.3; }
+    .sequence-diagram svg .message-arrow.arrow-async  { stroke: var(--svg-arrow-async); }
+    .sequence-diagram svg .message-arrow.arrow-return { stroke: var(--svg-arrow-return); stroke-dasharray: 6 4; }
+    .sequence-diagram svg .message-label       { fill: var(--svg-label-fg); font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .sequence-diagram svg .message-label.arrow-async  { fill: var(--svg-label-fg-async); }
+    .sequence-diagram svg .message-label.arrow-return { fill: var(--svg-label-fg-return); font-style: italic; }
+    .sequence-diagram svg .message-label-bg    { fill: var(--svg-label-bg); }
+    .sequence-diagram svg .fragment-frame      { fill: none; stroke: var(--svg-fragment-stroke); stroke-width: 1; }
+    .sequence-diagram svg .fragment-tab        { fill: var(--svg-fragment-tab-bg); stroke: var(--svg-fragment-stroke); stroke-width: 1; }
+    .sequence-diagram svg .fragment-label      { fill: var(--svg-fragment-tab-fg); font-size: 10px; font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+    /* ------- Mermaid fallback ------- */
+
+    details.mermaid-source {
+      margin-bottom: 24px;
+    }
+    details.mermaid-source > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--prov-derived);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--fg);
+      list-style: none;
+      user-select: none;
+    }
+    details.mermaid-source > summary::-webkit-details-marker { display: none; }
+    details.mermaid-source > summary::before {
+      content: "▶ ";
+      font-size: 10px;
+      color: var(--muted);
+    }
+    details.mermaid-source[open] > summary::before { content: "▼ "; }
+    details.mermaid-source > pre {
+      margin: 0;
+      padding: 12px 16px;
+      background: var(--row-alt);
+      border: 1px solid var(--border);
+      border-top: none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    details.mermaid-source > pre + pre {
+      border-top: 1px solid var(--border);
+    }
+    details.mermaid-source > pre:last-of-type {
+      border-radius: 0 0 6px 6px;
+    }
+    details.mermaid-source .mermaid-caption {
+      color: var(--muted);
+      font-size: 11px;
+      padding: 4px 16px;
+      background: var(--row-alt);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      font-style: italic;
+    }
+
+    /* ------- bottom legend ------- */
+
+    footer.bottom {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    footer.bottom .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    footer.bottom .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    footer.bottom .legend-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    footer.bottom .legend-dot.s-task-flow { background: var(--prov-task-flow); }
+    footer.bottom .legend-dot.s-derived   { background: var(--prov-derived); }
+    footer.bottom .legend-dot.s-ai        { background: var(--prov-ai-suggested); }
+    footer.bottom .credit { margin-top: 6px; text-align: right; }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .catalogue > section,
+      .sequence-diagram {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        border-radius: 0;
+        border-color: #000;
+      }
+      details.diagnostics-toggle,
+      details.mermaid-source { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>{{TITLE}}</h1>
+    <p class="subtitle">UML 2.5 sequence-diagram catalogue (system-level fidelity) — scenarios, participants, messages, combined fragments — plus consultant-selected inline-SVG diagrams.</p>
+
+    <dl class="meta-grid">
+      <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+      <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+      <div><dt>Source SHA-256</dt><dd><code>{{REQUIREMENTS_SHA256}}</code></dd></div>
+      <div><dt>Scenarios</dt><dd>{{SCENARIO_COUNT}}</dd></div>
+      <div><dt>Participants</dt><dd>{{PARTICIPANT_COUNT}}</dd></div>
+      <div><dt>Messages</dt><dd>{{MESSAGE_COUNT}}</dd></div>
+      <div><dt>Fragments</dt><dd>{{FRAGMENT_COUNT}}</dd></div>
+      <div><dt>AI-suggested items</dt><dd>{{AI_SUGGESTED_COUNT}}</dd></div>
+      <div><dt>Diagrams rendered</dt><dd>{{SCENARIOS_RENDERED}}</dd></div>
+    </dl>
+
+    <details class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    {{CATALOGUE_BLOCK}}
+
+    {{SVG_DIAGRAMS_BLOCK}}
+
+    {{MERMAID_BLOCK}}
+
+    <footer class="bottom">
+      <div class="legend">
+        <span class="legend-item"><span class="legend-dot s-task-flow" aria-hidden="true"></span> from §5 Task flows</span>
+        <span class="legend-item"><span class="legend-dot s-derived" aria-hidden="true"></span> derived from §2/§3/§4/§6/§7</span>
+        <span class="legend-item"><span class="legend-dot s-ai" aria-hidden="true"></span> [AI-SUGGESTED]</span>
+      </div>
+      <div class="credit">Generated by `framework/agents/analyses/sequence-diagram-analyser.md`.</div>
+    </footer>
+  </main>
+</body>
+</html>

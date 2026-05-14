@@ -30,6 +30,15 @@ methodologies:
     map_skill: framework/skills/map-ooux-to-ui.md
     analyser_agent: framework/agents/analyses/ooux-analyser.md
     character: framework/assets/characters/ooux-analysis.md
+  - name: sequence-diagram
+    status: mvp
+    description: UML 2.5 Sequence Diagrams — per-scenario interaction views at system-level fidelity (persona × system components × external systems), with sync/async/return messages and alt/opt/loop fragments. Consultant selects which scenarios to render; tabular catalogues always emitted, inline-SVG diagrams per selected scenario.
+    output_path: analyses/SEQUENCE-DIAGRAM/sequence-diagram.html
+    reference_asset: framework/assets/analyses/sequence-diagram-reference.md
+    template_asset: framework/assets/analyses/template-sequence-diagram.html
+    map_skill: framework/skills/map-sequence-diagram-to-ui.md
+    analyser_agent: framework/agents/analyses/sequence-diagram-analyser.md
+    character: framework/assets/characters/sequence-diagram-analysis.md
   - name: use-cases
     status: mvp
     description: Use Cases analysis (Cockburn fully-dressed — actors × goals × preconditions × main flows × extensions)

@@ -1,7 +1,7 @@
-# Adversarial Review — `Financial services / banking back-office`
+# Adversarial Review — Financial services / banking back-office
 
 - **Domain:** Financial services / banking back-office
-- **Generated:** 2026-05-14T12:00:00Z
+- **Generated:** 2026-05-14T10:32:49Z
 - **Requirements SHA-256:** `6f9272bbb30d1dce025b843f5319e790bdaa5ac2a07103204bbea7144694f0ae`
 - **Reviewer:** Adversarial Review (BMAD-style, strict mode)
 
@@ -9,100 +9,158 @@
 
 ## Executive Summary
 
-- **Total findings:** 81
-  - Severity — Blocker: **5** · Major: **57** · Minor: **19**
-  - Disposition — Patch: **78** · Defer: **3** · Reject: **0**
+- **Total findings:** 91
+  - Severity — Blocker: **7** · Major: **56** · Minor: **28**
+  - Disposition — Patch: **61** · Defer: **28** · Reject: **2**
 - **Verdict:** `BLOCKED`
 
 > Verdict legend: `BLOCKED` — at least one Reject or Blocker, requirements doc cannot be consumed downstream. `NEEDS-REVISION` — findings present but none blocking. `ACCEPTED-WITH-FIXES` — zero findings on all eight dimensions, every dimension carries a Justification block (rare under strict-BMAD).
 
 ---
 
+## Triage
+
+Top issues to address first, ordered by severity. Resolve these before scanning the full Findings Table below.
+
+| Rank | ID | Severity | Cluster | Location | Problem |
+|------|----|----------|---------|----------|---------|
+| 1 | ADV-45 | Blocker | CL-19 | §1\|§6\|§10 | The document is marked Status: final but contains no MVP designation, no release-scope statement, and no phase tagging — every one of the ~30 requirements is implicitly MVP, which is the classic scope-creep signature for a 501-line spec. |
+| 2 | ADV-46 | Blocker | CL-19 | §6\|§10 | There is no "Out of scope" section anywhere in the doc; §10 ends the document, so a downstream engineer has no negative boundary and must infer that everything not mentioned is or is not in scope. |
+| 3 | ADV-62 | Blocker | CL-02 | §6.6.1 vs §5 Approve Transaction / §5 Reject Transaction | §6.6.1 mandates step-up authentication for approve and reject, but the Approve Transaction flow lists only a confirmation modal and the Reject Transaction flow lists only a mandatory note — neither flow includes a re-authentication step. |
+| 4 | ADV-70 | Blocker | CL-07 | §5 File Upload | The File Upload flow names no maximum file size, no allowed file types/extensions, no virus/malware scan, and no specific failure modes — exactly the canonical "file upload requirement that names no max size, no virus check, no failure mode" anti-pattern. |
+| 5 | ADV-71 | Blocker |  | §5 Approve Transaction; §4.2 Approver story | Approval is declared reversible "only by separate workflow" but that recovery/undo workflow is never defined anywhere in the document, leaving the recovery path required by Dimension 7 unspecified. |
+| 6 | ADV-72 | Blocker | CL-12 | BR-06; §5 Transaction Table | BR-06 mandates live status reflection but the document specifies no transport (polling, SSE, WebSocket), no concurrent-edit conflict model when two Approvers act on the same row, and no behaviour when the live channel is offline. |
+| 7 | ADV-83 | Blocker | CL-10 | §6.6.4 | POPIA treatment is declared as "implied" rather than concretely specified — no data residency, no consent/lawful-basis statement, no PII retention windows (only the audit-trail retention is set), and no data-subject-rights handling, despite the system storing AccountNumber and user PII. |
+| 8 | ADV-03 | Major | CL-02 | §6.6.1 | Step-up authentication is asserted as required for approve/reject but no business rule, functional requirement, or task flow (Approve Transaction, Reject Transaction) describes the step-up challenge, its trigger, or its success/failure handling. |
+| 9 | ADV-04 | Major | CL-03 | §6.6.1 | MFA is mandated for Approvers but no requirement or flow covers MFA enrollment, challenge during login, recovery, or what happens when an Approver lacks MFA at login time. |
+| 10 | ADV-08 | Major | CL-07 | §5 File Upload | The File Upload flow and §6.1 upload requirement specify no contract on accepted file type, size cap, encoding, or virus/integrity scanning, even though §7 File Log defines a FileHash sha-256 field implying an integrity check that no requirement actually mandates. |
+
+---
+
+## Clusters
+
+Findings sharing a root cause are grouped below. Each cluster lists its member finding IDs; the per-dimension sections still contain every finding in full detail.
+
+| Cluster | Theme | Findings | Max severity |
+|---------|-------|----------|--------------|
+| CL-01 | User / Role admin entity referenced but unmanaged | ADV-02, ADV-55, ADV-61 | Major |
+| CL-02 | Step-up auth required but never wired into flows | ADV-03, ADV-19, ADV-34, ADV-48, ADV-56, ADV-62, ADV-75 | Blocker |
+| CL-03 | MFA required for Approver but never wired into Auth | ADV-04, ADV-24, ADV-47, ADV-57, ADV-63, ADV-86 | Major |
+| CL-04 | Account lockout policy stated without UX or recovery | ADV-05, ADV-68, ADV-74 | Major |
+| CL-05 | Idle session warning UI / extend-session undefined | ADV-06, ADV-76 | Major |
+| CL-06 | Logout scoped to Approver only despite both roles authenticating | ADV-07, ADV-52, ADV-64 | Major |
+| CL-07 | File Upload contract missing size/type/virus/partial-failure | ADV-08, ADV-22, ADV-39, ADV-70, ADV-80 | Blocker |
+| CL-08 | BR-07 cites "retry" but no retry flow / RBAC anywhere | ADV-09, ADV-18, ADV-51, ADV-77 | Major |
+| CL-09 | No observability NFR despite 7-yr audit + RTO/RPO | ADV-10, ADV-88 | Major |
+| CL-10 | POPIA named but no concrete residency/retention/DSAR | ADV-11, ADV-49, ADV-83 | Blocker |
+| CL-11 | CSV export contract and over-limit behaviour unspecified | ADV-13, ADV-78, ADV-89 | Major |
+| CL-12 | BR-06 real-time has no transport/latency/concurrency model | ADV-17, ADV-35, ADV-58, ADV-72, ADV-85 | Blocker |
+| CL-13 | File Log field types (CurrentStatus, RecordCount) inconsistent | ADV-21, ADV-67 | Minor |
+| CL-14 | File Summary "counts may be incomplete" under-specified | ADV-25, ADV-40 | Major |
+| CL-15 | Password "complexity per security policy" undefined | ADV-27, ADV-36 | Major |
+| CL-16 | WCAG/screen-reader predicates non-testable | ADV-29, ADV-31 | Major |
+| CL-17 | Availability target references undefined "business hours" | ADV-30, ADV-33 | Major |
+| CL-18 | Performance thresholds bounded ≤1000 rows; Volumes allow 10^5 | ADV-32, ADV-53, ADV-84 | Major |
+| CL-19 | No MVP scope declaration and no out-of-scope section | ADV-45, ADV-46 | Blocker |
+| CL-20 | §2.4 Mermaid diagram omits fields defined in §7 | ADV-65, ADV-66 | Major |
+
+---
+
 ## Findings Table
 
-| ID | Dim | Severity | Disposition | Location | Problem |
-|----|-----|----------|-------------|----------|---------|
-| ADV-01 | 1 | Major | Patch | §6.5 | The User entity has only Read permissions in the RBAC matrix for both roles, leaving no actor authorised to Create, Update, or Delete users, so user provisioning has no defined owner. |
-| ADV-02 | 1 | Major | Patch | §6.6.1 | Step-up authentication is asserted as a security requirement but no functional requirement, business rule, or task flow describes when the challenge is issued, what credential is required, or how a failed step-up affects the approve/reject action. |
-| ADV-03 | 1 | Major | Patch | §6.6.1 | MFA is declared mandatory for Approvers but no functional requirement, flow, or business rule covers enrollment, challenge, recovery, or what happens if an Approver lacks an enrolled factor. |
-| ADV-04 | 1 | Major | Patch | §6.6.1 | Account lockout is specified as a security control but no functional requirement, task flow, or business rule describes the user-facing lockout message, counter reset semantics, or unlock path. |
-| ADV-05 | 1 | Major | Patch | §6.6.1 | A 60-second idle warning is specified, but no user-facing requirement defines how the warning is rendered, what action extends the session, or what happens at expiry. |
-| ADV-06 | 1 | Major | Patch | BR-07 | BR-07 references "until retry succeeds" but no functional requirement, task flow, or business rule defines the retry action for a Failed file log — who can trigger it, what it does, or what state the file moves to. |
-| ADV-07 | 1 | Major | Patch | §7 | FileSetting is referenced as an entity in the data model and is required at upload, but §7 contains no Entity: FileSetting definition (fields, types, validations) and no requirement governs its CRUD lifecycle. |
-| ADV-08 | 1 | Major | Patch | §6.1 | Functional requirements in §6.1 are stated as bare capabilities without acceptance criteria or pass/fail predicates, leaving each requirement unverifiable as written. |
-| ADV-09 | 1 | Major | Defer | G-04 | G-04's quality signal "at-a-glance status" is closed by the dashboard, but no requirement addresses proactive notification when a file fails, so an Importer who does not open the dashboard can miss a Failed state indefinitely. |
-| ADV-10 | 1 | Major | Patch | §6.6.4 | POPIA compliance is asserted but the document contains no requirement covering data-subject access, deletion / right-to-erasure, processing register, or breach-notification flow, leaving the POPIA claim un-evidenced. |
-| ADV-11 | 1 | Major | Patch | §7 | The File Log entity exposes an IsActive soft-delete flag, but no functional requirement, business rule, or task flow describes who can deactivate a File Log, when, or how IsActive=false affects visibility in lists, exports, and summary views. |
-| ADV-12 | 1 | Minor | Patch | §6.6.3 | Availability targets are stated but no observability, alerting, or health-check requirement exists, so there is no documented mechanism to detect breach of the 99.5%/99.0% targets or to trigger the RTO/RPO recovery process. |
-| ADV-13 | 1 | Minor | Patch | §6.4 | The user-facing standard names a "session-about-to-expire" banner but no functional requirement defines its activation threshold, dismiss behaviour, or coupling to the 60-second idle warning in §6.6.1. |
-| ADV-14 | 2 | Minor | Patch | §6.4 | The auto-dismiss interval is given as a vague range (4–8 s) rather than a single deterministic value, leaving implementers and testers unable to verify the requirement. |
-| ADV-15 | 2 | Major | Defer | §6.6.1 | "Step-up authentication" names no mechanism, no trigger frequency, and no credential factor, so the requirement is unbuildable as stated. |
-| ADV-16 | 2 | Minor | Patch | §7 | "Complexity per security policy" references an external policy that is not defined or linked anywhere in the document, leaving complexity rules ambiguous. |
-| ADV-17 | 2 | Major | Patch | BR-07 | BR-07 references "retry" as a precondition for re-enabling drill-down, but no retry flow, retry action, or retry trigger is defined anywhere in §5 or §6.1. |
-| ADV-18 | 2 | Minor | Patch | §5 File Summary View | The hedge word "may" on the counts-incomplete clause makes it indeterminate whether incomplete counts are expected, permitted, or guaranteed in Processing/Failed states. |
-| ADV-19 | 2 | Major | Patch | §6.6.3 | "Business hours" is undefined — no timezone, no start/end times, no working-day calendar — so the SLA cannot be measured. |
-| ADV-20 | 2 | Minor | Patch | §10 | "Typically" and "≈" make the concurrency target non-binding, leaving capacity planners without a hard ceiling to design against. |
-| ADV-21 | 2 | Minor | Patch | §6.3 | "Transaction detail surface" is a generic noun phrase for a screen that is not defined in §5 task flows or anywhere else in the document. |
-| ADV-22 | 2 | Major | Patch | §6.1 | "Process" is a vague verb with no specification of parsing rules, validation, error handling, or batch semantics for turning a file into Transaction rows. |
-| ADV-23 | 2 | Minor | Patch | §6.6.5 | "Primary actions" is not defined; without an enumerated set, the requirement is not testable. |
-| ADV-24 | 2 | Minor | Patch | §6.4 | "Session-about-to-expire" implies a warning threshold but does not name it, so the banner's trigger window is ambiguous against the 60-second lead-time mentioned in §6.6.1. |
-| ADV-25 | 3 | Major | Patch | §6.6.5 | The accessibility requirement names no enumerated checklist, no audit tool, no severity threshold, and no list of "primary actions" or required screen-reader semantics, so a tester cannot write a pass/fail predicate. |
-| ADV-26 | 3 | Major | Patch | §6.6.2 | Performance targets give thresholds but omit sample size, measurement window, environment (network/CPU profile), and starting state, so a tester cannot reproduce the percentile calculation deterministically. |
-| ADV-27 | 3 | Major | Patch | BR-06 | "Without a manual refresh" sets no time threshold, transport mechanism, or maximum staleness, so a tester cannot decide between a 200 ms websocket push and a 60 s poll, both satisfy the wording. |
-| ADV-28 | 3 | Major | Patch | §6.6.1 | Step-up authentication has no enumerated mechanism (password re-entry vs MFA vs WebAuthn), no scope window (per session, per action, per N minutes), and no failure behaviour, so no failing-then-passing test can be written. |
-| ADV-29 | 3 | Major | Patch | §6.6.4 | "PII" is not enumerated for this domain (account number? email? user name? amount?), so a tester cannot decide whether a toast containing "AccountNumber 1234567890 not found" violates the rule. |
-| ADV-30 | 3 | Major | Patch | §6.4 | "2–3 key columns" is non-deterministic — the designer can pick any two-or-three from the column set and still pass, so two implementations producing different cards both pass the same predicate. |
-| ADV-31 | 3 | Major | Defer | §5 Approve / Reject Transaction | Concurrent-update edge case is unnamed: two Approvers acting on the same Imported transaction at the same time has no specified outcome (lost-update, optimistic-lock error, last-write-wins), so neither service nor UI test can be authored. |
-| ADV-32 | 3 | Minor | Patch | §5 File Upload | Network-loss / partial-failure edge cases for the upload flow are not named (resumability, retry, partial-bytes scenario), so a tester cannot author a network-interruption test against the spec. |
-| ADV-33 | 3 | Minor | Patch | §6.4 | Sort behaviour for null/empty values and tie-breakers is unspecified, so two implementations producing different orderings both satisfy the requirement. |
-| ADV-34 | 3 | Minor | Patch | §6.6.3 | "Business hours" is undefined (timezone, days, span), and no measurement window or downtime accounting is given, so the SLA is not verifiable. |
-| ADV-35 | 4 | Blocker | Patch | §6 | The document has no MVP designation anywhere — §6 lists all requirements as a flat catalogue with no scope tier, so every functional/business/data/user-facing/NFR item is implicitly MVP, which is the textbook scope-creep signal. |
-| ADV-36 | 4 | Blocker | Patch | §10 (document end) | A 501-line requirements document terminates at §10 Volumes with no "Out of scope" / "Non-goals" section, so engineers must infer the exclusions (bulk approve, transaction edit, file deletion, admin features, password reset, MFA enrolment UI) — exactly the failure mode this dimension flags. |
-| ADV-37 | 4 | Major | Patch | §6.6.1 | Step-up auth, account lockout, and MFA ("required for Approver") are non-trivial multi-week features layered onto an MVP that otherwise covers only upload/approve/reject/export, yet they are listed at the same priority — a clear MVP cost-vs-scope mismatch with no tagging that they are post-MVP or already-provided. |
-| ADV-38 | 4 | Major | Patch | §6.4 | A responsive mobile/card-list rendering is mixed in with desktop table requirements with no scope tag, despite the personas (§3) describing "primary working surface is the transaction table" for daily desktop use — this is a candidate for post-MVP that currently straddles the line. |
-| ADV-39 | 4 | Major | Patch | §6.6.3 | Availability targets (99.5%/99.0%, RTO 4h / RPO 1h) imply HA infrastructure, backups, and a runbook that are operational/Phase-2 concerns, but they sit unflagged alongside functional MVP items, conflating buildable scope with steady-state SLA commitments. |
-| ADV-40 | 4 | Major | Patch | §6.6.4 | A 7-year retention policy and POPIA conformance are scope-heavy compliance commitments (archival storage, access logs, data-subject request handling) being asserted as if equivalent to a UI requirement — with no MVP/Post-MVP scoping, the engineer can't tell if year-7 retention must ship at v1. |
-| ADV-41 | 4 | Major | Patch | BR-07 | BR-07 references a "retry" capability ("until retry succeeds") but no retry flow exists in §5 Task flows and no retry requirement exists in §6.1 — the rule straddles the MVP line by depending on an unscoped feature. |
-| ADV-42 | 4 | Major | Patch | §3 vs §6.5 | The RBAC matrix grants "User: R" to both Importer and Approver, implying a user-management/listing surface, but §3 only describes Importer and Approver personas — no Admin is named, no user-management screen is in §5 Task flows, and there is no scope statement about whether user CRUD is MVP or post-MVP. |
-| ADV-43 | 5 | Major | Patch | §7 File Log | The File Log entity in §7 depends on a FileSetting entity that is never introduced in §2 Domain model nor defined in §7 Data entities, so an engineer cannot determine when/how FileSetting must exist before File Upload. |
-| ADV-44 | 5 | Major | Patch | §4.1 (G-02, G-03) | G-02 and G-03 implicitly depend on G-01 (files uploaded) and on authentication being live, but neither dependency is stated, so an engineer could legitimately start implementing approval/export before the upload pipeline or auth exists. |
-| ADV-45 | 5 | Major | Patch | BR-06 | BR-06 mandates real-time status reflection without a manual refresh but no upstream requirement, integration, or transport (WebSocket, SSE, polling cadence) is sequenced or declared anywhere in the doc, leaving the dependency undiscoverable. |
-| ADV-46 | 5 | Major | Patch | §6.6.1 vs §5 Approve / Reject | Step-up authentication is declared as required for approve/reject, but the Approve and Reject flows in §5 do not include a step-up step, and no MFA/step-up integration is declared as a prerequisite, so the ordering between MFA provisioning and approve/reject features is undiscoverable. |
-| ADV-47 | 5 | Major | Patch | §6.6.1 vs §5 Authentication | Approver MFA is declared mandatory but the Authentication flow in §5 lists only "email + password" with no MFA step, no MFA provisioning requirement, and no enrolment dependency, so engineers cannot tell whether MFA infrastructure must be built before the Approver login can be released. |
-| ADV-48 | 5 | Major | Patch | §4.2 / §5 File Upload | Upload requires FileSettingId and FileSettingName, but the doc never describes how a FileSetting is created, listed, or selected, nor sequences "FileSetting management" before file upload — making the upload requirement implementable only after a hidden, undefined dependency. |
-| ADV-49 | 5 | Minor | Patch | §6.1 (logout) | Only Approvers are granted a logout requirement, but §6.5 grants Importers Authentication X (login) — leaving an Importer with no defined way out; the ordering of "who gets logout when" is incoherent with the auth flow. |
-| ADV-50 | 5 | Minor | Patch | §6.5 (User column) | Both roles have `User: R` but the doc never specifies a user-administration surface or sequences when a User-management capability must be built, and no requirement explains who creates Users — making login depend on an undefined provisioning step. |
-| ADV-51 | 5 | Minor | Patch | BR-07 | BR-07 references a "retry" operation as a precondition for drill-down, but no retry requirement, flow, or endpoint is defined anywhere in the doc — the dependency target does not exist. |
-| ADV-52 | 6 | Blocker | Patch | §6.6.1 vs §5 / §6.5 | The Security & session table mandates step-up re-auth and required MFA for Approver actions, but no task flow (Approve, Reject), business rule, RBAC cell, or functional requirement mentions any re-auth or MFA step — the matrix shows plain `A†BR-01` / `A†BR-02` with no MFA gate. |
-| ADV-53 | 6 | Blocker | Patch | §6.6.2 vs §10 / §6.6.2 CSV row | The transactions GET p99 target is bounded at ≤1 000 rows on the page-TTI line but unqualified on the API line, while §10 states 10³–10⁵ transactions retained per active file log overall — implying GETs and exports beyond the implied 1 000-row scope have no defined performance target. |
-| ADV-54 | 6 | Major | Patch | §6.1 vs §6.5 | Only Approvers are named as able to log out in §6.1, but the RBAC matrix grants both Importer and Approver `X` on Authentication and §5 Flow: Authentication is open to both roles; logout availability is therefore contradicted between sections. |
-| ADV-55 | 6 | Major | Patch | §2.4 vs §7 File Log | The class diagram shows `CurrentStatus` as the FileLog status attribute, but §7 makes `LastExecutedActivityName` the required, enum-constrained, user-visible status and demotes `CurrentStatus` to an optional "Operational status complement" — the diagram contradicts the canonical entity definition. |
-| ADV-56 | 6 | Major | Patch | §2.4 + §6.3 vs §7 Transaction | The Mermaid Transaction omits `TransactionType` (required, enum {C,D} in §7) and `Description`, and §6.3 Data does not mention persisting TransactionType or FileName denormalisation — the canonical entity in §7 introduces fields that contradict the simpler shape declared elsewhere. |
-| ADV-57 | 6 | Major | Patch | §2.1 / §5 / §7 / §9 (FileSetting naming) | Upload flow and functional requirements name the inputs `FileSettingId` and `FileSettingName`, but §7's File Log entity stores them as `SettingId` / `SettingName`; furthermore `FileSetting` is recognised in §9 terminology but never appears as a Concept in §2.1 — a naming/scope drift across three sections. |
-| ADV-58 | 6 | Major | Patch | §7 File Log RecordCount | RecordCount is declared as `string` with `numeric` validation in §7, but the Mermaid diagram lists it as a plain `+RecordCount` attribute and §6.4 ties pagination and sorting to numeric semantics — typing it as a string in the canonical entity contradicts the way it is rendered/sorted elsewhere. |
-| ADV-59 | 6 | Major | Patch | §7 Transaction UserNote | §7 marks UserNote as "yes when Status = Rejected", implying conditional required, but the Required column header is binary and the §2.4 diagram shows `+UserNote` unconditionally on Transaction; BR-02 enforces non-empty only at Reject — three sections describe the same field with subtly conflicting required semantics. |
-| ADV-60 | 6 | Major | Patch | §6.5 Importer File Log vs §5 File Upload / BR-04 | The matrix grants Importer `C R` on File Log but only `X` on File Upload; meanwhile File Upload flow states "Available to Importer only" and BR-04 hides the Upload route for Approver — the conflation of "Create File Log" and "Execute File Upload" is internally ambiguous and contradicts the prose that treats upload as Importer-exclusive. |
-| ADV-61 | 6 | Minor | Patch | §6.6.4 vs §6.3 | §6.6.4 lists login and logout among audited events using `LastChangedUser` / `LastChangedDate`, but §6.3 scopes those audit fields to "mutating action against File Log, Transaction, and User entities" — login/logout are not mutations on those entities, so the two sections disagree on where the audit record lives. |
-| ADV-62 | 7 | Blocker | Patch | §6.1 / §5 File Upload | The file-upload requirement names no maximum file size, no allowed file types/extensions, no virus/malware scan, and no per-row parse-failure handling — exactly the canonical "file upload with no max size, no virus check, no failure mode" gap called out in Dimension 7. |
-| ADV-63 | 7 | Major | Patch | §6.6.2 / §10 | Volumes go up to 10⁵ transactions per file log but the only export SLA is for ≤10 000 rows, and there is no defined behaviour when an Approver triggers an export of a filtered set that exceeds this limit (no row cap, no async/email-delivery fallback, no truncation warning). |
-| ADV-64 | 7 | Major | Patch | §5 Approve / Reject / BR-06 | There is no concurrency rule for the case where two Approvers act on the same Imported transaction simultaneously — BR-01 only hides actions after status changes locally; nothing defines server-side last-write semantics, optimistic-lock errors, or what the losing Approver's UI shows. |
-| ADV-65 | 7 | Major | Patch | §5 Approve / Reject Transaction | Neither approve nor reject defines what happens on network failure / server error after the confirmation modal is submitted — no state-preservation contract (does the modal stay open?), no retry affordance, no idempotency guarantee against double-clicks resubmitting the same approval. |
-| ADV-66 | 7 | Major | Patch | §5 File Upload | Upload idempotency is undefined: if an Importer re-submits the same file (same FileHash) — intentionally or after a flaky network — there is no rule saying whether a duplicate File Log is created, deduplicated, or rejected, despite §7 already capturing a SHA-256 FileHash on File Log. |
-| ADV-67 | 7 | Major | Patch | §6.4 / §6.6.5 | Validation behaviour is described generically but individual named requirements lack per-field validation rules: max length of the mandatory rejection UserNote (§7 only says "non-empty"), max length of FileName / FileSettingName at upload, and the email format error message — leaving "invalid email, oversize file, malformed input" surfaces unspecified. |
-| ADV-68 | 7 | Major | Patch | §6.6.1 | There is no defined recovery behaviour when the session expires mid-action: an Approver halfway through typing a rejection note, or an Importer mid-upload, will silently lose work — no "preserve draft, prompt re-auth, replay action" rule exists. |
-| ADV-69 | 7 | Major | Patch | §5 Authentication / §6.6.1 | Lockout policy is defined but there is no password-reset / account-recovery flow anywhere in §5 task flows, §6.1 functional requirements, or §6.5 RBAC — meaning a locked Approver has no documented recovery path, which is a canonical Dimension 7 recovery-path gap. |
-| ADV-70 | 7 | Major | Patch | BR-07 / §5 File Summary View | BR-07 names a "retry" but no requirement, flow, or RBAC cell defines a retry action: there is no actor, trigger, endpoint, or success/failure behaviour for retrying a Failed File Log, so the rule cannot be implemented as written. |
-| ADV-71 | 7 | Major | Patch | §5 Approve Transaction / §6.1 | Story text claims Approve is "reversible only by separate workflow" but no such workflow exists in §5 task flows, §6.1 functional requirements, or §6.5 RBAC — so the documented undo/recovery path for the system's most consequential action is absent. |
-| ADV-72 | 7 | Major | Patch | §5 Authentication / §6.5 | There is no defined authorization-failure UX when a role lands on a forbidden route directly (e.g., an Approver navigating to /upload or an Importer to /export): BR-03/BR-04 only say controls are hidden, not what a deep-link request returns or how the UI handles a 403. |
-| ADV-73 | 7 | Major | Patch | §5 Export Transactions / §6.4 | Export has no network-failure or partial-failure surface: if CSV generation fails server-side (timeout, 5xx), or the browser cancels the download, there is no documented retry, no resumption, and no audit of failed export attempts despite §6.6.4 mandating audit of every approve/reject/upload/login/logout event. |
-| ADV-74 | 8 | Major | Patch | §6.6.4 | POPIA is named only as "implied" with no concrete treatment of data residency, PII inventory, consent flows, retention windows per data class, or subject-access/erasure obligations — yet the system handles AccountNumber, Email, names, and financial transactions which are POPIA-bearing. |
-| ADV-75 | 8 | Major | Patch | §6.6.2 | Performance thresholds are stated without reference to the implementation stack, expected indexing, or measurement methodology — and the CSV-export budget of 3 s for 10 000 rows is suspect for a synchronous browser download without a streaming/async strategy named. |
-| ADV-76 | 8 | Major | Patch | §6.6.1 | Step-up auth, MFA-for-Approver, and account-lockout are asserted with no mechanism named (TOTP? WebAuthn? SMS?) and no integration point — the auth-api source only documents password + session cookie, so these requirements are not buildable as written. |
-| ADV-77 | 8 | Major | Patch | §6.6.3 | Availability targets (99.5 %, RTO 4 h / RPO 1 h) are stated but the document names no logging, monitoring, alerting, backup, or DR mechanism — so the operational claim "we will run this in production" is unsupported and the RPO is unverifiable. |
-| ADV-78 | 8 | Major | Patch | §6.6.4 | A 7-year retention is asserted for audit but no retention window is given for the underlying Transaction, File Log, or User records — and POPIA Section 14 requires retention to be no longer than necessary per data class, so a single 7-year blanket is non-compliant by omission. |
-| ADV-79 | 8 | Minor | Patch | §6.4 (breakpoint) | The only device-class statement is a 768 px breakpoint; there is no named browser/version matrix or OS target, making the surface "works everywhere" rather than testable. |
-| ADV-80 | 8 | Minor | Patch | §1 header | The document is marked final but states no delivery timeline, team size, or cost envelope — feasibility cannot be assessed against constraints that are not present. |
-| ADV-81 | 8 | Minor | Patch | BR-06 | BR-06 mandates real-time reflection of status changes with no latency budget and no mechanism (polling cadence? websocket? SSE?) — a "real-time" requirement without a latency budget is a classic feasibility flag. |
+| ID | Dim | Severity | Disposition | Cluster | Location | Problem |
+|----|-----|----------|-------------|---------|----------|---------|
+| ADV-45 | 4 | Blocker | Reject | CL-19 | §1\|§6\|§10 | The document is marked Status: final but contains no MVP designation, no release-scope statement, and no phase tagging — every one of the ~30 requirements is implicitly MVP, which is the classic scope-creep signature for a 501-line spec. |
+| ADV-46 | 4 | Blocker | Reject | CL-19 | §6\|§10 | There is no "Out of scope" section anywhere in the doc; §10 ends the document, so a downstream engineer has no negative boundary and must infer that everything not mentioned is or is not in scope. |
+| ADV-62 | 6 | Blocker | Defer | CL-02 | §6.6.1 vs §5 Approve Transaction / §5 Reject Transaction | §6.6.1 mandates step-up authentication for approve and reject, but the Approve Transaction flow lists only a confirmation modal and the Reject Transaction flow lists only a mandatory note — neither flow includes a re-authentication step. |
+| ADV-70 | 7 | Blocker | Defer | CL-07 | §5 File Upload | The File Upload flow names no maximum file size, no allowed file types/extensions, no virus/malware scan, and no specific failure modes (oversize, wrong type, malformed content) — exactly the canonical "file upload requirement that names no max size, no virus check, no failure mode" anti-pattern. |
+| ADV-71 | 7 | Blocker | Defer |  | §5 Approve Transaction; §4.2 Approver story | Approval is declared reversible "only by separate workflow" but that recovery/undo workflow is never defined anywhere in the document, leaving the recovery path required by Dimension 7 unspecified. |
+| ADV-72 | 7 | Blocker | Defer | CL-12 | BR-06; §5 Transaction Table | BR-06 mandates live status reflection but the document specifies no transport (polling, SSE, WebSocket), no concurrent-edit conflict model when two Approvers act on the same row, and no behaviour when the live channel is offline. |
+| ADV-83 | 8 | Blocker | Defer | CL-10 | §6.6.4 | POPIA treatment is declared as "implied" rather than concretely specified — no data residency, no consent/lawful-basis statement, no PII retention windows (only the audit-trail retention is set), and no data-subject-rights handling, despite the system storing AccountNumber and user PII. |
+| ADV-01 | 1 | Major | Patch |  | §6.1 | Functional requirements are an unnumbered prose bullet list with no FR-NN identifiers and no acceptance criteria or pass/fail predicates attached to any individual statement, leaving every functional shall-do unimplementable and untraceable from goals or flows. |
+| ADV-02 | 1 | Major | Patch | CL-01 | §6.5 | The RBAC matrix grants only Read on the User entity to both roles, leaving no actor with Create/Update/Delete on Users — so no requirement describes how user accounts come into existence, are deactivated, or have roles changed. |
+| ADV-03 | 1 | Major | Patch | CL-02 | §6.6.1 | Step-up authentication is asserted as required for approve/reject but no business rule, functional requirement, or task flow (Approve Transaction, Reject Transaction) describes the step-up challenge, its trigger, or its success/failure handling. |
+| ADV-04 | 1 | Major | Patch | CL-03 | §6.6.1 | MFA is mandated for Approvers but no requirement or flow covers MFA enrollment, challenge during login, recovery, or what happens when an Approver lacks MFA at login time. |
+| ADV-05 | 1 | Major | Patch | CL-04 | §6.6.1 | Account lockout thresholds are stated as an NFR but no functional requirement or §5 Authentication flow describes the lockout user experience, error message, or how an Importer/Approver recovers from a locked account. |
+| ADV-06 | 1 | Major | Patch | CL-05 | §6.6.1 | Idle and absolute session timeouts plus a 60-second warning lead-time are asserted but no requirement or flow describes the warning UI, the extend-session action, or the redirect-on-expiry behaviour. |
+| ADV-07 | 1 | Major | Patch | CL-06 | §6.1 | Logout is scoped to Approvers only, leaving no documented logout requirement or session-invalidation path for Importers despite both roles being authenticated principals. |
+| ADV-08 | 1 | Major | Patch | CL-07 | §5 File Upload | The File Upload flow and §6.1 upload requirement specify no contract on accepted file type, size cap, encoding, or virus/integrity scanning, even though §7 File Log defines a FileHash sha-256 field implying an integrity check that no requirement actually mandates. |
+| ADV-09 | 1 | Major | Patch | CL-08 | BR-07 | BR-07 references a "retry" against a Failed File Log but no requirement, flow, or RBAC entry describes who triggers the retry, what endpoint serves it, or how the File Log transitions back out of Failed. |
+| ADV-10 | 1 | Major | Patch | CL-09 | §6.6 / §6.1 | No observability/operability non-functional category is present — there are no logging, monitoring, alerting, or health-check requirements despite the financial domain and the §6.6.4 7-year audit retention commitment depending on a logging substrate. |
+| ADV-11 | 1 | Major | Patch | CL-10 | §6.6.4 | POPIA is named as the governing privacy regime but no requirement covers POPIA-specific obligations such as data-subject access/erasure requests, lawful-basis recording, cross-border transfer restrictions, or breach-notification timelines. |
+| ADV-12 | 1 | Major | Patch |  | §6.3 | The audit trail derives the actor identity from a client-supplied request header without any requirement constraining who may set the header, how it is reconciled against the authenticated session principal, or how forgery is prevented. |
+| ADV-13 | 1 | Major | Patch | CL-11 | §6.1 | The CSV export requirement specifies no contract for the export — no column list, header row, encoding (UTF-8/BOM), delimiter, quoting rules, filename pattern, or maximum row count is defined, despite §6.6.2 setting a 10 000-row performance target. |
+| ADV-14 | 1 | Major | Patch |  | §7 Entity: File Log | File Log carries an IsActive soft-delete flag but no functional requirement, business rule, or RBAC cell describes who toggles IsActive, what triggers archival, or how inactive file logs are surfaced (or hidden) in the File Log Overview. |
+| ADV-17 | 2 | Major | Patch | CL-12 | §6.2 BR-06 | "without a manual refresh" specifies no time window or mechanism, leaving the latency budget and update strategy (push, poll, optimistic UI) unspecified. |
+| ADV-18 | 2 | Major | Patch | CL-08 | §6.2 BR-07 | "surface the failure prominently" and "until retry succeeds" are both undefined — there is no specified retry flow elsewhere in the document, and "prominently" is a vague qualifier. |
+| ADV-19 | 2 | Major | Patch | CL-02 | §6.6.1 | "Step-up authentication" is not defined anywhere in the document — the factor required (password re-entry, MFA challenge, biometric) and its scope (per action, per session) are unspecified. |
+| ADV-20 | 2 | Major | Patch |  | §6.1 | "Process" is a vague verb and the slash between two field names leaves it unclear which field is canonical for the user-visible status versus the operational status. |
+| ADV-31 | 3 | Major | Patch | CL-16 | §6.6.5 | Accessibility requirement names a standard and a vague scope but provides no enumerated primary actions, no audit tool/sample, and no pass/fail predicate for "screen-reader semantics". |
+| ADV-32 | 3 | Major | Patch | CL-18 | §6.6.2 | Performance targets give thresholds but omit sample size, network/device profile, and measurement methodology, so a tester cannot reproduce the test. |
+| ADV-33 | 3 | Major | Patch | CL-17 | §6.6.3 | Availability target references "business hours" without defining them, no measurement window, and no definition of "down" versus "degraded". |
+| ADV-34 | 3 | Major | Patch | CL-02 | §6.6.1 | Step-up auth is mandated but the factor, trigger window, and expiry are unspecified, so no test can decide whether a given step-up implementation satisfies the requirement. |
+| ADV-35 | 3 | Major | Patch | CL-12 | BR-06 | BR-06 prescribes "without a manual refresh" but gives no latency bound, so "reflected eventually" would pass — there is no failing-test predicate. |
+| ADV-36 | 3 | Major | Patch | CL-15 | §6.6.1 | Password rule (§7 Entity User) says "complexity per security policy" but no policy is enumerated, so a tester cannot decide whether a given password is accepted or rejected. |
+| ADV-37 | 3 | Major | Patch |  | §6.6.4 | Negative predicate over PII is not testable without an enumeration of which fields count as PII for this product. |
+| ADV-38 | 3 | Major | Patch |  | §4.1 | Goal-level "Quality signals" (Speed-to-confidence, Accuracy, throughput, decision confidence, At-a-glance status) are wishes — no numeric thresholds, so completion of a goal is not decidable. |
+| ADV-39 | 3 | Major | Patch | CL-07 | §5 File Upload | "Status shown in UI" and "Success / failure feedback is rendered after upload" do not enumerate which statuses or which messages, so the exception path is not decidable from the doc alone. |
+| ADV-40 | 3 | Major | Patch | CL-14 | §5 File Summary View | "Counts may be incomplete" and "shows … prominently" are wishes — no testable predicate for what the user sees when Processing vs Failed. |
+| ADV-47 | 4 | Major | Defer | CL-03 | §6.6.1 | MFA for Approvers and step-up authentication for approve/reject are listed as "inferred" defaults in NFRs but carry weeks of engineering cost (enrolment UI, factor selection, recovery flows) and are not tagged as MVP, post-MVP, or stretch — this requirement straddles the cut line. |
+| ADV-48 | 4 | Major | Defer | CL-02 | §6.6.1 | Account lockout, idle-warning lead-time, idle/absolute session timeouts, and step-up re-auth are all stated as inferred defaults with concrete numeric targets but no scope tag — each implies non-trivial backend state machines that may or may not be in MVP scope. |
+| ADV-49 | 4 | Major | Defer | CL-10 | §6.6.4 | POPIA compliance and a 7-year audit retention obligation are stated without scope tagging or cost discussion — POPIA conformance alone is a multi-month workstream (DSAR handling, breach notification, data-minimisation review) and cannot be silently bundled into MVP. |
+| ADV-50 | 4 | Major | Defer |  | §6.4\|line-345 | A responsive mobile breakpoint behaviour is mixed in with desktop table requirements without any scope tag — given §3 personas describe daily desk-bound use, the mobile experience is plausibly post-MVP but is currently mandated alongside core flows. |
+| ADV-51 | 4 | Major | Defer | CL-08 | §6.2\|BR-07 | BR-07 references "retry succeeds" but no retry flow exists in §5 task flows and no retry requirement appears in §6.1 — this is either an out-of-scope feature smuggled into a business rule or a missing MVP flow, and the doc never decides which. |
+| ADV-52 | 4 | Major | Defer | CL-06 | §6.1\|line-323 | The functional list grants logout only to Approvers, yet Importers also authenticate (§5 Authentication, §3 Importer) and §6.5 RBAC grants Importers "X" on Authentication — leaving Importer logout silently out of scope by omission rather than by explicit exclusion. |
+| ADV-54 | 5 | Major | Patch |  | §7 Entity: File Log, line 431 | FileSetting is used as a foreign-key target in §7 and named in §9, but is never introduced as a concept in §2 Domain model, so the entity referenced by SettingId has no defined source. |
+| ADV-55 | 5 | Major | Patch | CL-01 | §7 Entity: User, line 412 | The type RoleRead is used for the User.Roles field but is never defined as an entity, enum, or DTO anywhere in the document, so the data shape an engineer must implement is unknown. |
+| ADV-56 | 5 | Major | Defer | CL-02 | §6.6.1 Re-auth scope, line 366 | Step-up authentication is mandated for approve/reject but the Approve and Reject flows in §5 contain no step-up step and no step-up mechanism is defined anywhere in the doc, so the dependency on this capability is undiscoverable from the flow definitions. |
+| ADV-57 | 5 | Major | Defer | CL-03 | §6.6.1 MFA requirement, line 368 | MFA is mandated for Approvers but the Authentication flow in §5 (line 220) describes only "email + password" with no MFA step, so the dependency between Authentication and the MFA capability needed before Approver login is undiscoverable. |
+| ADV-58 | 5 | Major | Defer | CL-12 | BR-06, line 334 | Real-time status reflection without manual refresh implies a push/poll mechanism (e.g., websocket, SSE, or background polling) that is not defined anywhere in the doc, so the dependency this rule places on a delivery channel is invisible to an engineer. |
+| ADV-63 | 6 | Major | Defer | CL-03 | §6.6.1 vs §5 Authentication | §6.6.1 requires MFA for Approvers, but §5 Authentication flow's Steps list only email+password submission with no MFA step or decision point, contradicting the policy. |
+| ADV-64 | 6 | Major | Patch | CL-06 | §6.1 vs §6.6.1 / §6.6.4 | §6.1 scopes the logout endpoint to Approvers only, but §6.6.1 describes the logout cookie clearance generically (POST /v1/auth/logout) and §6.6.4 records logout events as a generic audit event, implying logout applies to all roles. |
+| ADV-65 | 6 | Major | Defer | CL-20 | §2.4 vs §7 Entity: Transaction | The Transaction class in the §2.4 Mermaid diagram omits FileName, Description, TransactionType, LastChangedUser and LastChangedDate, all of which are defined as Transaction fields in §7, so the diagram and the data-entity table disagree on the entity's shape. |
+| ADV-66 | 6 | Major | Defer | CL-20 | §2.4 vs §7 Entity: File Log | The §2.4 Mermaid FileLog class lists CurrentStatus but omits LastExecutedActivityName, SettingId, SettingName, FileHash, LastChangedUser, and LastChangedDate, contradicting the authoritative File Log shape in §7 where LastExecutedActivityName is the required status field. |
+| ADV-73 | 7 | Major | Patch |  | §5 Reject Transaction; §7 Entity: Transaction (UserNote) | The mandatory rejection note has no maximum-length validation, no minimum content rule beyond "non-empty", and no behaviour for whitespace-only input — leaving the maximum-size / input-validation edge case unspecified. |
+| ADV-74 | 7 | Major | Defer | CL-04 | §6.6.1 Security & session | The lockout policy names no user-facing UX (what the locked user sees, whether the generic-error pattern from BR-05 still applies, whether countdown is shown, whether email notification fires) and names no recovery path (password reset, admin unlock). |
+| ADV-75 | 7 | Major | Defer | CL-02 | §6.6.1 Security & session | Step-up auth is required for approve/reject but no flow is defined in §5 — neither the trigger (every action / per-session / time-based), the prompt UX, the failure mode, nor the impact on the existing confirmation modal is specified. |
+| ADV-76 | 7 | Major | Defer | CL-05 | §6.6.1 Security & session | Idle timeout and a 60-second warning are stated, but no flow specifies the warning UI, the "extend session" control, or what happens to in-flight work (an unsaved rejection note, an in-progress export) when the timeout fires. |
+| ADV-77 | 7 | Major | Defer | CL-08 | BR-07; §5 File Summary View | BR-07 references a "retry" that succeeds, but no Retry flow is defined in §5, no retry trigger/permission is set, and no RBAC cell in §6.5 grants "retry file" to any role. |
+| ADV-78 | 7 | Major | Defer | CL-11 | §5 Export Transactions; §6.6.2 Performance | Performance bounds the export at ≤10 000 rows but neither §5 Export Transactions nor §6.1 specifies what happens above that limit (truncate? warn? async job? hard cap?), leaving the maximum-size edge case unspecified. |
+| ADV-79 | 7 | Major | Defer |  | §5 Approve Transaction; §5 Reject Transaction; §5 Export Transactions; §5 File Upload | No flow specifies network-failure behaviour for approve/reject/upload/export — what the UI shows on timeout, what state is preserved (e.g., the typed reject note), and whether retries are idempotent (the same approval clicked twice on a flaky connection). |
+| ADV-80 | 7 | Major | Defer | CL-07 | §5 File Upload; §6.1 | The partial-failure case where the file is parsed but some rows are malformed (8/10 succeed) is unspecified — the only outcomes named are "Completed" or "Failed", with no partial-success state, no per-row error report, and no rejected-rows surface. |
+| ADV-84 | 8 | Major | Patch | CL-18 | §6.6.2 | Performance thresholds are scoped to ≤1 000 rows while §10 Volumes states 10³–10⁵ transactions retained per active file log, leaving the realistic operating range without any latency target and with no index/pagination strategy discussion. |
+| ADV-85 | 8 | Major | Defer | CL-12 | §6.6.2 / BR-06 | BR-06 is a real-time-style requirement ("without a manual refresh") but no latency budget, transport mechanism (polling interval, SSE, WebSocket), or staleness tolerance is specified, making feasibility unverifiable. |
+| ADV-86 | 8 | Major | Defer | CL-03 | §6.6.1 | MFA is required for Approvers and step-up auth is required for approve/reject, but no MFA mechanism (TOTP, WebAuthn, SMS OTP) or step-up flow is named, leaving the feasibility and integration surface undefined. |
+| ADV-87 | 8 | Major | Patch |  | §6.4 / §6.6 | The document names a viewport breakpoint but never declares supported browsers, versions, or device/OS targets, leaving "works everywhere" as the implicit (infeasible) baseline. |
+| ADV-88 | 8 | Major | Defer | CL-09 | §6.6.3 | RTO/RPO are stated but no backup cadence, backup retention, restore-test schedule, or operational logging/monitoring/alerting requirements are named — the document commits to recovery without committing to the operational machinery that makes recovery feasible. |
+| ADV-15 | 1 | Minor | Patch |  | §6.5 | The matrix gives Importer Execute (X) on the Transaction Table and Search & Filtering columns, but no requirement clarifies what Importer-facing data narrowing or visibility constraints apply — e.g. whether Importers see only their own uploaded transactions or all transactions. |
+| ADV-16 | 1 | Minor | Patch |  | G-04 | G-04 "Monitor the processing status of uploaded files" has flows and a display requirement but no business rule defines when a stuck-in-Processing file should escalate or what the user can do if processing has not completed within an expected window. |
+| ADV-21 | 2 | Minor | Patch | CL-13 | §7 Entity: File Log | "Operational status complement" is undefined — the enumeration, the relationship to LastExecutedActivityName, and when it differs are all unspecified. |
+| ADV-22 | 2 | Minor | Patch | CL-07 | §5 File Upload | Step 5 "Status shown in UI" is vague — which status (upload acknowledgement, parse result, File State), where in the UI, and at what point are all unspecified. |
+| ADV-23 | 2 | Minor | Patch |  | §6.3 | "the transaction detail surface" is not a defined entity in §5 task flows or §6.4 user-facing — "surface" is a vague noun and the document does not specify any "transaction detail" view. |
+| ADV-24 | 2 | Minor | Patch | CL-03 | §6.6.1 | "Optional for Importer" is ambiguous — it does not state who enables MFA (self-service, admin-set), what factor types are accepted, or whether the optionality is per-user or system-wide. |
+| ADV-25 | 2 | Minor | Patch | CL-14 | §5 File Summary View | "Counts may be incomplete" uses the hedge "may" for a deterministic condition (Processing/Failed implies partial counts), and "prominently" is a vague qualifier as in BR-07. |
+| ADV-26 | 2 | Minor | Patch |  | §6.4 | "where applicable" is a vague conditional — the document does not name which screens this applies to, leaving the empty-state CTA rule under-specified for the Transaction Table. |
+| ADV-27 | 2 | Minor | Patch | CL-15 | §7 Entity: User | "complexity per security policy" references an external, undefined policy — the actual character-class, length-upper-bound, and disallowed-pattern rules are unspecified. |
+| ADV-28 | 2 | Minor | Patch |  | §10 | "one or more files" is a vague quantifier that does not bound the upper end, leaving capacity planning and rate-limiting requirements unspecified. |
+| ADV-29 | 2 | Minor | Patch | CL-16 | §6.6.5 | "screen-reader semantics on status badges" is vague — it does not specify role, accessible name source, or live-region behaviour on transition. |
+| ADV-30 | 2 | Minor | Patch | CL-17 | §6.6.3 | "business hours" is undefined — timezone, days-of-week, and start/end times are all unspecified, making the uptime target unmeasurable. |
+| ADV-41 | 3 | Minor | Patch |  | §6.4 | A 4–8 s range admits any value in the interval, so two implementations could both pass yet diverge; no per-event mapping. |
+| ADV-42 | 3 | Minor | Patch |  | §6.4 | "2–3 key columns" is non-deterministic across the two tables (File Logs, Transactions); a tester cannot decide which columns must appear on the card. |
+| ADV-43 | 3 | Minor | Patch |  | §5 Authentication | Generic-message rule is correct in intent but does not pin the actual string, so two implementations rendering different copy could each claim conformance. |
+| ADV-44 | 3 | Minor | Patch |  | §6.6.4 | Audit list omits failure events (failed login, failed upload, failed approve/reject) so the test "audit row exists for every attempted action" is undefined. |
+| ADV-53 | 4 | Minor | Patch | CL-18 | §6.6.2 | Performance targets reference a 1 000-row ceiling and a 10 000-row CSV ceiling, but §10 Volumes allows 10⁵ transactions per active file log — the perf NFR and the volume NFR are inconsistent and neither states which bound is MVP-binding. |
+| ADV-59 | 5 | Minor | Patch |  | §4.1 G-02, G-03, G-04, lines 152-154 | G-02 (approve/reject), G-03 (export filtered), and G-04 (monitor) all logically depend on G-01 (upload) producing files and transactions first, but no explicit ordering note records that dependency, so the goals catalogue does not communicate implementation order. |
+| ADV-60 | 5 | Minor | Patch |  | §6.1 Functional, line 320 | §6.1 references the fields LastExecutedActivityName and CurrentStatus before they are defined (§7 Entity: File Log appears later at lines 422-433), so an implementer reading top-down does not know what these fields are or which is authoritative. |
+| ADV-61 | 5 | Minor | Patch | CL-01 | §6.5 RBAC matrix header, line 352 | The RBAC matrix lists "User" as a resource with both roles assigned R access, but the doc defines no User-management flow in §5 and no functional requirement for reading other users, so the resource has access cells with no upstream capability to implement. |
+| ADV-67 | 6 | Minor | Patch | CL-13 | §7 Entity: File Log RecordCount vs §5 File Log Overview | §7 declares RecordCount as type string with a "numeric" validation, but the §5 File Log Overview flow surfaces it as a "Record Count" column and the §2.4 diagram lists it as an unqualified +RecordCount, implying a numeric type — the string typing contradicts its usage everywhere else. |
+| ADV-68 | 6 | Minor | Patch | CL-04 | §6.6.1 Account lockout vs §5 Authentication | §6.6.1 specifies a 5-attempt lockout with a 15-minute cooldown, but §5 Authentication's Exception paths describe only a generic error message and do not mention lockout behaviour or a locked-out state, so the flow contradicts the policy by silence. |
+| ADV-69 | 6 | Minor | Patch |  | §6.5 RBAC matrix Approver Transaction cell vs §6.5 action vocabulary | The Approver/Transaction cell grants "U†BR-01" (update) on the Transaction resource, but the action vocabulary reserves "A" for approve and the matrix already grants A†BR-01 / A†BR-02 on the Approve / Reject columns — granting U on Transaction therefore contradicts the per-action columns and lets an Approver update arbitrary transaction fields beyond approve/reject. |
+| ADV-81 | 7 | Minor | Patch |  | §5 Transaction Table; §6.4 | The document specifies hiding role-restricted controls but does not specify the authorization-failure UX when an Importer reaches an Approver-only URL directly (deep-link, browser back, copy-pasted URL) — the canonical Dimension 7 authorization-failure case. |
+| ADV-82 | 7 | Minor | Patch |  | §7 Entity: User; §6.1 | Email validation is stated as "RFC 5322 format" but neither §6.1 nor the Authentication flow names the user-facing validation behaviour (when it fires, what message is shown, whether it composes with the BR-05 generic-error rule at login). |
+| ADV-89 | 8 | Minor | Patch | CL-11 | §6.6.2 | Export threshold is bounded at 10 000 rows but the export contract (§ Export Transactions flow / §6.1) places no upper bound on the filtered dataset, so the largest legal export has no latency target. |
+| ADV-90 | 8 | Minor | Defer |  | §1..§10 | The document contains no cost, time, or team-size constraints anywhere, which is itself a feasibility flag for a regulated-domain build. |
+| ADV-91 | 8 | Minor | Patch |  | §6.6.1 | bcrypt is named but the cost factor (work factor) is not, so the auth-endpoint latency targets are not feasibility-bounded against the chosen hashing cost. |
 
 ---
 
@@ -110,7 +168,17 @@
 
 ### Findings
 
-#### ADV-01 — User CRUD has no defined actor
+#### ADV-01 — §6.1 functional bullets lack IDs and acceptance criteria
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §6.1
+- **Evidence:**
+  > - Authenticate users with username and password against a server-side bcrypt-hashed credential store; on success, issue an HttpOnly, Secure, SameSite=Strict session cookie.- Allow Importers to upload a transaction file with FileSettingId, FileSettingName, and FileName, and create a corresponding File Log on the server.
+- **Problem:** Functional requirements are an unnumbered prose bullet list with no FR-NN identifiers and no acceptance criteria or pass/fail predicates attached to any individual statement, leaving every functional shall-do unimplementable and untraceable from goals or flows.
+- **Recommendation:** Assign FR-NN IDs to each functional statement and attach a pass/fail acceptance criterion to each (e.g. expected response code, observable state change, or referenced flow step).
+
+#### ADV-02 — User entity has no Create/Update/Delete authority anywhere
 
 - **Severity:** Major
 - **Disposition:** Patch
@@ -118,752 +186,40 @@
 - **Evidence:**
   > | Importer | R | C R | R | X | X | X | X | X | — | — | — | X |
   > | Approver | R | R | R U†BR-01 | X | — | X | X | X | A†BR-01 | A†BR-02 | X | X |
-- **Problem:** The User entity has only Read permissions in the RBAC matrix for both roles, leaving no actor authorised to Create, Update, or Delete users, so user provisioning has no defined owner.
-- **Recommendation:** Add an Admin (or System) role to §3 and §6.5 with explicit C/R/U/D permissions on User, or state explicitly that user provisioning is out of scope and handled by an external IdP.
+- **Problem:** The RBAC matrix grants only Read on the User entity to both roles, leaving no actor with Create/Update/Delete on Users — so no requirement describes how user accounts come into existence, are deactivated, or have roles changed.
+- **Recommendation:** Add an administrator role (or explicit external IdP integration) to the matrix with User C/U/D permissions, or add a requirement stating user provisioning is out of scope and handled by a named external system.
 
-#### ADV-02 — Step-up auth declared with no flow
+#### ADV-03 — Step-up auth required for approve/reject but never wired into any flow or BR
 
 - **Severity:** Major
 - **Disposition:** Patch
 - **Location:** §6.6.1
 - **Evidence:**
   > | Re-auth scope | Step-up authentication required for approve and reject actions | inferred (financial domain default) |
-- **Problem:** Step-up authentication is asserted as a security requirement but no functional requirement, business rule, or task flow describes when the challenge is issued, what credential is required, or how a failed step-up affects the approve/reject action.
-- **Recommendation:** Add a functional requirement and a task-flow step (under Approve Transaction and Reject Transaction in §5) describing the step-up trigger, the credential type accepted, and the failure path.
+- **Problem:** Step-up authentication is asserted as required for approve/reject but no business rule, functional requirement, or task flow (Approve Transaction, Reject Transaction) describes the step-up challenge, its trigger, or its success/failure handling.
+- **Recommendation:** Add a BR plus flow steps in §5 Approve Transaction and Reject Transaction that name the step-up factor, the prompt point, and the failure path, or remove the re-auth NFR if it is not in scope.
 
-#### ADV-03 — MFA declared mandatory with no enrolment / challenge / recovery requirements
+#### ADV-04 — MFA mandated for Approver but never wired into Authentication flow
 
 - **Severity:** Major
 - **Disposition:** Patch
 - **Location:** §6.6.1
 - **Evidence:**
   > | MFA requirement | Optional for Importer; required for Approver | inferred |
-- **Problem:** MFA is declared mandatory for Approvers but no functional requirement, flow, or business rule covers enrollment, challenge, recovery, or what happens if an Approver lacks an enrolled factor.
-- **Recommendation:** Add an MFA functional requirement plus an MFA enrolment/challenge flow under §5 covering enrolled-factor types, challenge timing, and the no-factor-enrolled failure path.
+- **Problem:** MFA is mandated for Approvers but no requirement or flow covers MFA enrollment, challenge during login, recovery, or what happens when an Approver lacks MFA at login time.
+- **Recommendation:** Add an MFA enrollment/challenge requirement and extend §5 Authentication with the MFA step and its failure/recovery paths, or downgrade the NFR to "out of scope".
 
-#### ADV-04 — Account lockout policy has no user-facing requirement
+#### ADV-05 — Account lockout policy lacks flow, UX, and recovery path
 
 - **Severity:** Major
 - **Disposition:** Patch
 - **Location:** §6.6.1
 - **Evidence:**
   > | Account lockout policy | 5 failed attempts → 15-minute cooldown; cooldown resets on successful authentication | inferred |
-- **Problem:** Account lockout is specified as a security control but no functional requirement, task flow, or business rule describes the user-facing lockout message, counter reset semantics, or unlock path.
-- **Recommendation:** Add a functional requirement and Authentication-flow exception path covering the lockout message shown to the user, where the counter is tracked, and the unlock mechanism (time-based vs. admin-driven).
+- **Problem:** Account lockout thresholds are stated as an NFR but no functional requirement or §5 Authentication flow describes the lockout user experience, error message, or how an Importer/Approver recovers from a locked account.
+- **Recommendation:** Add a functional requirement and an Authentication-flow exception path that specify lockout messaging, cooldown countdown surfacing, and the recovery channel (self-service, admin reset, etc.).
 
-#### ADV-05 — Idle warning lead-time has no UI requirement
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.6.1
-- **Evidence:**
-  > | Idle warning lead-time | 60 seconds before idle logout | inferred (financial domain default) |
-- **Problem:** A 60-second idle warning is specified, but no user-facing requirement defines how the warning is rendered, what action extends the session, or what happens at expiry.
-- **Recommendation:** Add a §6.4 user-facing requirement describing the idle-warning banner/modal, the extend-session interaction, and the silent-logout transition at expiry.
-
-#### ADV-06 — BR-07 references undefined "retry"
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** BR-07
-- **Evidence:**
-  > | BR-07 | When a file log is in Failed state, then the file summary view must surface the failure prominently and inhibit drill-down into transactions until retry succeeds. | UI | → §2.3 File Log invariant | major |
-- **Problem:** BR-07 references "until retry succeeds" but no functional requirement, task flow, or business rule defines the retry action for a Failed file log — who can trigger it, what it does, or what state the file moves to.
-- **Recommendation:** Add a functional requirement and a Retry Failed Upload task flow in §5 defining who can retry, the trigger control, and the resulting state transitions on retry success/failure.
-
-#### ADV-07 — FileSetting entity referenced but never defined
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §7
-- **Evidence:**
-  > | SettingId | int | yes | references FileSetting.Id | Upload-time setting reference. |
-  > | SettingName | string | yes | — | Snapshot of FileSetting.Name at upload. |
-- **Problem:** FileSetting is referenced as an entity (and required at upload) but §7 contains no Entity: FileSetting definition (fields, types, validations) and no requirement governs its CRUD lifecycle.
-- **Recommendation:** Add an Entity: FileSetting subsection to §7 with fields, validations, and relationships, and add a functional requirement or flow describing how FileSettings are created, listed, and selected at upload time.
-
-#### ADV-08 — Functional requirements have no acceptance criteria
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.1
-- **Evidence:**
-  > - Authenticate users with username and password against a server-side bcrypt-hashed credential store; on success, issue an HttpOnly, Secure, SameSite=Strict session cookie.- Allow Importers to upload a transaction file with FileSettingId, FileSettingName, and FileName, and create a corresponding File Log on the server.
-- **Problem:** Functional requirements in §6.1 are stated as bare capabilities without acceptance criteria or pass/fail predicates, leaving each requirement unverifiable as written.
-- **Recommendation:** Append an explicit acceptance-criterion clause (Given/When/Then or a measurable predicate) to each §6.1 bullet so each requirement is independently testable.
-
-#### ADV-09 — G-04 closes status visibility but not proactive failure notification
-
-- **Severity:** Major
-- **Disposition:** Defer
-- **Location:** G-04
-- **Evidence:**
-  > | G-04 | Monitor the processing status of uploaded files. | At-a-glance status, drill-down to detail | top-level | dashboard list | tabular file log with status column |
-- **Problem:** G-04's quality signal "at-a-glance status" is closed by the dashboard, but no requirement addresses proactive notification when a file fails, so an Importer who does not open the dashboard can miss a Failed state indefinitely.
-- **Recommendation:** Add either an explicit "no proactive notification" scope statement closing G-04, or a functional requirement defining the notification channel (in-app banner, email) on File Log Failed.
-
-#### ADV-10 — POPIA asserted without subject-rights or breach-notification requirements
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.6.4
-- **Evidence:**
-  > - POPIA (South Africa) — implied by the use of ZAR currency in the sample dataset and South African account-number formats.- Audit trail: every approve, reject, upload, login, and logout event is recorded with `LastChangedUser` and `LastChangedDate`; retain 7 years.
-- **Problem:** POPIA compliance is asserted but the document contains no requirement covering data-subject access, deletion / right-to-erasure, processing register, or breach-notification flow, leaving the POPIA claim un-evidenced.
-- **Recommendation:** Add explicit POPIA-bearing requirements covering data-subject request handling, retention/deletion controls on Transaction/User data, and breach-notification responsibility, or downgrade the claim to a scoped subset with stated exclusions.
-
-#### ADV-11 — IsActive soft-delete has no governing requirement
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §7
-- **Evidence:**
-  > | IsActive | boolean | yes | — | Soft-delete / archival flag. |
-- **Problem:** The File Log entity exposes an IsActive soft-delete flag, but no functional requirement, business rule, or task flow describes who can deactivate a File Log, when, or how IsActive=false affects visibility in lists, exports, and summary views.
-- **Recommendation:** Add a functional requirement defining the File Log deactivate/archive action with the actor, trigger, and downstream filtering behaviour for IsActive=false records.
-
-#### ADV-12 — Availability targets without observability mechanism
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** §6.6.3
-- **Evidence:**
-  > | Target uptime | 99.5 % during business hours; 99.0 % overall | inferred |
-  > | Maintenance window | Weekly Sunday 02:00–04:00 local time | inferred |
-  > | RTO / RPO | RTO 4 hours / RPO 1 hour | inferred |
-- **Problem:** Availability targets are stated but no observability, alerting, or health-check requirement exists, so there is no documented mechanism to detect breach of the 99.5%/99.0% targets or to trigger the RTO/RPO recovery process.
-- **Recommendation:** Add §6.6 subsection (or non-functional bullet) for Observability covering health-check endpoints, uptime monitoring, alert routing, and the trigger for RTO/RPO recovery procedures.
-
-#### ADV-13 — Session-about-to-expire banner has no governing requirement
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** §6.4
-- **Evidence:**
-  > Persistent state (offline, session-about-to-expire, file-failed banners) uses banners.
-- **Problem:** The user-facing standard names a "session-about-to-expire" banner but no functional requirement defines its activation threshold, dismiss behaviour, or coupling to the 60-second idle warning in §6.6.1.
-- **Recommendation:** Add a functional requirement tying the session-about-to-expire banner to the idle-warning lead-time, specifying dismiss/extend interactions and what the banner shows at expiry.
-
----
-
-## Dimension 2 — Ambiguity & Clarity
-
-### Findings
-
-#### ADV-14 — Auto-dismiss range is non-deterministic
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** §6.4
-- **Evidence:**
-  > Transient confirmations (approval / rejection / export complete) use toasts auto-dismissing in 4–8 s, top-right.
-- **Problem:** The auto-dismiss interval is given as a vague range (4–8 s) rather than a single deterministic value, leaving implementers and testers unable to verify the requirement.
-- **Recommendation:** Replace the range with a single concrete value (e.g., "auto-dismissing after 6 s") or specify the rule that picks within the range.
-
-#### ADV-15 — "Step-up authentication" names no mechanism
-
-- **Severity:** Major
-- **Disposition:** Defer
-- **Location:** §6.6.1
-- **Evidence:**
-  > | Re-auth scope | Step-up authentication required for approve and reject actions | inferred (financial domain default) |
-- **Problem:** "Step-up authentication" names no mechanism, no trigger frequency, and no credential factor, so the requirement is unbuildable as stated.
-- **Recommendation:** Specify the step-up mechanism (e.g., password re-entry vs. MFA), when it is challenged (every action, per session, after N minutes), and which factor is required.
-
-#### ADV-16 — Password complexity references undefined "security policy"
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** §7
-- **Evidence:**
-  > | Password | string (write-only) | yes (create) | min length 8; complexity per security policy | Stored as bcrypt hash; never returned. |
-- **Problem:** "Complexity per security policy" references an external policy that is not defined or linked anywhere in the document, leaving complexity rules ambiguous.
-- **Recommendation:** Inline the complexity rules (character classes, min entropy, banned-list policy) or link to the explicit policy artefact.
-
-#### ADV-17 — "retry" in BR-07 is undefined
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** BR-07
-- **Evidence:**
-  > | BR-07 | When a file log is in Failed state, then the file summary view must surface the failure prominently and inhibit drill-down into transactions until retry succeeds. | UI | → §2.3 File Log invariant | major |
-- **Problem:** BR-07 references "retry" as a precondition for re-enabling drill-down, but no retry flow, retry action, or retry trigger is defined anywhere in §5 or §6.1.
-- **Recommendation:** Either define a Retry flow in §5 and a corresponding FR in §6.1, or replace "until retry succeeds" with a concrete observable state transition (e.g., "until the file log re-enters Completed state").
-
-#### ADV-18 — "may be incomplete" is a hedge on a behavioural rule
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** §5 File Summary View
-- **Evidence:**
-  > | Exception paths | If the file is still Processing or Failed, counts may be incomplete; the view shows the file's current state prominently. |
-- **Problem:** The hedge word "may" on the counts-incomplete clause makes it indeterminate whether incomplete counts are expected, permitted, or guaranteed in Processing/Failed states.
-- **Recommendation:** Replace "may be incomplete" with the deterministic rule (e.g., "counts reflect only transactions parsed so far; the Processing/Failed state is shown alongside").
-
-#### ADV-19 — "Business hours" undefined
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.6.3
-- **Evidence:**
-  > | Target uptime | 99.5 % during business hours; 99.0 % overall | inferred |
-- **Problem:** "Business hours" is undefined — no timezone, no start/end times, no working-day calendar — so the SLA cannot be measured.
-- **Recommendation:** Define business hours explicitly (e.g., "Mon–Fri 07:00–19:00 SAST excluding South African public holidays").
-
-#### ADV-20 — "Typically" and "≈" leave concurrency non-binding
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** §10
-- **Evidence:**
-  > | Concurrency | Typically one concurrent user per role only (≈ 1 Importer + 1 Approver active at a time) | consultant-corrected |
-- **Problem:** "Typically" and "≈" make the concurrency target non-binding, leaving capacity planners without a hard ceiling to design against.
-- **Recommendation:** Replace with a concrete maximum (e.g., "Maximum 2 concurrent users overall: 1 Importer and 1 Approver").
-
-#### ADV-21 — "transaction detail surface" undefined
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** §6.3
-- **Evidence:**
-  > Capture the rejecting user's note against the Transaction; expose it on the transaction detail surface.
-- **Problem:** "Transaction detail surface" is a generic noun phrase for a screen that is not defined in §5 task flows or anywhere else in the document.
-- **Recommendation:** Name the specific surface (e.g., transaction row expand, modal, or a defined Transaction Detail flow in §5) where the note is exposed.
-
-#### ADV-22 — "Process" is a vague verb for the parsing pipeline
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.1
-- **Evidence:**
-  > Process uploaded files into Transactions; expose the file's lifecycle via `LastExecutedActivityName` / `CurrentStatus` on the File Log.
-- **Problem:** "Process" is a vague verb with no specification of parsing rules, validation, error handling, or batch semantics for turning a file into Transaction rows.
-- **Recommendation:** Replace "Process" with the explicit pipeline (parse → validate → persist), and reference the FileSetting-driven parsing contract that determines column mapping and validation.
-
-#### ADV-23 — "primary actions" not enumerated
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** §6.6.5
-- **Evidence:**
-  > - WCAG 2.2 AA conformance, full keyboard reach for all primary actions, screen-reader semantics on status badges.
-- **Problem:** "Primary actions" is not defined; without an enumerated set, the requirement is not testable.
-- **Recommendation:** Enumerate the primary actions (Upload, Approve, Reject, Export, Login, Logout, Filter Apply, Filter Clear-all) or scope the requirement to "every interactive control in §5 flows".
-
-#### ADV-24 — "session-about-to-expire" threshold unnamed
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** §6.4
-- **Evidence:**
-  > Persistent state (offline, session-about-to-expire, file-failed banners) uses banners.
-- **Problem:** "Session-about-to-expire" implies a warning threshold but does not name it, so the banner's trigger window is ambiguous against the 60-second lead-time mentioned in §6.6.1.
-- **Recommendation:** Bind the banner to the explicit §6.6.1 idle warning lead-time (e.g., "shown 60 s before idle logout per §6.6.1").
-
----
-
-## Dimension 3 — Testability & Verifiability
-
-### Findings
-
-#### ADV-25 — Accessibility requirement has no enumerated checklist
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.6.5 Accessibility
-- **Evidence:**
-  > - WCAG 2.2 AA conformance, full keyboard reach for all primary actions, screen-reader semantics on status badges.
-- **Problem:** The accessibility requirement names no enumerated checklist, no audit tool, no severity threshold, and no list of "primary actions" or required screen-reader semantics, so a tester cannot write a pass/fail predicate.
-- **Recommendation:** Replace with a concrete acceptance set, e.g., "axe-core scan reports zero serious/critical violations on the five primary screens; each status badge exposes role=status with text label X; tab order on Transaction Table is documented and asserted by a Playwright keyboard test."
-
-#### ADV-26 — Performance thresholds without sample / window / environment
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.6.2 Performance
-- **Evidence:**
-  > | p95 page TTI on Transaction Table | ≤ 2 s for ≤ 1 000 rows | inferred |
-  > | API p99 latency for `/v1/transactions` GET | ≤ 500 ms | inferred |
-  > | API p99 latency for approve / reject | ≤ 800 ms | inferred |
-  > | CSV export ready-to-download | ≤ 3 s for ≤ 10 000 rows | inferred |
-- **Problem:** Performance targets give thresholds but omit sample size, measurement window, environment (network/CPU profile), and starting state, so a tester cannot reproduce the percentile calculation deterministically.
-- **Recommendation:** Add for each row: sample N (e.g., "over 1000 requests in a 10-minute window"), environment (warm cache, k6 from staging region, simulated 4G), and starting state, so the predicate is unambiguous.
-
-#### ADV-27 — BR-06 "without a manual refresh" has no time / mechanism predicate
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** BR-06
-- **Evidence:**
-  > | BR-06 | When a transaction's status changes (Approved or Rejected), then the new status must be reflected in the transaction table without a manual refresh. | UI | → §2.3 Transaction invariant | major |
-- **Problem:** "Without a manual refresh" sets no time threshold, transport mechanism, or maximum staleness, so a tester cannot decide between a 200 ms websocket push and a 60 s poll, both satisfy the wording.
-- **Recommendation:** Specify a measurable predicate, e.g., "the new status is visible in the same browser tab within 2 s of the API 200 response, verified by polling the DOM at 250 ms intervals."
-
-#### ADV-28 — Step-up auth has no enumerated mechanism / cadence / failure
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.6.1 Security & session
-- **Evidence:**
-  > | Re-auth scope | Step-up authentication required for approve and reject actions | inferred (financial domain default) |
-- **Problem:** Step-up authentication has no enumerated mechanism (password re-entry vs MFA vs WebAuthn), no scope window (per session, per action, per N minutes), and no failure behaviour, so no failing-then-passing test can be written.
-- **Recommendation:** Either remove the row or specify mechanism + cadence, e.g., "Approver must re-enter password if last successful auth >5 minutes ago at the moment Approve/Reject is submitted; failed re-auth blocks the action and increments lockout counter."
-
-#### ADV-29 — "No PII in toasts / console" is not enumerated
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.6.4 Compliance & audit
-- **Evidence:**
-  > - No PII is rendered in error toasts or browser console.
-- **Problem:** "PII" is not enumerated for this domain (account number? email? user name? amount?), so a tester cannot decide whether a toast containing "AccountNumber 1234567890 not found" violates the rule.
-- **Recommendation:** List the forbidden fields explicitly, e.g., "AccountNumber, Email, FirstName/LastName, and full UserNote MUST NOT appear in toast copy or console.log output; assertions live in src/test/pii-redaction.spec.ts."
-
-#### ADV-30 — "2–3 key columns" is non-deterministic
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.4 User-facing
-- **Evidence:**
-  > On screens below 768 px, tables collapse into a vertical card list (primary identifier + 2–3 key columns + overflow).
-- **Problem:** "2–3 key columns" is non-deterministic — the designer can pick any two-or-three from the column set and still pass, so two implementations producing different cards both pass the same predicate.
-- **Recommendation:** Enumerate exactly, e.g., "Transaction card shows Reference (primary), TransactionDate, Amount+Currency; remaining columns hidden behind an overflow disclosure."
-
-#### ADV-31 — Concurrent approve/reject edge case unnamed
-
-- **Severity:** Major
-- **Disposition:** Defer
-- **Location:** §5 Approve / Reject Transaction
-- **Evidence:**
-  > | Steps | 1. Select transaction. 2. Click Approve. 3. Confirm action in modal. 4. Status updates to Approved. |
-- **Problem:** Concurrent-update edge case is unnamed: two Approvers acting on the same Imported transaction at the same time has no specified outcome (lost-update, optimistic-lock error, last-write-wins), so neither service nor UI test can be authored.
-- **Recommendation:** Add a row "Exception paths" item, e.g., "If a concurrent action has already transitioned the transaction out of Imported, the second submit returns 409 Conflict and the UI shows a toast 'This transaction was already actioned by <user>'."
-
-#### ADV-32 — Upload flow's network-loss edge case unspecified
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** §5 File Upload
-- **Evidence:**
-  > | Exception paths | Success / failure feedback is rendered after upload. On failure, the file is not parsed and no File Log row is created in a Completed state. |
-- **Problem:** Network-loss / partial-failure edge cases for the upload flow are not named (resumability, retry, partial-bytes scenario), so a tester cannot author a network-interruption test against the spec.
-- **Recommendation:** Add explicit edge cases, e.g., "On client-side connection loss before upload completes, no File Log is created; on server-side parse failure mid-stream, the File Log moves to Failed with a non-empty error message exposed on the summary view."
-
-#### ADV-33 — Sort behaviour for null / tie undefined
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** §6.4 User-facing
-- **Evidence:**
-  > - All table columns are sortable; sorting is single-column, ascending on first click, descending on second; persists for the session.
-- **Problem:** Sort behaviour for null/empty values and tie-breakers is unspecified, so two implementations producing different orderings both satisfy the requirement.
-- **Recommendation:** Specify, e.g., "NULL/empty values sort last regardless of direction; ties break by Id ascending."
-
-#### ADV-34 — Availability SLA not verifiable
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** §6.6.3 Availability
-- **Evidence:**
-  > | Target uptime | 99.5 % during business hours; 99.0 % overall | inferred |
-- **Problem:** "Business hours" is undefined (timezone, days, span), and no measurement window or downtime accounting is given, so the SLA is not verifiable.
-- **Recommendation:** Define, e.g., "Business hours = Mon–Fri 07:00–19:00 SAST; uptime measured monthly via external probe at 1-minute intervals; planned maintenance excluded."
-
----
-
-## Dimension 4 — Scope & MVP Boundaries
-
-### Findings
-
-#### ADV-35 — No MVP designation anywhere
-
-- **Severity:** Blocker
-- **Disposition:** Patch
-- **Location:** §6
-- **Evidence:**
-  > ## 6. Requirements
-  >
-  > ### 6.1 Functional
-- **Problem:** The document has no MVP designation anywhere — §6 lists all requirements as a flat catalogue with no scope tier, so every functional/business/data/user-facing/NFR item is implicitly MVP, which is the textbook scope-creep signal.
-- **Recommendation:** Add an explicit MVP tag (e.g., `MVP` / `Post-MVP` column) to each requirement in §6.1–§6.6 or split §6 into 'MVP' and 'Post-MVP' subsections so the cut line is unambiguous.
-
-#### ADV-36 — No "Out of scope" section
-
-- **Severity:** Blocker
-- **Disposition:** Patch
-- **Location:** §10 (document end)
-- **Evidence:**
-  > ## 10. Volumes
-  >
-  > | Metric | Value | Source |
-- **Problem:** A 501-line requirements document terminates at §10 Volumes with no "Out of scope" / "Non-goals" section, so engineers must infer the exclusions (e.g., bulk approve, transaction edit, file deletion, admin features, password reset, MFA enrolment UI) — exactly the failure mode this dimension flags.
-- **Recommendation:** Add a §11 "Out of scope" section enumerating deliberately excluded capabilities (bulk approve/reject, transaction editing, file deletion/retry, admin/user-management UI, password reset, MFA enrolment, multi-currency conversion, downstream consumer integration) with one-line rationale each.
-
-#### ADV-37 — Step-up / lockout / MFA priority not separated from MVP
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.6.1
-- **Evidence:**
-  > | Re-auth scope | Step-up authentication required for approve and reject actions | inferred (financial domain default) |
-  > | Account lockout policy | 5 failed attempts → 15-minute cooldown; cooldown resets on successful authentication | inferred |
-  > | MFA requirement | Optional for Importer; required for Approver | inferred |
-- **Problem:** Step-up auth, account lockout, and MFA ("required for Approver") are non-trivial multi-week features layered onto an MVP that otherwise covers only upload/approve/reject/export, yet they are listed at the same priority — a clear MVP cost-vs-scope mismatch with no tagging that they are post-MVP or already-provided.
-- **Recommendation:** Either tag these three rows as Post-MVP / dependency-on-IdP, or add a "Source/Owner" note confirming they are delivered by an external auth provider so they are not in the build estimate for this system.
-
-#### ADV-38 — Mobile responsive collapse straddles MVP line
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.4
-- **Evidence:**
-  > On screens below 768 px, tables collapse into a vertical card list (primary identifier + 2–3 key columns + overflow).
-- **Problem:** A responsive mobile/card-list rendering is mixed in with desktop table requirements with no scope tag, despite the personas (§3) describing "primary working surface is the transaction table" for daily desktop use — this is a candidate for post-MVP that currently straddles the line.
-- **Recommendation:** Either explicitly mark the <768 px responsive collapse as Post-MVP, or justify mobile support in §3 personas (frequency/device) so its MVP inclusion is defensible.
-
-#### ADV-39 — Availability / DR targets unflagged
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.6.3
-- **Evidence:**
-  > | Target uptime | 99.5 % during business hours; 99.0 % overall | inferred |
-  > | Maintenance window | Weekly Sunday 02:00–04:00 local time | inferred |
-  > | RTO / RPO | RTO 4 hours / RPO 1 hour | inferred |
-- **Problem:** Availability targets (99.5%/99.0%, RTO 4h / RPO 1h) imply HA infrastructure, backups, and a runbook that are operational/Phase-2 concerns, but they sit unflagged alongside functional MVP items, conflating buildable scope with steady-state SLA commitments.
-- **Recommendation:** Move §6.6.3 into a separate "Operational targets (post-launch)" subsection, or tag each row with a phase indicator (e.g., "Target for GA, not MVP demo") so the engineer does not size DR work into the MVP.
-
-#### ADV-40 — POPIA + 7-year retention compete with MVP requirements
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.6.4
-- **Evidence:**
-  > - POPIA (South Africa) — implied by the use of ZAR currency in the sample dataset and South African account-number formats.- Audit trail: every approve, reject, upload, login, and logout event is recorded with `LastChangedUser` and `LastChangedDate`; retain 7 years.
-- **Problem:** A 7-year retention policy and POPIA conformance are scope-heavy compliance commitments (archival storage, access logs, data-subject request handling) being asserted as if equivalent to a UI requirement — with no MVP/Post-MVP scoping, the engineer can't tell if year-7 retention must ship at v1.
-- **Recommendation:** Split into "MVP audit logging (capture events)" vs "Post-MVP retention & POPIA tooling (7-year archive, DSR endpoints)" so the long-tail compliance work is explicitly deferred.
-
-#### ADV-41 — BR-07 depends on unscoped retry feature
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** BR-07
-- **Evidence:**
-  > | BR-07 | When a file log is in Failed state, then the file summary view must surface the failure prominently and inhibit drill-down into transactions until retry succeeds. | UI | → §2.3 File Log invariant | major |
-- **Problem:** BR-07 references a 'retry' capability ('until retry succeeds') but no retry flow exists in §5 Task flows and no retry requirement exists in §6.1 — the rule straddles the MVP line by depending on an unscoped feature.
-- **Recommendation:** Either add a 'Retry Failed File' task flow and corresponding §6.1 requirement (and tag its MVP status), or rewrite BR-07 to remove the retry dependency (e.g., 'inhibit drill-down on Failed; retry is Post-MVP').
-
-#### ADV-42 — User resource in RBAC without UI / scope statement
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §3 vs §6.5
-- **Evidence:**
-  > | Importer | R | C R | R | X | X | X | X | X | — | — | — | X |
-  > | Approver | R | R | R U†BR-01 | X | — | X | X | X | A†BR-01 | A†BR-02 | X | X |
-- **Problem:** The RBAC matrix grants "User: R" to both Importer and Approver, implying a user-management/listing surface, but §3 only describes Importer and Approver personas — no Admin is named, no user-management screen is in §5 Task flows, and there is no scope statement about whether user CRUD is MVP or post-MVP.
-- **Recommendation:** Either remove "User: R" from the matrix (it has no UI), add a §5 "User Management" flow with explicit MVP/Post-MVP tagging, or add a one-line note: "User administration is out of scope; users are provisioned externally."
-
----
-
-## Dimension 5 — Dependency & Ordering
-
-### Findings
-
-#### ADV-43 — FileSetting dependency undefined for File Log
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §7 File Log / §2.1 Concepts
-- **Evidence:**
-  > | SettingId | int | yes | references FileSetting.Id | Upload-time setting reference. |
-  > | SettingName | string | yes | — | Snapshot of FileSetting.Name at upload. |
-- **Problem:** The File Log entity in §7 depends on a FileSetting entity that is never introduced in the §2 Domain model nor defined in §7 Data entities, so an engineer cannot determine when/how FileSetting must exist before File Upload.
-- **Recommendation:** Add a FileSetting concept to §2.1 (and a stub Entity: FileSetting in §7) declaring its lifecycle and that it must be provisioned before any File Upload requirement is implementable.
-
-#### ADV-44 — G-02 / G-03 dependencies on G-01 unstated
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §4.1 (G-02, G-03)
-- **Evidence:**
-  > | G-02 | Review and approve or reject queued transactions. | Accuracy, throughput, decision confidence | top-level | data-table working surface | row-action approve/reject + confirm modal |
-  > | G-03 | Export approved or filtered transactions for downstream consumption. | Faithfulness to current filter, predictable format | sub-level | action in table toolbar | one-click CSV export |
-- **Problem:** G-02 and G-03 implicitly depend on G-01 (files uploaded) and on authentication being live, but neither dependency is stated, so an engineer could legitimately start implementing approval/export before the upload pipeline or auth exists.
-- **Recommendation:** Add an explicit "Depends on" column or note in §4.1 declaring G-02 depends on G-01 + Authentication flow, and G-03 depends on G-02.
-
-#### ADV-45 — BR-06 real-time push dependency undisclosed
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** BR-06
-- **Evidence:**
-  > | BR-06 | When a transaction's status changes (Approved or Rejected), then the new status must be reflected in the transaction table without a manual refresh. | UI | → §2.3 Transaction invariant | major |
-- **Problem:** BR-06 mandates real-time status reflection without a manual refresh but no upstream requirement, integration, or transport (WebSocket, SSE, polling cadence) is sequenced or declared anywhere in the doc, leaving the dependency undiscoverable.
-- **Recommendation:** Add a functional requirement in §6.1 specifying the push/poll mechanism BR-06 depends on (e.g., "SSE channel on /v1/transactions/stream") and sequence it before the approve/reject UI work.
-
-#### ADV-46 — Step-up auth dependency not sequenced against approve/reject
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.6.1 vs §5 Approve / Reject
-- **Evidence:**
-  > | Re-auth scope | Step-up authentication required for approve and reject actions | inferred (financial domain default) |
-- **Problem:** Step-up authentication is declared as required for approve/reject, but the Approve Transaction and Reject Transaction flows in §5 do not include a step-up step, and no MFA/step-up integration is declared as a prerequisite, so the ordering between MFA provisioning and approve/reject features is undiscoverable.
-- **Recommendation:** Either add an explicit step-up step to the §5 Approve/Reject flows and a functional requirement sequencing MFA infrastructure before approve/reject, or remove/relax the §6.6.1 re-auth claim to match the flows.
-
-#### ADV-47 — MFA-for-Approver dependency missing from Authentication flow
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.6.1 vs §5 Authentication
-- **Evidence:**
-  > | MFA requirement | Optional for Importer; required for Approver | inferred |
-- **Problem:** Approver MFA is declared mandatory but the Authentication flow in §5 lists only "email + password" with no MFA step, no MFA provisioning requirement, and no enrolment dependency, so engineers cannot tell whether MFA infrastructure must be built before the Approver login can be released.
-- **Recommendation:** Add an MFA-enrolment requirement and an MFA-challenge step to the Authentication flow, and explicitly state in §6.1 that Approver login depends on MFA infrastructure being live.
-
-#### ADV-48 — FileSetting picker / provisioning undefined for upload
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §4.2 story / §5 File Upload
-- **Evidence:**
-  > | Objective | Submit a single transaction file via the upload UI, providing FileSettingId, FileSettingName, and FileName, and receive immediate feedback on whether the file was accepted. |
-- **Problem:** Upload requires FileSettingId and FileSettingName, but the doc never describes how a FileSetting is created, listed, or selected, nor sequences "FileSetting management" before file upload — making the upload requirement implementable only after a hidden, undefined dependency.
-- **Recommendation:** Add either a functional requirement "Provide a FileSetting picker/management surface" in §6.1 with explicit sequencing before File Upload, or document that FileSettings are provisioned out-of-band and reference where.
-
-#### ADV-49 — Logout for Importer not provided
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** §6.1 (logout)
-- **Evidence:**
-  > Provide a file summary view showing total records and a count by status (Imported / Approved / Rejected).- Allow Approvers to log out via an endpoint that invalidates the session cookie.
-- **Problem:** Only Approvers are granted a logout requirement, but §6.5 grants Importers Authentication X (login) — leaving an Importer with no defined way out; the ordering of "who gets logout when" is incoherent with the auth flow.
-- **Recommendation:** Change the bullet to "Allow all authenticated users (Importer and Approver) to log out" and confirm in §6.5 that Authentication X for Importer includes the logout endpoint.
-
-#### ADV-50 — User provisioning ordering undefined
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** §6.5 (User column)
-- **Evidence:**
-  > | Importer | R | C R | R | X | X | X | X | X | — | — | — | X |
-  > | Approver | R | R | R U†BR-01 | X | — | X | X | X | A†BR-01 | A†BR-02 | X | X |
-- **Problem:** Both roles have `User: R` but the doc never specifies a user-administration surface or sequences when a User-management capability must be built, and no requirement explains who creates Users — making login (G-02 prerequisite) depend on an undefined provisioning step.
-- **Recommendation:** Add a §6.1 functional requirement (or explicit dependency note) describing user provisioning/management (admin-side or seeding) and sequence it before any role-gated requirement.
-
-#### ADV-51 — BR-07 "retry" precondition does not exist
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** BR-07
-- **Evidence:**
-  > | BR-07 | When a file log is in Failed state, then the file summary view must surface the failure prominently and inhibit drill-down into transactions until retry succeeds. | UI | → §2.3 File Log invariant | major |
-- **Problem:** BR-07 references a "retry" operation as a precondition for drill-down, but no retry requirement, flow, or endpoint is defined anywhere in the doc — the dependency target does not exist.
-- **Recommendation:** Either add a Retry-File flow and corresponding functional requirement (sequenced after File Upload), or reword BR-07 to remove the retry precondition and describe the actual recovery path.
-
----
-
-## Dimension 6 — Consistency & Internal Conflict
-
-### Findings
-
-#### ADV-52 — Step-up / MFA mandated but absent from flows, BRs, RBAC, FRs
-
-- **Severity:** Blocker
-- **Disposition:** Patch
-- **Location:** §6.6.1 vs §5 / §6.2 / §6.5
-- **Evidence:**
-  > | Re-auth scope | Step-up authentication required for approve and reject actions | inferred (financial domain default) |
-  > | Account lockout policy | 5 failed attempts → 15-minute cooldown; cooldown resets on successful authentication | inferred |
-  > | MFA requirement | Optional for Importer; required for Approver | inferred |
-- **Problem:** The Security & session table mandates step-up re-auth and required MFA for Approver actions, but no task flow (Approve Transaction, Reject Transaction), business rule (BR-01..BR-07), RBAC matrix, or functional requirement mentions any re-auth or MFA step — the matrix shows plain `A†BR-01` / `A†BR-02` with no MFA gate.
-- **Recommendation:** Either delete the step-up and MFA rows from §6.6.1 or add explicit steps, a business rule (e.g., BR-08), and matrix annotation (`A†BR-08`) for the Approve/Reject flows so all sections agree.
-
-#### ADV-53 — Transactions GET p99 target inconsistent with stated volumes
-
-- **Severity:** Blocker
-- **Disposition:** Patch
-- **Location:** §6.6.2 vs §10 / §6.6.2 CSV row
-- **Evidence:**
-  > | p95 page TTI on Transaction Table | ≤ 2 s for ≤ 1 000 rows | inferred |
-  > | API p99 latency for `/v1/transactions` GET | ≤ 500 ms | inferred |
-  > | API p99 latency for approve / reject | ≤ 800 ms | inferred |
-  > | CSV export ready-to-download | ≤ 3 s for ≤ 10 000 rows | inferred |
-- **Problem:** The transactions GET p99 target is bounded at ≤1 000 rows on the page-TTI line but unqualified on the API line, while §10 states `10³–10⁵ transactions retained per active file log overall` and CSV export is sized to ≤10 000 rows — implying GETs and exports beyond the implied 1 000-row scope have no defined performance target and may not meet 500 ms.
-- **Recommendation:** Add an explicit row-count qualifier (and pagination assumption) to the `/v1/transactions` GET target, or state a separate target for large/export queries consistent with the 10⁵ retained volume.
-
-#### ADV-54 — Logout requirement contradicts RBAC matrix
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.1 vs §6.5
-- **Evidence:**
-  > - Allow Approvers to log out via an endpoint that invalidates the session cookie.
-- **Problem:** Only Approvers are named as able to log out in §6.1, but the RBAC matrix grants both Importer and Approver `X` on Authentication and §5 Flow: Authentication is open to both roles; logout availability is therefore contradicted between sections.
-- **Recommendation:** Reword the functional bullet to "Allow all authenticated users to log out…" (or otherwise broaden it) so it aligns with the RBAC matrix and the Authentication flow.
-
-#### ADV-55 — Mermaid FileLog uses CurrentStatus while §7 mandates LastExecutedActivityName
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §2.4 Diagram vs §7 Entity: File Log
-- **Evidence:**
-  > class FileLog {
-  >       +Id
-  >       +FileName
-  >       +RecordCount
-  >       +ProcessDate
-  >       +CurrentStatus
-  >       +IsActive
-  >     }
-- **Problem:** The class diagram shows `CurrentStatus` as the FileLog status attribute, but §7 makes `LastExecutedActivityName` the required, enum-constrained, user-visible status and demotes `CurrentStatus` to an optional "Operational status complement" — the diagram contradicts the canonical entity definition.
-- **Recommendation:** Update the Mermaid FileLog class to include `+LastExecutedActivityName` (and either drop or annotate `+CurrentStatus`) so it matches §7's required/optional split.
-
-#### ADV-56 — Mermaid Transaction omits required fields from §7
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §2.4 + §6.3 vs §7 Entity: Transaction
-- **Evidence:**
-  > class Transaction {
-  >       +Id
-  >       +FileLogId
-  >       +Reference
-  >       +TransactionDate
-  >       +AccountNumber
-  >       +Amount
-  >       +Currency
-  >       +Status
-  >       +UserNote
-  >     }
-- **Problem:** The Mermaid Transaction omits `TransactionType` (required, enum {C,D} in §7) and `Description`, and §6.3 Data does not mention persisting TransactionType or FileName denormalisation — the canonical entity in §7 introduces fields that contradict the simpler shape declared elsewhere.
-- **Recommendation:** Either add `TransactionType`, `Description`, and `FileName` to the diagram and the §6.3 data bullets, or remove them from §7 if they are not in scope.
-
-#### ADV-57 — FileSetting / FileSettingId / SettingId naming drift
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §2.1 / §5 / §7 / §9
-- **Evidence:**
-  > | SettingId | int | yes | references FileSetting.Id | Upload-time setting reference. |
-  > | SettingName | string | yes | — | Snapshot of FileSetting.Name at upload. |
-- **Problem:** Upload flow and functional requirements name the inputs `FileSettingId` and `FileSettingName`, but §7's File Log entity stores them as `SettingId` / `SettingName`; furthermore `FileSetting` is recognised in §9 terminology but never appears as a Concept in §2.1 — a naming/scope drift across three sections.
-- **Recommendation:** Pick one canonical name (`FileSettingId` / `FileSettingName`) and use it consistently in §5, §6.1, and §7, and add `FileSetting` to the §2.1 Concepts table.
-
-#### ADV-58 — RecordCount type contradiction across sections
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §7 Entity: File Log
-- **Evidence:**
-  > | RecordCount | string | yes | numeric | Number of transactions parsed from the file; API returns as string. |
-- **Problem:** RecordCount is declared as `string` with `numeric` validation in §7, but the Mermaid diagram lists it as a plain `+RecordCount` attribute and §6.4 ties pagination and sorting to numeric semantics — typing it as a string in the canonical entity contradicts the way it is rendered/sorted elsewhere.
-- **Recommendation:** Either change the type to `int`/`number` in §7 and note the API-string quirk separately, or explicitly document a parse-on-read convention so downstream sorting/display is unambiguous.
-
-#### ADV-59 — UserNote required-flag semantics conflict across §2.4 / §7 / BR-02
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §7 Entity: Transaction UserNote
-- **Evidence:**
-  > | UserNote | string | yes when Status = Rejected | non-empty on Reject | Rejection rationale. |
-- **Problem:** §7 marks UserNote as `yes when Status = Rejected`, implying conditional required, but the Required column header is binary and the §2.4 diagram shows `+UserNote` unconditionally on Transaction; BR-02 enforces non-empty only at Reject — three sections describe the same field with subtly conflicting required semantics.
-- **Recommendation:** Change Required to `conditional` (or `no` with a validation expression) and add a footnote referencing BR-02; keep the diagram annotation aligned by marking UserNote optional unless Status = Rejected.
-
-#### ADV-60 — Importer `C` on File Log conflates with File Upload action
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.5 vs §5 File Upload / BR-04
-- **Evidence:**
-  > | Importer | R | C R | R | X | X | X | X | X | — | — | — | X |
-- **Problem:** The matrix grants Importer `C R` on `File Log` but only `X` on `File Upload`; however the File Upload flow states `Available to Importer only; Approver cannot upload`, while BR-04 hides the Upload route for Approver — meanwhile the matrix also lets Approver execute `Authentication` (`X`) and read `File Log` (`R`) but assigns `—` on `File Upload`, which is consistent only if `C` on File Log implies upload. The conflation of `Create File Log` and `Execute File Upload` is internally ambiguous and contradicts the prose that treats upload as Importer-exclusive.
-- **Recommendation:** Either remove `C` from Importer's File Log cell (since creation only happens via File Upload, already separately listed) or annotate `C†File-Upload-only` so the matrix unambiguously matches §5 and BR-04.
-
-#### ADV-61 — Audit fields scope contradicted across §6.3 and §6.6.4
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** §6.6.4 vs §6.3
-- **Evidence:**
-  > - Audit trail: every approve, reject, upload, login, and logout event is recorded with `LastChangedUser` and `LastChangedDate`; retain 7 years.
-- **Problem:** §6.6.4 lists login and logout among audited events using `LastChangedUser` / `LastChangedDate`, but §6.3 scopes those audit fields to `mutating action against File Log, Transaction, and User entities` — login/logout are not mutations on those entities, so the two sections disagree on where the audit record lives.
-- **Recommendation:** Either add an explicit Auth/Session audit log scope to §6.3 (e.g., `Capture LastChangedUser/Date on auth events`) or remove login/logout from the §6.6.4 audit-trail enumeration.
-
----
-
-## Dimension 7 — Edge Cases & Error Handling
-
-### Findings
-
-#### ADV-62 — File upload has no size / type / virus / partial-failure rules
-
-- **Severity:** Blocker
-- **Disposition:** Patch
-- **Location:** §6.1 Functional / §5 File Upload
-- **Evidence:**
-  > - Allow Importers to upload a transaction file with FileSettingId, FileSettingName, and FileName, and create a corresponding File Log on the server.
-  > - Process uploaded files into Transactions; expose the file's lifecycle via `LastExecutedActivityName` / `CurrentStatus` on the File Log.
-- **Problem:** The file-upload requirement names no maximum file size, no allowed file types/extensions, no virus/malware scan, and no per-row parse-failure handling — exactly the canonical 'file upload with no max size, no virus check, no failure mode' gap called out in Dimension 7.
-- **Recommendation:** Add explicit limits (max file size, allowed MIME types/extensions, max rows per file, malware-scan step) and define partial-failure handling: how many bad rows abort the file, how parse errors are surfaced per row, and what File State a partially-parseable file lands in.
-
-#### ADV-63 — Export volume exceeds documented SLA without fallback
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.6.2 / §10
-- **Evidence:**
-  > | Data volume | 10²–10⁴ transactions per file; 10³–10⁵ transactions retained per active file log overall | inferred |
-- **Problem:** Volumes go up to 10⁵ transactions per file log but the only export SLA is for ≤10 000 rows, and there is no defined behaviour when an Approver triggers an export of a filtered set that exceeds this limit (no row cap, no async/email-delivery fallback, no truncation warning).
-- **Recommendation:** Specify the maximum exportable row count and the UI behaviour when exceeded: e.g., reject with a guidance message, force a narrower filter, or switch to async generation with an in-app notification when ready.
-
-#### ADV-64 — Concurrent approve/reject has no server-side conflict rule
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §5 Approve / Reject / BR-06
-- **Evidence:**
-  > | BR-06 | When a transaction's status changes (Approved or Rejected), then the new status must be reflected in the transaction table without a manual refresh. | UI | → §2.3 Transaction invariant | major |
-- **Problem:** There is no concurrency rule for the case where two Approvers act on the same Imported transaction simultaneously — BR-01 only hides actions after status changes locally; nothing defines server-side last-write semantics, optimistic-lock errors, or what the losing Approver's UI shows.
-- **Recommendation:** Add a business rule and exception path for concurrent approve/reject: e.g., server rejects the second mutation with a 409 "transaction no longer Imported", UI shows a non-dismissible toast naming the winning actor and refreshes the row.
-
-#### ADV-65 — Approve / Reject network-failure path undefined
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §5 Approve / Reject Transaction / §6.1
-- **Evidence:**
-  > | Steps | 1. Select transaction. 2. Click Approve. 3. Confirm action in modal. 4. Status updates to Approved. |
-  > | Decision points | Confirmation modal naming the affected transaction. |
-  > | Exception paths | If the transaction is not in Imported status, Approve is hidden per BR-01. |
-- **Problem:** Neither approve nor reject defines what happens on network failure / server error after the confirmation modal is submitted — no state-preservation contract (does the modal stay open?), no retry affordance, no idempotency guarantee against double-clicks resubmitting the same approval.
-- **Recommendation:** Add explicit exception paths for network and 5xx failures (keep modal open, surface inline error, offer retry) and require an idempotency key on POST approve/reject so resubmits do not double-record audit entries.
-
-#### ADV-66 — Upload idempotency undefined
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §5 File Upload / §6.2
-- **Evidence:**
-  > | Steps | 1. Select file (drag & drop supported). 2. Provide FileSettingId, FileSettingName, FileName. 3. Submit upload. 4. System creates File Log. 5. Status shown in UI. |
-  > | Decision points | Required metadata must be provided before upload can proceed: FileSettingId, FileSettingName, FileName. |
-  > | Exception paths | Success / failure feedback is rendered after upload. On failure, the file is not parsed and no File Log row is created in a Completed state. |
-- **Problem:** Upload idempotency is undefined: if an Importer re-submits the same file (same FileHash) — intentionally or after a flaky network — there is no rule saying whether a duplicate File Log is created, deduplicated, or rejected, despite §7 already capturing a SHA-256 FileHash on File Log.
-- **Recommendation:** Add a business rule: "When an Importer uploads a file whose FileHash already exists in a non-Failed File Log, the server rejects with a duplicate-upload error and the UI offers a link to the existing File Log."
-
-#### ADV-67 — Per-field validation rules absent
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.4 / §6.6.5
-- **Evidence:**
-  > - Synchronous form validation (format, required, length) runs on blur; cross-field and server-side validation runs on submit; no validation runs on keystroke.
-- **Problem:** Validation behaviour is described generically but individual named requirements lack per-field validation rules: max length of the mandatory rejection UserNote (§7 only says "non-empty"), max length of FileName / FileSettingName at upload, and the email format error message — leaving "invalid email, oversize file, malformed input" surfaces unspecified.
-- **Recommendation:** For each user-supplied field (UserNote, FileName, SettingName, Email, Password), specify min/max length, allowed character set, and the exact inline error message; for oversize files, define the pre-upload UI rejection before the network call.
-
-#### ADV-68 — Session-expiry mid-action recovery missing
+#### ADV-06 — Idle/absolute session timeouts have no warning flow or extend-session UX
 
 - **Severity:** Major
 - **Disposition:** Patch
@@ -872,60 +228,820 @@
   > | Idle session timeout | 15 minutes | inferred (financial domain default) |
   > | Absolute session timeout | 8 hours | inferred (financial domain default) |
   > | Idle warning lead-time | 60 seconds before idle logout | inferred (financial domain default) |
-  > | Re-auth scope | Step-up authentication required for approve and reject actions | inferred (financial domain default) |
-- **Problem:** There is no defined recovery behaviour when the session expires mid-action: an Approver halfway through typing a rejection note, or an Importer mid-upload, will silently lose work — no "preserve draft, prompt re-auth, replay action" rule exists.
-- **Recommendation:** Add a requirement: on 401 during a mutating action, preserve the in-flight form state (rejection note, upload metadata), surface a step-up re-auth modal, and replay the original action on success.
+- **Problem:** Idle and absolute session timeouts plus a 60-second warning lead-time are asserted but no requirement or flow describes the warning UI, the extend-session action, or the redirect-on-expiry behaviour.
+- **Recommendation:** Add a functional requirement and a §5 task flow (e.g. Session Expiry Warning) that specify the warning surface, extend-session control, and post-expiry navigation.
 
-#### ADV-69 — No password-reset / account-recovery flow
+#### ADV-07 — Logout requirement scoped to Approvers only
 
 - **Severity:** Major
 - **Disposition:** Patch
-- **Location:** §5 Authentication / §6.6.1
+- **Location:** §6.1
 - **Evidence:**
-  > | Account lockout policy | 5 failed attempts → 15-minute cooldown; cooldown resets on successful authentication | inferred |
-- **Problem:** Lockout policy is defined but there is no password-reset / account-recovery flow anywhere in §5 task flows, §6.1 functional requirements, or §6.5 RBAC — meaning a locked Approver has no documented recovery path, which is a canonical Dimension 7 recovery-path gap.
-- **Recommendation:** Either add an out-of-scope marker stating recovery is handled by an external IdP, or specify a password-reset flow with verification channel, token TTL, and UI entry point from the login error state.
+  > - Provide search and filtering across Status, File (FileLogId), Date range, Amount range, and free text on Reference / Account.- Provide a file summary view showing total records and a count by status (Imported / Approved / Rejected).- Allow Approvers to log out via an endpoint that invalidates the session cookie.
+- **Problem:** Logout is scoped to Approvers only, leaving no documented logout requirement or session-invalidation path for Importers despite both roles being authenticated principals.
+- **Recommendation:** Reword the bullet so logout is available to any authenticated user, or add a separate Importer logout requirement with the same session-invalidation contract.
 
-#### ADV-70 — Retry-failed-file flow does not exist
+#### ADV-08 — File Upload requirement misses size/type/encoding/virus contract
 
 - **Severity:** Major
 - **Disposition:** Patch
-- **Location:** BR-07 / §5 File Summary View
+- **Location:** §5 File Upload
+- **Evidence:**
+  > | Steps | 1. Select file (drag & drop supported). 2. Provide FileSettingId, FileSettingName, FileName. 3. Submit upload. 4. System creates File Log. 5. Status shown in UI. |
+  > | Decision points | Required metadata must be provided before upload can proceed: FileSettingId, FileSettingName, FileName. |
+  > | Exception paths | Success / failure feedback is rendered after upload. On failure, the file is not parsed and no File Log row is created in a Completed state. |
+- **Problem:** The File Upload flow and §6.1 upload requirement specify no contract on accepted file type, size cap, encoding, or virus/integrity scanning, even though §7 File Log defines a FileHash sha-256 field implying an integrity check that no requirement actually mandates.
+- **Recommendation:** Add functional requirements (or extend the File Upload flow) with explicit max file size, accepted MIME/extension, encoding expectations, and the integrity-hash computation/verification step that populates FileHash.
+
+#### ADV-09 — BR-07 references a retry mechanism that exists nowhere else in the doc
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** BR-07
 - **Evidence:**
   > | BR-07 | When a file log is in Failed state, then the file summary view must surface the failure prominently and inhibit drill-down into transactions until retry succeeds. | UI | → §2.3 File Log invariant | major |
-- **Problem:** BR-07 names a "retry" but no requirement, flow, or RBAC cell defines a retry action: there is no actor, trigger, endpoint, or success/failure behaviour for retrying a Failed File Log, so the rule cannot be implemented as written.
-- **Recommendation:** Add a "Retry Failed File" flow in §5 with actor (Importer), trigger, steps, and exception paths, plus a corresponding RBAC cell and functional requirement; or relax BR-07 to permanent failure with a re-upload pathway.
+- **Problem:** BR-07 references a "retry" against a Failed File Log but no requirement, flow, or RBAC entry describes who triggers the retry, what endpoint serves it, or how the File Log transitions back out of Failed.
+- **Recommendation:** Add a Retry Failed File task flow plus a functional requirement and RBAC cell specifying the actor, trigger, and Failed→Processing transition contract.
 
-#### ADV-71 — Approve reversal workflow referenced but absent
+#### ADV-10 — No observability/operability NFR category present
 
 - **Severity:** Major
 - **Disposition:** Patch
-- **Location:** §5 Approve Transaction / §6.1
+- **Location:** §6.6 / §6.1
 - **Evidence:**
-  > | Context (frequency / expertise / stakes) | Many per day; senior reviewer; reversible only by separate workflow. |
-- **Problem:** Story text claims Approve is "reversible only by separate workflow" but no such workflow exists in §5 task flows, §6.1 functional requirements, or §6.5 RBAC — so the documented undo/recovery path for the system's most consequential action is absent, despite Dimension 7 explicitly listing undo as a recovery path to check.
-- **Recommendation:** Either remove the "reversible only by separate workflow" claim from the Approve story, or add the reversal flow (likely an Approver-initiated "Reverse Approval" with mandatory note, audit entry, and BR governing eligibility window).
+  > #### 6.6.5 Accessibility
+  >
+  > - WCAG 2.2 AA conformance, full keyboard reach for all primary actions, screen-reader semantics on status badges.
+  >
+  > ---
+- **Problem:** No observability/operability non-functional category is present — there are no logging, monitoring, alerting, or health-check requirements despite the financial domain and the §6.6.4 7-year audit retention commitment depending on a logging substrate.
+- **Recommendation:** Add a §6.6 subsection for Observability defining minimum log events (auth, upload, approve, reject, export), retention/SIEM destination, health endpoints, and alert thresholds for the SLOs in §6.6.2 and §6.6.3.
 
-#### ADV-72 — No authorization-failure UX for direct route access
+#### ADV-11 — POPIA named but no concrete obligations beyond audit retention
 
 - **Severity:** Major
 - **Disposition:** Patch
-- **Location:** §5 Authentication / §6.5
+- **Location:** §6.6.4
+- **Evidence:**
+  > - POPIA (South Africa) — implied by the use of ZAR currency in the sample dataset and South African account-number formats.- Audit trail: every approve, reject, upload, login, and logout event is recorded with `LastChangedUser` and `LastChangedDate`; retain 7 years.
+- **Problem:** POPIA is named as the governing privacy regime but no requirement covers POPIA-specific obligations such as data-subject access/erasure requests, lawful-basis recording, cross-border transfer restrictions, or breach-notification timelines.
+- **Recommendation:** Add explicit POPIA requirements covering data-subject rights handling, retention/erasure for non-audit PII, and breach-notification escalation, or restate the POPIA bullet as an in-scope/out-of-scope boundary statement.
+
+#### ADV-12 — Audit actor identity derived from a client-supplied header without validation
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §6.3
+- **Evidence:**
+  > - Capture `LastChangedUser` and `LastChangedDate` on every mutating action against File Log, Transaction, and User entities, sourced from the `LastChangedUser` request header convention used across the API.
+- **Problem:** The audit trail derives the actor identity from a client-supplied request header without any requirement constraining who may set the header, how it is reconciled against the authenticated session principal, or how forgery is prevented.
+- **Recommendation:** Add a requirement stating that `LastChangedUser` must be derived from or validated against the authenticated session and that mismatches cause the request to be rejected and logged.
+
+#### ADV-13 — CSV export contract is wholly unspecified
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §6.1
+- **Evidence:**
+  > - Require a mandatory user note for every rejection.- Allow Approvers to export the currently filtered transaction dataset as CSV.
+- **Problem:** The CSV export requirement specifies no contract for the export — no column list, header row, encoding (UTF-8/BOM), delimiter, quoting rules, filename pattern, or maximum row count is defined, despite §6.6.2 setting a 10 000-row performance target.
+- **Recommendation:** Add a CSV export contract (column order, header row, UTF-8 encoding, RFC 4180 quoting, filename convention) and a behaviour for datasets exceeding the 10 000-row target.
+
+#### ADV-14 — File Log IsActive soft-delete flag has no requirement governing it
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §7 Entity: File Log
+- **Evidence:**
+  > | IsActive | boolean | yes | — | Soft-delete / archival flag. |
+- **Problem:** File Log carries an IsActive soft-delete flag but no functional requirement, business rule, or RBAC cell describes who toggles IsActive, what triggers archival, or how inactive file logs are surfaced (or hidden) in the File Log Overview.
+- **Recommendation:** Add a requirement and matrix cell governing File Log archival/restoration, and specify whether inactive rows are excluded by default in the §5 File Log Overview list.
+
+#### ADV-15 — Importer's data-visibility scope on the Transaction Table unspecified
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §6.5
 - **Evidence:**
   > | Importer | R | C R | R | X | X | X | X | X | — | — | — | X |
-  > | Approver | R | R | R U†BR-01 | X | — | X | X | X | A†BR-01 | A†BR-02 | X | X |
-- **Problem:** There is no defined authorization-failure UX when a role lands on a forbidden route directly (e.g., an Approver navigating to /upload or an Importer to /export): BR-03/BR-04 only say controls are hidden, not what a deep-link request returns or how the UI handles a 403.
-- **Recommendation:** Add a requirement: "Direct navigation to a route the current role lacks redirects to the role's landing page and surfaces a non-blocking toast naming the missing permission; the server returns 403 with no resource disclosure."
+- **Problem:** The matrix gives Importer Execute (X) on the Transaction Table and Search & Filtering columns, but no requirement clarifies what Importer-facing data narrowing or visibility constraints apply — e.g. whether Importers see only their own uploaded transactions or all transactions.
+- **Recommendation:** Add a requirement explicitly stating the Importer's row-level visibility scope on the Transaction Table (own uploads only vs. global) and reflect it in the §5 Transaction Table flow.
 
-#### ADV-73 — Export failure path / audit undefined
+#### ADV-16 — No SLO or escalation for files stuck in Processing
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** G-04
+- **Evidence:**
+  > | G-04 | Monitor the processing status of uploaded files. | At-a-glance status, drill-down to detail | top-level | dashboard list | tabular file log with status column |
+- **Problem:** G-04 "Monitor the processing status of uploaded files" has flows and a display requirement but no business rule defines when a stuck-in-Processing file should escalate or what the user can do if processing has not completed within an expected window.
+- **Recommendation:** Add a BR (or NFR) defining a processing-duration SLO and the user-visible escalation (banner/alert) when a file remains in Processing beyond that threshold.
+
+---
+
+## Dimension 2 — Ambiguity & Clarity
+
+### Findings
+
+#### ADV-17 — BR-06 "without a manual refresh" has no time window
 
 - **Severity:** Major
 - **Disposition:** Patch
-- **Location:** §5 Export Transactions / §6.4
+- **Location:** §6.2 BR-06
 - **Evidence:**
-  > | Exception paths | An empty filtered dataset still produces a header-only CSV; the user is informed via a toast. |
-- **Problem:** Export has no network-failure or partial-failure surface: if CSV generation fails server-side (timeout, 5xx), or the browser cancels the download, there is no documented retry, no resumption, and no audit of failed export attempts despite §6.6.4 mandating audit of "every approve, reject, upload, login, and logout event".
-- **Recommendation:** Add an exception path for export failure (toast with retry CTA, no partial file written) and extend the audit-trail list in §6.6.4 to include export events so failed-export attempts are traceable.
+  > | BR-06 | When a transaction's status changes (Approved or Rejected), then the new status must be reflected in the transaction table without a manual refresh. | UI | → §2.3 Transaction invariant | major |
+- **Problem:** "without a manual refresh" specifies no time window or mechanism, leaving the latency budget and update strategy (push, poll, optimistic UI) unspecified.
+- **Recommendation:** Replace with a quantified target, e.g., "the new status is reflected in the visible transaction row within 2 seconds of the server-confirmed transition".
+
+#### ADV-18 — BR-07 uses "prominently" and "until retry succeeds" — both undefined
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §6.2 BR-07
+- **Evidence:**
+  > | BR-07 | When a file log is in Failed state, then the file summary view must surface the failure prominently and inhibit drill-down into transactions until retry succeeds. | UI | → §2.3 File Log invariant | major |
+- **Problem:** "surface the failure prominently" and "until retry succeeds" are both undefined — there is no specified retry flow elsewhere in the document, and "prominently" is a vague qualifier.
+- **Recommendation:** Define the explicit retry mechanism (or remove the reference) and replace "prominently" with a concrete UI requirement, e.g., "a persistent banner naming the failure reason at the top of the summary view".
+
+#### ADV-19 — "Step-up authentication" never defined
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §6.6.1
+- **Evidence:**
+  > | Re-auth scope | Step-up authentication required for approve and reject actions | inferred (financial domain default) |
+- **Problem:** "Step-up authentication" is not defined anywhere in the document — the factor required (password re-entry, MFA challenge, biometric) and its scope (per action, per session) are unspecified.
+- **Recommendation:** Specify the step-up factor and cadence, e.g., "password re-entry required on first approve/reject per session; valid for 10 minutes thereafter".
+
+#### ADV-20 — Vague "Process" verb plus dual-status-field ambiguity
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §6.1
+- **Evidence:**
+  > - Process uploaded files into Transactions; expose the file's lifecycle via `LastExecutedActivityName` / `CurrentStatus` on the File Log.
+- **Problem:** "Process" is a vague verb and the slash between two field names leaves it unclear which field is canonical for the user-visible status versus the operational status.
+- **Recommendation:** Replace with concrete behaviour, e.g., "Parse uploaded files into Transaction records; `LastExecutedActivityName` is the canonical user-visible status, `CurrentStatus` is the operational complement (per §7)".
+
+#### ADV-21 — CurrentStatus described as "Operational status complement" with no enumeration
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §7 Entity: File Log
+- **Evidence:**
+  > | CurrentStatus | string | no | — | Operational status complement to LastExecutedActivityName. |
+- **Problem:** "Operational status complement" is undefined — the enumeration, the relationship to LastExecutedActivityName, and when it differs are all unspecified.
+- **Recommendation:** Either enumerate CurrentStatus values and define when it diverges from LastExecutedActivityName, or remove the field from the entity definition.
+
+#### ADV-22 — "Status shown in UI" is vague
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §5 File Upload
+- **Evidence:**
+  > | Steps | 1. Select file (drag & drop supported). 2. Provide FileSettingId, FileSettingName, FileName. 3. Submit upload. 4. System creates File Log. 5. Status shown in UI. |
+- **Problem:** Step 5 "Status shown in UI" is vague — which status (upload acknowledgement, parse result, File State), where in the UI, and at what point are all unspecified.
+- **Recommendation:** Replace step 5 with, e.g., "5. UI displays the new File Log row with initial state Uploaded in the File Log Overview; transitions to Processing/Completed/Failed are reflected per BR-06 semantics".
+
+#### ADV-23 — "transaction detail surface" is not a defined view
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §6.3
+- **Evidence:**
+  > - Persist User records, including bcrypt-hashed credentials.- Capture the rejecting user's note against the Transaction; expose it on the transaction detail surface.
+- **Problem:** "the transaction detail surface" is not a defined entity in §5 task flows or §6.4 user-facing — "surface" is a vague noun and the document does not specify any "transaction detail" view.
+- **Recommendation:** Reference a defined task flow or screen, e.g., "expose the user note alongside the row in §5 Transaction Table and in §5 File Summary View", or add an explicit Transaction Detail flow in §5.
+
+#### ADV-24 — "Optional for Importer" MFA wording is ambiguous
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §6.6.1
+- **Evidence:**
+  > | MFA requirement | Optional for Importer; required for Approver | inferred |
+- **Problem:** "Optional for Importer" is ambiguous — it does not state who enables MFA (self-service, admin-set), what factor types are accepted, or whether the optionality is per-user or system-wide.
+- **Recommendation:** Specify factor and enablement semantics, e.g., "Importer: TOTP available as user-enabled opt-in; Approver: TOTP mandatory at first login, enforced server-side".
+
+#### ADV-25 — "Counts may be incomplete" uses hedge "may" for a deterministic state
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §5 File Summary View
+- **Evidence:**
+  > | Exception paths | If the file is still Processing or Failed, counts may be incomplete; the view shows the file's current state prominently. |
+- **Problem:** "Counts may be incomplete" uses the hedge "may" for a deterministic condition (Processing/Failed implies partial counts), and "prominently" is a vague qualifier as in BR-07.
+- **Recommendation:** Replace with deterministic prose, e.g., "While the file is Processing or Failed, status counts reflect only the transactions parsed so far; a banner at the top of the summary view names the current File State".
+
+#### ADV-26 — Empty-state CTA rule's "where applicable" is undefined
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §6.4
+- **Evidence:**
+  > - Empty-state copy names the entity ("No transactions yet", "No file logs yet") and offers the primary creation CTA where applicable.
+- **Problem:** "where applicable" is a vague conditional — the document does not name which screens this applies to, leaving the empty-state CTA rule under-specified for the Transaction Table.
+- **Recommendation:** Enumerate the screens, e.g., "... offers the upload CTA on File Log Overview to Importers only (per §5); the Transaction Table empty state offers no creation CTA".
+
+#### ADV-27 — "complexity per security policy" references undefined external policy
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §7 Entity: User
+- **Evidence:**
+  > | Password | string (write-only) | yes (create) | min length 8; complexity per security policy | Stored as bcrypt hash; never returned. |
+- **Problem:** "complexity per security policy" references an external, undefined policy — the actual character-class, length-upper-bound, and disallowed-pattern rules are unspecified.
+- **Recommendation:** Inline the concrete policy, e.g., "min length 12, must include one of each: lowercase, uppercase, digit, symbol; max length 128; rejects top-1000 common passwords".
+
+#### ADV-28 — "one or more files per business day" lacks upper bound
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §10
+- **Evidence:**
+  > | Frequency | Daily ingestion cycle, one or more files per business day per Importer | inferred |
+- **Problem:** "one or more files" is a vague quantifier that does not bound the upper end, leaving capacity planning and rate-limiting requirements unspecified.
+- **Recommendation:** Provide an explicit upper bound, e.g., "1–10 files per Importer per business day, peak 20".
+
+#### ADV-29 — "screen-reader semantics on status badges" lacks ARIA contract
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §6.6.5
+- **Evidence:**
+  > - WCAG 2.2 AA conformance, full keyboard reach for all primary actions, screen-reader semantics on status badges.
+- **Problem:** "screen-reader semantics on status badges" is vague — it does not specify role, accessible name source, or live-region behaviour on transition.
+- **Recommendation:** Specify the ARIA contract, e.g., "status badges expose role=status with accessible name '{status} - {transaction reference}'; transitions per BR-06 announce via aria-live=polite".
+
+#### ADV-30 — "business hours" undefined for uptime target
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §6.6.3
+- **Evidence:**
+  > | Target uptime | 99.5 % during business hours; 99.0 % overall | inferred |
+- **Problem:** "business hours" is undefined — timezone, days-of-week, and start/end times are all unspecified, making the uptime target unmeasurable.
+- **Recommendation:** Define the window explicitly, e.g., "business hours = Mon–Fri 07:00–18:00 SAST excluding South African public holidays".
+
+---
+
+## Dimension 3 — Testability & Verifiability
+
+### Findings
+
+#### ADV-31 — WCAG predicate untestable without scope and method
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §6.6.5
+- **Evidence:**
+  > WCAG 2.2 AA conformance, full keyboard reach for all primary actions, screen-reader semantics on status badges.
+- **Problem:** Accessibility requirement names a standard and a vague scope but provides no enumerated primary actions, no audit tool/sample, and no pass/fail predicate for "screen-reader semantics".
+- **Recommendation:** Enumerate the primary actions in scope (Upload, Approve, Reject, Export, Logout, Sort, Filter, Paginate) and specify the verification method (e.g., axe-core 0 violations on the listed routes + NVDA reads status badge as '<label>, status') as the pass criterion.
+
+#### ADV-32 — Performance thresholds without sample/profile/method
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §6.6.2
+- **Evidence:**
+  > | p95 page TTI on Transaction Table | ≤ 2 s for ≤ 1 000 rows | inferred |
+- **Problem:** Performance targets give thresholds but omit sample size, network/device profile, and measurement methodology, so a tester cannot reproduce the test.
+- **Recommendation:** Add measurement context per row: sample size (e.g., N≥200 sessions), network profile (e.g., Fast 3G or wired), device class (e.g., mid-range laptop / Lighthouse mobile preset), and tool (e.g., Lighthouse, server APM).
+
+#### ADV-33 — Uptime predicate unmeasurable
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §6.6.3
+- **Evidence:**
+  > | Target uptime | 99.5 % during business hours; 99.0 % overall | inferred |
+- **Problem:** Availability target references "business hours" without defining them, no measurement window, and no definition of "down" versus "degraded".
+- **Recommendation:** Define business hours (e.g., Mon-Fri 07:00-18:00 Africa/Johannesburg), measurement window (rolling 30 days), and "down" predicate (e.g., HTTP 5xx on /v1/healthz for ≥1 minute).
+
+#### ADV-34 — Step-up auth requirement has no testable factor or expiry
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §6.6.1
+- **Evidence:**
+  > | Re-auth scope | Step-up authentication required for approve and reject actions | inferred (financial domain default) |
+- **Problem:** Step-up auth is mandated but the factor, trigger window, and expiry are unspecified, so no test can decide whether a given step-up implementation satisfies the requirement.
+- **Recommendation:** Specify the factor (e.g., TOTP), trigger (every action vs. once per session/N minutes), expiry (e.g., 5 minutes), and failure behaviour (block action, no partial state).
+
+#### ADV-35 — BR-06 has no latency predicate
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** BR-06
+- **Evidence:**
+  > When a transaction's status changes (Approved or Rejected), then the new status must be reflected in the transaction table without a manual refresh.
+- **Problem:** BR-06 prescribes "without a manual refresh" but gives no latency bound, so "reflected eventually" would pass — there is no failing-test predicate.
+- **Recommendation:** Add a numeric bound, e.g., "the row's Status cell updates within 2 s of the server confirming the action, on the originating client; cross-tab updates within 5 s".
+
+#### ADV-36 — Password policy not enumerated; acceptance undecidable
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §6.6.1
+- **Evidence:**
+  > | Password storage | Server-side bcrypt hash; plaintext password transmitted over HTTPS only. |
+- **Problem:** Password rule (§7 Entity User) says "complexity per security policy" but no policy is enumerated, so a tester cannot decide whether a given password is accepted or rejected.
+- **Recommendation:** Enumerate the policy in the doc (e.g., min length 12, ≥1 upper, ≥1 lower, ≥1 digit, ≥1 symbol; reject top-100k breached passwords) so the validation rule is decidable from this document alone.
+
+#### ADV-37 — "No PII in toasts/console" predicate lacks PII enumeration
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §6.6.4
+- **Evidence:**
+  > No PII is rendered in error toasts or browser console.
+- **Problem:** Negative predicate over PII is not testable without an enumeration of which fields count as PII for this product.
+- **Recommendation:** Enumerate the PII fields (e.g., Email, AccountNumber, FirstName, LastName, UserNote when it contains free text) and define the test (e.g., scrape DOM toasts + console output during the standard test suite; assert none of the listed fields appears).
+
+#### ADV-38 — Goal-level "Quality signals" are wishes without numeric thresholds
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §4.1
+- **Evidence:**
+  > | G-01 | Upload transaction files for processing. | Speed-to-confidence, error visibility | top-level | full-page upload panel | drag-and-drop with progress |
+- **Problem:** Goal-level "Quality signals" (Speed-to-confidence, Accuracy, throughput, decision confidence, At-a-glance status) are wishes — no numeric thresholds, so completion of a goal is not decidable.
+- **Recommendation:** Bind each quality signal to a measurable proxy (e.g., Speed-to-confidence → time-from-file-select-to-success-toast ≤ 3 s p95; Accuracy → 0 unintended approvals in usability test n=8) or remove the signal column from the doc as informational only.
+
+#### ADV-39 — File Upload exception path not decidable from doc alone
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §5 File Upload
+- **Evidence:**
+  > | Steps | 1. Select file (drag & drop supported). 2. Provide FileSettingId, FileSettingName, FileName. 3. Submit upload. 4. System creates File Log. 5. Status shown in UI. |
+- **Problem:** "Status shown in UI" and "Success / failure feedback is rendered after upload" do not enumerate which statuses or which messages, so the exception path is not decidable from the doc alone.
+- **Recommendation:** Enumerate the post-submit states the UI must render (e.g., "Uploading…" progress, "Upload complete — File Log #N created" toast, "Upload failed — <reason category>" banner) and the trigger condition for each.
+
+#### ADV-40 — File Summary Processing/Failed UX has no testable predicate
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §5 File Summary View
+- **Evidence:**
+  > | Exception paths | If the file is still Processing or Failed, counts may be incomplete; the view shows the file's current state prominently. |
+- **Problem:** "Counts may be incomplete" and "shows … prominently" are wishes — no testable predicate for what the user sees when Processing vs Failed.
+- **Recommendation:** Replace with decidable rules, e.g., "Processing → counts hidden, banner: \"File still processing — counts available on completion\"; Failed → counts hidden, red banner with retry CTA per BR-07".
+
+#### ADV-41 — Toast duration range 4–8 s is non-deterministic
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §6.4
+- **Evidence:**
+  > Transient confirmations (approval / rejection / export complete) use toasts auto-dismissing in 4–8 s, top-right.
+- **Problem:** A 4–8 s range admits any value in the interval, so two implementations could both pass yet diverge; no per-event mapping.
+- **Recommendation:** Pick a single duration per event (e.g., approval/rejection 4 s, export complete 8 s) or define the range as "minimum 4 s, maximum 8 s" with an explicit rationale and a single test value.
+
+#### ADV-42 — "2–3 key columns" responsive card spec is non-deterministic
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §6.4
+- **Evidence:**
+  > On screens below 768 px, tables collapse into a vertical card list (primary identifier + 2–3 key columns + overflow).
+- **Problem:** "2-3 key columns" is non-deterministic across the two tables (File Logs, Transactions); a tester cannot decide which columns must appear on the card.
+- **Recommendation:** Specify per table, e.g., "File Logs card: FileName (primary), Status, ProcessDate; Transactions card: Reference (primary), Amount+Currency, Status; remaining columns under an Overflow disclosure."
+
+#### ADV-43 — Authentication generic-error rule does not pin the message string
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §5 Authentication
+- **Evidence:**
+  > On failure → error state with a generic message that does not reveal which field was incorrect.
+- **Problem:** Generic-message rule is correct in intent but does not pin the actual string, so two implementations rendering different copy could each claim conformance.
+- **Recommendation:** Pin the canonical copy (e.g., "Invalid email or password.") in §6.4 or §6.6.1 and reference it from the flow so the test asserts an exact string.
+
+#### ADV-44 — Audit list excludes failure events; coverage test undefined
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §6.6.4
+- **Evidence:**
+  > Audit trail: every approve, reject, upload, login, and logout event is recorded with `LastChangedUser` and `LastChangedDate`; retain 7 years.
+- **Problem:** Audit list omits failure events (failed login, failed upload, failed approve/reject) so the test "audit row exists for every attempted action" is undefined.
+- **Recommendation:** State explicitly whether failed attempts are audited (recommended: yes, with outcome field success|failure and failure reason category) and add the outcome field to the audit schema.
+
+---
+
+## Dimension 4 — Scope & MVP Boundaries
+
+### Findings
+
+#### ADV-45 — No MVP designation; every requirement is implicitly in scope
+
+- **Severity:** Blocker
+- **Disposition:** Reject
+- **Location:** §1\|§6\|§10
+- **Evidence:**
+  > **Created:** 2026-05-13 · **Status:** final · **Last finalised at:** 2026-05-13
+- **Problem:** The document is marked Status: final but contains no MVP designation, no release-scope statement, and no phase tagging — every one of the ~30 requirements is implicitly MVP, which is the classic scope-creep signature for a 501-line spec.
+- **Recommendation:** Add a top-level scope section (e.g., §1.1 "Release scope") that names the MVP release, lists which §6 items are MVP vs deferred, and gates each requirement explicitly.
+
+#### ADV-46 — No "Out of scope" section; negative boundary undeclared
+
+- **Severity:** Blocker
+- **Disposition:** Reject
+- **Location:** §6\|§10
+- **Evidence:**
+  > ## 10. Volumes
+- **Problem:** There is no "Out of scope" section anywhere in the doc; §10 ends the document, so a downstream engineer has no negative boundary and must infer that everything not mentioned (e.g., bulk approve, transaction edit, role admin, file delete, file retry UI) is or is not in scope.
+- **Recommendation:** Add an explicit §11 "Out of scope" enumerating excluded behaviours (e.g., bulk approve, transaction editing, user/role administration UI, file deletion, retry of Failed file logs, MFA enrolment UI) so the negative boundary is unambiguous.
+
+#### ADV-47 — MFA and step-up auth straddle the MVP cut line
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §6.6.1
+- **Evidence:**
+  > | MFA requirement | Optional for Importer; required for Approver | inferred |
+- **Problem:** MFA for Approvers and step-up authentication for approve/reject are listed as "inferred" defaults in NFRs but carry weeks of engineering cost (enrolment UI, factor selection, recovery flows) and are not tagged as MVP, post-MVP, or stretch — this requirement straddles the cut line.
+- **Recommendation:** Either move MFA + step-up auth to an explicit "post-MVP / phase 2" section, or commit them to MVP with a sized cost and an enrolment flow added to §5; do not leave them as untagged inferred NFRs.
+
+#### ADV-48 — All §6.6.1 inferred NFRs are untagged for scope
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §6.6.1
+- **Evidence:**
+  > | Account lockout policy | 5 failed attempts → 15-minute cooldown; cooldown resets on successful authentication | inferred |
+- **Problem:** Account lockout, idle-warning lead-time, idle/absolute session timeouts, and step-up re-auth are all stated as inferred defaults with concrete numeric targets but no scope tag — each implies non-trivial backend state machines that may or may not be in MVP scope.
+- **Recommendation:** Tag each §6.6.1 line as MVP or post-MVP, and where it is MVP add a confirming source other than "inferred (financial domain default)" so the cost is justified.
+
+#### ADV-49 — POPIA + 7-year retention bundled into MVP without scope tag
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §6.6.4
+- **Evidence:**
+  > Audit trail: every approve, reject, upload, login, and logout event is recorded with `LastChangedUser` and `LastChangedDate`; retain 7 years.
+- **Problem:** POPIA compliance and a 7-year audit retention obligation are stated without scope tagging or cost discussion — POPIA conformance alone is a multi-month workstream (DSAR handling, breach notification, data-minimisation review) and cannot be silently bundled into MVP.
+- **Recommendation:** Split §6.6.4 into "MVP audit logging" (event capture only) and "post-MVP compliance programme" (POPIA conformance, retention enforcement, DSAR tooling), and tag each line accordingly.
+
+#### ADV-50 — Responsive <768 px requirement bundled with core flows
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §6.4\|line-345
+- **Evidence:**
+  > On screens below 768 px, tables collapse into a vertical card list (primary identifier + 2–3 key columns + overflow).
+- **Problem:** A responsive mobile breakpoint behaviour is mixed in with desktop table requirements without any scope tag — given §3 personas describe daily desk-bound use, the mobile experience is plausibly post-MVP but is currently mandated alongside core flows.
+- **Recommendation:** Move the <768 px responsive behaviour to a tagged "post-MVP" subsection, or confirm mobile is in MVP and add mobile-specific personas/flows to §3 and §5.
+
+#### ADV-51 — BR-07 retry is either an out-of-scope feature or a missing MVP flow
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §6.2\|BR-07
+- **Evidence:**
+  > When a file log is in Failed state, then the file summary view must surface the failure prominently and inhibit drill-down into transactions until retry succeeds.
+- **Problem:** BR-07 references "retry succeeds" but no retry flow exists in §5 task flows and no retry requirement appears in §6.1 — this is either an out-of-scope feature smuggled into a business rule or a missing MVP flow, and the doc never decides which.
+- **Recommendation:** Either add a "Retry Failed File" flow to §5 and a matching §6.1 functional requirement (MVP), or rephrase BR-07 to remove the retry reference and tag retry as out-of-scope.
+
+#### ADV-52 — Importer logout silently out of scope by omission
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §6.1\|line-323
+- **Evidence:**
+  > Allow Approvers to log out via an endpoint that invalidates the session cookie.
+- **Problem:** The functional list grants logout only to Approvers, yet Importers also authenticate (§5 Authentication, §3 Importer) and §6.5 RBAC grants Importers "X" on Authentication — leaving Importer logout silently out of scope by omission rather than by explicit exclusion.
+- **Recommendation:** Either extend the bullet to "Allow all authenticated users to log out…" (MVP) or add Importer-logout to an explicit out-of-scope list and justify the asymmetry.
+
+#### ADV-53 — Performance ceilings inconsistent with §10 volume range
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §6.6.2
+- **Evidence:**
+  > | p95 page TTI on Transaction Table | ≤ 2 s for ≤ 1 000 rows | inferred |
+- **Problem:** Performance targets reference a 1 000-row ceiling and a 10 000-row CSV ceiling, but §10 Volumes allows 10⁵ transactions per active file log — the perf NFR and the volume NFR are inconsistent and neither states which bound is MVP-binding.
+- **Recommendation:** Reconcile §6.6.2 ceilings with §10 volume ranges and annotate which row-count tier is the MVP performance commitment.
+
+---
+
+## Dimension 5 — Dependency & Ordering
+
+### Findings
+
+#### ADV-54 — FileSetting referenced but never introduced in §2
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §7 Entity: File Log, line 431
+- **Evidence:**
+  > | SettingId | int | yes | references FileSetting.Id | Upload-time setting reference. |
+- **Problem:** FileSetting is used as a foreign-key target in §7 and named in §9, but is never introduced as a concept in §2 Domain model, so the entity referenced by SettingId has no defined source.
+- **Recommendation:** Add FileSetting as a concept in §2.1 with definition and persistence, and add a "File Log belongs to FileSetting [N:1]" relationship in §2.2, before §7 references it.
+
+#### ADV-55 — RoleRead type referenced but never defined
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §7 Entity: User, line 412
+- **Evidence:**
+  > | Roles | list<RoleRead> | yes | non-empty | Drives RBAC. |
+- **Problem:** The type RoleRead is used for the User.Roles field but is never defined as an entity, enum, or DTO anywhere in the document, so the data shape an engineer must implement is unknown.
+- **Recommendation:** Either define RoleRead as an entity/enum in §7 (or §2) before this reference, or change the type to the existing "Roles" enum already declared as { Importer, Approver } on line 420.
+
+#### ADV-56 — Step-up dependency on undefined capability
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §6.6.1 Re-auth scope, line 366
+- **Evidence:**
+  > | Re-auth scope | Step-up authentication required for approve and reject actions | inferred (financial domain default) |
+- **Problem:** Step-up authentication is mandated for approve/reject but the Approve and Reject flows in §5 contain no step-up step and no step-up mechanism is defined anywhere in the doc, so the dependency on this capability is undiscoverable from the flow definitions.
+- **Recommendation:** Either remove the step-up requirement, or add a step-up step to the Approve Transaction and Reject Transaction flows in §5 and define the step-up mechanism as a concept before §6.6.1 references it.
+
+#### ADV-57 — MFA dependency between Authentication and Approver login is invisible
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §6.6.1 MFA requirement, line 368
+- **Evidence:**
+  > | MFA requirement | Optional for Importer; required for Approver | inferred |
+- **Problem:** MFA is mandated for Approvers but the Authentication flow in §5 (line 220) describes only "email + password" with no MFA step, so the dependency between Authentication and the MFA capability needed before Approver login is undiscoverable.
+- **Recommendation:** Add an MFA step to the Authentication flow in §5 (or a separate MFA enrolment flow) and sequence it as a dependency of any Approver-role-gated feature before §6.6.1 declares MFA required.
+
+#### ADV-58 — BR-06 implies a delivery channel never defined
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** BR-06, line 334
+- **Evidence:**
+  > BR-06 | When a transaction's status changes (Approved or Rejected), then the new status must be reflected in the transaction table without a manual refresh.
+- **Problem:** Real-time status reflection without manual refresh implies a push/poll mechanism (e.g., websocket, SSE, or background polling) that is not defined anywhere in the doc, so the dependency this rule places on a delivery channel is invisible to an engineer.
+- **Recommendation:** Add a non-functional or architectural note stating the chosen update channel (e.g., SSE/poll/optimistic local update) as a dependency of BR-06, sequenced before BR-06 in §6.2 or §6.6.
+
+#### ADV-59 — Goal dependencies (G-02/G-03/G-04 → G-01) not recorded
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §4.1 G-02, G-03, G-04, lines 152-154
+- **Evidence:**
+  > | G-04 | Monitor the processing status of uploaded files. | At-a-glance status, drill-down to detail | top-level | dashboard list | tabular file log with status column |
+- **Problem:** G-02 (approve/reject), G-03 (export filtered), and G-04 (monitor) all logically depend on G-01 (upload) producing files and transactions first, but no explicit ordering note records that dependency, so the goals catalogue does not communicate implementation order.
+- **Recommendation:** Add a "Depends on" column (or inline note) to §4.1 declaring G-02/G-03/G-04 depend on G-01 so an engineer can derive a buildable order from the catalogue.
+
+#### ADV-60 — §6.1 forward-references fields defined later in §7
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §6.1 Functional, line 320
+- **Evidence:**
+  > Process uploaded files into Transactions; expose the file's lifecycle via `LastExecutedActivityName` / `CurrentStatus` on the File Log.
+- **Problem:** §6.1 references the fields LastExecutedActivityName and CurrentStatus before they are defined (§7 Entity: File Log appears later at lines 422-433), so an implementer reading top-down does not know what these fields are or which is authoritative.
+- **Recommendation:** Either forward-reference §7 explicitly on this line, or restate the canonical field definition (one of { Uploaded, Processing, Completed, Failed }) inline so §6.1 is self-contained.
+
+#### ADV-61 — RBAC matrix lists User resource with no upstream capability
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §6.5 RBAC matrix header, line 352
+- **Evidence:**
+  > | Role (→ §3) | User | File Log | Transaction | Authentication | File Upload | File Log Overview | Transaction Table | Search & Filtering | Approve Transaction | Reject Transaction | Export Transactions | File Summary |
+- **Problem:** The RBAC matrix lists "User" as a resource with both roles assigned R access, but the doc defines no User-management flow in §5 and no functional requirement for reading other users, so the resource has access cells with no upstream capability to implement.
+- **Recommendation:** Either remove the User column from §6.5 since no functional requirement supports it, or add a User-management flow in §5 and a corresponding requirement in §6.1 before §6.5 grants access.
+
+---
+
+## Dimension 6 — Consistency & Internal Conflict
+
+### Findings
+
+#### ADV-62 — §6.6.1 step-up auth contradicted by Approve/Reject flows
+
+- **Severity:** Blocker
+- **Disposition:** Defer
+- **Location:** §6.6.1 vs §5 Approve Transaction / §5 Reject Transaction
+- **Evidence:**
+  > | Re-auth scope | Step-up authentication required for approve and reject actions | inferred (financial domain default) |
+- **Problem:** §6.6.1 mandates step-up authentication for approve and reject, but the Approve Transaction flow lists only a confirmation modal and the Reject Transaction flow lists only a mandatory note — neither flow includes a re-authentication step.
+- **Recommendation:** Either add a step-up re-auth step to the Approve and Reject flows in §5 or remove the step-up requirement from §6.6.1.
+
+#### ADV-63 — §6.6.1 MFA contradicted by §5 Authentication flow
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §6.6.1 vs §5 Authentication
+- **Evidence:**
+  > | MFA requirement | Optional for Importer; required for Approver | inferred |
+- **Problem:** §6.6.1 requires MFA for Approvers, but §5 Authentication flow's Steps list only email+password submission with no MFA step or decision point, contradicting the policy.
+- **Recommendation:** Add an MFA challenge step (conditional on role=Approver) to the Authentication flow in §5 or relax the MFA policy in §6.6.1.
+
+#### ADV-64 — Logout requirement scope contradicts §6.6.1 and §6.6.4
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §6.1 vs §6.6.1 / §6.6.4
+- **Evidence:**
+  > - Provide a file summary view showing total records and a count by status (Imported / Approved / Rejected).- Allow Approvers to log out via an endpoint that invalidates the session cookie.
+- **Problem:** §6.1 scopes the logout endpoint to Approvers only, but §6.6.1 describes the logout cookie clearance generically (POST /v1/auth/logout) and §6.6.4 records logout events as a generic audit event, implying logout applies to all roles.
+- **Recommendation:** Reword the §6.1 logout requirement to apply to all authenticated users (both Importer and Approver).
+
+#### ADV-65 — §2.4 Transaction class omits fields defined in §7
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §2.4 vs §7 Entity: Transaction
+- **Evidence:**
+  >     class Transaction {
+  >       +Id
+  >       +FileLogId
+  >       +Reference
+  >       +TransactionDate
+  >       +AccountNumber
+- **Problem:** The Transaction class in the §2.4 Mermaid diagram omits FileName, Description, TransactionType, LastChangedUser and LastChangedDate, all of which are defined as Transaction fields in §7, so the diagram and the data-entity table disagree on the entity's shape.
+- **Recommendation:** Update the §2.4 Mermaid Transaction class to include all fields enumerated in §7 (or explicitly mark §2.4 as a conceptual subset).
+
+#### ADV-66 — §2.4 FileLog class omits required fields incl. LastExecutedActivityName
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §2.4 vs §7 Entity: File Log
+- **Evidence:**
+  >     class FileLog {
+  >       +Id
+  >       +FileName
+  >       +RecordCount
+  >       +ProcessDate
+  >       +CurrentStatus
+- **Problem:** The §2.4 Mermaid FileLog class lists CurrentStatus but omits LastExecutedActivityName, SettingId, SettingName, FileHash, LastChangedUser, and LastChangedDate, contradicting the authoritative File Log shape in §7 where LastExecutedActivityName is the required status field.
+- **Recommendation:** Reconcile §2.4 with §7 by adding LastExecutedActivityName and the other File Log fields to the diagram (or annotate the diagram as a conceptual subset).
+
+#### ADV-67 — RecordCount typed as string contradicts its usage and the §2.4 diagram
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §7 Entity: File Log RecordCount vs §5 File Log Overview
+- **Evidence:**
+  > | RecordCount | string | yes | numeric | Number of transactions parsed from the file; API returns as string. |
+- **Problem:** §7 declares RecordCount as type string with a "numeric" validation, but the §5 File Log Overview flow surfaces it as a "Record Count" column and the §2.4 diagram lists it as an unqualified +RecordCount, implying a numeric type — the string typing contradicts its usage everywhere else.
+- **Recommendation:** Change RecordCount to integer in §7 (treat the string-on-the-wire as a serialization detail noted separately) so the type is consistent with its semantics and display.
+
+#### ADV-68 — Authentication flow does not mention lockout state per §6.6.1
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §6.6.1 Account lockout vs §5 Authentication
+- **Evidence:**
+  > | Account lockout policy | 5 failed attempts → 15-minute cooldown; cooldown resets on successful authentication | inferred |
+- **Problem:** §6.6.1 specifies a 5-attempt lockout with a 15-minute cooldown, but §5 Authentication's Exception paths describe only a generic error message and do not mention lockout behaviour or a locked-out state, so the flow contradicts the policy by silence.
+- **Recommendation:** Add a lockout exception path to §5 Authentication that references the §6.6.1 lockout policy (and surfaces a locked-account state to the UI).
+
+#### ADV-69 — Approver/Transaction Update cell conflicts with per-action columns
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §6.5 RBAC matrix Approver Transaction cell vs §6.5 action vocabulary
+- **Evidence:**
+  > | Approver | R | R | R U†BR-01 | X | — | X | X | X | A†BR-01 | A†BR-02 | X | X |
+- **Problem:** The Approver/Transaction cell grants "U†BR-01" (update) on the Transaction resource, but the action vocabulary reserves "A" for approve and the matrix already grants A†BR-01 / A†BR-02 on the Approve / Reject columns — granting U on Transaction therefore contradicts the per-action columns and lets an Approver update arbitrary transaction fields beyond approve/reject.
+- **Recommendation:** Drop the "U†BR-01" from the Approver/Transaction cell (leaving R) so update authority lives only in the dedicated Approve / Reject columns.
+
+---
+
+## Dimension 7 — Edge Cases & Error Handling
+
+### Findings
+
+#### ADV-70 — File Upload contract names no size/type/virus/failure mode
+
+- **Severity:** Blocker
+- **Disposition:** Defer
+- **Location:** §5 File Upload
+- **Evidence:**
+  > Steps | 1. Select file (drag & drop supported). 2. Provide FileSettingId, FileSettingName, FileName. 3. Submit upload. 4. System creates File Log. 5. Status shown in UI.
+- **Problem:** The File Upload flow names no maximum file size, no allowed file types/extensions, no virus/malware scan, and no specific failure modes (oversize, wrong type, malformed content) — exactly the canonical "file upload requirement that names no max size, no virus check, no failure mode" anti-pattern.
+- **Recommendation:** Add explicit limits and validation to §5 File Upload and §6.1: max file size (e.g., 10 MB), permitted extensions/MIME types, antivirus/content-scan step, and a named failure mode per invalid case (oversize → toast + retained form; bad type → reject pre-upload; scan-fail → quarantine state).
+
+#### ADV-71 — Approval declared reversible by an undefined separate workflow
+
+- **Severity:** Blocker
+- **Disposition:** Defer
+- **Location:** §5 Approve Transaction; §4.2 Approver story
+- **Evidence:**
+  > Context (frequency / expertise / stakes) | Many per day; senior reviewer; reversible only by separate workflow.
+- **Problem:** Approval is declared reversible "only by separate workflow" but that recovery/undo workflow is never defined anywhere in the document, leaving the recovery path required by Dimension 7 unspecified.
+- **Recommendation:** Either add a "Revert Approval" / "Reopen Transaction" flow in §5 with its own BR and RBAC row, or explicitly state in §6.2 that approval is irreversible and remove the "reversible only by separate workflow" phrasing.
+
+#### ADV-72 — BR-06 lacks transport, concurrency, and offline behaviour
+
+- **Severity:** Blocker
+- **Disposition:** Defer
+- **Location:** BR-06; §5 Transaction Table
+- **Evidence:**
+  > BR-06 | When a transaction's status changes (Approved or Rejected), then the new status must be reflected in the transaction table without a manual refresh.
+- **Problem:** BR-06 mandates live status reflection but the document specifies no transport (polling, SSE, WebSocket), no concurrent-edit conflict model when two Approvers act on the same row, and no behaviour when the live channel is offline.
+- **Recommendation:** Specify the refresh mechanism (e.g., poll every N seconds or SSE on /v1/transactions/stream), the last-write-wins vs. optimistic-lock policy for concurrent approve/reject on the same transaction, and the UI fallback when the live channel is unavailable.
+
+#### ADV-73 — Mandatory reject note lacks length and whitespace validation
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §5 Reject Transaction; §7 Entity: Transaction (UserNote)
+- **Evidence:**
+  > | UserNote | string | yes when Status = Rejected | non-empty on Reject | Rejection rationale. |
+- **Problem:** The mandatory rejection note has no maximum-length validation, no minimum content rule beyond "non-empty", and no behaviour for whitespace-only input — leaving the maximum-size / input-validation edge case unspecified.
+- **Recommendation:** Add validation in §7 and §5 Reject Transaction: trim whitespace, reject whitespace-only, enforce 1–500 (or similar) character bound, and surface inline validation when the bound is breached.
+
+#### ADV-74 — Lockout policy lacks user-facing UX and recovery path
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §6.6.1 Security & session
+- **Evidence:**
+  > | Account lockout policy | 5 failed attempts → 15-minute cooldown; cooldown resets on successful authentication | inferred |
+- **Problem:** The lockout policy names no user-facing UX (what the locked user sees, whether the generic-error pattern from BR-05 still applies, whether countdown is shown, whether email notification fires) and names no recovery path (password reset, admin unlock).
+- **Recommendation:** Add a §5 Account Lockout sub-flow specifying the message shown to the locked user (generic per BR-05), whether a countdown is exposed, and the recovery path (self-service password reset and/or admin unlock).
+
+#### ADV-75 — Step-up auth has no flow, no UX, no failure mode
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §6.6.1 Security & session
+- **Evidence:**
+  > | Re-auth scope | Step-up authentication required for approve and reject actions | inferred (financial domain default) |
+- **Problem:** Step-up auth is required for approve/reject but no flow is defined in §5 — neither the trigger (every action / per-session / time-based), the prompt UX, the failure mode, nor the impact on the existing confirmation modal is specified.
+- **Recommendation:** Add a §5 Step-up Authentication flow defining when re-auth is demanded, what the user sees, what happens on cancel/failure, and how it composes with the BR-01 confirmation modal.
+
+#### ADV-76 — Idle timeout has no warning UX or in-flight work preservation
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §6.6.1 Security & session
+- **Evidence:**
+  > | Idle session timeout | 15 minutes | inferred (financial domain default) | | Idle warning lead-time | 60 seconds before idle logout | inferred (financial domain default) |
+- **Problem:** Idle timeout and a 60-second warning are stated, but no flow specifies the warning UI, the "extend session" control, or what happens to in-flight work (an unsaved rejection note, an in-progress export) when the timeout fires.
+- **Recommendation:** Add a §5 Idle Timeout flow covering the warning banner/modal, the "Stay signed in" control, and the preservation/discard policy for unsaved form state (notably the Reject note draft).
+
+#### ADV-77 — BR-07 "retry" with no Retry flow, RBAC, or failure mode
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** BR-07; §5 File Summary View
+- **Evidence:**
+  > BR-07 | When a file log is in Failed state, then the file summary view must surface the failure prominently and inhibit drill-down into transactions until retry succeeds. | UI | → §2.3 File Log invariant | major |
+- **Problem:** BR-07 references a "retry" that succeeds, but no Retry flow is defined in §5, no retry trigger/permission is set, and no RBAC cell in §6.5 grants "retry file" to any role.
+- **Recommendation:** Add a §5 Retry Failed File flow, a corresponding RBAC column or action vocabulary entry in §6.5, and the failure-mode UX when retry itself fails (e.g., escalate to a Failed-permanently state).
+
+#### ADV-78 — Export over 10 000 rows: behaviour undefined
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §5 Export Transactions; §6.6.2 Performance
+- **Evidence:**
+  > | CSV export ready-to-download | ≤ 3 s for ≤ 10 000 rows | inferred |
+- **Problem:** Performance bounds the export at ≤10 000 rows but neither §5 Export Transactions nor §6.1 specifies what happens above that limit (truncate? warn? async job? hard cap?), leaving the maximum-size edge case unspecified.
+- **Recommendation:** Specify the over-limit behaviour in §5 Export Transactions: e.g., hard cap with a warning toast, asynchronous export with email-when-ready, or pagination across multiple CSV downloads.
+
+#### ADV-79 — Network failure behaviour for mutating flows undefined
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §5 Approve Transaction; §5 Reject Transaction; §5 Export Transactions; §5 File Upload
+- **Evidence:**
+  > Steps | 1. Select transaction. 2. Click Approve. 3. Confirm action in modal. 4. Status updates to Approved.
+- **Problem:** No flow specifies network-failure behaviour for approve/reject/upload/export — what the UI shows on timeout, what state is preserved (e.g., the typed reject note), and whether retries are idempotent (the same approval clicked twice on a flaky connection).
+- **Recommendation:** Add an Exception path to each mutating flow naming the UI state on network failure (e.g., inline error + retry button, retained form fields) and require server endpoints to be idempotent on retry (idempotency key or status-precondition check).
+
+#### ADV-80 — Partial-failure parse case has no defined surface
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §5 File Upload; §6.1
+- **Evidence:**
+  > Exception paths | Success / failure feedback is rendered after upload. On failure, the file is not parsed and no File Log row is created in a Completed state.
+- **Problem:** The partial-failure case where the file is parsed but some rows are malformed (8/10 succeed) is unspecified — the only outcomes named are "Completed" or "Failed", with no partial-success state, no per-row error report, and no rejected-rows surface.
+- **Recommendation:** Either define a Partial / CompletedWithErrors lifecycle state with a per-row error report on the File Summary View, or explicitly state the policy is all-or-nothing and reject the whole file on any row error.
+
+#### ADV-81 — Authorization-failure UX undefined for deep-link role bypass
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §5 Transaction Table; §6.4
+- **Evidence:**
+  > Role-conditional behaviour | Approve / Reject row actions are hidden for Importers.
+- **Problem:** The document specifies hiding role-restricted controls but does not specify the authorization-failure UX when an Importer reaches an Approver-only URL directly (deep-link, browser back, copy-pasted URL) — the canonical Dimension 7 authorization-failure case.
+- **Recommendation:** Add a §6.4 or §5 Authentication clause: unauthorized navigation returns a 403 surface that names the action ("You do not have permission to approve transactions") and offers a route back to the user's role landing page.
+
+#### ADV-82 — Email-format validation UX unspecified at login
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §7 Entity: User; §6.1
+- **Evidence:**
+  > | Email | string | yes | RFC 5322 format; unique | Login identifier. |
+- **Problem:** Email validation is stated as "RFC 5322 format" but neither §6.1 nor the Authentication flow names the user-facing validation behaviour (when it fires, what message is shown, whether it composes with the BR-05 generic-error rule at login).
+- **Recommendation:** Add to §6.4 / §5 Authentication: invalid email format is flagged on blur with a specific inline message pre-submit; on submit, BR-05's generic message overrides any field-specific feedback.
 
 ---
 
@@ -933,93 +1049,95 @@
 
 ### Findings
 
-#### ADV-74 — POPIA mentioned without concrete controls
+#### ADV-83 — POPIA stated as "implied"; no concrete obligations
 
-- **Severity:** Major
-- **Disposition:** Patch
+- **Severity:** Blocker
+- **Disposition:** Defer
 - **Location:** §6.6.4
 - **Evidence:**
-  > - POPIA (South Africa) — implied by the use of ZAR currency in the sample dataset and South African account-number formats.- Audit trail: every approve, reject, upload, login, and logout event is recorded with `LastChangedUser` and `LastChangedDate`; retain 7 years.
-  > - No PII is rendered in error toasts or browser console.
-- **Problem:** POPIA is named only as "implied" with no concrete treatment of data residency, PII inventory, consent flows, retention windows per data class, or subject-access/erasure obligations — yet the system handles AccountNumber, Email, names, and financial transactions which are POPIA-bearing.
-- **Recommendation:** Add explicit POPIA controls: a PII inventory (Email, FirstName/LastName, AccountNumber, Amount, Reference), data-residency requirement (RSA region), retention per data class (transactions vs audit vs user records), lawful-basis statement, and subject-access/erasure procedure.
+  > POPIA (South Africa) — implied by the use of ZAR currency in the sample dataset and South African account-number formats.
+- **Problem:** POPIA treatment is declared as "implied" rather than concretely specified — no data residency, no consent/lawful-basis statement, no PII retention windows (only the audit-trail retention is set), and no data-subject-rights handling, despite the system storing AccountNumber and user PII.
+- **Recommendation:** Replace the "implied" line with a concrete POPIA block specifying data residency (e.g., ZA region only), lawful basis for processing transactional PII, retention windows per PII class (User, Transaction, audit), and procedures for access/erasure requests.
 
-#### ADV-75 — Performance thresholds lack stack / index / measurement context
+#### ADV-84 — Perf thresholds bounded ≤1000 rows; Volumes allow up to 10⁵
 
 - **Severity:** Major
 - **Disposition:** Patch
 - **Location:** §6.6.2
 - **Evidence:**
   > | p95 page TTI on Transaction Table | ≤ 2 s for ≤ 1 000 rows | inferred |
-  > | API p99 latency for `/v1/transactions` GET | ≤ 500 ms | inferred |
-  > | API p99 latency for approve / reject | ≤ 800 ms | inferred |
-  > | CSV export ready-to-download | ≤ 3 s for ≤ 10 000 rows | inferred |
-- **Problem:** Performance thresholds are stated without reference to the implementation stack, expected indexing, or measurement methodology — and the CSV-export budget of 3 s for 10 000 rows is suspect for a synchronous browser download without a streaming/async strategy named.
-- **Recommendation:** Either qualify each threshold with the stack/index assumptions and a measurement method (synthetic load, percentile window, dataset size), or downgrade the CSV-export target and specify an async/streaming export mechanism with a job-status surface.
+- **Problem:** Performance thresholds are scoped to ≤1 000 rows while §10 Volumes states 10³–10⁵ transactions retained per active file log, leaving the realistic operating range without any latency target and with no index/pagination strategy discussion.
+- **Recommendation:** Either bound the table query by server-side pagination contract (e.g., page size ≤ 100) and document the indexed columns, or add a second tier of thresholds covering the 10⁴–10⁵ retained-row case.
 
-#### ADV-76 — Step-up / MFA / lockout asserted with no mechanism
+#### ADV-85 — BR-06 real-time has no latency budget or transport
 
 - **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §6.6.2 / BR-06
+- **Evidence:**
+  > | BR-06 | When a transaction's status changes (Approved or Rejected), then the new status must be reflected in the transaction table without a manual refresh.
+- **Problem:** BR-06 is a real-time-style requirement ("without a manual refresh") but no latency budget, transport mechanism (polling interval, SSE, WebSocket), or staleness tolerance is specified, making feasibility unverifiable.
+- **Recommendation:** Add a NFR row specifying the freshness target (e.g., visible within ≤ 5 s) and the chosen transport (polling cadence or push), so BR-06 is testable on the named stack.
+
+#### ADV-86 — MFA factor and step-up integration surface unnamed
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §6.6.1
+- **Evidence:**
+  > | MFA requirement | Optional for Importer; required for Approver | inferred |
+- **Problem:** MFA is required for Approvers and step-up auth is required for approve/reject, but no MFA mechanism (TOTP, WebAuthn, SMS OTP) or step-up flow is named, leaving the feasibility and integration surface undefined.
+- **Recommendation:** Name the MFA factor(s) (e.g., TOTP via authenticator app; WebAuthn) and the step-up flow (re-prompt window, token lifetime) the BFF will enforce.
+
+#### ADV-87 — No browser/device/OS support matrix declared
+
+- **Severity:** Major
+- **Disposition:** Patch
+- **Location:** §6.4 / §6.6
+- **Evidence:**
+  > On screens below 768 px, tables collapse into a vertical card list (primary identifier + 2–3 key columns + overflow).
+- **Problem:** The document names a viewport breakpoint but never declares supported browsers, versions, or device/OS targets, leaving "works everywhere" as the implicit (infeasible) baseline.
+- **Recommendation:** Add a row to §6.6 naming the supported browser matrix (e.g., Chrome ≥ 110, Firefox ≥ 110, Edge ≥ 110, Safari ≥ 16; no IE) and minimum viewport (e.g., 360 px).
+
+#### ADV-88 — RTO/RPO stated without backup/ops machinery
+
+- **Severity:** Major
+- **Disposition:** Defer
+- **Location:** §6.6.3
+- **Evidence:**
+  > | RTO / RPO | RTO 4 hours / RPO 1 hour | inferred |
+- **Problem:** RTO/RPO are stated but no backup cadence, backup retention, restore-test schedule, or operational logging/monitoring/alerting requirements are named — the document commits to recovery without committing to the operational machinery that makes recovery feasible.
+- **Recommendation:** Add §6.6 operational subsection specifying backup frequency/retention aligned to RPO 1 h, structured-logging requirements, monitoring SLIs (auth success, approve/reject latency, file-processing failures), and alerting thresholds.
+
+#### ADV-89 — CSV export over 10 000 rows has no latency target
+
+- **Severity:** Minor
+- **Disposition:** Patch
+- **Location:** §6.6.2
+- **Evidence:**
+  > | CSV export ready-to-download | ≤ 3 s for ≤ 10 000 rows | inferred |
+- **Problem:** Export threshold is bounded at 10 000 rows but the export contract (§ Export Transactions flow / §6.1) places no upper bound on the filtered dataset, so the largest legal export has no latency target.
+- **Recommendation:** Either bound the export endpoint to ≤ 10 000 rows (with paged or async export beyond that), or add a degraded-mode target for larger exports (e.g., async job with ≤ 60 s P95).
+
+#### ADV-90 — No cost/time/team-size constraints anywhere in the doc
+
+- **Severity:** Minor
+- **Disposition:** Defer
+- **Location:** §1..§10
+- **Evidence:**
+  > **Domain:** Financial services / banking back-office
+- **Problem:** The document contains no cost, time, or team-size constraints anywhere, which is itself a feasibility flag for a regulated-domain build.
+- **Recommendation:** Add a "Constraints" subsection (timeline target, target team size, hosting-cost envelope) so the rest of the NFR set can be sanity-checked against build capacity.
+
+#### ADV-91 — bcrypt cost factor unspecified
+
+- **Severity:** Minor
 - **Disposition:** Patch
 - **Location:** §6.6.1
 - **Evidence:**
-  > | Re-auth scope | Step-up authentication required for approve and reject actions | inferred (financial domain default) |
-  > | Account lockout policy | 5 failed attempts → 15-minute cooldown; cooldown resets on successful authentication | inferred |
-  > | MFA requirement | Optional for Importer; required for Approver | inferred |
-- **Problem:** Step-up auth, MFA-for-Approver, and account-lockout are asserted with no mechanism named (TOTP? WebAuthn? SMS?) and no integration point — the auth-api source only documents password + session cookie, so these requirements are not buildable as written.
-- **Recommendation:** Either bind each control to a concrete mechanism and endpoint (e.g., "TOTP via POST /v1/auth/step-up, cached for N minutes per session"), or mark them as out-of-scope-for-MVP until the auth API supports them.
-
-#### ADV-77 — Availability SLA without observability / backup / DR support
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.6.3
-- **Evidence:**
-  > | Target uptime | 99.5 % during business hours; 99.0 % overall | inferred |
-  > | Maintenance window | Weekly Sunday 02:00–04:00 local time | inferred |
-  > | RTO / RPO | RTO 4 hours / RPO 1 hour | inferred |
-- **Problem:** Availability targets (99.5 %, RTO 4 h / RPO 1 h) are stated but the document names no logging, monitoring, alerting, backup, or DR mechanism — so the operational claim "we will run this in production" is unsupported and the RPO is unverifiable.
-- **Recommendation:** Add a §6.6 subsection on operability covering structured-log destinations, metrics/alerting thresholds (for the p95/p99 budgets), backup cadence consistent with RPO 1 h, and a DR runbook reference.
-
-#### ADV-78 — Audit retention without per-entity policy
-
-- **Severity:** Major
-- **Disposition:** Patch
-- **Location:** §6.6.4
-- **Evidence:**
-  > Audit trail: every approve, reject, upload, login, and logout event is recorded with `LastChangedUser` and `LastChangedDate`; retain 7 years.
-- **Problem:** A 7-year retention is asserted for audit but no retention window is given for the underlying Transaction, File Log, or User records — and POPIA Section 14 requires retention to be no longer than necessary per data class, so a single 7-year blanket is non-compliant by omission.
-- **Recommendation:** Define per-entity retention: e.g., Transaction 7 y (financial-record statutory), File Log payload 90 days post-Completed, User records purged 30 days after deactivation, audit events 7 y immutable — and cite the statutory basis for each.
-
-#### ADV-79 — No browser / OS / device matrix
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** §6.4 (breakpoint)
-- **Evidence:**
-  > - On screens below 768 px, tables collapse into a vertical card list (primary identifier + 2–3 key columns + overflow).
-- **Problem:** The only device-class statement is a 768 px breakpoint; there is no named browser/version matrix or OS target, making the surface "works everywhere" rather than testable.
-- **Recommendation:** Add a "Supported runtimes" row to §6.6 naming concrete versions (e.g., Chrome ≥120, Edge ≥120, Firefox ≥120, Safari ≥17; Windows 10+, macOS 13+; no IE/Edge-Legacy).
-
-#### ADV-80 — No delivery / team / cost constraint stated
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** §1 header
-- **Evidence:**
-  > **Created:** 2026-05-13 · **Status:** final · **Last finalised at:** 2026-05-13
-- **Problem:** The document is marked final but states no delivery timeline, team size, or cost envelope — feasibility cannot be assessed against constraints that are not present.
-- **Recommendation:** Add a "Delivery constraints" note (target ship date, team composition assumption, hosting-cost envelope) or explicitly mark these as out-of-scope-for-requirements so reviewers know the omission is intentional.
-
-#### ADV-81 — BR-06 "real-time" without latency budget
-
-- **Severity:** Minor
-- **Disposition:** Patch
-- **Location:** BR-06
-- **Evidence:**
-  > | BR-06 | When a transaction's status changes (Approved or Rejected), then the new status must be reflected in the transaction table without a manual refresh. | UI | → §2.3 Transaction invariant | major |
-- **Problem:** BR-06 mandates real-time reflection of status changes with no latency budget and no mechanism (polling cadence? websocket? SSE?) — a "real-time" requirement without a latency budget is a classic feasibility flag.
-- **Recommendation:** Bind BR-06 to a concrete latency target and mechanism, e.g., "reflected within 2 s via short-poll at 1 Hz" or "via SSE channel /v1/transactions/stream with p95 ≤ 1 s", and budget the additional load on §6.6.2.
+  > | Password storage | Server-side bcrypt hash; plaintext password transmitted over HTTPS only. | stated (auth-api) |
+- **Problem:** bcrypt is named but the cost factor (work factor) is not, so the auth-endpoint latency targets are not feasibility-bounded against the chosen hashing cost.
+- **Recommendation:** State the bcrypt cost factor (e.g., 12) so the login p99 latency target can be validated against the hashing budget.
 
 ---
 
@@ -1029,51 +1147,35 @@
 
 | Gate | Result | Notes |
 |------|--------|-------|
-| 1. All findings have 8 schema fields populated | PASS | 81/81 findings have Dimension, Severity, Disposition, Location, Evidence, Problem, Recommendation (ID assigned at merge). |
-| 2. All Dimension fields are 1..8                | PASS | Distribution 13/11/10/8/9/10/12/8 across Dim 1..8 sums to 81. |
-| 3. All Severity fields are valid                | PASS | Blocker/Major/Minor only; lowercased worker values were normalised at Step 3b merge. |
-| 4. All Disposition fields are valid             | PASS | Patch/Defer/Reject only; no out-of-vocabulary values. |
-| 5. All Evidence quotes are verbatim & ≤5 lines  | PASS (post-normalisation) | 9 worker quotes spliced non-adjacent rows or exceeded 5 lines; Step 3b normalised them to strict-verbatim contiguous spans without altering finding substance — see normalisation log below. |
-| 6. All Location anchors exist in requirements   | PASS | Every Location field references a section / BR / G ID / line that exists in the doc's anchor index. |
-| 7. Every dimension has ≥1 finding or Justification | PASS | All eight dimensions returned Variant A (findings list ≥1); no Justification blocks needed. |
-| 8. All Justifications are ≥3 sentences          | N/A | No Justification blocks produced (no zero-finding dimensions). |
-| 9. Verdict matches disposition tally            | PASS | 5 Blocker severities → BLOCKED per the disposition→verdict mapping. |
-| 10. Findings Table row count = per-dim sum      | PASS | 81 table rows = 13+11+10+8+9+10+12+8. |
-| 11. REQUIREMENTS_SHA256 matches Step-2 capture  | PASS | Header SHA equals Step-2 capture `6f9272bbb30d1dce025b843f5319e790bdaa5ac2a07103204bbea7144694f0ae`. |
+| 1. All findings have 8 schema fields populated | PASS | All 91 findings carry ID/Dimension/Severity/Disposition/Location/Evidence/Problem/Recommendation. |
+| 2. All Dimension fields are 1..8                | PASS | Distribution: D1=16 D2=14 D3=14 D4=9 D5=8 D6=8 D7=13 D8=9. |
+| 3. All Severity fields are valid                | PASS | Blocker=7, Major=56, Minor=28. |
+| 4. All Disposition fields are valid             | PASS | Patch=61, Defer=28, Reject=2. |
+| 5. All Evidence quotes are verbatim & ≤5 lines  | PASS | Quotes validated against Step-2 quote index; no fabricated evidence. |
+| 6. All Location anchors exist in requirements   | PASS | All §N, BR-NN, G-NN, line-N, flow-name, entity-name anchors match the Step-2 anchor index. |
+| 7. Every dimension has ≥1 finding or Justification | PASS | All 8 dimensions returned ≥1 finding; no Justification blocks required. |
+| 8. All Justifications are ≥3 sentences          | PASS | N/A — no Justification blocks present. |
+| 9. Verdict matches disposition tally            | PASS | 2 Rejects + 7 Blockers → BLOCKED, consistent. |
+| 10. Findings Table row count = per-dim sum      | PASS | 7+56+28 = 91 = 16+14+14+9+8+8+13+9. |
+| 11. REQUIREMENTS_SHA256 matches Step-2 capture  | PASS | 6f9272bbb30d1dce025b843f5319e790bdaa5ac2a07103204bbea7144694f0ae. |
 
 ### Coverage map
 
 | Dimension | Sections / IDs touched | Finding count |
 |-----------|------------------------|---------------|
-| 1. Completeness & Gaps        | §6.5, §6.6.1, §6.6.3, §6.6.4, §6.4, §6.1, §7, G-04, BR-07 | 13 |
-| 2. Ambiguity & Clarity        | §6.4, §6.6.1, §6.6.3, §6.6.5, §6.3, §6.1, §7, §10, §5 File Summary View, BR-07 | 11 |
-| 3. Testability & Verifiability| §6.6.5, §6.6.2, §6.6.1, §6.6.3, §6.6.4, §6.4, §5 (Approve/Reject/Upload), BR-06 | 10 |
-| 4. Scope & MVP Boundaries     | §6, §10 (doc end), §6.6.1, §6.4, §6.6.3, §6.6.4, §3 vs §6.5, BR-07 | 8 |
-| 5. Dependency & Ordering      | §7 File Log, §4.1, §6.6.1, §5 (Auth/Approve/Reject/Upload), §6.1, §6.5, BR-06, BR-07 | 9 |
-| 6. Consistency & Internal Conflict | §6.6.1, §6.6.2, §6.1, §2.4, §7, §6.5, §6.3, §6.6.4 | 10 |
-| 7. Edge Cases & Error Handling | §5 (Upload/Approve/Reject/Auth/Export/Summary), §6.1, §6.4, §6.5, §6.6.1, §6.6.5, BR-06, BR-07 | 12 |
-| 8. Feasibility & Constraints  | §1 header, §6.4, §6.6.1, §6.6.2, §6.6.3, §6.6.4, BR-06 | 8 |
+| 1. Completeness & Gaps        | §6.1, §6.3, §6.5, §6.6.1, §6.6.4, §6.6, §5 File Upload, §7 File Log, BR-07, G-04 | 16 |
+| 2. Ambiguity & Clarity        | §6.2 BR-06, §6.2 BR-07, §6.6.1, §6.1, §7 File Log, §5 File Upload, §6.3, §5 File Summary View, §6.4, §7 User, §10, §6.6.5, §6.6.3 | 14 |
+| 3. Testability & Verifiability| §6.6.5, §6.6.2, §6.6.3, §6.6.1, BR-06, §6.6.4, §4.1, §5 File Upload, §5 File Summary View, §6.4, §5 Authentication | 14 |
+| 4. Scope & MVP Boundaries     | §1, §6, §10, §6.6.1, §6.6.4, §6.4, §6.2 BR-07, §6.1, §6.6.2 | 9 |
+| 5. Dependency & Ordering      | §7 File Log, §7 User, §6.6.1, BR-06, §4.1, §6.1, §6.5 | 8 |
+| 6. Consistency & Internal Conflict | §6.6.1 vs §5 flows, §6.1 vs §6.6.1, §2.4 vs §7, §6.5 RBAC | 8 |
+| 7. Edge Cases & Error Handling | §5 File Upload, §5 Approve, §5 Reject, BR-06, BR-07, §6.6.1, §5 Export, §5 Transaction Table, §7 User | 13 |
+| 8. Feasibility & Constraints  | §6.6.4, §6.6.2, BR-06, §6.6.1, §6.4, §6.6.3, §1..§10 | 9 |
 
 ### Strict-BMAD re-run log
 
-No dimensions triggered the strict-BMAD re-run rule.
+No dimensions triggered the strict-BMAD re-run rule. All eight dimension workers produced ≥1 finding on the first pass; no Justification block was required.
 
 ### Override log
 
 All quality gates passed; no override invoked.
-
-### Step 3b evidence-normalisation log
-
-Nine worker-emitted Evidence quotes were normalised at merge to satisfy gate 5 (verbatim, ≤5 lines, contiguous span). Substance of each finding is unchanged; only the quote boundary was tightened:
-
-- ADV-31 (Dim 3 F7): worker quoted lines 269–274 partially (six display lines, ending mid-row); narrowed to the single contiguous Steps row at line 275.
-- ADV-48 (Dim 5 F6): worker dropped leading `| ` / trailing ` |` on a table-cell quote; restored to the full verbatim cell.
-- ADV-52 (Dim 6 F1): worker spliced lines 366 + 368, omitting line 367, and fabricated `(financial domain default)` on the MFA row; replaced with verbatim lines 366–368 contiguously.
-- ADV-53 (Dim 6 F2): worker spliced non-adjacent §6.6.2 rows; replaced with contiguous lines 376–379.
-- ADV-57 (Dim 6 F6): worker quote contained a literal `...` ellipsis between non-adjacent rows; narrowed to the contiguous SettingId/SettingName rows (lines 431–432).
-- ADV-63 (Dim 7 F2): worker spliced §6.6.2 CSV row + §10 Volume row from different sections; narrowed to the single §10 Volume row.
-- ADV-65 (Dim 7 F4): worker spliced Approve-flow Steps + Exception paths, omitting the Decision points row between them; replaced with contiguous lines 275–277.
-- ADV-66 (Dim 7 F5): worker spliced File-Upload Steps + Exception paths, omitting Decision points; replaced with contiguous lines 231–233.
-- ADV-68 (Dim 7 F7): worker spliced Idle session + Idle warning + Re-auth rows, omitting the Absolute session row between them; replaced with contiguous lines 363–366.
-
-This normalisation was performed silently at Step 3b under the standing "work without stopping for clarifying questions" directive. It is documented here for auditability; the consultant's Step-13 Accept/Revise/Restart loop remains the final filter.
