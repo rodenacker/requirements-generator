@@ -21,11 +21,19 @@ methodologies:
     map_skill: framework/skills/map-ooux-to-ui.md
     analyser_agent: framework/agents/analyses/ooux-analyser.md
     character: framework/assets/characters/ooux-analysis.md
+  - name: use-cases
+    status: mvp
+    description: Use Cases analysis (Cockburn fully-dressed — actors × goals × preconditions × main flows × extensions)
+    output_path: analyses/USE-CASES/use-cases-map.html
+    reference_asset: framework/assets/analyses/use-cases-reference.md
+    template_asset: framework/assets/analyses/template-use-cases.html
+    map_skill: framework/skills/map-use-cases-to-ui.md
+    analyser_agent: framework/agents/analyses/use-cases-analyser.md
+    character: framework/assets/characters/use-cases-analysis.md
   # Future — stub-only; no analyser agent on disk. Promote by flipping status, populating
   # the remaining fields, and authoring the analyser + reference + character + template.
   - { name: user-journeys, status: future }
   - { name: user-stories, status: future }
-  - { name: use-cases, status: future }
   - { name: quality-signals-analysis, status: future }
   - { name: glossary-domain, status: future }
   - { name: personas, status: future }

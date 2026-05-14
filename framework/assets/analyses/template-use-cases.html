@@ -1,0 +1,944 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses/use-cases-analyser.md.
+
+  Purpose: HTML/CSS skeleton for the canonical Use Cases card grid + UC index
+  table + actor-index sidebar. Self-contained (`<!doctype html>` + inlined
+  `<style>` + `<body>`). No external CSS/JS dependencies; viewable by opening
+  `file://` in a browser; shareable with clients without tooling.
+
+  Layout: one `<section class="uc-level-block">` per sea-level (summary →
+  user-goal → subfunction). Inside each block, UCs render as
+  `<article class="uc-card">` in a CSS Grid
+  (`repeat(auto-fit, minmax(360px, 1fr))`). Cards auto-wrap to the next row
+  on narrow viewports; no horizontal scroll, no JS.
+
+  Placeholders the analyser substitutes (string substitution, all values
+  pre-escaped for HTML):
+
+    {{TITLE}}                       — short title (e.g. "Use Cases Map — Project X")
+    {{DOMAIN}}                      — domain string (from requirements §1 if present)
+    {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
+    {{REQUIREMENTS_SHA256}}         — sha256 of requirements/requirements.md at read time
+    {{UC_COUNT}}                    — total UCs on the map
+    {{ACTOR_COUNT}}                 — total primary actors
+    {{LEVEL_SUMMARY_COUNT}}         — count of level=summary UCs
+    {{LEVEL_USER_GOAL_COUNT}}       — count of level=user-goal UCs
+    {{LEVEL_SUBFUNCTION_COUNT}}     — count of level=subfunction UCs
+    {{EXTENSION_COUNT}}             — total extensions across all UCs
+    {{DIAGNOSTICS_BLOCK}}           — pre-rendered <section class="diagnostics">
+                                      per DIAGNOSTICS SCHEMA below.
+    {{ACTOR_INDEX}}                 — pre-rendered <aside class="actor-index">
+                                      per ACTOR INDEX SCHEMA below.
+    {{UC_INDEX_TABLE}}              — pre-rendered <table class="uc-index">
+                                      per UC INDEX TABLE SCHEMA below.
+    {{USE_CASE_CARDS}}              — pre-rendered <section class="uc-level-block">
+                                      blocks per the USE-CASE CARD SCHEMA below.
+
+  Output: analyses/USE-CASES/use-cases-map.html.
+
+  USE-CASE CARD SCHEMA — each card the analyser emits has the shape:
+
+      <article id="uc-<slug>" class="uc-card level-<summary|user-goal|subfunction>"
+               aria-labelledby="uc-<slug>-id">
+        <header class="uc-card-header">
+          <span class="uc-id" id="uc-<slug>-id">UC-NN</span>
+          <h3 class="uc-title">{{title}}</h3>
+          <span class="level-chip level-<summary|user-goal|subfunction>">USER-GOAL</span>
+        </header>
+        <div class="uc-actor-row">
+          <span class="provenance provenance-<from-personas|derived>"
+                title="..." aria-hidden="true">●</span>
+          <span class="actor-name">{{primary_actor}}</span>
+          <span class="goal-source src-<from-user-stories|from-task-flows|from-goals|from-prose>"
+                title="..." aria-hidden="true"></span>
+          <span class="flow-source flow-<from-task-flows|derived>"
+                title="..." aria-hidden="true"></span>
+        </div>
+        <p class="goal-in-context">{{goal_in_context}}</p>
+        <dl class="uc-field-block">
+          <dt>Stakeholders</dt>
+          <dd>
+            <ul class="stakeholders">
+              <li><strong>{{stakeholder_name}}</strong> — {{interest}}</li>
+              ...
+            </ul>
+          </dd>
+          <dt>Preconditions</dt>
+          <dd>
+            <ul class="preconditions">
+              <li>{{precondition_text}}</li>
+              <li class="derived"><em>{{precondition_text}}</em> <span class="marker">derived-*</span></li>
+              ...
+            </ul>
+          </dd>
+          <dt>Success guarantees</dt>
+          <dd>
+            <ul class="success-guarantees">
+              <li>{{success_guarantee_text}} <span class="src-ac">AC-NN</span></li>
+              <li class="derived"><em>{{success_guarantee_text}}</em> <span class="marker">derived-from-pains</span></li>
+              ...
+            </ul>
+          </dd>
+          <dt>Minimal guarantees</dt>
+          <dd>
+            <ul class="minimal-guarantees">
+              <li>{{minimal_guarantee_text}}</li>
+              <li class="derived"><em>{{minimal_guarantee_text}}</em> <span class="marker">derived-*</span></li>
+              ...
+            </ul>
+          </dd>
+          <dt>Trigger</dt>
+          <dd class="trigger">{{trigger_text}}</dd>
+        </dl>
+        <section class="scenario-block" aria-label="Main success scenario">
+          <h4>Main success scenario <span class="flow-source-label">({{flow_source}})</span></h4>
+          <ol class="main-scenario">
+            <li class="step actor-step" data-step-no="1">
+              <span class="step-no">1</span>
+              <span class="step-subject">{{subject}}</span>
+              <span class="step-text">{{verb-object text}}</span>
+            </li>
+            <li class="step system-step" data-step-no="2">...</li>
+            ...
+          </ol>
+        </section>
+        <section class="extensions-block" aria-label="Extensions">
+          <h4>Extensions</h4>
+          <!-- If the UC has no extensions and carries the marker: -->
+          <p class="no-extensions">no-extensions-in-requirements</p>
+          <!-- Else: extensions, grouped by the main step they branch from. -->
+          <ol class="extensions">
+            <li class="extension ext-alt" data-branch="3a">
+              <span class="branch-label">3a</span>
+              <span class="ext-class">alt</span>
+              <ol class="extension-steps">
+                <li class="step actor-step">{{step text}}</li>
+                ...
+              </ol>
+            </li>
+            <li class="extension ext-exception" data-branch="5a">
+              <span class="branch-label">5a</span>
+              <span class="ext-class">exception</span>
+              <ol class="extension-steps">...</ol>
+            </li>
+            ...
+          </ol>
+        </section>
+      </article>
+
+  Level-block schema (one per non-empty level):
+
+      <section class="uc-level-block level-block-<summary|user-goal|subfunction>"
+               aria-labelledby="block-<level>-name">
+        <header class="level-block-header">
+          <h2 id="block-<level>-name" class="level-block-title">Summary / User-Goal / Subfunction</h2>
+          <p class="level-block-caption">{{caption}}</p>
+        </header>
+        <div class="uc-grid">
+          <!-- one or more <article class="uc-card"> per USE-CASE CARD SCHEMA above -->
+        </div>
+      </section>
+
+  UC INDEX TABLE SCHEMA — a sortable-by-level overview table:
+
+      <table class="uc-index" aria-label="Use case index">
+        <thead>
+          <tr><th>UC</th><th>Title</th><th>Primary Actor</th><th>Level</th><th>Steps</th><th>Extensions</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="uc-index-id"><a href="#uc-<slug>">UC-NN</a></td>
+            <td class="uc-index-title">{{title}}</td>
+            <td class="uc-index-actor">{{primary_actor}}</td>
+            <td class="uc-index-level"><span class="level-chip level-<...>">USER-GOAL</span></td>
+            <td class="uc-index-steps">{{step_count}}</td>
+            <td class="uc-index-extensions">{{extension_count}}</td>
+          </tr>
+          ...
+        </tbody>
+      </table>
+
+  ACTOR INDEX SCHEMA — sidebar listing each actor with their UC count:
+
+      <aside class="actor-index" aria-label="Actor index">
+        <h3>Actors</h3>
+        <ul>
+          <li>
+            <span class="provenance provenance-<from-personas|derived>" aria-hidden="true">●</span>
+            <span class="actor-name">{{actor_name}}</span>
+            <span class="actor-uc-count">{{n}} UC<span class="optional-s">s</span></span>
+          </li>
+          ...
+        </ul>
+      </aside>
+
+  DIAGNOSTICS SCHEMA — the analyser's {{DIAGNOSTICS_BLOCK}} substitutes a
+  single <section class="diagnostics">. The template wraps the placeholder in
+  a <details class="diagnostics-toggle"> element (collapsed by default) so the
+  diagnostics section is hidden behind a toggle and only revealed on click.
+  The analyser does not emit the <details>/<summary> wrapper — it is template
+  scaffolding. The inner section contains, in order:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>Use cases map — N UCs across M primary actors.</p>
+        <p>Levels: A summary, B user-goal, C subfunction (D default-classified).</p>
+        <p>Provenance: X actors from §Personas, Y derived; per-goal-source counts; per-flow-source counts.</p>
+        <p>Conditions: P preconditions sourced, Q derived; R success guarantees from §Acceptance criteria, S `derived-from-pains`; T minimal guarantees sourced, U `derived-from-risks`/`derived-from-constraints`.</p>
+        <p>Extensions: V extensions sourced, W `no-extensions-in-requirements` markers.</p>
+        <ul>
+          <li class="check-pass|check-fail">Gate 1 — Every UC has exactly one primary actor.</li>
+          ... (all 7 gates listed in order)
+        </ul>
+        <!-- Override-only: flagged-UCs <ul> per failed gate with uc-id + offending text. -->
+      </section>
+
+  CSS classes used by the analyser:
+    .level-summary, .level-user-goal, .level-subfunction  — level chip + card border color.
+    .provenance-from-personas, .provenance-derived        — actor provenance dot.
+    .goal-source.src-from-user-stories,
+    .goal-source.src-from-task-flows,
+    .goal-source.src-from-goals,
+    .goal-source.src-from-prose                           — goal-source pill.
+    .flow-source.flow-from-task-flows,
+    .flow-source.flow-derived                             — flow-source pill.
+    .step.actor-step, .step.system-step                   — main / extension step shading.
+    .extension.ext-alt, .extension.ext-exception          — extension classification color.
+    .derived                                              — applied to any <li> whose source is
+                                                            a derived-* marker (muted-italic).
+    .no-extensions                                        — applied to the
+                                                            `no-extensions-in-requirements` paragraph.
+
+  Content TBD-able by the analyser:
+    The diagnostics block, the actor index, the UC index table, and every
+    UC card are fully driven by the analyser. The CSS below is fixed
+    scaffolding and should not be edited by the analyser — only the
+    {{placeholders}} above are substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --col-bg: #ffffff;
+      --card-shadow: 0 1px 2px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.03);
+      --header-bg: #efefef;
+
+      /* Level chips */
+      --level-sum-bg: #d8c7ee; --level-sum-border: #8a6ec7; --level-sum-fg: #2e1e55;
+      --level-ug-bg:  #b9d7f0; --level-ug-border:  #4f8fbf; --level-ug-fg:  #0c2a44;
+      --level-sub-bg: #e8eaee; --level-sub-border: #8a8a8a; --level-sub-fg: #2a2a2a;
+
+      /* Provenance dots */
+      --prov-personas: #2a8a2a;
+      --prov-derived:  #b86a00;
+
+      /* Goal-source pills */
+      --goal-us:  #8a6ec7;   /* user-stories — violet */
+      --goal-tf:  #4f8fbf;   /* task-flows — blue */
+      --goal-g:   #2a8a2a;   /* goals — green */
+      --goal-p:   #b86a00;   /* prose — amber */
+
+      /* Flow-source pills */
+      --flow-tf:  #4f8fbf;
+      --flow-d:   #b86a00;
+
+      /* Step row backgrounds */
+      --step-actor-bg:  #eff5fa;
+      --step-system-bg: #f4f4f4;
+
+      /* Extension left-borders */
+      --ext-alt-border:       #7fb069;
+      --ext-exception-border: #d44a4a;
+      --ext-alt-bg:           #eef7e9;
+      --ext-exception-bg:     #fdecec;
+
+      --rev-bg: #ffeaea; --rev-border: #d44a4a; --rev-fg: #8a1a1a;
+      --not-named-fg: #9a9a9a;
+      --derived-fg:   #6a5a3a;
+
+      --src-ac-bg: #fff4e0; --src-ac-border: #d48a2a; --src-ac-fg: #4a2e00;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 0 24px 0;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px 24px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+
+    .meta-grid dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+
+    .meta-grid dd {
+      margin: 0 0 6px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ------- diagnostics ------- */
+
+    details.diagnostics-toggle {
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.diagnostics-toggle[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.diagnostics-toggle[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
+    .diagnostics {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > .diagnostics {
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      margin-bottom: 0;
+    }
+    details.diagnostics-toggle > .diagnostics > h2 {
+      display: none;
+    }
+
+    .diagnostics h2 {
+      font-size: 16px;
+      margin: 0 0 8px 0;
+    }
+
+    .diagnostics > p {
+      margin: 4px 0;
+    }
+
+    .diagnostics > ul {
+      margin: 8px 0 12px 0;
+      padding-left: 20px;
+    }
+
+    .diagnostics .check-pass::before { content: "PASS "; color: var(--prov-personas); font-weight: 600; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--rev-fg);        font-weight: 600; }
+
+    /* ------- layout: index sidebar + main column ------- */
+
+    .layout {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    aside.actor-index {
+      position: sticky;
+      top: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      font-size: 12px;
+    }
+    aside.actor-index h3 {
+      font-size: 12px;
+      margin: 0 0 8px 0;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+    }
+    aside.actor-index ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    aside.actor-index li {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    aside.actor-index .actor-name {
+      font-weight: 600;
+      color: var(--fg);
+    }
+    aside.actor-index .actor-uc-count {
+      margin-left: auto;
+      font-variant-numeric: tabular-nums;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    /* ------- UC index table ------- */
+
+    .uc-index-wrap {
+      margin-bottom: 24px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+    }
+    .uc-index-wrap h2 {
+      font-size: 16px;
+      margin: 0 0 8px 0;
+    }
+    .uc-index-wrap .index-caption {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0 0 12px 0;
+    }
+    table.uc-index {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    table.uc-index th,
+    table.uc-index td {
+      border-bottom: 1px solid var(--border);
+      padding: 6px 8px;
+      vertical-align: top;
+      text-align: left;
+    }
+    table.uc-index thead th {
+      background: var(--header-bg);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    table.uc-index .uc-index-id {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-variant-numeric: tabular-nums;
+      width: 60px;
+    }
+    table.uc-index .uc-index-id a {
+      color: var(--fg);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    table.uc-index .uc-index-id a:hover {
+      text-decoration: underline;
+    }
+    table.uc-index .uc-index-level { width: 110px; }
+    table.uc-index .uc-index-steps,
+    table.uc-index .uc-index-extensions {
+      width: 70px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ------- level chips ------- */
+
+    .level-chip {
+      display: inline-block;
+      padding: 2px 7px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      border-radius: 3px;
+      border: 1px solid transparent;
+      text-transform: uppercase;
+    }
+    .level-chip.level-summary     { background: var(--level-sum-bg); border-color: var(--level-sum-border); color: var(--level-sum-fg); }
+    .level-chip.level-user-goal   { background: var(--level-ug-bg);  border-color: var(--level-ug-border);  color: var(--level-ug-fg); }
+    .level-chip.level-subfunction { background: var(--level-sub-bg); border-color: var(--level-sub-border); color: var(--level-sub-fg); }
+
+    /* ------- level block ------- */
+
+    .uc-level-block {
+      margin-bottom: 32px;
+    }
+    .level-block-header {
+      margin: 0 0 12px 0;
+      padding: 8px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+    }
+    .uc-level-block.level-block-summary     .level-block-header { border-left-color: var(--level-sum-border); }
+    .uc-level-block.level-block-user-goal   .level-block-header { border-left-color: var(--level-ug-border); }
+    .uc-level-block.level-block-subfunction .level-block-header { border-left-color: var(--level-sub-border); }
+
+    .level-block-title {
+      font-size: 16px;
+      margin: 0;
+      font-weight: 700;
+    }
+    .level-block-caption {
+      margin: 2px 0 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .uc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 14px;
+      align-items: start;
+    }
+
+    /* ------- UC card ------- */
+
+    .uc-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 14px;
+      background: var(--col-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      border-top: 3px solid var(--border-strong);
+      box-shadow: var(--card-shadow);
+    }
+    .uc-card.level-summary     { border-top-color: var(--level-sum-border); }
+    .uc-card.level-user-goal   { border-top-color: var(--level-ug-border); }
+    .uc-card.level-subfunction { border-top-color: var(--level-sub-border); }
+
+    .uc-card-header {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .uc-id {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .uc-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin: 0;
+      flex: 1 1 auto;
+    }
+
+    .uc-actor-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--fg);
+      font-weight: 600;
+    }
+    .provenance {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      vertical-align: middle;
+      font-size: 0;
+      line-height: 0;
+      flex: 0 0 auto;
+    }
+    .provenance-from-personas { background: var(--prov-personas); }
+    .provenance-derived       { background: var(--prov-derived); }
+
+    .goal-source,
+    .flow-source {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      vertical-align: middle;
+      flex: 0 0 auto;
+      opacity: 0.75;
+    }
+    .goal-source.src-from-user-stories { background: var(--goal-us); }
+    .goal-source.src-from-task-flows   { background: var(--goal-tf); }
+    .goal-source.src-from-goals        { background: var(--goal-g); }
+    .goal-source.src-from-prose        { background: var(--goal-p); }
+    .flow-source.flow-from-task-flows  { background: var(--flow-tf); }
+    .flow-source.flow-derived          { background: var(--flow-d); }
+
+    .goal-in-context {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 0;
+      font-style: italic;
+    }
+
+    /* ------- UC field block (stakeholders + conditions + trigger) ------- */
+
+    dl.uc-field-block {
+      display: grid;
+      grid-template-columns: 140px minmax(0, 1fr);
+      gap: 4px 12px;
+      margin: 0;
+      padding: 10px 12px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    dl.uc-field-block dt {
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 10px;
+      padding-top: 3px;
+    }
+    dl.uc-field-block dd {
+      margin: 0;
+    }
+    dl.uc-field-block ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    dl.uc-field-block li {
+      padding-left: 12px;
+      position: relative;
+    }
+    dl.uc-field-block li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--muted);
+    }
+    dl.uc-field-block li.derived {
+      color: var(--derived-fg);
+    }
+    dl.uc-field-block li .marker {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 5px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-radius: 2px;
+      background: #f4eee0;
+      border: 1px solid #c8b890;
+      color: #6a5a3a;
+      font-style: normal;
+    }
+    dl.uc-field-block li .src-ac {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 5px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-radius: 2px;
+      background: var(--src-ac-bg);
+      border: 1px solid var(--src-ac-border);
+      color: var(--src-ac-fg);
+      font-style: normal;
+    }
+    dl.uc-field-block .trigger {
+      font-size: 12px;
+    }
+
+    /* ------- scenario block ------- */
+
+    .scenario-block,
+    .extensions-block {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: #fff;
+    }
+    .scenario-block h4,
+    .extensions-block h4 {
+      margin: 0 0 8px 0;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .flow-source-label {
+      font-weight: 500;
+      letter-spacing: 0;
+      text-transform: none;
+      font-style: italic;
+      color: var(--muted);
+    }
+
+    ol.main-scenario,
+    ol.extension-steps {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      counter-reset: step-counter;
+    }
+    ol.extension-steps {
+      margin-top: 4px;
+    }
+
+    li.step {
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr);
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: 3px;
+      margin-bottom: 2px;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    li.step.actor-step  { background: var(--step-actor-bg); }
+    li.step.system-step { background: var(--step-system-bg); }
+    .step-no {
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .step-subject {
+      font-weight: 700;
+    }
+    .step-text {
+      grid-column: 2;
+      grid-row: 2;
+      margin-left: -0px;
+    }
+    /* If the step has subject + text rendered inline (compact mode), use a single-row layout: */
+    li.step.compact {
+      grid-template-columns: 20px auto minmax(0, 1fr);
+      grid-template-rows: auto;
+    }
+    li.step.compact .step-text { grid-column: auto; grid-row: auto; }
+
+    /* ------- extensions ------- */
+
+    ol.extensions {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    li.extension {
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-left-width: 3px;
+      border-radius: 3px;
+      background: #fff;
+    }
+    li.extension.ext-alt {
+      border-left-color: var(--ext-alt-border);
+      background: var(--ext-alt-bg);
+    }
+    li.extension.ext-exception {
+      border-left-color: var(--ext-exception-border);
+      background: var(--ext-exception-bg);
+    }
+    li.extension .branch-label {
+      display: inline-block;
+      padding: 1px 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 10px;
+      font-weight: 700;
+      background: #fff;
+      border: 1px solid var(--border-strong);
+      border-radius: 2px;
+      margin-right: 6px;
+    }
+    li.extension .ext-class {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    li.extension .ext-class::before { content: "["; }
+    li.extension .ext-class::after  { content: "]"; }
+
+    p.no-extensions {
+      margin: 0;
+      padding: 4px 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      color: var(--muted);
+      font-style: italic;
+    }
+    p.no-extensions::before { content: "⌀ "; }
+
+    /* ------- footer ------- */
+
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    footer .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+    }
+    footer .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    footer .legend-swatch {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border-left: 3px solid transparent;
+    }
+    footer .legend-swatch.s-summary  { background: var(--level-sum-bg); border: 1px solid var(--level-sum-border); }
+    footer .legend-swatch.s-ug       { background: var(--level-ug-bg);  border: 1px solid var(--level-ug-border); }
+    footer .legend-swatch.s-sub      { background: var(--level-sub-bg); border: 1px solid var(--level-sub-border); }
+    footer .legend-swatch.s-actor    { background: var(--step-actor-bg); border: 1px solid var(--border); }
+    footer .legend-swatch.s-system   { background: var(--step-system-bg); border: 1px solid var(--border); }
+    footer .legend-swatch.s-alt      { background: var(--ext-alt-bg); border-left-color: var(--ext-alt-border); border: 1px solid var(--ext-alt-border); }
+    footer .legend-swatch.s-exception{ background: var(--ext-exception-bg); border-left-color: var(--ext-exception-border); border: 1px solid var(--ext-exception-border); }
+    footer .provenance { vertical-align: -1px; }
+    footer .credit { margin-top: 6px; text-align: right; }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .layout { grid-template-columns: 1fr; }
+      aside.actor-index { position: static; }
+      .uc-grid { gap: 8px; }
+      .uc-card { break-inside: avoid; box-shadow: none; }
+      .uc-level-block { break-inside: avoid-page; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>{{TITLE}}</h1>
+    <p class="subtitle">Use Cases map — one card per UC (title · primary actor · level · conditions · main scenario · extensions). Grouped by sea-level.</p>
+
+    <dl class="meta-grid">
+      <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+      <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+      <div><dt>Source SHA-256</dt><dd>{{REQUIREMENTS_SHA256}}</dd></div>
+      <div><dt>Use Cases</dt><dd>{{UC_COUNT}}</dd></div>
+      <div><dt>Primary Actors</dt><dd>{{ACTOR_COUNT}}</dd></div>
+      <div><dt>Summary</dt><dd>{{LEVEL_SUMMARY_COUNT}}</dd></div>
+      <div><dt>User-Goal</dt><dd>{{LEVEL_USER_GOAL_COUNT}}</dd></div>
+      <div><dt>Subfunction</dt><dd>{{LEVEL_SUBFUNCTION_COUNT}}</dd></div>
+      <div><dt>Extensions</dt><dd>{{EXTENSION_COUNT}}</dd></div>
+    </dl>
+
+    <details class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    <section class="uc-index-wrap" aria-label="Use case index">
+      <h2>Use Case Index</h2>
+      <p class="index-caption">Every UC at a glance. Click any UC ID to jump to the card. Grouped visually by level (summary first, user-goal block, subfunction last).</p>
+      {{UC_INDEX_TABLE}}
+    </section>
+
+    <div class="layout">
+      {{ACTOR_INDEX}}
+      <section class="uc-board" aria-label="Use Cases map">
+        {{USE_CASE_CARDS}}
+      </section>
+    </div>
+
+    <footer>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-summary" aria-hidden="true"></span> Summary (kite)</span>
+        <span class="legend-item"><span class="legend-swatch s-ug" aria-hidden="true"></span> User-Goal (sea)</span>
+        <span class="legend-item"><span class="legend-swatch s-sub" aria-hidden="true"></span> Subfunction (fish)</span>
+        <span class="legend-item"><span class="legend-swatch s-actor" aria-hidden="true"></span> Actor step</span>
+        <span class="legend-item"><span class="legend-swatch s-system" aria-hidden="true"></span> System step</span>
+        <span class="legend-item"><span class="legend-swatch s-alt" aria-hidden="true"></span> Extension — alt</span>
+        <span class="legend-item"><span class="legend-swatch s-exception" aria-hidden="true"></span> Extension — exception</span>
+        <span class="legend-item"><span class="provenance provenance-from-personas" aria-hidden="true"></span> from §Personas</span>
+        <span class="legend-item"><span class="provenance provenance-derived" aria-hidden="true"></span> derived actor</span>
+      </div>
+      <div class="credit">Generated by `framework/agents/analyses/use-cases-analyser.md`.</div>
+    </footer>
+  </main>
+</body>
+</html>
