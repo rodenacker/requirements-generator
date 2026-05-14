@@ -1,5 +1,5 @@
 ---
-description: Run an analysis methodology (e.g. OOUX) over requirements/requirements.md.
+description: Run an analysis methodology (e.g. OOUX) to enrich requirements/requirements.md.
 ---
 
 Launch the analyse orchestrator at `framework/orchestrators/analyse-orch.md`.

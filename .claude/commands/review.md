@@ -1,5 +1,5 @@
 ---
-description: Run a review methodology (e.g. Adversarial Review) over requirements/requirements.md.
+description: Run a review methodology (e.g. Adversarial Review) to critique requirements/requirements.md.
 ---
 
 Launch the review orchestrator at `framework/orchestrators/review-orch.md`.
