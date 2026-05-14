@@ -1,0 +1,743 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses/jtbd-analyser.md.
+
+  Purpose: HTML/CSS skeleton for the canonical JTBD job-card grid + opportunity
+  matrix. Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`). No
+  external CSS/JS dependencies; viewable by opening `file://` in a browser;
+  shareable with clients without tooling.
+
+  Layout: one `<section class="job-cluster">` per cluster (one cluster per
+  actor + main-goal pair). Inside each cluster, jobs render as
+  `<article class="job-card">` in a CSS Grid
+  (`repeat(auto-fit, minmax(280px, 1fr))`). Cards auto-wrap to the next row
+  on narrow viewports; no horizontal scroll, no JS.
+
+  Placeholders the analyser substitutes (string substitution, all values
+  pre-escaped for HTML):
+
+    {{TITLE}}                       — short title (e.g. "JTBD Job Map — Project X")
+    {{DOMAIN}}                      — domain string (from requirements §1 if present)
+    {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
+    {{REQUIREMENTS_SHA256}}         — sha256 of requirements/requirements.md at read time
+    {{JOB_COUNT}}                   — total jobs on the map
+    {{CLUSTER_COUNT}}               — total clusters
+    {{FUNCTIONAL_COUNT}}            — count of type=functional jobs
+    {{EMOTIONAL_COUNT}}             — count of type=emotional jobs
+    {{SOCIAL_COUNT}}                — count of type=social jobs
+    {{HIGH_OPPORTUNITY_COUNT}}      — count of opportunity ≥ 8 jobs (band-high)
+    {{DIAGNOSTICS_BLOCK}}           — pre-rendered HTML block per DIAGNOSTICS SCHEMA below.
+    {{OPPORTUNITY_MATRIX}}          — pre-rendered <table class="opportunity-matrix">
+                                      per OPPORTUNITY MATRIX SCHEMA below.
+    {{JOB_CLUSTERS}}                — pre-rendered <section class="job-cluster">
+                                      blocks per the JOB CARD SCHEMA below.
+
+  Output: analyses/JTBD/jtbd-job-map.html.
+
+  JOB CARD SCHEMA — each card the analyser emits has the shape:
+
+      <article id="job-<slug>" class="job-card type-<functional|emotional|social>"
+               aria-labelledby="job-<slug>-id">
+        <header class="job-card-header">
+          <span class="type-badge type-<functional|emotional|social>">FUNCTIONAL</span>
+          <span class="priority-badge band-<high|med|low>">P{1|2|3}</span>
+          <span id="job-<slug>-id" class="job-id">J-NN</span>
+        </header>
+        <div class="actor-row">
+          <span class="provenance provenance-<from-personas|derived>"
+                title="..." aria-hidden="true">●</span>
+          <span class="actor-name">{{actor}}</span>
+          <span class="situation-source src-<from-task-flows|from-user-stories|from-prose>"
+                title="..." aria-hidden="true"></span>
+        </div>
+        <ul class="statement-stack" aria-label="Job statement">
+          <li class="sticky when"><span class="clause-label">WHEN</span> {{situation}}</li>
+          <li class="sticky want"><span class="clause-label">I WANT TO</span> {{motivation}}</li>
+          <li class="sticky so"><span class="clause-label">SO I CAN</span> {{outcome}}</li>
+        </ul>
+        <div class="scoring-strip" aria-label="Scoring">
+          <span class="score imp" aria-label="Importance">
+            <span class="score-label">Imp</span>
+            <span class="dot-row"><span class="dot filled"></span>... five dots ...</span>
+          </span>
+          <span class="score sat" aria-label="Satisfaction">
+            <span class="score-label">Sat</span>
+            <span class="dot-row">... five dots ...</span>
+          </span>
+          <span class="opp-chip band-<high|med|low>" aria-label="Opportunity score">
+            Opp <strong>{{opportunity}}</strong>
+          </span>
+        </div>
+        <ul class="forces-strip" aria-label="Forces of progress">
+          <li class="force push"><span class="force-label">Push</span>: {{push-text}}</li>
+          <li class="force pull"><span class="force-label">Pull</span>: {{pull-text}}</li>
+          <li class="force anxiety"><span class="force-label">Anxiety</span>: {{anxiety-text}}</li>
+          <li class="force habit"><span class="force-label">Habit</span>: {{habit-text}}</li>
+        </ul>
+      </article>
+
+  Forces lines whose source is the literal `not-named-in-requirements` render
+  with the additional class `not-named` (muted-italic). Empty forces are NOT
+  hidden — surfacing the absence is the point.
+
+  Cluster header schema:
+
+      <section class="job-cluster" aria-labelledby="cluster-<slug>-name">
+        <header class="cluster-header">
+          <h2 id="cluster-<slug>-name" class="cluster-actor">{{actor}}</h2>
+          <p class="cluster-goal">{{main_goal}}</p>
+        </header>
+        <div class="job-grid">
+          <!-- one or more <article class="job-card"> per JOB CARD SCHEMA above -->
+        </div>
+      </section>
+
+  OPPORTUNITY MATRIX SCHEMA — a 5×5 grid plotting jobs by
+  (importance, satisfaction). Importance on Y axis (5 at top, 1 at bottom);
+  Satisfaction on X axis (1 at left, 5 at right). Cells in the top-right
+  quadrant (Importance ≥ 4 ∧ Satisfaction ≤ 2) carry the additional class
+  `opportunity-zone` and visually highlight the innovation-opportunity region.
+
+      <table class="opportunity-matrix" aria-label="Opportunity matrix (importance × satisfaction)">
+        <thead>
+          <tr><th></th><th colspan="5" class="x-axis-label">Satisfaction →</th></tr>
+          <tr><th class="y-axis-label">Importance ↑</th>
+              <th>Sat 1</th><th>Sat 2</th><th>Sat 3</th><th>Sat 4</th><th>Sat 5</th></tr>
+        </thead>
+        <tbody>
+          <tr><th>Imp 5</th>
+              <td class="opportunity-zone"><span class="job-chip band-high">J-01</span></td>
+              <td class="opportunity-zone"></td>
+              <td></td><td></td><td></td></tr>
+          <tr><th>Imp 4</th>... (opportunity-zone on Sat 1 + Sat 2 cells) ...</tr>
+          <tr><th>Imp 3</th>... (no opportunity-zone) ...</tr>
+          <tr><th>Imp 2</th>... </tr>
+          <tr><th>Imp 1</th>... </tr>
+        </tbody>
+      </table>
+
+  DIAGNOSTICS SCHEMA — the analyser's {{DIAGNOSTICS_BLOCK}} substitutes a
+  single <section class="diagnostics">. The template wraps the placeholder in
+  a <details class="diagnostics-toggle"> element (collapsed by default) so the
+  diagnostics section is hidden behind a toggle and only revealed on click.
+  The analyser does not emit the <details>/<summary> wrapper — it is template
+  scaffolding. The inner section contains, in order:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>JTBD job map — N jobs across M clusters.</p>
+        <p>Provenance: X actors from §Personas, Y derived; A situations from §Task flows, B from §User stories, C from prose.</p>
+        <p>Outcomes: P measurable, Q with `no-metric-in-requirements` marker.</p>
+        <p>Scoring: R jobs with `consultant-assigned-no-signal` markers.</p>
+        <p>Forces: S forces named, T marked `not-named-in-requirements`.</p>
+        <ul>
+          <li class="check-pass|check-fail">Gate 1 — Every situation is concrete.</li>
+          ... (all 7 gates listed in order)
+        </ul>
+        <!-- Override-only: flagged-jobs <ul> per failed gate with job-id + offending text. -->
+      </section>
+
+  CSS classes used by the analyser:
+    .type-functional, .type-emotional, .type-social  — type badge + card border color.
+    .band-high, .band-med, .band-low                 — priority + opportunity chip color.
+    .provenance-from-personas, .provenance-derived   — actor provenance dot.
+    .src-from-task-flows, .src-from-user-stories,
+    .src-from-prose                                  — situation source pill.
+    .force.not-named                                 — applied to force <li> whose
+                                                       source is `not-named-in-requirements`.
+    .opportunity-zone                                — matrix cell in the top-right
+                                                       innovation-opportunity quadrant.
+    .job-chip                                        — chip rendered inside matrix cells
+                                                       to plot each job at its (imp, sat).
+
+  Content TBD-able by the analyser:
+    The diagnostics block, the cluster + card content, and the matrix chips
+    are fully driven by the analyser. The CSS below is fixed scaffolding and
+    should not be edited by the analyser — only the {{placeholders}} above are
+    substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --col-bg: #ffffff;
+      --sticky-shadow: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+      --header-bg: #efefef;
+
+      /* Statement-clause stickies — WHEN amber, WANT blue, SO green */
+      --when-bg: #ffe2b3;   --when-border: #d48a2a;   --when-fg: #4a2e00;
+      --want-bg: #b9d7f0;   --want-border: #4f8fbf;   --want-fg: #0c2a44;
+      --so-bg:   #c8e6b2;   --so-border:   #7fb069;   --so-fg:   #1f3d12;
+
+      /* Job-type badges */
+      --type-fn-bg: #b9d7f0; --type-fn-border: #4f8fbf; --type-fn-fg: #0c2a44;
+      --type-em-bg: #d8c7ee; --type-em-border: #8a6ec7; --type-em-fg: #2e1e55;
+      --type-so-bg: #f6c6d5; --type-so-border: #c97a92; --type-so-fg: #4a1a2a;
+
+      /* Priority bands */
+      --band-high-bg: #ffe2b3; --band-high-border: #d48a2a; --band-high-fg: #4a2e00;
+      --band-med-bg:  #e8eaee; --band-med-border:  #8a8a8a; --band-med-fg:  #2a2a2a;
+      --band-low-bg:  #f0f0f0; --band-low-border:  #b0b0b0; --band-low-fg:  #5a5a5a;
+
+      /* Provenance dots */
+      --prov-personas: #2a8a2a;
+      --prov-derived:  #b86a00;
+
+      /* Scoring dots */
+      --imp-dot: #d48a2a;
+      --imp-dot-empty: #f0e2c8;
+      --sat-dot: #4f8fbf;
+      --sat-dot-empty: #dbe9f7;
+
+      /* Opportunity-zone highlight on matrix */
+      --opp-zone-bg: #fff4e0;
+      --opp-zone-border: #d48a2a;
+
+      --rev-bg: #ffeaea; --rev-border: #d44a4a; --rev-fg: #8a1a1a;
+      --not-named-fg: #9a9a9a;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 0 24px 0;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px 24px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+
+    .meta-grid dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+
+    .meta-grid dd {
+      margin: 0 0 6px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ------- diagnostics ------- */
+
+    details.diagnostics-toggle {
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.diagnostics-toggle[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.diagnostics-toggle[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
+    .diagnostics {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > .diagnostics {
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      margin-bottom: 0;
+    }
+    details.diagnostics-toggle > .diagnostics > h2 {
+      display: none;
+    }
+
+    .diagnostics h2 {
+      font-size: 16px;
+      margin: 0 0 8px 0;
+    }
+
+    .diagnostics > p {
+      margin: 4px 0;
+    }
+
+    .diagnostics > ul {
+      margin: 8px 0 12px 0;
+      padding-left: 20px;
+    }
+
+    .diagnostics .check-pass::before { content: "PASS "; color: var(--prov-personas); font-weight: 600; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--rev-fg);        font-weight: 600; }
+
+    /* ------- opportunity matrix ------- */
+
+    .matrix-wrap {
+      margin-bottom: 24px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+    }
+    .matrix-wrap h2 {
+      font-size: 16px;
+      margin: 0 0 8px 0;
+    }
+    .matrix-wrap .matrix-caption {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0 0 12px 0;
+    }
+
+    table.opportunity-matrix {
+      width: 100%;
+      max-width: 720px;
+      border-collapse: collapse;
+      font-size: 12px;
+      table-layout: fixed;
+    }
+    table.opportunity-matrix th,
+    table.opportunity-matrix td {
+      border: 1px solid var(--border);
+      padding: 6px 6px;
+      vertical-align: top;
+      text-align: center;
+      height: 56px;
+    }
+    table.opportunity-matrix thead th {
+      background: var(--header-bg);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    table.opportunity-matrix tbody th {
+      background: var(--header-bg);
+      width: 56px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+    table.opportunity-matrix td.opportunity-zone {
+      background: var(--opp-zone-bg);
+      border-color: var(--opp-zone-border);
+    }
+    .x-axis-label, .y-axis-label {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 11px;
+    }
+    .job-chip {
+      display: inline-block;
+      padding: 2px 6px;
+      margin: 1px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      background: var(--band-low-bg);
+      border: 1px solid var(--band-low-border);
+      color: var(--band-low-fg);
+    }
+    .job-chip.band-high { background: var(--band-high-bg); border-color: var(--band-high-border); color: var(--band-high-fg); }
+    .job-chip.band-med  { background: var(--band-med-bg);  border-color: var(--band-med-border);  color: var(--band-med-fg); }
+
+    /* ------- cluster + job-card layout ------- */
+
+    .job-cluster {
+      margin-bottom: 32px;
+    }
+    .cluster-header {
+      margin: 0 0 12px 0;
+      padding: 8px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+    }
+    .cluster-header .cluster-actor {
+      font-size: 16px;
+      margin: 0;
+      font-weight: 700;
+    }
+    .cluster-header .cluster-goal {
+      margin: 2px 0 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .job-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      align-items: start;
+    }
+
+    .job-card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px;
+      background: var(--col-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      border-top: 3px solid var(--border-strong);
+    }
+    .job-card.type-functional { border-top-color: var(--type-fn-border); }
+    .job-card.type-emotional  { border-top-color: var(--type-em-border); }
+    .job-card.type-social     { border-top-color: var(--type-so-border); }
+
+    .job-card-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .type-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      border-radius: 3px;
+      border: 1px solid transparent;
+    }
+    .type-badge.type-functional { background: var(--type-fn-bg); border-color: var(--type-fn-border); color: var(--type-fn-fg); }
+    .type-badge.type-emotional  { background: var(--type-em-bg); border-color: var(--type-em-border); color: var(--type-em-fg); }
+    .type-badge.type-social     { background: var(--type-so-bg); border-color: var(--type-so-border); color: var(--type-so-fg); }
+
+    .priority-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      border-radius: 3px;
+      border: 1px solid transparent;
+    }
+    .priority-badge.band-high { background: var(--band-high-bg); border-color: var(--band-high-border); color: var(--band-high-fg); }
+    .priority-badge.band-med  { background: var(--band-med-bg);  border-color: var(--band-med-border);  color: var(--band-med-fg); }
+    .priority-badge.band-low  { background: var(--band-low-bg);  border-color: var(--band-low-border);  color: var(--band-low-fg); }
+
+    .job-id {
+      margin-left: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .actor-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--fg);
+      font-weight: 600;
+    }
+    .provenance {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      vertical-align: middle;
+      font-size: 0;
+      line-height: 0;
+      flex: 0 0 auto;
+    }
+    .provenance-from-personas { background: var(--prov-personas); }
+    .provenance-derived       { background: var(--prov-derived); }
+
+    .situation-source {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      vertical-align: middle;
+      flex: 0 0 auto;
+      opacity: 0.7;
+    }
+    .situation-source.src-from-task-flows  { background: #4f8fbf; }
+    .situation-source.src-from-user-stories{ background: #8a6ec7; }
+    .situation-source.src-from-prose       { background: #b86a00; }
+
+    .statement-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .sticky {
+      padding: 8px 10px;
+      border-radius: 4px;
+      border-left: 3px solid transparent;
+      box-shadow: var(--sticky-shadow);
+      font-size: 13px;
+      line-height: 1.35;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    .clause-label {
+      display: inline-block;
+      margin-right: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: inherit;
+      opacity: 0.7;
+    }
+    .sticky.when { background: var(--when-bg); border-left-color: var(--when-border); color: var(--when-fg); }
+    .sticky.want { background: var(--want-bg); border-left-color: var(--want-border); color: var(--want-fg); }
+    .sticky.so   { background: var(--so-bg);   border-left-color: var(--so-border);   color: var(--so-fg); }
+
+    .scoring-strip {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      padding: 6px 8px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 11px;
+    }
+    .scoring-strip .score {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .scoring-strip .score-label {
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 10px;
+    }
+    .dot-row {
+      display: inline-flex;
+      gap: 2px;
+    }
+    .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--imp-dot-empty);
+    }
+    .score.imp .dot.filled { background: var(--imp-dot); }
+    .score.imp .dot        { background: var(--imp-dot-empty); }
+    .score.sat .dot.filled { background: var(--sat-dot); }
+    .score.sat .dot        { background: var(--sat-dot-empty); }
+
+    .opp-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: auto;
+      padding: 2px 8px;
+      border-radius: 12px;
+      border: 1px solid var(--band-low-border);
+      background: var(--band-low-bg);
+      color: var(--band-low-fg);
+      font-size: 11px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .opp-chip.band-high { background: var(--band-high-bg); border-color: var(--band-high-border); color: var(--band-high-fg); }
+    .opp-chip.band-med  { background: var(--band-med-bg);  border-color: var(--band-med-border);  color: var(--band-med-fg); }
+
+    .forces-strip {
+      list-style: none;
+      margin: 0;
+      padding: 6px 8px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      font-size: 11px;
+    }
+    .force .force-label {
+      display: inline-block;
+      width: 56px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 10px;
+    }
+    .force.not-named {
+      color: var(--not-named-fg);
+      font-style: italic;
+    }
+
+    .rev-marker,
+    .sticky.rev-marker {
+      background: var(--rev-bg);
+      border-color: var(--rev-border);
+      color: var(--rev-fg);
+    }
+
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    footer .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+    }
+    footer .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    footer .legend-swatch {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border-left: 3px solid transparent;
+    }
+    footer .legend-swatch.s-when  { background: var(--when-bg);  border-left-color: var(--when-border); }
+    footer .legend-swatch.s-want  { background: var(--want-bg);  border-left-color: var(--want-border); }
+    footer .legend-swatch.s-so    { background: var(--so-bg);    border-left-color: var(--so-border); }
+    footer .legend-swatch.s-fn    { background: var(--type-fn-bg); border: 1px solid var(--type-fn-border); }
+    footer .legend-swatch.s-em    { background: var(--type-em-bg); border: 1px solid var(--type-em-border); }
+    footer .legend-swatch.s-so-t  { background: var(--type-so-bg); border: 1px solid var(--type-so-border); }
+    footer .legend-swatch.s-opp   { background: var(--opp-zone-bg); border: 1px solid var(--opp-zone-border); }
+    footer .provenance { vertical-align: -1px; }
+    footer .credit { margin-top: 6px; text-align: right; }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .job-grid { gap: 8px; }
+      .job-card { break-inside: avoid; }
+      .job-cluster { break-inside: avoid-page; }
+      .sticky { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>{{TITLE}}</h1>
+    <p class="subtitle">JTBD job map — one card per job (WHEN · I WANT TO · SO I CAN · scoring · forces). Grouped by cluster.</p>
+
+    <dl class="meta-grid">
+      <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+      <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+      <div><dt>Source SHA-256</dt><dd>{{REQUIREMENTS_SHA256}}</dd></div>
+      <div><dt>Jobs</dt><dd>{{JOB_COUNT}}</dd></div>
+      <div><dt>Clusters</dt><dd>{{CLUSTER_COUNT}}</dd></div>
+      <div><dt>Functional</dt><dd>{{FUNCTIONAL_COUNT}}</dd></div>
+      <div><dt>Emotional</dt><dd>{{EMOTIONAL_COUNT}}</dd></div>
+      <div><dt>Social</dt><dd>{{SOCIAL_COUNT}}</dd></div>
+      <div><dt>High-Opportunity</dt><dd>{{HIGH_OPPORTUNITY_COUNT}}</dd></div>
+    </dl>
+
+    <details class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    <section class="matrix-wrap" aria-label="Opportunity matrix">
+      <h2>Opportunity Matrix</h2>
+      <p class="matrix-caption">Jobs plotted by Importance × Satisfaction. Top-right quadrant (Imp ≥ 4, Sat ≤ 2) is the innovation-opportunity zone.</p>
+      {{OPPORTUNITY_MATRIX}}
+    </section>
+
+    <section class="job-board" aria-label="JTBD job map">
+      {{JOB_CLUSTERS}}
+    </section>
+
+    <footer>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-when" aria-hidden="true"></span> WHEN (situation)</span>
+        <span class="legend-item"><span class="legend-swatch s-want" aria-hidden="true"></span> WANT-TO (motivation)</span>
+        <span class="legend-item"><span class="legend-swatch s-so" aria-hidden="true"></span> SO I CAN (outcome)</span>
+        <span class="legend-item"><span class="legend-swatch s-fn" aria-hidden="true"></span> Functional</span>
+        <span class="legend-item"><span class="legend-swatch s-em" aria-hidden="true"></span> Emotional</span>
+        <span class="legend-item"><span class="legend-swatch s-so-t" aria-hidden="true"></span> Social</span>
+        <span class="legend-item"><span class="legend-swatch s-opp" aria-hidden="true"></span> Opportunity zone</span>
+        <span class="legend-item"><span class="provenance provenance-from-personas" aria-hidden="true"></span> from §Personas</span>
+        <span class="legend-item"><span class="provenance provenance-derived" aria-hidden="true"></span> derived actor</span>
+      </div>
+      <div class="credit">Generated by `framework/agents/analyses/jtbd-analyser.md`.</div>
+    </footer>
+  </main>
+</body>
+</html>
