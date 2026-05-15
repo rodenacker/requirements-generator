@@ -12,6 +12,15 @@ methodologies:
     map_skill: null
     reviewer_agent: framework/agents/reviews/adversarial-reviewer.md
     character: framework/assets/characters/adversarial-review.md
+  - name: ten-ba-questions
+    status: mvp
+    description: 10 BA Questions — the most pressing unanswered questions an experienced Business Analyst (BABOK-aware) would ask after reading requirements.md (priority — blocking / major / minor; final 10 selected from a candidate pool of up to 50; eight BA gap categories). Choose this option before design or estimation to surface stakeholder questions the requirements doc has not yet answered.
+    output_path: reviews/TEN-BA-QUESTIONS/ten-ba-questions-review.md
+    reference_asset: framework/assets/reviews/ten-ba-questions-reference.md
+    template_asset: framework/assets/reviews/template-ten-ba-questions.md
+    map_skill: null
+    reviewer_agent: framework/agents/reviews/ten-ba-questions-reviewer.md
+    character: framework/assets/characters/ten-ba-questions-review.md
   - name: ten-ux-questions
     status: mvp
     description: 10 UX Questions — the most pressing unanswered questions an experienced UX designer would ask after reading requirements.md (priority — blocking / major / minor; final 10 selected from a candidate pool of up to 50; eight UX gap categories). Choose this option before designing to find out what's missing from the requirements.
