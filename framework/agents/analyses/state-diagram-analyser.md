@@ -233,6 +233,8 @@ Per `framework/assets/analyses/template-state-diagram.html`:
 - **Per-entity SVG rendering rules:**
     - **`<defs>` block.** Per `<svg>`, define one arrow marker with unique id (`state-arrow-{slug}`): open triangle (`<path d="M0 0 L8 4 L0 8" fill="none" stroke="currentColor" stroke-width="1.3"/>`).
     - **Layout.** Compute a topological layering: states are placed in columns by longest-path-distance from the initial pseudostate; ties broken by transition density. Composite states span their substates' column range plus 16px padding on each side; substates lay out within the composite using the same algorithm recursively (one level only). Default `state_width = 160`, default `state_height = 60` (taller when the state has internal activities — grow by 12px per activity row up to a 4-row cap, then truncate with ellipsis).
+    - **In-column vertical packing.** Within each column `c`, sort the column's states by id (stable) and place state `i` at `y = top_padding + i × (state_height_c + 24)` where `state_height_c` is the *maximum* `state_height` across all states in column `c` (so all rows within a column line up vertically). `top_padding = 24` by default; if any state in the column has a self-loop, bump `top_padding` for that column to `48` (see *Self-loop bounding* below). Each column's total height is `top_padding + n_c × (state_height_c + 24)` where `n_c` is the column's state count; the figure's `viewBox` height is `max(column_height) + 24` (bottom padding). Composite states reserve their substate count in the row counter so a 3-substate composite occupies 3 rows in its parent column. **No two state AABBs in the same column overlap by construction.**
+    - **Self-loop bounding.** Self-loops draw an arc that protrudes 24px above the state's top edge. For every state that has at least one self-loop, reserve a 24px clearance band above its top edge (raise `top_padding` for the column to `48`, or insert a 24px gap above the state if it is not the first state in the column). This prevents the arc from intersecting the state directly above. Sequential self-loops on the same state share the same clearance band — multiple loops are offset radially within the band, not stacked vertically.
     - **State nodes (simple/composite).**
         - Simple: `<rect class="state-node state-kind-simple" x="..." y="..." width="state_width" height="state_height" rx="12"/>` + `<text class="state-label" x="x_centre" y="y_top + 18" text-anchor="middle">{display_name}</text>`.
         - If the state has internal activities, render each on its own line below the state name: `<text class="state-activities" x="x_left + 8" y="y_top + 36 + i*12">{kind_prefix}/ {action}</text>` where `kind_prefix` is `entry`/`exit`/`do`/event-name (for on-event).
@@ -280,7 +282,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 - Ensure the output directory exists: `Bash mkdir -p analyses/STATE-DIAGRAM`.
 - `Write analyses/STATE-DIAGRAM/state-diagram.html` with the in-memory composed HTML.
 - Invoke `framework/skills/verify-artifact-write.md` with `path = analyses/STATE-DIAGRAM/state-diagram.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 1024` (a minimum legal render with the six catalogue tables and a non-empty diagnostics block is comfortably above 1 KB even when zero entities are selected).
-- On `pass`: advance to Step 11.
+- On `pass`: invoke `framework/skills/svg-overlap-check.md` with `artefact_path = analyses/STATE-DIAGRAM/state-diagram.html`, `report_path = framework/state/svg-overlap-state-diagram.ndjson`, `node_class_allowlist = ["state-node", "composite-state", "initial-node", "final-node", "choice-node", "junction-node"]`, `edge_class_allowlist = ["transition-edge"]`, `label_bg_class_suffix = "-bg"`. On `pass` (`total: 0`): advance to Step 11. On `fail` (`total > 0`): append one diagnostics line per detected overlap (template *"SVG overlap — `<kind>` in figure `<figure_id>`: `<a_class>` ↔ `<b_class>` at `<aabb>`"*), then advance to Step 11 — the catalogue is correct, the inline diagram is the lossy view; the consultant has the Mermaid `stateDiagram-v2` source as a clean fallback. If `chosen.entities` is empty (no SVG figures emitted), skip this skill entirely.
 - On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyses/STATE-DIAGRAM/state-diagram.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 11 — Handback
@@ -296,6 +298,7 @@ Variants:
 - If Step 8 was Override'd, prepend: *"Quality-check violations were accepted as known — diagnostics block records every flagged item."*
 - If the soft density check fired (on states or transitions), append: *"Density warning: `{{state_ai_density_pct}}`% of states / `{{transition_ai_density_pct}}`% of transitions are `ai-suggested`. Enrich `§2.3 Aggregates & lifecycles` and re-run for higher-confidence lifecycles."*
 - If `chosen.entities` was empty, append: *"No diagrams selected — catalogue tables are the deliverable. Re-run to render specific entities if needed."*
+- If `svg-overlap-check` returned `fail` in Step 10, append a one-line note (*"SVG layout: `<N>` node-on-node, `<E>` edge-through-node, `<L>` label-on-edge overlaps detected — diagnostics block lists each; Mermaid `stateDiagram-v2` source under the figures is the clean fallback."*).
 
 **B. Accept / Revise / Restart loop**
 
@@ -343,8 +346,8 @@ Output the final handback line:
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the template scaffold, and the merged requirements document. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `framework/state/`, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyses/STATE-DIAGRAM/state-diagram.html`.
+- `Read` — read the character file, the reference asset, the template scaffold, and the merged requirements document. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `framework/state/` other than the agent's own `svg-overlap-state-diagram.ndjson` report, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
+- `Write` — write `analyses/STATE-DIAGRAM/state-diagram.html` and `framework/state/svg-overlap-state-diagram.ndjson` (the latter owned by `svg-overlap-check` invoked from Step 10).
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 9's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
 - `Bash` — `mkdir -p analyses/STATE-DIAGRAM` (Step 10 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 8 quality-check failure prompt (Revise / Override / Restart) when any hard check fires; surface the Step 8 entity-selection multi-select; surface the Step 11 Accept / Revise / Restart prompt.
@@ -356,6 +359,7 @@ Output the final handback line:
 Before handing back, verify all of the following against the written artefact and the run's state:
 
 - `analyses/STATE-DIAGRAM/state-diagram.html` exists and `verify-artifact-write` returned `pass`.
+- `svg-overlap-check` has been invoked in Step 10 with the state-diagram allowlists (or skipped because `chosen.entities` was empty). If it returned `fail`, every detected overlap appears as a one-line entry inside the diagnostics block.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The catalogue section contains exactly six sub-sections in fixed order (`.entities-block`, `.states-block`, `.internal-activities-block`, `.transitions-block`, `.events-block`, `.matrix-block`).
 - Every row in every Tier-1 table carries exactly one `.provenance-*` class — never zero, never two.
@@ -373,7 +377,7 @@ Before handing back, verify all of the following against the written artefact an
 - No transition with both an empty trigger and an empty guard appears in the Transitions table (check 5).
 - No transition whose source and target belong to different entities appears in the Transitions table (check 6).
 - No file under `requirements/` other than `requirements/requirements.md` was read during this run. (The agent's tool list makes this true by construction; the check is a deliberate restatement at handback time.)
-- No file under `framework/state/` or `framework/shared/` was read during this run.
+- No file under `framework/state/` was read during this run except the agent's own `framework/state/svg-overlap-state-diagram.ndjson` report written by `svg-overlap-check`. No file under `framework/shared/` was read during this run.
 - The consultant has chosen Accept in Step 11 (or the Step 8 Override path was taken, in which case Accept is still required in Step 11 to declare done).
 
 ## Definition of Done
@@ -386,7 +390,7 @@ Before handing back, verify all of the following against the written artefact an
 ## Anti-Patterns
 
 - Do not read any path under `requirements/` other than `requirements/requirements.md`. The stand-alone-ish constraint is the agent's most load-bearing invariant.
-- Do not read `framework/state/` or `framework/shared/` for any purpose. Pipeline state and shared rules are not state-diagram inputs.
+- Do not read `framework/state/` (except the agent's own `svg-overlap-state-diagram.ndjson` report, written and re-read by `svg-overlap-check` in Step 10) or `framework/shared/` for any purpose. Other agents' pipeline state and shared rules are not state-diagram inputs.
 - **Do not invent entities.** Every entity is sourced to `§2.3`, `§7`, or `§2.1 + §5`. The marker space does not include "invented" and never will.
 - **Do not invent state names.** State names are extracted from `§2.3` (or `§7` enum values, or `§9` definitions). The analyser does not coin lifecycle phases not anchored in the requirements doc.
 - **Do not invent triggers.** Triggers are extracted from `§2.3`/`§5`/`§4`/`§6`. The analyser does not coin events that the requirements doc does not name.

@@ -240,7 +240,7 @@ Per `framework/assets/analyses/template-task-flows.html`:
     - **Goal node (root)** — `<rect class="hta-goal" x="x-w/2" y="y-h/2" width="node_label_width" height="node_height" rx="10"/>` + `<text class="hta-label" x="x" y="y+4" text-anchor="middle">{label}</text>`.
     - **Subgoal nodes** — `<rect class="hta-subgoal" rx="8"/>` + `<text class="hta-label"/>`. Same dimensions as goal node.
     - **Operation nodes (leaves)** — `<rect class="hta-operation" rx="2"/>` (sharper corners) + `<text class="hta-label"/>`.
-    - **Plan badges (non-leaf nodes only)** — small pill positioned at top-right of node: `<rect class="plan-badge plan-badge-{abbrev}" x="x+w/2-30" y="y-h/2-6" width="30" height="14" rx="7"/>` + `<text class="plan-badge-label plan-badge-{abbrev}" x="x+w/2-15" y="y-h/2+4" text-anchor="middle">{ABBREV}</text>` where abbrev ∈ {`seq`, `sel`, `iter`, `conc`} and ABBREV ∈ {`SEQ`, `SEL`, `ITER`, `CONC`}.
+    - **Plan badges (non-leaf nodes only)** — small pill positioned at the **bottom-right** of the node so the parent→child edge that lands at the node's top-centre cannot collide with the badge: `<rect class="plan-badge plan-badge-{abbrev}" x="x+w/2-30" y="y+h/2-8" width="30" height="14" rx="7"/>` + `<text class="plan-badge-label plan-badge-{abbrev}" x="x+w/2-15" y="y+h/2+2" text-anchor="middle">{ABBREV}</text>` where abbrev ∈ {`seq`, `sel`, `iter`, `conc`} and ABBREV ∈ {`SEQ`, `SEL`, `ITER`, `CONC`}. The badge AABB is contained inside the node AABB by construction (badge sits on the lower border) so the post-render `svg-overlap-check` does not flag node-on-node for badge-on-node.
     - **Edges** — `<line class="hta-edge" x1="parent.x" y1="parent.y+h/2" x2="child.x" y2="child.y-h/2"/>`. No arrowheads.
     - **`ai-suggested` nodes** — add `ai-suggested-node` class to the node rect (dashed border) and `ai-suggested-label` class to the text (italic).
 - **TFD SVG layout rules.** Left-to-right flowchart:
@@ -296,7 +296,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 - Ensure the output directory exists: `Bash mkdir -p analyses/TASK-FLOWS`.
 - `Write analyses/TASK-FLOWS/task-flows.html` with the in-memory composed HTML.
 - Invoke `framework/skills/verify-artifact-write.md` with `path = analyses/TASK-FLOWS/task-flows.html`, `expected_sha256 = <step-10 sha>`, `expected_min_bytes = 2048` (a minimum legal render with the six catalogue tables, a non-empty diagnostics block, and a single HTA + TFD pair is comfortably above 2 KB; catalogue-only output also clears 2 KB).
-- On `pass`: advance to Step 12.
+- On `pass`: invoke `framework/skills/svg-overlap-check.md` with `artefact_path = analyses/TASK-FLOWS/task-flows.html`, `report_path = framework/state/svg-overlap-task-flows.ndjson`, `node_class_allowlist = ["hta-goal", "hta-subgoal", "hta-operation", "tfd-start", "tfd-step", "tfd-decision", "tfd-exit-success", "tfd-exit-abort", "tfd-exit-escalate", "tfd-exit-retry", "tfd-exit-compensate"]`, `edge_class_allowlist = ["hta-edge", "tfd-edge"]`, `label_bg_class_suffix = "-bg"`. Skip the `plan-badge` and `plan-badge-label` classes (badges sit inside their parent node AABB by construction — see Step 10's badge positioning rule). On `pass` (`total: 0`): advance to Step 12. On `fail` (`total > 0`): append one diagnostics line per detected overlap (template *"SVG overlap — `<kind>` in figure `<figure_id>`: `<a_class>` ↔ `<b_class>` at `<aabb>`"*), then advance to Step 12 — the catalogue is correct, the inline diagram is the lossy view; the consultant has the Mermaid source as a clean fallback. If `chosen.tasks` is empty (no SVG figures emitted), skip this skill entirely.
 - On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyses/TASK-FLOWS/task-flows.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 12 — Handback
@@ -313,6 +313,7 @@ Variants:
 - If the soft density check fired, append: *"Density warning: `{{operation_ai_density_pct}}`% of operations are `ai-suggested`. Enrich `§5 Task flows` *Steps* and re-run for higher-confidence trees."*
 - If `chosen.tasks` was empty, append: *"No diagrams selected — catalogue tables are the deliverable. Re-run to render specific tasks if needed."*
 - If layout warnings fired in Round 7, append a one-line note per warning (*"Tree `submit-order` has 38 nodes — consider splitting."*).
+- If `svg-overlap-check` returned `fail` in Step 11, append a one-line note per overlap kind (*"SVG layout: `<N>` node-on-node, `<E>` edge-through-node, `<L>` label-on-edge overlaps detected — diagnostics block lists each; Mermaid source under the figures is the clean fallback."*).
 
 **B. Accept / Revise / Restart loop**
 
@@ -360,8 +361,8 @@ Output the final handback line:
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the template scaffold, and the merged requirements document. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `framework/state/`, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyses/TASK-FLOWS/task-flows.html`.
+- `Read` — read the character file, the reference asset, the template scaffold, and the merged requirements document. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `framework/state/` other than the agent's own `svg-overlap-task-flows.ndjson` report, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
+- `Write` — write `analyses/TASK-FLOWS/task-flows.html` and `framework/state/svg-overlap-task-flows.ndjson` (the latter owned by `svg-overlap-check` invoked from Step 11).
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 10's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
 - `Bash` — `mkdir -p analyses/TASK-FLOWS` (Step 11 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 9 quality-check failure prompt (Revise / Override / Restart) when any hard check fires; surface the Step 9 task-selection multi-select; surface the Step 12 Accept / Revise / Restart prompt.
@@ -381,6 +382,7 @@ Before handing back, verify all of the following against the written artefact an
 - If `chosen.tasks` is empty, the task-diagrams section renders only the `<p class="diagrams-empty">` and contains zero `<section class="task-pair">` elements.
 - Every HTA `<svg>` in the artefact uses the same `node_height` (shared-grid invariant) — nodes are horizontally aligned across trees.
 - Every TFD `<svg>` in the artefact uses the same `step_height` — steps are horizontally aligned across flows.
+- `svg-overlap-check` has been invoked in Step 11 with the task-flows allowlists (or skipped because `chosen.tasks` was empty). If it returned `fail`, every detected overlap appears as a one-line entry inside the diagnostics block.
 - All 10 quality-check results are reported in the diagnostics block (either as PASS lines or as FAIL lines with flagged items).
 - The diagnostics block reports `Catalogue — T tasks, S subgoals, O operations, P plans, D decisions, X exceptions.` where the counts match the Tier-1 tables.
 - The artefact's `REQUIREMENTS_SHA256` field equals the SHA-256 captured in Step 2 — proving the analysis matched the requirements doc as-read, not a stale copy.
@@ -390,7 +392,7 @@ Before handing back, verify all of the following against the written artefact an
 - No exit type other than `abort`, `escalate`, `retry`, `compensate` appears in the Exceptions table.
 - Decomposition depth ≤ 3 across all HTA trees; subgoals per non-leaf parent ≤ 10 across all HTA trees.
 - No file under `requirements/` other than `requirements/requirements.md` was read during this run. (The agent's tool list makes this true by construction; the check is a deliberate restatement at handback time.)
-- No file under `framework/state/` or `framework/shared/` was read during this run.
+- No file under `framework/state/` was read during this run except the agent's own `framework/state/svg-overlap-task-flows.ndjson` report written by `svg-overlap-check`. No file under `framework/shared/` was read during this run.
 - The consultant has chosen Accept in Step 12 (or the Step 9 Override path was taken, in which case Accept is still required in Step 12 to declare done).
 
 ## Definition of Done
@@ -403,7 +405,7 @@ Before handing back, verify all of the following against the written artefact an
 ## Anti-Patterns
 
 - Do not read any path under `requirements/` other than `requirements/requirements.md`. The stand-alone-ish constraint is the agent's most load-bearing invariant.
-- Do not read `framework/state/` or `framework/shared/` for any purpose. Pipeline state and shared rules are not task-flows inputs.
+- Do not read `framework/state/` (except the agent's own `svg-overlap-task-flows.ndjson` report, written and re-read by `svg-overlap-check` in Step 11) or `framework/shared/` for any purpose. Other agents' pipeline state and shared rules are not task-flows inputs.
 - **Do not invent top-level tasks.** Every task is sourced to §5 or §4. The marker space does not include "invented" and never will.
 - **Do not invent operation verbs.** Verbs are extracted from §5 (or §4/§6); if an operation is derived without a clear verb, mark `ai-suggested` and use a generic verb (e.g., `process`, `handle`) — but never fabricate domain-specific verbs (e.g., do not coin `applyDiscountPolicy` if no source mentions a discount).
 - **Do not invent decision guards.** Guard expressions come from §5 *Decision points* / §6 constraints; the analyser does not propose conditional logic that has no anchor in the requirements doc.

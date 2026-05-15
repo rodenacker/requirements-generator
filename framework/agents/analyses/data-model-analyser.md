@@ -285,7 +285,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 - Ensure the output directory exists: `Bash mkdir -p analyses/DATA-MODEL`.
 - `Write analyses/DATA-MODEL/data-model.html` with the in-memory composed HTML.
 - Invoke `framework/skills/verify-artifact-write.md` with `path = analyses/DATA-MODEL/data-model.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 1024` (a minimum legal render with the five Data Model tables and a non-empty diagnostics block is comfortably above 1 KB even when zero ERD views are selected).
-- On `pass`: advance to Step 11.
+- On `pass`: invoke `framework/skills/svg-overlap-check.md` with `artefact_path = analyses/DATA-MODEL/data-model.html`, `report_path = framework/state/svg-overlap-data-model.ndjson`, `node_class_allowlist = ["entity-box", "entity-header", "chen-diamond"]`, `edge_class_allowlist = ["relationship-line"]`, `label_bg_class_suffix = "-bg"`. On `pass` (`total: 0`): advance to Step 11. On `fail` (`total > 0`): append one diagnostics line per detected overlap (template *"SVG overlap — `<kind>` in figure `<figure_id>`: `<a_class>` ↔ `<b_class>` at `<aabb>`"*), then advance to Step 11 — the catalogue tables are the canonical deliverable, the ERD views are an additive Tier-2 enrichment, and the Mermaid `erDiagram`/`classDiagram` source under each figure is the clean fallback. If `chosen.notations` is empty (no SVG figures emitted), skip this skill entirely.
 - On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyses/DATA-MODEL/data-model.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 11 — Handback
@@ -301,6 +301,7 @@ Variants:
 - If Step 8 was Override'd, prepend: *"Quality-check violations were accepted as known — diagnostics block records every flagged item."*
 - If the soft density check fired, append: *"Density warning: `{{relationship_ai_density_pct}}`% of relationships are `ai-suggested`. Enrich `§2 Domain model` and re-run for higher-confidence cardinalities."*
 - If `chosen.notations` was empty, append: *"No ERD views selected — Data Model tables are the deliverable. Re-run to add Crow's Foot, Chen, or UML views if needed."*
+- If `svg-overlap-check` returned `fail` in Step 10, append a one-line note (*"SVG layout: `<N>` node-on-node, `<E>` edge-through-node, `<L>` label-on-edge overlaps detected — diagnostics block lists each; the Mermaid `erDiagram`/`classDiagram` source under each ERD view is the clean fallback."*).
 
 **B. Accept / Revise / Restart loop**
 
@@ -347,8 +348,8 @@ Output the final handback line:
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the template scaffold, and the merged requirements document. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `framework/state/`, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyses/DATA-MODEL/data-model.html`.
+- `Read` — read the character file, the reference asset, the template scaffold, and the merged requirements document. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `framework/state/` other than the agent's own `svg-overlap-data-model.ndjson` report, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
+- `Write` — write `analyses/DATA-MODEL/data-model.html` and `framework/state/svg-overlap-data-model.ndjson` (the latter owned by `svg-overlap-check` invoked from Step 10).
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 9's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
 - `Bash` — `mkdir -p analyses/DATA-MODEL` (Step 10 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 8 quality-check failure prompt (Revise / Override / Restart) when any hard check fires; surface the Step 8 notation-selection multi-select; surface the Step 11 Accept / Revise / Restart prompt.
@@ -360,6 +361,7 @@ Output the final handback line:
 Before handing back, verify all of the following against the written artefact and the run's state:
 
 - `analyses/DATA-MODEL/data-model.html` exists and `verify-artifact-write` returned `pass`.
+- `svg-overlap-check` has been invoked in Step 10 with the data-model allowlists (or skipped because `chosen.notations` was empty). If it returned `fail`, every detected overlap appears as a one-line entry inside the diagnostics block.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The Data Model section contains exactly five sub-sections in fixed order (`.entities-block`, `.attributes-block`, `.relationships-block`, `.business-rules-block`, `.normalisation-block`).
 - Every row in every Tier-1 table carries exactly one `.provenance-*` class — never zero, never two.
@@ -373,7 +375,7 @@ Before handing back, verify all of the following against the written artefact an
 - No raw `<`, `>`, or `&` appears inside HTML body text content or inside SVG `<text>` elements — every consultant-supplied string is escaped.
 - No DBMS-specific types (`VARCHAR`, `INT4`, `TIMESTAMPTZ`, `JSONB`, etc.) appear in the Attributes table — only the nine conceptual types are emitted.
 - No file under `requirements/` other than `requirements/requirements.md` was read during this run. (The agent's tool list makes this true by construction; the check is a deliberate restatement at handback time.)
-- No file under `framework/state/` or `framework/shared/` was read during this run.
+- No file under `framework/state/` was read during this run except the agent's own `framework/state/svg-overlap-data-model.ndjson` report written by `svg-overlap-check`. No file under `framework/shared/` was read during this run.
 - The consultant has chosen Accept in Step 11 (or the Step 8 Override path was taken, in which case Accept is still required in Step 11 to declare done).
 
 ## Definition of Done
@@ -386,7 +388,7 @@ Before handing back, verify all of the following against the written artefact an
 ## Anti-Patterns
 
 - Do not read any path under `requirements/` other than `requirements/requirements.md`. The stand-alone-ish constraint is the agent's most load-bearing invariant.
-- Do not read `framework/state/` or `framework/shared/` for any purpose. Pipeline state and shared rules are not Data Model inputs.
+- Do not read `framework/state/` (except the agent's own `svg-overlap-data-model.ndjson` report, written and re-read by `svg-overlap-check` in Step 10) or `framework/shared/` for any purpose. Other agents' pipeline state and shared rules are not Data Model inputs.
 - **Do not invent entities.** Every entity is sourced to §2.1, §4, §5, §6, or §7, or is an `ai-suggested` join entity proposed in Round 7 (M:N resolution). The marker space does not include "invented" and never will.
 - **Do not invent relationship verbs.** Verbs are extracted from §2.2 or §5; if a relationship is derived without a clear verb, mark `ai-suggested` and use a generic verb (e.g., `has`, `relates-to`) — but never fabricate domain-specific verbs.
 - **Do not invent business rules.** Rules come from §2.3 invariants and §6 constraints. The analyser does not propose new compliance rules under `[AI-SUGGESTED]`.
