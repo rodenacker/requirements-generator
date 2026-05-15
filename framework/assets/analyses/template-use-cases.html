@@ -9,14 +9,15 @@
   Section order (top-to-bottom):
     1. Overview (id="overview")        — title, subtitle, meta-grid.
     2. TOC (<nav class="toc">)         — static top-level anchors.
-    3. Diagrams (id="diagrams")        — {{ACTOR_INDEX}} + {{USE_CASE_CARDS}}
-       inside the `.layout` two-column grid.
-    4. UML diagrams (id="uml-diagrams") — {{UML_SVG_BLOCK}} + {{UML_MERMAID_BLOCK}}.
+    3. UML diagrams (id="uml-diagrams") — {{UML_SVG_BLOCK}} + {{UML_MERMAID_BLOCK}}.
        One always-on System overview <figure> (actors as stick figures,
        UCs as ovals inside a system-boundary rect, association lines,
        dashed «include» arrows) plus 0..N consultant-selected per-actor
        focus <figure>s. Mermaid source kept adjacent to the SVGs as a
-       copy-pasteable `flowchart LR` approximation.
+       copy-pasteable `flowchart LR` approximation. Placed immediately
+       after the Overview to match the other analysis report templates.
+    4. Diagrams (id="diagrams")        — {{ACTOR_INDEX}} + {{USE_CASE_CARDS}}
+       inside the `.layout` two-column grid.
     5. Tabular information (id="tables") — {{UC_INDEX_TABLE}}.
     6. Diagnostics (id="diagnostics")  — <details> wrapper, collapsed
        by default. Bottom of page; position alone signals auxiliary.
@@ -1214,19 +1215,12 @@
     <nav class="toc" aria-label="Sections">
       <ol>
         <li><a href="#overview">Overview</a></li>
-        <li><a href="#diagrams">Diagrams</a></li>
         <li><a href="#uml-diagrams">UML diagrams</a></li>
+        <li><a href="#diagrams">Diagrams</a></li>
         <li><a href="#tables">Tabular information</a></li>
         <li><a href="#diagnostics">Diagnostics</a></li>
       </ol>
     </nav>
-
-    <div id="diagrams" class="layout">
-      {{ACTOR_INDEX}}
-      <section class="uc-board" aria-label="Use Cases map">
-        {{USE_CASE_CARDS}}
-      </section>
-    </div>
 
     <section id="uml-diagrams" aria-label="UML use case diagrams">
       <h2>UML use case diagrams</h2>
@@ -1234,6 +1228,13 @@
       {{UML_SVG_BLOCK}}
       {{UML_MERMAID_BLOCK}}
     </section>
+
+    <div id="diagrams" class="layout">
+      {{ACTOR_INDEX}}
+      <section class="uc-board" aria-label="Use Cases map">
+        {{USE_CASE_CARDS}}
+      </section>
+    </div>
 
     <section id="tables" class="uc-index-wrap" aria-label="Use case index">
       <h2>Use Case Index</h2>

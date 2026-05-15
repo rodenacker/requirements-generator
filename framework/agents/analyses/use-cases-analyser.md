@@ -14,8 +14,8 @@ The rendered artefact is laid out top-to-bottom as:
 
 1. **Overview** (`id="overview"`) — title, subtitle, meta-grid.
 2. **TOC** (`<nav class="toc">`) — static top-level anchors.
-3. **Diagrams** (`id="diagrams"`) — `{{ACTOR_INDEX}}` + `{{USE_CASE_CARDS}}` inside the `.layout` two-column grid (actor-index sidebar + UC card board).
-4. **UML diagrams** (`id="uml-diagrams"`) — `{{UML_SVG_BLOCK}}` (one always-on System overview figure + 0..N per-actor focus figures) followed by `{{UML_MERMAID_BLOCK}}` (copy-pasteable Mermaid `flowchart LR` source, one `<pre>` per diagram).
+3. **UML diagrams** (`id="uml-diagrams"`) — `{{UML_SVG_BLOCK}}` (one always-on System overview figure + 0..N per-actor focus figures) followed by `{{UML_MERMAID_BLOCK}}` (copy-pasteable Mermaid `flowchart LR` source, one `<pre>` per diagram). Placed immediately after the Overview to match the other analysis report templates.
+4. **Diagrams** (`id="diagrams"`) — `{{ACTOR_INDEX}}` + `{{USE_CASE_CARDS}}` inside the `.layout` two-column grid (actor-index sidebar + UC card board).
 5. **Tabular information** (`id="tables"`) — `{{UC_INDEX_TABLE}}` (every UC at a glance, grouped by sea-level).
 6. **Diagnostics** (`id="diagnostics"`) — `<details class="diagnostics-toggle">`, collapsed by default. Bottom of the page; position alone signals auxiliary.
 
