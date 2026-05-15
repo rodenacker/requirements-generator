@@ -299,6 +299,7 @@ graph TD
       agent_adv[adversarial-reviewer.md]
       agent_uxq[ten-ux-questions-reviewer.md]
       agent_baq[ten-ba-questions-reviewer.md]
+      agent_usr[user-stories-reviewer.md]
     end
 
     subgraph Workers
@@ -319,12 +320,15 @@ graph TD
       asset_tmpl_uxq[reviews/template-ten-ux-questions.md]
       asset_ref_baq[reviews/ten-ba-questions-reference.md]
       asset_tmpl_baq[reviews/template-ten-ba-questions.md]
+      asset_ref_usr[reviews/user-stories-reference.md]
+      asset_tmpl_usr[reviews/template-user-stories.md]
     end
 
     subgraph Characters
       char_adv[characters/adversarial-review.md]
       char_uxq[characters/ten-ux-questions-review.md]
       char_baq[characters/ten-ba-questions-review.md]
+      char_usr[characters/user-stories-review.md]
     end
 
     subgraph Shared
@@ -344,6 +348,7 @@ graph TD
     orch_rv --> agent_adv
     orch_rv --> agent_uxq
     orch_rv --> agent_baq
+    orch_rv --> agent_usr
 
     skill_revsel --> asset_registry_rv
     skill_bloat_rv --> shared_refusal_rv
@@ -373,23 +378,31 @@ graph TD
     agent_baq --> shared_protoscope_rv
     agent_baq -.->|Step 4 filter source only| asset_ref_uxq
 
+    agent_usr --> char_usr
+    agent_usr --> asset_ref_usr
+    agent_usr --> asset_tmpl_usr
+    agent_usr --> skill_verifywrite_rv
+    agent_usr --> shared_genrules_rv
+    agent_usr --> shared_protoinv_rv
+
     class orch_rv orch
-    class agent_adv,agent_uxq,agent_baq agent
+    class agent_adv,agent_uxq,agent_baq,agent_usr agent
     class worker_adv_dim worker
     class skill_revsel,skill_verifywrite_rv,skill_bloat_rv skill
-    class asset_registry_rv,asset_ref_adv,asset_tmpl_adv,asset_ref_uxq,asset_tmpl_uxq,asset_ref_baq,asset_tmpl_baq asset
-    class char_adv,char_uxq,char_baq char
+    class asset_registry_rv,asset_ref_adv,asset_tmpl_adv,asset_ref_uxq,asset_tmpl_uxq,asset_ref_baq,asset_tmpl_baq,asset_ref_usr,asset_tmpl_usr asset
+    class char_adv,char_uxq,char_baq,char_usr char
     class shared_refusal_rv,shared_genrules_rv,shared_protoinv_rv,shared_protoscope_rv shared
     class state_progress_rv state
 ```
 
-**Stats:** 23 nodes / 31 edges / depth 3.
+**Stats:** 28 nodes / 38 edges / depth 3.
 
 **Notes:**
 - The orchestrator is registry-driven: it does not know at design time which reviewer will run. The `skill_revsel → asset_registry_rv` edge is the discovery mechanism; `orch_rv → agent_*` edges represent the runtime invocation paths once the consultant has selected a methodology. Adding a new MVP reviewer requires adding a new agent node (plus its character / reference / template asset nodes) and an `orch_rv → agent_new` edge — no orchestrator file edit is required.
 - The adversarial reviewer fans out eight non-interactive read-only dimension workers per `adversarial-dimension-worker.md` at its Step 3; this is the only sub-agent dispatch under the `/review` pipeline. The worker node is drawn with a dashed border to indicate it is a parallel sub-agent rather than an orchestrator-invoked agent. The ten-ux-questions reviewer is single-pass and dispatches no workers.
 - The ten-ux-questions reviewer reads three shared-policy files (`general-rules.md`, `prototype-invariants.md`, `prototype-scope.md`) at its Step 4 as filter sources only — the agent drops candidate questions whose topics are already deterministically answered by an active `GR-NN` or `PI-NN`, or are out of scope per `prototype-scope.md`. These three edges are unique to this reviewer; the adversarial reviewer does not read shared-policy files because its task is defect-citation in present content, not gap-filtering against deterministic defaults.
 - The ten-ba-questions reviewer reads the same three shared-policy files at its Step 4, **plus** one fourth filter source: `framework/assets/reviews/ten-ux-questions-reference.md` (drawn as a dashed cross-methodology edge labelled *"Step 4 filter source only"*). This fourth read is the UX-lens-drop filter — a BA candidate whose question shape fits a UX category from that reference is dropped at Step 4 rule 4, and gate 9 catches escapees. The dashed edge documents the BA→UX cross-methodology dependency without inverting the methodologies' independence: the UX reviewer never reads the BA reference, only the reverse. The orthogonality contract between the two "10 questions" methodologies is therefore enforced by a one-way read at filter time, not by a circular dependency or by a shared third file. The BA reviewer otherwise mirrors the UX reviewer's single-pass, no-fan-out shape; it dispatches no workers.
+- The user-stories reviewer reads only **two** shared-policy files at its Step 4 (`general-rules.md`, `prototype-invariants.md`) — fewer than the BA / UX reviewers. The two deliberate omissions: (a) no `prototype-scope.md` edge, because every §4.2 story is in-scope by construction (a story narrating an out-of-scope concern would have been caught at `/requirements` time); (b) no cross-methodology edge to `ten-ux-questions-reference.md`, because story-quality criteria (Meaningful / Implementable / Testable / Coherent / Scoped / Outcome-aligned) are orthogonal to UX-vs-BA framing — a UX-shaped story can pass all six criteria and a BA-shaped story can fail them. Both omissions are documented as `not-applicable` filter sources in the reviewer's own diagnostics block. The reviewer is single-pass, no-fan-out, and surfaces every defective story (no top-N cap — distinct from the BA / UX reviewers' 50→10 selection).
 - `check-context-bloat.md` is shared across all three orchestrators (`requirements-orch.md`, `design-system-orch.md`, `review-orch.md`); the review-orch caller passes `requirements/` as `artefact_dir` because prior `/requirements` state on disk is the meaningful proxy for in-conversation bloat against the reviewer.
 - `state/.progress.json` is read (existence + at-least-one-`completed`-event check) by `check-context-bloat.md` from the review orchestrator; the review orchestrator never writes to it, consistent with the no-write-outside-`reviews/` invariant.
 - Per each reviewer's stand-alone constraint, no edges reach `requirements/` (except `requirements/requirements.md` itself, which is the read target — implicit, not drawn), `analyses/`, `design-system/`, or `framework/state/` from the reviewer subtrees. The shared-policy edges from `agent_uxq` are the documented Step-4 filter-source exception.

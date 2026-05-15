@@ -30,6 +30,15 @@ methodologies:
     map_skill: null
     reviewer_agent: framework/agents/reviews/ten-ux-questions-reviewer.md
     character: framework/assets/characters/ten-ux-questions-review.md
+  - name: user-stories
+    status: mvp
+    description: User Stories Review — critiques every user story in §4.2 against six quality criteria (meaningful, implementable, testable, coherent, appropriately scoped, outcome-aligned). Surfaces every failing story grouped by persona, with violated criteria, reason, and fix suggestion (priority — blocking / major / minor; one finding per story; no cap; passing stories are not surfaced). Choose this option to identify stories that are not ready for design, estimation, or refinement.
+    output_path: reviews/USER-STORIES/user-stories-review.md
+    reference_asset: framework/assets/reviews/user-stories-reference.md
+    template_asset: framework/assets/reviews/template-user-stories.md
+    map_skill: null
+    reviewer_agent: framework/agents/reviews/user-stories-reviewer.md
+    character: framework/assets/characters/user-stories-review.md
   # Future — stub-only; no reviewer agent on disk. Promote by flipping status, populating
   # the remaining fields, and authoring the reviewer + reference + character + template.
   - { name: stakeholder-review, status: future }
