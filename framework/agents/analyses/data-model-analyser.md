@@ -13,6 +13,18 @@ Produce `analyses/DATA-MODEL/data-model.html` — a self-contained HTML artefact
 
 Every row in every Tier-1 table carries exactly one provenance marker. Every quality check in `framework/assets/analyses/data-model-reference.md > Quality checks` is a hard gate; the soft density check is a non-blocking warning surfaced in diagnostics and handback.
 
+## Output section order
+
+The rendered artefact is laid out top-to-bottom as:
+
+1. **Overview** (`id="overview"`) — title, subtitle, meta-grid.
+2. **TOC** (`<nav class="toc">`) — static top-level anchors.
+3. **Diagrams** (`id="diagrams"`) — `{{ERD_VIEWS_BLOCK}}` followed by `{{MERMAID_BLOCK}}` (Mermaid source kept adjacent to its SVGs).
+4. **Tabular information** (`id="tables"`) — `{{DATA_MODEL_BLOCK}}` (Tier-1 catalogue tables).
+5. **Diagnostics** (`id="diagnostics"`) — `<details class="diagnostics-toggle">`, collapsed by default. Bottom of the page; position alone signals auxiliary.
+
+Section order lives in `framework/assets/analyses/template-data-model.html`, not in this analyser. The analyser emits the same placeholder blocks regardless; the template decides where they land.
+
 ## Stand-alone-ish constraint
 
 This agent reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not read `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims.ndjson`, `requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, or any other agent's working state.

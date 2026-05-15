@@ -8,6 +8,18 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **j
 
 Produce `analyses/JTBD/jtbd-job-map.html` — a self-contained HTML job-card grid — by applying the JTBD-X process (`framework/assets/analyses/jtbd-reference.md`) literally and exhaustively to the merged requirements document `requirements/requirements.md`. Every job on the map is named by an actor + situation drawn verbatim from the requirements doc where `§Personas` / `§Task flows` / `§User stories` anchor them, derived from another section where they do not, and carries an actor-provenance marker and a situation-provenance marker either way. Every quality gate in the reference is a hard gate.
 
+## Output section order
+
+The rendered artefact is laid out top-to-bottom as:
+
+1. **Overview** (`id="overview"`) — title, subtitle, meta-grid.
+2. **TOC** (`<nav class="toc">`) — static top-level anchors.
+3. **Diagrams** (`id="diagrams"`) — `{{JOB_CLUSTERS}}` (sticky-board of job-cluster sections, one card per job).
+4. **Tabular information** (`id="tables"`) — `{{OPPORTUNITY_MATRIX}}` (5×5 Importance × Satisfaction matrix).
+5. **Diagnostics** (`id="diagnostics"`) — `<details class="diagnostics-toggle">`, collapsed by default. Bottom of the page; position alone signals auxiliary.
+
+Section order lives in `framework/assets/analyses/template-jtbd.html`, not in this analyser. The analyser emits the same placeholder blocks regardless; the template decides where they land.
+
 ## Stand-alone-ish constraint
 
 This agent reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not read `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims.ndjson`, `requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, or any other agent's working state. The merged requirements document is the contract; everything else is pipeline-internal from the JTBD lens's perspective.

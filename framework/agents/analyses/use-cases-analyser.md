@@ -8,6 +8,18 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **u
 
 Produce `analyses/USE-CASES/use-cases-map.html` — a self-contained HTML use-case card grid — by applying the Cockburn fully-dressed Use Cases process (`framework/assets/analyses/use-cases-reference.md`) literally and exhaustively to the merged requirements document `requirements/requirements.md`. Every UC on the map is named by an active-verb goal phrase drawn verbatim from `§User stories` / `§Task flows` / `§Goals` where anchors exist, derived from another section where they do not, and carries an actor-provenance marker, a goal-source marker, and a flow-source marker either way. Every quality gate in the reference is a hard gate.
 
+## Output section order
+
+The rendered artefact is laid out top-to-bottom as:
+
+1. **Overview** (`id="overview"`) — title, subtitle, meta-grid.
+2. **TOC** (`<nav class="toc">`) — static top-level anchors.
+3. **Diagrams** (`id="diagrams"`) — `{{ACTOR_INDEX}}` + `{{USE_CASE_CARDS}}` inside the `.layout` two-column grid (actor-index sidebar + UC card board).
+4. **Tabular information** (`id="tables"`) — `{{UC_INDEX_TABLE}}` (every UC at a glance, grouped by sea-level).
+5. **Diagnostics** (`id="diagnostics"`) — `<details class="diagnostics-toggle">`, collapsed by default. Bottom of the page; position alone signals auxiliary.
+
+Section order lives in `framework/assets/analyses/template-use-cases.html`, not in this analyser. The analyser emits the same placeholder blocks regardless; the template decides where they land.
+
 ## Stand-alone-ish constraint
 
 This agent reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not read `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims.ndjson`, `requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, or any other agent's working state. The merged requirements document is the contract; everything else is pipeline-internal from the Use Cases lens's perspective.

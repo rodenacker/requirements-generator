@@ -143,7 +143,8 @@ Per `framework/assets/analyses/template-ooux.html`:
     - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
     - `{{REQUIREMENTS_SHA256}}` — the SHA-256 captured in Step 2.
     - `{{OBJECT_COUNT}}`, `{{RELATIONSHIP_COUNT}}`, `{{CTA_COUNT}}`, `{{ATTRIBUTE_COUNT}}`, `{{CCP_COUNT}}` — derived counts.
-    - `{{DIAGNOSTICS_BLOCK}}` — pre-rendered `<section class="diagnostics">` containing: provenance summary (count of `from-domain-model` vs `derived-from-*` objects), per-check result lines (PASS/FAIL), a `<table class="rel-matrix">` listing every Round-3 relationship (source, label, target, cardinality, nested?), and per-flagged-item lines (only present on Override runs).
+    - `{{DIAGNOSTICS_BLOCK}}` — pre-rendered `<section class="diagnostics">` containing: provenance summary (count of `from-domain-model` vs `derived-from-*` objects), per-check result lines (PASS/FAIL), and per-flagged-item lines (only present on Override runs). The relationship matrix is **no longer** part of this block — it has been promoted to `{{REL_MATRIX_BLOCK}}` so the canonical "Tabular information" section is non-empty.
+    - `{{REL_MATRIX_BLOCK}}` — pre-rendered `<section class="rel-matrix-block">` containing an `<h2>Relationship matrix</h2>`, a one-line caption, and a `<table class="rel-matrix">` listing every Round-3 relationship (source, label, target, cardinality, nested?). One body row per relationship; the `nested?` cell carries `class="nested-yes"` or `class="nested-no"`.
     - `{{OBJECT_COLUMNS}}` — pre-rendered `<section class="object-column">` blocks per the OBJECT COLUMN SCHEMA in the template header. One column per object, in `§2.1` concept order where applicable, derived objects appended in discovery order. Inside each column, the five sticky stacks render in fixed order: **CTAs → Object header → Core content (CCP) → Metadata (non-CCP) → Nested references**. Empty stacks render with the `hidden` attribute so the column rhythm is preserved.
 - **HTML-escape every substituted value** before injection. `<`, `>`, `&`, `"`, `'` must be encoded. The template's CSS class names are the only fixed strings the agent does not escape — those are CSS class identifiers, not consultant content.
 - Compose the full HTML in memory. Compute SHA-256 of the in-memory bytes.
@@ -229,7 +230,7 @@ Before handing back, verify all of the following against the written artefact an
 - Every attribute `<li>` appears in exactly one of `.core-content` (when CCP-marked) or `.metadata` (when not CCP-marked) — never in both, never in neither.
 - All seven quality-check results are reported in the diagnostics block (either as PASS lines or as FAIL lines with flagged items).
 - The diagnostics block reports `OOUX object map — N objects.` where `N` matches the count of `<section class="object-column">` elements.
-- The relationship matrix `<table class="rel-matrix">` in the diagnostics block has exactly `{{RELATIONSHIP_COUNT}}` body rows.
+- The relationship matrix `<table class="rel-matrix">` in the `{{REL_MATRIX_BLOCK}}` section has exactly `{{RELATIONSHIP_COUNT}}` body rows. The diagnostics block no longer contains the matrix.
 - The artefact's `REQUIREMENTS_SHA256` field equals the SHA-256 captured in Step 2 — proving the analysis matched the requirements doc as-read, not a stale copy.
 - No file under `requirements/` other than `requirements/requirements.md` was read during this run. (The agent's tool list makes this true by construction; the check is a deliberate restatement at handback time.)
 - No file under `framework/state/` or `framework/shared/` was read during this run.

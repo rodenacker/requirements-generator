@@ -10,6 +10,16 @@
   external CSS / JS dependencies; viewable by opening `file://` in a
   browser; shareable with clients without tooling.
 
+  Section order (top-to-bottom):
+    1. Overview (id="overview")      — title, subtitle, meta-grid.
+    2. TOC (<nav class="toc">)       — static top-level anchors. No
+       "Tabular information" entry because this template has no
+       standalone tables section; per-journey swimlane tables remain
+       embedded inside their journey-card under Diagrams.
+    3. Diagrams (id="diagrams")      — {{JOURNEY_CARDS}}.
+    4. Diagnostics (id="diagnostics") — <details> wrapper, collapsed
+       by default. Bottom of page; position alone signals auxiliary.
+
   Layout: cards stack vertically in a single column on screen; print
   media query collapses to one card per page. Within each card the
   swimlane uses CSS Grid with `grid-template-columns:
@@ -616,6 +626,40 @@
     footer.bottom .legend-dot.s-ai         { background: var(--prov-ai-suggested); }
     footer.bottom .credit { margin-top: 6px; text-align: right; }
 
+    /* ------- table of contents ------- */
+
+    .toc {
+      margin: 0 0 24px 0;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .toc ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 18px;
+      counter-reset: toc-item;
+    }
+    .toc li { counter-increment: toc-item; }
+    .toc li::before {
+      content: counter(toc-item) ". ";
+      color: var(--muted);
+      margin-right: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .toc a {
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--border-strong);
+    }
+    .toc a:hover { border-bottom-color: var(--fg); }
+
     @media print {
       body { background: #fff; }
       main { padding: 0; }
@@ -627,36 +671,47 @@
         border-color: #000;
       }
       details.diagnostics-toggle { display: none; }
+      .toc { display: none; }
       .journey-flow svg { max-height: 180px; }
     }
   </style>
 </head>
 <body>
   <main>
-    <h1>{{TITLE}}</h1>
-    <p class="subtitle">User journey atlas — one card per (persona × scenario): emotion curve over phases, plus a swimlane grid of actions, thoughts, emotions, touchpoints, and pain points.</p>
+    <section id="overview">
+      <h1>{{TITLE}}</h1>
+      <p class="subtitle">User journey atlas — one card per (persona × scenario): emotion curve over phases, plus a swimlane grid of actions, thoughts, emotions, touchpoints, and pain points.</p>
 
-    <dl class="meta-grid">
-      <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
-      <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
-      <div><dt>Source SHA-256</dt><dd>{{REQUIREMENTS_SHA256}}</dd></div>
-      <div><dt>Journeys</dt><dd>{{JOURNEY_COUNT}}</dd></div>
-      <div><dt>Personas</dt><dd>{{PERSONA_COUNT}}</dd></div>
-      <div><dt>Phases</dt><dd>{{PHASE_COUNT}}</dd></div>
-      <div><dt>Actions</dt><dd>{{ACTION_COUNT}}</dd></div>
-      <div><dt>Pain points</dt><dd>{{PAIN_POINT_COUNT}}</dd></div>
-      <div><dt>Opportunities</dt><dd>{{OPPORTUNITY_COUNT}}</dd></div>
-      <div><dt>AI-suggested cells</dt><dd>{{AI_SUGGESTED_COUNT}}</dd></div>
-    </dl>
+      <dl class="meta-grid">
+        <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+        <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+        <div><dt>Source SHA-256</dt><dd>{{REQUIREMENTS_SHA256}}</dd></div>
+        <div><dt>Journeys</dt><dd>{{JOURNEY_COUNT}}</dd></div>
+        <div><dt>Personas</dt><dd>{{PERSONA_COUNT}}</dd></div>
+        <div><dt>Phases</dt><dd>{{PHASE_COUNT}}</dd></div>
+        <div><dt>Actions</dt><dd>{{ACTION_COUNT}}</dd></div>
+        <div><dt>Pain points</dt><dd>{{PAIN_POINT_COUNT}}</dd></div>
+        <div><dt>Opportunities</dt><dd>{{OPPORTUNITY_COUNT}}</dd></div>
+        <div><dt>AI-suggested cells</dt><dd>{{AI_SUGGESTED_COUNT}}</dd></div>
+      </dl>
+    </section>
 
-    <details class="diagnostics-toggle">
+    <nav class="toc" aria-label="Sections">
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#diagrams">Diagrams</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+      </ol>
+    </nav>
+
+    <section id="diagrams" class="journey-atlas" aria-label="User journeys">
+      {{JOURNEY_CARDS}}
+    </section>
+
+    <details id="diagnostics" class="diagnostics-toggle">
       <summary>Diagnostics</summary>
       {{DIAGNOSTICS_BLOCK}}
     </details>
-
-    <section class="journey-atlas" aria-label="User journeys">
-      {{JOURNEY_CARDS}}
-    </section>
 
     <footer class="bottom">
       <div class="legend">

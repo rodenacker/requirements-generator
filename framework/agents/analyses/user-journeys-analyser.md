@@ -8,6 +8,17 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **u
 
 Produce `analyses/USER-JOURNEYS/user-journeys-map.html` — a self-contained HTML journey atlas — by applying the user-journeys reference (`framework/assets/analyses/user-journeys-reference.md`) literally and exhaustively to the merged requirements document `requirements/requirements.md`. Every journey is anchored to one named persona from `§3 Target users` and one named scenario from `§4 User goals & stories` or `§5 Task flows` (no invented personas, no invented scenarios). Every rendered cell carries exactly one provenance marker. The emotion score on every phase is an integer in [−2, +2]. Every quality check in the reference is a hard gate; the soft density check is a non-blocking warning surfaced in diagnostics and handback.
 
+## Output section order
+
+The rendered artefact is laid out top-to-bottom as:
+
+1. **Overview** (`id="overview"`) — title, subtitle, meta-grid.
+2. **TOC** (`<nav class="toc">`) — static top-level anchors. No "Tabular information" entry: this artefact has no standalone tables section; per-journey swimlane tables remain embedded inside their journey-card under Diagrams.
+3. **Diagrams** (`id="diagrams"`) — `{{JOURNEY_CARDS}}` (one card per journey: header, SVG emotion curve, swimlane table, footer).
+4. **Diagnostics** (`id="diagnostics"`) — `<details class="diagnostics-toggle">`, collapsed by default. Bottom of the page; position alone signals auxiliary.
+
+Section order lives in `framework/assets/analyses/template-user-journeys.html`, not in this analyser. The analyser emits the same placeholder blocks regardless; the template decides where they land.
+
 ## Stand-alone-ish constraint
 
 This agent reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not read `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims.ndjson`, `requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, or any other agent's working state. The merged requirements document is the contract; everything else is pipeline-internal from the user-journeys lens's perspective.

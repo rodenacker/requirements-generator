@@ -6,6 +6,15 @@
   `<style>` + `<body>`). No external CSS/JS dependencies; viewable by opening
   `file://` in a browser; shareable with clients without tooling.
 
+  Section order (top-to-bottom):
+    1. Overview (id="overview")        — title, subtitle, meta-grid.
+    2. TOC (<nav class="toc">)         — static top-level anchors.
+    3. Diagrams (id="diagrams")        — {{ACTOR_INDEX}} + {{USE_CASE_CARDS}}
+       inside the `.layout` two-column grid.
+    4. Tabular information (id="tables") — {{UC_INDEX_TABLE}}.
+    5. Diagnostics (id="diagnostics")  — <details> wrapper, collapsed
+       by default. Bottom of page; position alone signals auxiliary.
+
   Layout: one `<section class="uc-level-block">` per sea-level (summary →
   user-goal → subfunction). Inside each block, UCs render as
   `<article class="uc-card">` in a CSS Grid
@@ -879,6 +888,40 @@
     footer .provenance { vertical-align: -1px; }
     footer .credit { margin-top: 6px; text-align: right; }
 
+    /* ------- table of contents ------- */
+
+    .toc {
+      margin: 0 0 24px 0;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .toc ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 18px;
+      counter-reset: toc-item;
+    }
+    .toc li { counter-increment: toc-item; }
+    .toc li::before {
+      content: counter(toc-item) ". ";
+      color: var(--muted);
+      margin-right: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .toc a {
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--border-strong);
+    }
+    .toc a:hover { border-bottom-color: var(--fg); }
+
     @media print {
       body { background: #fff; }
       main { padding: 0; }
@@ -887,43 +930,55 @@
       .uc-grid { gap: 8px; }
       .uc-card { break-inside: avoid; box-shadow: none; }
       .uc-level-block { break-inside: avoid-page; }
+      .toc { display: none; }
     }
   </style>
 </head>
 <body>
   <main>
-    <h1>{{TITLE}}</h1>
-    <p class="subtitle">Use Cases map — one card per UC (title · primary actor · level · conditions · main scenario · extensions). Grouped by sea-level.</p>
+    <section id="overview">
+      <h1>{{TITLE}}</h1>
+      <p class="subtitle">Use Cases map — one card per UC (title · primary actor · level · conditions · main scenario · extensions). Grouped by sea-level.</p>
 
-    <dl class="meta-grid">
-      <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
-      <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
-      <div><dt>Source SHA-256</dt><dd>{{REQUIREMENTS_SHA256}}</dd></div>
-      <div><dt>Use Cases</dt><dd>{{UC_COUNT}}</dd></div>
-      <div><dt>Primary Actors</dt><dd>{{ACTOR_COUNT}}</dd></div>
-      <div><dt>Summary</dt><dd>{{LEVEL_SUMMARY_COUNT}}</dd></div>
-      <div><dt>User-Goal</dt><dd>{{LEVEL_USER_GOAL_COUNT}}</dd></div>
-      <div><dt>Subfunction</dt><dd>{{LEVEL_SUBFUNCTION_COUNT}}</dd></div>
-      <div><dt>Extensions</dt><dd>{{EXTENSION_COUNT}}</dd></div>
-    </dl>
-
-    <details class="diagnostics-toggle">
-      <summary>Diagnostics</summary>
-      {{DIAGNOSTICS_BLOCK}}
-    </details>
-
-    <section class="uc-index-wrap" aria-label="Use case index">
-      <h2>Use Case Index</h2>
-      <p class="index-caption">Every UC at a glance. Click any UC ID to jump to the card. Grouped visually by level (summary first, user-goal block, subfunction last).</p>
-      {{UC_INDEX_TABLE}}
+      <dl class="meta-grid">
+        <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+        <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+        <div><dt>Source SHA-256</dt><dd>{{REQUIREMENTS_SHA256}}</dd></div>
+        <div><dt>Use Cases</dt><dd>{{UC_COUNT}}</dd></div>
+        <div><dt>Primary Actors</dt><dd>{{ACTOR_COUNT}}</dd></div>
+        <div><dt>Summary</dt><dd>{{LEVEL_SUMMARY_COUNT}}</dd></div>
+        <div><dt>User-Goal</dt><dd>{{LEVEL_USER_GOAL_COUNT}}</dd></div>
+        <div><dt>Subfunction</dt><dd>{{LEVEL_SUBFUNCTION_COUNT}}</dd></div>
+        <div><dt>Extensions</dt><dd>{{EXTENSION_COUNT}}</dd></div>
+      </dl>
     </section>
 
-    <div class="layout">
+    <nav class="toc" aria-label="Sections">
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#diagrams">Diagrams</a></li>
+        <li><a href="#tables">Tabular information</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+      </ol>
+    </nav>
+
+    <div id="diagrams" class="layout">
       {{ACTOR_INDEX}}
       <section class="uc-board" aria-label="Use Cases map">
         {{USE_CASE_CARDS}}
       </section>
     </div>
+
+    <section id="tables" class="uc-index-wrap" aria-label="Use case index">
+      <h2>Use Case Index</h2>
+      <p class="index-caption">Every UC at a glance. Click any UC ID to jump to the card. Grouped visually by level (summary first, user-goal block, subfunction last).</p>
+      {{UC_INDEX_TABLE}}
+    </section>
+
+    <details id="diagnostics" class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
 
     <footer>
       <div class="legend">

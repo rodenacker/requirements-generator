@@ -10,6 +10,17 @@
   via CSS Grid (`repeat(auto-fit, minmax(240px, 1fr))`). Columns auto-wrap to
   the next row on narrow viewports; no horizontal scroll, no JS.
 
+  Section order (top-to-bottom):
+    1. Overview (id="overview")        — title, subtitle, meta-grid.
+    2. TOC (<nav class="toc">)         — static top-level anchors.
+    3. Diagrams (id="diagrams")        — {{OBJECT_COLUMNS}} inside the
+       sticky-note `.object-board`.
+    4. Tabular information (id="tables") — {{REL_MATRIX_BLOCK}}: the
+       relationship matrix. Previously embedded inside diagnostics; now
+       its own section so the canonical table-bucket is non-empty.
+    5. Diagnostics (id="diagnostics")  — <details> wrapper, collapsed
+       by default. Bottom of page; position alone signals auxiliary.
+
   Placeholders the analyser substitutes (string substitution, all values
   pre-escaped for HTML):
 
@@ -23,8 +34,12 @@
     {{ATTRIBUTE_COUNT}}        — total attributes across all objects
     {{CCP_COUNT}}              — total CCP-marked attributes
     {{DIAGNOSTICS_BLOCK}}      — pre-rendered HTML block per DIAGNOSTICS SCHEMA below.
+                                 Diagnostics no longer contains the rel-matrix;
+                                 it has been promoted to its own placeholder.
     {{OBJECT_COLUMNS}}         — pre-rendered <section class="object-column">
                                  blocks per the OBJECT COLUMN SCHEMA below.
+    {{REL_MATRIX_BLOCK}}       — pre-rendered <section class="rel-matrix-block">
+                                 per REL MATRIX SCHEMA below.
 
   Output: analyses/OOUX/ooux-object-map.html.
 
@@ -83,15 +98,25 @@
           <li class="check-pass|check-fail">Check 1 — Every Object has ≥1 CTA.</li>
           ... (all 7 checks listed in order)
         </ul>
+        <!-- Override-only: flagged-items <ul> per failed check. -->
+      </section>
+
+  REL MATRIX SCHEMA — the analyser's {{REL_MATRIX_BLOCK}} substitutes a
+  single <section class="rel-matrix-block"> containing the relationship matrix
+  (one row per recorded relationship, matrix-unique). Sits in its own
+  "Tabular information" section, not inside diagnostics.
+
+      <section class="rel-matrix-block">
+        <h2>Relationship matrix</h2>
+        <p>One row per recorded relationship across the object map.</p>
         <table class="rel-matrix">
           <thead>
             <tr><th>Source</th><th>Label</th><th>Target</th><th>Cardinality</th><th>Nested?</th></tr>
           </thead>
           <tbody>
-            <tr><td>...</td><td>...</td><td>...</td><td>1:N</td><td>yes|no</td></tr>
+            <tr><td>...</td><td>...</td><td>...</td><td>1:N</td><td class="nested-yes|nested-no">yes|no</td></tr>
           </tbody>
         </table>
-        <!-- Override-only: flagged-items <ul> per failed check. -->
       </section>
 
   CSS classes used by the analyser:
@@ -261,27 +286,80 @@
     .diagnostics .check-pass::before { content: "PASS "; color: var(--prov-domain); font-weight: 600; }
     .diagnostics .check-fail::before { content: "FAIL "; color: var(--rev-fg); font-weight: 600; }
 
-    .diagnostics table.rel-matrix {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 12px 0 0 0;
+    /* ------- relationship matrix (own section) ------- */
+
+    .rel-matrix-block {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    .rel-matrix-block h2 {
+      font-size: 16px;
+      margin: 0 0 8px 0;
+    }
+    .rel-matrix-block > p {
+      margin: 0 0 12px 0;
+      color: var(--muted);
       font-size: 12px;
     }
-    .diagnostics table.rel-matrix th,
-    .diagnostics table.rel-matrix td {
+    table.rel-matrix {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0;
+      font-size: 12px;
+    }
+    table.rel-matrix th,
+    table.rel-matrix td {
       padding: 6px 8px;
       border-top: 1px solid var(--border);
       text-align: left;
       vertical-align: top;
     }
-    .diagnostics table.rel-matrix thead th {
+    table.rel-matrix thead th {
       background: var(--header-bg);
       font-weight: 600;
       border-top: none;
       border-bottom: 2px solid var(--border-strong);
     }
-    .diagnostics table.rel-matrix td.nested-yes { color: var(--nested-fg); font-weight: 600; }
-    .diagnostics table.rel-matrix td.nested-no  { color: var(--muted); }
+    table.rel-matrix td.nested-yes { color: var(--nested-fg); font-weight: 600; }
+    table.rel-matrix td.nested-no  { color: var(--muted); }
+
+    /* ------- table of contents ------- */
+
+    .toc {
+      margin: 0 0 24px 0;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .toc ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 18px;
+      counter-reset: toc-item;
+    }
+    .toc li { counter-increment: toc-item; }
+    .toc li::before {
+      content: counter(toc-item) ". ";
+      color: var(--muted);
+      margin-right: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .toc a {
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--border-strong);
+    }
+    .toc a:hover { border-bottom-color: var(--fg); }
 
     /* ------- column-board layout ------- */
 
@@ -469,33 +547,51 @@
       .object-board { gap: 8px; }
       .object-column { break-inside: avoid; }
       .sticky { box-shadow: none; }
+      .toc { display: none; }
+      details.diagnostics-toggle { display: none; }
+      .rel-matrix-block { break-inside: avoid; }
     }
   </style>
 </head>
 <body>
   <main>
-    <h1>{{TITLE}}</h1>
-    <p class="subtitle">OOUX object map — sticky-board (one column per object: CTAs · Object · Core content · Metadata · Nested refs).</p>
+    <section id="overview">
+      <h1>{{TITLE}}</h1>
+      <p class="subtitle">OOUX object map — sticky-board (one column per object: CTAs · Object · Core content · Metadata · Nested refs).</p>
 
-    <dl class="meta-grid">
-      <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
-      <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
-      <div><dt>Source SHA-256</dt><dd>{{REQUIREMENTS_SHA256}}</dd></div>
-      <div><dt>Objects</dt><dd>{{OBJECT_COUNT}}</dd></div>
-      <div><dt>Relationships</dt><dd>{{RELATIONSHIP_COUNT}}</dd></div>
-      <div><dt>CTAs</dt><dd>{{CTA_COUNT}}</dd></div>
-      <div><dt>Attributes</dt><dd>{{ATTRIBUTE_COUNT}}</dd></div>
-      <div><dt>CCPs</dt><dd>{{CCP_COUNT}}</dd></div>
-    </dl>
+      <dl class="meta-grid">
+        <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+        <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+        <div><dt>Source SHA-256</dt><dd>{{REQUIREMENTS_SHA256}}</dd></div>
+        <div><dt>Objects</dt><dd>{{OBJECT_COUNT}}</dd></div>
+        <div><dt>Relationships</dt><dd>{{RELATIONSHIP_COUNT}}</dd></div>
+        <div><dt>CTAs</dt><dd>{{CTA_COUNT}}</dd></div>
+        <div><dt>Attributes</dt><dd>{{ATTRIBUTE_COUNT}}</dd></div>
+        <div><dt>CCPs</dt><dd>{{CCP_COUNT}}</dd></div>
+      </dl>
+    </section>
 
-    <details class="diagnostics-toggle">
+    <nav class="toc" aria-label="Sections">
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#diagrams">Diagrams</a></li>
+        <li><a href="#tables">Tabular information</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+      </ol>
+    </nav>
+
+    <section id="diagrams" class="object-board" aria-label="OOUX object map">
+      {{OBJECT_COLUMNS}}
+    </section>
+
+    <section id="tables" aria-label="Tabular information">
+      {{REL_MATRIX_BLOCK}}
+    </section>
+
+    <details id="diagnostics" class="diagnostics-toggle">
       <summary>Diagnostics</summary>
       {{DIAGNOSTICS_BLOCK}}
     </details>
-
-    <section class="object-board" aria-label="OOUX object map">
-      {{OBJECT_COLUMNS}}
-    </section>
 
     <footer>
       <div class="legend">

@@ -17,6 +17,16 @@
   external CSS / JS dependencies; viewable by opening `file://` in a
   browser; shareable with clients without tooling.
 
+  Section order (top-to-bottom):
+    1. Overview (id="overview")        — title, subtitle, meta-grid.
+    2. TOC (<nav class="toc">)         — static top-level anchors.
+    3. Diagrams (id="diagrams")        — {{SVG_DIAGRAMS_BLOCK}} +
+       {{MERMAID_BLOCK}} (Mermaid source kept adjacent to its SVGs).
+    4. Tabular information (id="tables") — {{CATALOGUE_BLOCK}}
+       (Tier-1 catalogue tables).
+    5. Diagnostics (id="diagnostics")  — <details> wrapper, collapsed
+       by default. Bottom of page; position alone signals auxiliary.
+
   Placeholders the analyser substitutes (string substitution, all values
   pre-escaped for HTML; XML-escaped inside <svg><text> nodes):
 
@@ -789,6 +799,40 @@
     footer.bottom .legend-dot.s-ai        { background: var(--prov-ai-suggested); }
     footer.bottom .credit { margin-top: 6px; text-align: right; }
 
+    /* ------- table of contents ------- */
+
+    .toc {
+      margin: 0 0 24px 0;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .toc ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 18px;
+      counter-reset: toc-item;
+    }
+    .toc li { counter-increment: toc-item; }
+    .toc li::before {
+      content: counter(toc-item) ". ";
+      color: var(--muted);
+      margin-right: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .toc a {
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--border-strong);
+    }
+    .toc a:hover { border-bottom-color: var(--fg); }
+
     @media print {
       body { background: #fff; }
       main { padding: 0; }
@@ -801,36 +845,52 @@
       }
       details.diagnostics-toggle,
       details.mermaid-source { display: none; }
+      .toc { display: none; }
     }
   </style>
 </head>
 <body>
   <main>
-    <h1>{{TITLE}}</h1>
-    <p class="subtitle">UML 2.5 sequence-diagram catalogue (system-level fidelity) — scenarios, participants, messages, combined fragments — plus consultant-selected inline-SVG diagrams.</p>
+    <section id="overview">
+      <h1>{{TITLE}}</h1>
+      <p class="subtitle">UML 2.5 sequence-diagram catalogue (system-level fidelity) — scenarios, participants, messages, combined fragments — plus consultant-selected inline-SVG diagrams.</p>
 
-    <dl class="meta-grid">
-      <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
-      <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
-      <div><dt>Source SHA-256</dt><dd><code>{{REQUIREMENTS_SHA256}}</code></dd></div>
-      <div><dt>Scenarios</dt><dd>{{SCENARIO_COUNT}}</dd></div>
-      <div><dt>Participants</dt><dd>{{PARTICIPANT_COUNT}}</dd></div>
-      <div><dt>Messages</dt><dd>{{MESSAGE_COUNT}}</dd></div>
-      <div><dt>Fragments</dt><dd>{{FRAGMENT_COUNT}}</dd></div>
-      <div><dt>AI-suggested items</dt><dd>{{AI_SUGGESTED_COUNT}}</dd></div>
-      <div><dt>Diagrams rendered</dt><dd>{{SCENARIOS_RENDERED}}</dd></div>
-    </dl>
+      <dl class="meta-grid">
+        <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+        <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+        <div><dt>Source SHA-256</dt><dd><code>{{REQUIREMENTS_SHA256}}</code></dd></div>
+        <div><dt>Scenarios</dt><dd>{{SCENARIO_COUNT}}</dd></div>
+        <div><dt>Participants</dt><dd>{{PARTICIPANT_COUNT}}</dd></div>
+        <div><dt>Messages</dt><dd>{{MESSAGE_COUNT}}</dd></div>
+        <div><dt>Fragments</dt><dd>{{FRAGMENT_COUNT}}</dd></div>
+        <div><dt>AI-suggested items</dt><dd>{{AI_SUGGESTED_COUNT}}</dd></div>
+        <div><dt>Diagrams rendered</dt><dd>{{SCENARIOS_RENDERED}}</dd></div>
+      </dl>
+    </section>
 
-    <details class="diagnostics-toggle">
+    <nav class="toc" aria-label="Sections">
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#diagrams">Diagrams</a></li>
+        <li><a href="#tables">Tabular information</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+      </ol>
+    </nav>
+
+    <section id="diagrams" aria-label="Diagrams">
+      {{SVG_DIAGRAMS_BLOCK}}
+
+      {{MERMAID_BLOCK}}
+    </section>
+
+    <section id="tables" aria-label="Tabular information">
+      {{CATALOGUE_BLOCK}}
+    </section>
+
+    <details id="diagnostics" class="diagnostics-toggle">
       <summary>Diagnostics</summary>
       {{DIAGNOSTICS_BLOCK}}
     </details>
-
-    {{CATALOGUE_BLOCK}}
-
-    {{SVG_DIAGRAMS_BLOCK}}
-
-    {{MERMAID_BLOCK}}
 
     <footer class="bottom">
       <div class="legend">
