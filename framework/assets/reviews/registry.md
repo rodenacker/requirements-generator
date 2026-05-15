@@ -12,6 +12,15 @@ methodologies:
     map_skill: null
     reviewer_agent: framework/agents/reviews/adversarial-reviewer.md
     character: framework/assets/characters/adversarial-review.md
+  - name: ten-ux-questions
+    status: mvp
+    description: 10 UX Questions — the most pressing unanswered questions an experienced UX designer would ask after reading requirements.md (priority — blocking / major / minor; final 10 selected from a candidate pool of up to 50; eight UX gap categories)
+    output_path: reviews/TEN-UX-QUESTIONS/ten-ux-questions-review.md
+    reference_asset: framework/assets/reviews/ten-ux-questions-reference.md
+    template_asset: framework/assets/reviews/template-ten-ux-questions.md
+    map_skill: null
+    reviewer_agent: framework/agents/reviews/ten-ux-questions-reviewer.md
+    character: framework/assets/characters/ten-ux-questions-review.md
   # Future — stub-only; no reviewer agent on disk. Promote by flipping status, populating
   # the remaining fields, and authoring the reviewer + reference + character + template.
   - { name: stakeholder-review, status: future }

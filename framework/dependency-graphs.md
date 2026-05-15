@@ -275,3 +275,107 @@ graph TD
 - `design-system-standards.md` references `framework/assets/template-design-spec.md` only as a passing comment ("document exceptions in the design-spec, not the design-system output") — not a load target. Not drawn as an edge.
 - Per the styler's stand-alone constraint, no edges reach `requirements/`, `framework/state/`, `prototype-scope.md`, `general-rules.md`, or `prototype-invariants.md` from the styler subtree. The orchestrator's narrow read exception for the step-0b preflight (read-only access to `requirements/`, `requirements/source-manifest.json`, `framework/state/.progress.json`) is captured by the `orch_ds → skill_bloat_ds → state_progress_ds` edges and a documented stand-alone-constraint clause in the orchestrator.
 - No cycles.
+
+---
+
+## review-orch.md
+
+```mermaid
+graph TD
+    classDef orch fill:#1f2937,color:#fff,stroke:#000,stroke-width:2px,font-weight:bold
+    classDef agent fill:#2563eb,color:#fff,stroke:#1e40af
+    classDef worker fill:#3b82f6,color:#fff,stroke:#1d4ed8,stroke-dasharray:3 3
+    classDef skill fill:#0d9488,color:#fff,stroke:#0f766e
+    classDef asset fill:#d97706,color:#fff,stroke:#92400e
+    classDef shared fill:#7c3aed,color:#fff,stroke:#5b21b6
+    classDef char fill:#db2777,color:#fff,stroke:#9d174d
+    classDef state fill:#525252,color:#fff,stroke:#262626
+
+    subgraph Orchestrator
+      orch_rv[review-orch.md]
+    end
+
+    subgraph Agents
+      agent_adv[adversarial-reviewer.md]
+      agent_uxq[ten-ux-questions-reviewer.md]
+    end
+
+    subgraph Workers
+      worker_adv_dim[adversarial-dimension-worker.md]
+    end
+
+    subgraph Skills
+      skill_revsel[review-selector.md]
+      skill_verifywrite_rv[verify-artifact-write.md]
+      skill_bloat_rv[check-context-bloat.md]
+    end
+
+    subgraph Assets
+      asset_registry_rv[reviews/registry.md]
+      asset_ref_adv[reviews/adversarial-reference.md]
+      asset_tmpl_adv[reviews/template-adversarial.md]
+      asset_ref_uxq[reviews/ten-ux-questions-reference.md]
+      asset_tmpl_uxq[reviews/template-ten-ux-questions.md]
+    end
+
+    subgraph Characters
+      char_adv[characters/adversarial-review.md]
+      char_uxq[characters/ten-ux-questions-review.md]
+    end
+
+    subgraph Shared
+      shared_refusal_rv[refusal-registry.md]
+      shared_genrules_rv[general-rules.md]
+      shared_protoinv_rv[prototype-invariants.md]
+      shared_protoscope_rv[prototype-scope.md]
+    end
+
+    subgraph State
+      state_progress_rv[state/.progress.json]
+    end
+
+    orch_rv --> skill_revsel
+    orch_rv --> skill_bloat_rv
+    orch_rv --> shared_refusal_rv
+    orch_rv --> agent_adv
+    orch_rv --> agent_uxq
+
+    skill_revsel --> asset_registry_rv
+    skill_bloat_rv --> shared_refusal_rv
+    skill_bloat_rv --> state_progress_rv
+    skill_verifywrite_rv --> shared_refusal_rv
+
+    agent_adv --> char_adv
+    agent_adv --> asset_ref_adv
+    agent_adv --> asset_tmpl_adv
+    agent_adv --> skill_verifywrite_rv
+    agent_adv --> worker_adv_dim
+
+    agent_uxq --> char_uxq
+    agent_uxq --> asset_ref_uxq
+    agent_uxq --> asset_tmpl_uxq
+    agent_uxq --> skill_verifywrite_rv
+    agent_uxq --> shared_genrules_rv
+    agent_uxq --> shared_protoinv_rv
+    agent_uxq --> shared_protoscope_rv
+
+    class orch_rv orch
+    class agent_adv,agent_uxq agent
+    class worker_adv_dim worker
+    class skill_revsel,skill_verifywrite_rv,skill_bloat_rv skill
+    class asset_registry_rv,asset_ref_adv,asset_tmpl_adv,asset_ref_uxq,asset_tmpl_uxq asset
+    class char_adv,char_uxq char
+    class shared_refusal_rv,shared_genrules_rv,shared_protoinv_rv,shared_protoscope_rv shared
+    class state_progress_rv state
+```
+
+**Stats:** 19 nodes / 22 edges / depth 3.
+
+**Notes:**
+- The orchestrator is registry-driven: it does not know at design time which reviewer will run. The `skill_revsel → asset_registry_rv` edge is the discovery mechanism; `orch_rv → agent_*` edges represent the runtime invocation paths once the consultant has selected a methodology. Adding a new MVP reviewer requires adding a new agent node (plus its character / reference / template asset nodes) and an `orch_rv → agent_new` edge — no orchestrator file edit is required.
+- The adversarial reviewer fans out eight non-interactive read-only dimension workers per `adversarial-dimension-worker.md` at its Step 3; this is the only sub-agent dispatch under the `/review` pipeline. The worker node is drawn with a dashed border to indicate it is a parallel sub-agent rather than an orchestrator-invoked agent. The ten-ux-questions reviewer is single-pass and dispatches no workers.
+- The ten-ux-questions reviewer reads three shared-policy files (`general-rules.md`, `prototype-invariants.md`, `prototype-scope.md`) at its Step 4 as filter sources only — the agent drops candidate questions whose topics are already deterministically answered by an active `GR-NN` or `PI-NN`, or are out of scope per `prototype-scope.md`. These three edges are unique to this reviewer; the adversarial reviewer does not read shared-policy files because its task is defect-citation in present content, not gap-filtering against deterministic defaults.
+- `check-context-bloat.md` is shared across all three orchestrators (`requirements-orch.md`, `design-system-orch.md`, `review-orch.md`); the review-orch caller passes `requirements/` as `artefact_dir` because prior `/requirements` state on disk is the meaningful proxy for in-conversation bloat against the reviewer.
+- `state/.progress.json` is read (existence + at-least-one-`completed`-event check) by `check-context-bloat.md` from the review orchestrator; the review orchestrator never writes to it, consistent with the no-write-outside-`reviews/` invariant.
+- Per each reviewer's stand-alone constraint, no edges reach `requirements/` (except `requirements/requirements.md` itself, which is the read target — implicit, not drawn), `analyses/`, `design-system/`, or `framework/state/` from the reviewer subtrees. The shared-policy edges from `agent_uxq` are the documented Step-4 filter-source exception.
+- No cycles.
