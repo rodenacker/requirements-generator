@@ -66,7 +66,15 @@ methodologies:
   - { name: thematic-analysis, status: future }
   - { name: opportunity-solution-trees, status: future }
   - { name: storytelling-narrative-synthesis, status: future }
-  - { name: five-whys, status: future }
+  - name: five-whys
+    status: mvp
+    description: Five Whys justification analysis (Toyota Production System root-cause technique, applied to requirement justification) — auto-extract the 5 highest-priority candidate requirements for rationale analysis from §6 (scored by Five-Whys-fitness category match — business goal / operational capability / workflow constraint / policy-driven behaviour — plus §5 task-flow anchors, §4 user-goal anchors, modal strength, and an implementation-detail penalty), allow the consultant to add their own (anchored back to the requirements doc), then drill each selected requirement's why-chain down to the underlying user goal, business driver, or external mandate. Chains terminate at the Justification Sufficiency Test (an axiomatic / immutable driver) or when source material is exhausted (marked INCOMPLETE), never padded. Choose this option to interrogate why each requirement exists before designing features against it — thin-justification chains signal requirements that may need consultant interview. Output: markdown.
+    output_path: analyses/FIVE-WHYS/five-whys.md
+    reference_asset: framework/assets/analyses/five-whys-reference.md
+    template_asset: null
+    map_skill: framework/skills/map-five-whys-to-ui.md
+    analyser_agent: framework/agents/analyses/five-whys-analyser.md
+    character: framework/assets/characters/five-whys-analysis.md
   - { name: double-diamond, status: future }
   - { name: card-sorting, status: future }
   - { name: highest-value-paths, status: future }
