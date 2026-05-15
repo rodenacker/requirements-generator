@@ -3,80 +3,110 @@
 ## Contents
 
 - [1. Overview](#1-overview)
-- [2. Commands](#2-commands)
-    - [2.1 `/requirements`](#21-requirements)
-        - [2.1.1 Inputs](#211-inputs)
-        - [2.1.2 Draft](#212-draft)
-        - [2.1.3 Q&A](#213-qa)
-        - [2.1.4 Final doc](#214-final-doc)
-    - [2.2 `/design-system`](#22-design-system)
-        - [2.2.1 Inputs](#221-inputs)
-        - [2.2.2 Doc](#222-doc)
-- [3. Dependencies](#3-dependencies)
-    - [3.1 Claude Code](#31-claude-code)
-    - [3.2 VS Code](#32-vs-code)
-        - [3.2.1 Claude Code extension](#321-claude-code-extension)
-    - [3.3 Node.js](#33-nodejs)
-    - [3.4 Python](#34-python)
-    - [3.5 git](#35-git)
-    - [3.6 markitdown (requirements)](#36-markitdown-requirements)
-    - [3.7 playwright (design system)](#37-playwright-design-system)
+- [2. When to use which command](#2-when-to-use-which-command)
+- [3. Commands](#3-commands)
+    - [3.1 `/start`](#31-start)
+    - [3.2 `/requirements`](#32-requirements)
+        - [3.2.1 How it works](#321-how-it-works)
+        - [3.2.2 What you get](#322-what-you-get)
+    - [3.3 `/design-system`](#33-design-system)
+        - [3.3.1 How it works](#331-how-it-works)
+        - [3.3.2 What you get](#332-what-you-get)
+    - [3.4 `/analyse`](#34-analyse)
+        - [3.4.1 How it works](#341-how-it-works)
+        - [3.4.2 Choose this when…](#342-choose-this-when)
+        - [3.4.3 What you get](#343-what-you-get)
+    - [3.5 `/review`](#35-review)
+        - [3.5.1 How it works](#351-how-it-works)
+        - [3.5.2 Choose this when…](#352-choose-this-when)
+        - [3.5.3 What you get](#353-what-you-get)
+- [4. Setup](#4-setup)
+    - [4.1 First-time install (one-off)](#41-first-time-install-one-off)
+    - [4.2 To handle Word, Excel, PowerPoint, and PDF inputs](#42-to-handle-word-excel-powerpoint-and-pdf-inputs)
+    - [4.3 To extract design tokens from a reference URL](#43-to-extract-design-tokens-from-a-reference-url)
 
 ## 1. Overview
 
-Two consultant-driven pipelines that turn loose client material into structured artefacts, each invoked via a slash command in Claude Code:
+A Claude Code workspace for consultants and business analysts. Drop the client material you've been given into the workspace, run a slash command, and get back the documents you actually need to hand off:
 
-- **`/requirements`** — turns briefs, decks, screenshots, diagrams, spreadsheets, or PDFs into a structured `requirements/requirements.md`.
-- **`/design-system`** — stand-alone styler. Given a domain (free-text) and an optional reference URL, it extracts brand tokens from the URL's CSS and writes `design-system/design-system.md`.
+- a structured requirements spec for the client,
+- a brand-token brief for the designer,
+- deeper models of what the spec **already contains** (object maps, data models, sequence and state diagrams, user journeys…),
+- and critiques that surface what the spec is still **missing**.
 
-## 2. Commands
+The five commands:
 
-### 2.1 `/requirements`
+- **`/start`** — pick which command to run.
+- **`/requirements`** — turn the loose pile of briefs, decks, screenshots, spreadsheets and PDFs the client gave you into a clean, structured `requirements.md`.
+- **`/design-system`** — get a complete brand-token brief (colours, typography, effects) for a designer, optionally extracted from a reference URL.
+- **`/analyse`** — go **deeper into what the requirements already contain** by re-expressing them through a chosen lens — object map, jobs-to-be-done, use cases, data model, sequence diagram, state diagram, activity diagram, or user journeys.
+- **`/review`** — **find what's missing or wrong** in your requirements doc so you can fix it before handoff — a strict adversarial critique, the ten most pressing BA questions, or the ten most pressing UX questions.
 
-Run from the repo root inside Claude Code: `/requirements`.
+`/analyse` and `/review` both read `requirements/requirements.md` — run `/requirements` first. `/start`, `/requirements`, and `/design-system` are stand-alone.
+
+## 2. When to use which command
+
+| You're at this moment in the engagement… | Run this | Why |
+| --- | --- | --- |
+| Client just sent you a pile of attachments and asked for a spec | `/requirements` | Turns the inputs into a structured doc you can iterate. |
+| Designer is waiting on a brand brief | `/design-system` | One run produces a complete colour + typography + effects brief. |
+| About to brief a developer on data structure | `/analyse` → `data-model` | Surfaces the entities, fields, and relationships already implied by the spec. |
+| About to brief a designer on screens and navigation | `/analyse` → `ooux` or `use-cases` | Surfaces the objects + CTAs, or the actor goals + flows. |
+| You sense something is missing in the spec but can't articulate it | `/review` → `ten-ba-questions` or `ten-ux-questions` | Surfaces the unasked questions in the consultant's blind spot. |
+| You need to defend the spec to a sceptical stakeholder | `/review` → `adversarial` | Strict critique with a Patch / Defer / Reject decision per finding. |
+
+## 3. Commands
+
+### 3.1 `/start`
+
+Run `/start` from inside Claude Code if you'd rather pick from a menu than remember command names. It lists the other commands with their one-liners and launches the one you select. There's no decision to support here — `/start` is just a dispatcher.
+
+### 3.2 `/requirements`
+
+Turn the loose pile of client material into a clean, structured requirements spec. Run when the client has just sent you their inputs and you need a doc you can iterate on.
+
+#### 3.2.1 How it works
+
+Drop the files into `input/` first. Supported file types:
+
+- **Read directly:** `.md`, `.txt`, `.drawio`, `.yml`, `.yaml`, `.xml`.
+- **Read by vision:** `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp` (screenshots, photos, sketches).
+- **Converted first, then read:** `.docx`, `.xlsx`, `.pptx`, `.pdf` — requires the markitdown setup (see §4.2).
+- **Logged but not read:** anything else. You'll see it listed so you know it didn't slip through silently.
+
+Then run `/requirements`:
 
 ```mermaid
 flowchart LR
-    A[Drop client docs in input/] --> B[input-handler<br/>build source-manifest.json]
-    B --> C[drafter<br/>requirements-draft.md]
-    C --> D{Consultant<br/>accepts draft?}
-    D -- no --> C
-    D -- yes --> E[resolver<br/>Q&A on AI-SUGGESTED items]
-    E --> F[consultant-answers.md]
-    F --> G[merger<br/>requirements.md]
-    G --> H{Consultant<br/>accepts merged?}
-    H -- no --> G
-    H -- yes --> I([Done])
+    A[Drop client docs in input/] --> B[Read & catalogue<br/>the inputs]
+    B --> C[Draft the spec]
+    C --> D{You accept<br/>the draft?}
+    D -- revise --> C
+    D -- yes --> E[Q&A on items the system<br/>couldn't fill in]
+    E --> F[Merge into<br/>final requirements.md]
+    F --> G{You accept<br/>the merged doc?}
+    G -- revise --> F
+    G -- yes --> H([Done])
 ```
 
-#### 2.1.1 Inputs
+You stay in the loop throughout: the draft asks for your acceptance before moving on, the Q&A asks one short question per item the system couldn't confidently fill in from your inputs (answer, override, or skip in bulk), and the merged doc asks for your acceptance one last time.
 
-Drop everything to be processed into `input/` before invoking the command. Supported tiers:
+#### 3.2.2 What you get
 
-- **Native-text** — `.md`, `.txt`, `.drawio`, `.yml`, `.yaml`, `.xml`. Read directly.
-- **Native-multimodal** — `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`. Read via Claude's vision.
-- **Supported-via-MCP** — `.docx`, `.xlsx`, `.pptx`, `.pdf`. Converted to a sibling `*.converted.md` by markitdown before reading.
-- **Unsupported** — anything else. Recorded in the source manifest but not read.
+A clean, merged **`requirements/requirements.md`** — the structured spec you'll hand to the client. Every item is either traceable to something you provided or to a domain-default rule the framework applies (e.g. accessibility, security, error-handling); items the system couldn't confidently fill in are resolved through the Q&A so the final doc reads as a clean, signed-off spec.
 
-`input/` may be empty — the orchestrator surfaces a one-message wait so you can add files before continuing.
+Re-running `/requirements` later notices the prior run and offers two choices: **continue** (pick up where you left off) or **start fresh** (the prior run is safely committed to git first, then the generated files are wiped so you can begin again with no risk of losing earlier work).
 
-#### 2.1.2 Draft
+### 3.3 `/design-system`
 
-The drafter reads the source manifest and produces `requirements/requirements-draft.md`, a long structured first cut. Items it could not fill from the inputs are flagged inline as `[AI-SUGGESTED: AI-NNN]` with a candidate value to confirm, correct, or drop. The pipeline does not advance until you accept the draft.
+Get a brand-token brief for a designer in one run. Useful when the designer is blocked waiting on visual direction — colours, typography, effects — and you need to send them something concrete today.
 
-#### 2.1.3 Q&A
+#### 3.3.1 How it works
 
-The resolver walks each `[AI-SUGGESTED]` item, asking one sharp in-thread question. You can answer, follow up, or **accept all remaining suggestions** in bulk to fast-forward. Every answer is logged to `requirements/consultant-answers.md`.
+Two questions when you launch:
 
-#### 2.1.4 Final doc
-
-The merger combines the draft and Q&A answers into `requirements/requirements.md` — the merged, `[AI-SUGGESTED]`-free document. On acceptance, the pipeline marks itself complete in `framework/state/.progress.json`.
-
-Re-invoking `/requirements` later detects prior progress and offers `continue` (resume from the first incomplete agent) or `start-fresh` (git-checkpoint the prior run, then wipe the four generated artefacts).
-
-### 2.2 `/design-system`
-
-Run from the repo root inside Claude Code: `/design-system`. Stand-alone — no `input/` files needed.
+1. **Domain** (required, free text). For example `retail-banking`, `loan-origination-portal`, `pet-grooming-marketplace`, `internal HR portal`. The framework infers a coherent token set per-run from this string — no fixed lookup table.
+2. **Reference URL** (optional). If you provide one, a real browser opens at desktop size, navigates to the URL, and extracts the actual colours, typography, and effects from the live CSS. If you don't, every token is inferred from the domain string alone.
 
 ```mermaid
 flowchart LR
@@ -91,73 +121,144 @@ flowchart LR
     G -- accept --> H([Done])
 ```
 
-#### 2.2.1 Inputs
+If a prior `design-system.md` already exists, you'll be asked whether to **overwrite** (the old one is safely committed to git first), **keep** it, or **cancel**.
 
-Two in-thread questions:
+#### 3.3.2 What you get
 
-1. **Domain** (required, free text) — e.g. `retail-banking`, `pet-grooming-marketplace`, `internal HR portal`. No picklist. The styler always infers a coherent token set per-run from this string via `framework/agents/design-system-styler/prompt-templates/domain-inference.md` — no curated lookup table.
-2. **Reference URL** (optional). Given a URL, the styler resizes a Playwright browser to 1440×900, navigates, settles, and extracts colours, typography, and effects from aggregated stylesheets and computed `:root`. Without one, every token is inferred per-run from the domain.
+A single brand brief at **`design-system/design-system.md`** — a complete palette of colour, typography, and effect tokens you can hand a designer as-is. Every token is annotated with where it came from: either _extracted from the reference URL_ or _inferred from the domain string_. The designer can see at a glance which decisions are evidence-based and which are sensible defaults you'd want them to validate.
 
-If `design-system/design-system.md` already exists, the orchestrator first prompts `Overwrite` / `Keep` / `Cancel`. `Overwrite` git-checkpoints the prior artefact before deletion.
+The doc also includes a machine-readable token section, so if a downstream tool consumes the brief programmatically (Figma plugin, CSS generator, etc.), the values are already in a structured form.
 
-#### 2.2.2 Doc
+### 3.4 `/analyse`
 
-The styler writes `design-system/design-system.md` covering 11 colour tokens, 15 typography tokens, and 7 effect tokens. The artefact contains:
+Go **deeper into what your requirements doc already contains**. Pick an analytical lens (object map, data model, user journeys, etc.) and the framework re-expresses your `requirements.md` through that lens as a stand-alone artefact you can share with a designer or developer.
 
-- Frontmatter with provenance metadata (`domain`, `extraction_status`, `extraction_method`).
-- A human-readable Extraction Summary with Source Context and Provenance per token. Every token is marked `extracted-from-url` or `inferred-from-domain` — no third marker.
-- Machine-readable Brand sections with the resolved token values.
+Use it when you have a working requirements doc but want a sharper view of one specific dimension — _what records exist_, _what users are trying to get done_, _how the system parts talk to each other_, _what the lifecycle of an application looks like_.
 
-Review in the in-thread accept/revise/restart loop. `Accept` marks done.
+#### 3.4.1 How it works
 
-## 3. Dependencies
+`/analyse` requires `requirements/requirements.md` to exist. After the prerequisite check, it shows you the available methodologies, you pick one, and the chosen analysis runs interactively and asks for your acceptance before saving.
 
-Install once on the consultant's workstation. Versions below are floors — newer is fine.
+```mermaid
+flowchart LR
+    A[Prerequisite check<br/>requirements.md exists] --> B[Show methodology list<br/>you pick one]
+    B --> C{Prior artefact<br/>for this methodology?}
+    C -- yes --> D[Overwrite / Keep / Cancel]
+    C -- no --> E[Analysis runs]
+    D -- overwrite --> E
+    E --> F{You accept<br/>the result?}
+    F -- revise --> E
+    F -- accept --> G([Artefact at<br/>analyses/METHOD/...])
+```
 
-### 3.1 Claude Code
+`/analyse` never modifies your requirements doc — it only reads it.
 
-The harness everything runs under. Install from <https://claude.com/claude-code> and sign in. Slash commands (`/requirements`, `/design-system`) are picked up from `.claude/commands/` in this repo.
+#### 3.4.2 Choose this when…
 
-### 3.2 VS Code
+| If you want to see… | Pick | What it's called |
+| --- | --- | --- |
+| The **things** in your spec (customers, accounts, applications) and what users can do with each | `ooux` | _object map_ |
+| What **users are actually trying to get done** — their jobs and the outcomes they want | `jtbd` | _jobs-to-be-done_ |
+| **Each user's goals** and the step-by-step flows they take to reach them | `use-cases` | _use cases_ |
+| The **data structure** — what records exist, what fields they have, how they relate, plus optional ERDs | `data-model` | _logical data model_ |
+| **How the parts of the system talk** to each other across a scenario (front-end ↔ back-end ↔ external services) | `sequence-diagram` | _UML sequence diagram_ |
+| The **lifecycle of a record** — what statuses it moves through and what triggers each transition | `state-diagram` | _UML state diagram_ |
+| A **multi-actor process flow** with branches, parallel paths, and who does what | `activity-diagram` | _UML activity diagram_ |
+| The **user's experience phases** with pain-points and opportunities at each step | `user-journeys` | _user journey map_ |
 
-Editor used while a pipeline runs. Install from <https://code.visualstudio.com/>.
+#### 3.4.3 What you get
 
-#### 3.2.1 Claude Code extension
+One HTML artefact per run, saved under `analyses/<METHOD>/`. Open it in a browser — it's formatted to share directly with the designer or developer who needed the insight. Each run produces exactly one of these:
 
-Install the **Claude Code** extension from the VS Code Marketplace to launch Claude Code in a panel and run slash commands without leaving the editor.
+- `analyses/OOUX/ooux-object-map.html`
+- `analyses/JTBD/jtbd-job-map.html`
+- `analyses/USE-CASES/use-cases-map.html`
+- `analyses/DATA-MODEL/data-model.html`
+- `analyses/SEQUENCE-DIAGRAM/sequence-diagram.html`
+- `analyses/STATE-DIAGRAM/state-diagram.html`
+- `analyses/ACTIVITY-DIAGRAM/activity-diagram.html`
+- `analyses/USER-JOURNEYS/user-journeys-map.html`
 
-### 3.3 Node.js
+Pick another methodology to add another artefact alongside the first.
 
-Required by the Playwright MCP server (`/design-system`) for site fetching. Install Node.js LTS (20.x+) from <https://nodejs.org/>. Verify with `node --version`.
+### 3.5 `/review`
 
-### 3.4 Python
+**Find what's missing or wrong** in your requirements doc before you hand it over. Pick a review style and the framework critiques `requirements.md` for you, producing a punch-list you can act on.
 
-Required by the markitdown MCP server (`/requirements`) to convert Office and PDF inputs. Install Python 3.10+ from <https://www.python.org/>. Verify with `python --version`.
+Use it when the spec _feels_ close but you want a second pair of eyes — and especially before estimation, before briefing a designer or developer, or before walking a sceptical stakeholder through it.
 
-### 3.5 git
+#### 3.5.1 How it works
 
-Used by both orchestrators to checkpoint prior runs before a reset (`start-fresh` / `Overwrite`), so nothing is lost. Install from <https://git-scm.com/>. Verify with `git --version`.
+`/review` requires `requirements/requirements.md` to exist. After the prerequisite check, it shows you the available review styles, you pick one, and the chosen review runs interactively and asks for your acceptance before saving.
 
-### 3.6 markitdown (requirements)
+```mermaid
+flowchart LR
+    A[Prerequisite check<br/>requirements.md exists] --> B[Show review-style list<br/>you pick one]
+    B --> C{Prior artefact<br/>for this style?}
+    C -- yes --> D[Overwrite / Keep / Cancel]
+    C -- no --> E[Review runs]
+    D -- overwrite --> E
+    E --> F{You accept<br/>the result?}
+    F -- revise --> E
+    F -- accept --> G([Artefact at<br/>reviews/METHOD/...])
+```
 
-`markitdown-mcp` converts `.docx`, `.xlsx`, `.pptx`, and `.pdf` inputs into Markdown for the requirements pipeline. Install once:
+`/review` never modifies your requirements doc — it only reads it.
+
+#### 3.5.2 Choose this when…
+
+| If you want to see…                                                                                                            | Pick               |
+| ------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
+| The **stakeholder questions** the spec hasn't yet answered — questions an experienced BA would ask before design or estimation | `ten-ba-questions` |
+| The **design-blocking gaps** an experienced UX designer would flag before they start designing                                 | `ten-ux-questions` |
+| A **strict critique** of what's wrong, with a Patch / Defer / Reject decision per finding so you know what to do about each    | `adversarial`      |
+
+#### 3.5.3 What you get
+
+One markdown artefact per run, saved under `reviews/<METHOD>/`. Each run produces exactly one of:
+
+- `reviews/ADVERSARIAL/adversarial-review.md` — a strict critique structured by finding, with a Patch / Defer / Reject disposition for each.
+- `reviews/TEN-BA-QUESTIONS/ten-ba-questions-review.md` — the ten most pressing unanswered BA questions, each tagged blocking / major / minor so you know what to chase first.
+- `reviews/TEN-UX-QUESTIONS/ten-ux-questions-review.md` — the ten most pressing unanswered UX questions, same priority tagging.
+
+Treat the output as a punch-list: re-open `requirements/requirements.md`, fix the findings you accept, then re-run `/review` for a fresh pass if you want.
+
+## 4. Setup
+
+Install once on your workstation. Versions below are floors — newer is fine.
+
+### 4.1 First-time install (one-off)
+
+The three pieces every command needs:
+
+- **Claude Code** — the runtime everything runs under. Install from <https://claude.com/claude-code> and sign in. The slash commands are picked up automatically from `.claude/commands/` in this repo.
+- **VS Code + Claude Code extension** — your editor while a command is running. Install VS Code from <https://code.visualstudio.com/>, then add the **Claude Code** extension from the marketplace. The extension lets you launch Claude Code in a side panel and run slash commands without leaving the editor.
+- **git** — used to safely checkpoint a prior run before it gets reset (so nothing is ever lost). Install from <https://git-scm.com/>. Verify with `git --version`.
+
+### 4.2 To handle Word, Excel, PowerPoint, and PDF inputs
+
+Needed only for `/requirements` when your client sends Office or PDF files (typical). Install **Python 3.10+** (<https://www.python.org/>; verify with `python --version`), then install **markitdown**:
 
 ```
 pip install markitdown-mcp==0.0.1a4
 ```
 
-Restart Claude Code afterwards so the MCP server declared in `.mcp.json` loads. Setup verification and troubleshooting: `framework/shared/setup-instructions/markitdown.md`.
+Restart Claude Code afterwards so the converter picks up.
 
-Without markitdown, `/requirements` still runs on `.md`, `.txt`, `.drawio`, `.yml`, `.yaml`, `.xml`, and images. The input-handler surfaces a refusal (`RF-01 dependency_missing`) only when an Office or PDF input is actually present.
+Without it, `/requirements` still works on plain text, YAML/XML, .drawio diagrams, and images. It only stops if it actually encounters a `.docx`, `.xlsx`, `.pptx`, or `.pdf` in your inputs — and then it tells you exactly what to install and resumes after you do.
 
-### 3.7 playwright (design system)
+Setup notes and troubleshooting: `framework/shared/setup-instructions/markitdown.md`.
 
-The Playwright MCP server lets `/design-system` drive a real browser at desktop size, navigate to the reference URL, and extract computed styles plus aggregated stylesheets. Install once:
+### 4.3 To extract design tokens from a reference URL
+
+Needed only for `/design-system` when you want it to pull colours/typography from a live website (instead of inferring everything from the domain string). Install **Node.js 20+** (<https://nodejs.org/>; verify with `node --version`), then prime the browser-driver:
 
 ```
 npx -y @playwright/mcp@latest --help
 ```
 
-Restart Claude Code afterwards so the MCP server registers. Setup verification and troubleshooting: `framework/shared/setup-instructions/playwright.md`.
+Restart Claude Code afterwards so the browser driver registers.
 
-Without Playwright, supplying a reference URL surfaces `RF-06` and offers a `WebFetch` fallback at degraded fidelity, or a clean exit while you install. With no reference URL, every token is inferred per-run from the domain string and Playwright is not needed.
+Without it, `/design-system` still works — you just skip the reference URL when asked, and every token gets inferred from the domain string. If you do supply a URL without Playwright installed, the command offers a lower-fidelity web-fetch fallback or a clean exit while you install.
+
+Setup notes and troubleshooting: `framework/shared/setup-instructions/playwright.md`.
