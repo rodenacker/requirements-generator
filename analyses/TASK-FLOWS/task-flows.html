@@ -1,0 +1,1529 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Task Analysis &amp; Task Flows — Financial services / banking back-office</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --card-bg: #ffffff;
+      --header-bg: #efefef;
+      --row-alt: #fbfbfb;
+
+      --prov-task-flow:     #2a6aa0;
+      --prov-derived:       #b86a00;
+      --prov-ai-suggested:  #a02a6a;
+
+      --kind-goal-bg:       #e7f0fb; --kind-goal-fg:       #0c2a44;
+      --kind-subgoal-bg:    #eaf3ef; --kind-subgoal-fg:    #14422a;
+      --kind-operation-bg:  #fff5d6; --kind-operation-fg:  #4a3a00;
+
+      --plan-sequence-bg:    #e7f0fb; --plan-sequence-fg:    #0c2a44;
+      --plan-selection-bg:   #fff5d6; --plan-selection-fg:   #4a3a00;
+      --plan-iteration-bg:   #f3eafd; --plan-iteration-fg:   #2e1255;
+      --plan-concurrent-bg:  #eaf3ef; --plan-concurrent-fg:  #14422a;
+
+      --exit-abort-bg:       #ffeaea; --exit-abort-fg:       #8a1a1a;
+      --exit-escalate-bg:    #fff5d6; --exit-escalate-fg:    #4a3a00;
+      --exit-retry-bg:       #e7f0fb; --exit-retry-fg:       #0c2a44;
+      --exit-compensate-bg:  #f3eafd; --exit-compensate-fg:  #2e1255;
+
+      --ai-bg: #fdf3fa;
+      --rev-bg: #ffeaea; --rev-border: #d44a4a; --rev-fg: #8a1a1a;
+
+      --svg-hta-goal-fill:        #ffffff; --svg-hta-goal-stroke:        #1a1a1a;
+      --svg-hta-subgoal-fill:     #f3f7fc; --svg-hta-subgoal-stroke:     #2a6aa0;
+      --svg-hta-operation-fill:   #fffaeb; --svg-hta-operation-stroke:   #5a5a5a;
+      --svg-hta-edge:             #8a8a8a;
+      --svg-hta-label:            #1a1a1a;
+      --svg-plan-badge-seq-fill:  #e7f0fb; --svg-plan-badge-seq-fg:  #0c2a44;
+      --svg-plan-badge-sel-fill:  #fff5d6; --svg-plan-badge-sel-fg:  #4a3a00;
+      --svg-plan-badge-iter-fill: #f3eafd; --svg-plan-badge-iter-fg: #2e1255;
+      --svg-plan-badge-conc-fill: #eaf3ef; --svg-plan-badge-conc-fg: #14422a;
+
+      --svg-tfd-start-fill:        #eaf3ef; --svg-tfd-start-stroke:        #14422a;
+      --svg-tfd-step-fill:         #ffffff; --svg-tfd-step-stroke:         #2a6aa0;
+      --svg-tfd-decision-fill:     #fff5d6; --svg-tfd-decision-stroke:     #b86a00;
+      --svg-tfd-exit-success-fill: #eaf3ef; --svg-tfd-exit-success-stroke: #14422a;
+      --svg-tfd-exit-abort-fill:   #ffeaea; --svg-tfd-exit-abort-stroke:   #8a1a1a;
+      --svg-tfd-exit-escalate-fill:#fff5d6; --svg-tfd-exit-escalate-stroke:#b86a00;
+      --svg-tfd-exit-retry-fill:   #e7f0fb; --svg-tfd-exit-retry-stroke:   #2a6aa0;
+      --svg-tfd-exit-compensate-fill:#f3eafd;--svg-tfd-exit-compensate-stroke:#2e1255;
+      --svg-tfd-edge:              #2a2a2a;
+      --svg-tfd-edge-guard-bg:     #ffffff;
+      --svg-tfd-edge-guard-fg:     #b86a00;
+      --svg-tfd-label:             #1a1a1a;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px 0; }
+    h2 { font-size: 17px; font-weight: 600; margin: 0 0 12px 0; }
+    h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 0 24px 0;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      background: var(--row-alt);
+      padding: 1px 5px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px 24px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+    .meta-grid dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+    .meta-grid dd {
+      margin: 0 0 6px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    details.diagnostics-toggle { margin-bottom: 24px; }
+    details.diagnostics-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.diagnostics-toggle[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.diagnostics-toggle[open] > summary::before { transform: rotate(90deg); }
+
+    .diagnostics {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > .diagnostics {
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      margin-bottom: 0;
+    }
+    details.diagnostics-toggle > .diagnostics > h2 { display: none; }
+    .diagnostics > ul {
+      margin: 0 0 12px 0;
+      padding-left: 20px;
+    }
+    .diagnostics .check-pass::before { content: "PASS "; color: #2a8a2a; font-weight: 600; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--rev-fg); font-weight: 600; }
+    .diagnostics .density-warning {
+      padding: 8px 10px;
+      background: #fff5d6;
+      border-left: 3px solid #d97a1f;
+      border-radius: 3px;
+      margin: 8px 0;
+      font-size: 13px;
+    }
+    .diagnostics .density-warning.hidden { display: none; }
+    .diagnostics .flagged-items {
+      margin: 8px 0 0 0;
+      padding: 8px 10px;
+      background: var(--rev-bg);
+      border-left: 3px solid var(--rev-border);
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    .diagnostics .flagged-items strong { color: var(--rev-fg); }
+
+    .catalogue { margin-bottom: 32px; }
+    .catalogue > section {
+      margin-bottom: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+    }
+    .catalogue table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+    .catalogue thead th {
+      background: var(--header-bg);
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 2px solid var(--border-strong);
+      vertical-align: bottom;
+    }
+    .catalogue tbody td {
+      padding: 8px 10px;
+      border-top: 1px solid var(--border);
+      vertical-align: top;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    .catalogue tbody tr:nth-child(even) { background: var(--row-alt); }
+
+    .catalogue tbody tr.provenance-from-task-flow { box-shadow: inset 3px 0 0 0 var(--prov-task-flow); }
+    .catalogue tbody tr.provenance-derived         { box-shadow: inset 3px 0 0 0 var(--prov-derived); }
+    .catalogue tbody tr.provenance-ai-suggested    { box-shadow: inset 3px 0 0 0 var(--prov-ai-suggested); background: var(--ai-bg); }
+    .catalogue tbody tr.provenance-ai-suggested td { font-style: italic; }
+
+    .catalogue td.prov-cell {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .catalogue td.prov-cell::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: 1px;
+    }
+    tr.provenance-from-task-flow td.prov-cell::before { background: var(--prov-task-flow); }
+    tr.provenance-derived         td.prov-cell::before { background: var(--prov-derived); }
+    tr.provenance-ai-suggested    td.prov-cell::before { background: var(--prov-ai-suggested); }
+
+    .kind-goal, .kind-subgoal, .kind-operation,
+    .plan-type-sequence, .plan-type-selection, .plan-type-iteration, .plan-type-concurrent,
+    .exit-type-abort, .exit-type-escalate, .exit-type-retry, .exit-type-compensate {
+      display: inline-block;
+      padding: 1px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-radius: 3px;
+    }
+    .kind-goal       { background: var(--kind-goal-bg);      color: var(--kind-goal-fg); }
+    .kind-subgoal    { background: var(--kind-subgoal-bg);   color: var(--kind-subgoal-fg); }
+    .kind-operation  { background: var(--kind-operation-bg); color: var(--kind-operation-fg); }
+    .plan-type-sequence    { background: var(--plan-sequence-bg);   color: var(--plan-sequence-fg); }
+    .plan-type-selection   { background: var(--plan-selection-bg);  color: var(--plan-selection-fg); }
+    .plan-type-iteration   { background: var(--plan-iteration-bg);  color: var(--plan-iteration-fg); }
+    .plan-type-concurrent  { background: var(--plan-concurrent-bg); color: var(--plan-concurrent-fg); }
+    .exit-type-abort       { background: var(--exit-abort-bg);      color: var(--exit-abort-fg); }
+    .exit-type-escalate    { background: var(--exit-escalate-bg);   color: var(--exit-escalate-fg); }
+    .exit-type-retry       { background: var(--exit-retry-bg);      color: var(--exit-retry-fg); }
+    .exit-type-compensate  { background: var(--exit-compensate-bg); color: var(--exit-compensate-fg); }
+
+    .catalogue td.seq { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; text-align: right; width: 60px; }
+    .catalogue td.label { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; color: var(--prov-task-flow); }
+    .catalogue td.guard { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; font-style: italic; color: var(--prov-derived); }
+    .catalogue td.plan-text { font-size: 12px; color: var(--fg); }
+    .catalogue td.flow { font-size: 12px; color: var(--muted); }
+
+    .ai-suggested, td.ai-suggested {
+      background: var(--ai-bg);
+      font-style: italic;
+      color: var(--prov-ai-suggested);
+    }
+
+    .rev-marker, tr.rev-marker {
+      background: var(--rev-bg);
+      box-shadow: inset 3px 0 0 0 var(--rev-border);
+      color: var(--rev-fg);
+    }
+
+    .op-matrix-table td { text-align: center; font-size: 12px; }
+    .op-matrix-table td:first-child { text-align: left; }
+    .op-matrix-table td.matrix-cell-present { color: #2a8a2a; font-weight: 700; }
+    .op-matrix-table td.matrix-cell-absent  { color: var(--border); }
+    .op-matrix-table td.usage-count { font-variant-numeric: tabular-nums; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+    .hta-diagrams, .tfd-diagrams { margin-bottom: 32px; }
+    .diagrams-meta {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 0 0 12px 0;
+    }
+    .diagrams-empty {
+      padding: 16px;
+      background: var(--card-bg);
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-style: italic;
+      margin: 0;
+    }
+
+    .hta-tree, .tfd {
+      margin: 0 0 24px 0;
+      padding: 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .hta-tree figcaption, .tfd figcaption { margin: 0 0 12px 0; }
+    .hta-tree figcaption h3, .tfd figcaption h3 {
+      margin: 0;
+      font-size: 13px;
+      color: var(--fg);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .hta-tree figcaption .task-meta,
+    .tfd figcaption .task-meta {
+      margin: 4px 0 0 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .hta-tree svg, .tfd svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #fcfcfc;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+
+    .hta-tree svg .hta-goal       { fill: var(--svg-hta-goal-fill);       stroke: var(--svg-hta-goal-stroke);       stroke-width: 1.8; }
+    .hta-tree svg .hta-subgoal    { fill: var(--svg-hta-subgoal-fill);    stroke: var(--svg-hta-subgoal-stroke);    stroke-width: 1.3; }
+    .hta-tree svg .hta-operation  { fill: var(--svg-hta-operation-fill);  stroke: var(--svg-hta-operation-stroke);  stroke-width: 1.0; }
+    .hta-tree svg .hta-label      { fill: var(--svg-hta-label); font-size: 11px; text-anchor: middle; }
+    .hta-tree svg .hta-edge       { stroke: var(--svg-hta-edge); stroke-width: 1; fill: none; }
+    .hta-tree svg .plan-badge                  { stroke: none; }
+    .hta-tree svg .plan-badge.plan-badge-seq   { fill: var(--svg-plan-badge-seq-fill); }
+    .hta-tree svg .plan-badge.plan-badge-sel   { fill: var(--svg-plan-badge-sel-fill); }
+    .hta-tree svg .plan-badge.plan-badge-iter  { fill: var(--svg-plan-badge-iter-fill); }
+    .hta-tree svg .plan-badge.plan-badge-conc  { fill: var(--svg-plan-badge-conc-fill); }
+    .hta-tree svg .plan-badge-label            { font-size: 8px; font-weight: 700; letter-spacing: 0.05em; text-anchor: middle; }
+    .hta-tree svg .plan-badge-label.plan-badge-seq   { fill: var(--svg-plan-badge-seq-fg); }
+    .hta-tree svg .plan-badge-label.plan-badge-sel   { fill: var(--svg-plan-badge-sel-fg); }
+    .hta-tree svg .plan-badge-label.plan-badge-iter  { fill: var(--svg-plan-badge-iter-fg); }
+    .hta-tree svg .plan-badge-label.plan-badge-conc  { fill: var(--svg-plan-badge-conc-fg); }
+    .hta-tree svg .ai-suggested-node {
+      stroke-dasharray: 4 3;
+    }
+    .hta-tree svg .hta-label.ai-suggested-label {
+      font-style: italic;
+    }
+
+    .tfd svg .tfd-start                { fill: var(--svg-tfd-start-fill);        stroke: var(--svg-tfd-start-stroke);        stroke-width: 1.5; }
+    .tfd svg .tfd-step                 { fill: var(--svg-tfd-step-fill);         stroke: var(--svg-tfd-step-stroke);         stroke-width: 1.3; }
+    .tfd svg .tfd-decision             { fill: var(--svg-tfd-decision-fill);     stroke: var(--svg-tfd-decision-stroke);     stroke-width: 1.3; }
+    .tfd svg .tfd-exit-success         { fill: var(--svg-tfd-exit-success-fill); stroke: var(--svg-tfd-exit-success-stroke); stroke-width: 1.5; }
+    .tfd svg .tfd-exit-abort           { fill: var(--svg-tfd-exit-abort-fill);   stroke: var(--svg-tfd-exit-abort-stroke);   stroke-width: 1.5; }
+    .tfd svg .tfd-exit-escalate        { fill: var(--svg-tfd-exit-escalate-fill);stroke: var(--svg-tfd-exit-escalate-stroke);stroke-width: 1.5; }
+    .tfd svg .tfd-exit-retry           { fill: var(--svg-tfd-exit-retry-fill);   stroke: var(--svg-tfd-exit-retry-stroke);   stroke-width: 1.5; }
+    .tfd svg .tfd-exit-compensate      { fill: var(--svg-tfd-exit-compensate-fill); stroke: var(--svg-tfd-exit-compensate-stroke); stroke-width: 1.5; }
+    .tfd svg .tfd-step-label           { fill: var(--svg-tfd-label); font-size: 11px; text-anchor: middle; }
+    .tfd svg .tfd-edge                 { fill: none; stroke: var(--svg-tfd-edge); stroke-width: 1.3; }
+    .tfd svg .tfd-edge-guard           { fill: var(--svg-tfd-edge-guard-fg); font-size: 10px; font-style: italic; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .tfd svg .tfd-edge-guard-bg        { fill: var(--svg-tfd-edge-guard-bg); }
+
+    details.mermaid-source { margin-bottom: 24px; }
+    details.mermaid-source > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--prov-derived);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--fg);
+      list-style: none;
+      user-select: none;
+    }
+    details.mermaid-source > summary::-webkit-details-marker { display: none; }
+    details.mermaid-source > summary::before { content: "▶ "; font-size: 10px; color: var(--muted); }
+    details.mermaid-source[open] > summary::before { content: "▼ "; }
+    details.mermaid-source > pre {
+      margin: 0;
+      padding: 12px 16px;
+      background: var(--row-alt);
+      border: 1px solid var(--border);
+      border-top: none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    details.mermaid-source > pre + pre { border-top: 1px solid var(--border); }
+    details.mermaid-source > pre:last-of-type { border-radius: 0 0 6px 6px; }
+    details.mermaid-source .mermaid-caption {
+      color: var(--muted);
+      font-size: 11px;
+      padding: 4px 16px;
+      background: var(--row-alt);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      font-style: italic;
+    }
+
+    footer.bottom {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    footer.bottom .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    footer.bottom .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    footer.bottom .legend-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    footer.bottom .legend-dot.s-task-flow { background: var(--prov-task-flow); }
+    footer.bottom .legend-dot.s-derived   { background: var(--prov-derived); }
+    footer.bottom .legend-dot.s-ai        { background: var(--prov-ai-suggested); }
+    footer.bottom .credit { margin-top: 6px; text-align: right; }
+
+    .toc {
+      margin: 0 0 24px 0;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .toc ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 18px;
+      counter-reset: toc-item;
+    }
+    .toc li { counter-increment: toc-item; }
+    .toc li::before {
+      content: counter(toc-item) ". ";
+      color: var(--muted);
+      margin-right: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .toc a {
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--border-strong);
+    }
+    .toc a:hover { border-bottom-color: var(--fg); }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .catalogue > section,
+      .hta-tree, .tfd {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        border-radius: 0;
+        border-color: #000;
+      }
+      details.diagnostics-toggle,
+      details.mermaid-source { display: none; }
+      .toc { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section id="overview">
+      <h1>Task Analysis &amp; Task Flows — Financial services / banking back-office</h1>
+      <p class="subtitle">UX Task Analysis &amp; Task Flows — Hierarchical Task Analysis (Annett &amp; Duncan 1967; Stanton 2006) and Task-Flow Diagrams (NN/G; Hackos &amp; Redish 1998). Per-task catalogue (tasks, subgoals/operations, plans, decisions, exceptions) plus consultant-selected inline-SVG figures.</p>
+
+      <dl class="meta-grid">
+        <div><dt>Domain</dt><dd>Financial services / banking back-office</dd></div>
+        <div><dt>Generated</dt><dd>2026-05-15T11:05:00Z</dd></div>
+        <div><dt>Source SHA-256</dt><dd><code>6f9272bbb30d1dce025b843f5319e790bdaa5ac2a07103204bbea7144694f0ae</code></dd></div>
+        <div><dt>Tasks</dt><dd>8</dd></div>
+        <div><dt>Subgoals</dt><dd>3</dd></div>
+        <div><dt>Operations</dt><dd>39</dd></div>
+        <div><dt>Plans</dt><dd>11</dd></div>
+        <div><dt>Decision points</dt><dd>7</dd></div>
+        <div><dt>Exception paths</dt><dd>8</dd></div>
+        <div><dt>AI-suggested items</dt><dd>2</dd></div>
+        <div><dt>Diagrams rendered</dt><dd>Authentication, File Upload, File Log Overview, Transaction Table, Approve Transaction, Reject Transaction, Export Transactions</dd></div>
+      </dl>
+    </section>
+
+    <nav class="toc" aria-label="Sections">
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#diagrams">Diagrams</a></li>
+        <li><a href="#tables">Tabular information</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+      </ol>
+    </nav>
+
+    <section id="diagrams" aria-label="Diagrams">
+      <section class="hta-diagrams">
+        <h2>HTA trees</h2>
+        <p class="diagrams-meta">Tasks rendered: Authentication, File Upload, File Log Overview, Transaction Table, Approve Transaction, Reject Transaction, Export Transactions</p>
+
+        <figure class="hta-tree task-authentication">
+          <figcaption>
+            <h3>Authentication — HTA</h3>
+            <p class="task-meta"><code>T-1</code> — 0 subgoals, 4 operations, depth 2</p>
+          </figcaption>
+          <svg viewBox="0 0 680 200" role="img" aria-label="HTA tree for Authentication">
+            <rect class="hta-goal" x="270" y="20" width="140" height="40" rx="10"/>
+            <text class="hta-label" x="340" y="44">Authentication</text>
+            <rect class="plan-badge plan-badge-seq" x="380" y="14" width="30" height="14" rx="7"/>
+            <text class="plan-badge-label plan-badge-seq" x="395" y="24">SEQ</text>
+            <line class="hta-edge" x1="340" y1="60" x2="85"  y2="100"/>
+            <line class="hta-edge" x1="340" y1="60" x2="255" y2="100"/>
+            <line class="hta-edge" x1="340" y1="60" x2="425" y2="100"/>
+            <line class="hta-edge" x1="340" y1="60" x2="595" y2="100"/>
+            <rect class="hta-operation" x="15"  y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="85"  y="124">openLoginPage</text>
+            <rect class="hta-operation" x="185" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="255" y="124">submitCredentials</text>
+            <rect class="hta-operation" x="355" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="425" y="124">validateCredentials</text>
+            <rect class="hta-operation" x="525" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="595" y="124">routeToLandingPage</text>
+          </svg>
+        </figure>
+
+        <figure class="hta-tree task-file-upload">
+          <figcaption>
+            <h3>File Upload — HTA</h3>
+            <p class="task-meta"><code>T-2</code> — 1 subgoal, 7 operations, depth 3</p>
+          </figcaption>
+          <svg viewBox="0 0 850 280" role="img" aria-label="HTA tree for File Upload">
+            <rect class="hta-goal" x="355" y="20" width="140" height="40" rx="10"/>
+            <text class="hta-label" x="425" y="44">File Upload</text>
+            <rect class="plan-badge plan-badge-seq" x="465" y="14" width="30" height="14" rx="7"/>
+            <text class="plan-badge-label plan-badge-seq" x="480" y="24">SEQ</text>
+            <line class="hta-edge" x1="425" y1="60" x2="85"  y2="100"/>
+            <line class="hta-edge" x1="425" y1="60" x2="255" y2="100"/>
+            <line class="hta-edge" x1="425" y1="60" x2="425" y2="100"/>
+            <line class="hta-edge" x1="425" y1="60" x2="595" y2="100"/>
+            <line class="hta-edge" x1="425" y1="60" x2="765" y2="100"/>
+            <rect class="hta-operation" x="15"  y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="85"  y="124">selectFile</text>
+            <rect class="hta-subgoal" x="185" y="100" width="140" height="40" rx="8"/>
+            <text class="hta-label" x="255" y="124">Provide upload metadata</text>
+            <rect class="plan-badge plan-badge-seq ai-suggested-node" x="295" y="94" width="30" height="14" rx="7"/>
+            <text class="plan-badge-label plan-badge-seq" x="310" y="104">SEQ</text>
+            <rect class="hta-operation" x="355" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="425" y="124">submitUpload</text>
+            <rect class="hta-operation" x="525" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="595" y="124">createFileLog</text>
+            <rect class="hta-operation" x="695" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="765" y="124">displayStatus</text>
+            <line class="hta-edge" x1="255" y1="140" x2="105" y2="180"/>
+            <line class="hta-edge" x1="255" y1="140" x2="255" y2="180"/>
+            <line class="hta-edge" x1="255" y1="140" x2="405" y2="180"/>
+            <rect class="hta-operation" x="35"  y="180" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="105" y="204">provideFileSettingId</text>
+            <rect class="hta-operation" x="185" y="180" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="255" y="204">provideFileSettingName</text>
+            <rect class="hta-operation" x="335" y="180" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="405" y="204">provideFileName</text>
+          </svg>
+        </figure>
+
+        <figure class="hta-tree task-file-log-overview">
+          <figcaption>
+            <h3>File Log Overview — HTA</h3>
+            <p class="task-meta"><code>T-3</code> — 0 subgoals, 3 operations, depth 2</p>
+          </figcaption>
+          <svg viewBox="0 0 510 200" role="img" aria-label="HTA tree for File Log Overview">
+            <rect class="hta-goal" x="185" y="20" width="140" height="40" rx="10"/>
+            <text class="hta-label" x="255" y="44">File Log Overview</text>
+            <rect class="plan-badge plan-badge-sel" x="295" y="14" width="30" height="14" rx="7"/>
+            <text class="plan-badge-label plan-badge-sel" x="310" y="24">SEL</text>
+            <line class="hta-edge" x1="255" y1="60" x2="85"  y2="100"/>
+            <line class="hta-edge" x1="255" y1="60" x2="255" y2="100"/>
+            <line class="hta-edge" x1="255" y1="60" x2="425" y2="100"/>
+            <rect class="hta-operation" x="15"  y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="85"  y="124">openDashboard</text>
+            <rect class="hta-operation" x="185" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="255" y="124">viewFileList</text>
+            <rect class="hta-operation" x="355" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="425" y="124">drillIntoTransactions</text>
+          </svg>
+        </figure>
+
+        <figure class="hta-tree task-transaction-table">
+          <figcaption>
+            <h3>Transaction Table — HTA</h3>
+            <p class="task-meta"><code>T-4</code> — 0 subgoals, 4 operations, depth 2</p>
+          </figcaption>
+          <svg viewBox="0 0 680 200" role="img" aria-label="HTA tree for Transaction Table">
+            <rect class="hta-goal" x="270" y="20" width="140" height="40" rx="10"/>
+            <text class="hta-label" x="340" y="44">Transaction Table</text>
+            <rect class="plan-badge plan-badge-sel" x="380" y="14" width="30" height="14" rx="7"/>
+            <text class="plan-badge-label plan-badge-sel" x="395" y="24">SEL</text>
+            <line class="hta-edge" x1="340" y1="60" x2="85"  y2="100"/>
+            <line class="hta-edge" x1="340" y1="60" x2="255" y2="100"/>
+            <line class="hta-edge" x1="340" y1="60" x2="425" y2="100"/>
+            <line class="hta-edge" x1="340" y1="60" x2="595" y2="100"/>
+            <rect class="hta-operation" x="15"  y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="85"  y="124">openTable</text>
+            <rect class="hta-operation" x="185" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="255" y="124">browseColumns</text>
+            <rect class="hta-operation" x="355" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="425" y="124">applyFilters</text>
+            <rect class="hta-operation" x="525" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="595" y="124">useRowActions</text>
+          </svg>
+        </figure>
+
+        <figure class="hta-tree task-approve-transaction">
+          <figcaption>
+            <h3>Approve Transaction — HTA</h3>
+            <p class="task-meta"><code>T-6</code> — 0 subgoals, 4 operations, depth 2</p>
+          </figcaption>
+          <svg viewBox="0 0 680 200" role="img" aria-label="HTA tree for Approve Transaction">
+            <rect class="hta-goal" x="270" y="20" width="140" height="40" rx="10"/>
+            <text class="hta-label" x="340" y="44">Approve Transaction</text>
+            <rect class="plan-badge plan-badge-seq" x="380" y="14" width="30" height="14" rx="7"/>
+            <text class="plan-badge-label plan-badge-seq" x="395" y="24">SEQ</text>
+            <line class="hta-edge" x1="340" y1="60" x2="85"  y2="100"/>
+            <line class="hta-edge" x1="340" y1="60" x2="255" y2="100"/>
+            <line class="hta-edge" x1="340" y1="60" x2="425" y2="100"/>
+            <line class="hta-edge" x1="340" y1="60" x2="595" y2="100"/>
+            <rect class="hta-operation" x="15"  y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="85"  y="124">selectTransaction</text>
+            <rect class="hta-operation" x="185" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="255" y="124">clickApprove</text>
+            <rect class="hta-operation" x="355" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="425" y="124">confirmInModal</text>
+            <rect class="hta-operation" x="525" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="595" y="124">updateStatusApproved</text>
+          </svg>
+        </figure>
+
+        <figure class="hta-tree task-reject-transaction">
+          <figcaption>
+            <h3>Reject Transaction — HTA</h3>
+            <p class="task-meta"><code>T-7</code> — 0 subgoals, 5 operations, depth 2</p>
+          </figcaption>
+          <svg viewBox="0 0 850 200" role="img" aria-label="HTA tree for Reject Transaction">
+            <rect class="hta-goal" x="355" y="20" width="140" height="40" rx="10"/>
+            <text class="hta-label" x="425" y="44">Reject Transaction</text>
+            <rect class="plan-badge plan-badge-seq" x="465" y="14" width="30" height="14" rx="7"/>
+            <text class="plan-badge-label plan-badge-seq" x="480" y="24">SEQ</text>
+            <line class="hta-edge" x1="425" y1="60" x2="85"  y2="100"/>
+            <line class="hta-edge" x1="425" y1="60" x2="255" y2="100"/>
+            <line class="hta-edge" x1="425" y1="60" x2="425" y2="100"/>
+            <line class="hta-edge" x1="425" y1="60" x2="595" y2="100"/>
+            <line class="hta-edge" x1="425" y1="60" x2="765" y2="100"/>
+            <rect class="hta-operation" x="15"  y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="85"  y="124">selectTransaction</text>
+            <rect class="hta-operation" x="185" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="255" y="124">clickReject</text>
+            <rect class="hta-operation" x="355" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="425" y="124">enterMandatoryNote</text>
+            <rect class="hta-operation" x="525" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="595" y="124">submitRejection</text>
+            <rect class="hta-operation" x="695" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="765" y="124">updateStatusRejected</text>
+          </svg>
+        </figure>
+
+        <figure class="hta-tree task-export-transactions">
+          <figcaption>
+            <h3>Export Transactions — HTA</h3>
+            <p class="task-meta"><code>T-8</code> — 1 subgoal, 4 operations, depth 3</p>
+          </figcaption>
+          <svg viewBox="0 0 510 280" role="img" aria-label="HTA tree for Export Transactions">
+            <rect class="hta-goal" x="185" y="20" width="140" height="40" rx="10"/>
+            <text class="hta-label" x="255" y="44">Export Transactions</text>
+            <rect class="plan-badge plan-badge-seq" x="295" y="14" width="30" height="14" rx="7"/>
+            <text class="plan-badge-label plan-badge-seq" x="310" y="24">SEQ</text>
+            <line class="hta-edge" x1="255" y1="60" x2="85"  y2="100"/>
+            <line class="hta-edge" x1="255" y1="60" x2="255" y2="100"/>
+            <line class="hta-edge" x1="255" y1="60" x2="425" y2="100"/>
+            <rect class="hta-operation" x="15"  y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="85"  y="124">applyFilters</text>
+            <rect class="hta-operation" x="185" y="100" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="255" y="124">clickExport</text>
+            <rect class="hta-subgoal" x="355" y="100" width="140" height="40" rx="8"/>
+            <text class="hta-label" x="425" y="124">Generate &amp; download CSV</text>
+            <rect class="plan-badge plan-badge-seq ai-suggested-node" x="465" y="94" width="30" height="14" rx="7"/>
+            <text class="plan-badge-label plan-badge-seq" x="480" y="104">SEQ</text>
+            <line class="hta-edge" x1="425" y1="140" x2="355" y2="180"/>
+            <line class="hta-edge" x1="425" y1="140" x2="495" y2="180"/>
+            <rect class="hta-operation" x="285" y="180" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="355" y="204">generateCsv</text>
+            <rect class="hta-operation" x="425" y="180" width="140" height="40" rx="2"/>
+            <text class="hta-label" x="495" y="204">downloadCsv</text>
+          </svg>
+        </figure>
+      </section>
+
+      <section class="tfd-diagrams">
+        <h2>Task-Flow Diagrams</h2>
+
+        <figure class="tfd task-authentication">
+          <figcaption>
+            <h3>Authentication — Task Flow</h3>
+            <p class="task-meta"><code>T-1</code> — 4 steps, 1 exception</p>
+          </figcaption>
+          <svg viewBox="0 0 1200 170" role="img" aria-label="Task flow for Authentication">
+            <defs>
+              <marker id="tfd-arrow-authentication" viewBox="0 0 10 10" markerWidth="8" markerHeight="8" refX="9" refY="5" orient="auto">
+                <path d="M0 0 L9 5 L0 10" fill="none" stroke="currentColor" stroke-width="1.3"/>
+              </marker>
+            </defs>
+            <ellipse class="tfd-start" cx="80" cy="45" rx="64" ry="20"/>
+            <text class="tfd-step-label" x="80" y="49">Enters credentials</text>
+            <rect class="tfd-step" x="174" y="20" width="136" height="50" rx="6"/>
+            <text class="tfd-step-label" x="242" y="49">1. Open login page</text>
+            <rect class="tfd-step" x="334" y="20" width="136" height="50" rx="6"/>
+            <text class="tfd-step-label" x="402" y="49">2. Submit credentials</text>
+            <rect class="tfd-step" x="494" y="20" width="136" height="50" rx="6"/>
+            <text class="tfd-step-label" x="562" y="49">3. Validate credentials</text>
+            <polygon class="tfd-decision" points="722,15 762,45 722,75 682,45"/>
+            <text class="tfd-step-label" x="722" y="49">valid?</text>
+            <rect class="tfd-step" x="794" y="20" width="136" height="50" rx="6"/>
+            <text class="tfd-step-label" x="862" y="49">4. Route to landing</text>
+            <ellipse class="tfd-exit-success" cx="1054" cy="45" rx="80" ry="22"/>
+            <text class="tfd-step-label" x="1054" y="49">Landing page shown</text>
+            <ellipse class="tfd-exit-abort" cx="722" cy="135" rx="100" ry="22"/>
+            <text class="tfd-step-label" x="722" y="139">abort — generic error</text>
+            <path class="tfd-edge" d="M 144 45 L 174 45" marker-end="url(#tfd-arrow-authentication)"/>
+            <path class="tfd-edge" d="M 310 45 L 334 45" marker-end="url(#tfd-arrow-authentication)"/>
+            <path class="tfd-edge" d="M 470 45 L 494 45" marker-end="url(#tfd-arrow-authentication)"/>
+            <path class="tfd-edge" d="M 630 45 L 682 45" marker-end="url(#tfd-arrow-authentication)"/>
+            <path class="tfd-edge" d="M 762 45 L 794 45" marker-end="url(#tfd-arrow-authentication)"/>
+            <path class="tfd-edge" d="M 930 45 L 974 45" marker-end="url(#tfd-arrow-authentication)"/>
+            <rect class="tfd-edge-guard-bg" x="770" y="36" width="22" height="14"/>
+            <text class="tfd-edge-guard" x="781" y="46">ok</text>
+            <path class="tfd-edge" d="M 722 75 L 722 113" marker-end="url(#tfd-arrow-authentication)"/>
+            <rect class="tfd-edge-guard-bg" x="729" y="88" width="38" height="14"/>
+            <text class="tfd-edge-guard" x="748" y="98">fail</text>
+          </svg>
+        </figure>
+
+        <figure class="tfd task-file-upload">
+          <figcaption>
+            <h3>File Upload — Task Flow</h3>
+            <p class="task-meta"><code>T-2</code> — 7 steps, 1 exception</p>
+          </figcaption>
+          <svg viewBox="0 0 1640 170" role="img" aria-label="Task flow for File Upload">
+            <defs>
+              <marker id="tfd-arrow-file-upload" viewBox="0 0 10 10" markerWidth="8" markerHeight="8" refX="9" refY="5" orient="auto">
+                <path d="M0 0 L9 5 L0 10" fill="none" stroke="currentColor" stroke-width="1.3"/>
+              </marker>
+            </defs>
+            <ellipse class="tfd-start" cx="70" cy="45" rx="54" ry="20"/>
+            <text class="tfd-step-label" x="70" y="49">Selects file</text>
+            <rect class="tfd-step" x="144" y="20" width="120" height="50" rx="6"/>
+            <text class="tfd-step-label" x="204" y="49">1. Select file</text>
+            <rect class="tfd-step" x="284" y="20" width="140" height="50" rx="6"/>
+            <text class="tfd-step-label" x="354" y="49">2. FileSettingId</text>
+            <rect class="tfd-step" x="444" y="20" width="160" height="50" rx="6"/>
+            <text class="tfd-step-label" x="524" y="49">3. FileSettingName</text>
+            <rect class="tfd-step" x="624" y="20" width="140" height="50" rx="6"/>
+            <text class="tfd-step-label" x="694" y="49">4. FileName</text>
+            <polygon class="tfd-decision" points="844,10 904,45 844,80 784,45"/>
+            <text class="tfd-step-label" x="844" y="49">metadata?</text>
+            <rect class="tfd-step" x="924" y="20" width="140" height="50" rx="6"/>
+            <text class="tfd-step-label" x="994" y="49">5. Submit upload</text>
+            <rect class="tfd-step" x="1084" y="20" width="140" height="50" rx="6"/>
+            <text class="tfd-step-label" x="1154" y="49">6. Create File Log</text>
+            <rect class="tfd-step" x="1244" y="20" width="140" height="50" rx="6"/>
+            <text class="tfd-step-label" x="1314" y="49">7. Display status</text>
+            <ellipse class="tfd-exit-success" cx="1500" cy="45" rx="100" ry="22"/>
+            <text class="tfd-step-label" x="1500" y="49">File Log created</text>
+            <ellipse class="tfd-exit-abort" cx="844" cy="135" rx="120" ry="22"/>
+            <text class="tfd-step-label" x="844" y="139">abort — parse failure</text>
+            <path class="tfd-edge" d="M 124 45 L 144 45" marker-end="url(#tfd-arrow-file-upload)"/>
+            <path class="tfd-edge" d="M 264 45 L 284 45" marker-end="url(#tfd-arrow-file-upload)"/>
+            <path class="tfd-edge" d="M 424 45 L 444 45" marker-end="url(#tfd-arrow-file-upload)"/>
+            <path class="tfd-edge" d="M 604 45 L 624 45" marker-end="url(#tfd-arrow-file-upload)"/>
+            <path class="tfd-edge" d="M 764 45 L 784 45" marker-end="url(#tfd-arrow-file-upload)"/>
+            <path class="tfd-edge" d="M 904 45 L 924 45" marker-end="url(#tfd-arrow-file-upload)"/>
+            <path class="tfd-edge" d="M 1064 45 L 1084 45" marker-end="url(#tfd-arrow-file-upload)"/>
+            <path class="tfd-edge" d="M 1224 45 L 1244 45" marker-end="url(#tfd-arrow-file-upload)"/>
+            <path class="tfd-edge" d="M 1384 45 L 1400 45" marker-end="url(#tfd-arrow-file-upload)"/>
+            <rect class="tfd-edge-guard-bg" x="894" y="36" width="34" height="14"/>
+            <text class="tfd-edge-guard" x="911" y="46">ok</text>
+            <path class="tfd-edge" d="M 844 80 L 844 113" marker-end="url(#tfd-arrow-file-upload)"/>
+            <rect class="tfd-edge-guard-bg" x="852" y="90" width="56" height="14"/>
+            <text class="tfd-edge-guard" x="880" y="100">missing</text>
+          </svg>
+        </figure>
+
+        <figure class="tfd task-file-log-overview">
+          <figcaption>
+            <h3>File Log Overview — Task Flow</h3>
+            <p class="task-meta"><code>T-3</code> — 3 steps, 1 exception</p>
+          </figcaption>
+          <svg viewBox="0 0 1000 170" role="img" aria-label="Task flow for File Log Overview">
+            <defs>
+              <marker id="tfd-arrow-file-log-overview" viewBox="0 0 10 10" markerWidth="8" markerHeight="8" refX="9" refY="5" orient="auto">
+                <path d="M0 0 L9 5 L0 10" fill="none" stroke="currentColor" stroke-width="1.3"/>
+              </marker>
+            </defs>
+            <ellipse class="tfd-start" cx="90" cy="45" rx="78" ry="20"/>
+            <text class="tfd-step-label" x="90" y="49">Opens dashboard</text>
+            <rect class="tfd-step" x="194" y="20" width="140" height="50" rx="6"/>
+            <text class="tfd-step-label" x="264" y="49">1. Open dashboard</text>
+            <rect class="tfd-step" x="354" y="20" width="140" height="50" rx="6"/>
+            <text class="tfd-step-label" x="424" y="49">2. View file list</text>
+            <polygon class="tfd-decision" points="574,15 614,45 574,75 534,45"/>
+            <text class="tfd-step-label" x="574" y="49">row click?</text>
+            <rect class="tfd-step" x="644" y="20" width="160" height="50" rx="6"/>
+            <text class="tfd-step-label" x="724" y="49">3. Drill into txns</text>
+            <ellipse class="tfd-exit-success" cx="900" cy="45" rx="70" ry="22"/>
+            <text class="tfd-step-label" x="900" y="49">List rendered</text>
+            <ellipse class="tfd-exit-abort" cx="424" cy="135" rx="110" ry="22"/>
+            <text class="tfd-step-label" x="424" y="139">abort — empty list</text>
+            <path class="tfd-edge" d="M 168 45 L 194 45" marker-end="url(#tfd-arrow-file-log-overview)"/>
+            <path class="tfd-edge" d="M 334 45 L 354 45" marker-end="url(#tfd-arrow-file-log-overview)"/>
+            <path class="tfd-edge" d="M 494 45 L 534 45" marker-end="url(#tfd-arrow-file-log-overview)"/>
+            <path class="tfd-edge" d="M 614 45 L 644 45" marker-end="url(#tfd-arrow-file-log-overview)"/>
+            <path class="tfd-edge" d="M 804 45 L 830 45" marker-end="url(#tfd-arrow-file-log-overview)"/>
+            <rect class="tfd-edge-guard-bg" x="622" y="36" width="20" height="14"/>
+            <text class="tfd-edge-guard" x="632" y="46">y</text>
+            <path class="tfd-edge" d="M 574 75 L 424 113" marker-end="url(#tfd-arrow-file-log-overview)"/>
+            <rect class="tfd-edge-guard-bg" x="470" y="86" width="48" height="14"/>
+            <text class="tfd-edge-guard" x="494" y="96">empty</text>
+          </svg>
+        </figure>
+
+        <figure class="tfd task-transaction-table">
+          <figcaption>
+            <h3>Transaction Table — Task Flow</h3>
+            <p class="task-meta"><code>T-4</code> — 4 steps, 1 exception</p>
+          </figcaption>
+          <svg viewBox="0 0 1200 170" role="img" aria-label="Task flow for Transaction Table">
+            <defs>
+              <marker id="tfd-arrow-transaction-table" viewBox="0 0 10 10" markerWidth="8" markerHeight="8" refX="9" refY="5" orient="auto">
+                <path d="M0 0 L9 5 L0 10" fill="none" stroke="currentColor" stroke-width="1.3"/>
+              </marker>
+            </defs>
+            <ellipse class="tfd-start" cx="80" cy="45" rx="64" ry="20"/>
+            <text class="tfd-step-label" x="80" y="49">Opens table</text>
+            <rect class="tfd-step" x="174" y="20" width="120" height="50" rx="6"/>
+            <text class="tfd-step-label" x="234" y="49">1. Open table</text>
+            <rect class="tfd-step" x="314" y="20" width="140" height="50" rx="6"/>
+            <text class="tfd-step-label" x="384" y="49">2. Browse columns</text>
+            <rect class="tfd-step" x="474" y="20" width="140" height="50" rx="6"/>
+            <text class="tfd-step-label" x="544" y="49">3. Apply filters</text>
+            <polygon class="tfd-decision" points="704,10 770,45 704,80 638,45"/>
+            <text class="tfd-step-label" x="704" y="49">role/status?</text>
+            <rect class="tfd-step" x="790" y="20" width="140" height="50" rx="6"/>
+            <text class="tfd-step-label" x="860" y="49">4. Use row actions</text>
+            <ellipse class="tfd-exit-success" cx="1054" cy="45" rx="78" ry="22"/>
+            <text class="tfd-step-label" x="1054" y="49">Table rendered</text>
+            <ellipse class="tfd-exit-abort" cx="544" cy="135" rx="110" ry="22"/>
+            <text class="tfd-step-label" x="544" y="139">abort — empty state</text>
+            <path class="tfd-edge" d="M 144 45 L 174 45" marker-end="url(#tfd-arrow-transaction-table)"/>
+            <path class="tfd-edge" d="M 294 45 L 314 45" marker-end="url(#tfd-arrow-transaction-table)"/>
+            <path class="tfd-edge" d="M 454 45 L 474 45" marker-end="url(#tfd-arrow-transaction-table)"/>
+            <path class="tfd-edge" d="M 614 45 L 638 45" marker-end="url(#tfd-arrow-transaction-table)"/>
+            <path class="tfd-edge" d="M 770 45 L 790 45" marker-end="url(#tfd-arrow-transaction-table)"/>
+            <path class="tfd-edge" d="M 930 45 L 976 45" marker-end="url(#tfd-arrow-transaction-table)"/>
+            <rect class="tfd-edge-guard-bg" x="776" y="36" width="38" height="14"/>
+            <text class="tfd-edge-guard" x="795" y="46">ok</text>
+            <path class="tfd-edge" d="M 544 70 L 544 113" marker-end="url(#tfd-arrow-transaction-table)"/>
+            <rect class="tfd-edge-guard-bg" x="551" y="86" width="48" height="14"/>
+            <text class="tfd-edge-guard" x="575" y="96">empty</text>
+          </svg>
+        </figure>
+
+        <figure class="tfd task-approve-transaction">
+          <figcaption>
+            <h3>Approve Transaction — Task Flow</h3>
+            <p class="task-meta"><code>T-6</code> — 4 steps, 1 exception</p>
+          </figcaption>
+          <svg viewBox="0 0 1200 170" role="img" aria-label="Task flow for Approve Transaction">
+            <defs>
+              <marker id="tfd-arrow-approve-transaction" viewBox="0 0 10 10" markerWidth="8" markerHeight="8" refX="9" refY="5" orient="auto">
+                <path d="M0 0 L9 5 L0 10" fill="none" stroke="currentColor" stroke-width="1.3"/>
+              </marker>
+            </defs>
+            <ellipse class="tfd-start" cx="90" cy="45" rx="74" ry="20"/>
+            <text class="tfd-step-label" x="90" y="49">Clicks Approve</text>
+            <rect class="tfd-step" x="194" y="20" width="160" height="50" rx="6"/>
+            <text class="tfd-step-label" x="274" y="49">1. Select transaction</text>
+            <rect class="tfd-step" x="374" y="20" width="140" height="50" rx="6"/>
+            <text class="tfd-step-label" x="444" y="49">2. Click Approve</text>
+            <polygon class="tfd-decision" points="604,10 670,45 604,80 538,45"/>
+            <text class="tfd-step-label" x="604" y="49">Imported?</text>
+            <rect class="tfd-step" x="690" y="20" width="160" height="50" rx="6"/>
+            <text class="tfd-step-label" x="770" y="49">3. Confirm in modal</text>
+            <rect class="tfd-step" x="870" y="20" width="140" height="50" rx="6"/>
+            <text class="tfd-step-label" x="940" y="49">4. Status → Approved</text>
+            <ellipse class="tfd-exit-success" cx="1110" cy="45" rx="78" ry="22"/>
+            <text class="tfd-step-label" x="1110" y="49">Approved (live)</text>
+            <ellipse class="tfd-exit-abort" cx="604" cy="135" rx="120" ry="22"/>
+            <text class="tfd-step-label" x="604" y="139">abort — hidden (BR-01)</text>
+            <path class="tfd-edge" d="M 164 45 L 194 45" marker-end="url(#tfd-arrow-approve-transaction)"/>
+            <path class="tfd-edge" d="M 354 45 L 374 45" marker-end="url(#tfd-arrow-approve-transaction)"/>
+            <path class="tfd-edge" d="M 514 45 L 538 45" marker-end="url(#tfd-arrow-approve-transaction)"/>
+            <path class="tfd-edge" d="M 670 45 L 690 45" marker-end="url(#tfd-arrow-approve-transaction)"/>
+            <path class="tfd-edge" d="M 850 45 L 870 45" marker-end="url(#tfd-arrow-approve-transaction)"/>
+            <path class="tfd-edge" d="M 1010 45 L 1032 45" marker-end="url(#tfd-arrow-approve-transaction)"/>
+            <rect class="tfd-edge-guard-bg" x="676" y="36" width="22" height="14"/>
+            <text class="tfd-edge-guard" x="687" y="46">y</text>
+            <path class="tfd-edge" d="M 604 80 L 604 113" marker-end="url(#tfd-arrow-approve-transaction)"/>
+            <rect class="tfd-edge-guard-bg" x="611" y="90" width="48" height="14"/>
+            <text class="tfd-edge-guard" x="635" y="100">other</text>
+          </svg>
+        </figure>
+
+        <figure class="tfd task-reject-transaction">
+          <figcaption>
+            <h3>Reject Transaction — Task Flow</h3>
+            <p class="task-meta"><code>T-7</code> — 5 steps, 1 exception</p>
+          </figcaption>
+          <svg viewBox="0 0 1400 170" role="img" aria-label="Task flow for Reject Transaction">
+            <defs>
+              <marker id="tfd-arrow-reject-transaction" viewBox="0 0 10 10" markerWidth="8" markerHeight="8" refX="9" refY="5" orient="auto">
+                <path d="M0 0 L9 5 L0 10" fill="none" stroke="currentColor" stroke-width="1.3"/>
+              </marker>
+            </defs>
+            <ellipse class="tfd-start" cx="80" cy="45" rx="64" ry="20"/>
+            <text class="tfd-step-label" x="80" y="49">Clicks Reject</text>
+            <rect class="tfd-step" x="174" y="20" width="160" height="50" rx="6"/>
+            <text class="tfd-step-label" x="254" y="49">1. Select transaction</text>
+            <rect class="tfd-step" x="354" y="20" width="140" height="50" rx="6"/>
+            <text class="tfd-step-label" x="424" y="49">2. Click Reject</text>
+            <rect class="tfd-step" x="514" y="20" width="160" height="50" rx="6"/>
+            <text class="tfd-step-label" x="594" y="49">3. Enter note</text>
+            <polygon class="tfd-decision" points="754,10 810,45 754,80 698,45"/>
+            <text class="tfd-step-label" x="754" y="49">note?</text>
+            <rect class="tfd-step" x="830" y="20" width="120" height="50" rx="6"/>
+            <text class="tfd-step-label" x="890" y="49">4. Submit</text>
+            <rect class="tfd-step" x="970" y="20" width="160" height="50" rx="6"/>
+            <text class="tfd-step-label" x="1050" y="49">5. Status → Rejected</text>
+            <ellipse class="tfd-exit-success" cx="1280" cy="45" rx="90" ry="22"/>
+            <text class="tfd-step-label" x="1280" y="49">Rejected w/ note</text>
+            <ellipse class="tfd-exit-abort" cx="754" cy="135" rx="130" ry="22"/>
+            <text class="tfd-step-label" x="754" y="139">abort — submit disabled (BR-02)</text>
+            <path class="tfd-edge" d="M 144 45 L 174 45" marker-end="url(#tfd-arrow-reject-transaction)"/>
+            <path class="tfd-edge" d="M 334 45 L 354 45" marker-end="url(#tfd-arrow-reject-transaction)"/>
+            <path class="tfd-edge" d="M 494 45 L 514 45" marker-end="url(#tfd-arrow-reject-transaction)"/>
+            <path class="tfd-edge" d="M 674 45 L 698 45" marker-end="url(#tfd-arrow-reject-transaction)"/>
+            <path class="tfd-edge" d="M 810 45 L 830 45" marker-end="url(#tfd-arrow-reject-transaction)"/>
+            <path class="tfd-edge" d="M 950 45 L 970 45" marker-end="url(#tfd-arrow-reject-transaction)"/>
+            <path class="tfd-edge" d="M 1130 45 L 1190 45" marker-end="url(#tfd-arrow-reject-transaction)"/>
+            <rect class="tfd-edge-guard-bg" x="814" y="36" width="40" height="14"/>
+            <text class="tfd-edge-guard" x="833" y="46">ok</text>
+            <path class="tfd-edge" d="M 754 80 L 754 113" marker-end="url(#tfd-arrow-reject-transaction)"/>
+            <rect class="tfd-edge-guard-bg" x="761" y="90" width="48" height="14"/>
+            <text class="tfd-edge-guard" x="785" y="100">empty</text>
+          </svg>
+        </figure>
+
+        <figure class="tfd task-export-transactions">
+          <figcaption>
+            <h3>Export Transactions — Task Flow</h3>
+            <p class="task-meta"><code>T-8</code> — 4 steps, 1 exception</p>
+          </figcaption>
+          <svg viewBox="0 0 1200 170" role="img" aria-label="Task flow for Export Transactions">
+            <defs>
+              <marker id="tfd-arrow-export-transactions" viewBox="0 0 10 10" markerWidth="8" markerHeight="8" refX="9" refY="5" orient="auto">
+                <path d="M0 0 L9 5 L0 10" fill="none" stroke="currentColor" stroke-width="1.3"/>
+              </marker>
+            </defs>
+            <ellipse class="tfd-start" cx="90" cy="45" rx="74" ry="20"/>
+            <text class="tfd-step-label" x="90" y="49">Clicks Export</text>
+            <rect class="tfd-step" x="194" y="20" width="160" height="50" rx="6"/>
+            <text class="tfd-step-label" x="274" y="49">1. Apply filters</text>
+            <rect class="tfd-step" x="374" y="20" width="140" height="50" rx="6"/>
+            <text class="tfd-step-label" x="444" y="49">2. Click Export</text>
+            <rect class="tfd-step" x="534" y="20" width="160" height="50" rx="6"/>
+            <text class="tfd-step-label" x="614" y="49">3. Generate CSV</text>
+            <rect class="tfd-step" x="714" y="20" width="160" height="50" rx="6"/>
+            <text class="tfd-step-label" x="794" y="49">4. Download CSV</text>
+            <ellipse class="tfd-exit-success" cx="1014" cy="45" rx="100" ry="22"/>
+            <text class="tfd-step-label" x="1014" y="49">CSV downloaded</text>
+            <ellipse class="tfd-exit-escalate" cx="794" cy="135" rx="140" ry="22"/>
+            <text class="tfd-step-label" x="794" y="139">escalate — header-only + toast</text>
+            <path class="tfd-edge" d="M 164 45 L 194 45" marker-end="url(#tfd-arrow-export-transactions)"/>
+            <path class="tfd-edge" d="M 354 45 L 374 45" marker-end="url(#tfd-arrow-export-transactions)"/>
+            <path class="tfd-edge" d="M 514 45 L 534 45" marker-end="url(#tfd-arrow-export-transactions)"/>
+            <path class="tfd-edge" d="M 694 45 L 714 45" marker-end="url(#tfd-arrow-export-transactions)"/>
+            <path class="tfd-edge" d="M 874 45 L 914 45" marker-end="url(#tfd-arrow-export-transactions)"/>
+            <path class="tfd-edge" d="M 794 70 L 794 113" marker-end="url(#tfd-arrow-export-transactions)"/>
+            <rect class="tfd-edge-guard-bg" x="800" y="86" width="60" height="14"/>
+            <text class="tfd-edge-guard" x="830" y="96">empty</text>
+          </svg>
+        </figure>
+      </section>
+
+      <details class="mermaid-source">
+        <summary>Mermaid source (copy-pasteable — graph TB for HTA, flowchart LR for TFD)</summary>
+        <div class="mermaid-caption">Authentication — HTA tree — copy-paste into mermaid.live; not rendered inline.</div>
+        <pre>graph TB
+    T1["Authentication&lt;br/&gt;SEQ"]
+    T1_1[openLoginPage]
+    T1_2[submitCredentials]
+    T1_3[validateCredentials]
+    T1_4[routeToLandingPage]
+    T1 --&gt; T1_1
+    T1 --&gt; T1_2
+    T1 --&gt; T1_3
+    T1 --&gt; T1_4</pre>
+        <div class="mermaid-caption">Authentication — Task Flow Diagram — copy-paste into mermaid.live; not rendered inline.</div>
+        <pre>flowchart LR
+    Start((User enters credentials)) --&gt; S1[1. Open login page]
+    S1 --&gt; S2[2. Submit credentials]
+    S2 --&gt; S3[3. Validate credentials]
+    S3 --&gt; D1{valid?}
+    D1 -- ok --&gt; S4[4. Route to landing page]
+    D1 -- fail --&gt; Ex1([abort — generic error])
+    S4 --&gt; End([Landing page shown])</pre>
+        <div class="mermaid-caption">File Upload — HTA tree — copy-paste into mermaid.live; not rendered inline.</div>
+        <pre>graph TB
+    T2["File Upload&lt;br/&gt;SEQ"]
+    T2_1[selectFile]
+    T2_2["Provide upload metadata&lt;br/&gt;SEQ"]
+    T2_2_1[provideFileSettingId]
+    T2_2_2[provideFileSettingName]
+    T2_2_3[provideFileName]
+    T2_3[submitUpload]
+    T2_4[createFileLog]
+    T2_5[displayStatus]
+    T2 --&gt; T2_1
+    T2 --&gt; T2_2
+    T2 --&gt; T2_3
+    T2 --&gt; T2_4
+    T2 --&gt; T2_5
+    T2_2 --&gt; T2_2_1
+    T2_2 --&gt; T2_2_2
+    T2_2 --&gt; T2_2_3</pre>
+        <div class="mermaid-caption">File Upload — Task Flow Diagram — copy-paste into mermaid.live; not rendered inline.</div>
+        <pre>flowchart LR
+    Start((Importer selects file)) --&gt; S1[1. Select file]
+    S1 --&gt; S2[2. Provide FileSettingId]
+    S2 --&gt; S3[3. Provide FileSettingName]
+    S3 --&gt; S4[4. Provide FileName]
+    S4 --&gt; D1{metadata complete?}
+    D1 -- ok --&gt; S5[5. Submit upload]
+    D1 -- missing --&gt; Ex1([abort — parse failure])
+    S5 --&gt; S6[6. Create File Log]
+    S6 --&gt; S7[7. Display status]
+    S7 --&gt; End([File Log created])</pre>
+        <div class="mermaid-caption">File Log Overview — HTA tree — copy-paste into mermaid.live; not rendered inline.</div>
+        <pre>graph TB
+    T3["File Log Overview&lt;br/&gt;SEL"]
+    T3_1[openDashboard]
+    T3_2[viewFileList]
+    T3_3[drillIntoTransactions]
+    T3 --&gt; T3_1
+    T3 --&gt; T3_2
+    T3 --&gt;|row clicked| T3_3</pre>
+        <div class="mermaid-caption">File Log Overview — Task Flow Diagram — copy-paste into mermaid.live; not rendered inline.</div>
+        <pre>flowchart LR
+    Start((Opens dashboard)) --&gt; S1[1. Open dashboard]
+    S1 --&gt; S2[2. View file list]
+    S2 --&gt; D1{row click?}
+    D1 -- y --&gt; S3[3. Drill into transactions]
+    D1 -- empty --&gt; Ex1([abort — empty list])
+    S3 --&gt; End([List rendered])</pre>
+        <div class="mermaid-caption">Transaction Table — HTA tree — copy-paste into mermaid.live; not rendered inline.</div>
+        <pre>graph TB
+    T4["Transaction Table&lt;br/&gt;SEL"]
+    T4_1[openTable]
+    T4_2[browseColumns]
+    T4_3[applyFilters]
+    T4_4[useRowActions]
+    T4 --&gt; T4_1
+    T4 --&gt; T4_2
+    T4 --&gt; T4_3
+    T4 --&gt;|role=Approver AND status=Imported| T4_4</pre>
+        <div class="mermaid-caption">Transaction Table — Task Flow Diagram — copy-paste into mermaid.live; not rendered inline.</div>
+        <pre>flowchart LR
+    Start((Opens transaction table)) --&gt; S1[1. Open table]
+    S1 --&gt; S2[2. Browse columns]
+    S2 --&gt; S3[3. Apply filters]
+    S3 --&gt; D1{role/status?}
+    D1 -- ok --&gt; S4[4. Use row actions]
+    D1 -- empty --&gt; Ex1([abort — empty state])
+    S4 --&gt; End([Table rendered])</pre>
+        <div class="mermaid-caption">Approve Transaction — HTA tree — copy-paste into mermaid.live; not rendered inline.</div>
+        <pre>graph TB
+    T6["Approve Transaction&lt;br/&gt;SEQ"]
+    T6_1[selectTransaction]
+    T6_2[clickApprove]
+    T6_3[confirmInModal]
+    T6_4[updateStatusApproved]
+    T6 --&gt; T6_1
+    T6 --&gt; T6_2
+    T6 --&gt; T6_3
+    T6 --&gt; T6_4</pre>
+        <div class="mermaid-caption">Approve Transaction — Task Flow Diagram — copy-paste into mermaid.live; not rendered inline.</div>
+        <pre>flowchart LR
+    Start((Clicks Approve)) --&gt; S1[1. Select transaction]
+    S1 --&gt; S2[2. Click Approve]
+    S2 --&gt; D1{status = Imported?}
+    D1 -- y --&gt; S3[3. Confirm in modal]
+    D1 -- other --&gt; Ex1([abort — hidden per BR-01])
+    S3 --&gt; S4[4. Status → Approved]
+    S4 --&gt; End([Approved live])</pre>
+        <div class="mermaid-caption">Reject Transaction — HTA tree — copy-paste into mermaid.live; not rendered inline.</div>
+        <pre>graph TB
+    T7["Reject Transaction&lt;br/&gt;SEQ"]
+    T7_1[selectTransaction]
+    T7_2[clickReject]
+    T7_3[enterMandatoryNote]
+    T7_4[submitRejection]
+    T7_5[updateStatusRejected]
+    T7 --&gt; T7_1
+    T7 --&gt; T7_2
+    T7 --&gt; T7_3
+    T7 --&gt; T7_4
+    T7 --&gt; T7_5</pre>
+        <div class="mermaid-caption">Reject Transaction — Task Flow Diagram — copy-paste into mermaid.live; not rendered inline.</div>
+        <pre>flowchart LR
+    Start((Clicks Reject)) --&gt; S1[1. Select transaction]
+    S1 --&gt; S2[2. Click Reject]
+    S2 --&gt; S3[3. Enter mandatory note]
+    S3 --&gt; D1{note?}
+    D1 -- ok --&gt; S4[4. Submit]
+    D1 -- empty --&gt; Ex1([abort — submit disabled per BR-02])
+    S4 --&gt; S5[5. Status → Rejected]
+    S5 --&gt; End([Rejected with note])</pre>
+        <div class="mermaid-caption">Export Transactions — HTA tree — copy-paste into mermaid.live; not rendered inline.</div>
+        <pre>graph TB
+    T8["Export Transactions&lt;br/&gt;SEQ"]
+    T8_1[applyFilters]
+    T8_2[clickExport]
+    T8_3["Generate and download CSV&lt;br/&gt;SEQ"]
+    T8_3_1[generateCsv]
+    T8_3_2[downloadCsv]
+    T8 --&gt; T8_1
+    T8 --&gt; T8_2
+    T8 --&gt; T8_3
+    T8_3 --&gt; T8_3_1
+    T8_3 --&gt; T8_3_2</pre>
+        <div class="mermaid-caption">Export Transactions — Task Flow Diagram — copy-paste into mermaid.live; not rendered inline.</div>
+        <pre>flowchart LR
+    Start((Clicks Export)) --&gt; S1[1. Apply filters - optional]
+    S1 --&gt; S2[2. Click Export]
+    S2 --&gt; S3[3. Generate CSV]
+    S3 --&gt; S4[4. Download CSV]
+    S4 --&gt; End([CSV downloaded])
+    S4 -- empty --&gt; Ex1([escalate — header-only CSV via toast])</pre>
+      </details>
+    </section>
+
+    <section id="tables" aria-label="Tabular information">
+      <section class="catalogue">
+        <h2>Task-flows catalogue</h2>
+
+        <section class="tasks-block">
+          <h3>Tasks</h3>
+          <table class="tasks-table">
+            <thead>
+              <tr>
+                <th>id</th>
+                <th>display name</th>
+                <th>lead persona</th>
+                <th>trigger</th>
+                <th>completion criterion</th>
+                <th>top plan</th>
+                <th>depth</th>
+                <th>operations</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-from-task-flow">
+                <td><code>T-1</code></td>
+                <td>Authentication</td>
+                <td><code>Importer</code></td>
+                <td>User enters email + password.</td>
+                <td>UI navigates to the role-specific landing page.</td>
+                <td><span class="plan-type-sequence">sequence</span></td>
+                <td class="seq">2</td>
+                <td class="seq">4</td>
+                <td class="prov-cell">from-task-flow</td>
+              </tr>
+              <tr class="provenance-from-task-flow">
+                <td><code>T-2</code></td>
+                <td>File Upload</td>
+                <td><code>Importer</code></td>
+                <td>Importer selects file.</td>
+                <td>A File Log is created on the server with FileSettingId, FileSettingName, FileName captured.</td>
+                <td><span class="plan-type-sequence">sequence</span></td>
+                <td class="seq">3</td>
+                <td class="seq">7</td>
+                <td class="prov-cell">from-task-flow</td>
+              </tr>
+              <tr class="provenance-from-task-flow">
+                <td><code>T-3</code></td>
+                <td>File Log Overview</td>
+                <td><code>Importer</code></td>
+                <td>User opens the File Logs dashboard.</td>
+                <td>The list of uploaded files is rendered with File Name, Process Date, Record Count, Status columns.</td>
+                <td><span class="plan-type-selection">selection</span></td>
+                <td class="seq">2</td>
+                <td class="seq">3</td>
+                <td class="prov-cell">from-task-flow</td>
+              </tr>
+              <tr class="provenance-from-task-flow">
+                <td><code>T-4</code></td>
+                <td>Transaction Table</td>
+                <td><code>Importer</code></td>
+                <td>User opens the transaction table from navigation or from a file log row.</td>
+                <td>The transaction list is rendered with Reference, Date, Account, Amount, Currency, Status columns and filters applied as needed.</td>
+                <td><span class="plan-type-selection">selection</span></td>
+                <td class="seq">2</td>
+                <td class="seq">4</td>
+                <td class="prov-cell">from-task-flow</td>
+              </tr>
+              <tr class="provenance-from-task-flow">
+                <td><code>T-5</code></td>
+                <td>Search &amp; Filtering</td>
+                <td><code>Importer</code></td>
+                <td>User applies filters or enters search text on a transaction or file log list.</td>
+                <td>The table updates to reflect the active filter set.</td>
+                <td><span class="plan-type-sequence">sequence</span></td>
+                <td class="seq">3</td>
+                <td class="seq">8</td>
+                <td class="prov-cell">from-task-flow</td>
+              </tr>
+              <tr class="provenance-from-task-flow">
+                <td><code>T-6</code></td>
+                <td>Approve Transaction</td>
+                <td><code>Approver</code></td>
+                <td>Approver selects a transaction and clicks Approve.</td>
+                <td>The transaction&#39;s status updates to Approved without manual refresh.</td>
+                <td><span class="plan-type-sequence">sequence</span></td>
+                <td class="seq">2</td>
+                <td class="seq">4</td>
+                <td class="prov-cell">from-task-flow</td>
+              </tr>
+              <tr class="provenance-from-task-flow">
+                <td><code>T-7</code></td>
+                <td>Reject Transaction</td>
+                <td><code>Approver</code></td>
+                <td>Approver selects a transaction and clicks Reject.</td>
+                <td>The transaction&#39;s status updates to Rejected with the captured note.</td>
+                <td><span class="plan-type-sequence">sequence</span></td>
+                <td class="seq">2</td>
+                <td class="seq">5</td>
+                <td class="prov-cell">from-task-flow</td>
+              </tr>
+              <tr class="provenance-from-task-flow">
+                <td><code>T-8</code></td>
+                <td>Export Transactions</td>
+                <td><code>Approver</code></td>
+                <td>Approver clicks Export from the transaction table.</td>
+                <td>The CSV file is downloaded reflecting the active filter set.</td>
+                <td><span class="plan-type-sequence">sequence</span></td>
+                <td class="seq">3</td>
+                <td class="seq">4</td>
+                <td class="prov-cell">from-task-flow</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="nodes-block">
+          <h3>Subgoals &amp; operations</h3>
+          <table class="nodes-table">
+            <thead>
+              <tr>
+                <th>task</th>
+                <th>hierarchical id</th>
+                <th>label</th>
+                <th>kind</th>
+                <th>parent</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-from-task-flow"><td><code>T-1</code></td><td><code>T-1.1</code></td><td class="label">openLoginPage</td><td><span class="kind-operation">operation</span></td><td><code>T-1</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-1</code></td><td><code>T-1.2</code></td><td class="label">submitCredentials</td><td><span class="kind-operation">operation</span></td><td><code>T-1</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-1</code></td><td><code>T-1.3</code></td><td class="label">validateCredentials</td><td><span class="kind-operation">operation</span></td><td><code>T-1</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-1</code></td><td><code>T-1.4</code></td><td class="label">routeToLandingPage</td><td><span class="kind-operation">operation</span></td><td><code>T-1</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-2</code></td><td><code>T-2.1</code></td><td class="label">selectFile</td><td><span class="kind-operation">operation</span></td><td><code>T-2</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-2</code></td><td><code>T-2.2</code></td><td class="label">Provide upload metadata</td><td><span class="kind-subgoal">subgoal</span></td><td><code>T-2</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-derived"><td><code>T-2</code></td><td><code>T-2.2.1</code></td><td class="label">provideFileSettingId</td><td><span class="kind-operation">operation</span></td><td><code>T-2.2</code></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-2</code></td><td><code>T-2.2.2</code></td><td class="label">provideFileSettingName</td><td><span class="kind-operation">operation</span></td><td><code>T-2.2</code></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-2</code></td><td><code>T-2.2.3</code></td><td class="label">provideFileName</td><td><span class="kind-operation">operation</span></td><td><code>T-2.2</code></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-2</code></td><td><code>T-2.3</code></td><td class="label">submitUpload</td><td><span class="kind-operation">operation</span></td><td><code>T-2</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-2</code></td><td><code>T-2.4</code></td><td class="label">createFileLog</td><td><span class="kind-operation">operation</span></td><td><code>T-2</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-2</code></td><td><code>T-2.5</code></td><td class="label">displayStatus</td><td><span class="kind-operation">operation</span></td><td><code>T-2</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-3</code></td><td><code>T-3.1</code></td><td class="label">openDashboard</td><td><span class="kind-operation">operation</span></td><td><code>T-3</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-3</code></td><td><code>T-3.2</code></td><td class="label">viewFileList</td><td><span class="kind-operation">operation</span></td><td><code>T-3</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-3</code></td><td><code>T-3.3</code></td><td class="label">drillIntoTransactions</td><td><span class="kind-operation">operation</span></td><td><code>T-3</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-4</code></td><td><code>T-4.1</code></td><td class="label">openTable</td><td><span class="kind-operation">operation</span></td><td><code>T-4</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-4</code></td><td><code>T-4.2</code></td><td class="label">browseColumns</td><td><span class="kind-operation">operation</span></td><td><code>T-4</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-4</code></td><td><code>T-4.3</code></td><td class="label">applyFilters</td><td><span class="kind-operation">operation</span></td><td><code>T-4</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-4</code></td><td><code>T-4.4</code></td><td class="label">useRowActions</td><td><span class="kind-operation">operation</span></td><td><code>T-4</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-5</code></td><td><code>T-5.1</code></td><td class="label">openFilterPanel</td><td><span class="kind-operation">operation</span></td><td><code>T-5</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-5</code></td><td><code>T-5.2</code></td><td class="label">Choose filter criteria</td><td><span class="kind-subgoal">subgoal</span></td><td><code>T-5</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-derived"><td><code>T-5</code></td><td><code>T-5.2.1</code></td><td class="label">chooseStatus</td><td><span class="kind-operation">operation</span></td><td><code>T-5.2</code></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-5</code></td><td><code>T-5.2.2</code></td><td class="label">chooseFile</td><td><span class="kind-operation">operation</span></td><td><code>T-5.2</code></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-5</code></td><td><code>T-5.2.3</code></td><td class="label">chooseDateRange</td><td><span class="kind-operation">operation</span></td><td><code>T-5.2</code></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-5</code></td><td><code>T-5.2.4</code></td><td class="label">chooseAmountRange</td><td><span class="kind-operation">operation</span></td><td><code>T-5.2</code></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-5</code></td><td><code>T-5.2.5</code></td><td class="label">chooseTextSearch</td><td><span class="kind-operation">operation</span></td><td><code>T-5.2</code></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-5</code></td><td><code>T-5.3</code></td><td class="label">applyFilters</td><td><span class="kind-operation">operation</span></td><td><code>T-5</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-5</code></td><td><code>T-5.4</code></td><td class="label">tableUpdates</td><td><span class="kind-operation">operation</span></td><td><code>T-5</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-6</code></td><td><code>T-6.1</code></td><td class="label">selectTransaction</td><td><span class="kind-operation">operation</span></td><td><code>T-6</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-6</code></td><td><code>T-6.2</code></td><td class="label">clickApprove</td><td><span class="kind-operation">operation</span></td><td><code>T-6</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-6</code></td><td><code>T-6.3</code></td><td class="label">confirmInModal</td><td><span class="kind-operation">operation</span></td><td><code>T-6</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-6</code></td><td><code>T-6.4</code></td><td class="label">updateStatusApproved</td><td><span class="kind-operation">operation</span></td><td><code>T-6</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-7</code></td><td><code>T-7.1</code></td><td class="label">selectTransaction</td><td><span class="kind-operation">operation</span></td><td><code>T-7</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-7</code></td><td><code>T-7.2</code></td><td class="label">clickReject</td><td><span class="kind-operation">operation</span></td><td><code>T-7</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-7</code></td><td><code>T-7.3</code></td><td class="label">enterMandatoryNote</td><td><span class="kind-operation">operation</span></td><td><code>T-7</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-7</code></td><td><code>T-7.4</code></td><td class="label">submitRejection</td><td><span class="kind-operation">operation</span></td><td><code>T-7</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-7</code></td><td><code>T-7.5</code></td><td class="label">updateStatusRejected</td><td><span class="kind-operation">operation</span></td><td><code>T-7</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-8</code></td><td><code>T-8.1</code></td><td class="label">applyFilters</td><td><span class="kind-operation">operation</span></td><td><code>T-8</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-8</code></td><td><code>T-8.2</code></td><td class="label">clickExport</td><td><span class="kind-operation">operation</span></td><td><code>T-8</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-8</code></td><td><code>T-8.3</code></td><td class="label">Generate and download CSV</td><td><span class="kind-subgoal">subgoal</span></td><td><code>T-8</code></td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-derived"><td><code>T-8</code></td><td><code>T-8.3.1</code></td><td class="label">generateCsv</td><td><span class="kind-operation">operation</span></td><td><code>T-8.3</code></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-8</code></td><td><code>T-8.3.2</code></td><td class="label">downloadCsv</td><td><span class="kind-operation">operation</span></td><td><code>T-8.3</code></td><td class="prov-cell">derived-from-§5</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="plans-block">
+          <h3>Plans</h3>
+          <table class="plans-table">
+            <thead>
+              <tr>
+                <th>node</th>
+                <th>plan type</th>
+                <th>plan text</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-from-task-flow"><td><code>T-1</code></td><td><span class="plan-type-sequence">sequence</span></td><td class="plan-text">Do T-1.1, then T-1.2, then T-1.3, then T-1.4.</td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-2</code></td><td><span class="plan-type-sequence">sequence</span></td><td class="plan-text">Do T-2.1, then T-2.2, then T-2.3, then T-2.4, then T-2.5.</td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-ai-suggested"><td><code>T-2.2</code></td><td><span class="plan-type-sequence">sequence</span></td><td class="plan-text">[AI-SUGGESTED] Do T-2.2.1, then T-2.2.2, then T-2.2.3 (default order; §5 lists fields comma-separated without explicit ordering).</td><td class="prov-cell">ai-suggested</td></tr>
+              <tr class="provenance-derived"><td><code>T-3</code></td><td><span class="plan-type-selection">selection</span></td><td class="plan-text">Do T-3.1, then T-3.2; if <code>row clicked</code>, do T-3.3, else complete.</td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-4</code></td><td><span class="plan-type-selection">selection</span></td><td class="plan-text">Do T-4.1, then T-4.2, then T-4.3; if <code>role = Approver AND row.Status = Imported</code>, do T-4.4.</td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-5</code></td><td><span class="plan-type-sequence">sequence</span></td><td class="plan-text">Do T-5.1, then T-5.2, then T-5.3, then T-5.4.</td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-derived"><td><code>T-5.2</code></td><td><span class="plan-type-selection">selection</span></td><td class="plan-text">Do any subset of T-5.2.1, T-5.2.2, T-5.2.3, T-5.2.4, T-5.2.5 based on <code>chosen filter types</code>.</td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-6</code></td><td><span class="plan-type-sequence">sequence</span></td><td class="plan-text">Do T-6.1, then T-6.2, then T-6.3, then T-6.4.</td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-7</code></td><td><span class="plan-type-sequence">sequence</span></td><td class="plan-text">Do T-7.1, then T-7.2, then T-7.3, then T-7.4, then T-7.5.</td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-from-task-flow"><td><code>T-8</code></td><td><span class="plan-type-sequence">sequence</span></td><td class="plan-text">Do T-8.1 (optional), then T-8.2, then T-8.3.</td><td class="prov-cell">from-task-flow</td></tr>
+              <tr class="provenance-ai-suggested"><td><code>T-8.3</code></td><td><span class="plan-type-sequence">sequence</span></td><td class="plan-text">[AI-SUGGESTED] Do T-8.3.1, then T-8.3.2 (default order; §5 phrases the pair as "generated and downloaded" without explicit ordering words).</td><td class="prov-cell">ai-suggested</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="decisions-block">
+          <h3>Decision points</h3>
+          <table class="decisions-table">
+            <thead>
+              <tr>
+                <th>task</th>
+                <th>at TFD step</th>
+                <th>guard</th>
+                <th>branches</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-derived"><td><code>T-1</code></td><td class="seq">3.5</td><td class="guard">credentials valid</td><td><code>ok → step 4</code> ; <code>fail → abort (login failure)</code></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-2</code></td><td class="seq">4.5</td><td class="guard">required metadata provided</td><td><code>ok → step 5</code> ; <code>missing → abort (parse failure)</code></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-3</code></td><td class="seq">2.5</td><td class="guard">row clicked</td><td><code>yes → step 3</code> ; <code>no → success exit</code></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-4</code></td><td class="seq">3.5</td><td class="guard">role = Approver AND row.Status = Imported</td><td><code>ok → step 4</code> ; <code>no → success exit</code></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-5</code></td><td class="seq">1.5</td><td class="guard">chosen filter type</td><td><code>Status → chooseStatus</code> ; <code>File → chooseFile</code> ; <code>Date → chooseDateRange</code> ; <code>Amount → chooseAmountRange</code> ; <code>Text → chooseTextSearch</code></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-6</code></td><td class="seq">2.5</td><td class="guard">transaction.status = Imported</td><td><code>imported → step 3</code> ; <code>other → abort (hidden per BR-01)</code></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-7</code></td><td class="seq">3.5</td><td class="guard">note provided</td><td><code>ok → step 4</code> ; <code>empty → abort (submit disabled per BR-02)</code></td><td class="prov-cell">derived-from-§5</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="exceptions-block">
+          <h3>Exception paths</h3>
+          <table class="exceptions-table">
+            <thead>
+              <tr>
+                <th>task</th>
+                <th>trigger condition</th>
+                <th>exception flow</th>
+                <th>exit type</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-derived"><td><code>T-1</code></td><td>Login fails after credentials are submitted.</td><td class="flow">Display generic error message that does not reveal which credential field was incorrect (BR-05).</td><td><span class="exit-type-abort">abort</span></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-2</code></td><td>File parsing fails after submit.</td><td class="flow">File is not parsed; no File Log row is created in a Completed state.</td><td><span class="exit-type-abort">abort</span></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-3</code></td><td>No files have been uploaded.</td><td class="flow">Empty state names the entity ("File Logs") and offers the upload CTA to Importers only.</td><td><span class="exit-type-abort ai-suggested">abort [AI-SUGGESTED]</span></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-4</code></td><td>No transactions match the table view or active filters.</td><td class="flow">Empty state distinguishes "no data" from "no results from a filter".</td><td><span class="exit-type-abort ai-suggested">abort [AI-SUGGESTED]</span></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-5</code></td><td>The active filter set returns zero rows.</td><td class="flow">Zero-results state names the active filters and offers Clear-all instead of the create CTA.</td><td><span class="exit-type-abort ai-suggested">abort [AI-SUGGESTED]</span></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-6</code></td><td>The selected transaction is not in Imported status when Approve is invoked.</td><td class="flow">Approve action is hidden per BR-01; row remains in its current status.</td><td><span class="exit-type-abort">abort</span></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-7</code></td><td>The mandatory note field is empty when submit is attempted.</td><td class="flow">Submit control remains disabled; inline validation flags the field as required (BR-02).</td><td><span class="exit-type-abort">abort</span></td><td class="prov-cell">derived-from-§5</td></tr>
+              <tr class="provenance-derived"><td><code>T-8</code></td><td>The filtered dataset is empty when Export is invoked.</td><td class="flow">A header-only CSV is still produced; the user is informed via a toast.</td><td><span class="exit-type-escalate">escalate</span></td><td class="prov-cell">derived-from-§5</td></tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="op-matrix-block">
+          <h3>Cross-task operation matrix</h3>
+          <table class="op-matrix-table">
+            <thead>
+              <tr>
+                <th>operation</th>
+                <th>T-1</th>
+                <th>T-2</th>
+                <th>T-3</th>
+                <th>T-4</th>
+                <th>T-5</th>
+                <th>T-6</th>
+                <th>T-7</th>
+                <th>T-8</th>
+                <th>used in</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>openLoginPage</code></td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>submitCredentials</code></td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>validateCredentials</code></td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>routeToLandingPage</code></td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>selectFile</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>provideFileSettingId</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>provideFileSettingName</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>provideFileName</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>submitUpload</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>createFileLog</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>displayStatus</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>openDashboard</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>viewFileList</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>drillIntoTransactions</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>openTable</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>browseColumns</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>applyFilters</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="usage-count">3 / 8</td></tr>
+              <tr><td><code>useRowActions</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>openFilterPanel</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>chooseStatus</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>chooseFile</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>chooseDateRange</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>chooseAmountRange</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>chooseTextSearch</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>tableUpdates</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>selectTransaction</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="usage-count">2 / 8</td></tr>
+              <tr><td><code>clickApprove</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>confirmInModal</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>updateStatusApproved</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>clickReject</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>enterMandatoryNote</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>submitRejection</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>updateStatusRejected</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="matrix-cell-absent">·</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>clickExport</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>generateCsv</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="usage-count">1 / 8</td></tr>
+              <tr><td><code>downloadCsv</code></td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-absent">·</td><td class="matrix-cell-present">✓</td><td class="usage-count">1 / 8</td></tr>
+            </tbody>
+          </table>
+        </section>
+      </section>
+    </section>
+
+    <details id="diagnostics" class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>Catalogue — 8 tasks, 3 subgoals, 39 operations, 11 plans, 7 decisions, 8 exceptions.</p>
+        <p>Provenance: 46 from-task-flow, 28 derived-from-§N, 2 ai-suggested (cell-level [AI-SUGGESTED] overlays on 3 exception exit-types are in addition to row-level provenance).</p>
+        <ul>
+          <li class="check-pass">Check 1 — Every top-level task has a kebab-case id, display name, and lead persona id referenced in §3.</li>
+          <li class="check-pass">Check 2 — Every top-level task has a non-empty trigger and completion criterion.</li>
+          <li class="check-pass">Check 3 — Every HTA tree has at least one decomposition level.</li>
+          <li class="check-pass">Check 4 — Every non-leaf HTA node has a plan in {sequence, selection, iteration, concurrent} with non-empty plan_text.</li>
+          <li class="check-pass">Check 5 — Every leaf operation has a non-empty lowerCamelCase verb-phrase label (regex <code>^[a-z][a-zA-Z0-9]+$</code>); no forbidden tokens (<code>and</code>, <code>then</code>, <code>etc</code>, empty).</li>
+          <li class="check-pass">Check 6 — Every TFD has a start state, ≥1 numbered step, and ≥1 exit state.</li>
+          <li class="check-pass">Check 7 — Caps respected: 8 top-level tasks (capped from 9 candidates — File Summary View dropped, lowest §5 step density); decomposition depth ≤ 3; subgoals per non-leaf parent ≤ 10.</li>
+          <li class="check-pass">Check 8 — Every operation referenced in a TFD step refs exists in the HTA (cross-table integrity).</li>
+          <li class="check-pass">Check 9 — Every row in every Tier-1 table carries exactly one provenance marker.</li>
+          <li class="check-pass">Check 10 — Every decision point has ≥2 outgoing branches, each with a non-empty guard expression.</li>
+        </ul>
+        <p class="density-warning hidden">Density warning suppressed: 0 / 39 operations are ai-suggested (0%).</p>
+        <p style="font-size:12px;color:var(--muted);margin-top:12px;">Tasks rendered as inline-SVG figures (HTA + TFD pairs): T-1 Authentication, T-2 File Upload, T-3 File Log Overview, T-4 Transaction Table, T-6 Approve Transaction, T-7 Reject Transaction, T-8 Export Transactions. T-5 Search &amp; Filtering remains catalogue-only by consultant choice.</p>
+        <p style="font-size:12px;color:var(--muted);">Lead-persona tiebreak: T-1, T-3, T-4, T-5 Actor sub-cell names "Importer or Approver"; both qualify, tiebroken by §3 registry order → Importer. Role-conditional behaviour is captured via <code>selection</code> plans on the affected non-leaf nodes (T-3, T-4) rather than by switching persona per task.</p>
+      </section>
+    </details>
+
+    <footer class="bottom">
+      <div class="legend">
+        <span class="legend-item"><span class="legend-dot s-task-flow" aria-hidden="true"></span> from §5 Task flows</span>
+        <span class="legend-item"><span class="legend-dot s-derived" aria-hidden="true"></span> derived from §2/§3/§4/§6/§7</span>
+        <span class="legend-item"><span class="legend-dot s-ai" aria-hidden="true"></span> [AI-SUGGESTED]</span>
+      </div>
+      <div class="credit">Generated by `framework/agents/analyses/task-flows-analyser.md`.</div>
+    </footer>
+  </main>
+</body>
+</html>
