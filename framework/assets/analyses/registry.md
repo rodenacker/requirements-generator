@@ -61,7 +61,6 @@ methodologies:
   # the remaining fields, and authoring the analyser + reference + character + template.
   - { name: user-stories, status: future }
   - { name: quality-signals-analysis, status: future }
-  - { name: glossary-domain, status: future }
   - { name: personas, status: future }
   - { name: thematic-analysis, status: future }
   - { name: opportunity-solution-trees, status: future }
@@ -75,6 +74,15 @@ methodologies:
     map_skill: framework/skills/map-five-whys-to-ui.md
     analyser_agent: framework/agents/analyses/five-whys-analyser.md
     character: framework/assets/characters/five-whys-analysis.md
+  - name: glossary
+    status: mvp
+    description: Glossary — surface the project's domain vocabulary from requirements.md. Walks the doc at a consultant-chosen scope tier (1 = nouns + roles + statuses → 2 += acronyms → 3 += action verbs → 4 += field names; each tier strictly extends the prior). Defined-term entries lift the definition verbatim from an explicit-definition pattern (an "is a" clause, a definition-list row, a §2 entity row, a §7 attribute row, or a §3 role entry) with a section-ref citation. Terms used in the document but not defined explicitly are surfaced in a separate "used without explicit definition" section with use-site citations only — no Claude-supplied gloss, no [AI-SUGGESTED] markers. Re-runs are additive: the artefact carries an HTML-comment cursor so the consultant can widen scope tier by tier across runs; prior entries are preserved verbatim unless the consultant explicitly chooses to re-extract on the drift gate. Choose this option to produce an alphabetical, citation-bound vocabulary inventory before designing copy, labels, status pills, or role surfaces. Output: markdown.
+    output_path: analyses/GLOSSARY/glossary.md
+    reference_asset: framework/assets/analyses/glossary-reference.md
+    template_asset: null
+    map_skill: framework/skills/map-glossary-to-ui.md
+    analyser_agent: framework/agents/analyses/glossary-analyser.md
+    character: framework/assets/characters/glossary-analysis.md
   - { name: double-diamond, status: future }
   - { name: card-sorting, status: future }
   - { name: highest-value-paths, status: future }
