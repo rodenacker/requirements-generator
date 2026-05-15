@@ -82,6 +82,15 @@ methodologies:
     map_skill: framework/skills/map-activity-diagram-to-ui.md
     analyser_agent: framework/agents/analyses/activity-diagram-analyser.md
     character: framework/assets/characters/activity-diagram-analysis.md
+  - name: state-diagram
+    status: mvp
+    description: UML 2.5 § 14 State Diagrams — per-entity behaviour state machines, one diagram per aggregate root or status-bearing entity (states × transitions × triggers × guards × effects × entry/exit/do activities). Lean MVP subset: simple/composite states, initial/final/choice/junction pseudostates; orthogonal regions, history pseudostates, submachine states deferred. Consultant selects which entities to render; tabular catalogues always emitted, inline-SVG diagrams plus copy-pasteable Mermaid `stateDiagram-v2` source per selected entity.
+    output_path: analyses/STATE-DIAGRAM/state-diagram.html
+    reference_asset: framework/assets/analyses/state-diagram-reference.md
+    template_asset: framework/assets/analyses/template-state-diagram.html
+    map_skill: framework/skills/map-state-diagram-to-ui.md
+    analyser_agent: framework/agents/analyses/state-diagram-analyser.md
+    character: framework/assets/characters/state-diagram-analysis.md
   - { name: decision-matrix, status: future }
 ---
 

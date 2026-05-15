@@ -1,0 +1,885 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses/state-diagram-analyser.md.
+
+  Purpose: HTML/CSS skeleton for a UML 2.5 § 14 state-diagram catalogue
+  artefact (per-entity behaviour state machines, lean MVP subset) plus
+  0..N inline-SVG figures chosen by the consultant.
+
+  Two tiers:
+    - Tier 1 (always rendered): six Tier-1 sections — entities, states,
+      internal activities, transitions, events, cross-entity state
+      coverage matrix — plus a separate diagnostics block.
+    - Tier 2 (consultant-selected, 0..N): inline-SVG state-diagram
+      figures, one per selected entity, plus a copy-pasteable Mermaid
+      `stateDiagram-v2` source block per selected entity for external
+      rendering (Mermaid Live Editor, Confluence, draw.io).
+
+  Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`). No
+  external CSS / JS dependencies; viewable by opening `file://` in a
+  browser; shareable with clients without tooling.
+
+  Placeholders the analyser substitutes (string substitution, all values
+  pre-escaped for HTML; XML-escaped inside <svg><text> nodes):
+
+    {{TITLE}}                  — short title (e.g. "State Diagrams — Project X").
+    {{DOMAIN}}                 — domain string (from requirements §1 if present).
+    {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
+    {{REQUIREMENTS_SHA256}}    — sha256 of requirements/requirements.md at read time.
+    {{ENTITY_COUNT}}           — number of rows in the Entities table.
+    {{STATE_COUNT}}            — number of rows in the States table (across all entities).
+    {{TRANSITION_COUNT}}       — number of rows in the Transitions table (across all entities).
+    {{EVENT_COUNT}}            — number of rows in the global Events table.
+    {{AI_SUGGESTED_COUNT}}     — total items marked `ai-suggested`. Key diagnostic affordance.
+    {{ENTITIES_RENDERED}}      — comma-separated entity display names whose SVG was emitted, or "none — catalogue only".
+    {{DIAGNOSTICS_BLOCK}}      — pre-rendered HTML block per DIAGNOSTICS SCHEMA below.
+    {{CATALOGUE_BLOCK}}        — pre-rendered Tier-1 tables block per CATALOGUE SCHEMA below.
+    {{SVG_DIAGRAMS_BLOCK}}     — pre-rendered Tier-2 <figure> blocks per STATE DIAGRAM SCHEMA below; one <figure> per selected entity. Empty selection renders an empty-state <p>.
+    {{MERMAID_BLOCK}}          — pre-rendered <details> containing 0..N <pre> blocks (one Mermaid `stateDiagram-v2` source per selected entity). Empty if none selected.
+
+  Output: analyses/STATE-DIAGRAM/state-diagram.html.
+
+  CATALOGUE SCHEMA — the analyser's {{CATALOGUE_BLOCK}} substitutes a
+  single <section class="catalogue">. The inner section contains, in
+  order:
+
+      <section class="catalogue">
+        <h2>State-diagram catalogue</h2>
+
+        <section class="entities-block">
+          <h3>Entities</h3>
+          <table class="entities-table">
+            <thead>
+              <tr>
+                <th>id</th>
+                <th>display name</th>
+                <th>kind</th>
+                <th>source</th>
+                <th>states</th>
+                <th>transitions</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{id}}</code></td>
+                <td>{{display_name}}</td>
+                <td><span class="entity-kind-{{kind}}">{{kind}}</span></td>
+                <td>{{source}}</td>
+                <td>{{state_count}}</td>
+                <td>{{transition_count}}</td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="states-block">
+          <h3>States</h3>
+          <table class="states-table">
+            <thead>
+              <tr>
+                <th>entity</th>
+                <th>id</th>
+                <th>display name</th>
+                <th>kind</th>
+                <th>parent</th>
+                <th>notes</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{entity_id}}</code></td>
+                <td><code>{{id}}</code></td>
+                <td>{{display_name}}</td>
+                <td><span class="state-kind-{{kind}}">{{kind}}</span></td>
+                <td><code>{{parent or "—"}}</code></td>
+                <td>{{notes or ""}}</td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="internal-activities-block">
+          <h3>Internal activities</h3>
+          <table class="internal-activities-table">
+            <thead>
+              <tr>
+                <th>entity</th>
+                <th>state</th>
+                <th>kind</th>
+                <th>event</th>
+                <th>action</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{entity_id}}</code></td>
+                <td><code>{{state_id}}</code></td>
+                <td><span class="activity-kind-{{kind}}">{{kind}}</span></td>
+                <td class="event"><code>{{event or "—"}}</code></td>
+                <td class="action">{{action}}</td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="transitions-block">
+          <h3>Transitions</h3>
+          <table class="transitions-table">
+            <thead>
+              <tr>
+                <th>entity</th>
+                <th>id</th>
+                <th>source</th>
+                <th>target</th>
+                <th>trigger</th>
+                <th>guard</th>
+                <th>effect</th>
+                <th>notes</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{entity_id}}</code></td>
+                <td><code>{{id}}</code></td>
+                <td><code>{{source}}</code></td>
+                <td><code>{{target}}</code></td>
+                <td class="trigger"><code>{{trigger or "—"}}</code></td>
+                <td class="guard">{{guard or "—"}}</td>
+                <td class="effect">{{effect or "—"}}</td>
+                <td>{{notes or ""}}</td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="events-block">
+          <h3>Events</h3>
+          <table class="events-table">
+            <thead>
+              <tr>
+                <th>id</th>
+                <th>display name</th>
+                <th>kind</th>
+                <th>used in</th>
+                <th>source</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{id}}</code></td>
+                <td>{{display_name}}</td>
+                <td><span class="event-kind-{{kind}}">{{kind}}</span></td>
+                <td>{{used_in_entities_csv}}</td>
+                <td>{{source}}</td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="matrix-block">
+          <h3>Cross-entity state coverage matrix</h3>
+          <p class="matrix-meta">Rows = entities. Columns = canonical lifecycle phases. Cell = entity's state mapped to that phase, or em-dash if absent.</p>
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th>entity</th>
+                <th>created</th>
+                <th>active</th>
+                <th>suspended</th>
+                <th>closed</th>
+                <th>cancelled</th>
+                <th>failed</th>
+                <th>archived</th>
+                <th>coverage</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>{{entity_id}}</code></td>
+                <td class="matrix-cell-present|matrix-cell-absent">{{state_name or "—"}}</td>
+                ...
+                <td class="usage-count">{{N}} / 7</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+      </section>
+
+  STATE DIAGRAM SCHEMA — the analyser's {{SVG_DIAGRAMS_BLOCK}}
+  substitutes a single <section class="state-diagrams">. The inner
+  section contains one <figure> per selected entity:
+
+      <section class="state-diagrams">
+        <h2>State diagrams</h2>
+        <p class="state-diagrams-meta">Diagrams rendered: {{ENTITIES_RENDERED}}</p>
+
+        <figure class="state-diagram entity-{slug}">
+          <figcaption>
+            <h3>{{entity_display_name}}</h3>
+            <p class="entity-meta"><code>{{entity_id}}</code> — {{kind}} — {{state_count}} states, {{transition_count}} transitions</p>
+          </figcaption>
+          <svg viewBox="0 0 W H" role="img" aria-label="State diagram for {{entity_display_name}}">
+            <defs>
+              <marker id="state-arrow-{slug}" ...>open triangle</marker>
+            </defs>
+            <!-- composite states: <rect class="composite-state"/> + <line class="composite-divider"/> + nested substate rectangles -->
+            <!-- state nodes: <rect class="state-node state-kind-{kind}" rx="12"/> + <text class="state-label"/> + (optional) <text class="state-activities"/> per internal activity -->
+            <!-- initial pseudostate: <circle class="initial-node"/> filled black, r=8 -->
+            <!-- final state: <circle class="final-node final-outer"/> + <circle class="final-node final-inner"/> (bullseye) -->
+            <!-- choice pseudostate: <polygon class="choice-node"/> (diamond) -->
+            <!-- junction pseudostate: <circle class="junction-node"/> filled black, r=6 -->
+            <!-- transitions: <path class="transition-edge" marker-end="url(#state-arrow-{slug})"/> per transition -->
+            <!-- transition labels: <rect class="transition-label-bg"/> + <text class="transition-label"/> per labelled transition -->
+          </svg>
+        </figure>
+
+        ... one figure per selected entity ...
+      </section>
+
+    OR if the consultant selected zero entities:
+
+      <section class="state-diagrams">
+        <p class="diagrams-empty">No diagrams were selected. The
+        catalogue tables above are the deliverable.</p>
+      </section>
+
+  DIAGNOSTICS SCHEMA — the analyser's {{DIAGNOSTICS_BLOCK}} substitutes a
+  single <section class="diagnostics">. The template wraps the placeholder
+  in a <details class="diagnostics-toggle"> element (collapsed by default).
+  The inner section contains, in order:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>Catalogue — N entities, S states, T transitions, E events, I internal activities.</p>
+        <p>Provenance: X from-lifecycle, Y derived, Z ai-suggested.</p>
+        <ul>
+          <li class="check-pass|check-fail">Check 1 — Every entity has a kebab-case id, a PascalCase display name, and ≥1 state.</li>
+          ... (all 10 checks listed in order)
+        </ul>
+        <p class="density-warning hidden|...">⚠ Density warning: ...</p>
+        <!-- Override-only: flagged-items <ul> per failed check. -->
+      </section>
+
+  CSS classes used by the analyser:
+    .catalogue            — outer container for Tier 1 tables.
+    .entities-table .states-table .internal-activities-table
+    .transitions-table .events-table .matrix-table
+                          — one per Tier-1 section.
+    .state-diagrams       — outer container for Tier 2 figures.
+    .state-diagram        — applied to every <figure>; one
+                            .entity-{slug} modifier per entity.
+    .diagrams-empty       — applied to the <p> when zero entities selected.
+    .mermaid-source       — applied to the <details> wrapping <pre> blocks.
+    .provenance-from-lifecycle
+    .provenance-derived
+    .provenance-ai-suggested
+                          — exactly one per content row in any Tier-1
+                            table.
+    .ai-suggested         — applied to any cell whose content carries
+                            [AI-SUGGESTED]; renders italic + dim.
+    .entity-kind-aggregate .entity-kind-entity
+                          — pill badges in the entities table.
+    .state-kind-initial .state-kind-simple .state-kind-composite
+    .state-kind-final .state-kind-choice .state-kind-junction
+                          — pill badges in the states table.
+    .activity-kind-entry .activity-kind-exit .activity-kind-do
+    .activity-kind-on-event
+                          — pill badges in the internal-activities table.
+    .event-kind-user-action .event-kind-system-event
+    .event-kind-time-event .event-kind-change-event
+                          — pill badges in the events table.
+    .matrix-cell-present .matrix-cell-absent
+                          — matrix table cell variants.
+    .rev-marker           — applied to any row flagged by a failed
+                            quality check on an Override run.
+
+  SVG conventions (analyser owns content; template provides CSS
+  containment + per-element styling):
+    - viewBox "0 0 W H" — W and H computed by analyser from state
+      count, transition count, and state_width / state_height.
+    - role="img" + aria-label on every <svg>.
+    - All <text> nodes XML-escape state names, transition labels,
+      guards, effects, internal-activity actions.
+
+  Content TBD-able by the analyser:
+    The diagnostics block, catalogue table rows, SVG count and contents,
+    and Mermaid <pre> contents are fully driven by the analyser. The CSS
+    below is fixed scaffolding and should not be edited — only the
+    {{placeholders}} above are substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --card-bg: #ffffff;
+      --header-bg: #efefef;
+      --row-alt: #fbfbfb;
+
+      --prov-lifecycle:     #2a6aa0;
+      --prov-derived:       #b86a00;
+      --prov-ai-suggested:  #a02a6a;
+
+      --entity-kind-aggregate-bg:  #e7f0fb; --entity-kind-aggregate-fg:  #0c2a44;
+      --entity-kind-entity-bg:     #eaf3ef; --entity-kind-entity-fg:     #14422a;
+
+      --state-kind-initial-bg:           #1a1a1a; --state-kind-initial-fg:           #fafafa;
+      --state-kind-simple-bg:            #eaf3ef; --state-kind-simple-fg:            #14422a;
+      --state-kind-composite-bg:         #e7f0fb; --state-kind-composite-fg:         #0c2a44;
+      --state-kind-final-bg:             #1a1a1a; --state-kind-final-fg:             #fafafa;
+      --state-kind-choice-bg:            #fff5d6; --state-kind-choice-fg:            #4a3a00;
+      --state-kind-junction-bg:          #555555; --state-kind-junction-fg:          #fafafa;
+
+      --activity-kind-entry-bg:     #eaf3ef; --activity-kind-entry-fg:     #14422a;
+      --activity-kind-exit-bg:      #ffeaea; --activity-kind-exit-fg:      #8a1a1a;
+      --activity-kind-do-bg:        #e7f0fb; --activity-kind-do-fg:        #0c2a44;
+      --activity-kind-on-event-bg:  #f3eafd; --activity-kind-on-event-fg:  #2e1255;
+
+      --event-kind-user-action-bg:   #e7f0fb; --event-kind-user-action-fg:   #0c2a44;
+      --event-kind-system-event-bg:  #eaf3ef; --event-kind-system-event-fg:  #14422a;
+      --event-kind-time-event-bg:    #fff5d6; --event-kind-time-event-fg:    #4a3a00;
+      --event-kind-change-event-bg:  #f3eafd; --event-kind-change-event-fg:  #2e1255;
+
+      --ai-bg: #fdf3fa;
+
+      --rev-bg: #ffeaea; --rev-border: #d44a4a; --rev-fg: #8a1a1a;
+
+      --svg-state-fill:                    #ffffff;
+      --svg-state-stroke:                  #5a5a5a;
+      --svg-state-label:                   #1a1a1a;
+      --svg-state-activities:              #5a5a5a;
+      --svg-state-simple-fill:             #eaf3ef;
+      --svg-state-composite-fill:          #f3f7fc;
+      --svg-state-composite-stroke:        #5a5a5a;
+      --svg-composite-divider:             #b0b0b0;
+      --svg-initial-fill:                  #1a1a1a;
+      --svg-final-stroke:                  #1a1a1a;
+      --svg-final-inner-fill:              #1a1a1a;
+      --svg-choice-fill:                   #fff5d6;
+      --svg-choice-stroke:                 #5a5a5a;
+      --svg-junction-fill:                 #555555;
+      --svg-edge:                          #2a2a2a;
+      --svg-transition-label-bg:           #ffffff;
+      --svg-transition-label-fg:           #2a2a2a;
+      --svg-transition-guard-fg:           #b86a00;
+      --svg-transition-effect-fg:          #2a6aa0;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+    }
+
+    h2 {
+      font-size: 17px;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+    }
+
+    h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 0 24px 0;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      background: var(--row-alt);
+      padding: 1px 5px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px 24px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+
+    .meta-grid dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+
+    .meta-grid dd {
+      margin: 0 0 6px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ------- diagnostics ------- */
+
+    details.diagnostics-toggle {
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.diagnostics-toggle[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.diagnostics-toggle[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
+    .diagnostics {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > .diagnostics {
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      margin-bottom: 0;
+    }
+    details.diagnostics-toggle > .diagnostics > h2 {
+      display: none;
+    }
+
+    .diagnostics > ul {
+      margin: 0 0 12px 0;
+      padding-left: 20px;
+    }
+
+    .diagnostics .check-pass::before { content: "PASS "; color: #2a8a2a; font-weight: 600; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--rev-fg); font-weight: 600; }
+
+    .diagnostics .density-warning {
+      padding: 8px 10px;
+      background: #fff5d6;
+      border-left: 3px solid #d97a1f;
+      border-radius: 3px;
+      margin: 8px 0;
+      font-size: 13px;
+    }
+    .diagnostics .density-warning.hidden { display: none; }
+
+    .diagnostics .flagged-items {
+      margin: 8px 0 0 0;
+      padding: 8px 10px;
+      background: var(--rev-bg);
+      border-left: 3px solid var(--rev-border);
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    .diagnostics .flagged-items strong { color: var(--rev-fg); }
+
+    /* ------- catalogue tables ------- */
+
+    .catalogue {
+      margin-bottom: 32px;
+    }
+
+    .catalogue > section {
+      margin-bottom: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+    }
+
+    .catalogue table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+
+    .catalogue thead th {
+      background: var(--header-bg);
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 2px solid var(--border-strong);
+      vertical-align: bottom;
+    }
+
+    .catalogue tbody td {
+      padding: 8px 10px;
+      border-top: 1px solid var(--border);
+      vertical-align: top;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .catalogue tbody tr:nth-child(even) { background: var(--row-alt); }
+
+    /* Provenance row left-border + provenance cell content */
+    .catalogue tbody tr.provenance-from-lifecycle  { box-shadow: inset 3px 0 0 0 var(--prov-lifecycle); }
+    .catalogue tbody tr.provenance-derived          { box-shadow: inset 3px 0 0 0 var(--prov-derived); }
+    .catalogue tbody tr.provenance-ai-suggested     { box-shadow: inset 3px 0 0 0 var(--prov-ai-suggested); background: var(--ai-bg); }
+    .catalogue tbody tr.provenance-ai-suggested td  { font-style: italic; }
+
+    .catalogue td.prov-cell {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .catalogue td.prov-cell::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: 1px;
+    }
+    tr.provenance-from-lifecycle td.prov-cell::before  { background: var(--prov-lifecycle); }
+    tr.provenance-derived         td.prov-cell::before { background: var(--prov-derived); }
+    tr.provenance-ai-suggested    td.prov-cell::before { background: var(--prov-ai-suggested); }
+
+    /* Pill badges */
+    .entity-kind-aggregate, .entity-kind-entity,
+    .state-kind-initial, .state-kind-simple, .state-kind-composite,
+    .state-kind-final, .state-kind-choice, .state-kind-junction,
+    .activity-kind-entry, .activity-kind-exit, .activity-kind-do, .activity-kind-on-event,
+    .event-kind-user-action, .event-kind-system-event, .event-kind-time-event, .event-kind-change-event {
+      display: inline-block;
+      padding: 1px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-radius: 3px;
+    }
+    .entity-kind-aggregate      { background: var(--entity-kind-aggregate-bg);      color: var(--entity-kind-aggregate-fg); }
+    .entity-kind-entity         { background: var(--entity-kind-entity-bg);         color: var(--entity-kind-entity-fg); }
+    .state-kind-initial         { background: var(--state-kind-initial-bg);         color: var(--state-kind-initial-fg); }
+    .state-kind-simple          { background: var(--state-kind-simple-bg);          color: var(--state-kind-simple-fg); }
+    .state-kind-composite       { background: var(--state-kind-composite-bg);       color: var(--state-kind-composite-fg); }
+    .state-kind-final           { background: var(--state-kind-final-bg);           color: var(--state-kind-final-fg); }
+    .state-kind-choice          { background: var(--state-kind-choice-bg);          color: var(--state-kind-choice-fg); }
+    .state-kind-junction        { background: var(--state-kind-junction-bg);        color: var(--state-kind-junction-fg); }
+    .activity-kind-entry        { background: var(--activity-kind-entry-bg);        color: var(--activity-kind-entry-fg); }
+    .activity-kind-exit         { background: var(--activity-kind-exit-bg);         color: var(--activity-kind-exit-fg); }
+    .activity-kind-do           { background: var(--activity-kind-do-bg);           color: var(--activity-kind-do-fg); }
+    .activity-kind-on-event     { background: var(--activity-kind-on-event-bg);     color: var(--activity-kind-on-event-fg); }
+    .event-kind-user-action     { background: var(--event-kind-user-action-bg);     color: var(--event-kind-user-action-fg); }
+    .event-kind-system-event    { background: var(--event-kind-system-event-bg);    color: var(--event-kind-system-event-fg); }
+    .event-kind-time-event      { background: var(--event-kind-time-event-bg);      color: var(--event-kind-time-event-fg); }
+    .event-kind-change-event    { background: var(--event-kind-change-event-bg);    color: var(--event-kind-change-event-fg); }
+
+    .catalogue td.trigger { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; color: var(--prov-lifecycle); }
+    .catalogue td.guard   { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; font-style: italic; color: var(--prov-derived); }
+    .catalogue td.effect  { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; color: var(--prov-lifecycle); }
+    .catalogue td.event   { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; color: var(--prov-lifecycle); }
+    .catalogue td.action  { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+
+    /* AI-SUGGESTED cell highlight */
+    .ai-suggested,
+    td.ai-suggested {
+      background: var(--ai-bg);
+      font-style: italic;
+      color: var(--prov-ai-suggested);
+    }
+
+    /* Rev marker (override-only) */
+    .rev-marker,
+    tr.rev-marker {
+      background: var(--rev-bg);
+      box-shadow: inset 3px 0 0 0 var(--rev-border);
+      color: var(--rev-fg);
+    }
+
+    /* Cross-entity matrix */
+    .matrix-meta { color: var(--muted); font-size: 12px; margin: 0 0 8px 0; }
+    .matrix-table td { text-align: center; font-size: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .matrix-table td:first-child { text-align: left; }
+    .matrix-table td.matrix-cell-present { color: #14422a; font-weight: 600; background: #f0f7f2; }
+    .matrix-table td.matrix-cell-absent  { color: var(--border); }
+    .matrix-table td.usage-count { font-variant-numeric: tabular-nums; color: var(--muted); }
+
+    /* ------- state diagrams ------- */
+
+    .state-diagrams {
+      margin-bottom: 32px;
+    }
+    .state-diagrams-meta {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 0 0 12px 0;
+    }
+    .diagrams-empty {
+      padding: 16px;
+      background: var(--card-bg);
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-style: italic;
+      margin: 0;
+    }
+
+    .state-diagram {
+      margin: 0 0 24px 0;
+      padding: 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .state-diagram figcaption {
+      margin: 0 0 12px 0;
+    }
+    .state-diagram figcaption h3 {
+      margin: 0;
+      font-size: 13px;
+      color: var(--fg);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .state-diagram figcaption .entity-meta {
+      margin: 4px 0 0 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .state-diagram svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #fcfcfc;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+
+    /* SVG-internal styling (selectable by class on emitted shapes) */
+    .state-diagram svg .state-node                       { fill: var(--svg-state-fill); stroke: var(--svg-state-stroke); stroke-width: 1.2; }
+    .state-diagram svg .state-node.state-kind-simple     { fill: var(--svg-state-simple-fill); }
+    .state-diagram svg .composite-state                  { fill: var(--svg-state-composite-fill); stroke: var(--svg-state-composite-stroke); stroke-width: 1.2; }
+    .state-diagram svg .composite-divider                { stroke: var(--svg-composite-divider); stroke-width: 1; }
+    .state-diagram svg .state-label                      { fill: var(--svg-state-label); font-size: 12px; font-weight: 600; text-anchor: middle; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .state-diagram svg .state-activities                 { fill: var(--svg-state-activities); font-size: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .state-diagram svg .initial-node                     { fill: var(--svg-initial-fill); }
+    .state-diagram svg .final-node.final-outer           { fill: none; stroke: var(--svg-final-stroke); stroke-width: 1.5; }
+    .state-diagram svg .final-node.final-inner           { fill: var(--svg-final-inner-fill); }
+    .state-diagram svg .choice-node                      { fill: var(--svg-choice-fill); stroke: var(--svg-choice-stroke); stroke-width: 1.2; }
+    .state-diagram svg .junction-node                    { fill: var(--svg-junction-fill); }
+    .state-diagram svg .transition-edge                  { fill: none; stroke: var(--svg-edge); stroke-width: 1.3; }
+    .state-diagram svg .transition-label                 { fill: var(--svg-transition-label-fg); font-size: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .state-diagram svg .transition-label-bg              { fill: var(--svg-transition-label-bg); }
+
+    /* ------- Mermaid fallback ------- */
+
+    details.mermaid-source {
+      margin-bottom: 24px;
+    }
+    details.mermaid-source > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--prov-derived);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--fg);
+      list-style: none;
+      user-select: none;
+    }
+    details.mermaid-source > summary::-webkit-details-marker { display: none; }
+    details.mermaid-source > summary::before {
+      content: "▶ ";
+      font-size: 10px;
+      color: var(--muted);
+    }
+    details.mermaid-source[open] > summary::before { content: "▼ "; }
+    details.mermaid-source > pre {
+      margin: 0;
+      padding: 12px 16px;
+      background: var(--row-alt);
+      border: 1px solid var(--border);
+      border-top: none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    details.mermaid-source > pre + pre {
+      border-top: 1px solid var(--border);
+    }
+    details.mermaid-source > pre:last-of-type {
+      border-radius: 0 0 6px 6px;
+    }
+    details.mermaid-source .mermaid-caption {
+      color: var(--muted);
+      font-size: 11px;
+      padding: 4px 16px;
+      background: var(--row-alt);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      font-style: italic;
+    }
+
+    /* ------- bottom legend ------- */
+
+    footer.bottom {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    footer.bottom .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    footer.bottom .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    footer.bottom .legend-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    footer.bottom .legend-dot.s-lifecycle { background: var(--prov-lifecycle); }
+    footer.bottom .legend-dot.s-derived   { background: var(--prov-derived); }
+    footer.bottom .legend-dot.s-ai        { background: var(--prov-ai-suggested); }
+    footer.bottom .credit { margin-top: 6px; text-align: right; }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .catalogue > section,
+      .state-diagram {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        border-radius: 0;
+        border-color: #000;
+      }
+      details.diagnostics-toggle,
+      details.mermaid-source { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>{{TITLE}}</h1>
+    <p class="subtitle">UML 2.5 § 14 state-diagram catalogue (per-entity behaviour state machines, lean MVP subset) — entities, states, internal activities, transitions, events — plus consultant-selected inline-SVG diagrams and copy-pasteable Mermaid source.</p>
+
+    <dl class="meta-grid">
+      <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+      <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+      <div><dt>Source SHA-256</dt><dd><code>{{REQUIREMENTS_SHA256}}</code></dd></div>
+      <div><dt>Entities</dt><dd>{{ENTITY_COUNT}}</dd></div>
+      <div><dt>States</dt><dd>{{STATE_COUNT}}</dd></div>
+      <div><dt>Transitions</dt><dd>{{TRANSITION_COUNT}}</dd></div>
+      <div><dt>Events</dt><dd>{{EVENT_COUNT}}</dd></div>
+      <div><dt>AI-suggested items</dt><dd>{{AI_SUGGESTED_COUNT}}</dd></div>
+      <div><dt>Diagrams rendered</dt><dd>{{ENTITIES_RENDERED}}</dd></div>
+    </dl>
+
+    <details class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    {{CATALOGUE_BLOCK}}
+
+    {{SVG_DIAGRAMS_BLOCK}}
+
+    {{MERMAID_BLOCK}}
+
+    <footer class="bottom">
+      <div class="legend">
+        <span class="legend-item"><span class="legend-dot s-lifecycle" aria-hidden="true"></span> from §2.3 Aggregates &amp; lifecycles</span>
+        <span class="legend-item"><span class="legend-dot s-derived" aria-hidden="true"></span> derived from §2.1/§3/§4/§5/§6/§7/§9</span>
+        <span class="legend-item"><span class="legend-dot s-ai" aria-hidden="true"></span> [AI-SUGGESTED]</span>
+      </div>
+      <div class="credit">Generated by `framework/agents/analyses/state-diagram-analyser.md`.</div>
+    </footer>
+  </main>
+</body>
+</html>
