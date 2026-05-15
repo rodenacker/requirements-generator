@@ -6,7 +6,7 @@
 
 **Used by:**
 
-- `framework/agents/analyses/use-cases-analyser.md` — drives the agent's six-round process plus the quality-gate sweep.
+- `framework/agents/analyses/use-cases-analyser.md` — drives the agent's six analytical rounds + quality-gate sweep + Round 7 UML diagram view derivation.
 - `framework/skills/map-use-cases-to-ui.md` — uses the use-case map to derive screen + flow + guard + acceptance entries for downstream UI design consumption (stub).
 
 **Output produced by the analyser:** `analyses/USE-CASES/use-cases-map.html` — self-contained HTML use-case card grid using `framework/assets/analyses/template-use-cases.html` as scaffold.
@@ -32,7 +32,7 @@ If `§Personas` is absent or empty, the analyser falls back to extracting candid
 
 ## The Use Cases process
 
-Six rounds, executed in order. The analyser does not skip rounds and does not collapse rounds into a single pass — each round's output feeds the next, and round-by-round structure is what makes the methodology auditable.
+Six analytical rounds (1–6) plus one diagram-derivation round (7), executed in order. Rounds 1–6 produce the card grid and feed the quality-gate sweep; Round 7 derives the canonical UML use case diagram view from the gated card data after the sweep passes (or the consultant accepts Override). The analyser does not skip rounds and does not collapse rounds into a single pass — each round's output feeds the next, and round-by-round structure is what makes the methodology auditable.
 
 ### Round 1 — Actors & Scope
 
@@ -193,6 +193,40 @@ If no extension can be sourced for any main step, mark the UC with `no-extension
 
 **Output of Round 6:** the UC list with `extensions[]` populated. Each extension carries `{branch_label, classification ∈ {alt, exception}, steps[], source}`.
 
+### Round 7 — UML diagram view derivation
+
+Runs only after the Round 6 output passes the quality-gate sweep (or the consultant explicitly accepts Override). Round 7 derives the canonical UML use case **diagram view** from the gated card data — no new claims are introduced. The diagrams are a visual presentation of facts the cards already carry; they cannot diverge from the gated map.
+
+UML use case diagrams (UML 2.5 §18) are inherently **system-level** views: actors on the outside, use cases as ovals inside a system boundary, with association lines (actor↔UC), `«include»` arrows (one UC includes another's behaviour), `«extend»` arrows (a separate UC injects behaviour at a named extension point in the base UC), and generalization arrows (actor or UC hierarchies). The analyser produces this view as inline SVG + adjacent copy-pasteable Mermaid `flowchart LR` source. Mermaid has no first-class UML use case diagram syntax — the `flowchart` form is an approximation, and the caption on every Mermaid block discloses this honestly (matching the convention already established by the activity-diagram analyser, where Mermaid has no first-class UML activity diagram either).
+
+#### Diagram inventory
+
+- **System overview** — always emitted. One figure showing every primary actor and every UC inside the system boundary, plus all association edges and all derived `«include»` edges. This is the canonical UML use case view; emitting it unconditionally is the value-add over the card grid.
+- **Per-actor focus diagrams** — 0..N, consultant-selected post-gate via the analyser's Step 8.6 `AskUserQuestion` multi-select. Each shows one actor and only their UCs, plus `«include»` edges whose both endpoints fall inside that actor's UC set. The actor-index sidebar already gives a tabular per-actor view; per-actor diagrams are useful but redundant for many runs, so opt-in is the default. When there is only one primary actor, the per-actor selection is skipped (a single-actor focus view would be identical to the overview).
+
+#### Edge derivation rules
+
+Three edge classes are derived; two are explicitly not derived.
+
+- **Association edges (derived).** One per `(primary_actor, UC)` pair on the map. Endpoints come from Round 1 / Round 2 output. Never invent endpoints. UML associations are undirected; the SVG line carries no marker, the Mermaid form is `actor --- UC`.
+- **`«include»` edges (derived).** Cockburn convention: `summary`-level UCs reference their constituent UCs by ID in step text (Gate 4 enforces this), and `user-goal` UCs frequently reference `subfunction` UCs by ID. Both are surfaced as `«include»` edges in the diagram. The derivation is purely lexical: walk the main-step text of every `summary` and `user-goal` UC for `UC-NN` tokens; for each token whose referenced UC exists in the UC node set, emit one `«include»` edge `{from_uc, to_uc}`. Deduplicate.
+- **`«extend»` edges (NOT derived).** Cockburn extensions (Round 6 alternative and exception flows) are scenario-internal branches at numbered main-step points — they describe how the same UC behaves under variant conditions. UML `«extend»` is a fundamentally different concept: a separate UC injects additional behaviour at a named extension point in a base UC. Cockburn extensions and UML extensions share only the word; their semantics do not align. Fabricating `«extend»` edges from Round 6 extensions would mislead consultants who know UML. The analyser emits zero `«extend»` edges and discloses this in the diagnostics block: `«extend» edges: 0 (Cockburn extensions model scenario branches, not UML extension points)`.
+- **Generalization edges (NOT derived).** No source in `requirements.md` anchors actor-generalization (e.g., `Manager` generalises `User`) or UC-generalization (e.g., *Pay by card* generalises *Pay*). The reference's source-priority rules forbid invention. The analyser emits zero generalization edges and discloses this in the diagnostics block: `«generalize» edges: 0 (no source signal in requirements)`.
+
+#### Rendering contract
+
+- **Self-contained inline SVG.** The artefact remains a single self-contained HTML file. No external CSS, no external JS, no external image references. Every UML SVG is inline; every Mermaid block is plain text.
+- **Adjacent Mermaid source.** Each SVG diagram has a matching `<pre>` Mermaid block inside a single `<details class="uml-mermaid-source">` element. Mermaid is the copy-pasteable fallback / canonical-rep — the consultant pastes it into mermaid.live to regenerate, share, or modify.
+- **Mermaid is a `flowchart LR` approximation.** The caption on every Mermaid block discloses this: *"Mermaid does not have first-class UML use case diagrams; this is a `flowchart LR` approximation."* Adopting the same caption convention used by the activity-diagram analyser keeps the consultant's mental model consistent.
+- **SVG layout is deterministic.** Same inputs produce byte-identical SVG. The analyser specifies the geometry (`framework/agents/analyses/use-cases-analyser.md > Step 9`); this reference states only the contract — viewBox sized to data, actors on the left, system boundary as a rect, UCs stacked inside, association lines from actor to UC, dashed curved arrows for `«include»`.
+- **Level colour parity.** Each UC ellipse fill uses the same level palette as the card border (summary violet, user-goal blue, subfunction grey). The consultant sees the same colour signal in both the card view and the diagram view.
+
+#### No new quality gate
+
+Round 7 introduces no hard quality gate. Every claim it visualises was already gated by the seven Round 6 gates. A diagram-specific gate would either re-validate gated data (redundant) or invent a constraint not anchored in the requirements (out of scope). Structural well-formedness of the rendered SVG and Mermaid blocks is enforced at handback by the analyser's self-validation checks (presence, counts, schema), not by a new gate.
+
+**Output of Round 7:** `uml_inventory = {actors[], ucs[], assoc_edges[], include_edges[], extend_edges: [], generalize_edges: []}` plus the consultant's `chosen.actors[]` selection (set in Step 8.6 of the analyser). Track the diagnostics line: `UML diagrams: 1 overview, K per-actor; association edges: A; «include» edges: I; «extend» edges: 0; «generalize» edges: 0`.
+
 ---
 
 ## Output presentation
@@ -214,6 +248,8 @@ The artefact renders as a use-case card grid grouped by level (summary → user-
 | `derived-*` marker | muted-italic | Anywhere a condition / step / trigger / extension is derived rather than verbatim-sourced. |
 
 Plus a top-level **UC index table** listing every UC with `UC ID | Title | Primary Actor | Level | Steps | Extensions` columns, sortable visually by level (summary first, user-goal block, subfunction last). And an **actor index sidebar** with per-actor UC counts so the consultant can see which actor anchors which UCs at a glance.
+
+The Round 7 **UML use case diagrams** are presented in their own section (`id="uml-diagrams"`) between the card grid and the UC index table. The always-on `<figure class="uml-diagram uml-overview">` shows every actor and UC; opt-in `<figure class="uml-diagram uml-per-actor">` blocks show one actor's slice each. UC ellipses carry the same level fill colours as the card borders (summary violet, user-goal blue, subfunction grey). Actor stick figures are uniform black (UML convention; no provenance colour-coding inside the diagram — provenance is carried on the card and on the actor-index sidebar). `«include»` edges are dashed curved arrows with an open arrowhead and a `«include»` label. Adjacent to the SVGs sits a single `<details class="uml-mermaid-source">` containing one `<pre>` per diagram (copy-pasteable Mermaid `flowchart LR` source), each preceded by a caption that discloses the `flowchart` approximation. The `<details>` is closed by default — the consultant opens it only when they need the source.
 
 ---
 
@@ -244,6 +280,9 @@ Every gate is a hard gate. If any gate fails, the analyser does **not** write th
 - **Editorialising.** The analyser is a literal lens onto the requirements doc. It does not propose new product features; it surfaces UCs the BA already documented (verbatim where named, derived where implied). If the requirements doc names no UC for a goal the analyser thinks should exist, the analyser flags the gap rather than inventing the UC.
 - **Inventing flows where `§Task flows` is sparse.** If `§Task flows` is sparse, most UCs will carry `flow-derived` rather than `flow-from-task-flows`. Surface the count in the diagnostics block; the consultant addresses it by revising `§Task flows` and re-running.
 - **Inventing extensions to satisfy Gate 6.** If `§Risks` / `§Pains` / `§Constraints` / `§Acceptance criteria` name no failure mode for a UC, mark `no-extensions-in-requirements` rather than guessing *"3a. The user cancels"*. The marker is honest; the guess is invented data.
+- **Fabricating UML `«extend»` edges from Cockburn extensions.** Cockburn extensions (Round 6) are scenario-internal branches at numbered step points; UML `«extend»` represents a wholly separate UC injecting behaviour at a named extension point in a base UC. The words match; the semantics do not. Emit zero `«extend»` edges and disclose. Auditing consultants who know UML will catch a fabricated mapping immediately.
+- **Fabricating UML generalization edges.** No source in `requirements.md` anchors actor or UC generalization. Emit zero and disclose. Generalization without an anchor is invented hierarchy.
+- **Treating the UML diagrams as a replacement for the card grid.** The card grid is the canonical use-case deliverable — it carries goal-in-context, stakeholders, preconditions, success guarantees, minimal guarantees, trigger, main scenario, and extensions. The UML diagrams are a Tier-2 visualisation of the actor / UC / include topology only. They are additive, never substitutive. Downstream consumers (`map-use-cases-to-ui` skill, design-spec-drafter) read from the card grid, not the diagrams.
 
 ---
 

@@ -11,8 +11,14 @@
     2. TOC (<nav class="toc">)         — static top-level anchors.
     3. Diagrams (id="diagrams")        — {{ACTOR_INDEX}} + {{USE_CASE_CARDS}}
        inside the `.layout` two-column grid.
-    4. Tabular information (id="tables") — {{UC_INDEX_TABLE}}.
-    5. Diagnostics (id="diagnostics")  — <details> wrapper, collapsed
+    4. UML diagrams (id="uml-diagrams") — {{UML_SVG_BLOCK}} + {{UML_MERMAID_BLOCK}}.
+       One always-on System overview <figure> (actors as stick figures,
+       UCs as ovals inside a system-boundary rect, association lines,
+       dashed «include» arrows) plus 0..N consultant-selected per-actor
+       focus <figure>s. Mermaid source kept adjacent to the SVGs as a
+       copy-pasteable `flowchart LR` approximation.
+    5. Tabular information (id="tables") — {{UC_INDEX_TABLE}}.
+    6. Diagnostics (id="diagnostics")  — <details> wrapper, collapsed
        by default. Bottom of page; position alone signals auxiliary.
 
   Layout: one `<section class="uc-level-block">` per sea-level (summary →
@@ -42,6 +48,18 @@
                                       per UC INDEX TABLE SCHEMA below.
     {{USE_CASE_CARDS}}              — pre-rendered <section class="uc-level-block">
                                       blocks per the USE-CASE CARD SCHEMA below.
+    {{UML_SVG_BLOCK}}               — pre-rendered <figure class="uml-diagram">
+                                      per diagram. Always one
+                                      <figure class="uml-diagram uml-overview">
+                                      (System overview). Then 0..N
+                                      <figure class="uml-diagram uml-per-actor">
+                                      per consultant-selected actor.
+                                      See UML DIAGRAM SCHEMA below.
+    {{UML_MERMAID_BLOCK}}           — pre-rendered <details class="uml-mermaid-source">
+                                      with one <pre> per diagram (1 + per-actor
+                                      count), each preceded by a
+                                      <div class="mermaid-caption">. Empty
+                                      selection still emits the overview <pre>.
 
   Output: analyses/USE-CASES/use-cases-map.html.
 
@@ -202,6 +220,63 @@
         <!-- Override-only: flagged-UCs <ul> per failed gate with uc-id + offending text. -->
       </section>
 
+  UML DIAGRAM SCHEMA — each diagram is a self-contained inline-SVG figure.
+  The analyser emits 1 always-on overview + 0..N per-actor focus diagrams:
+
+      <figure class="uml-diagram uml-overview" aria-labelledby="uml-overview-title">
+        <figcaption>
+          <h3 id="uml-overview-title">System overview</h3>
+          <p class="uml-caption-meta">{{n_actors}} actors · {{n_ucs}} use cases · {{n_include}} «include» edges</p>
+        </figcaption>
+        <svg viewBox="0 0 800 H" role="img" aria-label="UML use case diagram — system overview">
+          <defs>
+            <marker id="uml-arrow-open" markerWidth="10" markerHeight="10"
+                    refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L9,5 L0,10" fill="none" stroke="currentColor" stroke-width="1"/>
+            </marker>
+          </defs>
+          <rect class="uml-system-boundary" x="240" y="40" width="520" height="H-80"/>
+          <text class="uml-system-label" x="260" y="64">System</text>
+          <g class="uml-actor"> ...stick figure + label... </g>
+          ...
+          <ellipse class="uml-uc level-{summary|user-goal|subfunction}"
+                   cx="500" cy="80" rx="110" ry="22"/>
+          <text class="uml-uc-label" x="500" y="78" text-anchor="middle">{{uc_title}}</text>
+          <text class="uml-uc-id"    x="500" y="92" text-anchor="middle">UC-NN</text>
+          ...
+          <line class="uml-assoc" x1="120" y1="80" x2="390" y2="80"/>
+          ...
+          <path class="uml-include" d="M ... " marker-end="url(#uml-arrow-open)"/>
+          <text class="uml-include-label" x="{midx}" y="{midy-4}">«include»</text>
+        </svg>
+      </figure>
+
+      <figure class="uml-diagram uml-per-actor uml-actor-{slug}" ...>
+        <figcaption>
+          <h3>{{actor_name}} — focus</h3>
+          <p class="uml-caption-meta">{{n_ucs}} use cases</p>
+        </figcaption>
+        <svg ...>...same layout function, filtered to this actor's UCs...</svg>
+      </figure>
+
+  Mermaid source block schema:
+
+      <details class="uml-mermaid-source">
+        <summary>Mermaid source (copy-pasteable — `flowchart` approximation)</summary>
+        <div class="mermaid-caption">System overview — Mermaid does not have first-class UML use case diagrams; this is a `flowchart LR` approximation. Copy-paste into mermaid.live to render.</div>
+        <pre>flowchart LR
+  subgraph System["System"]
+    UC01([UC-01 Submit claim])
+    UC02([UC-02 Approve claim])
+  end
+  Claimant((Claimant)) --- UC01
+  Approver((Approver)) --- UC02
+  UC01 -.->|«include»| UC03</pre>
+        <div class="mermaid-caption">{{actor_name}} — per-actor focus — `flowchart LR` approximation.</div>
+        <pre>...per-actor source...</pre>
+        ...
+      </details>
+
   CSS classes used by the analyser:
     .level-summary, .level-user-goal, .level-subfunction  — level chip + card border color.
     .provenance-from-personas, .provenance-derived        — actor provenance dot.
@@ -217,6 +292,20 @@
                                                             a derived-* marker (muted-italic).
     .no-extensions                                        — applied to the
                                                             `no-extensions-in-requirements` paragraph.
+    .uml-diagram                                          — <figure> wrapping one inline <svg>.
+    .uml-overview, .uml-per-actor                         — figure variants.
+    .uml-actor-{slug}                                     — per-actor figure modifier.
+    .uml-system-boundary, .uml-system-label               — system boundary <rect> + label.
+    .uml-actor, .uml-actor-label                          — actor stick figure <g> + name <text>.
+    .uml-uc, .uml-uc-label, .uml-uc-id                    — UC <ellipse> + title + ID <text>s.
+                                                            The ellipse carries the level-* class
+                                                            for fill colour parity with the card.
+    .uml-assoc                                            — actor↔UC association <line>.
+    .uml-include, .uml-include-label                      — dashed «include» <path> + label.
+    .uml-empty                                            — <p> shown when no UCs exist.
+    details.uml-mermaid-source                            — Mermaid <details> wrapper
+                                                            (print-hidden, toggle-styled).
+    .mermaid-caption                                      — caption above each <pre> block.
 
   Content TBD-able by the analyser:
     The diagnostics block, the actor index, the UC index table, and every
@@ -851,6 +940,172 @@
     }
     p.no-extensions::before { content: "⌀ "; }
 
+    /* ------- UML use case diagrams ------- */
+
+    #uml-diagrams {
+      margin: 0 0 24px 0;
+    }
+    #uml-diagrams > h2 {
+      font-size: 16px;
+      margin: 0 0 4px 0;
+    }
+    #uml-diagrams > .uml-section-caption {
+      margin: 0 0 12px 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    figure.uml-diagram {
+      margin: 0 0 14px 0;
+      padding: 12px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      border-top: 3px solid var(--border-strong);
+    }
+    figure.uml-diagram.uml-overview   { border-top-color: var(--border-strong); }
+    figure.uml-diagram.uml-per-actor  { border-top-color: var(--level-ug-border); }
+
+    figure.uml-diagram > figcaption {
+      margin: 0 0 8px 0;
+    }
+    figure.uml-diagram > figcaption > h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    figure.uml-diagram > figcaption .uml-caption-meta {
+      margin: 2px 0 0 0;
+      font-size: 11px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    figure.uml-diagram > svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-width: 100%;
+      color: var(--fg);
+      font-family: inherit;
+    }
+
+    .uml-system-boundary {
+      fill: none;
+      stroke: var(--border-strong);
+      stroke-width: 1;
+    }
+    .uml-system-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      fill: var(--muted);
+    }
+
+    .uml-actor circle,
+    .uml-actor line {
+      fill: none;
+      stroke: var(--fg);
+      stroke-width: 1.5;
+      stroke-linecap: round;
+    }
+    .uml-actor-label {
+      font-size: 11px;
+      font-weight: 600;
+      fill: var(--fg);
+    }
+
+    .uml-uc {
+      stroke: var(--border-strong);
+      stroke-width: 1;
+    }
+    ellipse.uml-uc.level-summary     { fill: var(--level-sum-bg); stroke: var(--level-sum-border); }
+    ellipse.uml-uc.level-user-goal   { fill: var(--level-ug-bg);  stroke: var(--level-ug-border); }
+    ellipse.uml-uc.level-subfunction { fill: var(--level-sub-bg); stroke: var(--level-sub-border); }
+
+    .uml-uc-label {
+      font-size: 11px;
+      font-weight: 600;
+      fill: var(--fg);
+    }
+    .uml-uc-id {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 9px;
+      fill: var(--muted);
+    }
+
+    .uml-assoc {
+      stroke: var(--fg);
+      stroke-width: 1;
+      fill: none;
+    }
+    .uml-include {
+      stroke: var(--fg);
+      stroke-width: 1;
+      stroke-dasharray: 4 3;
+      fill: none;
+      color: var(--fg);
+    }
+    .uml-include-label {
+      font-size: 9px;
+      font-style: italic;
+      fill: var(--muted);
+    }
+
+    p.uml-empty {
+      margin: 0;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    details.uml-mermaid-source {
+      margin: 8px 0 0 0;
+    }
+    details.uml-mermaid-source > summary {
+      cursor: pointer;
+      padding: 8px 12px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.uml-mermaid-source > summary::-webkit-details-marker { display: none; }
+    details.uml-mermaid-source > summary::before {
+      content: "▶ ";
+      font-size: 10px;
+      color: var(--muted);
+    }
+    details.uml-mermaid-source[open] > summary::before { content: "▼ "; }
+    details.uml-mermaid-source > .mermaid-caption {
+      margin: 8px 0 4px 0;
+      font-size: 11px;
+      color: var(--muted);
+      font-style: italic;
+    }
+    details.uml-mermaid-source > pre {
+      margin: 0 0 4px 0;
+      padding: 12px 16px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      line-height: 1.45;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
     /* ------- footer ------- */
 
     footer {
@@ -930,6 +1185,9 @@
       .uc-grid { gap: 8px; }
       .uc-card { break-inside: avoid; box-shadow: none; }
       .uc-level-block { break-inside: avoid-page; }
+      figure.uml-diagram { break-inside: avoid-page; }
+      details.uml-mermaid-source { display: none; }
+      details.diagnostics-toggle { display: none; }
       .toc { display: none; }
     }
   </style>
@@ -957,6 +1215,7 @@
       <ol>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#diagrams">Diagrams</a></li>
+        <li><a href="#uml-diagrams">UML diagrams</a></li>
         <li><a href="#tables">Tabular information</a></li>
         <li><a href="#diagnostics">Diagnostics</a></li>
       </ol>
@@ -968,6 +1227,13 @@
         {{USE_CASE_CARDS}}
       </section>
     </div>
+
+    <section id="uml-diagrams" aria-label="UML use case diagrams">
+      <h2>UML use case diagrams</h2>
+      <p class="uml-section-caption">System overview is always emitted. Per-actor focus diagrams render only when the consultant selected them. Inline SVG + copy-pasteable Mermaid <code>flowchart</code> source.</p>
+      {{UML_SVG_BLOCK}}
+      {{UML_MERMAID_BLOCK}}
+    </section>
 
     <section id="tables" class="uc-index-wrap" aria-label="Use case index">
       <h2>Use Case Index</h2>

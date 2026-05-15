@@ -15,8 +15,9 @@ The rendered artefact is laid out top-to-bottom as:
 1. **Overview** (`id="overview"`) — title, subtitle, meta-grid.
 2. **TOC** (`<nav class="toc">`) — static top-level anchors.
 3. **Diagrams** (`id="diagrams"`) — `{{ACTOR_INDEX}}` + `{{USE_CASE_CARDS}}` inside the `.layout` two-column grid (actor-index sidebar + UC card board).
-4. **Tabular information** (`id="tables"`) — `{{UC_INDEX_TABLE}}` (every UC at a glance, grouped by sea-level).
-5. **Diagnostics** (`id="diagnostics"`) — `<details class="diagnostics-toggle">`, collapsed by default. Bottom of the page; position alone signals auxiliary.
+4. **UML diagrams** (`id="uml-diagrams"`) — `{{UML_SVG_BLOCK}}` (one always-on System overview figure + 0..N per-actor focus figures) followed by `{{UML_MERMAID_BLOCK}}` (copy-pasteable Mermaid `flowchart LR` source, one `<pre>` per diagram).
+5. **Tabular information** (`id="tables"`) — `{{UC_INDEX_TABLE}}` (every UC at a glance, grouped by sea-level).
+6. **Diagnostics** (`id="diagnostics"`) — `<details class="diagnostics-toggle">`, collapsed by default. Bottom of the page; position alone signals auxiliary.
 
 Section order lives in `framework/assets/analyses/template-use-cases.html`, not in this analyser. The analyser emits the same placeholder blocks regardless; the template decides where they land.
 
@@ -37,7 +38,7 @@ This invariant is enforced by the agent's `Tools` list — no read path into pip
 
 ## Workflow
 
-Eleven steps in order. Do not skip steps; do not collapse steps. Each step's success is the precondition for the next.
+Eleven primary steps plus two UML sub-steps (Step 8.5 — Round 7 UML diagram derivation; Step 8.6 — per-actor diagram selection), in order. Do not skip steps; do not collapse steps. Each step's success is the precondition for the next. The UML sub-steps run only after Step 8 passes (or the consultant accepts Override) — diagrams cannot diverge from gated card data.
 
 ### Step 1 — Activate
 
@@ -178,7 +179,40 @@ Run all seven gates from `use-cases-reference.md > Quality gates` in order. Each
 - On **Override**: record each failing gate in the in-memory diagnostics block (which lands in the rendered artefact), then advance to Step 9. The consultant has explicitly accepted the violations as known.
 - On **Restart**: re-enter Step 3. Do not loop more than three times in a single invocation; on the fourth fail-and-restart, force the **Revise** path with a one-line note that further iteration is not productive without consultant input.
 
-**On all gates passing:** advance to Step 9 with a clean diagnostics block.
+**On all gates passing:** advance to Step 8.5 with a clean diagnostics block.
+
+### Step 8.5 — Round 7: UML diagram derivation
+
+Per `use-cases-reference.md > Round 7 — UML diagram view derivation`. Runs only after Step 8 passes or the consultant accepted Override. Derives the visual UML use case diagram inventory from the already-gated card data — no new claims are introduced.
+
+- **Diagram inventory.** Always 1 System overview. Plus 0..N per-actor focus diagrams (count fixed in Step 8.6 by consultant selection).
+- **Actor nodes.** For every primary actor on the map, emit `{actor_slug, label, provenance}` rows. `actor_slug` is the actor name slugified (lowercase, alphanumeric + `-`, leading-digit-safe by prefixing `a-` if needed) and used both as the SVG `id` suffix and the Mermaid node id. The provenance marker is reused from Round 1 / Round 2 but does not colour-code the SVG stick figure — actor styling is uniform per UML convention.
+- **UC nodes.** For every UC, emit `{uc_slug, uc_id, label, level}` rows. `uc_slug` is the UC-NN slug (e.g. `UC01`). The `level` carries the colour-coding to the SVG ellipse fill via the `.level-{summary|user-goal|subfunction}` class (parity with the card border colour).
+- **Association edges.** For every `(primary_actor, UC)` pair on the map, emit `{actor_slug, uc_slug}`. One per pair. Both endpoints must exist in the actor / UC node sets above; never invent endpoints.
+- **«include» edges.** Derive from two and only two sources:
+    1. `summary`-level UCs whose main-step text references another UC by literal `UC-NN` token (Gate 4 requires summary UCs to reference other UCs by ID — those references are the canonical includes).
+    2. `user-goal` UCs whose main-step text references a `subfunction` UC by literal `UC-NN` token (Cockburn convention — subfunction UCs are conventionally included by user-goal UCs).
+    Emit each include edge once with `{from_uc_slug, to_uc_slug}`. Deduplicate. Both endpoints must exist in the UC node set. Track the count for the diagnostics line.
+- **«extend» edges.** Not derived. Cockburn extensions (Round 6) are scenario-internal branches, not UML extension points. The diagnostics line records `«extend» edges: 0 (Cockburn extensions model scenario branches, not UML extension points)`.
+- **Generalization edges.** Not derived. There is no source signal in `requirements.md` that anchors actor-generalization or UC-generalization. The diagnostics line records `«generalize» edges: 0 (no source signal in requirements)`.
+- **Per-actor view set.** For each primary actor, the filtered subset is `{actor_slug, [UC nodes where this actor is primary], [include edges with both endpoints inside the filtered UC set]}`. Computed lazily — only built for actors the consultant selects in Step 8.6.
+
+Output (in memory): `uml_inventory = {actors[], ucs[], assoc_edges[], include_edges[], extend_edges: [], generalize_edges: []}`. Track counts for the diagnostics line: `{n_overview: 1, n_per_actor: 0 (set in Step 8.6), n_actors, n_ucs, n_assoc, n_include}`.
+
+### Step 8.6 — Per-actor diagram selection
+
+After Step 8.5 derivation, surface the per-actor selection prompt to the consultant.
+
+**Skip when there is only one primary actor.** The per-actor view would be visually identical to the overview; asking a question whose only meaningful answer is "no" is consultant-hostile and adds no information. In this case set `chosen.actors = []` and advance to Step 9.
+
+**Otherwise** use `AskUserQuestion`:
+
+- Question: *"The System overview UML diagram will always be emitted. Pick any per-actor focus diagrams you also want rendered. None is a valid answer — the overview alone is often enough."*
+- Header: `Actors?`
+- `multiSelect: true`
+- Options: one option per primary actor, label `"{{actor_name}} — {{n_ucs}} UC<s>"`, description `"Filtered view showing only this actor's UCs and any «include» edges between them."`. Cap at the first four actors per the `AskUserQuestion` tool's 4-option limit; if there are more than four actors, present the four with the highest UC count, and add a one-line note that the remaining actors are skipped (their view can be requested via Revise in Step 11).
+
+Persist the consultant's choice as `chosen.actors[]` (the slugs of the selected actors, in input order). Empty selection is documented and valid. Update `uml_inventory.n_per_actor = len(chosen.actors)` and lazily build the per-actor view sets for the selected actors. Advance to Step 9.
 
 ### Step 9 — Render
 
@@ -191,11 +225,30 @@ Per `framework/assets/analyses/template-use-cases.html`:
     - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
     - `{{REQUIREMENTS_SHA256}}` — the SHA-256 captured in Step 2.
     - `{{UC_COUNT}}`, `{{ACTOR_COUNT}}`, `{{LEVEL_SUMMARY_COUNT}}`, `{{LEVEL_USER_GOAL_COUNT}}`, `{{LEVEL_SUBFUNCTION_COUNT}}`, `{{EXTENSION_COUNT}}` — derived counts.
-    - `{{DIAGNOSTICS_BLOCK}}` — pre-rendered `<section class="diagnostics">` containing: a summary line (`Use cases map — N UCs across M primary actors.`), level distribution with `default-classified` count, provenance summary (counts of `from-personas` vs `derived-actor`; per-goal-source counts; per-flow-source counts), condition summary (`derived-from-pains`, `derived-from-risks`, `derived-from-constraints`, `derived-trigger` counts), `no-extensions-in-requirements` count, per-gate result lines (PASS/FAIL), per-flagged-UC lines (only present on Override runs).
+    - `{{DIAGNOSTICS_BLOCK}}` — pre-rendered `<section class="diagnostics">` containing: a summary line (`Use cases map — N UCs across M primary actors.`), level distribution with `default-classified` count, provenance summary (counts of `from-personas` vs `derived-actor`; per-goal-source counts; per-flow-source counts), condition summary (`derived-from-pains`, `derived-from-risks`, `derived-from-constraints`, `derived-trigger` counts), `no-extensions-in-requirements` count, per-gate result lines (PASS/FAIL), per-flagged-UC lines (only present on Override runs), and a UML summary line: `UML diagrams: 1 overview, K per-actor; association edges: A; «include» edges: I; «extend» edges: 0 (Cockburn extensions model scenario branches, not UML extension points); «generalize» edges: 0 (no source signal in requirements).`
     - `{{ACTOR_INDEX}}` — pre-rendered `<aside class="actor-index">` per ACTOR INDEX SCHEMA in the template header. One `<li>` per primary actor (no secondary or supporting actors in the sidebar — those are visible inside individual UC cards). Each `<li>` carries the actor-provenance dot, the actor name, and the UC count.
     - `{{UC_INDEX_TABLE}}` — pre-rendered `<table class="uc-index">` per UC INDEX TABLE SCHEMA. Rows ordered by level (summary first, user-goal block, subfunction last), then by `UC-NN`. Each row carries a level chip with the correct class.
     - `{{USE_CASE_CARDS}}` — pre-rendered `<section class="uc-level-block">` blocks per USE-CASE CARD SCHEMA in the template header. One block per non-empty level. Inside each block, UCs render as `<article class="uc-card">` in `UC-NN` order. Each card emits, in fixed order: header (UC-NN + Title + Level chip), actor-row (provenance dot + actor + goal-source pill + flow-source pill), goal-in-context paragraph, field-block (Stakeholders / Preconditions / Success guarantees / Minimal guarantees / Trigger), scenario block (numbered main steps with actor/system shading), extensions block (numbered extensions indented under their branch labels with alt/exception classification).
-- **HTML-escape every substituted value** before injection. `<`, `>`, `&`, `"`, `'` must be encoded. The template's CSS class names are the only fixed strings the agent does not escape — those are CSS class identifiers, not consultant content.
+    - `{{UML_SVG_BLOCK}}` — pre-rendered inline-SVG figures per UML DIAGRAM SCHEMA in the template header. Always emit exactly one `<figure class="uml-diagram uml-overview">` containing the System overview SVG. Then emit one `<figure class="uml-diagram uml-per-actor uml-actor-{slug}">` per actor in `chosen.actors[]`, in selection order. If `chosen.actors` is empty, emit only the overview (do **not** emit a `<p class="uml-empty">` — the overview alone is the documented default).
+        - **SVG layout (deterministic — no overlap):** ViewBox `0 0 800 H` where `H = max(360, 80 + 60 * max(uc_count, actor_count))`. Single inline `<defs>` block per SVG containing the `<marker id="uml-arrow-open">` referenced by `«include»` arrows. System boundary `<rect class="uml-system-boundary" x="240" y="40" width="520" height="{H-80}"/>` with a `<text class="uml-system-label" x="260" y="64">System</text>` label.
+        - **Actors.** Stacked at `x=80`, starting `y=80`, step `60`. Each actor is a `<g class="uml-actor">` containing: head `<circle cx="80" cy="{y-12}" r="6"/>`, body `<line x1="80" y1="{y-6}" x2="80" y2="{y+10}"/>`, arms `<line x1="68" y1="{y-2}" x2="92" y2="{y-2}"/>`, legs `<line x1="80" y1="{y+10}" x2="68" y2="{y+22}"/>` + `<line x1="80" y1="{y+10}" x2="92" y2="{y+22}"/>`. Label `<text class="uml-actor-label" x="80" y="{y+38}" text-anchor="middle">{{actor_name}}</text>`.
+        - **UCs.** Stacked at `x=500`, starting `y=80`, step `60`. Each UC is an `<ellipse class="uml-uc level-{level}" cx="500" cy="{y}" rx="110" ry="22"/>` followed by two `<text>` lines: `<text class="uml-uc-label" x="500" y="{y-1}" text-anchor="middle">{{title}}</text>` and `<text class="uml-uc-id" x="500" y="{y+12}" text-anchor="middle">UC-NN</text>`. Truncate `{{title}}` to 28 characters with an ellipsis if longer; the full title remains in the card and the index table.
+        - **Association lines.** `<line class="uml-assoc" x1="120" y1="{actor_y}" x2="390" y2="{uc_y}"/>` per `(actor, uc)` pair. No arrowhead — UML associations are undirected.
+        - **«include» arrows.** `<path class="uml-include" d="M 500 {from_y_top} C 700 {from_y_top}, 700 {to_y_top}, 500 {to_y_top}" marker-end="url(#uml-arrow-open)"/>` per derived include edge (curved rightward bow so multiple includes don't overlap), with `<text class="uml-include-label" x="{midx}" y="{midy-4}" text-anchor="middle">«include»</text>` at the curve mid-point.
+        - **Per-actor view.** Same layout function with the actor list filtered to one entry and the UC list filtered to that actor's UCs. Include edges whose target is outside the filtered UC set are dropped — the per-actor view is intentionally a slice.
+        - **Empty edge case.** A UC with no primary-actor association is impossible by Gate 1 — never emit the empty-state `<p>`. The actor and UC node sets are always non-empty post-gate-pass.
+    - `{{UML_MERMAID_BLOCK}}` — pre-rendered `<details class="uml-mermaid-source">` containing one `<pre>` per diagram (the overview, then one per selected actor), each preceded by a `<div class="mermaid-caption">`. Always exactly `1 + len(chosen.actors)` `<pre>` blocks. Summary text: `Mermaid source (copy-pasteable — flowchart approximation)`.
+        - **Overview caption:** `System overview — Mermaid does not have first-class UML use case diagrams; this is a `flowchart LR` approximation. Copy-paste into mermaid.live to render.`
+        - **Per-actor caption:** `{{actor_name}} — per-actor focus — `flowchart LR` approximation.`
+        - **Mermaid syntax (deterministic):**
+            - First line: `flowchart LR`.
+            - One `subgraph System["System"]` block enclosing the UC nodes only — actors live outside the subgraph (mirrors the UML system boundary).
+            - UC nodes: `{{uc_slug}}([{{uc_id}} {{uc_title}}])` — Mermaid stadium shape ≈ UML oval.
+            - Actor nodes: `{{actor_slug}}(({{actor_name}}))` — Mermaid circle ≈ closest to a stick figure node.
+            - Association edges: `{{actor_slug}} --- {{uc_slug}}` — solid undirected.
+            - «include» edges: `{{from_uc_slug}} -.->|«include»| {{to_uc_slug}}` — dashed directed with label.
+        - **Label escaping.** Mermaid labels with quote / pipe / colon are wrapped in double quotes per Mermaid's literal-label syntax; the analyser performs this wrap, not HTML-escaping (Mermaid is consumed as plain text). UC titles with characters that conflict with Mermaid syntax are sanitised by replacing them with their unicode equivalents or stripping (rare for verb-noun UC titles).
+- **HTML-escape every substituted value** before injection. `<`, `>`, `&`, `"`, `'` must be encoded. The template's CSS class names are the only fixed strings the agent does not escape — those are CSS class identifiers, not consultant content. **Inside `<pre>` Mermaid blocks**, the same HTML-escape rule applies (the `<pre>` is HTML, even though its content is Mermaid syntax): a UC title containing `&` becomes `&amp;` inside the `<pre>`. Mermaid still parses it correctly because browsers decode entities before passing the text to mermaid.live.
 - Compose the full HTML in memory. Compute SHA-256 of the in-memory bytes.
 
 The template scaffold itself is **not edited**. Only the documented `{{placeholders}}` are substituted. CSS classes used by the analyser are listed in the template header — assign `level-summary` / `level-user-goal` / `level-subfunction` per Round 3, assign `provenance-from-personas` / `provenance-derived` per Round 2, assign the `src-from-*` class per Round 2's goal-source marker, assign the `flow-from-task-flows` / `flow-derived` class per Round 5, assign `actor-step` / `system-step` per step subject class, assign `ext-alt` / `ext-exception` per extension classification. Extension `<li>` items also carry the `branch-label` and `ext-class` chips.
@@ -244,6 +297,7 @@ Use `AskUserQuestion`:
     - For a precondition / success-guarantee / minimal-guarantee edit: update Round 4 row, re-run gates 3 / 7, re-render, re-Write, re-verify, loop back to A.
     - For a step edit (text / subject / order): update Round 5 row, re-run gates 4 / 5, re-render, re-Write, re-verify, loop back to A.
     - For an extension edit: update Round 6 row, re-render, re-Write, re-verify, loop back to A.
+    - For a diagram-selection edit (consultant wants different per-actor focus diagrams, or wants the per-actor selection skipped on a single-actor doc): re-run Step 8.6's `AskUserQuestion` prompt only — Rounds 1–7 derivation is not redone since the UML inventory is deterministic from gated card data. Then re-render Step 9, re-Write, re-verify, loop back to A.
 - **Restart** — re-enter Step 3. The previously-written `analyses/USE-CASES/use-cases-map.html` is left in place; the next Step 10 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 10).
@@ -290,6 +344,10 @@ Before handing back, verify all of the following against the written artefact an
 - The diagnostics block reports `Use cases map — N UCs across M primary actors.` where N matches the count of `<article class="uc-card">` elements and M matches the count of `<li>` entries in the actor-index sidebar.
 - The UC index table `<table class="uc-index">` has exactly `{{UC_COUNT}}` body rows, each linking via `<a href="#uc-<slug>">` to the corresponding card's `id`.
 - The artefact's `REQUIREMENTS_SHA256` field equals the SHA-256 captured in Step 2 — proving the analysis matched the requirements doc as-read, not a stale copy.
+- The artefact contains exactly one `<figure class="uml-diagram uml-overview">`. Its inline `<svg>` contains at least one `<g class="uml-actor">` (stick figure), at least one `<ellipse class="uml-uc">`, at least one `<line class="uml-assoc">`, and exactly one `<rect class="uml-system-boundary">`. UC counts inside the overview SVG equal `{{UC_COUNT}}`; actor stick-figure counts equal `{{ACTOR_COUNT}}`.
+- The number of `<figure class="uml-diagram uml-per-actor">` blocks in the artefact equals `len(chosen.actors)`. Each per-actor SVG contains exactly one `<g class="uml-actor">` and at least one `<ellipse class="uml-uc">`; any UCs outside the actor's set are absent. (Skipped — equals zero — when Step 8.6 was skipped on a single-actor doc.)
+- The Mermaid source block `<details class="uml-mermaid-source">` contains exactly `1 + len(chosen.actors)` `<pre>` elements, each preceded by a `<div class="mermaid-caption">`. The overview caption begins with `System overview — Mermaid does not have first-class UML use case diagrams`. Every `<pre>` opens with `flowchart LR`.
+- The diagnostics block's UML summary line is present and reports `1 overview`, `K per-actor` matching `len(chosen.actors)`, the association-edge count matching the assoc-line count in the overview SVG, the include-edge count matching the `«include»` arrow count, and the `«extend»: 0` / `«generalize»: 0` disclosure lines.
 - No file under `requirements/` other than `requirements/requirements.md` was read during this run. (The agent's tool list makes this true by construction; the check is a deliberate restatement at handback time.)
 - No file under `framework/state/` or `framework/shared/` was read during this run.
 - The consultant has chosen Accept in Step 11 (or the Step 8 Override path was taken, in which case Accept is still required in Step 11 to declare done).
@@ -323,3 +381,8 @@ Before handing back, verify all of the following against the written artefact an
 - Do not edit the HTML scaffold in `framework/assets/analyses/template-use-cases.html`. Only the documented `{{placeholders}}` are substituted; CSS class names, card-grid structure, and CSS variables are fixed.
 - Do not paste the artefact body into the conversation. The file is on disk and the consultant can open it directly in a browser.
 - Do not use any tool not explicitly listed in the Tools section. In particular, do not use the Agent / Task tool to delegate steps to a sub-agent — every step runs in the foreground in this thread.
+- Do not invent `«extend»` edges. Cockburn extensions (Round 6) model scenario-internal branches; UML `«extend»` models a separate UC injecting behaviour at a named extension point in a base UC. The two are semantically distinct — fabricating extend edges from extensions misleads the consultant. Emit zero and disclose in the diagnostics line.
+- Do not invent `«generalize»` edges. No source signal in `requirements.md` anchors actor or UC generalization. Emit zero and disclose in the diagnostics line.
+- Do not redraw the card grid as UML diagrams, and do not replace the card grid with UML diagrams. The card grid is the canonical deliverable; the UML diagrams are an additive Tier-2 enrichment. Suppressing or refactoring the cards on the grounds that "the diagram says it" breaks every downstream consumer of the card structure (the `map-use-cases-to-ui` skill, design-spec-drafter).
+- Do not emit inline SVG that depends on external CSS or JS. The artefact is self-contained — all UML SVG styling is provided by the template's inlined `<style>`; all Mermaid source is plain text consumed by external tools (mermaid.live).
+- Do not skip Step 8.5 (Round 7 derivation) even if the consultant declined per-actor focus diagrams. The System overview is always emitted; Step 8.5 builds both the overview inventory and the lazy-evaluated per-actor view sets.
