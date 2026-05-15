@@ -1,0 +1,946 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses/task-flows-analyser.md.
+
+  Purpose: HTML/CSS skeleton for a UX Task Analysis & Task Flows
+  catalogue artefact (Hierarchical Task Analysis per Annett & Duncan
+  1967 / Stanton 2006, plus per-task Task Flow Diagrams per NN/G and
+  Hackos & Redish 1998). Single-actor, decomposition-first, user-mental-
+  model fidelity.
+
+  Two tiers:
+    - Tier 1 (always rendered): six Tier-1 sections — tasks, subgoals
+      & operations, plans, decision points, exception paths,
+      cross-task operation matrix — plus a separate diagnostics block.
+    - Tier 2 (consultant-selected, 0..N tasks): two inline-SVG figures
+      per selected task — an HTA tree (vertical, top-down) and a
+      Task-Flow Diagram (horizontal, left-to-right). Plus copy-pasteable
+      Mermaid `graph TB` (HTA) and `flowchart LR` (TFD) sources in a
+      collapsed <details> block.
+
+  Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`). No
+  external CSS / JS dependencies; viewable by opening `file://` in a
+  browser; shareable with clients without tooling.
+
+  Section order (top-to-bottom):
+    1. Overview (id="overview")        — title, subtitle, meta-grid.
+    2. TOC (<nav class="toc">)         — static top-level anchors.
+    3. Diagrams (id="diagrams")        — {{TASK_DIAGRAMS_BLOCK}} +
+       {{MERMAID_BLOCK}}. The diagrams block emits per-task pair
+       sections (HTA tree + Task-Flow Diagram), not type-grouped
+       lists, so each task's two views sit together.
+    4. Tabular information (id="tables") — {{CATALOGUE_BLOCK}}
+       (Tier-1 catalogue tables).
+    5. Diagnostics (id="diagnostics")  — <details> wrapper, collapsed
+       by default. Bottom of page; position alone signals auxiliary.
+
+  Placeholders the analyser substitutes (string substitution, all values
+  pre-escaped for HTML; XML-escaped inside <svg><text> nodes):
+
+    {{TITLE}}                  — short title (e.g. "Task Analysis & Task Flows — Project X").
+    {{DOMAIN}}                 — domain string (from requirements §1 if present).
+    {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
+    {{REQUIREMENTS_SHA256}}    — sha256 of requirements/requirements.md at read time.
+    {{TASK_COUNT}}             — number of rows in the Tasks table.
+    {{SUBGOAL_COUNT}}          — number of `kind=subgoal` rows in the Nodes table.
+    {{OPERATION_COUNT}}        — number of `kind=operation` rows in the Nodes table.
+    {{PLAN_COUNT}}             — number of rows in the Plans table.
+    {{DECISION_COUNT}}         — number of rows in the Decision points table.
+    {{EXCEPTION_COUNT}}        — number of rows in the Exception paths table.
+    {{AI_SUGGESTED_COUNT}}     — total items marked `ai-suggested`. Key
+                                 diagnostic affordance.
+    {{TASKS_RENDERED}}         — comma-separated task display names
+                                 whose SVGs were emitted, or
+                                 "none — catalogue only".
+    {{DIAGNOSTICS_BLOCK}}      — pre-rendered HTML block per DIAGNOSTICS
+                                 SCHEMA below.
+    {{CATALOGUE_BLOCK}}        — pre-rendered Tier-1 tables block per
+                                 CATALOGUE SCHEMA below.
+    {{TASK_DIAGRAMS_BLOCK}}    — pre-rendered Tier-2 per-task pair
+                                 sections per TASK-DIAGRAMS SCHEMA
+                                 below. For each selected task, one
+                                 <section class="task-pair"> wraps a
+                                 single per-task <h3> heading, the
+                                 HTA <figure>, and the TFD <figure>
+                                 (in that order). Empty selection
+                                 renders the empty-state <p>.
+    {{MERMAID_BLOCK}}          — pre-rendered <details> containing 0..2N
+                                 <pre> blocks (one Mermaid `graph TB`
+                                 source per selected task's HTA, one
+                                 `flowchart LR` source per selected
+                                 task's TFD). Empty if none selected.
+
+  Output: analyses/TASK-FLOWS/task-flows.html.
+
+  CATALOGUE SCHEMA — the analyser's {{CATALOGUE_BLOCK}} substitutes a
+  single <section class="catalogue">. The inner section contains, in
+  order:
+
+      <section class="catalogue">
+        <h2>Task-flows catalogue</h2>
+
+        <section class="tasks-block">
+          <h3>Tasks</h3>
+          <table class="tasks-table">
+            <thead>
+              <tr>
+                <th>id</th>
+                <th>display name</th>
+                <th>lead persona</th>
+                <th>trigger</th>
+                <th>completion criterion</th>
+                <th>top plan</th>
+                <th>depth</th>
+                <th>operations</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{id}}</code></td>
+                <td>{{display_name}}</td>
+                <td><code>{{lead_persona}}</code></td>
+                <td>{{trigger}}</td>
+                <td>{{completion_criterion}}</td>
+                <td><span class="plan-type-{{type}}">{{top_plan}}</span></td>
+                <td class="seq">{{depth}}</td>
+                <td class="seq">{{operation_count}}</td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="nodes-block">
+          <h3>Subgoals & operations</h3>
+          <table class="nodes-table">
+            <thead>
+              <tr>
+                <th>task</th>
+                <th>hierarchical id</th>
+                <th>label</th>
+                <th>kind</th>
+                <th>parent</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{task_id}}</code></td>
+                <td><code>{{hierarchical_id}}</code></td>
+                <td class="label">{{label}}</td>
+                <td><span class="kind-{{kind}}">{{kind}}</span></td>
+                <td><code>{{parent_id or "—"}}</code></td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="plans-block">
+          <h3>Plans</h3>
+          <table class="plans-table">
+            <thead>
+              <tr>
+                <th>node</th>
+                <th>plan type</th>
+                <th>plan text</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{node_id}}</code></td>
+                <td><span class="plan-type-{{plan_type}}">{{plan_type}}</span></td>
+                <td class="plan-text">{{plan_text}}</td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="decisions-block">
+          <h3>Decision points</h3>
+          <table class="decisions-table">
+            <thead>
+              <tr>
+                <th>task</th>
+                <th>at TFD step</th>
+                <th>guard</th>
+                <th>branches</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{task_id}}</code></td>
+                <td class="seq">{{at_step}}</td>
+                <td class="guard">{{guard}}</td>
+                <td>{{branches_html}}</td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="exceptions-block">
+          <h3>Exception paths</h3>
+          <table class="exceptions-table">
+            <thead>
+              <tr>
+                <th>task</th>
+                <th>trigger condition</th>
+                <th>exception flow</th>
+                <th>exit type</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-...">
+                <td><code>{{task_id}}</code></td>
+                <td>{{trigger_condition}}</td>
+                <td class="flow">{{flow_html}}</td>
+                <td><span class="exit-type-{{exit_type}}">{{exit_type}}</span></td>
+                <td class="prov-cell">{{marker_text}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="op-matrix-block">
+          <h3>Cross-task operation matrix</h3>
+          <table class="op-matrix-table">
+            <thead>
+              <tr>
+                <th>operation</th>
+                <th>task-1</th>
+                <th>task-2</th>
+                ...
+                <th>used in</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>{{operation_label}}</code></td>
+                <td class="matrix-cell-present|matrix-cell-absent">{{✓ or empty}}</td>
+                ...
+                <td class="usage-count">{{N}} / {{total}}</td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+      </section>
+
+  TASK-DIAGRAMS SCHEMA — the analyser's {{TASK_DIAGRAMS_BLOCK}} substitutes
+  a single <section class="task-diagrams">. For each selected task, the
+  outer section contains one <section class="task-pair task-{slug}">,
+  which wraps a single per-task <h3> heading, a combined meta line, and
+  the HTA + TFD <figure> pair (HTA first, TFD second). Each <figure>
+  carries its diagram-type subtitle as <h4> inside <figcaption>:
+
+      <section class="task-diagrams" aria-label="Per-task diagrams">
+        <h2>Per-task diagrams</h2>
+        <p class="diagrams-meta">Tasks rendered: {{TASKS_RENDERED}}</p>
+
+        <section class="task-pair task-{slug}" aria-label="{{task_display_name}}">
+          <h3>{{task_display_name}}</h3>
+          <p class="task-meta"><code>{{task_id}}</code> — HTA: {{subgoal_count}} subgoals, {{operation_count}} operations, depth {{depth}}. TFD: {{step_count}} steps, {{exception_count}} exceptions.</p>
+
+          <figure class="hta-tree task-{slug}">
+            <figcaption><h4>HTA tree</h4></figcaption>
+            <svg viewBox="0 0 W H" role="img" aria-label="HTA tree for {{task_display_name}}">
+              <!-- goal node (root): <rect class="hta-goal"/> + <text class="hta-label"/> -->
+              <!-- subgoal nodes: <rect class="hta-subgoal"/> + <text class="hta-label"/> -->
+              <!-- operation nodes (leaves): <rect class="hta-operation"/> + <text class="hta-label"/> -->
+              <!-- plan badges on non-leaf nodes: <rect class="plan-badge plan-badge-{type}"/> + <text/> -->
+              <!-- hierarchy edges: <line class="hta-edge"/> per parent-child edge -->
+            </svg>
+          </figure>
+
+          <figure class="tfd task-{slug}">
+            <figcaption><h4>Task flow</h4></figcaption>
+            <svg viewBox="0 0 W H" role="img" aria-label="Task flow for {{task_display_name}}">
+              <defs>
+                <marker id="tfd-arrow-{slug}" ...>open triangle</marker>
+              </defs>
+              <!-- start oval: <ellipse class="tfd-start"/> + <text class="tfd-step-label"/> -->
+              <!-- step rectangles: <rect class="tfd-step"/> + <text class="tfd-step-label"/> per numbered step -->
+              <!-- decision diamonds: <polygon class="tfd-decision"/> + <text class="tfd-step-label"/> per decision -->
+              <!-- exit ovals: <ellipse class="tfd-exit-{type}"/> + <text class="tfd-step-label"/> per exit -->
+              <!-- edges: <path class="tfd-edge" marker-end="url(#tfd-arrow-{slug})"/> per edge -->
+              <!-- edge guards (decision-out only): <rect class="tfd-edge-guard-bg"/> + <text class="tfd-edge-guard"/> -->
+            </svg>
+          </figure>
+        </section>
+
+        ... one <section class="task-pair"> per selected task ...
+      </section>
+
+    OR if the consultant selected zero tasks:
+
+      <section class="task-diagrams">
+        <p class="diagrams-empty">No diagrams were selected. The
+        catalogue tables above are the deliverable.</p>
+      </section>
+
+  DIAGNOSTICS SCHEMA — the analyser's {{DIAGNOSTICS_BLOCK}} substitutes a
+  single <section class="diagnostics">. The template wraps the placeholder
+  in a <details class="diagnostics-toggle"> element (collapsed by default).
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>Catalogue — T tasks, S subgoals, O operations, P plans, D decisions, X exceptions.</p>
+        <p>Provenance: X from-task-flow, Y derived, Z ai-suggested.</p>
+        <ul>
+          <li class="check-pass|check-fail">Check 1 — Every top-level task has a kebab-case id, display name, and lead persona.</li>
+          ... (all 10 checks listed in order)
+        </ul>
+        <p class="density-warning hidden|...">⚠ Density warning: ...</p>
+        <!-- Override-only: flagged-items <ul> per failed check. -->
+      </section>
+
+  CSS classes used by the analyser:
+    .catalogue            — outer container for Tier 1 tables.
+    .tasks-table .nodes-table .plans-table
+    .decisions-table .exceptions-table .op-matrix-table
+                          — one per Tier-1 section.
+    .task-diagrams        — outer container for Tier 2 per-task pairs.
+    .task-pair            — wraps one HTA + TFD pair for one task.
+    .task-pair > h3       — per-task heading (single, above both figures).
+    .hta-tree             — applied to every HTA <figure>.
+    .tfd                  — applied to every TFD <figure>.
+    .task-{slug}          — modifier on the .task-pair wrapper and on each <figure>.
+    .diagrams-empty       — applied to the <p> when zero tasks selected.
+    .mermaid-source       — applied to the <details> wrapping <pre> blocks.
+    .provenance-from-task-flow
+    .provenance-derived
+    .provenance-ai-suggested
+                          — exactly one per content row in any Tier-1
+                            table.
+    .ai-suggested         — applied to any cell whose content carries
+                            [AI-SUGGESTED]; renders italic + dim.
+    .kind-goal .kind-subgoal .kind-operation
+                          — pill badges in the nodes table.
+    .plan-type-sequence .plan-type-selection
+    .plan-type-iteration .plan-type-concurrent
+                          — pill badges in the tasks & plans tables.
+    .exit-type-abort .exit-type-escalate
+    .exit-type-retry .exit-type-compensate
+                          — pill badges in the exceptions table; also
+                            applied to <ellipse class="tfd-exit-..."/>
+                            SVG elements.
+    .matrix-cell-present .matrix-cell-absent
+                          — operation-matrix table cell variants.
+    .rev-marker           — applied to any row flagged by a failed
+                            quality check on an Override run.
+
+  SVG conventions (analyser owns content; template provides CSS
+  containment + per-element styling):
+    - viewBox "0 0 W H" — W and H computed by analyser from breadth /
+      depth / step count.
+    - role="img" + aria-label on every <svg>.
+    - All <text> nodes XML-escape labels and guards.
+    - Shared node_height (across all HTA trees) and step_height (across
+      all TFDs) in a single render.
+
+  Content TBD-able by the analyser:
+    The diagnostics block, catalogue table rows, SVG count and contents,
+    and Mermaid <pre> contents are fully driven by the analyser. The CSS
+    below is fixed scaffolding and should not be edited — only the
+    {{placeholders}} above are substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --card-bg: #ffffff;
+      --header-bg: #efefef;
+      --row-alt: #fbfbfb;
+
+      --prov-task-flow:     #2a6aa0;
+      --prov-derived:       #b86a00;
+      --prov-ai-suggested:  #a02a6a;
+
+      --kind-goal-bg:       #e7f0fb; --kind-goal-fg:       #0c2a44;
+      --kind-subgoal-bg:    #eaf3ef; --kind-subgoal-fg:    #14422a;
+      --kind-operation-bg:  #fff5d6; --kind-operation-fg:  #4a3a00;
+
+      --plan-sequence-bg:    #e7f0fb; --plan-sequence-fg:    #0c2a44;
+      --plan-selection-bg:   #fff5d6; --plan-selection-fg:   #4a3a00;
+      --plan-iteration-bg:   #f3eafd; --plan-iteration-fg:   #2e1255;
+      --plan-concurrent-bg:  #eaf3ef; --plan-concurrent-fg:  #14422a;
+
+      --exit-abort-bg:       #ffeaea; --exit-abort-fg:       #8a1a1a;
+      --exit-escalate-bg:    #fff5d6; --exit-escalate-fg:    #4a3a00;
+      --exit-retry-bg:       #e7f0fb; --exit-retry-fg:       #0c2a44;
+      --exit-compensate-bg:  #f3eafd; --exit-compensate-fg:  #2e1255;
+
+      --ai-bg: #fdf3fa;
+      --rev-bg: #ffeaea; --rev-border: #d44a4a; --rev-fg: #8a1a1a;
+
+      /* HTA SVG */
+      --svg-hta-goal-fill:        #ffffff; --svg-hta-goal-stroke:        #1a1a1a;
+      --svg-hta-subgoal-fill:     #f3f7fc; --svg-hta-subgoal-stroke:     #2a6aa0;
+      --svg-hta-operation-fill:   #fffaeb; --svg-hta-operation-stroke:   #5a5a5a;
+      --svg-hta-edge:             #8a8a8a;
+      --svg-hta-label:            #1a1a1a;
+      --svg-plan-badge-seq-fill:  #e7f0fb; --svg-plan-badge-seq-fg:  #0c2a44;
+      --svg-plan-badge-sel-fill:  #fff5d6; --svg-plan-badge-sel-fg:  #4a3a00;
+      --svg-plan-badge-iter-fill: #f3eafd; --svg-plan-badge-iter-fg: #2e1255;
+      --svg-plan-badge-conc-fill: #eaf3ef; --svg-plan-badge-conc-fg: #14422a;
+
+      /* TFD SVG */
+      --svg-tfd-start-fill:        #eaf3ef; --svg-tfd-start-stroke:        #14422a;
+      --svg-tfd-step-fill:         #ffffff; --svg-tfd-step-stroke:         #2a6aa0;
+      --svg-tfd-decision-fill:     #fff5d6; --svg-tfd-decision-stroke:     #b86a00;
+      --svg-tfd-exit-success-fill: #eaf3ef; --svg-tfd-exit-success-stroke: #14422a;
+      --svg-tfd-exit-abort-fill:   #ffeaea; --svg-tfd-exit-abort-stroke:   #8a1a1a;
+      --svg-tfd-exit-escalate-fill:#fff5d6; --svg-tfd-exit-escalate-stroke:#b86a00;
+      --svg-tfd-exit-retry-fill:   #e7f0fb; --svg-tfd-exit-retry-stroke:   #2a6aa0;
+      --svg-tfd-exit-compensate-fill:#f3eafd;--svg-tfd-exit-compensate-stroke:#2e1255;
+      --svg-tfd-edge:              #2a2a2a;
+      --svg-tfd-edge-guard-bg:     #ffffff;
+      --svg-tfd-edge-guard-fg:     #b86a00;
+      --svg-tfd-label:             #1a1a1a;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px 0; }
+    h2 { font-size: 17px; font-weight: 600; margin: 0 0 12px 0; }
+    h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 0 24px 0;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      background: var(--row-alt);
+      padding: 1px 5px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px 24px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+    .meta-grid dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+    .meta-grid dd {
+      margin: 0 0 6px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ------- diagnostics ------- */
+
+    details.diagnostics-toggle { margin-bottom: 24px; }
+    details.diagnostics-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.diagnostics-toggle[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.diagnostics-toggle[open] > summary::before { transform: rotate(90deg); }
+
+    .diagnostics {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > .diagnostics {
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      margin-bottom: 0;
+    }
+    details.diagnostics-toggle > .diagnostics > h2 { display: none; }
+    .diagnostics > ul {
+      margin: 0 0 12px 0;
+      padding-left: 20px;
+    }
+    .diagnostics .check-pass::before { content: "PASS "; color: #2a8a2a; font-weight: 600; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--rev-fg); font-weight: 600; }
+    .diagnostics .density-warning {
+      padding: 8px 10px;
+      background: #fff5d6;
+      border-left: 3px solid #d97a1f;
+      border-radius: 3px;
+      margin: 8px 0;
+      font-size: 13px;
+    }
+    .diagnostics .density-warning.hidden { display: none; }
+    .diagnostics .flagged-items {
+      margin: 8px 0 0 0;
+      padding: 8px 10px;
+      background: var(--rev-bg);
+      border-left: 3px solid var(--rev-border);
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    .diagnostics .flagged-items strong { color: var(--rev-fg); }
+
+    /* ------- catalogue tables ------- */
+
+    .catalogue { margin-bottom: 32px; }
+    .catalogue > section {
+      margin-bottom: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+    }
+    .catalogue table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+    .catalogue thead th {
+      background: var(--header-bg);
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 2px solid var(--border-strong);
+      vertical-align: bottom;
+    }
+    .catalogue tbody td {
+      padding: 8px 10px;
+      border-top: 1px solid var(--border);
+      vertical-align: top;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    .catalogue tbody tr:nth-child(even) { background: var(--row-alt); }
+
+    /* Provenance row left-border */
+    .catalogue tbody tr.provenance-from-task-flow { box-shadow: inset 3px 0 0 0 var(--prov-task-flow); }
+    .catalogue tbody tr.provenance-derived         { box-shadow: inset 3px 0 0 0 var(--prov-derived); }
+    .catalogue tbody tr.provenance-ai-suggested    { box-shadow: inset 3px 0 0 0 var(--prov-ai-suggested); background: var(--ai-bg); }
+    .catalogue tbody tr.provenance-ai-suggested td { font-style: italic; }
+
+    .catalogue td.prov-cell {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .catalogue td.prov-cell::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: 1px;
+    }
+    tr.provenance-from-task-flow td.prov-cell::before { background: var(--prov-task-flow); }
+    tr.provenance-derived         td.prov-cell::before { background: var(--prov-derived); }
+    tr.provenance-ai-suggested    td.prov-cell::before { background: var(--prov-ai-suggested); }
+
+    /* Pill badges */
+    .kind-goal, .kind-subgoal, .kind-operation,
+    .plan-type-sequence, .plan-type-selection, .plan-type-iteration, .plan-type-concurrent,
+    .exit-type-abort, .exit-type-escalate, .exit-type-retry, .exit-type-compensate {
+      display: inline-block;
+      padding: 1px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-radius: 3px;
+    }
+    .kind-goal       { background: var(--kind-goal-bg);      color: var(--kind-goal-fg); }
+    .kind-subgoal    { background: var(--kind-subgoal-bg);   color: var(--kind-subgoal-fg); }
+    .kind-operation  { background: var(--kind-operation-bg); color: var(--kind-operation-fg); }
+    .plan-type-sequence    { background: var(--plan-sequence-bg);   color: var(--plan-sequence-fg); }
+    .plan-type-selection   { background: var(--plan-selection-bg);  color: var(--plan-selection-fg); }
+    .plan-type-iteration   { background: var(--plan-iteration-bg);  color: var(--plan-iteration-fg); }
+    .plan-type-concurrent  { background: var(--plan-concurrent-bg); color: var(--plan-concurrent-fg); }
+    .exit-type-abort       { background: var(--exit-abort-bg);      color: var(--exit-abort-fg); }
+    .exit-type-escalate    { background: var(--exit-escalate-bg);   color: var(--exit-escalate-fg); }
+    .exit-type-retry       { background: var(--exit-retry-bg);      color: var(--exit-retry-fg); }
+    .exit-type-compensate  { background: var(--exit-compensate-bg); color: var(--exit-compensate-fg); }
+
+    .catalogue td.seq { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; text-align: right; width: 60px; }
+    .catalogue td.label { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; color: var(--prov-task-flow); }
+    .catalogue td.guard { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; font-style: italic; color: var(--prov-derived); }
+    .catalogue td.plan-text { font-size: 12px; color: var(--fg); }
+    .catalogue td.flow { font-size: 12px; color: var(--muted); }
+
+    /* AI-SUGGESTED cell highlight */
+    .ai-suggested, td.ai-suggested {
+      background: var(--ai-bg);
+      font-style: italic;
+      color: var(--prov-ai-suggested);
+    }
+
+    /* Rev marker */
+    .rev-marker, tr.rev-marker {
+      background: var(--rev-bg);
+      box-shadow: inset 3px 0 0 0 var(--rev-border);
+      color: var(--rev-fg);
+    }
+
+    /* Cross-task operation matrix */
+    .op-matrix-table td { text-align: center; font-size: 12px; }
+    .op-matrix-table td:first-child { text-align: left; }
+    .op-matrix-table td.matrix-cell-present { color: #2a8a2a; font-weight: 700; }
+    .op-matrix-table td.matrix-cell-absent  { color: var(--border); }
+    .op-matrix-table td.usage-count { font-variant-numeric: tabular-nums; color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+    /* ------- diagrams ------- */
+
+    .task-diagrams { margin-bottom: 32px; }
+    .task-pair {
+      margin: 0 0 40px 0;
+      padding: 0 0 24px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .task-pair:last-child { border-bottom: none; padding-bottom: 0; }
+    .task-pair > h3 { margin: 0 0 4px 0; }
+    .task-pair > .task-meta { margin: 0 0 16px 0; color: var(--muted); font-size: 13px; }
+    .task-pair > figure + figure { margin-top: 24px; }
+    .task-pair figcaption h4 { margin: 0 0 4px 0; font-size: 14px; font-weight: 600; }
+    .diagrams-meta {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 0 0 12px 0;
+    }
+    .diagrams-empty {
+      padding: 16px;
+      background: var(--card-bg);
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-style: italic;
+      margin: 0;
+    }
+
+    .hta-tree, .tfd {
+      margin: 0 0 24px 0;
+      padding: 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .hta-tree figcaption, .tfd figcaption { margin: 0 0 12px 0; }
+    .hta-tree figcaption h3, .tfd figcaption h3 {
+      margin: 0;
+      font-size: 13px;
+      color: var(--fg);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .hta-tree figcaption .task-meta,
+    .tfd figcaption .task-meta {
+      margin: 4px 0 0 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .hta-tree svg, .tfd svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #fcfcfc;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+
+    /* HTA SVG styling */
+    .hta-tree svg .hta-goal       { fill: var(--svg-hta-goal-fill);       stroke: var(--svg-hta-goal-stroke);       stroke-width: 1.8; }
+    .hta-tree svg .hta-subgoal    { fill: var(--svg-hta-subgoal-fill);    stroke: var(--svg-hta-subgoal-stroke);    stroke-width: 1.3; }
+    .hta-tree svg .hta-operation  { fill: var(--svg-hta-operation-fill);  stroke: var(--svg-hta-operation-stroke);  stroke-width: 1.0; }
+    .hta-tree svg .hta-label      { fill: var(--svg-hta-label); font-size: 11px; text-anchor: middle; }
+    .hta-tree svg .hta-edge       { stroke: var(--svg-hta-edge); stroke-width: 1; fill: none; }
+    .hta-tree svg .plan-badge                  { stroke: none; }
+    .hta-tree svg .plan-badge.plan-badge-seq   { fill: var(--svg-plan-badge-seq-fill); }
+    .hta-tree svg .plan-badge.plan-badge-sel   { fill: var(--svg-plan-badge-sel-fill); }
+    .hta-tree svg .plan-badge.plan-badge-iter  { fill: var(--svg-plan-badge-iter-fill); }
+    .hta-tree svg .plan-badge.plan-badge-conc  { fill: var(--svg-plan-badge-conc-fill); }
+    .hta-tree svg .plan-badge-label            { font-size: 8px; font-weight: 700; letter-spacing: 0.05em; text-anchor: middle; }
+    .hta-tree svg .plan-badge-label.plan-badge-seq   { fill: var(--svg-plan-badge-seq-fg); }
+    .hta-tree svg .plan-badge-label.plan-badge-sel   { fill: var(--svg-plan-badge-sel-fg); }
+    .hta-tree svg .plan-badge-label.plan-badge-iter  { fill: var(--svg-plan-badge-iter-fg); }
+    .hta-tree svg .plan-badge-label.plan-badge-conc  { fill: var(--svg-plan-badge-conc-fg); }
+    .hta-tree svg .ai-suggested-node {
+      stroke-dasharray: 4 3;
+    }
+    .hta-tree svg .hta-label.ai-suggested-label {
+      font-style: italic;
+    }
+
+    /* TFD SVG styling */
+    .tfd svg .tfd-start                { fill: var(--svg-tfd-start-fill);        stroke: var(--svg-tfd-start-stroke);        stroke-width: 1.5; }
+    .tfd svg .tfd-step                 { fill: var(--svg-tfd-step-fill);         stroke: var(--svg-tfd-step-stroke);         stroke-width: 1.3; }
+    .tfd svg .tfd-decision             { fill: var(--svg-tfd-decision-fill);     stroke: var(--svg-tfd-decision-stroke);     stroke-width: 1.3; }
+    .tfd svg .tfd-exit-success         { fill: var(--svg-tfd-exit-success-fill); stroke: var(--svg-tfd-exit-success-stroke); stroke-width: 1.5; }
+    .tfd svg .tfd-exit-abort           { fill: var(--svg-tfd-exit-abort-fill);   stroke: var(--svg-tfd-exit-abort-stroke);   stroke-width: 1.5; }
+    .tfd svg .tfd-exit-escalate        { fill: var(--svg-tfd-exit-escalate-fill);stroke: var(--svg-tfd-exit-escalate-stroke);stroke-width: 1.5; }
+    .tfd svg .tfd-exit-retry           { fill: var(--svg-tfd-exit-retry-fill);   stroke: var(--svg-tfd-exit-retry-stroke);   stroke-width: 1.5; }
+    .tfd svg .tfd-exit-compensate      { fill: var(--svg-tfd-exit-compensate-fill); stroke: var(--svg-tfd-exit-compensate-stroke); stroke-width: 1.5; }
+    .tfd svg .tfd-step-label           { fill: var(--svg-tfd-label); font-size: 11px; text-anchor: middle; }
+    .tfd svg .tfd-edge                 { fill: none; stroke: var(--svg-tfd-edge); stroke-width: 1.3; }
+    .tfd svg .tfd-edge-guard           { fill: var(--svg-tfd-edge-guard-fg); font-size: 10px; font-style: italic; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .tfd svg .tfd-edge-guard-bg        { fill: var(--svg-tfd-edge-guard-bg); }
+
+    /* ------- Mermaid fallback ------- */
+
+    details.mermaid-source { margin-bottom: 24px; }
+    details.mermaid-source > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--prov-derived);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--fg);
+      list-style: none;
+      user-select: none;
+    }
+    details.mermaid-source > summary::-webkit-details-marker { display: none; }
+    details.mermaid-source > summary::before { content: "▶ "; font-size: 10px; color: var(--muted); }
+    details.mermaid-source[open] > summary::before { content: "▼ "; }
+    details.mermaid-source > pre {
+      margin: 0;
+      padding: 12px 16px;
+      background: var(--row-alt);
+      border: 1px solid var(--border);
+      border-top: none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    details.mermaid-source > pre + pre { border-top: 1px solid var(--border); }
+    details.mermaid-source > pre:last-of-type { border-radius: 0 0 6px 6px; }
+    details.mermaid-source .mermaid-caption {
+      color: var(--muted);
+      font-size: 11px;
+      padding: 4px 16px;
+      background: var(--row-alt);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      font-style: italic;
+    }
+
+    /* ------- bottom legend ------- */
+
+    footer.bottom {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    footer.bottom .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    footer.bottom .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    footer.bottom .legend-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    footer.bottom .legend-dot.s-task-flow { background: var(--prov-task-flow); }
+    footer.bottom .legend-dot.s-derived   { background: var(--prov-derived); }
+    footer.bottom .legend-dot.s-ai        { background: var(--prov-ai-suggested); }
+    footer.bottom .credit { margin-top: 6px; text-align: right; }
+
+    /* ------- table of contents ------- */
+
+    .toc {
+      margin: 0 0 24px 0;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .toc ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 18px;
+      counter-reset: toc-item;
+    }
+    .toc li { counter-increment: toc-item; }
+    .toc li::before {
+      content: counter(toc-item) ". ";
+      color: var(--muted);
+      margin-right: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .toc a {
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--border-strong);
+    }
+    .toc a:hover { border-bottom-color: var(--fg); }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .catalogue > section,
+      .hta-tree, .tfd {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        border-radius: 0;
+        border-color: #000;
+      }
+      details.diagnostics-toggle,
+      details.mermaid-source { display: none; }
+      .toc { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section id="overview">
+      <h1>{{TITLE}}</h1>
+      <p class="subtitle">UX Task Analysis &amp; Task Flows — Hierarchical Task Analysis (Annett &amp; Duncan 1967; Stanton 2006) and Task-Flow Diagrams (NN/G; Hackos &amp; Redish 1998). Per-task catalogue (tasks, subgoals/operations, plans, decisions, exceptions) plus consultant-selected inline-SVG figures.</p>
+
+      <dl class="meta-grid">
+        <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+        <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+        <div><dt>Source SHA-256</dt><dd><code>{{REQUIREMENTS_SHA256}}</code></dd></div>
+        <div><dt>Tasks</dt><dd>{{TASK_COUNT}}</dd></div>
+        <div><dt>Subgoals</dt><dd>{{SUBGOAL_COUNT}}</dd></div>
+        <div><dt>Operations</dt><dd>{{OPERATION_COUNT}}</dd></div>
+        <div><dt>Plans</dt><dd>{{PLAN_COUNT}}</dd></div>
+        <div><dt>Decision points</dt><dd>{{DECISION_COUNT}}</dd></div>
+        <div><dt>Exception paths</dt><dd>{{EXCEPTION_COUNT}}</dd></div>
+        <div><dt>AI-suggested items</dt><dd>{{AI_SUGGESTED_COUNT}}</dd></div>
+        <div><dt>Diagrams rendered</dt><dd>{{TASKS_RENDERED}}</dd></div>
+      </dl>
+    </section>
+
+    <nav class="toc" aria-label="Sections">
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#diagrams">Diagrams</a></li>
+        <li><a href="#tables">Tabular information</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+      </ol>
+    </nav>
+
+    <section id="diagrams" aria-label="Diagrams">
+      {{TASK_DIAGRAMS_BLOCK}}
+
+      {{MERMAID_BLOCK}}
+    </section>
+
+    <section id="tables" aria-label="Tabular information">
+      {{CATALOGUE_BLOCK}}
+    </section>
+
+    <details id="diagnostics" class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    <footer class="bottom">
+      <div class="legend">
+        <span class="legend-item"><span class="legend-dot s-task-flow" aria-hidden="true"></span> from §5 Task flows</span>
+        <span class="legend-item"><span class="legend-dot s-derived" aria-hidden="true"></span> derived from §2/§3/§4/§6/§7</span>
+        <span class="legend-item"><span class="legend-dot s-ai" aria-hidden="true"></span> [AI-SUGGESTED]</span>
+      </div>
+      <div class="credit">Generated by `framework/agents/analyses/task-flows-analyser.md`.</div>
+    </footer>
+  </main>
+</body>
+</html>

@@ -394,3 +394,100 @@ graph TD
 - `state/.progress.json` is read (existence + at-least-one-`completed`-event check) by `check-context-bloat.md` from the review orchestrator; the review orchestrator never writes to it, consistent with the no-write-outside-`reviews/` invariant.
 - Per each reviewer's stand-alone constraint, no edges reach `requirements/` (except `requirements/requirements.md` itself, which is the read target — implicit, not drawn), `analyses/`, `design-system/`, or `framework/state/` from the reviewer subtrees. The shared-policy edges from `agent_uxq` are the documented Step-4 filter-source exception.
 - No cycles.
+
+---
+
+## analyse-orch.md
+
+```mermaid
+graph TD
+    classDef orch fill:#1f2937,color:#fff,stroke:#000,stroke-width:2px,font-weight:bold
+    classDef agent fill:#2563eb,color:#fff,stroke:#1e40af
+    classDef skill fill:#0d9488,color:#fff,stroke:#0f766e
+    classDef asset fill:#d97706,color:#fff,stroke:#92400e
+    classDef shared fill:#7c3aed,color:#fff,stroke:#5b21b6
+    classDef char fill:#db2777,color:#fff,stroke:#9d174d
+    classDef state fill:#525252,color:#fff,stroke:#262626
+
+    subgraph Orchestrator
+      orch_an[analyse-orch.md]
+    end
+
+    subgraph Agents
+      agent_ooux[ooux-analyser.md]
+      agent_jtbd[jtbd-analyser.md]
+      agent_uc[use-cases-analyser.md]
+      agent_dm[data-model-analyser.md]
+      agent_uj[user-journeys-analyser.md]
+      agent_seq[sequence-diagram-analyser.md]
+      agent_state[state-diagram-analyser.md]
+      agent_act[activity-diagram-analyser.md]
+      agent_tf[task-flows-analyser.md]
+    end
+
+    subgraph Skills
+      skill_ansel[analysis-selector.md]
+      skill_verifywrite_an[verify-artifact-write.md]
+      skill_bloat_an[check-context-bloat.md]
+    end
+
+    subgraph Assets
+      asset_registry_an[analyses/registry.md]
+      asset_ref_tf[analyses/task-flows-reference.md]
+      asset_tmpl_tf[analyses/template-task-flows.html]
+    end
+
+    subgraph Characters
+      char_tf[characters/task-flows-analysis.md]
+    end
+
+    subgraph Shared
+      shared_refusal_an[refusal-registry.md]
+    end
+
+    subgraph State
+      state_progress_an[state/.progress.json]
+    end
+
+    orch_an --> skill_ansel
+    orch_an --> skill_bloat_an
+    orch_an --> shared_refusal_an
+    orch_an --> agent_ooux
+    orch_an --> agent_jtbd
+    orch_an --> agent_uc
+    orch_an --> agent_dm
+    orch_an --> agent_uj
+    orch_an --> agent_seq
+    orch_an --> agent_state
+    orch_an --> agent_act
+    orch_an --> agent_tf
+
+    skill_ansel --> asset_registry_an
+    skill_bloat_an --> shared_refusal_an
+    skill_bloat_an --> state_progress_an
+    skill_verifywrite_an --> shared_refusal_an
+
+    agent_tf --> char_tf
+    agent_tf --> asset_ref_tf
+    agent_tf --> asset_tmpl_tf
+    agent_tf --> skill_verifywrite_an
+
+    class orch_an orch
+    class agent_ooux,agent_jtbd,agent_uc,agent_dm,agent_uj,agent_seq,agent_state,agent_act,agent_tf agent
+    class skill_ansel,skill_verifywrite_an,skill_bloat_an skill
+    class asset_registry_an,asset_ref_tf,asset_tmpl_tf asset
+    class char_tf char
+    class shared_refusal_an shared
+    class state_progress_an state
+```
+
+**Stats:** 18 nodes / 20 edges / depth 3. (Per-analyser reference / template / character / map-skill nodes for the seven other MVP analysers are intentionally omitted to keep the graph readable — each analyser node implicitly fans out to the same four-asset shape as `agent_tf`.)
+
+**Notes:**
+- The orchestrator is **registry-driven**: at design time it does not know which analyser will run. The `skill_ansel → asset_registry_an` edge is the discovery mechanism; `orch_an → agent_*` edges represent the runtime invocation paths once the consultant has selected a methodology via `analysis-selector.md`. **Adding a new MVP analyser requires zero orchestrator edits** — only a new registry row plus the four-asset shape (analyser agent + reference + template + character) plus the orchestrator-node edge in this graph. The `task-flows` row added in this PR follows that pattern.
+- Each analyser is itself **stand-alone-ish**: it reads `requirements/requirements.md` plus its own four assets (reference / character / template / map-skill stub) and nothing else under `requirements/`, `framework/state/`, or `framework/shared/`. The reference + template + character edges for `agent_tf` are drawn to illustrate the shape; the same shape applies to all seven other analyser nodes (omitted for readability — see each analyser's own *Inputs* section for the exact paths).
+- `check-context-bloat.md` is shared across all four orchestrators (`requirements-orch.md`, `design-system-orch.md`, `review-orch.md`, `analyse-orch.md`); the analyse-orch caller passes `requirements/` as `artefact_dir` because prior `/requirements` state on disk is the meaningful proxy for in-conversation bloat against the analyser.
+- `state/.progress.json` is read (existence + at-least-one-`completed`-event check) by `check-context-bloat.md` from the analyse orchestrator; the analyse orchestrator never writes to it, consistent with the no-write-outside-`analyses/` invariant. This mirrors the design-system-orch surface variant of RF-05 documented in `framework/orchestrators/analyse-orch.md > RF-05 — analyse-orch surface variant`.
+- `verify-artifact-write.md` is shared across all four orchestrators; every analyser calls it from its write step (Step 11 for `task-flows-analyser.md`).
+- Per each analyser's stand-alone constraint, no edges reach `requirements/` (except `requirements/requirements.md` itself, which is the read target — implicit, not drawn), `design-system/`, `reviews/`, or `framework/state/` from the analyser subtrees. The orchestrator's narrow read exception for the step-0b preflight (read-only access to `requirements/`, `requirements/source-manifest.json`, `framework/state/.progress.json`) is captured by the `orch_an → skill_bloat_an → state_progress_an` edges and a documented stand-alone-constraint clause in the orchestrator.
+- No cycles.

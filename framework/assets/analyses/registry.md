@@ -69,7 +69,6 @@ methodologies:
   - { name: five-whys, status: future }
   - { name: double-diamond, status: future }
   - { name: card-sorting, status: future }
-  - { name: task-analysis, status: future }
   - { name: highest-value-paths, status: future }
   - { name: storyboarding, status: future }
   - { name: scenarios, status: future }
@@ -92,6 +91,15 @@ methodologies:
     analyser_agent: framework/agents/analyses/state-diagram-analyser.md
     character: framework/assets/characters/state-diagram-analysis.md
   - { name: decision-matrix, status: future }
+  - name: task-flows
+    status: mvp
+    description: UX Task Analysis & Task Flows — Hierarchical Task Analysis (Annett-Duncan 1967; Stanton 2006) plus per-task Task-Flow Diagrams (NN/G; Hackos & Redish 1998). Single-actor, decomposition-first, user-mental-model fidelity. Per-task catalogue (tasks × subgoals × operations × plans × decisions × exceptions × cross-task operation matrix); consultant selects which tasks to render; each selected task produces an HTA tree (vertical) + a Task-Flow Diagram (horizontal) inline-SVG pair. Choose this option to surface the goal-decomposition structure and step-by-step user paths implicit in the requirements, before designing screens, wizards, or form sequences.
+    output_path: analyses/TASK-FLOWS/task-flows.html
+    reference_asset: framework/assets/analyses/task-flows-reference.md
+    template_asset: framework/assets/analyses/template-task-flows.html
+    map_skill: framework/skills/map-task-flows-to-ui.md
+    analyser_agent: framework/agents/analyses/task-flows-analyser.md
+    character: framework/assets/characters/task-flows-analysis.md
 ---
 
 # analyses/registry.md
