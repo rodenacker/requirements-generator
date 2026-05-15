@@ -5,7 +5,7 @@ methodologies:
   # MVP — fully implemented and selectable via /analyse. Listed alphabetically; none privileged.
   - name: data-model
     status: mvp
-    description: Logical Data Model (entities × attributes × relationships × cardinalities × business rules × normalisation notes) plus consultant-selected ERD views — none/one/several/all of Crow's Foot, Chen, UML. Data Model always rendered; ERD views optional.
+    description: Logical Data Model (entities × attributes × relationships × cardinalities × business rules × normalisation notes) plus consultant-selected ERD views — none/one/several/all of Crow's Foot, Chen, UML. Data Model always rendered; ERD views optional. Choose this option to surface the entities, fields, and relationships already in the requirements, before designing forms, lists, or detail views.
     output_path: analyses/DATA-MODEL/data-model.html
     reference_asset: framework/assets/analyses/data-model-reference.md
     template_asset: framework/assets/analyses/template-data-model.html
@@ -14,7 +14,7 @@ methodologies:
     character: framework/assets/characters/data-model-analysis.md
   - name: jtbd
     status: mvp
-    description: Jobs-to-be-Done analysis (situations × jobs × outcomes; hybrid Christensen-Moesta + Ulwick)
+    description: Jobs-to-be-Done analysis (situations × jobs × outcomes; hybrid Christensen-Moesta + Ulwick). Choose this option to surface the jobs and outcomes users hire the product for, so design decisions can anchor to them.
     output_path: analyses/JTBD/jtbd-job-map.html
     reference_asset: framework/assets/analyses/jtbd-reference.md
     template_asset: framework/assets/analyses/template-jtbd.html
@@ -23,7 +23,7 @@ methodologies:
     character: framework/assets/characters/jtbd-analysis.md
   - name: ooux
     status: mvp
-    description: Object-oriented UX analysis (ORCA process — objects / relationships / CTAs / attributes / CCPs)
+    description: Object-oriented UX analysis (ORCA process — objects / relationships / CTAs / attributes / CCPs). Choose this option to identify the core objects, attributes, and CTAs implied by the requirements, before structuring screens and navigation.
     output_path: analyses/OOUX/ooux-object-map.html
     reference_asset: framework/assets/analyses/ooux-reference.md
     template_asset: framework/assets/analyses/template-ooux.html
@@ -32,7 +32,7 @@ methodologies:
     character: framework/assets/characters/ooux-analysis.md
   - name: sequence-diagram
     status: mvp
-    description: UML 2.5 Sequence Diagrams — per-scenario interaction views at system-level fidelity (persona × system components × external systems), with sync/async/return messages and alt/opt/loop fragments. Consultant selects which scenarios to render; tabular catalogues always emitted, inline-SVG diagrams per selected scenario.
+    description: UML 2.5 Sequence Diagrams — per-scenario interaction views at system-level fidelity (persona × system components × external systems), with sync/async/return messages and alt/opt/loop fragments. Consultant selects which scenarios to render; tabular catalogues always emitted, inline-SVG diagrams per selected scenario. Choose this option to clarify how the user, system components, and external services interact across a scenario, before specifying APIs or async flows.
     output_path: analyses/SEQUENCE-DIAGRAM/sequence-diagram.html
     reference_asset: framework/assets/analyses/sequence-diagram-reference.md
     template_asset: framework/assets/analyses/template-sequence-diagram.html
@@ -41,7 +41,7 @@ methodologies:
     character: framework/assets/characters/sequence-diagram-analysis.md
   - name: use-cases
     status: mvp
-    description: Use Cases analysis (Cockburn fully-dressed — actors × goals × preconditions × main flows × extensions)
+    description: Use Cases analysis (Cockburn fully-dressed — actors × goals × preconditions × main flows × extensions). Choose this option to surface the actor goals, preconditions, and main/extension flows already implied by the requirements, before designing screens or APIs.
     output_path: analyses/USE-CASES/use-cases-map.html
     reference_asset: framework/assets/analyses/use-cases-reference.md
     template_asset: framework/assets/analyses/template-use-cases.html
@@ -50,7 +50,7 @@ methodologies:
     character: framework/assets/characters/use-cases-analysis.md
   - name: user-journeys
     status: mvp
-    description: User-journeys analysis (NN/G canonical — persona × scenario × phases × {actions, thoughts, emotions, touchpoints, pain-points, opportunities}; tabular swimlane + inline-SVG emotion curve)
+    description: User-journeys analysis (NN/G canonical — persona × scenario × phases × {actions, thoughts, emotions, touchpoints, pain-points, opportunities}; tabular swimlane + inline-SVG emotion curve). Choose this option to map the experience phases, pain-points, and opportunities the requirements describe, before prioritising features.
     output_path: analyses/USER-JOURNEYS/user-journeys-map.html
     reference_asset: framework/assets/analyses/user-journeys-reference.md
     template_asset: framework/assets/analyses/template-user-journeys.html
@@ -75,7 +75,7 @@ methodologies:
   - { name: scenarios, status: future }
   - name: activity-diagram
     status: mvp
-    description: UML 2.5 Activity Diagrams — per-flow process views with horizontal swimlanes (actor + system components + external systems), decision/merge nodes for branching, fork/join for parallelism, initial/final markers. Consultant selects which flows to render; tabular catalogues always emitted, inline-SVG diagrams per selected flow.
+    description: UML 2.5 Activity Diagrams — per-flow process views with horizontal swimlanes (actor + system components + external systems), decision/merge nodes for branching, fork/join for parallelism, initial/final markers. Consultant selects which flows to render; tabular catalogues always emitted, inline-SVG diagrams per selected flow. Choose this option to clarify multi-actor process flow, branching, and parallel paths in the requirements, before designing the screens that drive them.
     output_path: analyses/ACTIVITY-DIAGRAM/activity-diagram.html
     reference_asset: framework/assets/analyses/activity-diagram-reference.md
     template_asset: framework/assets/analyses/template-activity-diagram.html
@@ -84,7 +84,7 @@ methodologies:
     character: framework/assets/characters/activity-diagram-analysis.md
   - name: state-diagram
     status: mvp
-    description: UML 2.5 § 14 State Diagrams — per-entity behaviour state machines, one diagram per aggregate root or status-bearing entity (states × transitions × triggers × guards × effects × entry/exit/do activities). Lean MVP subset: simple/composite states, initial/final/choice/junction pseudostates; orthogonal regions, history pseudostates, submachine states deferred. Consultant selects which entities to render; tabular catalogues always emitted, inline-SVG diagrams plus copy-pasteable Mermaid `stateDiagram-v2` source per selected entity.
+    description: UML 2.5 § 14 State Diagrams — per-entity behaviour state machines, one diagram per aggregate root or status-bearing entity (states × transitions × triggers × guards × effects × entry/exit/do activities). Lean MVP subset: simple/composite states, initial/final/choice/junction pseudostates; orthogonal regions, history pseudostates, submachine states deferred. Consultant selects which entities to render; tabular catalogues always emitted, inline-SVG diagrams plus copy-pasteable Mermaid `stateDiagram-v2` source per selected entity. Choose this option to surface entity lifecycles — statuses, transitions, and guards — implicit in the requirements, before designing status-driven UI.
     output_path: analyses/STATE-DIAGRAM/state-diagram.html
     reference_asset: framework/assets/analyses/state-diagram-reference.md
     template_asset: framework/assets/analyses/template-state-diagram.html

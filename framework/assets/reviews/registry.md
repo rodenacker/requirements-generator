@@ -5,7 +5,7 @@ methodologies:
   # MVP — fully implemented and selectable via /review. Listed alphabetically; none privileged.
   - name: adversarial
     status: mvp
-    description: Adversarial review of requirements.md (BMAD-style, strict mode — must find issues, eight review dimensions, Patch/Defer/Reject disposition)
+    description: Adversarial review of requirements.md (BMAD-style, strict mode — must find issues, eight review dimensions, Patch/Defer/Reject disposition). Choose this option to find out what's wrong in the requirements.
     output_path: reviews/ADVERSARIAL/adversarial-review.md
     reference_asset: framework/assets/reviews/adversarial-reference.md
     template_asset: framework/assets/reviews/template-adversarial.md
@@ -14,7 +14,7 @@ methodologies:
     character: framework/assets/characters/adversarial-review.md
   - name: ten-ux-questions
     status: mvp
-    description: 10 UX Questions — the most pressing unanswered questions an experienced UX designer would ask after reading requirements.md (priority — blocking / major / minor; final 10 selected from a candidate pool of up to 50; eight UX gap categories)
+    description: 10 UX Questions — the most pressing unanswered questions an experienced UX designer would ask after reading requirements.md (priority — blocking / major / minor; final 10 selected from a candidate pool of up to 50; eight UX gap categories). Choose this option before designing to find out what's missing from the requirements.
     output_path: reviews/TEN-UX-QUESTIONS/ten-ux-questions-review.md
     reference_asset: framework/assets/reviews/ten-ux-questions-reference.md
     template_asset: framework/assets/reviews/template-ten-ux-questions.md
