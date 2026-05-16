@@ -63,7 +63,15 @@ methodologies:
   - { name: quality-signals-analysis, status: future }
   - { name: personas, status: future }
   - { name: thematic-analysis, status: future }
-  - { name: opportunity-solution-trees, status: future }
+  - name: opportunity-solution-trees
+    status: mvp
+    description: Opportunity Solution Tree (Teresa Torres, *Continuous Discovery Habits*) — a reverse-discovery audit that ladders the requirements document upwards from its features to the customer needs they address and the business/product outcome they serve, plus a best-effort fourth layer of assumption tests where the doc names risks or open questions. Output is a four-band tree (Outcome → Opportunities → Solutions → Assumption Tests) with SVG connectors; orphan solutions, vague opportunities, and unaddressed opportunities are surfaced in diagnostics rather than fabricated. Choose this option to audit whether the document's features actually ladder up to its stated goals, and to surface gaps where opportunities are unaddressed or assumption tests are missing.
+    output_path: analyses/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html
+    reference_asset: framework/assets/analyses/opportunity-solution-trees-reference.md
+    template_asset: framework/assets/analyses/template-opportunity-solution-trees.html
+    map_skill: framework/skills/map-opportunity-solution-trees-to-ui.md
+    analyser_agent: framework/agents/analyses/opportunity-solution-trees-analyser.md
+    character: framework/assets/characters/opportunity-solution-trees-analysis.md
   - { name: storytelling-narrative-synthesis, status: future }
   - name: five-whys
     status: mvp

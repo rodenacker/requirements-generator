@@ -1,0 +1,890 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses/opportunity-solution-trees-analyser.md.
+
+  Purpose: HTML/CSS skeleton for the canonical Opportunity Solution Tree
+  (Teresa Torres, "Continuous Discovery Habits"). Self-contained
+  (`<!doctype html>` + inlined `<style>` + `<body>`). No external CSS/JS
+  dependencies; viewable by opening `file://` in a browser; shareable with
+  clients without tooling.
+
+  Section order (top-to-bottom):
+    1. Overview (id="overview")        — title, subtitle, meta-grid.
+    2. How to read (id="how-to-read")  — <details> wrapper, collapsed by
+       default. Explains the reversal framing for consultants new to OST.
+    3. TOC (<nav class="toc">)         — static top-level anchors.
+    4. Diagrams (id="diagrams")        — {{TREE}} (the four-band tree
+       with inline SVG connectors).
+    5. Tabular information (id="tables") — {{LADDER_TABLE}}
+       (Outcome × Opportunity × Solution × Assumption-Test rows).
+    6. Diagnostics (id="diagnostics")  — <details> wrapper, collapsed
+       by default. Bottom of page; position alone signals auxiliary.
+
+  Layout: a single top-to-bottom tree with four horizontal bands. Each band
+  is a CSS Grid row. Cards in a band auto-wrap. Parent-child connections
+  are drawn by a single inline `<svg class="tree-connectors">` overlay
+  sized to the tree container; the analyser emits `<path>` elements per
+  edge with explicit coordinates computed at render time (one band-to-band
+  segment per parent-child pair).
+
+  Placeholders the analyser substitutes (string substitution, all values
+  pre-escaped for HTML):
+
+    {{TITLE}}                       — short title (e.g. "Opportunity Solution Tree — Project X")
+    {{DOMAIN}}                      — domain string (from requirements §1 if present)
+    {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
+    {{REQUIREMENTS_SHA256}}         — sha256 of requirements/requirements.md at read time
+    {{OUTCOME_CLASS}}               — "business-outcome" | "product-outcome" | "traction-metric"
+    {{OPPORTUNITY_COUNT}}           — total Opportunities on the tree
+    {{SOLUTION_COUNT}}              — total Solutions on the tree
+    {{ASSUMPTION_TEST_COUNT}}       — total Assumption Tests (0 → renders placeholder)
+    {{ORPHAN_SOLUTION_COUNT}}       — Solutions whose parent is the sentinel `(none stated in requirements)`
+    {{UNADDRESSED_OPPORTUNITY_COUNT}} — Opportunities with no Solution children
+    {{TREE}}                        — pre-rendered <section class="tree-wrap">
+                                      containing four <div class="band band-outcome|band-opportunity|band-solution|band-assumption">
+                                      plus the inline <svg class="tree-connectors">.
+    {{LADDER_TABLE}}                — pre-rendered <table class="ladder-table"> with one row
+                                      per Outcome × Opportunity × Solution × Assumption-Test tuple
+                                      (Cartesian product, denormalised; empty cells render as em-dash).
+    {{DIAGNOSTICS_BLOCK}}           — pre-rendered <section class="diagnostics">.
+
+  TREE-BAND SCHEMA — the analyser emits exactly four <div class="band"> rows
+  inside the <section class="tree-wrap"> in this order:
+
+      <section class="tree-wrap" aria-label="Opportunity Solution Tree">
+        <svg class="tree-connectors" aria-hidden="true" preserveAspectRatio="none">
+          <!-- one <path class="edge edge-out-opp|edge-opp-sol|edge-sol-asm"
+               d="M x1,y1 C x1,my x2,my x2,y2" /> per parent-child link.
+               The analyser computes coordinates against the band-container's
+               flow geometry at render time. Paths render under the cards
+               (z-index: 0); cards sit above (z-index: 1). -->
+        </svg>
+
+        <div class="band band-outcome" aria-label="Outcome">
+          <h2 class="band-label">Outcome</h2>
+          <article id="out-1" class="card card-outcome outcome-<class>">
+            <header class="card-header">
+              <span class="card-id">Out-1</span>
+              <span class="card-type-badge outcome-<class>">{{outcome_class_label}}</span>
+              <span class="provenance provenance-<from-success-metrics|from-goals>"
+                    title="..." aria-hidden="true">●</span>
+            </header>
+            <p class="card-body">{{outcome_text}}</p>
+            <p class="card-meta"><span class="meta-label">Measured by</span> {{measurement}}</p>
+            <p class="card-meta"><span class="meta-label">By</span> {{horizon}}</p>
+          </article>
+        </div>
+
+        <div class="band band-opportunity" aria-label="Opportunities">
+          <h2 class="band-label">Opportunities</h2>
+          <article id="op-<NN>" class="card card-opportunity
+                   <flag-unaddressed-in-requirements|flag-weakly-anchored>">
+            <header class="card-header">
+              <span class="card-id">Op-NN</span>
+              <span class="actor-tag">{{actor}}</span>
+              <span class="provenance provenance-<from-persona-pains|from-user-story-tail|from-pains|from-domain-prose>"
+                    title="..." aria-hidden="true">●</span>
+            </header>
+            <p class="card-body">{{need_or_pain_clause}}</p>
+            <!-- flag pills appear last if the Opportunity carries any: -->
+            <p class="card-flags">
+              <span class="flag flag-unaddressed">unaddressed-in-requirements</span>
+              <span class="flag flag-weakly-anchored">weakly-anchored</span>
+            </p>
+          </article>
+        </div>
+
+        <div class="band band-solution" aria-label="Solutions">
+          <h2 class="band-label">Solutions</h2>
+          <!-- Sentinel-parent group, if any orphan Solutions: rendered as a
+               red-bordered group containing the sentinel Opportunity card +
+               its Solution children. -->
+          <article id="sentinel-1" class="card card-opportunity card-sentinel">
+            <header class="card-header">
+              <span class="card-id">Op-?</span>
+              <span class="actor-tag">(none stated in requirements)</span>
+            </header>
+            <p class="card-body">Orphan Solutions land here — features the doc commits to without naming the underlying customer need.</p>
+          </article>
+
+          <article id="s-<NN>" class="card card-solution
+                   <flag-orphan-solution|flag-multi-parent>">
+            <header class="card-header">
+              <span class="card-id">S-NN</span>
+              <span class="actor-tag">{{actor}}</span>
+              <span class="provenance provenance-<from-user-story-head|from-acceptance-criteria|from-features-in-scope>"
+                    title="..." aria-hidden="true">●</span>
+            </header>
+            <p class="card-body">{{solution_text}}</p>
+            <p class="card-flags">
+              <span class="flag flag-orphan">orphan-solution</span>
+              <span class="flag flag-multi-parent">multi-parent ({{n}})</span>
+            </p>
+          </article>
+        </div>
+
+        <div class="band band-assumption" aria-label="Assumption Tests">
+          <h2 class="band-label">Assumption Tests</h2>
+          <!-- When the entire layer is absent the analyser emits a single
+               muted-italic placeholder block: -->
+          <p class="layer-placeholder">no-assumption-tests-in-requirements — Layer 4 is sourced only from §Risks / §Assumptions / §Open questions, which are not present in the requirements document. This is expected for a written PRD.</p>
+
+          <!-- Otherwise one card per test: -->
+          <article id="at-<NN>" class="card card-assumption
+                   category-<desirability|viability|feasibility|usability|ethical>
+                   <flag-global-assumption>">
+            <header class="card-header">
+              <span class="card-id">AT-NN</span>
+              <span class="card-type-badge category-<...>">{{category_label}}</span>
+              <span class="provenance provenance-<from-risks|from-assumptions|from-open-questions>"
+                    title="..." aria-hidden="true">●</span>
+            </header>
+            <p class="card-body">{{test_description}}</p>
+            <p class="card-flags">
+              <span class="flag flag-global-assumption">global-assumption</span>
+            </p>
+          </article>
+        </div>
+      </section>
+
+  LADDER TABLE SCHEMA — the analyser emits a denormalised table where each
+  row is one Outcome × Opportunity × Solution × Assumption-Test combination.
+  Empty Assumption-Test cells render as `—` (em-dash). Used for screen-reader
+  consumption and as a sortable copy-paste view of the tree:
+
+      <table class="ladder-table" aria-label="Outcome → Opportunity → Solution → Assumption Test">
+        <thead>
+          <tr>
+            <th>Outcome</th>
+            <th>Opportunity</th>
+            <th>Solution</th>
+            <th>Assumption Test</th>
+            <th>Flags</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="row-id">Out-1</span> {{outcome_text}}</td>
+            <td><span class="row-id">Op-3</span> {{opportunity_text}}</td>
+            <td><span class="row-id">S-7</span> {{solution_text}}</td>
+            <td><span class="row-id">AT-2</span> {{test_text}} <span class="badge category-desirability">desirability</span></td>
+            <td>—</td>
+          </tr>
+          <!-- ... one <tr> per tuple ... -->
+        </tbody>
+      </table>
+
+  DIAGNOSTICS SCHEMA — the analyser's {{DIAGNOSTICS_BLOCK}} substitutes a
+  single <section class="diagnostics">. The template wraps the placeholder in
+  a <details class="diagnostics-toggle"> element (collapsed by default). The
+  analyser does not emit the <details>/<summary> wrapper — it is template
+  scaffolding. The inner section contains, in order:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>Opportunity Solution Tree — N Opportunities, M Solutions, K Assumption Tests.</p>
+        <p>Outcome: 1 (classified as `{{outcome_class}}`, from `{{outcome_source}}`).</p>
+        <p>Provenance: A Opportunities from-persona-pains, B from-user-story-tail, C from-pains, D from-domain-prose.</p>
+        <p>Provenance: E Solutions from-user-story-head, F from-acceptance-criteria, G from-features-in-scope.</p>
+        <p>Layer 4: H Assumption Tests across desirability/viability/feasibility/usability/ethical, or `no-assumption-tests-in-requirements` placeholder.</p>
+        <p>Flags: I orphan-solutions, J unaddressed-in-requirements, K weakly-anchored, L vertical-only-branches, M multi-parent-solutions.</p>
+        <ul>
+          <li class="check-pass|check-fail">Gate 1 — Exactly one root Outcome.</li>
+          <li class="check-pass|check-fail">Gate 2 — Customer-perspective Opportunities.</li>
+          <li class="check-pass|check-fail">Gate 3 — More-than-one-way-to-address (or unaddressed flag).</li>
+          <li class="check-pass|check-fail">Gate 4 — No vertical-only branches (warn-only).</li>
+          <li class="check-pass|check-fail">Gate 5 — Every Solution ladders to root.</li>
+          <li class="check-pass|check-fail">Gate 6 — Provenance complete.</li>
+          <li class="check-pass|check-fail">Gate 7 — No solution-leak in Opportunities.</li>
+        </ul>
+        <!-- Per-flag detail sub-lists; only present when count > 0: -->
+        <details><summary>Orphan Solutions (I)</summary>
+          <ul><li>S-NN — `{{solution_text}}` (no §Personas.Pains / §User stories tail names the underlying need)</li>...</ul>
+        </details>
+        <details><summary>Unaddressed Opportunities (J)</summary>
+          <ul><li>Op-NN — `{{opportunity_text}}` (no §User stories / §Acceptance criteria commits a Solution)</li>...</ul>
+        </details>
+        <details><summary>Weakly-anchored Opportunities (K)</summary>
+          <ul><li>Op-NN — `{{opportunity_text}}` (no keyword overlap with Out-1 measurement clause)</li>...</ul>
+        </details>
+        <details><summary>Vertical-only branches (L)</summary>
+          <ul><li>Op-NN → S-NN — one child each, no siblings (Torres anti-pattern)</li>...</ul>
+        </details>
+        <details><summary>Multi-parent Solutions (M)</summary>
+          <ul><li>S-NN — `{{solution_text}}` (primary Op-X; secondary Op-Y, Op-Z)</li>...</ul>
+        </details>
+        <!-- Override-only: flagged-nodes <ul> per failed gate with id + offending text. -->
+      </section>
+
+  CSS classes used by the analyser:
+    .outcome-business-outcome, .outcome-product-outcome, .outcome-traction-metric  — Outcome classification badge + card border color.
+    .category-desirability, .category-viability, .category-feasibility,
+    .category-usability, .category-ethical  — Assumption-Test category badge.
+    .provenance-from-success-metrics, .provenance-from-goals,
+    .provenance-from-persona-pains, .provenance-from-user-story-tail,
+    .provenance-from-pains, .provenance-from-domain-prose,
+    .provenance-from-user-story-head, .provenance-from-acceptance-criteria,
+    .provenance-from-features-in-scope,
+    .provenance-from-risks, .provenance-from-assumptions,
+    .provenance-from-open-questions  — provenance dot per node.
+    .flag-orphan, .flag-multi-parent, .flag-unaddressed,
+    .flag-weakly-anchored, .flag-global-assumption  — flag pills.
+    .card-sentinel  — red-bordered sentinel "(none stated in requirements)" parent.
+    .edge-out-opp, .edge-opp-sol, .edge-sol-asm  — SVG connector classes by band pair.
+
+  Content TBD-able by the analyser:
+    The four band contents, the SVG <path> connectors, the ladder table, and
+    the diagnostics block are fully driven by the analyser. The CSS below is
+    fixed scaffolding and should not be edited by the analyser — only the
+    {{placeholders}} above are substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --col-bg: #ffffff;
+      --card-shadow: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+      --header-bg: #efefef;
+
+      /* Layer colors — Outcome indigo, Opportunity amber, Solution blue, Assumption violet */
+      --out-bg: #dbdcf0;    --out-border: #5a5fbf;    --out-fg: #1c1f5c;
+      --opp-bg: #ffe2b3;    --opp-border: #d48a2a;    --opp-fg: #4a2e00;
+      --sol-bg: #b9d7f0;    --sol-border: #4f8fbf;    --sol-fg: #0c2a44;
+      --asm-bg: #d8c7ee;    --asm-border: #8a6ec7;    --asm-fg: #2e1e55;
+
+      /* Outcome classification — three sub-tones of indigo */
+      --out-biz-fg: #4a1a8a;
+      --out-prod-fg: #1c1f5c;
+      --out-trc-fg: #5a5a8a;
+
+      /* Assumption Test categories — five tints */
+      --cat-des: #c97a92;
+      --cat-via: #7fb069;
+      --cat-fea: #4f8fbf;
+      --cat-usa: #d48a2a;
+      --cat-eth: #8a6ec7;
+
+      /* Provenance dot colors */
+      --prov-canonical: #2a8a2a;
+      --prov-derived:   #b86a00;
+
+      /* Flag pills */
+      --flag-warn-bg: #ffeaea;  --flag-warn-border: #d44a4a;  --flag-warn-fg: #8a1a1a;
+      --flag-info-bg: #e8eaee;  --flag-info-border: #8a8a8a;  --flag-info-fg: #2a2a2a;
+
+      /* SVG connector colors */
+      --edge-stroke: #b0b0b0;
+      --edge-stroke-width: 1.5;
+
+      --not-named-fg: #9a9a9a;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 0 24px 0;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px 24px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+
+    .meta-grid dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+
+    .meta-grid dd {
+      margin: 0 0 6px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ------- how-to-read panel ------- */
+
+    details.how-to-read {
+      margin-bottom: 24px;
+    }
+    details.how-to-read > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--out-border);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.how-to-read > summary::-webkit-details-marker { display: none; }
+    details.how-to-read > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.how-to-read[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.how-to-read[open] > summary::before {
+      transform: rotate(90deg);
+    }
+    details.how-to-read .how-to-read-body {
+      padding: 14px 16px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-top: none;
+      border-left: 4px solid var(--out-border);
+      border-radius: 0 0 6px 6px;
+      font-size: 13px;
+    }
+    details.how-to-read .how-to-read-body p { margin: 0 0 8px 0; }
+    details.how-to-read .how-to-read-body p:last-child { margin-bottom: 0; }
+    details.how-to-read .how-to-read-body code {
+      background: var(--header-bg);
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+
+    /* ------- table of contents ------- */
+
+    .toc {
+      margin: 0 0 24px 0;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .toc ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 18px;
+      counter-reset: toc-item;
+    }
+    .toc li { counter-increment: toc-item; }
+    .toc li::before {
+      content: counter(toc-item) ". ";
+      color: var(--muted);
+      margin-right: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .toc a {
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--border-strong);
+    }
+    .toc a:hover { border-bottom-color: var(--fg); }
+
+    /* ------- tree-wrap (the four-band tree) ------- */
+
+    .tree-wrap {
+      position: relative;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+
+    .tree-connectors {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .tree-connectors .edge {
+      fill: none;
+      stroke: var(--edge-stroke);
+      stroke-width: var(--edge-stroke-width);
+    }
+    .tree-connectors .edge-out-opp { stroke: var(--out-border); }
+    .tree-connectors .edge-opp-sol { stroke: var(--opp-border); }
+    .tree-connectors .edge-sol-asm { stroke: var(--sol-border); }
+
+    .band {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      padding: 16px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    .band:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .band-label {
+      grid-column: 1 / -1;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 4px 0;
+    }
+
+    .band-outcome { background: rgba(91,95,191,0.03); }
+    .band-opportunity { background: rgba(212,138,42,0.03); }
+    .band-solution { background: rgba(79,143,191,0.03); }
+    .band-assumption { background: rgba(138,110,199,0.03); }
+
+    /* ------- cards (one shape, layer-specific accents) ------- */
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px;
+      background: var(--col-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      border-top: 3px solid var(--border-strong);
+      box-shadow: var(--card-shadow);
+    }
+    .card-outcome    { border-top-color: var(--out-border); background: var(--out-bg); color: var(--out-fg); }
+    .card-opportunity{ border-top-color: var(--opp-border); background: var(--opp-bg); color: var(--opp-fg); }
+    .card-solution   { border-top-color: var(--sol-border); background: var(--sol-bg); color: var(--sol-fg); }
+    .card-assumption { border-top-color: var(--asm-border); background: var(--asm-bg); color: var(--asm-fg); }
+
+    .card-sentinel {
+      border: 2px dashed var(--flag-warn-border);
+      background: var(--flag-warn-bg);
+      color: var(--flag-warn-fg);
+    }
+
+    .card.flag-unaddressed,
+    .card.flag-orphan-solution {
+      border: 2px dashed var(--flag-warn-border);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .card-id {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    .card-type-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-radius: 3px;
+      border: 1px solid transparent;
+      background: #fff;
+    }
+    .card-type-badge.outcome-business-outcome { color: var(--out-biz-fg); border-color: var(--out-biz-fg); }
+    .card-type-badge.outcome-product-outcome  { color: var(--out-prod-fg); border-color: var(--out-prod-fg); }
+    .card-type-badge.outcome-traction-metric  { color: var(--out-trc-fg); border-color: var(--out-trc-fg); }
+
+    .card-type-badge.category-desirability { color: var(--cat-des); border-color: var(--cat-des); }
+    .card-type-badge.category-viability    { color: var(--cat-via); border-color: var(--cat-via); }
+    .card-type-badge.category-feasibility  { color: var(--cat-fea); border-color: var(--cat-fea); }
+    .card-type-badge.category-usability    { color: var(--cat-usa); border-color: var(--cat-usa); }
+    .card-type-badge.category-ethical      { color: var(--cat-eth); border-color: var(--cat-eth); }
+
+    .actor-tag {
+      font-size: 11px;
+      font-weight: 600;
+      color: inherit;
+      opacity: 0.85;
+    }
+
+    .provenance {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      vertical-align: middle;
+      font-size: 0;
+      line-height: 0;
+      flex: 0 0 auto;
+      margin-left: auto;
+    }
+    .provenance-from-success-metrics,
+    .provenance-from-goals,
+    .provenance-from-persona-pains,
+    .provenance-from-user-story-tail,
+    .provenance-from-user-story-head,
+    .provenance-from-acceptance-criteria,
+    .provenance-from-features-in-scope,
+    .provenance-from-risks,
+    .provenance-from-assumptions,
+    .provenance-from-open-questions { background: var(--prov-canonical); }
+    .provenance-from-pains,
+    .provenance-from-domain-prose { background: var(--prov-derived); }
+
+    .card-body {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.35;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .card-meta {
+      margin: 0;
+      font-size: 11px;
+      opacity: 0.8;
+    }
+    .card-meta .meta-label {
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 10px;
+      opacity: 0.7;
+      margin-right: 4px;
+    }
+
+    .card-flags {
+      margin: 4px 0 0 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .flag {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      border: 1px solid transparent;
+      background: var(--flag-info-bg);
+      border-color: var(--flag-info-border);
+      color: var(--flag-info-fg);
+    }
+    .flag-orphan, .flag-unaddressed, .flag-weakly-anchored {
+      background: var(--flag-warn-bg);
+      border-color: var(--flag-warn-border);
+      color: var(--flag-warn-fg);
+    }
+
+    .layer-placeholder {
+      grid-column: 1 / -1;
+      margin: 0;
+      padding: 12px 14px;
+      background: var(--col-bg);
+      border: 1px dashed var(--border-strong);
+      border-radius: 6px;
+      color: var(--not-named-fg);
+      font-style: italic;
+      font-size: 13px;
+    }
+
+    /* ------- ladder table ------- */
+
+    .table-wrap {
+      margin-bottom: 24px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+    }
+    .table-wrap h2 {
+      font-size: 16px;
+      margin: 0 0 8px 0;
+    }
+    .table-wrap .table-caption {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0 0 12px 0;
+    }
+
+    table.ladder-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    table.ladder-table th,
+    table.ladder-table td {
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+      vertical-align: top;
+      text-align: left;
+    }
+    table.ladder-table thead th {
+      background: var(--header-bg);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    table.ladder-table tbody tr:nth-child(even) {
+      background: #fafafa;
+    }
+    table.ladder-table .row-id {
+      display: inline-block;
+      margin-right: 6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    table.ladder-table .badge {
+      display: inline-block;
+      margin-left: 4px;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      border: 1px solid transparent;
+      background: #fff;
+    }
+    table.ladder-table .badge.category-desirability { color: var(--cat-des); border-color: var(--cat-des); }
+    table.ladder-table .badge.category-viability    { color: var(--cat-via); border-color: var(--cat-via); }
+    table.ladder-table .badge.category-feasibility  { color: var(--cat-fea); border-color: var(--cat-fea); }
+    table.ladder-table .badge.category-usability    { color: var(--cat-usa); border-color: var(--cat-usa); }
+    table.ladder-table .badge.category-ethical      { color: var(--cat-eth); border-color: var(--cat-eth); }
+
+    /* ------- diagnostics ------- */
+
+    details.diagnostics-toggle {
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.diagnostics-toggle[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.diagnostics-toggle[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
+    .diagnostics {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > .diagnostics {
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      margin-bottom: 0;
+    }
+    details.diagnostics-toggle > .diagnostics > h2 {
+      display: none;
+    }
+    .diagnostics h2 {
+      font-size: 16px;
+      margin: 0 0 8px 0;
+    }
+    .diagnostics > p { margin: 4px 0; }
+    .diagnostics > ul {
+      margin: 8px 0 12px 0;
+      padding-left: 20px;
+    }
+    .diagnostics .check-pass::before { content: "PASS "; color: var(--prov-canonical); font-weight: 700; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--flag-warn-fg);   font-weight: 700; }
+    .diagnostics details > summary {
+      cursor: pointer;
+      font-weight: 600;
+      margin: 6px 0;
+    }
+
+    /* ------- footer / legend ------- */
+
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    footer .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+    }
+    footer .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    footer .legend-swatch {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border-left: 3px solid transparent;
+    }
+    footer .legend-swatch.s-out { background: var(--out-bg); border-left-color: var(--out-border); }
+    footer .legend-swatch.s-opp { background: var(--opp-bg); border-left-color: var(--opp-border); }
+    footer .legend-swatch.s-sol { background: var(--sol-bg); border-left-color: var(--sol-border); }
+    footer .legend-swatch.s-asm { background: var(--asm-bg); border-left-color: var(--asm-border); }
+    footer .legend-swatch.s-warn { background: var(--flag-warn-bg); border: 2px dashed var(--flag-warn-border); }
+    footer .credit { margin-top: 6px; text-align: right; }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .band { break-inside: avoid; }
+      .card { break-inside: avoid; }
+      .toc, details.how-to-read { display: none; }
+      .tree-connectors { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section id="overview">
+      <h1>{{TITLE}}</h1>
+      <p class="subtitle">Opportunity Solution Tree — reverse-discovery audit of the merged requirements document. Outcome → Opportunities → Solutions → Assumption Tests.</p>
+
+      <dl class="meta-grid">
+        <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+        <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+        <div><dt>Source SHA-256</dt><dd>{{REQUIREMENTS_SHA256}}</dd></div>
+        <div><dt>Outcome class</dt><dd>{{OUTCOME_CLASS}}</dd></div>
+        <div><dt>Opportunities</dt><dd>{{OPPORTUNITY_COUNT}}</dd></div>
+        <div><dt>Solutions</dt><dd>{{SOLUTION_COUNT}}</dd></div>
+        <div><dt>Assumption Tests</dt><dd>{{ASSUMPTION_TEST_COUNT}}</dd></div>
+        <div><dt>Orphan Solutions</dt><dd>{{ORPHAN_SOLUTION_COUNT}}</dd></div>
+        <div><dt>Unaddressed Opportunities</dt><dd>{{UNADDRESSED_OPPORTUNITY_COUNT}}</dd></div>
+      </dl>
+    </section>
+
+    <details id="how-to-read" class="how-to-read">
+      <summary>How to read this tree</summary>
+      <div class="how-to-read-body">
+        <p><strong>This is not a discovery plan — it is a structural audit.</strong> Teresa Torres's Opportunity Solution Trees are normally built top-down from a desired Outcome, through customer-interview-sourced Opportunities, to candidate Solutions and Assumption Tests. This artefact does the reverse: it reads the merged <code>requirements/requirements.md</code> and ladders upward from the document's features (Solutions) to the customer needs they address (Opportunities) to the single business or product goal they serve (Outcome).</p>
+        <p><strong>What to look for.</strong> Orphan Solutions (features with no underlying customer need stated) and unaddressed Opportunities (pains the doc names but commits no Solution against) are the headline findings — they signal under-justified scope and gaps in scope respectively. Vertical-only branches (one Opportunity, one Solution, no siblings) signal premature commitment; Torres specifically warns against them. Weakly-anchored Opportunities have no keyword overlap with the Outcome's measurement clause.</p>
+        <p><strong>Layer 4 (Assumption Tests)</strong> is sourced only from <code>§Risks</code>, <code>§Assumptions</code>, and <code>§Open questions</code>. Most written PRDs do not contain explicit assumptions or experiments — when those sections are absent, the layer renders a placeholder rather than fabricating tests. The absence is information, not a defect.</p>
+        <p><strong>Provenance dots</strong> on each card show where the node was sourced from. Green = canonical source (the section type Torres or the framework's reference contract names first). Amber = derived from supplementary prose (used when the canonical source was sparse). The diagnostics block at the bottom lists every flag and gate result.</p>
+      </div>
+    </details>
+
+    <nav class="toc" aria-label="Sections">
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#how-to-read">How to read</a></li>
+        <li><a href="#diagrams">Tree</a></li>
+        <li><a href="#tables">Ladder table</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+      </ol>
+    </nav>
+
+    <section id="diagrams" aria-label="Opportunity Solution Tree">
+      {{TREE}}
+    </section>
+
+    <section id="tables" class="table-wrap" aria-label="Ladder table">
+      <h2>Outcome → Opportunity → Solution → Assumption Test</h2>
+      <p class="table-caption">Denormalised view of the tree. One row per Outcome × Opportunity × Solution × Assumption-Test combination. Empty cells render as em-dash.</p>
+      {{LADDER_TABLE}}
+    </section>
+
+    <details id="diagnostics" class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    <footer>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-out" aria-hidden="true"></span> Outcome (Layer 1)</span>
+        <span class="legend-item"><span class="legend-swatch s-opp" aria-hidden="true"></span> Opportunity (Layer 2)</span>
+        <span class="legend-item"><span class="legend-swatch s-sol" aria-hidden="true"></span> Solution (Layer 3)</span>
+        <span class="legend-item"><span class="legend-swatch s-asm" aria-hidden="true"></span> Assumption Test (Layer 4)</span>
+        <span class="legend-item"><span class="legend-swatch s-warn" aria-hidden="true"></span> Orphan / Unaddressed flag</span>
+        <span class="legend-item"><span class="provenance provenance-from-success-metrics" aria-hidden="true"></span> canonical source</span>
+        <span class="legend-item"><span class="provenance provenance-from-pains" aria-hidden="true"></span> derived source</span>
+      </div>
+      <div class="credit">Generated by `framework/agents/analyses/opportunity-solution-trees-analyser.md`.</div>
+    </footer>
+  </main>
+</body>
+</html>

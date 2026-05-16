@@ -451,6 +451,7 @@ graph TD
       agent_tf[task-flows-analyser.md]
       agent_fw[five-whys-analyser.md]
       agent_glossary[glossary-analyser.md]
+      agent_ost[opportunity-solution-trees-analyser.md]
     end
 
     subgraph Skills
@@ -492,6 +493,7 @@ graph TD
     orch_an --> agent_tf
     orch_an --> agent_fw
     orch_an --> agent_glossary
+    orch_an --> agent_ost
 
     skill_ansel --> asset_registry_an
     skill_bloat_an --> shared_refusal_an
@@ -507,7 +509,7 @@ graph TD
     agent_state --> skill_svgoverlap_an
 
     class orch_an orch
-    class agent_ooux,agent_jtbd,agent_uc,agent_dm,agent_uj,agent_seq,agent_state,agent_act,agent_tf,agent_fw,agent_glossary agent
+    class agent_ooux,agent_jtbd,agent_uc,agent_dm,agent_uj,agent_seq,agent_state,agent_act,agent_tf,agent_fw,agent_glossary,agent_ost agent
     class skill_ansel,skill_verifywrite_an,skill_bloat_an,skill_svgoverlap_an skill
     class asset_registry_an,asset_ref_tf,asset_tmpl_tf asset
     class char_tf char
@@ -515,7 +517,7 @@ graph TD
     class state_progress_an state
 ```
 
-**Stats:** 21 nodes / 25 edges / depth 3. (Per-analyser reference / template / character / map-skill nodes for the nine other MVP analysers are intentionally omitted to keep the graph readable — each analyser node implicitly fans out to the same four-asset shape as `agent_tf`. Five-whys and glossary both exercise the registry's `template_asset: null` clause and compose markdown directly; their template-node fan-out is correspondingly nil.)
+**Stats:** 22 nodes / 26 edges / depth 3. (Per-analyser reference / template / character / map-skill nodes for the ten other MVP analysers are intentionally omitted to keep the graph readable — each analyser node implicitly fans out to the same four-asset shape as `agent_tf`. Five-whys and glossary both exercise the registry's `template_asset: null` clause and compose markdown directly; their template-node fan-out is correspondingly nil.)
 
 **Notes:**
 - The orchestrator is **registry-driven**: at design time it does not know which analyser will run. The `skill_ansel → asset_registry_an` edge is the discovery mechanism; `orch_an → agent_*` edges represent the runtime invocation paths once the consultant has selected a methodology via `analysis-selector.md`. **Adding a new MVP analyser requires zero orchestrator edits** — only a new registry row plus the four-asset shape (analyser agent + reference + template + character) plus the orchestrator-node edge in this graph. The `task-flows` row added in this PR follows that pattern.
