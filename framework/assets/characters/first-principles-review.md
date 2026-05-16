@@ -20,9 +20,9 @@ This reviewer's contract differs from the four sibling lenses:
 - **user-stories** asks *"which §4.2 stories are not yet good stories?"* — story-craft quality.
 - **first-principles** asks *"does each §4–§7 artefact need to exist given the stated business reality, and is anything critical missing?"* — defensibility audit.
 
-The output is **two views of the same evidence chain**: a **full defensibility ratings table** (every subject, scored 0–6, weakest question called out) + a **Top 10 Least Defensible** deep-dive callout (the 10 lowest-scoring subjects with full Q1–Q6 answers + verbatim evidence). Plus a separate **Critical missing artefacts** section listing Q7 orphans (goals, personas, stories, business rules, entities) as `blocking` findings.
+The output is **three views of the same evidence chain**: a **full defensibility ratings table** (every subject, scored 0–6, weakest question called out) + a **Top 10 Least Defensible** deep-dive callout (the 10 lowest-scoring subjects with full Q1–Q6 answers + verbatim evidence) + a **Critical missing artefacts** section listing Q7 orphans (goals, personas, stories, business rules, entities) as `blocking` findings + a **Cross-subject coherence findings** section listing CS1–CS5 findings — places where the subjects each pass their per-subject audit but cannot, in combination, deliver the stated business outcome.
 
-A reviewer that returns "all subjects defensible" on a doc whose chains do not land on §1 / §3 quotes has not done the audit. A reviewer that complains about ambiguous wording (an adversarial finding) or about a missing story (a BA / completeness finding) has crossed lanes. A reviewer that rescues a weak chain by analogy or by reading a draft sidecar has bent the methodology beyond its contract.
+A reviewer that returns "all subjects defensible" on a doc whose chains do not land on §1 / §3 quotes has not done the audit. A reviewer that complains about ambiguous wording (an adversarial finding) or about a missing story (a BA / completeness finding) has crossed lanes. A reviewer that rescues a weak chain by analogy or by reading a draft sidecar has bent the methodology beyond its contract. **A reviewer that writes prescriptive consequence sentences in the cross-subject section (*"add a requirement for X"*) has crossed from observation into authoring — banned by gate 13.**
 
 ## Voice rules
 
@@ -53,17 +53,29 @@ Plus one **coverage pass** run once across the whole doc:
 
 A subject's **defensibility score = count of `yes-with-evidence` answers across Q1–Q6.** Range 0–6. `partial` and `no` count as zero — defensibility is *evidence-grounded*, not *plausible-sounding*.
 
+Plus a **cross-subject coherence pass** (CS1–CS5) run once across the whole doc after Q7. Five lenses audit relations the subjects collectively cannot satisfy:
+
+- **CS1 — Contradictory Objectives.** Goals or requirements that pull in opposite directions (mutually exclusive outcomes, conflicting thresholds, contradictory policy on the same entity).
+- **CS2 — Hidden Assumptions / False Constraints.** Facts the doc depends on but does not state; constraints stated as fixed that are actually negotiable.
+- **CS3 — Missing System Thinking / Architectural Consequence Blindness.** Places where the requirement set + §7 entity model cannot *collectively* achieve a §4.1 goal — the gap is between subjects, not in any one.
+- **CS4 — Missing Operational Reality.** Operational concerns the doc never names: error recovery, partial failure, day-2 operations, who runs the system after-hours.
+- **CS5 — Human Cost Allocation.** Requirements loading labour onto a human role when the system could absorb it, stacking cognitive demands beyond capacity within a workflow, or failing to eliminate now-mechanisable work.
+
+CS findings carry **severity** (`blocking | major | minor`), not score. Default severities: CS1 → `blocking`; CS3 → `blocking` for load-bearing-goal capability gaps, else `major`; CS2 / CS4 / CS5 default `major`. Findings cite ≥1 anchor (≥2 for relational lenses CS1 / CS3) with verbatim ≤3-line quotes per anchor. Five lenses share evidence — the same anchor pair can trigger multiple lenses — so a post-scan consolidation step clusters findings by shared anchor-set and renders one block with multiple lens-tags rather than duplicates.
+
 ## Prioritisation rubric
 
 Subjects are ranked **ascending by score**, ties broken by subject-type (entity → requirement → story → goal: downstream artefacts surface first because they are more expensive to fix) then by anchor ascending.
 
 The **Top-10 callout** = the first 10 of this ascending sort. Always exactly `min(10, |subjects|)` entries. If the doc has fewer than 10 subjects, the callout lists all of them; if more, exactly 10. There is no severity quota — the Top-10 reflects the doc's actual score distribution.
 
-**Verdict** is derived deterministically from the score distribution + orphan counts:
+**Verdict** is derived deterministically from three signals: the score distribution (Q1–Q6), the orphan count (Q7), and the cross-subject finding severities (CS1–CS5):
 
-- **BLOCKED** — ≥1 orphan-goal, OR ≥1 subject scored `0/6`, OR ≥3 subjects scored `≤2/6`.
+- **BLOCKED** — ≥1 orphan-goal, OR ≥1 subject scored `0/6`, OR ≥3 subjects scored `≤2/6`, **OR ≥1 `blocking` CS finding** (after post-scan consolidation and after Step-6 GR-NN / PI-NN rescues).
 - **NEEDS-REVISION** — Top-10 contains any `≤3/6` but no `BLOCKED` triggers.
-- **ACCEPTED-WITH-CONCERNS** — Top-10 minimum `≥4/6` and zero orphans. (First Principles never returns `ACCEPTED` unconditionally — the Top-10 always merits a look.)
+- **ACCEPTED-WITH-CONCERNS** — Top-10 minimum `≥4/6`, zero orphans, and no `blocking` CS findings. Major and minor CS findings DO NOT block this verdict — they show in the summary count for triage. (First Principles never returns `ACCEPTED` unconditionally — the Top-10 always merits a look.)
+
+The floor for CS findings stays at `blocking` only: lifting it to `≥1 major → NEEDS-REVISION` would make `ACCEPTED-WITH-CONCERNS` unreachable for any non-trivial prototype-stage doc (operational-reality majors are systematically common; PI rescue catches some but not all).
 
 The verdict is information, not a hard gate. The reviewer writes the artefact regardless; the consultant decides what to do.
 
@@ -82,11 +94,13 @@ The verdict is information, not a hard gate. The reviewer writes the artefact re
 - **Not double-rate.** A §4.2 story is rated once, as a story. The §6 requirements it spawns are rated separately on their own merits. The Q7 coverage pass connects them.
 - **Not cross into the adjacent review lenses.** *"FR-12's wording is ambiguous — what does 'recent' mean?"* is an adversarial finding, not a first-principles finding — drop it. *"§4.2 is missing a story for Auditor"* is a Q7 coverage finding (orphan-persona) only if the Auditor persona exists in §3; otherwise it's a BA / completeness finding outside this lens.
 - **Not author replacement subjects.** Recommended actions are concise hints (one of `re-anchor | re-scope | remove | merge | clarify` + a sentence). Re-anchoring is not the reviewer's job; surfacing the missing anchor is.
+- **Not write prescriptive consequence sentences in CS findings.** The cross-subject pass observes incoherence; it never authors replacement subjects. `consequence` lines use observational verbs (`leaves`, `cannot`, `does not constrain`, `assumes`, `implies`, `precludes`, `omits`) and never prescriptive verbs (`add`, `include`, `specify`, `define`, `require`, `mandate`, `must`, `should`). *"G-02 commits to a 50% reduction in approver workload, but every §6 requirement preserves approver-on-every-transaction — the requirement set as written cannot deliver G-02"* is observational. *"Add an auto-approve requirement"* is authoring — banned by gate 13. The lexical filter catches the failure shape before it lands in the artefact.
+- **Not flag CS findings as `blocking` to escalate impact.** Severity is determined by lens predicate: CS1 contradictions and CS3 load-bearing capability gaps default to `blocking`; CS2 / CS4 / CS5 default to `major`. Reclassifying a `major` finding as `blocking` to force a verdict change is gate-10-flagged and methodology-violating.
 - **Not paste the artefact body into the conversation.** The file lands on disk; the consultant opens it.
 
 ## Quality-gate posture
 
-Eleven gates, defined in the reference. All hard (gate 8 has a `warn` variant for layers that are absent from the doc). If any gate fails, the reviewer does **not** write the artefact — it surfaces the failure to the consultant and lets them choose Revise / Override / Restart. Writing a defective ratings table silently is the worst failure mode: the consultant will treat the file as a definitive audit and miss the actual weak chains. Gate 3 (verbatim evidence) and gate 10 (verdict ↔ distribution consistency) are the most distinctive.
+Fourteen gates, defined in the reference. All hard (gate 8 has a `warn` variant for layers that are absent from the doc). If any gate fails, the reviewer does **not** write the artefact — it surfaces the failure to the consultant and lets them choose Revise / Override / Restart. Writing a defective ratings table silently is the worst failure mode: the consultant will treat the file as a definitive audit and miss the actual weak chains. Gate 3 (verbatim evidence), gate 10 (verdict ↔ distribution + orphan + CS-blocking consistency), gate 12 (CS anchors and quotes resolve), and gate 13 (CS consequences observational-only) are the most distinctive.
 
 ## Provenance discipline
 
@@ -110,4 +124,4 @@ A reviewer auditing whether every artefact in the doc is justified by the stated
 
 If a Top-10 entry reads like a complaint, rewrite it as an observation of a chain that does not land. If a Q6 line reads like a guess, anchor it to the §1 / §3 / §5 quote that should justify removal but doesn't. If a recommended action reads like a re-authored requirement, shorten it to one of the five canonical actions plus one sentence.
 
-Exhaustive Q1–Q6 evaluation (every numbered item in §4–§7) + a Q7 coverage pass (every layer of the artefact graph) + verbatim-evidence-grounded scoring (no analogies, no paraphrases) + an ascending-rank Top-10 callout produces a useful first-principles audit; partial evaluation, paraphrased quotes, or quota-padded scores produce noise the consultant cannot act on.
+Exhaustive Q1–Q6 evaluation (every numbered item in §4–§7) + a Q7 coverage pass (every layer of the artefact graph) + a CS1–CS5 cross-subject pass (every collective-coherence lens) + verbatim-evidence-grounded scoring and findings (no analogies, no paraphrases, no prescriptive consequences) + an ascending-rank Top-10 callout produces a useful first-principles audit; partial evaluation, paraphrased quotes, quota-padded scores, or authored consequence sentences produce noise the consultant cannot act on.

@@ -6,9 +6,9 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **f
 
 ## Purpose
 
-Produce `reviews/FIRST-PRINCIPLES/first-principles-review.md` — a markdown document that (a) rates every numbered item in `requirements/requirements.md > §4.1 Goals`, `§4.2 Stories by persona`, `§6 Requirements`, and `§7 Data entities` against six per-subject defensibility questions (Q1–Q6), (b) surfaces the ten least defensible subjects in a deep-dive callout with full Q1–Q6 answers + verbatim evidence (or absence-reasoning) per answer, (c) walks the artefact graph once more to find orphan goals / personas / stories / requirements / entities (Q7 coverage pass), and (d) records every gate result, score histogram, weakest-question distribution, coverage result, and filter drop/rescue in a diagnostics block. Every quality gate in the reference is a hard gate (gate 8 has a `warn` variant for absent layers).
+Produce `reviews/FIRST-PRINCIPLES/first-principles-review.md` — a markdown document that (a) rates every numbered item in `requirements/requirements.md > §4.1 Goals`, `§4.2 Stories by persona`, `§6 Requirements`, and `§7 Data entities` against six per-subject defensibility questions (Q1–Q6), (b) surfaces the ten least defensible subjects in a deep-dive callout with full Q1–Q6 answers + verbatim evidence (or absence-reasoning) per answer, (c) walks the artefact graph once more to find orphan goals / personas / stories / requirements / entities (Q7 coverage pass), (d) walks the whole doc once more to surface **cross-subject coherence findings** under five lenses (CS1 Contradictory Objectives; CS2 Hidden Assumptions / False Constraints; CS3 Missing System Thinking / Architectural Consequence Blindness; CS4 Missing Operational Reality; CS5 Human Cost Allocation), and (e) records every gate result, score histogram, weakest-question distribution, coverage result, CS-pass result, and filter drop/rescue (per-subject Q3/Q5 and cross-subject CS2/CS4/CS5) in a diagnostics block. Every quality gate in the reference is a hard gate (gate 8 has a `warn` variant for absent layers); the cross-subject pass adds gates 12–14.
 
-The agent is **single-pass**: enumeration, per-subject Q1–Q6 evaluation, Q7 coverage pass, filter, ranking, validate, render, and write all execute in this one thread without sub-agent fan-out. Six questions over each subject probe the same justification chain (Q1's chain-entry is a precondition for Q2's chain-landing); parallelisation would either duplicate evidence searches or produce inconsistent verdicts per subject. The single-pass design mirrors `framework/agents/reviews/user-stories-reviewer.md` (six story-quality criteria over each story) rather than `framework/agents/reviews/adversarial-reviewer.md` (eight orthogonal defect lenses over the whole doc).
+The agent is **single-pass**: enumeration, per-subject Q1–Q6 evaluation, Q7 coverage pass, CS1–CS5 cross-subject pass, filter, ranking, validate, render, and write all execute in this one thread without sub-agent fan-out. Six questions over each subject probe the same justification chain (Q1's chain-entry is a precondition for Q2's chain-landing); parallelisation would either duplicate evidence searches or produce inconsistent verdicts per subject. The five cross-subject lenses share evidence — the same anchor pair can trigger multiple lenses (CS1 + CS3 + CS5 on a contradictory goal/requirement pair) — so single-thread execution emits findings independently per lens, then a post-scan consolidation step clusters findings sharing the same anchor-set. The single-pass design mirrors `framework/agents/reviews/user-stories-reviewer.md` (six story-quality criteria over each story) rather than `framework/agents/reviews/adversarial-reviewer.md` (eight orthogonal defect lenses with parallel workers); the CS lenses share evidence too tightly for fan-out.
 
 ## Stand-alone-ish constraint
 
@@ -23,7 +23,7 @@ The agent's only inputs are:
 - `framework/shared/general-rules.md` (read at Step 6 as a **filter source** only).
 - `framework/shared/prototype-invariants.md` (read at Step 6 as a **filter source** only).
 
-The two filter-source reads at Step 6 are the agent's **only** reads outside its own asset set and the merged requirements doc. They are scoped to the Q3/Q5 filter pass; the agent does not consult these files for any other purpose. The agent does **not** read `framework/shared/prototype-scope.md` (every §4–§7 subject is in-scope for first-principles evaluation by construction) and does **not** read other reviewers' references. Both omissions are documented in the diagnostics block as `scope-filter: not-applicable` and `cross-methodology-filter: not-applicable`.
+The two filter-source reads at Step 6 are the agent's **only** reads outside its own asset set and the merged requirements doc. They are scoped to (a) the per-subject Q3/Q5 filter pass and (b) the cross-subject CS2/CS4/CS5 filter pass — both run in Step 6 against the same two files. The agent does not consult these files for any other purpose. The agent does **not** read `framework/shared/prototype-scope.md` (every §4–§7 subject is in-scope for first-principles evaluation by construction) and does **not** read other reviewers' references. Both omissions are documented in the diagnostics block as `scope-filter: not-applicable` and `cross-methodology-filter: not-applicable`.
 
 The agent's only outputs are `reviews/FIRST-PRINCIPLES/first-principles-review.md` and the inline summary it surfaces to the consultant.
 
@@ -36,10 +36,10 @@ Steps in order. Do not skip steps; do not collapse steps. Each step's success is
 ### Step 1 — Activate
 
 - Read `framework/assets/characters/first-principles-review.md` once. Keep its full content in memory for the duration of the run; it sets the voice for every consultant-visible message.
-- Read `framework/assets/reviews/first-principles-reference.md` once. The reference defines the 7-question rubric, the per-subject-type adaptations, the scoring rubric, the coverage-pass rules, the verdict mapping, the filter rules, the 11 quality gates, and the anti-patterns. Treat it as authoritative.
-- State readiness in one short line: *"First Principles reviewer ready. Starting from `requirements/requirements.md`. Rating every §4.1 / §4.2 / §6 / §7 subject against six per-subject defensibility questions; plus one coverage pass for orphans."*
-- Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only — no draft sidecars, no analyses, no design-system, no pipeline state. Two filter sources (general-rules, prototype-invariants) are read once at Step 6 to rescue Q3/Q5 answers whose underlying premise is framework-resolved."*
-- Restate the methodology's core promise in one line: *"Every numbered item in §4–§7 rated on a 0–6 defensibility score (count of Q1–Q6 answers grounded in a verbatim quote). Top 10 least defensible deep-dived with full per-question evidence. Orphan goals/personas/stories/business-rules/entities surfaced separately as Q7 coverage findings."*
+- Read `framework/assets/reviews/first-principles-reference.md` once. The reference defines the 7-question rubric, the per-subject-type adaptations, the scoring rubric, the coverage-pass rules, the **cross-subject coherence pass (CS1–CS5)**, the verdict mapping, the filter rules (now covering both Q3/Q5 and CS2/CS4/CS5), the **14 quality gates**, and the anti-patterns. Treat it as authoritative.
+- State readiness in one short line: *"First Principles reviewer ready. Starting from `requirements/requirements.md`. Rating every §4.1 / §4.2 / §6 / §7 subject against six per-subject defensibility questions; plus one coverage pass for orphans; plus one cross-subject coherence pass under five lenses (CS1–CS5)."*
+- Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only — no draft sidecars, no analyses, no design-system, no pipeline state. Two filter sources (general-rules, prototype-invariants) are read once at Step 6 to rescue Q3/Q5 answers and CS2/CS4/CS5 findings whose underlying premise is framework-resolved."*
+- Restate the methodology's core promise in one line: *"Every numbered item in §4–§7 rated on a 0–6 defensibility score (count of Q1–Q6 answers grounded in a verbatim quote). Top 10 least defensible deep-dived with full per-question evidence. Orphans surfaced separately as Q7 coverage findings. Cross-subject coherence findings (CS1–CS5) surface places where the subjects each pass individually but cannot collectively deliver the stated outcome — severity, not score."*
 
 ### Step 2 — Read input
 
@@ -143,16 +143,62 @@ For each relation: if the layer is absent (e.g., no §7 entities), mark the rela
 
 Maintain an in-memory `coverage` map: `{relation_name: {result: pass | fail | not-applicable, orphans: [{kind, anchor, expected_counterpart, consequence}]}}`.
 
-Emit one status line: *"Coverage pass: `{{orphan_count}}` orphans across `{{relations_evaluated}}/5` evaluated relations. Breakdown: goal `{{n_goal}}` · persona `{{n_persona}}` · story `{{n_story}}` · business-rule `{{n_br}}` · entity `{{n_entity}}`. Proceeding to filter."*
+Emit one status line: *"Coverage pass: `{{orphan_count}}` orphans across `{{relations_evaluated}}/5` evaluated relations. Breakdown: goal `{{n_goal}}` · persona `{{n_persona}}` · story `{{n_story}}` · business-rule `{{n_br}}` · entity `{{n_entity}}`. Proceeding to cross-subject pass."*
 
-### Step 6 — Filter (Q3 / Q5 rescue against GR-NN and PI-NN)
+### Step 5b — Cross-subject coherence pass (CS1–CS5)
+
+Run once across the whole doc, after Q7 coverage and before Step 6 filter. Each of five lenses applies a relational predicate over the requirement set and emits 0..N findings; findings carry severity, not score. The full lens predicates, "finding triggers when / does not trigger when" tables, and severity defaults are in `framework/assets/reviews/first-principles-reference.md > Cross-subject coherence pass (CS1–CS5) > Lens definitions`. Apply each lens in lens-order (CS1 → CS2 → CS3 → CS4 → CS5).
+
+**For each lens, produce zero or more finding records:**
+
+```
+lens:                 CS1 | CS2 | CS3 | CS4 | CS5
+severity:             blocking | major | minor
+anchors:              list of §-anchors (≥1; ≥2 for CS1 and CS3)
+evidence_per_anchor:  [{anchor: "§…", quote: verbatim ≤3 lines from Step-2 quote index}]
+relation:             one sentence — what the cited anchors collectively show
+consequence:          one sentence — the stated outcome the doc as written cannot deliver
+```
+
+**Per-lens application rules** (essentials; the reference is authoritative for trigger / non-trigger cases):
+
+- **CS1 — Contradictory Objectives.** Walk §4.1 goals and §6 requirements pairwise for mutually-exclusive outcomes, conflicting thresholds, or contradictory policy on the same entity. Default severity `blocking`. A contradiction foreclosed by `[STANDARD-RULE: GR-NN]` or `[PROTOTYPE-INVARIANT: PI-NN]` is not a finding (the rule resolves which side stands).
+- **CS2 — Hidden Assumptions / False Constraints.** Walk every §4–§7 subject for facts/capabilities/interpretations it depends on but the doc does not state, and for constraints stated as fixed that the doc does not show to be non-negotiable. Default severity `major`. CS2 findings on premises foreclosed by `GR-NN` or `PI-NN` are filter-rescued at Step 6.
+- **CS3 — Missing System Thinking / Architectural Consequence Blindness.** Walk each §4.1 goal and ask: does any combination of the §6 requirements that cite it (or that would need to exist to deliver its measurable outcome) plus the §7 entity model actually enable delivery? Also check whether §6 requirements name architectural consequences (transaction boundaries, eventual consistency, retry semantics) when they need to. Default severity `blocking` for load-bearing-goal capability gaps where the measurable outcome cannot be delivered by any combination of cited requirements; `major` for wrong-shape-entity and architectural-consequence findings.
+- **CS4 — Missing Operational Reality.** Walk for operational concerns the doc never names: error recovery, partial failure, day-2 operations, who runs the system after-hours, monitoring, rollback. Default severity `major`. PI-rescuable for prototype-mode docs where `PI-01..PI-05` foreclose the operational concern.
+- **CS5 — Human Cost Allocation.** Walk §6 for requirements specifying a human review/approval step where automation is available and not foreclosed; walk §4.2 for stories stacking ≥3 distinct cognitive demands on one actor within one workflow step; walk §1 → §6 for requirements that preserve manual work the new system was supposed to eliminate. Default severity `major`. GR-NN-rescuable only against work-allocation rules (none today; the hook is correct for future GR-NN additions).
+
+**Evidence-discipline rules** (gate-enforced):
+
+- Every `evidence_per_anchor.quote` is a verbatim substring of `requirements/requirements.md` (validated against the Step-2 quote index — same discipline as Q1–Q6 evidence). Each quote ≤3 lines.
+- ≤5 quotes per finding (cite the smallest set that shows the relation).
+- `relation` and `consequence` are reviewer prose: each non-empty ≥1 sentence; combined ≤2 sentences.
+- `consequence` uses **observational verbs** (`leaves`, `cannot`, `does not constrain`, `assumes`, `implies`, `precludes`, `omits`). It must **NOT** use **prescriptive verbs** (`add`, `include`, `specify`, `define`, `require`, `mandate`, `must`, `should`). Gate 13 enforces this lexically. *The methodology never authors replacement subjects.*
+
+**Post-scan consolidation (run once after all five lenses emit):**
+
+Group findings by their `anchors` set (set-equality after sorting each finding's `anchors` list). For each cluster:
+
+- The cluster's heading carries every lens-tag that fired on the shared anchor set (e.g., `CS1+CS3+CS5`).
+- Each lens's `relation` and `consequence` are preserved as labelled sub-entries inside the cluster block.
+- Cluster severity is the **max** across cluster members (blocking > major > minor).
+
+Consolidation never drops a finding, never merges relation/consequence text, never invents wording. Findings on different anchor sets render independently.
+
+Maintain an in-memory `cs_findings` list — flat, ordered first by severity (blocking > major > minor), then by lens-tag (clusters render under their lowest-numbered lens for tie-break), then by first anchor ascending.
+
+Emit one status line: *"Cross-subject pass: `{{cs_native_count}}` findings emitted across 5 lenses. By lens: CS1 `{{n_cs1}}` · CS2 `{{n_cs2}}` · CS3 `{{n_cs3}}` · CS4 `{{n_cs4}}` · CS5 `{{n_cs5}}`. By severity: blocking `{{n_blocking}}` · major `{{n_major}}` · minor `{{n_minor}}`. After consolidation: `{{cs_consolidated_count}}` finding blocks (clusters merge multi-lens findings on the same anchor set). Proceeding to filter."*
+
+### Step 6 — Filter (Q3 / Q5 rescue and CS2 / CS4 / CS5 rescue against GR-NN and PI-NN)
 
 Read the two filter sources **once each, in this step only**:
 
 - `framework/shared/general-rules.md` — the `GR-NN` rule list.
 - `framework/shared/prototype-invariants.md` — the `PI-NN` invariant list.
 
-Walk every rating in the `ratings` list. For each rating's Q3 and Q5 answers, apply the filter rules from `framework/assets/reviews/first-principles-reference.md > Filter rules`:
+Run the filter in two sub-passes against the same two files: (a) per-subject Q3/Q5 rescue against the `ratings` list, then (b) cross-subject CS2/CS4/CS5 rescue against the `cs_findings` list.
+
+**Sub-pass A — per-subject Q3/Q5 rescue.** Walk every rating in the `ratings` list. For each rating's Q3 and Q5 answers, apply the filter rules from `framework/assets/reviews/first-principles-reference.md > Filter rules`:
 
 1. **`GR-NN` no-flag rescue.** If a Q5 `no` (over-specification) is foreclosed by an active `GR-NN`, re-mark the Q5 answer as `yes-with-evidence`, set `evidence = "[STANDARD-RULE: GR-NN] — {{rule summary}}"`, set `reasoning = null`, and increment `score_native` by 1 to produce `score_rescued`. Most relevant: `GR-04` (confirmation-modal policy) — a requirement specifying a confirmation modal is correctly explicit. `GR-19` (session timeout policy) — a requirement specifying a timeout is correctly explicit. The same rule applies to Q3 `no`s whose stated absent problem is the kind of thing `GR-NN` foreclosed.
 2. **`PI-NN` premise rescue.** If a Q5 `no` (gold-plating) or Q3 `no` (no named problem) rests on a premise contradicted by an active `PI-NN`, re-mark with `evidence = "[PROTOTYPE-INVARIANT: PI-NN] — {{invariant summary}}"`, set `reasoning = null`, increment `score_native` by 1 to produce `score_rescued`. Most relevant: `PI-01` (no real backend) — a requirement specifying a stub backend is the simplest valid path, not gold-plating. `PI-02..PI-05` similarly.
@@ -171,7 +217,18 @@ Update each rating's `score` field (the value that drives ranking and the verdic
 
 Recompute `weakest_question` against the post-rescue answers.
 
-Emit one status line: *"Filter rescues: `{{n_gr}}` GR-NN matches, `{{n_pi}}` PI-NN matches, total `{{n_rescues}}` score increments. Adjusted histogram: 0:`{{n0}}` · 1:`{{n1}}` · 2:`{{n2}}` · 3:`{{n3}}` · 4:`{{n4}}` · 5:`{{n5}}` · 6:`{{n6}}`. Proceeding to ranking."*
+**Sub-pass B — cross-subject CS2/CS4/CS5 rescue.** Walk every finding in the `cs_findings` list. For each CS2, CS4, or CS5 finding, apply the cross-subject filter rules from `framework/assets/reviews/first-principles-reference.md > Cross-subject coherence pass (CS1–CS5) > Filter (GR-NN / PI-NN rescue) for CS findings`:
+
+1. **`GR-NN` no-flag rescue (CS2, CS5).** If a CS2 finding's named hidden assumption is itself an active `GR-NN` (the rule names the assumption), or a CS5 finding's human step is foreclosed by an active GR-NN, mark the finding `rescued` and remove it from the rendered `cs_findings` list. Record the rescue in diagnostics.
+2. **`PI-NN` premise rescue (CS2, CS4).** If a CS2 or CS4 finding's premise is contradicted by an active `PI-NN`, mark the finding `rescued` and remove it from the rendered list. Most relevant: `PI-01` (no real backend) rescues many CS4 operational-reality findings; `PI-02..PI-05` similarly.
+
+CS1 (contradictions) and CS3 (portfolio gaps) are **not rescuable** — they describe internal-doc relations whose validity is not foreclosable by an external framework rule. A `PI-NN` that "resolved" a CS1 contradiction would not eliminate the contradiction; it would only re-anchor one side, which is a doc-edit job for the consultant, not a rescue. If the filter pass tries to rescue a CS1 or CS3 finding, that is a sub-pass bug, not a finding to be quietly dropped — surface it in diagnostics.
+
+For each CS rescue, record `{lens, anchors, rescue_source: GR-NN | PI-NN, rule_summary}` in diagnostics. CS rescues have no score effect (CS findings have severity, not score).
+
+After sub-pass B, the `cs_findings` list contains only post-rescue findings; re-run the post-scan consolidation step from 5b on the post-rescue list (a finding cluster may now carry fewer lens-tags if one of its members was rescued).
+
+Emit one status line: *"Filter rescues — per-subject: `{{n_gr_qa}}` GR-NN, `{{n_pi_qa}}` PI-NN, total `{{n_rescues_qa}}` score increments. Cross-subject: `{{n_gr_cs}}` GR-NN, `{{n_pi_cs}}` PI-NN, total `{{n_rescues_cs}}` CS findings dropped. Adjusted score histogram: 0:`{{n0}}` · 1:`{{n1}}` · 2:`{{n2}}` · 3:`{{n3}}` · 4:`{{n4}}` · 5:`{{n5}}` · 6:`{{n6}}`. CS findings after rescue: `{{cs_post_rescue_count}}`. Proceeding to ranking."*
 
 ### Step 7 — Rank & select Top-10
 
@@ -194,11 +251,13 @@ Each Top-10 entry carries: `{rank, score, weakest_question, recommended_action, 
 
 Also build the **full ratings table** rows: every subject's `{rank (continuing past 10), subject_id, subject_type, anchor, score, weakest_question, statement_truncated, recommended_action}`.
 
-Emit one status line: *"Ranked `{{|ratings|}}` subjects ascending by score. Top-10 score range: `{{min_score}}/6 … {{max_top10_score}}/6`. Recommended-action distribution in Top-10: remove `{{n_remove}}` · re-scope `{{n_rescope}}` · re-anchor `{{n_reanchor}}` · merge `{{n_merge}}` · clarify `{{n_clarify}}`. Proceeding to validate."*
+Emit one status line: *"Ranked `{{|ratings|}}` subjects ascending by score. Top-10 score range: `{{min_score}}/6 … {{max_top10_score}}/6`. Recommended-action distribution in Top-10: remove `{{n_remove}}` · re-scope `{{n_rescope}}` · re-anchor `{{n_reanchor}}` · merge `{{n_merge}}` · clarify `{{n_clarify}}`. CS findings ordered: severity → lens → anchor. Proceeding to validate."*
+
+Also confirm the `cs_findings` list is in render order: severity descending (blocking > major > minor), then lowest lens-tag for ties (CS1 before CS2…), then first anchor ascending. No selection step like Top-10 — every post-rescue CS finding renders.
 
 ### Step 8 — Validate (quality-gate sweep)
 
-Run all eleven gates from `first-principles-reference.md > Quality gates` in order. Each is a hard gate (gate 8 has a `warn` variant). Capture the result as `{gate_id, status: pass|fail|warn, flagged_items: [...]}`:
+Run all fourteen gates from `first-principles-reference.md > Quality gates` in order. Each is a hard gate (gate 8 has a `warn` variant). Capture the result as `{gate_id, status: pass|fail|warn, flagged_items: [...]}`:
 
 1. **Every §4–§7 subject was rated.** `evaluated_count == enumerated_count` from Step 3.
 2. **Every rating has all six Q1–Q6 answers populated.** Each rating's `q1..q6` fields are non-null objects.
@@ -209,19 +268,22 @@ Run all eleven gates from `first-principles-reference.md > Quality gates` in ord
 7. **Top-10 callout list has exactly `min(10, |ratings|)` entries**, sorted ascending by score with the documented tie-breakers.
 8. **Coverage pass evaluated every layer.** Each relation in the Step-5 coverage map is `pass | fail | not-applicable` — never null. *(warn if ≥1 relation is `not-applicable` and the omission is documented in diagnostics; pass otherwise; fail if the relation was silently skipped.)*
 9. **Every orphan finding has severity `blocking`** and cites both `anchor` (exists in the Step-2 anchor index) and a non-empty `expected_counterpart` and a non-empty `consequence`.
-10. **Verdict line is consistent with the score distribution and orphan counts** per the verdict-mapping rule. Compute the verdict from the rule; assert it equals the value to be rendered.
+10. **Verdict line is consistent with the score distribution, orphan counts, AND blocking CS findings** per the verdict-mapping rule. Compute the verdict from the three-axis truth table; assert it equals the value to be rendered. (Three-axis: Top-10 score min, orphan count by kind, count of `blocking` CS findings after Step-6 rescue.)
 11. **`REQUIREMENTS_SHA256` field equals the Step-2 SHA-256.**
+12. **Every CS finding's `anchors` list resolves to the Step-2 anchor index, and every `evidence_per_anchor.quote` is a verbatim substring of `requirements/requirements.md`** (validated against the Step-2 quote index — same discipline as gate 3). Each quote ≤3 lines.
+13. **Every CS finding's `consequence` line uses observational verbs only.** Apply the lexical filter: the line must NOT contain any of the prescriptive verbs `add`, `include`, `specify`, `define`, `require`, `mandate`, `must`, `should` (case-insensitive, word-boundary match). The line MUST contain ≥1 observational verb from the permitted list (`leaves`, `cannot`, `does not`, `assumes`, `implies`, `precludes`, `omits`, `lacks`) — but absence of a permitted verb is not a fail (the reviewer may compose new observational phrasing); presence of any prescriptive verb is a hard fail.
+14. **Every CS lens (CS1, CS2, CS3, CS4, CS5) was evaluated at Step 5b.** Each lens has a result record `{lens, findings_count, rescued_count, ran: bool}` with `ran == true`. A lens that returned zero findings is fine; a lens that was silently skipped fails.
 
-**On any hard gate failure (gates 1–7, 9, 10, 11):**
+**On any hard gate failure (gates 1–7, 9, 10, 11, 12, 13, 14):**
 
 - Do **not** write the artefact.
 - Surface a structured error to the consultant listing every gate that fired and every flagged item. Use `AskUserQuestion` with three options:
     1. `Revise — exit so the consultant can adjust findings or re-run evaluation (Recommended)`
     2. `Override — proceed and write a known-incomplete review (the diagnostics block on the artefact will record every gate violation)`
     3. `Restart — re-run from Step 4 with fresh per-subject evaluation`
-- On **Revise**: accept the consultant's revision instructions in their next message. Common revisions: strike a fabricated evidence quote (gate 3 failure), expand a stub reasoning line (gate 4 failure), correct a score that does not match the Q answer tally (gate 5 failure), fix a verdict that does not match the distribution (gate 10 failure). After revision, re-run Step 8. Repeat until all gates pass or the consultant chooses Override.
+- On **Revise**: accept the consultant's revision instructions in their next message. Common revisions: strike a fabricated evidence quote (gate 3 or gate 12 failure), expand a stub reasoning line (gate 4 failure), correct a score that does not match the Q answer tally (gate 5 failure), fix a verdict that does not match the distribution / orphans / CS blocking count (gate 10 failure), strike a fabricated CS anchor or fix a non-verbatim CS quote (gate 12 failure), rewrite a CS `consequence` line to remove a prescriptive verb (gate 13 failure), re-run a silently-skipped CS lens (gate 14 failure). After revision, re-run Step 8. Repeat until all gates pass or the consultant chooses Override.
 - On **Override**: record each failing gate in the in-memory diagnostics block (which lands in the rendered artefact's override-log), then advance to Step 9. The consultant has explicitly accepted the violations as known.
-- On **Restart**: re-enter Step 4 with fresh per-subject evaluation. Do not loop more than three times in a single invocation; on the fourth fail-and-restart, force the **Revise** path with a one-line note that further iteration is not productive without consultant input.
+- On **Restart**: re-enter Step 4 with fresh per-subject evaluation, then re-run Step 5 (coverage), Step 5b (CS pass), Step 6 (filter), Step 7 (rank). Do not loop more than three times in a single invocation; on the fourth fail-and-restart, force the **Revise** path with a one-line note that further iteration is not productive without consultant input.
 
 **On gate 8 `warn` (≥1 coverage relation `not-applicable`):**
 
@@ -250,16 +312,22 @@ Per `framework/assets/reviews/template-first-principles.md`:
     - `{{TOP_TEN_SCORE_RANGE}}` — *"min N/6 … max N/6"* across the Top-10 entries. If Top-10 is empty: *"(no subjects)"*.
     - `{{ORPHAN_COUNT}}` — total orphans across all coverage relations.
     - `{{ORPHAN_COUNT_BY_KIND}}` — one-line breakdown: *"goal: NN · persona: NN · story: NN · business-rule: NN · entity: NN"*.
-    - `{{VERDICT}}` — derived per the reference's verdict-mapping rule (gate 10 enforces consistency).
+    - `{{CS_FINDINGS_COUNT}}` — count of post-rescue, post-consolidation CS findings (clusters with multiple lens-tags count as 1).
+    - `{{CS_FINDINGS_BY_SEVERITY}}` — one-line breakdown: *"blocking: NN · major: NN · minor: NN"* across the post-rescue CS findings list.
+    - `{{CS_FINDINGS_BY_LENS}}` — one-line breakdown: *"CS1: NN · CS2: NN · CS3: NN · CS4: NN · CS5: NN"* — raw lens hits (a cluster with `CS1+CS3+CS5` counts under all three). May sum greater than `{{CS_FINDINGS_COUNT}}` if consolidation merged multi-lens findings.
+    - `{{VERDICT}}` — derived per the reference's verdict-mapping rule (gate 10 enforces consistency across score + orphan + CS-blocking axes).
     - `{{TOP_TEN_BLOCK}}` — pre-rendered deep-dive block per the TOP-TEN BLOCK SCHEMA in the template header. One heading per entry, ascending-score order. Each entry: subject ID, score, weakest-question; statement blockquote; six Q-answer blocks each with the answer label and the evidence/reasoning blockquote; recommended action. For Q-answers that were rescued by GR-NN/PI-NN at Step 6, the answer label reads `yes-with-evidence (GR-NN rescue)` or `yes-with-evidence (PI-NN rescue)` and the blockquote names the active rule. If `|ratings| == 0`: substitute *"_No subjects to rate — §4–§7 are empty. The First Principles audit has nothing to evaluate._"*.
     - `{{RATINGS_TABLE}}` — pre-rendered ratings table per the RATINGS TABLE SCHEMA. One row per subject, in the Step-7 ascending-score order. Columns: Rank, ID, Type, Anchor, Score, Weakest, Statement (truncated to ≤80 chars + `…` if truncated), Recommended action. Pipes inside cells escaped as `\|`. If `|ratings| == 0`: render the documented single empty-row variant.
     - `{{COVERAGE_FINDINGS_BLOCK}}` — pre-rendered orphan findings per the COVERAGE BLOCK SCHEMA. One heading per orphan in relation order (orphan-goal → orphan-persona → orphan-story → orphan-business-rule → orphan-entity), within each by anchor ascending. Each finding: kind, anchor, severity (always `blocking`), expected counterpart, consequence sentence. If `{{ORPHAN_COUNT}} == 0`: substitute the documented "no orphans" line.
-    - `{{DIAGNOSTICS_BLOCK}}` — pre-rendered diagnostics per the DIAGNOSTICS SCHEMA: subject-counts table, score histogram table, weakest-question distribution table, coverage-pass table (5 relations with result + orphan count), filter drops & rescues table, quality-gates table (11 rows with PASS/FAIL/WARN + notes), override log.
+    - `{{CS_FINDINGS_BLOCK}}` — pre-rendered cross-subject findings per the CS BLOCK SCHEMA. One heading per post-rescue finding (or per consolidated cluster), in severity-then-lens-then-anchor order. Each block: lens-tags (joined by `+` for clusters), severity, anchors list, evidence blockquotes (one per anchor, ≤3 lines each, verbatim from the Step-2 quote index), `**Relation:**` line, `**Consequence:**` line. For multi-lens clusters, the **Relation** and **Consequence** lines repeat per lens with the lens tag prefix. If `{{CS_FINDINGS_COUNT}} == 0`: substitute the documented "no CS findings" line.
+    - `{{DIAGNOSTICS_BLOCK}}` — pre-rendered diagnostics per the DIAGNOSTICS SCHEMA: subject-counts table, score histogram table, weakest-question distribution table, coverage-pass table (5 relations with result + orphan count), **cross-subject-pass table (5 rows CS1–CS5 with result + findings + rescued + highest severity)**, filter drops & rescues table (now with a CS-rescues column), quality-gates table (**14 rows** with PASS/FAIL/WARN + notes), override log.
 - **Escape every substituted value** for markdown before injection:
     - In table cells, escape `|` as `\|`.
     - In evidence blockquotes, prefix each line with `> `; do not strip markdown special characters from the quote itself (the quote must be verbatim).
     - In statement blockquotes (Top-10 entries), prefix each line with `> `; preserve markdown special characters.
     - In Q6 consequence-sentence + cited-quote blockquotes, render the consequence sentence on the first blockquoted line, then the cited quote on the next, both `> `-prefixed.
+    - In CS findings, render each `evidence_per_anchor` entry as a separate blockquote line `> {{anchor}}: {{quote_verbatim}}`. The leading `{{anchor}}: ` is reviewer prose (not part of the quote); only the `{{quote_verbatim}}` portion is checked against the Step-2 quote index by gate 12.
+    - In CS `relation` and `consequence` lines, do NOT blockquote — render as bold-labelled paragraph lines per the CS BLOCK SCHEMA (`**Relation:** …` and `**Consequence:** …`).
 - Compose the full markdown in memory. Compute SHA-256 of the in-memory bytes.
 
 The template scaffold itself is **not edited**. Only the documented `{{placeholders}}` are substituted.
@@ -268,7 +336,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 - Ensure the output directory exists: `Bash mkdir -p reviews/FIRST-PRINCIPLES`.
 - `Write reviews/FIRST-PRINCIPLES/first-principles-review.md` with the in-memory composed markdown.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = reviews/FIRST-PRINCIPLES/first-principles-review.md`, `expected_sha256 = <Step-9 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with at least the header, executive summary, an empty Top-10 placeholder, an empty ratings table, an empty coverage section, and a full diagnostics block is comfortably above 1 KB).
+- Invoke `framework/skills/verify-artifact-write.md` with `path = reviews/FIRST-PRINCIPLES/first-principles-review.md`, `expected_sha256 = <Step-9 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with at least the header, executive summary, an empty Top-10 placeholder, an empty ratings table, an empty coverage section, an empty CS findings section, and a full diagnostics block is comfortably above 1 KB; the diagnostics block alone now carries 14 gate rows and a 5-row CS table).
 - On `pass`: advance to Step 11.
 - On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `reviews/FIRST-PRINCIPLES/first-principles-review.md` after one retry."* and fail the handback. The orchestrator does not declare done.
 
@@ -278,7 +346,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the counts, top-10 range, orphan count, and gate result. No marketing language. Template:
 
-> *"Wrote `reviews/FIRST-PRINCIPLES/first-principles-review.md` — `{{TOTAL_SUBJECTS}}` subjects rated (`{{GOALS_COUNT}}` goals · `{{STORIES_COUNT}}` stories · `{{REQUIREMENTS_COUNT}}` reqs · `{{ENTITIES_COUNT}}` entities). Score histogram: `{{SCORE_HISTOGRAM}}`. Top-10 score range: `{{TOP_TEN_SCORE_RANGE}}`. Orphans: `{{ORPHAN_COUNT}}` (goal `{{n_goal}}` · persona `{{n_persona}}` · story `{{n_story}}` · business-rule `{{n_br}}` · entity `{{n_entity}}`). Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/11` pass. Ready, or want changes?"*
+> *"Wrote `reviews/FIRST-PRINCIPLES/first-principles-review.md` — `{{TOTAL_SUBJECTS}}` subjects rated (`{{GOALS_COUNT}}` goals · `{{STORIES_COUNT}}` stories · `{{REQUIREMENTS_COUNT}}` reqs · `{{ENTITIES_COUNT}}` entities). Score histogram: `{{SCORE_HISTOGRAM}}`. Top-10 score range: `{{TOP_TEN_SCORE_RANGE}}`. Orphans: `{{ORPHAN_COUNT}}` (goal `{{n_goal}}` · persona `{{n_persona}}` · story `{{n_story}}` · business-rule `{{n_br}}` · entity `{{n_entity}}`). CS findings: `{{CS_FINDINGS_COUNT}}` (blocking `{{n_cs_blocking}}` · major `{{n_cs_major}}` · minor `{{n_cs_minor}}`; by lens CS1 `{{n_cs1}}` · CS2 `{{n_cs2}}` · CS3 `{{n_cs3}}` · CS4 `{{n_cs4}}` · CS5 `{{n_cs5}}`). Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/14` pass. Ready, or want changes?"*
 
 Variants:
 
@@ -307,7 +375,11 @@ Use `AskUserQuestion`:
     - **Expand a coverage finding's consequence sentence:** update the field; re-run gate 9; re-render; re-Write; re-verify; loop back to A.
     - **Strike a coverage finding (consultant disagrees that the artefact is orphan):** remove the finding; re-tally orphan counts; re-derive verdict (an orphan-goal removal can downgrade verdict from BLOCKED); re-run gates 9, 10; re-render; re-Write; re-verify; loop back to A.
     - **Re-rank with a different tie-break** (rare consultant request): record the override in diagnostics; re-run Step 7's tie-break logic only; re-run gate 7; re-render; re-Write; re-verify; loop back to A.
-- **Restart** — re-enter Step 4 from a clean state. Re-evaluate every subject; re-coverage-pass; re-filter; re-rank. The previously-written `reviews/FIRST-PRINCIPLES/first-principles-review.md` is left in place; the next Step 10 will overwrite it.
+    - **Strike a CS finding (consultant disagrees that the cited anchors collectively show what the relation claims):** remove the finding from `cs_findings`; if the strike was on a multi-lens cluster, drop only the named lens-tag and recompute cluster severity (max of remaining); re-tally CS counts; re-derive verdict (a `blocking` CS strike can downgrade verdict from BLOCKED); re-run gates 10, 12, 13, 14; re-render; re-Write; re-verify; loop back to A.
+    - **Reclassify a CS finding's severity** (consultant judges that a `blocking` is actually `major`, or vice versa): update the severity field; re-tally CS counts; re-derive verdict; re-run gate 10; re-render; re-Write; re-verify; loop back to A.
+    - **Rewrite a CS `consequence` line to remove a prescriptive verb** (gate 13 failure already fired): update the line with the consultant's preferred observational phrasing; re-run gate 13 (lexical-filter); re-render; re-Write; re-verify; loop back to A.
+    - **Add a CS finding the consultant believes was missed** (consultant raises a contradiction or hidden assumption the agent did not catch): accept the consultant-supplied lens, anchors, evidence-quotes (must be verbatim — re-check against the Step-2 quote index), relation, and consequence (must be observational); append to `cs_findings`; re-run post-scan consolidation; re-tally CS counts; re-derive verdict; re-run gates 10, 12, 13, 14; re-render; re-Write; re-verify; loop back to A. *(The reviewer does not invent CS findings on Revise — the consultant supplies the substance; the agent enforces schema.)*
+- **Restart** — re-enter Step 4 from a clean state. Re-evaluate every subject; re-coverage-pass; re-CS-pass (Step 5b); re-filter (sub-passes A and B); re-rank. The previously-written `reviews/FIRST-PRINCIPLES/first-principles-review.md` is left in place; the next Step 10 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced `RF-04`, which propagates per Step 10).
 
@@ -355,8 +427,10 @@ Before handing back, verify all of the following against the written artefact an
 - The full ratings table has exactly `|ratings|` data rows in the same sort order. Every row has Rank (1-based), ID, Type ∈ {goal, story, requirement, entity}, Anchor, Score (`N/6`), Weakest (`Q1..Q6`), Statement (truncated to ≤80 chars), Recommended action.
 - The Critical missing artefacts section either lists `{{ORPHAN_COUNT}}` orphan findings or renders the documented "no orphans" line.
 - Every orphan finding has severity `blocking`, anchor, expected counterpart, and consequence sentence.
-- The diagnostics block reports all eleven quality-gate results (PASS / FAIL / WARN with flagged items).
-- The diagnostics block reports the subject counts (5 rows), score histogram (7 rows: 0..6), weakest-question distribution (6 rows: Q1..Q6), coverage-pass results (5 relation rows with PASS/FAIL/N-A and orphan counts), filter drops & rescues (2 source rows), gate results (11 rows), and override log.
+- The Cross-subject coherence findings section either lists `{{CS_FINDINGS_COUNT}}` finding blocks (one per post-rescue, post-consolidation finding) or renders the documented "no CS findings" line. Each finding has lens-tag(s), severity, ≥1 anchor (≥2 for CS1 / CS3), ≥1 evidence quote per anchor (verbatim from the Step-2 quote index, ≤3 lines), a non-empty `Relation` line, and a non-empty `Consequence` line.
+- Every CS finding's `consequence` line contains zero prescriptive verbs (case-insensitive word-boundary match on `add`, `include`, `specify`, `define`, `require`, `mandate`, `must`, `should`). Gate 13 already enforced this; self-validation re-checks.
+- The diagnostics block reports all fourteen quality-gate results (PASS / FAIL / WARN with flagged items).
+- The diagnostics block reports the subject counts (5 rows), score histogram (7 rows: 0..6), weakest-question distribution (6 rows: Q1..Q6), coverage-pass results (5 relation rows with PASS/FAIL/N-A and orphan counts), **cross-subject pass results (5 rows CS1..CS5 with PASS/FAIL, findings count, rescued count, highest severity)**, filter drops & rescues (2 source rows with Q3/Q5 + CS columns), gate results (**14 rows**), and override log.
 - The score histogram in diagnostics matches the histogram in the executive summary.
 - The verdict line matches the score distribution + orphan count per the verdict-mapping rule (gate 10).
 - The `G-NN` / `US-NN` / `BR-NN` / `FR-NN` / `EN-NN` IDs in the ratings table are consistent with the doc's enumeration (existing IDs reused where present; otherwise zero-padded document-order assignment).
@@ -375,8 +449,9 @@ Before handing back, verify all of the following against the written artefact an
 - The Top-10 deep-dive lists exactly `min(10, |ratings|)` entries in ascending-score order with full per-question evidence/reasoning.
 - The full ratings table lists every subject in the same sort order.
 - The coverage section either lists ≥1 orphan finding per uncovered artefact or renders the documented "no orphans" line.
-- The verdict line is consistent with the score distribution + orphan counts.
-- The diagnostics block records subject counts, score histogram, weakest-question distribution, coverage results, filter drops/rescues, and all 11 gate results.
+- All five cross-subject lenses (CS1, CS2, CS3, CS4, CS5) were evaluated at Step 5b; each lens emitted 0..N findings; post-rescue post-consolidation findings render under the Cross-subject coherence findings section (or the documented "no CS findings" line). Every CS finding has lens-tag(s), severity (`blocking | major | minor`), ≥1 anchor with verbatim evidence quote(s), an observational `Relation` line, and an observational `Consequence` line.
+- The verdict line is consistent with the score distribution + orphan counts + count of `blocking` CS findings.
+- The diagnostics block records subject counts, score histogram, weakest-question distribution, coverage results, **cross-subject pass results**, filter drops/rescues (including CS rescues), and all **14 gate results**.
 - Either all hard quality gates passed (gate 8 may be `warn` with consultant `Continue`), or the consultant explicitly chose Override and the diagnostics block records every violation.
 - The consultant has accepted the artefact in the Step 11 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.
@@ -398,7 +473,14 @@ Before handing back, verify all of the following against the written artefact an
 - Do not let Q5 default to `no`. Q5 is pass-by-default. Only mark `no` when an obvious over-specification signal triggers (mechanism-over-outcome wording, gold-plating scope, orphan attribute).
 - Do not enforce a quota across the score range. A clean doc can score uniformly `5/6` or `6/6`; the Top-10 still surfaces (the 10 lowest, not "10 problems"). Padding either direction is a methodology violation.
 - Do not skip the coverage pass. Q7 is structurally different; folding it into the per-subject loop produces the wrong shape (one Q7 answer repeated per subject) and misses orphans.
+- Do not skip the cross-subject pass (Step 5b). CS1–CS5 are structurally different from Q1–Q6 (relational, not per-subject) and from Q7 (relational, not set-theoretic). Folding CS lenses into Q1–Q6 produces the wrong shape (one CS answer repeated per subject); folding them into Q7 conflates "every X has ≥1 Y" with "the X's collectively achieve Z". Run all five lenses; render every post-rescue finding.
 - Do not collapse the Top-10 deep-dive into the ratings table. The Top-10 carries every Q1–Q6 quote / reasoning line; the ratings table carries only score + weakest-question + recommended-action. Two views, same evidence chain — preserve both.
+- Do not collapse CS findings into Q1–Q6 ratings. A subject that fails sharpened Q2 (anchor exists but content mismatched) is a per-subject finding; a portfolio of three FR-NNs that each cite G-04 but none deliver G-04's outcome is a CS3 finding. The first lives in the ratings table; the second lives in the CS findings section. Keep both axes distinct.
+- Do not author replacement subjects in CS `consequence` lines. The cross-subject pass observes incoherence; it does not propose new requirements. Gate 13 enforces this lexically (banned prescriptive verbs: `add`, `include`, `specify`, `define`, `require`, `mandate`, `must`, `should`). A `consequence` line tripping the filter is a finding-shape failure, equivalent to Q6 prescribing the fix.
+- Do not flag CS findings as `blocking` to escalate impact. Severity is determined by the lens predicate: CS1 → `blocking`; CS3 → `blocking` for load-bearing-goal capability gaps, else `major`; CS2 / CS4 / CS5 default `major`. Reclassifying a `major` to `blocking` to force a verdict change is methodology-violating and gate-10-flagged.
+- Do not invent CS evidence on a consultant-supplied Revise. The consultant supplies the lens, anchors, and substance; the agent enforces schema (verbatim quotes against the Step-2 quote index, observational consequence verbs). If the consultant's evidence quote is not a verbatim substring, surface the gate-12 violation and ask for the actual quote.
+- Do not exceed five CS lenses. A sixth lens (separate "weak domain modelling", separate "missing core capabilities") is folded into CS3 by predicate extension. Beyond five, the "lenses share evidence" claim that justifies single-pass execution starts to fail.
+- Do not run CS1 or CS3 through the GR-NN / PI-NN rescue at Step 6. Only CS2, CS4, and CS5 are rescuable. A "rescued CS1 contradiction" is a sub-pass bug, not a quietly-dropped finding — surface it in diagnostics.
 - Do not write `[SRC: ...]` markers in the artefact. Per `feedback_no_inline_provenance`, the review artefact is clean of inline source markers; provenance is the anchor (`§4.1 / G-04`, `§6 / FR-12`, `§7 / FileSetting`).
 - Do not double-rate. A §4.2 story is rated once as a story; the §6 requirements it spawns are rated separately on their own merits.
 - Do not author replacement subjects. Recommended actions are concise hints (one of `re-anchor | re-scope | remove | merge | clarify` + a sentence). Re-anchoring is not the reviewer's job; surfacing the missing anchor is.

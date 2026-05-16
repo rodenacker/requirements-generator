@@ -25,10 +25,14 @@
     {{TOP_TEN_SCORE_RANGE}}         — "min N/6 … max N/6" across the top-10 entries
     {{ORPHAN_COUNT}}                — count of Q7 coverage findings (orphans)
     {{ORPHAN_COUNT_BY_KIND}}        — one-line breakdown: "goal: NN · persona: NN · story: NN · business-rule: NN · entity: NN"
+    {{CS_FINDINGS_COUNT}}           — count of cross-subject findings after Step-6 rescue and after post-scan consolidation (clusters with multiple lens-tags count as 1)
+    {{CS_FINDINGS_BY_SEVERITY}}     — one-line breakdown: "blocking: NN · major: NN · minor: NN"
+    {{CS_FINDINGS_BY_LENS}}         — one-line breakdown: "CS1: NN · CS2: NN · CS3: NN · CS4: NN · CS5: NN" (raw lens hits — sum may exceed CS_FINDINGS_COUNT if consolidation merged multi-lens findings)
     {{VERDICT}}                     — one of BLOCKED | NEEDS-REVISION | ACCEPTED-WITH-CONCERNS
     {{TOP_TEN_BLOCK}}               — pre-rendered deep-dive block per TOP-TEN BLOCK SCHEMA below
     {{RATINGS_TABLE}}               — pre-rendered ratings table per RATINGS TABLE SCHEMA below
     {{COVERAGE_FINDINGS_BLOCK}}     — pre-rendered orphan findings per COVERAGE BLOCK SCHEMA below
+    {{CS_FINDINGS_BLOCK}}           — pre-rendered cross-subject findings per CS BLOCK SCHEMA below
     {{DIAGNOSTICS_BLOCK}}           — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
 
   Output: reviews/FIRST-PRINCIPLES/first-principles-review.md.
@@ -161,6 +165,65 @@
     diagnostics block records the relation as `not-applicable` and the
     coverage findings section does not list orphans for that relation.
 
+  CS BLOCK SCHEMA — {{CS_FINDINGS_BLOCK}} is one heading per finding (or
+  per consolidated cluster), in severity-then-lens-then-anchor order
+  (blocking > major > minor; CS1 → CS2 → CS3 → CS4 → CS5; first anchor
+  ascending). Each finding renders as:
+
+      ### {{LENS_TAGS}} — {{SEVERITY}} — {{HEADLINE}}
+
+      - **Lenses:** {{LENS_TAGS_EXPANDED}}
+      - **Severity:** {{SEVERITY}}
+      - **Anchors:**
+        - {{ANCHOR_1}}
+        - {{ANCHOR_2}}
+        - …
+
+      **Evidence:**
+
+      > {{ANCHOR_1}}: {{QUOTE_1_VERBATIM}}
+
+      > {{ANCHOR_2}}: {{QUOTE_2_VERBATIM}}
+
+      > …
+
+      **Relation:** {{RELATION_SENTENCE}}
+
+      **Consequence:** {{CONSEQUENCE_SENTENCE}}
+
+    Field rules:
+      - {{LENS_TAGS}} is one or more of `CS1 | CS2 | CS3 | CS4 | CS5`,
+        joined by `+` if the consolidation pass merged multiple lenses on
+        the same anchor set (e.g. `CS1+CS3+CS5`).
+      - {{LENS_TAGS_EXPANDED}} is the human-readable list with names
+        (e.g. *"CS1 (Contradictory Objectives), CS3 (Missing System
+        Thinking)"*).
+      - {{SEVERITY}} is one of `blocking | major | minor`. For a multi-
+        lens cluster, severity is the max across cluster members
+        (blocking > major > minor).
+      - {{HEADLINE}} is a short noun-phrase summary the reviewer composes
+        (≤8 words, no prescriptive verbs).
+      - {{ANCHOR_N}} is a §-anchor from the Step-2 anchor index
+        (`§4.1 / G-04`, `§6 / FR-12`, `§7 / FileSetting`, etc.). For
+        relational lenses (CS1, CS3) there are ≥2 anchors; for others ≥1.
+      - {{QUOTE_N_VERBATIM}} is a verbatim substring of
+        `requirements/requirements.md` (≤3 lines per quote), prefixed
+        with `> ` to render as a blockquote. The leading `{{ANCHOR_N}}: `
+        is reviewer prose, not part of the quote.
+      - For a multi-lens cluster, the **Relation** and **Consequence**
+        lines repeat per lens, each prefixed with the lens tag
+        (e.g. `**Relation (CS1):**`, `**Relation (CS3):**`, etc.).
+      - {{RELATION_SENTENCE}} is one sentence stating what the cited
+        anchors collectively show.
+      - {{CONSEQUENCE_SENTENCE}} is one sentence stating the outcome
+        the doc as written cannot deliver. Observational verbs only —
+        prescriptive verbs (`add`, `include`, `specify`, `define`,
+        `require`, `mandate`, `must`, `should`) fail gate 13.
+      - One blank line between findings.
+
+    If {{CS_FINDINGS_COUNT}} == 0, substitute the single line
+    `_No cross-subject coherence findings — the doc's §4–§7 subjects, taken together, do not exhibit contradictions, hidden assumptions, system-thinking gaps, operational-reality omissions, or human-cost allocation issues that exceed Step-6 GR-NN / PI-NN rescues._`.
+
   DIAGNOSTICS SCHEMA — the {{DIAGNOSTICS_BLOCK}} contains:
 
     ## Diagnostics
@@ -208,16 +271,36 @@
     | Every §6 BR-NN has ≥1 §6 FR-NN                       | PASS / FAIL / N-A | NN |
     | Every §7 entity has ≥1 §6 requirement reader/writer  | PASS / FAIL / N-A | NN |
 
+    ### Cross-subject pass (CS1–CS5)
+
+    | Lens | Result | Findings | Rescued | Highest severity |
+    |------|--------|----------|---------|------------------|
+    | CS1 (Contradictory Objectives)                         | PASS / FAIL | NN | NN | blocking / major / minor / — |
+    | CS2 (Hidden Assumptions / False Constraints)           | PASS / FAIL | NN | NN | blocking / major / minor / — |
+    | CS3 (Missing System Thinking / Arch Consequence)       | PASS / FAIL | NN | NN | blocking / major / minor / — |
+    | CS4 (Missing Operational Reality)                      | PASS / FAIL | NN | NN | blocking / major / minor / — |
+    | CS5 (Human Cost Allocation)                            | PASS / FAIL | NN | NN | blocking / major / minor / — |
+
+    `Result` is PASS when the lens ran and emitted 0..N findings (zero
+    is fine); FAIL when the lens was silently skipped. `Findings` is the
+    post-rescue, post-consolidation count attributed to this lens
+    (cluster findings count under every lens-tag they carry). `Rescued`
+    is the count of findings dropped by GR-NN / PI-NN at Step 6. The
+    `Highest severity` is `—` if Findings == 0.
+
     ### Filter drops & rescues
 
-    | Filter source | Drops | Rescues |
-    |---------------|-------|---------|
-    | GR-NN match (Step 6 rule 1)     | NN | NN |
-    | PI-NN match (Step 6 rule 2)     | NN | NN |
+    | Filter source | Q3/Q5 drops | Q3/Q5 rescues | CS rescues |
+    |---------------|-------------|---------------|------------|
+    | GR-NN match (Step 6 rule 1)     | NN | NN | NN |
+    | PI-NN match (Step 6 rule 2)     | NN | NN | NN |
 
-    A "rescue" is a Q3 or Q5 `no` re-marked to `yes-with-evidence` because
-    an active `GR-NN` or `PI-NN` foreclosed the underlying premise; the
-    rescue adds 1 to the affected subject's score.
+    A "Q3/Q5 rescue" is a Q3 or Q5 `no` re-marked to `yes-with-evidence`
+    because an active `GR-NN` or `PI-NN` foreclosed the underlying
+    premise; the rescue adds 1 to the affected subject's score. A "CS
+    rescue" is a CS2 / CS4 / CS5 finding dropped because the underlying
+    premise is foreclosed by an active `GR-NN` or `PI-NN`; CS rescues
+    have no score effect (CS findings have severity, not score).
 
     ### Quality gates
 
@@ -232,8 +315,11 @@
     | 7. Top-10 list has min(10, \|subjects\|) entries, sort order   | PASS / FAIL | {{flagged}} |
     | 8. Coverage pass evaluated every layer                         | PASS / WARN / FAIL | {{not-applicable layers}} |
     | 9. Every orphan finding cites anchor + expected counterpart    | PASS / FAIL | {{flagged}} |
-    | 10. Verdict line matches score distribution + orphan counts    | PASS / FAIL | {{flagged}} |
+    | 10. Verdict line matches score, orphan counts, CS blocking     | PASS / FAIL | {{flagged}} |
     | 11. REQUIREMENTS_SHA256 matches Step-2 capture                 | PASS / FAIL | {{actual sha}} |
+    | 12. Every CS finding's anchors resolve; quotes are verbatim     | PASS / FAIL | {{flagged}} |
+    | 13. Every CS consequence uses observational verbs only          | PASS / FAIL | {{flagged}} |
+    | 14. Every CS lens (CS1–CS5) was evaluated                       | PASS / FAIL | {{flagged}} |
 
     ### Override log
 
@@ -260,11 +346,12 @@
 - **Score histogram (out of 6):** {{SCORE_HISTOGRAM}}
 - **Top 10 score range:** {{TOP_TEN_SCORE_RANGE}}
 - **Orphans (Q7 coverage):** **{{ORPHAN_COUNT}}** — {{ORPHAN_COUNT_BY_KIND}}
+- **Cross-subject findings (CS1–CS5):** **{{CS_FINDINGS_COUNT}}** — {{CS_FINDINGS_BY_SEVERITY}} — by lens: {{CS_FINDINGS_BY_LENS}}
 - **Verdict:** **{{VERDICT}}**
 
-> Verdict legend: **BLOCKED** — at least one orphan-goal, at least one `0/6` score, or three-plus `≤2/6` scores. **NEEDS-REVISION** — Top-10 contains any `≤3/6` score but no blocking triggers. **ACCEPTED-WITH-CONCERNS** — Top-10 minimum `≥4/6` and zero orphans. First Principles never accepts unconditionally — the Top-10 always merits a look.
+> Verdict legend: **BLOCKED** — at least one orphan-goal, at least one `0/6` score, three-plus `≤2/6` scores, or at least one `blocking` cross-subject finding. **NEEDS-REVISION** — Top-10 contains any `≤3/6` score but no blocking triggers. **ACCEPTED-WITH-CONCERNS** — Top-10 minimum `≥4/6`, zero orphans, and no `blocking` cross-subject findings. Major and minor cross-subject findings do not block this verdict — they appear in the summary count for triage. First Principles never accepts unconditionally — the Top-10 always merits a look.
 
-> Source: `requirements/requirements.md` only. Subjects: every numbered item in §4.1, §4.2, §6, §7. Questions: Q1 *Why does this exist?* · Q2 *Which business goal?* · Q3 *Which problem?* · Q4 *What operational outcome?* · Q5 *Simplest valid way?* · Q6 *What if we remove it?* · Q7 *Anything critical missing?* (coverage pass). Scoring: count of `yes-with-evidence` answers across Q1–Q6 (0–6 integer).
+> Source: `requirements/requirements.md` only. Subjects: every numbered item in §4.1, §4.2, §6, §7. Questions: Q1 *Why does this exist?* · Q2 *Which business goal?* · Q3 *Which problem?* · Q4 *What operational outcome?* · Q5 *Simplest valid way?* · Q6 *What if we remove it?* · Q7 *Anything critical missing?* (coverage pass). Scoring: count of `yes-with-evidence` answers across Q1–Q6 (0–6 integer). Cross-subject lenses CS1–CS5 audit collective coherence across the requirement set; findings carry severity, not score.
 
 ---
 
@@ -289,6 +376,14 @@ Every rated subject, in the same ascending-score sort order. Use this table to s
 Q7 coverage findings. Each is a `blocking` orphan: an artefact that exists at one layer of the doc and should have a counterpart at another but doesn't.
 
 {{COVERAGE_FINDINGS_BLOCK}}
+
+---
+
+## Cross-subject coherence findings
+
+CS1–CS5 findings. Each cites ≥1 anchor in the doc and observes a relation the subjects collectively cannot satisfy: a contradiction between objectives, a hidden assumption or false constraint, a system-thinking or architectural-consequence gap, a missing operational reality, or a human-cost allocation problem. Findings carry severity (blocking / major / minor) rather than a per-subject score, and consequence sentences observe what the doc as written cannot deliver — they never prescribe what to add.
+
+{{CS_FINDINGS_BLOCK}}
 
 ---
 
