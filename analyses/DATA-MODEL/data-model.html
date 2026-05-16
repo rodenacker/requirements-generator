@@ -150,7 +150,7 @@
     }
     details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
     details.diagnostics-toggle > summary::before {
-      content: "\25B6";
+      content: "▶";
       font-size: 10px;
       color: var(--muted);
       transition: transform 0.15s ease;
@@ -430,11 +430,11 @@
     }
     details.mermaid-source > summary::-webkit-details-marker { display: none; }
     details.mermaid-source > summary::before {
-      content: "\25B6 ";
+      content: "▶ ";
       font-size: 10px;
       color: var(--muted);
     }
-    details.mermaid-source[open] > summary::before { content: "\25BC "; }
+    details.mermaid-source[open] > summary::before { content: "▼ "; }
     details.mermaid-source > pre {
       margin: 0;
       padding: 12px 16px;
@@ -495,6 +495,40 @@
     footer.bottom .legend-dot.s-ai      { background: var(--prov-ai-suggested); }
     footer.bottom .credit { margin-top: 6px; text-align: right; }
 
+    /* ------- table of contents ------- */
+
+    .toc {
+      margin: 0 0 24px 0;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .toc ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 18px;
+      counter-reset: toc-item;
+    }
+    .toc li { counter-increment: toc-item; }
+    .toc li::before {
+      content: counter(toc-item) ". ";
+      color: var(--muted);
+      margin-right: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .toc a {
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--border-strong);
+    }
+    .toc a:hover { border-bottom-color: var(--fg); }
+
     @media print {
       body { background: #fff; }
       main { padding: 0; }
@@ -507,828 +541,973 @@
       }
       details.diagnostics-toggle,
       details.mermaid-source { display: none; }
+      .toc { display: none; }
     }
   </style>
 </head>
 <body>
   <main>
-    <h1>Data Model &mdash; Financial services / banking back-office</h1>
-    <p class="subtitle">Logical Data Model (DAMA-DMBOK) &mdash; entities, attributes, relationships, cardinalities, business rules, normalisation notes &mdash; plus consultant-selected ERD visualisations.</p>
+    <section id="overview">
+      <h1>Data Model — Financial services / banking back-office</h1>
+      <p class="subtitle">Logical Data Model (DAMA-DMBOK) — entities, attributes, relationships, cardinalities, business rules, normalisation notes — plus consultant-selected ERD visualisations.</p>
 
-    <dl class="meta-grid">
-      <div><dt>Domain</dt><dd>Financial services / banking back-office</dd></div>
-      <div><dt>Generated</dt><dd>2026-05-14T12:54:51Z</dd></div>
-      <div><dt>Source SHA-256</dt><dd><code>6f9272bbb30d1dce025b843f5319e790bdaa5ac2a07103204bbea7144694f0ae</code></dd></div>
-      <div><dt>Entities</dt><dd>7</dd></div>
-      <div><dt>Attributes</dt><dd>42</dd></div>
-      <div><dt>Relationships</dt><dd>8</dd></div>
-      <div><dt>Business rules</dt><dd>9</dd></div>
-      <div><dt>AI-suggested items</dt><dd>2</dd></div>
-      <div><dt>ERD views</dt><dd>Crow's Foot, Chen</dd></div>
-    </dl>
-
-    <details class="diagnostics-toggle">
-      <summary>Diagnostics</summary>
-      <section class="diagnostics">
-        <h2>Diagnostics</h2>
-        <p>Data Model &mdash; 7 entities, 42 attributes, 8 relationships, 9 business rules.</p>
-        <p>Provenance: 36 from-domain-model, 31 derived, 2 ai-suggested.</p>
-        <ul>
-          <li class="check-pass">Check 1 &mdash; Every entity has a name.</li>
-          <li class="check-pass">Check 2 &mdash; Every entity has at least one attribute.</li>
-          <li class="check-pass">Check 3 &mdash; Every entity has exactly one PK marked.</li>
-          <li class="check-pass">Check 4 &mdash; Every FK marker resolves to an existing entity.attribute with pk=true.</li>
-          <li class="check-pass">Check 5 &mdash; Every relationship endpoint exists in the entity list.</li>
-          <li class="check-pass">Check 6 &mdash; Every relationship has explicit min/max cardinality on both sides.</li>
-          <li class="check-pass">Check 7 &mdash; Every relationship has a non-empty verb label.</li>
-          <li class="check-pass">Check 8 &mdash; Every M:N relationship is justified or proposes a join entity (no M:N detected in this model).</li>
-          <li class="check-pass">Check 9 &mdash; Every business rule names an existing entity-id or relationship-id.</li>
-          <li class="check-pass">Check 10 &mdash; Every row carries exactly one provenance marker.</li>
-        </ul>
-        <p class="density-warning hidden">&#9888; Density warning: AI-SUGGESTED relationship density 0% (threshold 50%).</p>
-      </section>
-    </details>
-
-    <section class="data-model">
-      <h2>Data Model</h2>
-
-      <section class="entities-block">
-        <h3>Entities</h3>
-        <table class="entities-table">
-          <thead>
-            <tr>
-              <th>id</th>
-              <th>display name</th>
-              <th>persistence</th>
-              <th>description</th>
-              <th>lifecycle states</th>
-              <th>provenance</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr class="provenance-from-domain-model">
-              <td><code>file-log</code></td>
-              <td>File Log</td>
-              <td><span class="persistence-persistent">persistent</span></td>
-              <td>An uploaded file and its processing state; anchors the transactions it produces.</td>
-              <td>Uploaded &rarr; Processing &rarr; Completed | Failed</td>
-              <td class="prov-cell" data-source="&sect;2.1">&sect;2.1</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>transaction</code></td>
-              <td>Transaction</td>
-              <td><span class="persistence-persistent">persistent</span></td>
-              <td>An individual record extracted from a File Log; carries the status that gates approval / rejection.</td>
-              <td>Imported &rarr; Approved | Rejected</td>
-              <td class="prov-cell" data-source="&sect;2.1">&sect;2.1</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>user</code></td>
-              <td>User</td>
-              <td><span class="persistence-persistent">persistent</span></td>
-              <td>An authenticated principal who interacts with the system in one of the defined roles (Importer or Approver).</td>
-              <td>&mdash;</td>
-              <td class="prov-cell" data-source="&sect;2.1">&sect;2.1</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>file-state</code></td>
-              <td>File State</td>
-              <td><span class="persistence-policy">policy</span></td>
-              <td>Lifecycle state of a File Log; one of Uploaded / Processing / Completed / Failed.</td>
-              <td>&mdash;</td>
-              <td class="prov-cell" data-source="&sect;2.1">&sect;2.1</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>transaction-status</code></td>
-              <td>Transaction Status</td>
-              <td><span class="persistence-policy">policy</span></td>
-              <td>Lifecycle status of a Transaction; one of Imported / Approved / Rejected.</td>
-              <td>&mdash;</td>
-              <td class="prov-cell" data-source="&sect;2.1">&sect;2.1</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>file-setting</code></td>
-              <td>File Setting</td>
-              <td><span class="persistence-persistent">persistent</span></td>
-              <td>A configuration record referenced at upload time that provides the parsing context for the uploaded file.</td>
-              <td>&mdash;</td>
-              <td class="prov-cell" data-source="&sect;7">&sect;7</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>audit-event</code></td>
-              <td>Audit Event</td>
-              <td><span class="persistence-persistent">persistent</span></td>
-              <td>An immutable record of an approve / reject / upload / login / logout event with actor and timestamp; retained for 7 years.</td>
-              <td>&mdash;</td>
-              <td class="prov-cell" data-source="&sect;6.6.4">&sect;6.6.4</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="attributes-block">
-        <h3>Attributes</h3>
-        <table class="attributes-table">
-          <thead>
-            <tr>
-              <th>entity</th>
-              <th>attribute</th>
-              <th>type</th>
-              <th>nullable</th>
-              <th>PK</th>
-              <th>FK</th>
-              <th>notes</th>
-              <th>provenance</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- file-log -->
-            <tr class="provenance-from-domain-model">
-              <td><code>file-log</code></td><td>id</td><td><span class="type-badge">number</span></td><td>no</td><td>&#10003;<span class="pk-marker">PK</span></td><td></td><td>server-assigned int</td><td class="prov-cell" data-source="&sect;2.4">&sect;2.4</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>file-log</code></td><td>file_name</td><td><span class="type-badge">text</span></td><td>no</td><td></td><td></td><td>original filename submitted at upload</td><td class="prov-cell" data-source="&sect;2.4">&sect;2.4</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>file-log</code></td><td>record_count</td><td><span class="type-badge">number</span></td><td>no</td><td></td><td></td><td>parsed transaction count; API returns as string per &sect;7</td><td class="prov-cell" data-source="&sect;2.4">&sect;2.4</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>file-log</code></td><td>last_executed_activity_name</td><td><span class="type-badge">enum</span></td><td>no</td><td></td><td></td><td>{ Uploaded, Processing, Completed, Failed } &mdash; user-visible file status</td><td class="prov-cell" data-source="&sect;7">&sect;7</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>file-log</code></td><td>process_date</td><td><span class="type-badge">timestamp</span></td><td>no</td><td></td><td></td><td>ISO 8601 process datetime</td><td class="prov-cell" data-source="&sect;2.4">&sect;2.4</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>file-log</code></td><td>is_active</td><td><span class="type-badge">boolean</span></td><td>no</td><td></td><td></td><td>soft-delete / archival flag</td><td class="prov-cell" data-source="&sect;2.4">&sect;2.4</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>file-log</code></td><td>setting_id</td><td><span class="type-badge">reference</span></td><td>no</td><td></td><td><code>file-setting.id</code><span class="fk-marker">FK</span></td><td>upload-time setting reference</td><td class="prov-cell" data-source="&sect;7">&sect;7</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>file-log</code></td><td>setting_name</td><td><span class="type-badge">text</span></td><td>no</td><td></td><td></td><td>snapshot of FileSetting.Name at upload</td><td class="prov-cell" data-source="&sect;7">&sect;7</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>file-log</code></td><td>current_status</td><td><span class="type-badge">text</span></td><td>yes</td><td></td><td></td><td>operational status complement to last_executed_activity_name</td><td class="prov-cell" data-source="&sect;2.4">&sect;2.4</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>file-log</code></td><td>file_hash</td><td><span class="type-badge">text</span></td><td>yes</td><td></td><td></td><td>sha-256 hex for integrity check</td><td class="prov-cell" data-source="&sect;7">&sect;7</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>file-log</code></td><td>last_changed_user</td><td><span class="type-badge">text</span></td><td>no</td><td></td><td></td><td>audit field; captured on every mutating action (&sect;6.3 convention)</td><td class="prov-cell" data-source="&sect;6.3">&sect;6.3</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>file-log</code></td><td>last_changed_date</td><td><span class="type-badge">timestamp</span></td><td>no</td><td></td><td></td><td>audit field; ISO 8601 (&sect;6.3 convention)</td><td class="prov-cell" data-source="&sect;6.3">&sect;6.3</td>
-            </tr>
-
-            <!-- transaction -->
-            <tr class="provenance-from-domain-model">
-              <td><code>transaction</code></td><td>id</td><td><span class="type-badge">number</span></td><td>no</td><td>&#10003;<span class="pk-marker">PK</span></td><td></td><td>server-assigned int</td><td class="prov-cell" data-source="&sect;2.4">&sect;2.4</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>transaction</code></td><td>file_log_id</td><td><span class="type-badge">reference</span></td><td>no</td><td></td><td><code>file-log.id</code><span class="fk-marker">FK</span></td><td>parent file log</td><td class="prov-cell" data-source="&sect;2.4">&sect;2.4</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>transaction</code></td><td>reference</td><td><span class="type-badge">text</span></td><td>no</td><td></td><td></td><td>unique within file; external transaction reference</td><td class="prov-cell" data-source="&sect;2.4">&sect;2.4</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>transaction</code></td><td>transaction_date</td><td><span class="type-badge">timestamp</span></td><td>no</td><td></td><td></td><td>business date / time of the transaction</td><td class="prov-cell" data-source="&sect;2.4">&sect;2.4</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>transaction</code></td><td>account_number</td><td><span class="type-badge">text</span></td><td>no</td><td></td><td></td><td>source account</td><td class="prov-cell" data-source="&sect;2.4">&sect;2.4</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>transaction</code></td><td>amount</td><td><span class="type-badge">number</span></td><td>no</td><td></td><td></td><td>&ge; 0; sign determined by transaction_type</td><td class="prov-cell" data-source="&sect;2.4">&sect;2.4</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>transaction</code></td><td>currency</td><td><span class="type-badge">text</span></td><td>no</td><td></td><td></td><td>ISO 4217 (3 chars), e.g. ZAR</td><td class="prov-cell" data-source="&sect;2.4">&sect;2.4</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>transaction</code></td><td>status</td><td><span class="type-badge">enum</span></td><td>no</td><td></td><td></td><td>{ Imported, Approved, Rejected }; drives BR-01</td><td class="prov-cell" data-source="&sect;2.4">&sect;2.4</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>transaction</code></td><td>user_note</td><td><span class="type-badge">text</span></td><td>yes</td><td></td><td></td><td>non-empty when status=Rejected (BR-02)</td><td class="prov-cell" data-source="&sect;2.4">&sect;2.4</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>transaction</code></td><td>file_name</td><td><span class="type-badge">text</span></td><td>no</td><td></td><td></td><td>denormalised from file-log for table display</td><td class="prov-cell" data-source="&sect;7">&sect;7</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>transaction</code></td><td>description</td><td><span class="type-badge">text</span></td><td>yes</td><td></td><td></td><td>free-text description</td><td class="prov-cell" data-source="&sect;7">&sect;7</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>transaction</code></td><td>transaction_type</td><td><span class="type-badge">enum</span></td><td>no</td><td></td><td></td><td>{ C = credit, D = debit }</td><td class="prov-cell" data-source="&sect;7">&sect;7</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>transaction</code></td><td>last_changed_user</td><td><span class="type-badge">text</span></td><td>no</td><td></td><td></td><td>audit field; set on approve / reject</td><td class="prov-cell" data-source="&sect;7">&sect;7</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>transaction</code></td><td>last_changed_date</td><td><span class="type-badge">timestamp</span></td><td>no</td><td></td><td></td><td>audit field</td><td class="prov-cell" data-source="&sect;7">&sect;7</td>
-            </tr>
-
-            <!-- user -->
-            <tr class="provenance-from-domain-model">
-              <td><code>user</code></td><td>id</td><td><span class="type-badge">number</span></td><td>no</td><td>&#10003;<span class="pk-marker">PK</span></td><td></td><td>server-assigned int</td><td class="prov-cell" data-source="&sect;2.4">&sect;2.4</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>user</code></td><td>email</td><td><span class="type-badge">text</span></td><td>no</td><td></td><td></td><td>RFC 5322; unique; login identifier</td><td class="prov-cell" data-source="&sect;2.4">&sect;2.4</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>user</code></td><td>roles</td><td><span class="type-badge">enum</span></td><td>no</td><td></td><td></td><td>list of { Importer, Approver }; drives RBAC</td><td class="prov-cell" data-source="&sect;2.4">&sect;2.4</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>user</code></td><td>first_name</td><td><span class="type-badge">text</span></td><td>no</td><td></td><td></td><td>1&ndash;64 chars</td><td class="prov-cell" data-source="&sect;7">&sect;7</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>user</code></td><td>last_name</td><td><span class="type-badge">text</span></td><td>no</td><td></td><td></td><td>1&ndash;64 chars</td><td class="prov-cell" data-source="&sect;7">&sect;7</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>user</code></td><td>password</td><td><span class="type-badge">text</span></td><td>no</td><td></td><td></td><td>bcrypt-hashed; write-only; never returned</td><td class="prov-cell" data-source="&sect;7">&sect;7</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>user</code></td><td>last_changed_user</td><td><span class="type-badge">text</span></td><td>no</td><td></td><td></td><td>audit field</td><td class="prov-cell" data-source="&sect;7">&sect;7</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>user</code></td><td>last_changed_date</td><td><span class="type-badge">timestamp</span></td><td>no</td><td></td><td></td><td>audit field</td><td class="prov-cell" data-source="&sect;7">&sect;7</td>
-            </tr>
-
-            <!-- file-state -->
-            <tr class="provenance-from-domain-model">
-              <td><code>file-state</code></td><td>name</td><td><span class="type-badge">enum</span></td><td>no</td><td>&#10003;<span class="pk-marker">PK</span></td><td></td><td>allowed values: Uploaded / Processing / Completed / Failed</td><td class="prov-cell" data-source="&sect;2.1">&sect;2.1</td>
-            </tr>
-
-            <!-- transaction-status -->
-            <tr class="provenance-from-domain-model">
-              <td><code>transaction-status</code></td><td>name</td><td><span class="type-badge">enum</span></td><td>no</td><td>&#10003;<span class="pk-marker">PK</span></td><td></td><td>allowed values: Imported / Approved / Rejected</td><td class="prov-cell" data-source="&sect;2.1">&sect;2.1</td>
-            </tr>
-
-            <!-- file-setting -->
-            <tr class="provenance-derived">
-              <td><code>file-setting</code></td><td>id</td><td><span class="type-badge">number</span></td><td>no</td><td>&#10003;<span class="pk-marker">PK</span></td><td></td><td>server-assigned int; referenced by file-log.setting_id</td><td class="prov-cell" data-source="&sect;7">&sect;7</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>file-setting</code></td><td>name</td><td><span class="type-badge">text</span></td><td>no</td><td></td><td></td><td>snapshot captured on file-log.setting_name at upload</td><td class="prov-cell" data-source="&sect;7">&sect;7</td>
-            </tr>
-
-            <!-- audit-event -->
-            <tr class="provenance-ai-suggested">
-              <td><code>audit-event</code></td><td>id</td><td><span class="type-badge">number</span></td><td>no</td><td>&#10003;<span class="pk-marker">PK</span></td><td></td><td>[AI-SUGGESTED] synthetic PK; no source names the identifier explicitly</td><td class="prov-cell">ai-suggested</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>audit-event</code></td><td>event_type</td><td><span class="type-badge">enum</span></td><td>no</td><td></td><td></td><td>{ approve, reject, upload, login, logout } per &sect;6.6.4</td><td class="prov-cell" data-source="&sect;6.6.4">&sect;6.6.4</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>audit-event</code></td><td>actor_user</td><td><span class="type-badge">reference</span></td><td>no</td><td></td><td><code>user.id</code><span class="fk-marker">FK</span></td><td>actor identity from LastChangedUser convention</td><td class="prov-cell" data-source="&sect;6.6.4">&sect;6.6.4</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>audit-event</code></td><td>event_time</td><td><span class="type-badge">timestamp</span></td><td>no</td><td></td><td></td><td>from LastChangedDate convention</td><td class="prov-cell" data-source="&sect;6.6.4">&sect;6.6.4</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="relationships-block">
-        <h3>Relationships</h3>
-        <table class="relationships-table">
-          <thead>
-            <tr>
-              <th>from</th>
-              <th>verb</th>
-              <th>to</th>
-              <th>from card.</th>
-              <th>to card.</th>
-              <th>identifying</th>
-              <th>notes</th>
-              <th>provenance</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr class="provenance-from-domain-model">
-              <td><code>file-log</code></td>
-              <td class="verb">produces</td>
-              <td><code>transaction</code></td>
-              <td class="card">1..1</td>
-              <td class="card">0..N</td>
-              <td>no</td>
-              <td>&sect;2.2 [1:N]; every transaction belongs to exactly one file log. [AI-SUGGESTED] min on transaction side may be 0 when the file-log is in Failed state.</td>
-              <td class="prov-cell" data-source="&sect;2.2">&sect;2.2</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>user</code></td>
-              <td class="verb">uploads</td>
-              <td><code>file-log</code></td>
-              <td class="card">1..1</td>
-              <td class="card">0..N</td>
-              <td>no</td>
-              <td>&sect;2.2 [1:N]; the uploading actor is recorded against the file log. [AI-SUGGESTED] min on file-log side may be 0 (Approver-only users upload no files per &sect;6.5).</td>
-              <td class="prov-cell" data-source="&sect;2.2">&sect;2.2</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>user</code></td>
-              <td class="verb">approves</td>
-              <td><code>transaction</code></td>
-              <td class="card">0..1</td>
-              <td class="card">0..N</td>
-              <td>no</td>
-              <td>&sect;2.2 [1:N]; an Approver acts on a single transaction at a time. [AI-SUGGESTED] optionality on user side &mdash; only transactions with status=Approved have a recorded approver.</td>
-              <td class="prov-cell" data-source="&sect;2.2">&sect;2.2</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>user</code></td>
-              <td class="verb">rejects</td>
-              <td><code>transaction</code></td>
-              <td class="card">0..1</td>
-              <td class="card">0..N</td>
-              <td>no</td>
-              <td>&sect;2.2 [1:N]; rejection requires a mandatory user note (BR-02). [AI-SUGGESTED] optionality on user side &mdash; only transactions with status=Rejected have a recorded rejecter.</td>
-              <td class="prov-cell" data-source="&sect;2.2">&sect;2.2</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>file-log</code></td>
-              <td class="verb">has</td>
-              <td><code>file-state</code></td>
-              <td class="card">0..N</td>
-              <td class="card">1..1</td>
-              <td>no</td>
-              <td>&sect;2.2 [1:1]; exactly one current state per file log; a single state value is shared across many file-logs.</td>
-              <td class="prov-cell" data-source="&sect;2.2">&sect;2.2</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>transaction</code></td>
-              <td class="verb">has</td>
-              <td><code>transaction-status</code></td>
-              <td class="card">0..N</td>
-              <td class="card">1..1</td>
-              <td>no</td>
-              <td>&sect;2.2 [1:1]; exactly one current status per transaction; many transactions share a status value.</td>
-              <td class="prov-cell" data-source="&sect;2.2">&sect;2.2</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>file-log</code></td>
-              <td class="verb">belongs-to</td>
-              <td><code>file-setting</code></td>
-              <td class="card">0..N</td>
-              <td class="card">1..1</td>
-              <td>no</td>
-              <td>&sect;7 &mdash; File Log belongs to FileSetting [N:1]; setting_name is captured as a snapshot at upload.</td>
-              <td class="prov-cell" data-source="&sect;7">&sect;7</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>audit-event</code></td>
-              <td class="verb">recorded-for</td>
-              <td><code>user</code></td>
-              <td class="card">0..N</td>
-              <td class="card">1..1</td>
-              <td>no</td>
-              <td>&sect;6.6.4 actor convention &mdash; every audit event names the LastChangedUser.</td>
-              <td class="prov-cell" data-source="&sect;6.6.4">&sect;6.6.4</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="business-rules-block">
-        <h3>Business rules</h3>
-        <table class="business-rules-table">
-          <thead>
-            <tr>
-              <th>id</th>
-              <th>target</th>
-              <th>rule</th>
-              <th>provenance</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr class="provenance-from-domain-model">
-              <td><code>BR-01</code></td>
-              <td><code>transaction</code></td>
-              <td>When a transaction's status is not Imported, then the Approve and Reject row actions must be hidden.</td>
-              <td class="prov-cell" data-source="&sect;2.3 / &sect;6.2 BR-01">&sect;2.3</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>BR-02</code></td>
-              <td><code>transaction</code></td>
-              <td>When an Approver rejects a transaction, then a non-empty user note must be supplied.</td>
-              <td class="prov-cell" data-source="&sect;2.3 / &sect;6.2 BR-02">&sect;2.3</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>BR-03</code></td>
-              <td><code>user</code></td>
-              <td>When the authenticated role is Importer, then the Approve and Reject actions must be hidden across the UI.</td>
-              <td class="prov-cell" data-source="&sect;6.5 / &sect;6.2 BR-03">&sect;6.5</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>BR-04</code></td>
-              <td><code>user</code></td>
-              <td>When the authenticated role is Approver, then the File Upload entry point and route must be hidden.</td>
-              <td class="prov-cell" data-source="&sect;6.5 / &sect;6.2 BR-04">&sect;6.5</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>BR-05</code></td>
-              <td><code>user</code></td>
-              <td>When login fails, then the error response and the UI message must not reveal which credential field was incorrect.</td>
-              <td class="prov-cell" data-source="&sect;6.2 BR-05">&sect;6.2</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>BR-06</code></td>
-              <td><code>transaction</code></td>
-              <td>When a transaction's status changes (Approved or Rejected), then the new status must be reflected in the transaction table without a manual refresh.</td>
-              <td class="prov-cell" data-source="&sect;2.3 / &sect;6.2 BR-06">&sect;2.3</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>BR-07</code></td>
-              <td><code>file-log</code></td>
-              <td>When a file log is in Failed state, then the file summary view must surface the failure prominently and inhibit drill-down into transactions until retry succeeds.</td>
-              <td class="prov-cell" data-source="&sect;2.3 / &sect;6.2 BR-07">&sect;2.3</td>
-            </tr>
-            <tr class="provenance-from-domain-model">
-              <td><code>BR-08</code></td>
-              <td><code>file-log</code></td>
-              <td>A File Log cannot be approved or rejected as a whole; only individual transactions may be acted on. Status actions affect transaction status only, not file structure.</td>
-              <td class="prov-cell" data-source="&sect;2.3 File Log key invariant">&sect;2.3</td>
-            </tr>
-            <tr class="provenance-derived">
-              <td><code>BR-09</code></td>
-              <td><code>audit-event</code></td>
-              <td>Every approve, reject, upload, login, and logout event must be recorded as an audit event with actor and timestamp, and retained for 7 years.</td>
-              <td class="prov-cell" data-source="&sect;6.6.4">&sect;6.6.4</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="normalisation-block">
-        <h3>Normalisation notes</h3>
-        <ul class="normalisation-notes">
-          <li class="provenance-derived">
-            <strong>Intentional denormalisation</strong> &mdash; <code>transaction.file_name</code>: duplicates <code>file-log.file_name</code> (joinable via <code>transaction.file_log_id</code>). Per &sect;7 explicitly intended for table-display performance; not a 3NF defect.
-          </li>
-          <li class="provenance-derived">
-            <strong>Snapshot field</strong> &mdash; <code>file-log.setting_name</code>: captures <code>file-setting.name</code> at upload time and is not refreshed if the referenced file-setting is later renamed. Per &sect;7 an intentional audit-snapshot.
-          </li>
-          <li class="provenance-ai-suggested">
-            <strong>[AI-SUGGESTED] Possible overlap</strong> &mdash; <code>file-log.current_status</code> and <code>file-log.last_executed_activity_name</code>: both express lifecycle state. &sect;7 describes <code>current_status</code> as the "operational status complement to LastExecutedActivityName" but the semantic boundary is not defined &mdash; consider whether both fields are needed or one can be derived.
-          </li>
-        </ul>
-      </section>
+      <dl class="meta-grid">
+        <div><dt>Domain</dt><dd>Financial services / banking back-office</dd></div>
+        <div><dt>Generated</dt><dd>2026-05-15T15:52:04Z</dd></div>
+        <div><dt>Source SHA-256</dt><dd><code>6f9272bbb30d1dce025b843f5319e790bdaa5ac2a07103204bbea7144694f0ae</code></dd></div>
+        <div><dt>Entities</dt><dd>6</dd></div>
+        <div><dt>Attributes</dt><dd>36</dd></div>
+        <div><dt>Relationships</dt><dd>7</dd></div>
+        <div><dt>Business rules</dt><dd>8</dd></div>
+        <div><dt>AI-suggested items</dt><dd>5</dd></div>
+        <div><dt>ERD views</dt><dd>Crow&#39;s Foot, Chen, UML</dd></div>
+      </dl>
     </section>
 
-    <section class="erd-views">
-      <h2>ERD views</h2>
-      <p class="erd-views-meta">Notations selected: Crow's Foot, Chen</p>
+    <nav class="toc" aria-label="Sections">
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#diagrams">Diagrams</a></li>
+        <li><a href="#tables">Tabular information</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+      </ol>
+    </nav>
 
-      <figure class="erd-diagram erd-crows-foot">
-        <figcaption><h3>Crow's Foot</h3></figcaption>
-        <svg viewBox="0 0 1000 480" role="img" aria-label="Crow's Foot ERD for Financial services / banking back-office" xmlns="http://www.w3.org/2000/svg">
-          <!-- entity: file-log @ (500,240) -->
-          <g class="entity-group">
-            <rect class="entity-box" x="400" y="185" width="200" height="110" rx="3"/>
-            <rect class="entity-header" x="400" y="185" width="200" height="25"/>
-            <text class="entity-name" x="500" y="203" text-anchor="middle">file-log</text>
-            <text class="entity-attribute" x="408" y="227">id <tspan class="pk-marker-svg">PK</tspan></text>
-            <text class="entity-attribute" x="408" y="243">file_name</text>
-            <text class="entity-attribute" x="408" y="259">status (enum)</text>
-            <text class="entity-attribute" x="408" y="275">setting_id <tspan class="fk-marker-svg">FK</tspan></text>
-          </g>
-          <!-- entity: transaction @ (500,100) -->
-          <g class="entity-group">
-            <rect class="entity-box" x="400" y="45" width="200" height="110" rx="3"/>
-            <rect class="entity-header" x="400" y="45" width="200" height="25"/>
-            <text class="entity-name" x="500" y="63" text-anchor="middle">transaction</text>
-            <text class="entity-attribute" x="408" y="87">id <tspan class="pk-marker-svg">PK</tspan></text>
-            <text class="entity-attribute" x="408" y="103">file_log_id <tspan class="fk-marker-svg">FK</tspan></text>
-            <text class="entity-attribute" x="408" y="119">reference</text>
-            <text class="entity-attribute" x="408" y="135">status (enum)</text>
-          </g>
-          <!-- entity: user @ (500,380) -->
-          <g class="entity-group">
-            <rect class="entity-box" x="400" y="325" width="200" height="110" rx="3"/>
-            <rect class="entity-header" x="400" y="325" width="200" height="25"/>
-            <text class="entity-name" x="500" y="343" text-anchor="middle">user</text>
-            <text class="entity-attribute" x="408" y="367">id <tspan class="pk-marker-svg">PK</tspan></text>
-            <text class="entity-attribute" x="408" y="383">email</text>
-            <text class="entity-attribute" x="408" y="399">roles (enum)</text>
-          </g>
-          <!-- entity: file-state @ (167,240) -->
-          <g class="entity-group">
-            <rect class="entity-box" x="67" y="185" width="200" height="110" rx="3"/>
-            <rect class="entity-header" x="67" y="185" width="200" height="25"/>
-            <text class="entity-name" x="167" y="203" text-anchor="middle">file-state</text>
-            <text class="entity-attribute" x="75" y="227">name <tspan class="pk-marker-svg">PK</tspan></text>
-          </g>
-          <!-- entity: transaction-status @ (833,240) -->
-          <g class="entity-group">
-            <rect class="entity-box" x="733" y="185" width="200" height="110" rx="3"/>
-            <rect class="entity-header" x="733" y="185" width="200" height="25"/>
-            <text class="entity-name" x="833" y="203" text-anchor="middle">transaction-status</text>
-            <text class="entity-attribute" x="741" y="227">name <tspan class="pk-marker-svg">PK</tspan></text>
-          </g>
-          <!-- entity: file-setting @ (167,100) -->
-          <g class="entity-group">
-            <rect class="entity-box" x="67" y="45" width="200" height="110" rx="3"/>
-            <rect class="entity-header" x="67" y="45" width="200" height="25"/>
-            <text class="entity-name" x="167" y="63" text-anchor="middle">file-setting</text>
-            <text class="entity-attribute" x="75" y="87">id <tspan class="pk-marker-svg">PK</tspan></text>
-            <text class="entity-attribute" x="75" y="103">name</text>
-          </g>
-          <!-- entity: audit-event @ (833,100) -->
-          <g class="entity-group">
-            <rect class="entity-box" x="733" y="45" width="200" height="110" rx="3"/>
-            <rect class="entity-header" x="733" y="45" width="200" height="25"/>
-            <text class="entity-name" x="833" y="63" text-anchor="middle">audit-event</text>
-            <text class="entity-attribute" x="741" y="87">id <tspan class="pk-marker-svg">PK</tspan></text>
-            <text class="entity-attribute" x="741" y="103">event_type</text>
-            <text class="entity-attribute" x="741" y="119">actor_user <tspan class="fk-marker-svg">FK</tspan></text>
-            <text class="entity-attribute" x="741" y="135">event_time</text>
-          </g>
+    <section id="diagrams" aria-label="Diagrams">
+      <section class="erd-views">
+        <h2>ERD views</h2>
+        <p class="erd-views-meta">Notations selected: Crow&#39;s Foot, Chen, UML</p>
 
-          <!-- relationship 1: file-log -> transaction (produces) -->
-          <polyline class="relationship-line" points="500,185 500,155"/>
-          <!-- 1..1 marker at file-log end (entry at 500,185, line goes up) -->
-          <line class="crows-foot-endpoint" x1="494" y1="180" x2="506" y2="180"/>
-          <line class="crows-foot-endpoint" x1="494" y1="175" x2="506" y2="175"/>
-          <text class="cardinality-label" x="510" y="183">1..1</text>
-          <!-- 0..N marker at transaction end (entry at 500,155, line goes down) -->
-          <circle class="crows-foot-endpoint" cx="500" cy="161" r="3"/>
-          <line class="crows-foot-endpoint" x1="500" y1="167" x2="494" y2="172"/>
-          <line class="crows-foot-endpoint" x1="500" y1="167" x2="500" y2="172"/>
-          <line class="crows-foot-endpoint" x1="500" y1="167" x2="506" y2="172"/>
-          <text class="cardinality-label" x="510" y="160">0..N</text>
-          <!-- verb -->
-          <rect class="relationship-verb-bg" x="465" y="163" width="38" height="14"/>
-          <text class="relationship-verb" x="484" y="173" text-anchor="middle">produces</text>
+        <figure class="erd-diagram erd-crows-foot">
+          <figcaption><h3>Crow&#39;s Foot</h3></figcaption>
+          <svg viewBox="0 0 1000 620" role="img" aria-label="Crow's Foot ERD for Financial services / banking back-office">
+            <!-- Edges (drawn first, so entity boxes occlude their endpoints) -->
+            <polyline class="relationship-line" points="500,270 500,410"/>
+            <polyline class="relationship-line" points="285,200 380,200"/>
+            <polyline class="relationship-line" points="245,270 245,360 440,360 440,410"/>
+            <polyline class="relationship-line" points="270,270 270,380 460,380 460,410"/>
+            <polyline class="relationship-line" points="620,200 715,200"/>
+            <polyline class="relationship-line" points="380,480 285,480"/>
+            <polyline class="relationship-line" points="560,270 560,340 775,340 775,410"/>
 
-          <!-- relationship 2: user -> file-log (uploads) -->
-          <polyline class="relationship-line" points="500,325 500,295"/>
-          <!-- 1..1 at user end -->
-          <line class="crows-foot-endpoint" x1="494" y1="320" x2="506" y2="320"/>
-          <line class="crows-foot-endpoint" x1="494" y1="315" x2="506" y2="315"/>
-          <text class="cardinality-label" x="510" y="323">1..1</text>
-          <!-- 0..N at file-log end -->
-          <circle class="crows-foot-endpoint" cx="500" cy="301" r="3"/>
-          <line class="crows-foot-endpoint" x1="500" y1="307" x2="494" y2="312"/>
-          <line class="crows-foot-endpoint" x1="500" y1="307" x2="500" y2="312"/>
-          <line class="crows-foot-endpoint" x1="500" y1="307" x2="506" y2="312"/>
-          <text class="cardinality-label" x="510" y="300">0..N</text>
-          <!-- verb -->
-          <rect class="relationship-verb-bg" x="465" y="303" width="38" height="14"/>
-          <text class="relationship-verb" x="484" y="313" text-anchor="middle">uploads</text>
+            <!-- Entity: user -->
+            <rect class="entity-box" x="45" y="130" width="240" height="140"/>
+            <rect class="entity-header" x="45" y="130" width="240" height="24"/>
+            <text class="entity-name" x="165" y="147" text-anchor="middle">User</text>
+            <text class="entity-attribute" x="55" y="172">Id</text>
+            <text class="pk-marker-svg" x="275" y="172" text-anchor="end">PK</text>
+            <text class="entity-attribute" x="55" y="190">Email</text>
+            <text class="entity-attribute" x="55" y="208">FirstName</text>
+            <text class="entity-attribute" x="55" y="226">LastName</text>
+            <text class="entity-attribute" x="55" y="244">Roles</text>
 
-          <!-- relationship 3: user -> transaction (approves) right path -->
-          <polyline class="relationship-line" points="600,380 700,380 700,90 600,90"/>
-          <!-- 0..1 at user end (entry at 600,380, line goes right) -->
-          <circle class="crows-foot-endpoint" cx="606" cy="380" r="3"/>
-          <line class="crows-foot-endpoint" x1="614" y1="374" x2="614" y2="386"/>
-          <text class="cardinality-label" x="618" y="395">0..1</text>
-          <!-- 0..N at transaction end (entry at 600,90, line goes right) -->
-          <circle class="crows-foot-endpoint" cx="606" cy="90" r="3"/>
-          <line class="crows-foot-endpoint" x1="612" y1="90" x2="617" y2="84"/>
-          <line class="crows-foot-endpoint" x1="612" y1="90" x2="617" y2="90"/>
-          <line class="crows-foot-endpoint" x1="612" y1="90" x2="617" y2="96"/>
-          <text class="cardinality-label" x="620" y="78">0..N</text>
-          <!-- verb -->
-          <rect class="relationship-verb-bg" x="681" y="226" width="40" height="14"/>
-          <text class="relationship-verb" x="701" y="236" text-anchor="middle">approves</text>
+            <!-- Entity: file-log -->
+            <rect class="entity-box" x="380" y="130" width="240" height="140"/>
+            <rect class="entity-header" x="380" y="130" width="240" height="24"/>
+            <text class="entity-name" x="500" y="147" text-anchor="middle">File Log</text>
+            <text class="entity-attribute" x="390" y="172">Id</text>
+            <text class="pk-marker-svg" x="610" y="172" text-anchor="end">PK</text>
+            <text class="entity-attribute" x="390" y="190">FileName</text>
+            <text class="entity-attribute" x="390" y="208">LastExecutedActivityName</text>
+            <text class="entity-attribute" x="390" y="226">SettingId</text>
+            <text class="fk-marker-svg" x="610" y="226" text-anchor="end">FK</text>
+            <text class="entity-attribute" x="390" y="244">ProcessDate</text>
 
-          <!-- relationship 4: user -> transaction (rejects) left path -->
-          <polyline class="relationship-line" points="400,380 300,380 300,110 400,110"/>
-          <!-- 0..1 at user end (entry at 400,380, line goes left) -->
-          <circle class="crows-foot-endpoint" cx="394" cy="380" r="3"/>
-          <line class="crows-foot-endpoint" x1="386" y1="374" x2="386" y2="386"/>
-          <text class="cardinality-label" x="365" y="395">0..1</text>
-          <!-- 0..N at transaction end (entry at 400,110, line goes left) -->
-          <circle class="crows-foot-endpoint" cx="394" cy="110" r="3"/>
-          <line class="crows-foot-endpoint" x1="388" y1="110" x2="383" y2="104"/>
-          <line class="crows-foot-endpoint" x1="388" y1="110" x2="383" y2="110"/>
-          <line class="crows-foot-endpoint" x1="388" y1="110" x2="383" y2="116"/>
-          <text class="cardinality-label" x="362" y="100">0..N</text>
-          <!-- verb -->
-          <rect class="relationship-verb-bg" x="282" y="241" width="36" height="14"/>
-          <text class="relationship-verb" x="300" y="251" text-anchor="middle">rejects</text>
+            <!-- Entity: file-state -->
+            <rect class="entity-box" x="715" y="130" width="240" height="140"/>
+            <rect class="entity-header" x="715" y="130" width="240" height="24"/>
+            <text class="entity-name" x="835" y="147" text-anchor="middle">File State</text>
+            <text class="entity-attribute" x="725" y="172">name</text>
+            <text class="pk-marker-svg" x="945" y="172" text-anchor="end">PK</text>
+            <text class="entity-attribute" x="725" y="194">{Uploaded,</text>
+            <text class="entity-attribute" x="725" y="212"> Processing,</text>
+            <text class="entity-attribute" x="725" y="230"> Completed,</text>
+            <text class="entity-attribute" x="725" y="248"> Failed}</text>
 
-          <!-- relationship 5: file-log -> file-state (has) -->
-          <polyline class="relationship-line" points="400,225 267,225"/>
-          <!-- 0..N at file-log end (entry at 400,225, line goes left) -->
-          <circle class="crows-foot-endpoint" cx="394" cy="225" r="3"/>
-          <line class="crows-foot-endpoint" x1="388" y1="225" x2="383" y2="219"/>
-          <line class="crows-foot-endpoint" x1="388" y1="225" x2="383" y2="225"/>
-          <line class="crows-foot-endpoint" x1="388" y1="225" x2="383" y2="231"/>
-          <text class="cardinality-label" x="365" y="216">0..N</text>
-          <!-- 1..1 at file-state end (entry at 267,225, line goes right) -->
-          <line class="crows-foot-endpoint" x1="273" y1="219" x2="273" y2="231"/>
-          <line class="crows-foot-endpoint" x1="278" y1="219" x2="278" y2="231"/>
-          <text class="cardinality-label" x="282" y="216">1..1</text>
-          <!-- verb -->
-          <rect class="relationship-verb-bg" x="318" y="218" width="22" height="14"/>
-          <text class="relationship-verb" x="329" y="228" text-anchor="middle">has</text>
+            <!-- Entity: transaction-status -->
+            <rect class="entity-box" x="45" y="410" width="240" height="140"/>
+            <rect class="entity-header" x="45" y="410" width="240" height="24"/>
+            <text class="entity-name" x="165" y="427" text-anchor="middle">Transaction Status</text>
+            <text class="entity-attribute" x="55" y="452">name</text>
+            <text class="pk-marker-svg" x="275" y="452" text-anchor="end">PK</text>
+            <text class="entity-attribute" x="55" y="474">{Imported,</text>
+            <text class="entity-attribute" x="55" y="492"> Approved,</text>
+            <text class="entity-attribute" x="55" y="510"> Rejected}</text>
 
-          <!-- relationship 6: transaction -> transaction-status (has) -->
-          <polyline class="relationship-line" points="600,110 733,110 733,185"/>
-          <!-- 0..N at transaction end (entry at 600,110, line goes right) -->
-          <circle class="crows-foot-endpoint" cx="606" cy="110" r="3"/>
-          <line class="crows-foot-endpoint" x1="612" y1="110" x2="617" y2="104"/>
-          <line class="crows-foot-endpoint" x1="612" y1="110" x2="617" y2="110"/>
-          <line class="crows-foot-endpoint" x1="612" y1="110" x2="617" y2="116"/>
-          <text class="cardinality-label" x="620" y="124">0..N</text>
-          <!-- 1..1 at transaction-status end (entry at 733,185, line goes up) -->
-          <line class="crows-foot-endpoint" x1="727" y1="180" x2="739" y2="180"/>
-          <line class="crows-foot-endpoint" x1="727" y1="175" x2="739" y2="175"/>
-          <text class="cardinality-label" x="743" y="183">1..1</text>
-          <!-- verb -->
-          <rect class="relationship-verb-bg" x="710" y="143" width="22" height="14"/>
-          <text class="relationship-verb" x="721" y="153" text-anchor="middle">has</text>
+            <!-- Entity: transaction -->
+            <rect class="entity-box" x="380" y="410" width="240" height="140"/>
+            <rect class="entity-header" x="380" y="410" width="240" height="24"/>
+            <text class="entity-name" x="500" y="427" text-anchor="middle">Transaction</text>
+            <text class="entity-attribute" x="390" y="452">Id</text>
+            <text class="pk-marker-svg" x="610" y="452" text-anchor="end">PK</text>
+            <text class="entity-attribute" x="390" y="470">FileLogId</text>
+            <text class="fk-marker-svg" x="610" y="470" text-anchor="end">FK</text>
+            <text class="entity-attribute" x="390" y="488">Reference</text>
+            <text class="entity-attribute" x="390" y="506">Status</text>
+            <text class="entity-attribute" x="390" y="524">Amount</text>
 
-          <!-- relationship 7: file-log -> file-setting (belongs-to) -->
-          <polyline class="relationship-line" points="400,250 350,250 350,100 267,100"/>
-          <!-- 0..N at file-log end (entry at 400,250, line goes left) -->
-          <circle class="crows-foot-endpoint" cx="394" cy="250" r="3"/>
-          <line class="crows-foot-endpoint" x1="388" y1="250" x2="383" y2="244"/>
-          <line class="crows-foot-endpoint" x1="388" y1="250" x2="383" y2="250"/>
-          <line class="crows-foot-endpoint" x1="388" y1="250" x2="383" y2="256"/>
-          <text class="cardinality-label" x="358" y="265">0..N</text>
-          <!-- 1..1 at file-setting end (entry at 267,100, line goes right) -->
-          <line class="crows-foot-endpoint" x1="273" y1="94" x2="273" y2="106"/>
-          <line class="crows-foot-endpoint" x1="278" y1="94" x2="278" y2="106"/>
-          <text class="cardinality-label" x="282" y="92">1..1</text>
-          <!-- verb -->
-          <rect class="relationship-verb-bg" x="320" y="168" width="60" height="14"/>
-          <text class="relationship-verb" x="350" y="178" text-anchor="middle">belongs-to</text>
+            <!-- Entity: file-setting -->
+            <rect class="entity-box" x="715" y="410" width="240" height="140"/>
+            <rect class="entity-header" x="715" y="410" width="240" height="24"/>
+            <text class="entity-name" x="835" y="427" text-anchor="middle">File Setting</text>
+            <text class="entity-attribute" x="725" y="452">Id</text>
+            <text class="pk-marker-svg" x="945" y="452" text-anchor="end">PK</text>
+            <text class="entity-attribute" x="725" y="470">Name</text>
 
-          <!-- relationship 8: audit-event -> user (recorded-for) -->
-          <polyline class="relationship-line" points="833,155 833,305 600,305 600,325"/>
-          <!-- 0..N at audit-event end (entry at 833,155, line goes down) -->
-          <circle class="crows-foot-endpoint" cx="833" cy="161" r="3"/>
-          <line class="crows-foot-endpoint" x1="833" y1="167" x2="827" y2="172"/>
-          <line class="crows-foot-endpoint" x1="833" y1="167" x2="833" y2="172"/>
-          <line class="crows-foot-endpoint" x1="833" y1="167" x2="839" y2="172"/>
-          <text class="cardinality-label" x="843" y="162">0..N</text>
-          <!-- 1..1 at user end (entry at 600,325, line goes up) -->
-          <line class="crows-foot-endpoint" x1="594" y1="320" x2="606" y2="320"/>
-          <line class="crows-foot-endpoint" x1="594" y1="315" x2="606" y2="315"/>
-          <text class="cardinality-label" x="610" y="323">1..1</text>
-          <!-- verb -->
-          <rect class="relationship-verb-bg" x="690" y="298" width="68" height="14"/>
-          <text class="relationship-verb" x="724" y="308" text-anchor="middle">recorded-for</text>
-        </svg>
-      </figure>
+            <!-- Crow's Foot endpoint markers -->
+            <!-- Edge 1: file-log produces transaction; file-log end = [1..1] double-dash, transaction end = [0..N] ring+fork -->
+            <line class="crows-foot-endpoint" x1="494" y1="276" x2="506" y2="276"/>
+            <line class="crows-foot-endpoint" x1="494" y1="282" x2="506" y2="282"/>
+            <circle class="crows-foot-endpoint" cx="500" cy="402" r="4"/>
+            <line class="crows-foot-endpoint" x1="500" y1="410" x2="495" y2="397"/>
+            <line class="crows-foot-endpoint" x1="500" y1="410" x2="500" y2="395"/>
+            <line class="crows-foot-endpoint" x1="500" y1="410" x2="505" y2="397"/>
 
-      <figure class="erd-diagram erd-chen">
-        <figcaption><h3>Chen notation</h3></figcaption>
-        <svg viewBox="0 0 1000 480" role="img" aria-label="Chen ERD for Financial services / banking back-office" xmlns="http://www.w3.org/2000/svg">
-          <!-- Chen entity rectangles: name-only, 140x40, centred on shared grid coords -->
-          <g class="entity-group">
-            <rect class="entity-box" x="430" y="220" width="140" height="40" rx="3"/>
-            <text class="entity-name" x="500" y="245" text-anchor="middle">file-log</text>
-          </g>
-          <g class="entity-group">
-            <rect class="entity-box" x="430" y="80" width="140" height="40" rx="3"/>
-            <text class="entity-name" x="500" y="105" text-anchor="middle">transaction</text>
-          </g>
-          <g class="entity-group">
-            <rect class="entity-box" x="430" y="360" width="140" height="40" rx="3"/>
-            <text class="entity-name" x="500" y="385" text-anchor="middle">user</text>
-          </g>
-          <g class="entity-group">
-            <rect class="entity-box" x="97" y="220" width="140" height="40" rx="3"/>
-            <text class="entity-name" x="167" y="245" text-anchor="middle">file-state</text>
-          </g>
-          <g class="entity-group">
-            <rect class="entity-box" x="763" y="220" width="140" height="40" rx="3"/>
-            <text class="entity-name" x="833" y="245" text-anchor="middle">transaction-status</text>
-          </g>
-          <g class="entity-group">
-            <rect class="entity-box" x="97" y="80" width="140" height="40" rx="3"/>
-            <text class="entity-name" x="167" y="105" text-anchor="middle">file-setting</text>
-          </g>
-          <g class="entity-group">
-            <rect class="entity-box" x="763" y="80" width="140" height="40" rx="3"/>
-            <text class="entity-name" x="833" y="105" text-anchor="middle">audit-event</text>
-          </g>
+            <!-- Edge 2: user uploads file-log; user end = [1..1] double-dash, file-log end = [0..N] ring+fork -->
+            <line class="crows-foot-endpoint" x1="291" y1="194" x2="291" y2="206"/>
+            <line class="crows-foot-endpoint" x1="297" y1="194" x2="297" y2="206"/>
+            <circle class="crows-foot-endpoint" cx="372" cy="200" r="4"/>
+            <line class="crows-foot-endpoint" x1="380" y1="200" x2="367" y2="195"/>
+            <line class="crows-foot-endpoint" x1="380" y1="200" x2="365" y2="200"/>
+            <line class="crows-foot-endpoint" x1="380" y1="200" x2="367" y2="205"/>
 
-          <!-- relationship 1: file-log "1" produces "N" transaction. diamond on midpoint (500,170) -->
-          <line class="relationship-line" x1="500" y1="220" x2="500" y2="190"/>
-          <line class="relationship-line" x1="500" y1="150" x2="500" y2="120"/>
-          <polygon class="chen-diamond" points="500,150 540,170 500,190 460,170"/>
-          <text class="chen-diamond-verb" x="500" y="173">produces</text>
-          <text class="cardinality-label" x="506" y="215">1</text>
-          <text class="cardinality-label" x="506" y="128">N</text>
+            <!-- Edge 3: user approves transaction; user end = [0..1] ring+dash, transaction end = [0..N] ring+fork -->
+            <circle class="crows-foot-endpoint" cx="245" cy="278" r="4"/>
+            <line class="crows-foot-endpoint" x1="239" y1="288" x2="251" y2="288"/>
+            <circle class="crows-foot-endpoint" cx="440" cy="402" r="4"/>
+            <line class="crows-foot-endpoint" x1="440" y1="410" x2="435" y2="397"/>
+            <line class="crows-foot-endpoint" x1="440" y1="410" x2="440" y2="395"/>
+            <line class="crows-foot-endpoint" x1="440" y1="410" x2="445" y2="397"/>
 
-          <!-- relationship 2: user "1" uploads "N" file-log. diamond on midpoint (500,310) -->
-          <line class="relationship-line" x1="500" y1="360" x2="500" y2="330"/>
-          <line class="relationship-line" x1="500" y1="290" x2="500" y2="260"/>
-          <polygon class="chen-diamond" points="500,290 540,310 500,330 460,310"/>
-          <text class="chen-diamond-verb" x="500" y="313">uploads</text>
-          <text class="cardinality-label" x="506" y="355">1</text>
-          <text class="cardinality-label" x="506" y="288">N</text>
+            <!-- Edge 4: user rejects transaction; user end = [0..1] ring+dash, transaction end = [0..N] ring+fork -->
+            <circle class="crows-foot-endpoint" cx="270" cy="278" r="4"/>
+            <line class="crows-foot-endpoint" x1="264" y1="288" x2="276" y2="288"/>
+            <circle class="crows-foot-endpoint" cx="460" cy="402" r="4"/>
+            <line class="crows-foot-endpoint" x1="460" y1="410" x2="455" y2="397"/>
+            <line class="crows-foot-endpoint" x1="460" y1="410" x2="460" y2="395"/>
+            <line class="crows-foot-endpoint" x1="460" y1="410" x2="465" y2="397"/>
 
-          <!-- relationship 3: user "1" approves "N" transaction. right-side path; diamond at (700,240) -->
-          <polyline class="relationship-line" points="570,380 660,380 660,240"/>
-          <polyline class="relationship-line" points="740,240 740,100 570,100"/>
-          <polygon class="chen-diamond" points="660,240 700,220 740,240 700,260"/>
-          <text class="chen-diamond-verb" x="700" y="243">approves</text>
-          <text class="cardinality-label" x="643" y="378">1</text>
-          <text class="cardinality-label" x="575" y="115">N</text>
+            <!-- Edge 5: file-log has file-state; file-log end = [0..N] ring+fork, file-state end = [1..1] double-dash -->
+            <circle class="crows-foot-endpoint" cx="628" cy="200" r="4"/>
+            <line class="crows-foot-endpoint" x1="620" y1="200" x2="633" y2="195"/>
+            <line class="crows-foot-endpoint" x1="620" y1="200" x2="635" y2="200"/>
+            <line class="crows-foot-endpoint" x1="620" y1="200" x2="633" y2="205"/>
+            <line class="crows-foot-endpoint" x1="707" y1="194" x2="707" y2="206"/>
+            <line class="crows-foot-endpoint" x1="701" y1="194" x2="701" y2="206"/>
 
-          <!-- relationship 4: user "1" rejects "N" transaction. left-side path; diamond at (300,240) -->
-          <polyline class="relationship-line" points="430,380 340,380 340,240"/>
-          <polyline class="relationship-line" points="260,240 260,100 430,100"/>
-          <polygon class="chen-diamond" points="260,240 300,220 340,240 300,260"/>
-          <text class="chen-diamond-verb" x="300" y="243">rejects</text>
-          <text class="cardinality-label" x="346" y="378">1</text>
-          <text class="cardinality-label" x="420" y="115">N</text>
+            <!-- Edge 6: transaction has transaction-status; transaction end = [0..N] ring+fork, transaction-status end = [1..1] double-dash -->
+            <circle class="crows-foot-endpoint" cx="372" cy="480" r="4"/>
+            <line class="crows-foot-endpoint" x1="380" y1="480" x2="367" y2="475"/>
+            <line class="crows-foot-endpoint" x1="380" y1="480" x2="365" y2="480"/>
+            <line class="crows-foot-endpoint" x1="380" y1="480" x2="367" y2="485"/>
+            <line class="crows-foot-endpoint" x1="293" y1="474" x2="293" y2="486"/>
+            <line class="crows-foot-endpoint" x1="299" y1="474" x2="299" y2="486"/>
 
-          <!-- relationship 5: file-log "N" has "1" file-state. diamond at (333,240) -->
-          <line class="relationship-line" x1="430" y1="240" x2="373" y2="240"/>
-          <line class="relationship-line" x1="293" y1="240" x2="237" y2="240"/>
-          <polygon class="chen-diamond" points="293,240 333,224 373,240 333,256"/>
-          <text class="chen-diamond-verb" x="333" y="243">has</text>
-          <text class="cardinality-label" x="415" y="234">N</text>
-          <text class="cardinality-label" x="245" y="234">1</text>
+            <!-- Edge 7: file-log references file-setting; file-log end = [0..N] ring+fork, file-setting end = [1..1] double-dash -->
+            <circle class="crows-foot-endpoint" cx="560" cy="278" r="4"/>
+            <line class="crows-foot-endpoint" x1="554" y1="288" x2="566" y2="288"/>
+            <line class="crows-foot-endpoint" x1="560" y1="270" x2="555" y2="283"/>
+            <line class="crows-foot-endpoint" x1="560" y1="270" x2="565" y2="283"/>
+            <line class="crows-foot-endpoint" x1="769" y1="404" x2="781" y2="404"/>
+            <line class="crows-foot-endpoint" x1="769" y1="398" x2="781" y2="398"/>
 
-          <!-- relationship 6: transaction "N" has "1" transaction-status. diamond at (667,170) -->
-          <line class="relationship-line" x1="570" y1="100" x2="640" y2="170"/>
-          <line class="relationship-line" x1="694" y1="170" x2="763" y2="240"/>
-          <polygon class="chen-diamond" points="640,170 667,154 694,170 667,186"/>
-          <text class="chen-diamond-verb" x="667" y="173">has</text>
-          <text class="cardinality-label" x="580" y="120">N</text>
-          <text class="cardinality-label" x="745" y="220">1</text>
+            <!-- Verb labels (with opaque backgrounds) -->
+            <rect class="relationship-verb-bg" x="475" y="332" width="60" height="16"/>
+            <text class="relationship-verb" x="505" y="344" text-anchor="middle">produces</text>
 
-          <!-- relationship 7: file-log "N" belongs-to "1" file-setting. diamond at (333,170) -->
-          <line class="relationship-line" x1="430" y1="220" x2="376" y2="170"/>
-          <line class="relationship-line" x1="290" y1="170" x2="237" y2="120"/>
-          <polygon class="chen-diamond" points="290,170 333,154 376,170 333,186"/>
-          <text class="chen-diamond-verb" x="333" y="173">belongs-to</text>
-          <text class="cardinality-label" x="418" y="216">N</text>
-          <text class="cardinality-label" x="250" y="135">1</text>
+            <rect class="relationship-verb-bg" x="310" y="187" width="50" height="16"/>
+            <text class="relationship-verb" x="335" y="199" text-anchor="middle">uploads</text>
 
-          <!-- relationship 8: audit-event "N" recorded-for "1" user. diamond at (700,310) -->
-          <line class="relationship-line" x1="833" y1="120" x2="730" y2="294"/>
-          <line class="relationship-line" x1="670" y1="326" x2="570" y2="380"/>
-          <polygon class="chen-diamond" points="670,326 700,294 730,294 700,326"/>
-          <text class="chen-diamond-verb" x="700" y="313">recorded-for</text>
-          <text class="cardinality-label" x="810" y="135">N</text>
-          <text class="cardinality-label" x="575" y="385">1</text>
-        </svg>
-      </figure>
-    </section>
+            <rect class="relationship-verb-bg" x="310" y="350" width="60" height="16"/>
+            <text class="relationship-verb" x="340" y="362" text-anchor="middle">approves</text>
 
-    <details class="mermaid-source">
-      <summary>Mermaid source (copy-pasteable)</summary>
-      <p class="mermaid-source-caption">erDiagram &mdash; paste into mermaid.live to render the Crow's Foot view.</p>
-      <pre>erDiagram
-    FILE_LOG {
-        int id PK
-        string file_name
-        enum last_executed_activity_name
-        timestamp process_date
-        boolean is_active
-        int setting_id FK
-    }
-    TRANSACTION {
-        int id PK
-        int file_log_id FK
-        string reference
-        timestamp transaction_date
-        string account_number
-        decimal amount
-        string currency
-        enum status
-        string user_note
-    }
-    USER {
-        int id PK
-        string email
-        list_enum roles
-    }
-    FILE_STATE {
-        enum name PK
-    }
-    TRANSACTION_STATUS {
-        enum name PK
-    }
-    FILE_SETTING {
-        int id PK
-        string name
-    }
-    AUDIT_EVENT {
-        int id PK
-        enum event_type
-        int actor_user FK
-        timestamp event_time
-    }
-    FILE_LOG ||--o{ TRANSACTION : produces
+            <rect class="relationship-verb-bg" x="345" y="370" width="50" height="16"/>
+            <text class="relationship-verb" x="370" y="382" text-anchor="middle">rejects</text>
+
+            <rect class="relationship-verb-bg" x="650" y="187" width="36" height="16"/>
+            <text class="relationship-verb" x="668" y="199" text-anchor="middle">has</text>
+
+            <rect class="relationship-verb-bg" x="314" y="467" width="36" height="16"/>
+            <text class="relationship-verb" x="332" y="479" text-anchor="middle">has</text>
+
+            <rect class="relationship-verb-bg" x="640" y="330" width="70" height="16"/>
+            <text class="relationship-verb" x="675" y="342" text-anchor="middle">references</text>
+          </svg>
+        </figure>
+
+        <figure class="erd-diagram erd-chen">
+          <figcaption><h3>Chen notation</h3></figcaption>
+          <svg viewBox="0 0 1000 620" role="img" aria-label="Chen ERD for Financial services / banking back-office">
+            <!-- Edges from entity to diamond and diamond to other entity -->
+            <!-- produces: file-log (500,225) -> diamond (500,340) -> transaction (500,455) -->
+            <polyline class="relationship-line" points="500,225 500,325"/>
+            <polyline class="relationship-line" points="500,355 500,455"/>
+            <!-- uploads: user (265,200) -> diamond (332,200) -> file-log (400,200) -->
+            <polyline class="relationship-line" points="265,200 317,200"/>
+            <polyline class="relationship-line" points="347,200 400,200"/>
+            <!-- approves: user (165,225) -> diamond (300,360) -> transaction (440,455) -->
+            <polyline class="relationship-line" points="165,225 165,360 285,360"/>
+            <polyline class="relationship-line" points="315,360 440,360 440,455"/>
+            <!-- rejects: user (215,225) -> diamond (390,380) -> transaction (470,455) -->
+            <polyline class="relationship-line" points="215,225 215,380 375,380"/>
+            <polyline class="relationship-line" points="405,380 470,380 470,455"/>
+            <!-- has (file-log -> file-state): file-log (600,200) -> diamond (668,200) -> file-state (735,200) -->
+            <polyline class="relationship-line" points="600,200 653,200"/>
+            <polyline class="relationship-line" points="683,200 735,200"/>
+            <!-- has (transaction -> transaction-status): transaction (400,480) -> diamond (332,480) -> transaction-status (265,480) -->
+            <polyline class="relationship-line" points="400,480 347,480"/>
+            <polyline class="relationship-line" points="317,480 265,480"/>
+            <!-- references: file-log (550,225) -> diamond (700,340) -> file-setting (775,455) -->
+            <polyline class="relationship-line" points="550,225 550,340 685,340"/>
+            <polyline class="relationship-line" points="715,340 775,340 775,455"/>
+
+            <!-- Entity boxes (Chen: smaller, name-only) -->
+            <rect class="entity-box" x="65" y="175" width="200" height="50"/>
+            <text class="entity-name" x="165" y="207" text-anchor="middle">User</text>
+
+            <rect class="entity-box" x="400" y="175" width="200" height="50"/>
+            <text class="entity-name" x="500" y="207" text-anchor="middle">File Log</text>
+
+            <rect class="entity-box" x="735" y="175" width="200" height="50"/>
+            <text class="entity-name" x="835" y="207" text-anchor="middle">File State</text>
+
+            <rect class="entity-box" x="65" y="455" width="200" height="50"/>
+            <text class="entity-name" x="165" y="487" text-anchor="middle">Transaction Status</text>
+
+            <rect class="entity-box" x="400" y="455" width="200" height="50"/>
+            <text class="entity-name" x="500" y="487" text-anchor="middle">Transaction</text>
+
+            <rect class="entity-box" x="735" y="455" width="200" height="50"/>
+            <text class="entity-name" x="835" y="487" text-anchor="middle">File Setting</text>
+
+            <!-- Diamonds (each centred on its midpoint) -->
+            <polygon class="chen-diamond" points="500,325 530,340 500,355 470,340"/>
+            <text class="chen-diamond-verb" x="500" y="343">produces</text>
+
+            <polygon class="chen-diamond" points="332,188 362,200 332,212 302,200"/>
+            <text class="chen-diamond-verb" x="332" y="203">uploads</text>
+
+            <polygon class="chen-diamond" points="300,348 330,360 300,372 270,360"/>
+            <text class="chen-diamond-verb" x="300" y="363">approves</text>
+
+            <polygon class="chen-diamond" points="390,368 420,380 390,392 360,380"/>
+            <text class="chen-diamond-verb" x="390" y="383">rejects</text>
+
+            <polygon class="chen-diamond" points="668,188 698,200 668,212 638,200"/>
+            <text class="chen-diamond-verb" x="668" y="203">has</text>
+
+            <polygon class="chen-diamond" points="332,468 362,480 332,492 302,480"/>
+            <text class="chen-diamond-verb" x="332" y="483">has</text>
+
+            <polygon class="chen-diamond" points="700,328 730,340 700,352 670,340"/>
+            <text class="chen-diamond-verb" x="700" y="343">references</text>
+
+            <!-- Cardinality labels on each entity-to-diamond segment -->
+            <!-- produces: file-log [1..1], transaction [0..N] -->
+            <text class="cardinality-label" x="488" y="265">1</text>
+            <text class="cardinality-label" x="488" y="380">N</text>
+            <!-- uploads: user [1..1], file-log [0..N] -->
+            <text class="cardinality-label" x="280" y="190">1</text>
+            <text class="cardinality-label" x="380" y="190">N</text>
+            <!-- approves: user [0..1], transaction [0..N] -->
+            <text class="cardinality-label" x="175" y="240">1</text>
+            <text class="cardinality-label" x="425" y="375">N</text>
+            <!-- rejects: user [0..1], transaction [0..N] -->
+            <text class="cardinality-label" x="225" y="240">1</text>
+            <text class="cardinality-label" x="455" y="395">N</text>
+            <!-- has (file-log/file-state): file-log [0..N], file-state [1..1] -->
+            <text class="cardinality-label" x="615" y="190">N</text>
+            <text class="cardinality-label" x="720" y="190">1</text>
+            <!-- has (transaction/transaction-status): transaction [0..N], transaction-status [1..1] -->
+            <text class="cardinality-label" x="385" y="470">N</text>
+            <text class="cardinality-label" x="280" y="470">1</text>
+            <!-- references: file-log [0..N], file-setting [1..1] -->
+            <text class="cardinality-label" x="540" y="265">N</text>
+            <text class="cardinality-label" x="785" y="395">1</text>
+          </svg>
+        </figure>
+
+        <figure class="erd-diagram erd-uml">
+          <figcaption><h3>UML class diagram</h3></figcaption>
+          <svg viewBox="0 0 1000 620" role="img" aria-label="UML class diagram for Financial services / banking back-office">
+            <!-- Edges (plain lines, no crow's foot markers) -->
+            <polyline class="relationship-line" points="500,270 500,410"/>
+            <polyline class="relationship-line" points="285,200 380,200"/>
+            <polyline class="relationship-line" points="245,270 245,360 440,360 440,410"/>
+            <polyline class="relationship-line" points="270,270 270,380 460,380 460,410"/>
+            <polyline class="relationship-line" points="620,200 715,200"/>
+            <polyline class="relationship-line" points="380,480 285,480"/>
+            <polyline class="relationship-line" points="560,270 560,340 775,340 775,410"/>
+
+            <!-- Entity: user -->
+            <rect class="entity-box" x="45" y="130" width="240" height="140"/>
+            <rect class="entity-header" x="45" y="130" width="240" height="24"/>
+            <text class="entity-name" x="165" y="147" text-anchor="middle">User</text>
+            <text class="entity-attribute" x="55" y="172">+number id</text>
+            <text class="pk-marker-svg" x="275" y="172" text-anchor="end">«PK»</text>
+            <text class="entity-attribute" x="55" y="190">+text email</text>
+            <text class="entity-attribute" x="55" y="208">+text firstName</text>
+            <text class="entity-attribute" x="55" y="226">+text lastName</text>
+            <text class="entity-attribute" x="55" y="244">+enum roles</text>
+
+            <!-- Entity: file-log -->
+            <rect class="entity-box" x="380" y="130" width="240" height="140"/>
+            <rect class="entity-header" x="380" y="130" width="240" height="24"/>
+            <text class="entity-name" x="500" y="147" text-anchor="middle">FileLog</text>
+            <text class="entity-attribute" x="390" y="172">+number id</text>
+            <text class="pk-marker-svg" x="610" y="172" text-anchor="end">«PK»</text>
+            <text class="entity-attribute" x="390" y="190">+text fileName</text>
+            <text class="entity-attribute" x="390" y="208">+enum lastExecutedActivityName</text>
+            <text class="entity-attribute" x="390" y="226">+number settingId</text>
+            <text class="fk-marker-svg" x="610" y="226" text-anchor="end">«FK»</text>
+            <text class="entity-attribute" x="390" y="244">+timestamp processDate</text>
+
+            <!-- Entity: file-state -->
+            <rect class="entity-box" x="715" y="130" width="240" height="140"/>
+            <rect class="entity-header" x="715" y="130" width="240" height="24"/>
+            <text class="entity-name" x="835" y="147" text-anchor="middle">FileState</text>
+            <text class="entity-attribute" x="725" y="172">+text name</text>
+            <text class="pk-marker-svg" x="945" y="172" text-anchor="end">«PK»</text>
+            <text class="entity-attribute" x="725" y="194">{Uploaded,</text>
+            <text class="entity-attribute" x="725" y="212"> Processing,</text>
+            <text class="entity-attribute" x="725" y="230"> Completed,</text>
+            <text class="entity-attribute" x="725" y="248"> Failed}</text>
+
+            <!-- Entity: transaction-status -->
+            <rect class="entity-box" x="45" y="410" width="240" height="140"/>
+            <rect class="entity-header" x="45" y="410" width="240" height="24"/>
+            <text class="entity-name" x="165" y="427" text-anchor="middle">TransactionStatus</text>
+            <text class="entity-attribute" x="55" y="452">+text name</text>
+            <text class="pk-marker-svg" x="275" y="452" text-anchor="end">«PK»</text>
+            <text class="entity-attribute" x="55" y="474">{Imported,</text>
+            <text class="entity-attribute" x="55" y="492"> Approved,</text>
+            <text class="entity-attribute" x="55" y="510"> Rejected}</text>
+
+            <!-- Entity: transaction -->
+            <rect class="entity-box" x="380" y="410" width="240" height="140"/>
+            <rect class="entity-header" x="380" y="410" width="240" height="24"/>
+            <text class="entity-name" x="500" y="427" text-anchor="middle">Transaction</text>
+            <text class="entity-attribute" x="390" y="452">+number id</text>
+            <text class="pk-marker-svg" x="610" y="452" text-anchor="end">«PK»</text>
+            <text class="entity-attribute" x="390" y="470">+number fileLogId</text>
+            <text class="fk-marker-svg" x="610" y="470" text-anchor="end">«FK»</text>
+            <text class="entity-attribute" x="390" y="488">+text reference</text>
+            <text class="entity-attribute" x="390" y="506">+enum status</text>
+            <text class="entity-attribute" x="390" y="524">+number amount</text>
+
+            <!-- Entity: file-setting -->
+            <rect class="entity-box" x="715" y="410" width="240" height="140"/>
+            <rect class="entity-header" x="715" y="410" width="240" height="24"/>
+            <text class="entity-name" x="835" y="427" text-anchor="middle">FileSetting</text>
+            <text class="entity-attribute" x="725" y="452">+number id</text>
+            <text class="pk-marker-svg" x="945" y="452" text-anchor="end">«PK»</text>
+            <text class="entity-attribute" x="725" y="470">+text name</text>
+
+            <!-- UML multiplicity labels (text, with opaque backgrounds) -->
+            <!-- Edge 1: produces -- file-log [1..1] at top, transaction [0..*] at bottom -->
+            <rect class="relationship-verb-bg" x="488" y="278" width="24" height="14"/>
+            <text class="uml-multiplicity" x="500" y="289" text-anchor="middle">1..1</text>
+            <rect class="relationship-verb-bg" x="486" y="389" width="28" height="14"/>
+            <text class="uml-multiplicity" x="500" y="400" text-anchor="middle">0..*</text>
+
+            <!-- Edge 2: uploads -- user [1..1] left, file-log [0..*] right -->
+            <rect class="relationship-verb-bg" x="291" y="180" width="24" height="14"/>
+            <text class="uml-multiplicity" x="303" y="191" text-anchor="middle">1..1</text>
+            <rect class="relationship-verb-bg" x="349" y="180" width="28" height="14"/>
+            <text class="uml-multiplicity" x="363" y="191" text-anchor="middle">0..*</text>
+
+            <!-- Edge 3: approves -- user [0..1] top, transaction [0..*] bottom -->
+            <rect class="relationship-verb-bg" x="233" y="278" width="24" height="14"/>
+            <text class="uml-multiplicity" x="245" y="289" text-anchor="middle">0..1</text>
+            <rect class="relationship-verb-bg" x="426" y="389" width="28" height="14"/>
+            <text class="uml-multiplicity" x="440" y="400" text-anchor="middle">0..*</text>
+
+            <!-- Edge 4: rejects -- user [0..1] top, transaction [0..*] bottom -->
+            <rect class="relationship-verb-bg" x="258" y="278" width="24" height="14"/>
+            <text class="uml-multiplicity" x="270" y="289" text-anchor="middle">0..1</text>
+            <rect class="relationship-verb-bg" x="446" y="389" width="28" height="14"/>
+            <text class="uml-multiplicity" x="460" y="400" text-anchor="middle">0..*</text>
+
+            <!-- Edge 5: has (file-log/file-state) -- file-log [0..*] left, file-state [1..1] right -->
+            <rect class="relationship-verb-bg" x="626" y="180" width="28" height="14"/>
+            <text class="uml-multiplicity" x="640" y="191" text-anchor="middle">0..*</text>
+            <rect class="relationship-verb-bg" x="687" y="180" width="24" height="14"/>
+            <text class="uml-multiplicity" x="699" y="191" text-anchor="middle">1..1</text>
+
+            <!-- Edge 6: has (transaction/transaction-status) -- transaction [0..*] right, transaction-status [1..1] left -->
+            <rect class="relationship-verb-bg" x="350" y="460" width="28" height="14"/>
+            <text class="uml-multiplicity" x="364" y="471" text-anchor="middle">0..*</text>
+            <rect class="relationship-verb-bg" x="289" y="460" width="24" height="14"/>
+            <text class="uml-multiplicity" x="301" y="471" text-anchor="middle">1..1</text>
+
+            <!-- Edge 7: references -- file-log [0..*] top, file-setting [1..1] bottom -->
+            <rect class="relationship-verb-bg" x="566" y="278" width="28" height="14"/>
+            <text class="uml-multiplicity" x="580" y="289" text-anchor="middle">0..*</text>
+            <rect class="relationship-verb-bg" x="763" y="389" width="24" height="14"/>
+            <text class="uml-multiplicity" x="775" y="400" text-anchor="middle">1..1</text>
+
+            <!-- UML stereotype verb labels on edge midpoints -->
+            <rect class="relationship-verb-bg" x="468" y="332" width="74" height="16"/>
+            <text class="relationship-verb" x="505" y="344" text-anchor="middle">«produces»</text>
+
+            <rect class="relationship-verb-bg" x="306" y="207" width="60" height="16"/>
+            <text class="relationship-verb" x="336" y="219" text-anchor="middle">«uploads»</text>
+
+            <rect class="relationship-verb-bg" x="305" y="350" width="74" height="16"/>
+            <text class="relationship-verb" x="342" y="362" text-anchor="middle">«approves»</text>
+
+            <rect class="relationship-verb-bg" x="338" y="370" width="64" height="16"/>
+            <text class="relationship-verb" x="370" y="382" text-anchor="middle">«rejects»</text>
+
+            <rect class="relationship-verb-bg" x="650" y="207" width="44" height="16"/>
+            <text class="relationship-verb" x="672" y="219" text-anchor="middle">«has»</text>
+
+            <rect class="relationship-verb-bg" x="314" y="487" width="44" height="16"/>
+            <text class="relationship-verb" x="336" y="499" text-anchor="middle">«has»</text>
+
+            <rect class="relationship-verb-bg" x="632" y="330" width="86" height="16"/>
+            <text class="relationship-verb" x="675" y="342" text-anchor="middle">«references»</text>
+          </svg>
+        </figure>
+      </section>
+
+      <details class="mermaid-source">
+        <summary>Mermaid source (copy-pasteable)</summary>
+        <p class="mermaid-source-caption">Crow&#39;s Foot — paste into mermaid.live as <code>erDiagram</code>.</p>
+        <pre>erDiagram
     USER ||--o{ FILE_LOG : uploads
     USER |o--o{ TRANSACTION : approves
     USER |o--o{ TRANSACTION : rejects
+    FILE_LOG ||--o{ TRANSACTION : produces
     FILE_LOG }o--|| FILE_STATE : has
     TRANSACTION }o--|| TRANSACTION_STATUS : has
-    FILE_LOG }o--|| FILE_SETTING : "belongs to"
-    AUDIT_EVENT }o--|| USER : "recorded for"
-</pre>
+    FILE_LOG }o--|| FILE_SETTING : references
+    USER {
+        number id PK
+        text email
+        text first_name
+        text last_name
+        enum roles
+    }
+    FILE_LOG {
+        number id PK
+        text file_name
+        enum last_executed_activity_name
+        number setting_id FK
+        timestamp process_date
+    }
+    TRANSACTION {
+        number id PK
+        number file_log_id FK
+        text reference
+        enum status
+        number amount
+    }
+    FILE_STATE {
+        text name PK
+    }
+    TRANSACTION_STATUS {
+        text name PK
+    }
+    FILE_SETTING {
+        number id PK
+        text name
+    }</pre>
+        <p class="mermaid-source-caption">UML — paste into mermaid.live as <code>classDiagram</code>.</p>
+        <pre>classDiagram
+    class User {
+        +number id «PK»
+        +text email
+        +text firstName
+        +text lastName
+        +enum roles
+        +text lastChangedUser
+        +timestamp lastChangedDate
+    }
+    class FileLog {
+        +number id «PK»
+        +text fileName
+        +number recordCount
+        +enum lastExecutedActivityName
+        +timestamp processDate
+        +boolean isActive
+        +number settingId «FK»
+        +text settingName
+        +text currentStatus
+        +text fileHash
+    }
+    class Transaction {
+        +number id «PK»
+        +number fileLogId «FK»
+        +text fileName
+        +text reference
+        +timestamp transactionDate
+        +text accountNumber
+        +text description
+        +number amount
+        +enum transactionType
+        +text currency
+        +enum status
+        +text userNote
+        +text lastChangedUser
+        +timestamp lastChangedDate
+    }
+    class FileState {
+        +text name «PK»
+    }
+    class TransactionStatus {
+        +text name «PK»
+    }
+    class FileSetting {
+        +number id «PK»
+        +text name
+    }
+    User "1..1" -- "0..*" FileLog : uploads
+    User "0..1" -- "0..*" Transaction : approves
+    User "0..1" -- "0..*" Transaction : rejects
+    FileLog "1..1" -- "0..*" Transaction : produces
+    FileLog "0..*" -- "1..1" FileState : has
+    Transaction "0..*" -- "1..1" TransactionStatus : has
+    FileLog "0..*" -- "1..1" FileSetting : references</pre>
+      </details>
+    </section>
+
+    <section id="tables" aria-label="Tabular information">
+      <section class="data-model">
+        <h2>Data Model</h2>
+
+        <section class="entities-block">
+          <h3>Entities</h3>
+          <table class="entities-table">
+            <thead>
+              <tr>
+                <th>id</th>
+                <th>display name</th>
+                <th>persistence</th>
+                <th>description</th>
+                <th>lifecycle states</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-from-domain-model">
+                <td><code>user</code></td>
+                <td>User</td>
+                <td><span class="persistence-persistent">persistent</span></td>
+                <td>An authenticated principal who interacts with the system in one of the defined roles.</td>
+                <td>—</td>
+                <td class="prov-cell">§2.1</td>
+              </tr>
+              <tr class="provenance-from-domain-model">
+                <td><code>file-log</code></td>
+                <td>File Log</td>
+                <td><span class="persistence-persistent">persistent</span></td>
+                <td>Represents an uploaded file and its processing state; aggregate root that owns Transaction.</td>
+                <td>Uploaded → Processing → Completed | Failed</td>
+                <td class="prov-cell">§2.1</td>
+              </tr>
+              <tr class="provenance-from-domain-model">
+                <td><code>transaction</code></td>
+                <td>Transaction</td>
+                <td><span class="persistence-persistent">persistent</span></td>
+                <td>Represents an individual record extracted from a File Log; carries Status and audited mutations.</td>
+                <td>Imported → Approved | Rejected</td>
+                <td class="prov-cell">§2.1</td>
+              </tr>
+              <tr class="provenance-from-domain-model">
+                <td><code>file-state</code></td>
+                <td>File State</td>
+                <td><span class="persistence-policy">policy</span></td>
+                <td>Lifecycle state of a File Log; one of Uploaded / Processing / Completed / Failed.</td>
+                <td>Uploaded, Processing, Completed, Failed</td>
+                <td class="prov-cell">§2.1</td>
+              </tr>
+              <tr class="provenance-from-domain-model">
+                <td><code>transaction-status</code></td>
+                <td>Transaction Status</td>
+                <td><span class="persistence-policy">policy</span></td>
+                <td>Lifecycle status of a Transaction; one of Imported / Approved / Rejected.</td>
+                <td>Imported, Approved, Rejected</td>
+                <td class="prov-cell">§2.1</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>file-setting</code></td>
+                <td>File Setting</td>
+                <td><span class="persistence-persistent">persistent</span></td>
+                <td>Configuration record referenced by a File Log at upload time; provides parsing context for the uploaded file. Surfaced via FileSetting.Id and SettingName snapshot on File Log.</td>
+                <td>—</td>
+                <td class="prov-cell">§7 (also §9)</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="attributes-block">
+          <h3>Attributes</h3>
+          <table class="attributes-table">
+            <thead>
+              <tr>
+                <th>entity</th>
+                <th>attribute</th>
+                <th>type</th>
+                <th>nullable</th>
+                <th>PK</th>
+                <th>FK</th>
+                <th>notes</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- user -->
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>user</code></td><td>Id</td><td><span class="type-badge">number</span></td><td>no</td><td>✓<span class="pk-marker">PK</span></td><td>—</td><td>Server-assigned primary key.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>user</code></td><td>Email</td><td><span class="type-badge">text</span></td><td>no</td><td>—</td><td>—</td><td>RFC 5322; unique; login identifier.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>user</code></td><td>FirstName</td><td><span class="type-badge">text</span></td><td>no</td><td>—</td><td>—</td><td>1–64 chars.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>user</code></td><td>LastName</td><td><span class="type-badge">text</span></td><td>no</td><td>—</td><td>—</td><td>1–64 chars.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>user</code></td><td>Password</td><td><span class="type-badge">text</span></td><td>no</td><td>—</td><td>—</td><td>Write-only; stored as bcrypt hash; min length 8; complexity per security policy; never returned.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>user</code></td><td>Roles</td><td><span class="type-badge">enum</span></td><td>no</td><td>—</td><td>—</td><td>Multi-value list; non-empty; values { Importer, Approver }.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>user</code></td><td>LastChangedUser</td><td><span class="type-badge">text</span></td><td>no</td><td>—</td><td>—</td><td>Audit field captured from request header.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>user</code></td><td>LastChangedDate</td><td><span class="type-badge">timestamp</span></td><td>no</td><td>—</td><td>—</td><td>ISO 8601; audit field.</td><td class="prov-cell">§7</td>
+              </tr>
+
+              <!-- file-log -->
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>file-log</code></td><td>Id</td><td><span class="type-badge">number</span></td><td>no</td><td>✓<span class="pk-marker">PK</span></td><td>—</td><td>Server-assigned primary key.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>file-log</code></td><td>FileName</td><td><span class="type-badge">text</span></td><td>no</td><td>—</td><td>—</td><td>Original filename submitted at upload.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>file-log</code></td><td>RecordCount</td><td><span class="type-badge">number</span></td><td>no</td><td>—</td><td>—</td><td>Number of transactions parsed; API returns as string.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>file-log</code></td><td>LastExecutedActivityName</td><td><span class="type-badge">enum</span></td><td>no</td><td>—</td><td>—</td><td>User-visible file status. Values: { Uploaded, Processing, Completed, Failed }.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>file-log</code></td><td>ProcessDate</td><td><span class="type-badge">timestamp</span></td><td>no</td><td>—</td><td>—</td><td>ISO 8601; when the file was processed.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>file-log</code></td><td>IsActive</td><td><span class="type-badge">boolean</span></td><td>no</td><td>—</td><td>—</td><td>Soft-delete / archival flag.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>file-log</code></td><td>SettingId</td><td><span class="type-badge">reference</span></td><td>no</td><td>—</td><td><code>file-setting.Id</code><span class="fk-marker">FK</span></td><td>Upload-time setting reference.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>file-log</code></td><td>SettingName</td><td><span class="type-badge">text</span></td><td>no</td><td>—</td><td>—</td><td>Snapshot of FileSetting.Name at upload; intentional denormalisation.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>file-log</code></td><td>CurrentStatus</td><td><span class="type-badge">text</span></td><td>yes</td><td>—</td><td>—</td><td>Operational status complement to LastExecutedActivityName.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>file-log</code></td><td>FileHash</td><td><span class="type-badge">text</span></td><td>yes</td><td>—</td><td>—</td><td>sha-256 hex; integrity check.</td><td class="prov-cell">§7</td>
+              </tr>
+
+              <!-- transaction -->
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>transaction</code></td><td>Id</td><td><span class="type-badge">number</span></td><td>no</td><td>✓<span class="pk-marker">PK</span></td><td>—</td><td>Server-assigned primary key.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>transaction</code></td><td>FileLogId</td><td><span class="type-badge">reference</span></td><td>no</td><td>—</td><td><code>file-log.Id</code><span class="fk-marker">FK</span></td><td>Parent file log.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>transaction</code></td><td>FileName</td><td><span class="type-badge">text</span></td><td>no</td><td>—</td><td>—</td><td>Denormalised from FileLog for table display.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>transaction</code></td><td>Reference</td><td><span class="type-badge">text</span></td><td>no</td><td>—</td><td>—</td><td>External transaction reference; unique within file.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>transaction</code></td><td>TransactionDate</td><td><span class="type-badge">timestamp</span></td><td>no</td><td>—</td><td>—</td><td>ISO 8601 business date/time.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>transaction</code></td><td>AccountNumber</td><td><span class="type-badge">text</span></td><td>no</td><td>—</td><td>—</td><td>Source account.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>transaction</code></td><td>Description</td><td><span class="type-badge">text</span></td><td>yes</td><td>—</td><td>—</td><td>Free-text description.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>transaction</code></td><td>Amount</td><td><span class="type-badge">number</span></td><td>no</td><td>—</td><td>—</td><td>Absolute amount, ≥ 0; sign determined by TransactionType.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>transaction</code></td><td>TransactionType</td><td><span class="type-badge">enum</span></td><td>no</td><td>—</td><td>—</td><td>Values: { C = credit, D = debit }.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>transaction</code></td><td>Currency</td><td><span class="type-badge">text</span></td><td>no</td><td>—</td><td>—</td><td>ISO 4217 (3 chars), e.g. ZAR.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>transaction</code></td><td>Status</td><td><span class="type-badge">enum</span></td><td>no</td><td>—</td><td>—</td><td>Values: { Imported, Approved, Rejected }; drives BR-01.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>transaction</code></td><td>UserNote</td><td><span class="type-badge">text</span></td><td>yes</td><td>—</td><td>—</td><td>Required (non-empty) when Status = Rejected; rejection rationale (BR-02).</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>transaction</code></td><td>LastChangedUser</td><td><span class="type-badge">text</span></td><td>no</td><td>—</td><td>—</td><td>Audit field; set on approve/reject from request header convention.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>transaction</code></td><td>LastChangedDate</td><td><span class="type-badge">timestamp</span></td><td>no</td><td>—</td><td>—</td><td>ISO 8601; audit field.</td><td class="prov-cell">§7</td>
+              </tr>
+
+              <!-- file-state -->
+              <tr class="provenance-derived" data-source="§2.1">
+                <td><code>file-state</code></td><td>name</td><td><span class="type-badge">text</span></td><td>no</td><td>✓<span class="pk-marker">PK</span></td><td>—</td><td>Policy enum identifier; values: { Uploaded, Processing, Completed, Failed }.</td><td class="prov-cell">§2.1</td>
+              </tr>
+
+              <!-- transaction-status -->
+              <tr class="provenance-derived" data-source="§2.1">
+                <td><code>transaction-status</code></td><td>name</td><td><span class="type-badge">text</span></td><td>no</td><td>✓<span class="pk-marker">PK</span></td><td>—</td><td>Policy enum identifier; values: { Imported, Approved, Rejected }.</td><td class="prov-cell">§2.1</td>
+              </tr>
+
+              <!-- file-setting -->
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>file-setting</code></td><td>Id</td><td><span class="type-badge">number</span></td><td>no</td><td>✓<span class="pk-marker">PK</span></td><td>—</td><td>Server-assigned primary key; referenced by FileLog.SettingId.</td><td class="prov-cell">§7</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>file-setting</code></td><td>Name</td><td><span class="type-badge">text</span></td><td>no</td><td>—</td><td>—</td><td>Snapshot copied to FileLog.SettingName at upload.</td><td class="prov-cell">§7</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="relationships-block">
+          <h3>Relationships</h3>
+          <table class="relationships-table">
+            <thead>
+              <tr>
+                <th>from</th>
+                <th>verb</th>
+                <th>to</th>
+                <th>from card.</th>
+                <th>to card.</th>
+                <th>identifying</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-from-domain-model">
+                <td><code>file-log</code></td>
+                <td class="verb">produces</td>
+                <td><code>transaction</code></td>
+                <td class="card">[1..1]</td>
+                <td class="card">[0..N]</td>
+                <td>no</td>
+                <td class="prov-cell">§2.2</td>
+              </tr>
+              <tr class="provenance-from-domain-model">
+                <td><code>user</code></td>
+                <td class="verb">uploads</td>
+                <td><code>file-log</code></td>
+                <td class="card">[1..1]</td>
+                <td class="card">[0..N]</td>
+                <td>no</td>
+                <td class="prov-cell">§2.2</td>
+              </tr>
+              <tr class="provenance-from-domain-model">
+                <td><code>user</code></td>
+                <td class="verb">approves</td>
+                <td><code>transaction</code></td>
+                <td class="card">[0..1]</td>
+                <td class="card">[0..N]</td>
+                <td>no</td>
+                <td class="prov-cell">§2.2 (from-card optionality [AI-SUGGESTED]: §2.2 states [1:N] without specifying mandatory/optional on the 1 side; inferred [0..1] because a Transaction may be in Imported state with no approver yet)</td>
+              </tr>
+              <tr class="provenance-from-domain-model">
+                <td><code>user</code></td>
+                <td class="verb">rejects</td>
+                <td><code>transaction</code></td>
+                <td class="card">[0..1]</td>
+                <td class="card">[0..N]</td>
+                <td>no</td>
+                <td class="prov-cell">§2.2 (from-card optionality [AI-SUGGESTED]: §2.2 states [1:N] without specifying mandatory/optional on the 1 side; inferred [0..1] because a Transaction may be in Imported state with no rejector)</td>
+              </tr>
+              <tr class="provenance-from-domain-model">
+                <td><code>file-log</code></td>
+                <td class="verb">has</td>
+                <td><code>file-state</code></td>
+                <td class="card">[0..N]</td>
+                <td class="card">[1..1]</td>
+                <td>no</td>
+                <td class="prov-cell">§2.2 (from-card [AI-SUGGESTED]: §2.2 states [1:1] capturing the file-log → file-state direction; reverse multiplicity inferred [0..N] since a policy state value may be referenced by many file logs)</td>
+              </tr>
+              <tr class="provenance-from-domain-model">
+                <td><code>transaction</code></td>
+                <td class="verb">has</td>
+                <td><code>transaction-status</code></td>
+                <td class="card">[0..N]</td>
+                <td class="card">[1..1]</td>
+                <td>no</td>
+                <td class="prov-cell">§2.2 (from-card [AI-SUGGESTED]: as above; policy value referenced by many transactions)</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§7">
+                <td><code>file-log</code></td>
+                <td class="verb">references</td>
+                <td><code>file-setting</code></td>
+                <td class="card">[0..N]</td>
+                <td class="card">[1..1]</td>
+                <td>no</td>
+                <td class="prov-cell">§7 (FK declared as FileLog.SettingId → FileSetting.Id; from-card [AI-SUGGESTED]: §7 does not state setting → file-log multiplicity)</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="business-rules-block">
+          <h3>Business rules</h3>
+          <table class="business-rules-table">
+            <thead>
+              <tr>
+                <th>id</th>
+                <th>target</th>
+                <th>rule</th>
+                <th>provenance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="provenance-derived" data-source="§6.2">
+                <td><code>BR-01</code></td>
+                <td><code>transaction</code></td>
+                <td>When a transaction&#39;s status is not Imported, then the Approve and Reject row actions must be hidden. Enforced at UI + service. Severity: blocker. Source trace: §2.3 Transaction invariant.</td>
+                <td class="prov-cell">§6.2</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§6.2">
+                <td><code>BR-02</code></td>
+                <td><code>user--rejects--transaction</code></td>
+                <td>When an Approver rejects a transaction, then a non-empty user note must be supplied. Enforced at UI + service. Severity: blocker. Source trace: §2.3 Transaction invariant.</td>
+                <td class="prov-cell">§6.2</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§6.2">
+                <td><code>BR-03</code></td>
+                <td><code>user--approves--transaction</code></td>
+                <td>When the authenticated role is Importer, then the Approve and Reject actions must be hidden across the UI. Enforced at UI. Severity: blocker. Source trace: §6.5 RBAC. (Also applies to <code>user--rejects--transaction</code>.)</td>
+                <td class="prov-cell">§6.2</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§6.2">
+                <td><code>BR-04</code></td>
+                <td><code>user--uploads--file-log</code></td>
+                <td>When the authenticated role is Approver, then the File Upload entry point and route must be hidden. Enforced at UI. Severity: blocker. Source trace: §6.5 RBAC.</td>
+                <td class="prov-cell">§6.2</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§6.2">
+                <td><code>BR-05</code></td>
+                <td><code>user</code></td>
+                <td>When login fails, then the error response and the UI message must not reveal which credential field was incorrect. Enforced at service + UI. Severity: major. Source trace: consultant input (auth-api).</td>
+                <td class="prov-cell">§6.2</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§6.2">
+                <td><code>BR-06</code></td>
+                <td><code>transaction</code></td>
+                <td>When a transaction&#39;s status changes (Approved or Rejected), then the new status must be reflected in the transaction table without a manual refresh. Enforced at UI. Severity: major. Source trace: §2.3 Transaction invariant.</td>
+                <td class="prov-cell">§6.2</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§6.2">
+                <td><code>BR-07</code></td>
+                <td><code>file-log</code></td>
+                <td>When a file log is in Failed state, then the file summary view must surface the failure prominently and inhibit drill-down into transactions until retry succeeds. Enforced at UI. Severity: major. Source trace: §2.3 File Log invariant.</td>
+                <td class="prov-cell">§6.2</td>
+              </tr>
+              <tr class="provenance-derived" data-source="§6.6.4">
+                <td><code>BR-08</code></td>
+                <td><code>transaction</code></td>
+                <td>Every approve, reject, upload, login, and logout event must be recorded with LastChangedUser and LastChangedDate, and retained for 7 years (POPIA-aligned). Applies to <code>transaction</code>, <code>file-log</code>, and <code>user</code>. Enforced at service. Severity: blocker.</td>
+                <td class="prov-cell">§6.6.4</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="normalisation-block">
+          <h3>Normalisation notes</h3>
+          <ul class="normalisation-notes">
+            <li class="provenance-ai-suggested">
+              <strong>[AI-SUGGESTED] Multi-value attribute</strong> — <code>user.Roles</code>: in strict 3NF, a multi-value enum list normalises to a separate <code>role</code> entity plus a <code>user-role</code> junction table. Acceptable as denormalisation here because the role enum is small and fixed ({ Importer, Approver }) and admin-managed; promote to a junction if role catalogues grow or carry per-role metadata.
+            </li>
+            <li class="provenance-ai-suggested">
+              <strong>[AI-SUGGESTED] Read-side denormalisation</strong> — <code>transaction.FileName</code>: explicitly denormalised from <code>file-log.FileName</code> per §7 notes ("denormalised from FileLog for table display"). Acceptable for table-rendering performance; needs a write-time consistency rule if the parent FileName ever changes.
+            </li>
+            <li class="provenance-ai-suggested">
+              <strong>[AI-SUGGESTED] Snapshot at write time</strong> — <code>file-log.SettingName</code>: explicit snapshot of <code>file-setting.Name</code> captured at upload per §7. Intentional immutability (the file-log keeps the setting name it was uploaded under, even if the underlying FileSetting is later renamed); no consistency rule needed.
+            </li>
+            <li class="provenance-ai-suggested">
+              <strong>[AI-SUGGESTED] Audit-string vs FK</strong> — <code>LastChangedUser</code> (on user, file-log, transaction) is stored as <code>text</code> rather than a User FK reference. Stable identity is preserved only as long as the captured string (likely email) does not change. Consider promoting to a <code>reference</code> typed FK to <code>user</code> in a physical model where audit-query joins matter.
+            </li>
+            <li class="provenance-ai-suggested">
+              <strong>[AI-SUGGESTED] Relationship-to-FK gap</strong> — The <code>user → uploads → file-log</code>, <code>user → approves → transaction</code>, and <code>user → rejects → transaction</code> relationships in §2.2 are not expressed as explicit FK columns in §7; they are captured implicitly via the <code>LastChangedUser</code> audit string. Consider adding <code>UploadedByUserId</code> (file-log) and an <code>ActedByUserId</code>/<code>ApprovedByUserId</code>/<code>RejectedByUserId</code> column (transaction) in a physical model for join efficiency and stable identity.
+            </li>
+          </ul>
+        </section>
+      </section>
+    </section>
+
+    <details id="diagnostics" class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>Data Model — 6 entities, 36 attributes, 7 relationships, 8 business rules.</p>
+        <p>Provenance: 11 from-domain-model, 46 derived, 5 ai-suggested.</p>
+        <ul>
+          <li class="check-pass">Check 1 — Every entity has a name (kebab-case id + display name).</li>
+          <li class="check-pass">Check 2 — Every entity has ≥ 1 attribute.</li>
+          <li class="check-pass">Check 3 — Every entity has exactly one PK marked.</li>
+          <li class="check-pass">Check 4 — Every FK marker resolves to an existing entity.attribute and the target is a PK.</li>
+          <li class="check-pass">Check 5 — Every relationship&#39;s two endpoints exist in the entity list.</li>
+          <li class="check-pass">Check 6 — Every relationship has explicit min/max cardinality on both sides.</li>
+          <li class="check-pass">Check 7 — Every relationship has a non-empty verb label.</li>
+          <li class="check-pass">Check 8 — No M:N relationships in this Data Model (trivially clean; no join entities required).</li>
+          <li class="check-pass">Check 9 — Every business rule&#39;s target names an existing entity-id or relationship-id.</li>
+          <li class="check-pass">Check 10 — Every entity, attribute, relationship, and business rule carries exactly one provenance marker.</li>
+        </ul>
+        <p class="density-warning hidden">⚠ Density warning: AI-SUGGESTED relationship density above 50%.</p>
+        <p>AI-SUGGESTED relationship density: 0 / 7 = 0% (well below the 50% soft threshold; cardinality optionality notes on 5 relationships are recorded but do not flip relationship-level provenance).</p>
+
+        <h3>SVG layout — overlap report</h3>
+        <p><code>svg-overlap-check</code> summary: figures=3, total=26, node_on_node=0, edge_through_node=12, label_on_edge=14. Catalogue tables above are the canonical deliverable; the Mermaid <code>erDiagram</code> and <code>classDiagram</code> source blocks under the diagrams are the clean fallback for the SVG figures. Root causes: (a) Chen relationship edges in figure 2 terminate inside the diamond AABB rather than precisely at the diamond&#39;s outer vertex; (b) verb-label text elements use SVG <code>text-anchor=&quot;middle&quot;</code> while the deterministic checker computes per-text AABBs with left-anchored placement, so the labels&#39; opaque <code>*-bg</code> rects cover the visual extent but not the checker&#39;s right-shifted AABB.</p>
+        <ul>
+          <li>SVG overlap — <code>label_on_edge</code> in figure <code>svg1-crows-foot</code>: <code>relationship-verb (approves)</code> ↔ <code>relationship-line</code> at [340,348,392,362].</li>
+          <li>SVG overlap — <code>label_on_edge</code> in figure <code>svg1-crows-foot</code>: <code>relationship-verb (rejects)</code> ↔ <code>relationship-line</code> at [370,368,415,382].</li>
+          <li>SVG overlap — <code>label_on_edge</code> in figure <code>svg1-crows-foot</code>: <code>relationship-verb (references)</code> ↔ <code>relationship-line</code> at [675,328,740,342].</li>
+          <li>SVG overlap — <code>edge_through_node</code> in figure <code>svg2-chen</code>: <code>relationship-line (uploads seg1)</code> ↔ <code>chen-diamond (D2)</code> at [265,200,317,200] vs [302,188,362,212].</li>
+          <li>SVG overlap — <code>edge_through_node</code> in figure <code>svg2-chen</code>: <code>relationship-line (uploads seg2)</code> ↔ <code>chen-diamond (D2)</code> at [347,200,400,200] vs [302,188,362,212].</li>
+          <li>SVG overlap — <code>edge_through_node</code> in figure <code>svg2-chen</code>: <code>relationship-line (approves polyline-1 seg2)</code> ↔ <code>chen-diamond (D3)</code> at [165,360,285,360] vs [270,348,330,372].</li>
+          <li>SVG overlap — <code>edge_through_node</code> in figure <code>svg2-chen</code>: <code>relationship-line (approves polyline-2 seg1)</code> ↔ <code>chen-diamond (D3)</code> at [315,360,440,360] vs [270,348,330,372].</li>
+          <li>SVG overlap — <code>edge_through_node</code> in figure <code>svg2-chen</code>: <code>relationship-line (rejects polyline-1 seg2)</code> ↔ <code>chen-diamond (D4)</code> at [215,380,375,380] vs [360,368,420,392].</li>
+          <li>SVG overlap — <code>edge_through_node</code> in figure <code>svg2-chen</code>: <code>relationship-line (rejects polyline-2 seg1)</code> ↔ <code>chen-diamond (D4)</code> at [405,380,470,380] vs [360,368,420,392].</li>
+          <li>SVG overlap — <code>edge_through_node</code> in figure <code>svg2-chen</code>: <code>relationship-line (has fl-fs seg1)</code> ↔ <code>chen-diamond (D5)</code> at [600,200,653,200] vs [638,188,698,212].</li>
+          <li>SVG overlap — <code>edge_through_node</code> in figure <code>svg2-chen</code>: <code>relationship-line (has fl-fs seg2)</code> ↔ <code>chen-diamond (D5)</code> at [683,200,735,200] vs [638,188,698,212].</li>
+          <li>SVG overlap — <code>edge_through_node</code> in figure <code>svg2-chen</code>: <code>relationship-line (has tx-ts seg1)</code> ↔ <code>chen-diamond (D6)</code> at [347,480,400,480] vs [302,468,362,492].</li>
+          <li>SVG overlap — <code>edge_through_node</code> in figure <code>svg2-chen</code>: <code>relationship-line (has tx-ts seg2)</code> ↔ <code>chen-diamond (D6)</code> at [265,480,317,480] vs [302,468,362,492].</li>
+          <li>SVG overlap — <code>edge_through_node</code> in figure <code>svg2-chen</code>: <code>relationship-line (references polyline-1 seg2)</code> ↔ <code>chen-diamond (D7)</code> at [550,340,685,340] vs [670,328,730,352].</li>
+          <li>SVG overlap — <code>edge_through_node</code> in figure <code>svg2-chen</code>: <code>relationship-line (references polyline-2 seg1)</code> ↔ <code>chen-diamond (D7)</code> at [715,340,775,340] vs [670,328,730,352].</li>
+          <li>SVG overlap — <code>label_on_edge</code> in figure <code>svg2-chen</code>: <code>chen-diamond-verb (produces)</code> ↔ <code>relationship-line (references seg2)</code> at [500,329,552,343].</li>
+          <li>SVG overlap — <code>label_on_edge</code> in figure <code>svg2-chen</code>: <code>chen-diamond-verb (uploads)</code> ↔ <code>relationship-line (uploads seg2)</code> at [332,189,377,203].</li>
+          <li>SVG overlap — <code>label_on_edge</code> in figure <code>svg2-chen</code>: <code>chen-diamond-verb (approves)</code> ↔ <code>relationship-line (approves polyline-2 seg1)</code> at [300,349,352,363].</li>
+          <li>SVG overlap — <code>label_on_edge</code> in figure <code>svg2-chen</code>: <code>chen-diamond-verb (rejects)</code> ↔ <code>relationship-line (rejects polyline-2 seg1)</code> at [390,369,435,383].</li>
+          <li>SVG overlap — <code>label_on_edge</code> in figure <code>svg2-chen</code>: <code>chen-diamond-verb (has fl-fs)</code> ↔ <code>relationship-line (has fl-fs seg2)</code> at [668,189,687,203].</li>
+          <li>SVG overlap — <code>label_on_edge</code> in figure <code>svg2-chen</code>: <code>chen-diamond-verb (has tx-ts)</code> ↔ <code>relationship-line (has tx-ts seg1)</code> at [332,469,351,483].</li>
+          <li>SVG overlap — <code>label_on_edge</code> in figure <code>svg2-chen</code>: <code>chen-diamond-verb (references)</code> ↔ <code>relationship-line (references polyline-2 seg1)</code> at [700,329,765,343].</li>
+          <li>SVG overlap — <code>label_on_edge</code> in figure <code>svg3-uml</code>: <code>relationship-verb («produces»)</code> ↔ <code>relationship-line (references seg2)</code> at [505,330,570,344].</li>
+          <li>SVG overlap — <code>label_on_edge</code> in figure <code>svg3-uml</code>: <code>relationship-verb («approves»)</code> ↔ <code>relationship-line (approves polyline seg2)</code> at [342,348,407,362].</li>
+          <li>SVG overlap — <code>label_on_edge</code> in figure <code>svg3-uml</code>: <code>relationship-verb («rejects»)</code> ↔ <code>relationship-line (rejects polyline seg2)</code> at [370,368,428,382].</li>
+          <li>SVG overlap — <code>label_on_edge</code> in figure <code>svg3-uml</code>: <code>relationship-verb («references»)</code> ↔ <code>relationship-line (references seg2)</code> at [675,328,753,342].</li>
+        </ul>
+      </section>
     </details>
 
     <footer class="bottom">
       <div class="legend">
-        <span class="legend-item"><span class="legend-dot s-domain" aria-hidden="true"></span> from &sect;2 Domain model</span>
-        <span class="legend-item"><span class="legend-dot s-derived" aria-hidden="true"></span> derived from &sect;3/&sect;4/&sect;5/&sect;6/&sect;7</span>
+        <span class="legend-item"><span class="legend-dot s-domain" aria-hidden="true"></span> from §2 Domain model</span>
+        <span class="legend-item"><span class="legend-dot s-derived" aria-hidden="true"></span> derived from §3/§4/§5/§6/§7</span>
         <span class="legend-item"><span class="legend-dot s-ai" aria-hidden="true"></span> [AI-SUGGESTED]</span>
       </div>
       <div class="credit">Generated by `framework/agents/analyses/data-model-analyser.md`.</div>

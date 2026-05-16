@@ -24,10 +24,10 @@
       --prov-derived:  #b86a00;
 
       /* Goal-source pills */
-      --goal-us:  #8a6ec7;
-      --goal-tf:  #4f8fbf;
-      --goal-g:   #2a8a2a;
-      --goal-p:   #b86a00;
+      --goal-us:  #8a6ec7;   /* user-stories — violet */
+      --goal-tf:  #4f8fbf;   /* task-flows — blue */
+      --goal-g:   #2a8a2a;   /* goals — green */
+      --goal-p:   #b86a00;   /* prose — amber */
 
       /* Flow-source pills */
       --flow-tf:  #4f8fbf;
@@ -561,6 +561,7 @@
       grid-row: 2;
       margin-left: -0px;
     }
+    /* If the step has subject + text rendered inline (compact mode), use a single-row layout: */
     li.step.compact {
       grid-template-columns: 20px auto minmax(0, 1fr);
       grid-template-rows: auto;
@@ -884,760 +885,26 @@
 
       <dl class="meta-grid">
         <div><dt>Domain</dt><dd>Financial services / banking back-office</dd></div>
-        <div><dt>Generated</dt><dd>2026-05-15T00:00:00Z</dd></div>
+        <div><dt>Generated</dt><dd>2026-05-16T11:12:01Z</dd></div>
         <div><dt>Source SHA-256</dt><dd>6f9272bbb30d1dce025b843f5319e790bdaa5ac2a07103204bbea7144694f0ae</dd></div>
         <div><dt>Use Cases</dt><dd>10</dd></div>
-        <div><dt>Primary Actors</dt><dd>3</dd></div>
-        <div><dt>Summary</dt><dd>1</dd></div>
-        <div><dt>User-Goal</dt><dd>8</dd></div>
+        <div><dt>Primary Actors</dt><dd>2</dd></div>
+        <div><dt>Summary</dt><dd>0</dd></div>
+        <div><dt>User-Goal</dt><dd>9</dd></div>
         <div><dt>Subfunction</dt><dd>1</dd></div>
-        <div><dt>Extensions</dt><dd>18</dd></div>
+        <div><dt>Extensions</dt><dd>19</dd></div>
       </dl>
     </section>
 
     <nav class="toc" aria-label="Sections">
       <ol>
         <li><a href="#overview">Overview</a></li>
-        <li><a href="#diagrams">Diagrams</a></li>
         <li><a href="#uml-diagrams">UML diagrams</a></li>
+        <li><a href="#diagrams">Diagrams</a></li>
         <li><a href="#tables">Tabular information</a></li>
         <li><a href="#diagnostics">Diagnostics</a></li>
       </ol>
     </nav>
-
-    <div id="diagrams" class="layout">
-      <aside class="actor-index" aria-label="Actor index">
-        <h3>Actors</h3>
-        <ul>
-          <li>
-            <span class="provenance provenance-from-personas" aria-hidden="true">●</span>
-            <span class="actor-name">Importer</span>
-            <span class="actor-uc-count">3 UCs</span>
-          </li>
-          <li>
-            <span class="provenance provenance-from-personas" aria-hidden="true">●</span>
-            <span class="actor-name">Approver</span>
-            <span class="actor-uc-count">4 UCs</span>
-          </li>
-          <li>
-            <span class="provenance provenance-derived" aria-hidden="true">●</span>
-            <span class="actor-name">User</span>
-            <span class="actor-uc-count">3 UCs</span>
-          </li>
-        </ul>
-      </aside>
-      <section class="uc-board" aria-label="Use Cases map">
-
-        <section class="uc-level-block level-block-summary" aria-labelledby="block-summary-name">
-          <header class="level-block-header">
-            <h2 id="block-summary-name" class="level-block-title">Summary</h2>
-            <p class="level-block-caption">Kite-level UCs: multi-UC business processes spanning multiple sittings; each step references another UC by ID.</p>
-          </header>
-          <div class="uc-grid">
-
-            <article id="uc-UC10" class="uc-card level-summary" aria-labelledby="uc-UC10-id">
-              <header class="uc-card-header">
-                <span class="uc-id" id="uc-UC10-id">UC-10</span>
-                <h3 class="uc-title">Run a transaction approval cycle</h3>
-                <span class="level-chip level-summary">SUMMARY</span>
-              </header>
-              <div class="uc-actor-row">
-                <span class="provenance provenance-from-personas" title="from-personas" aria-hidden="true">●</span>
-                <span class="actor-name">Importer</span>
-                <span class="goal-source src-from-prose" title="from-prose" aria-hidden="true"></span>
-                <span class="flow-source flow-derived" title="flow-derived" aria-hidden="true"></span>
-              </div>
-              <p class="goal-in-context">The Importer initiates a transaction approval cycle that ends when the file's transactions reach final disposition and the approved set is available to downstream consumers.</p>
-              <dl class="uc-field-block">
-                <dt>Stakeholders</dt>
-                <dd><ul class="stakeholders">
-                  <li><strong>Importer</strong> — files reach final disposition (§1 Application context).</li>
-                  <li><strong>Approver</strong> — all imported transactions are reviewed (§1).</li>
-                  <li><strong>Audit team</strong> — every approve/reject/upload/login/logout event is logged (§6.6.4).</li>
-                  <li><strong>POPIA Regulator</strong> — 7-year audit retention (§6.6.4).</li>
-                  <li><strong>Downstream consumers</strong> — receive the exported approved set (§1).</li>
-                </ul></dd>
-                <dt>Preconditions</dt>
-                <dd><ul class="preconditions">
-                  <li>The Importer has access to upload. [§6.5 RBAC]</li>
-                  <li>The Approver has access to review / approve / reject / export. [§6.5 RBAC]</li>
-                  <li>A FileSetting referenced by the upload exists. [§7 File Log]</li>
-                </ul></dd>
-                <dt>Success guarantees</dt>
-                <dd><ul class="success-guarantees">
-                  <li class="derived"><em>Every transaction produced by the uploaded File Log has reached final disposition (Approved or Rejected).</em> <span class="marker">derived-from-pains</span></li>
-                  <li class="derived"><em>The approved-and-exported set is available to downstream consumers.</em> <span class="marker">derived-from-pains</span></li>
-                </ul></dd>
-                <dt>Minimal guarantees</dt>
-                <dd><ul class="minimal-guarantees">
-                  <li>The audit trail records every step of the cycle. [§6.6.4]</li>
-                  <li class="derived"><em>Data integrity is preserved across the multi-step pipeline (no partial commits).</em> <span class="marker">derived-from-risks</span></li>
-                </ul></dd>
-                <dt>Trigger</dt>
-                <dd class="trigger"><em>An Importer has a new transaction file to upload.</em> <span class="marker">derived-trigger</span></dd>
-              </dl>
-              <section class="scenario-block" aria-label="Main success scenario">
-                <h4>Main success scenario <span class="flow-source-label">(flow-derived)</span></h4>
-                <ol class="main-scenario">
-                  <li class="step actor-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The Importer</span><span class="step-text">authenticates (Include UC-01).</span></li>
-                  <li class="step actor-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The Importer</span><span class="step-text">uploads a transaction file (Include UC-02).</span></li>
-                  <li class="step actor-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The Approver</span><span class="step-text">authenticates (Include UC-01).</span></li>
-                  <li class="step actor-step" data-step-no="4"><span class="step-no">4</span><span class="step-subject">The Approver</span><span class="step-text">reviews the imported transactions (Include UC-04).</span></li>
-                  <li class="step actor-step" data-step-no="5"><span class="step-no">5</span><span class="step-subject">The Approver</span><span class="step-text">approves or rejects each transaction (Include UC-05 or UC-06).</span></li>
-                  <li class="step actor-step" data-step-no="6"><span class="step-no">6</span><span class="step-subject">The Approver</span><span class="step-text">exports the approved set (Include UC-07).</span></li>
-                </ol>
-              </section>
-              <section class="extensions-block" aria-label="Extensions">
-                <h4>Extensions</h4>
-                <ol class="extensions">
-                  <li class="extension ext-exception" data-branch="2a">
-                    <span class="branch-label">2a</span><span class="ext-class">exception</span>
-                    <ol class="extension-steps">
-                      <li class="step actor-step">The Importer resolves the upload failure (Include UC-02 retry path) before the cycle can continue. <em>derived-from-risks</em></li>
-                    </ol>
-                  </li>
-                </ol>
-              </section>
-            </article>
-
-          </div>
-        </section>
-
-        <section class="uc-level-block level-block-user-goal" aria-labelledby="block-user-goal-name">
-          <header class="level-block-header">
-            <h2 id="block-user-goal-name" class="level-block-title">User-Goal</h2>
-            <p class="level-block-caption">Sea-level UCs: a single sitting; the actor walks away with the goal achieved or explicitly abandoned. The default for ambiguous classification.</p>
-          </header>
-          <div class="uc-grid">
-
-            <article id="uc-UC01" class="uc-card level-user-goal" aria-labelledby="uc-UC01-id">
-              <header class="uc-card-header">
-                <span class="uc-id" id="uc-UC01-id">UC-01</span>
-                <h3 class="uc-title">Log in to the system</h3>
-                <span class="level-chip level-user-goal">USER-GOAL</span>
-              </header>
-              <div class="uc-actor-row">
-                <span class="provenance provenance-derived" title="derived-actor" aria-hidden="true">●</span>
-                <span class="actor-name">User</span>
-                <span class="goal-source src-from-task-flows" title="from-task-flows" aria-hidden="true"></span>
-                <span class="flow-source flow-from-task-flows" title="flow-from-task-flows" aria-hidden="true"></span>
-              </div>
-              <p class="goal-in-context">An authenticated user logs in so they can access their role-specific landing page and begin work.</p>
-              <dl class="uc-field-block">
-                <dt>Stakeholders</dt>
-                <dd><ul class="stakeholders">
-                  <li><strong>User</strong> — successful, secure authentication into the role-specific landing page.</li>
-                  <li><strong>Security team</strong> — account-protection policies enforced (lockout, bcrypt, session cookie attributes per §6.6.1).</li>
-                </ul></dd>
-                <dt>Preconditions</dt>
-                <dd><ul class="preconditions">
-                  <li>The user holds valid credentials in the system. [§6.1, §7 User]</li>
-                  <li>The user is at the login page. [§5 Flow: Authentication]</li>
-                </ul></dd>
-                <dt>Success guarantees</dt>
-                <dd><ul class="success-guarantees">
-                  <li>The user holds a valid session cookie (HttpOnly, Secure, SameSite=Strict). <span class="src-ac">§6.6.1</span></li>
-                  <li>The user is routed to their role-specific landing page. <span class="src-ac">§5 Flow: Authentication</span></li>
-                </ul></dd>
-                <dt>Minimal guarantees</dt>
-                <dd><ul class="minimal-guarantees">
-                  <li>On failed authentication, the error message does not reveal which credential field was incorrect. [BR-05]</li>
-                  <li>On repeated failure, the account is locked per the lockout policy (5 attempts → 15-minute cooldown). [§6.6.1]</li>
-                  <li>The login attempt is recorded in the audit trail. [§6.6.4]</li>
-                </ul></dd>
-                <dt>Trigger</dt>
-                <dd class="trigger">The user opens the login page. [§5 Flow: Authentication]</dd>
-              </dl>
-              <section class="scenario-block" aria-label="Main success scenario">
-                <h4>Main success scenario <span class="flow-source-label">(flow-from-task-flows)</span></h4>
-                <ol class="main-scenario">
-                  <li class="step actor-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The User</span><span class="step-text">submits their email and password.</span></li>
-                  <li class="step system-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The System</span><span class="step-text">validates the credentials against the bcrypt-hashed credential store.</span></li>
-                  <li class="step system-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The System</span><span class="step-text">issues a session cookie with HttpOnly, Secure, SameSite=Strict attributes.</span></li>
-                  <li class="step system-step" data-step-no="4"><span class="step-no">4</span><span class="step-subject">The System</span><span class="step-text">routes the User to the role-specific landing page.</span></li>
-                </ol>
-              </section>
-              <section class="extensions-block" aria-label="Extensions">
-                <h4>Extensions</h4>
-                <ol class="extensions">
-                  <li class="extension ext-exception" data-branch="1a">
-                    <span class="branch-label">1a</span><span class="ext-class">exception</span>
-                    <ol class="extension-steps">
-                      <li class="step system-step">The System returns a generic error response that does not reveal which credential field was incorrect. [BR-05]</li>
-                      <li class="step actor-step">The User remains on the login page. [§5 Flow: Authentication exception]</li>
-                    </ol>
-                  </li>
-                  <li class="extension ext-exception" data-branch="1b">
-                    <span class="branch-label">1b</span><span class="ext-class">exception</span>
-                    <ol class="extension-steps">
-                      <li class="step system-step">The System rejects the login attempt for the 15-minute cooldown after 5 failed attempts. [§6.6.1 Account lockout]</li>
-                      <li class="step system-step">The System informs the User with a generic error message. [BR-05 + §6.6.1]</li>
-                    </ol>
-                  </li>
-                </ol>
-              </section>
-            </article>
-
-            <article id="uc-UC02" class="uc-card level-user-goal" aria-labelledby="uc-UC02-id">
-              <header class="uc-card-header">
-                <span class="uc-id" id="uc-UC02-id">UC-02</span>
-                <h3 class="uc-title">Upload a transaction file</h3>
-                <span class="level-chip level-user-goal">USER-GOAL</span>
-              </header>
-              <div class="uc-actor-row">
-                <span class="provenance provenance-from-personas" title="from-personas" aria-hidden="true">●</span>
-                <span class="actor-name">Importer</span>
-                <span class="goal-source src-from-user-stories" title="from-user-stories" aria-hidden="true"></span>
-                <span class="flow-source flow-from-task-flows" title="flow-from-task-flows" aria-hidden="true"></span>
-              </div>
-              <p class="goal-in-context">The Importer uploads a transaction file with required metadata so the system can ingest it into a File Log and parse its records.</p>
-              <dl class="uc-field-block">
-                <dt>Stakeholders</dt>
-                <dd><ul class="stakeholders">
-                  <li><strong>Importer</strong> — upload acceptance and parsing feedback (§3 Importer driving forces).</li>
-                  <li><strong>Approver</strong> — well-formed transactions arrive in the review queue.</li>
-                  <li><strong>Upstream operations</strong> — visible accountability for failed files (§3 Importer "Stakes").</li>
-                </ul></dd>
-                <dt>Preconditions</dt>
-                <dd><ul class="preconditions">
-                  <li>The user is authenticated as an Importer. [§6.5 RBAC, BR-04]</li>
-                  <li>The user holds an active session. [§6.6.1]</li>
-                  <li>A FileSetting referenced by the upload exists. [§7 File Log: SettingId references FileSetting.Id]</li>
-                </ul></dd>
-                <dt>Success guarantees</dt>
-                <dd><ul class="success-guarantees">
-                  <li>A File Log row is created with FileSettingId, FileSettingName, FileName, and the original filename. <span class="src-ac">§5 Flow: File Upload + §6.1</span></li>
-                  <li>The file's processing lifecycle is exposed via LastExecutedActivityName / CurrentStatus on the File Log. <span class="src-ac">§6.1, §7 File Log</span></li>
-                  <li>Upload feedback is rendered to the Importer after submission. <span class="src-ac">§5 Flow: File Upload</span></li>
-                </ul></dd>
-                <dt>Minimal guarantees</dt>
-                <dd><ul class="minimal-guarantees">
-                  <li>On failure, no File Log row is created in a Completed state. [§5 Flow: File Upload exception]</li>
-                  <li>On failure, the file is not parsed into Transactions. [§5 Flow: File Upload exception]</li>
-                  <li>The upload event is recorded in the audit trail. [§6.6.4]</li>
-                </ul></dd>
-                <dt>Trigger</dt>
-                <dd class="trigger">The Importer selects a file to upload. [§5 Flow: File Upload]</dd>
-              </dl>
-              <section class="scenario-block" aria-label="Main success scenario">
-                <h4>Main success scenario <span class="flow-source-label">(flow-from-task-flows)</span></h4>
-                <ol class="main-scenario">
-                  <li class="step actor-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The Importer</span><span class="step-text">provides the required metadata (FileSettingId, FileSettingName, FileName) for the file.</span></li>
-                  <li class="step actor-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The Importer</span><span class="step-text">submits the upload.</span></li>
-                  <li class="step system-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The System</span><span class="step-text">creates a File Log with the supplied metadata.</span></li>
-                  <li class="step system-step" data-step-no="4"><span class="step-no">4</span><span class="step-subject">The System</span><span class="step-text">begins parsing the file into Transactions.</span></li>
-                  <li class="step system-step" data-step-no="5"><span class="step-no">5</span><span class="step-subject">The System</span><span class="step-text">renders upload feedback to the Importer.</span></li>
-                </ol>
-              </section>
-              <section class="extensions-block" aria-label="Extensions">
-                <h4>Extensions</h4>
-                <ol class="extensions">
-                  <li class="extension ext-exception" data-branch="1a">
-                    <span class="branch-label">1a</span><span class="ext-class">exception</span>
-                    <ol class="extension-steps">
-                      <li class="step system-step">The System prevents upload submission until all required metadata is supplied. [§5 Flow: File Upload decision points]</li>
-                    </ol>
-                  </li>
-                  <li class="extension ext-exception" data-branch="4a">
-                    <span class="branch-label">4a</span><span class="ext-class">exception</span>
-                    <ol class="extension-steps">
-                      <li class="step system-step">The System records the File Log in a Failed state. [§7 File Log; §5 Flow: File Upload exception]</li>
-                      <li class="step system-step">The System surfaces the failure to the Importer. [§5 Flow: File Upload exception]</li>
-                      <li class="step system-step">The System inhibits drill-down from the file's summary view into transactions until retry succeeds. [BR-07]</li>
-                    </ol>
-                  </li>
-                </ol>
-              </section>
-            </article>
-
-            <article id="uc-UC03" class="uc-card level-user-goal" aria-labelledby="uc-UC03-id">
-              <header class="uc-card-header">
-                <span class="uc-id" id="uc-UC03-id">UC-03</span>
-                <h3 class="uc-title">Review file processing status</h3>
-                <span class="level-chip level-user-goal">USER-GOAL</span>
-              </header>
-              <div class="uc-actor-row">
-                <span class="provenance provenance-from-personas" title="from-personas" aria-hidden="true">●</span>
-                <span class="actor-name">Importer</span>
-                <span class="goal-source src-from-user-stories" title="from-user-stories" aria-hidden="true"></span>
-                <span class="flow-source flow-from-task-flows" title="flow-from-task-flows" aria-hidden="true"></span>
-              </div>
-              <p class="goal-in-context">The Importer reviews the file log dashboard to confirm uploaded files have reached a completed state and to surface any failures.</p>
-              <dl class="uc-field-block">
-                <dt>Stakeholders</dt>
-                <dd><ul class="stakeholders">
-                  <li><strong>Importer</strong> — file-level processing confirmation (§3 Importer driving forces).</li>
-                  <li><strong>Upstream operations</strong> — knowing any failed files require attention (§3 Importer fears).</li>
-                </ul></dd>
-                <dt>Preconditions</dt>
-                <dd><ul class="preconditions">
-                  <li>The user is authenticated. [§6.5 RBAC, §6.6.1]</li>
-                  <li>At least one File Log exists OR the empty-state copy is rendered. [§5 Flow: File Log Overview]</li>
-                </ul></dd>
-                <dt>Success guarantees</dt>
-                <dd><ul class="success-guarantees">
-                  <li>The Importer sees the list of uploaded files with columns File Name, Process Date, Record Count, and Status. <span class="src-ac">§6.1, §5 Flow: File Log Overview</span></li>
-                  <li>The Importer can drill into a file's summary view to see total records and counts by status (Imported / Approved / Rejected). <span class="src-ac">§5 Flow: File Summary View, §6.1</span></li>
-                </ul></dd>
-                <dt>Minimal guarantees</dt>
-                <dd><ul class="minimal-guarantees">
-                  <li>Empty list shows the empty-state message naming the entity ("No file logs yet"). [§5 Flow: File Log Overview exception, §6.4]</li>
-                  <li>A failed file's state is surfaced prominently and drill-down into transactions is inhibited until retry succeeds. [BR-07]</li>
-                </ul></dd>
-                <dt>Trigger</dt>
-                <dd class="trigger">The Importer opens the File Logs dashboard. [§5 Flow: File Log Overview]</dd>
-              </dl>
-              <section class="scenario-block" aria-label="Main success scenario">
-                <h4>Main success scenario <span class="flow-source-label">(flow-from-task-flows)</span></h4>
-                <ol class="main-scenario">
-                  <li class="step system-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The System</span><span class="step-text">renders the list of uploaded files with columns File Name, Process Date, Record Count, and Status.</span></li>
-                  <li class="step actor-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The Importer</span><span class="step-text">locates the most recent uploads and inspects each file's status.</span></li>
-                  <li class="step actor-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The Importer</span><span class="step-text">drills into a file's summary view.</span></li>
-                  <li class="step system-step" data-step-no="4"><span class="step-no">4</span><span class="step-subject">The System</span><span class="step-text">renders the File Summary View with total records and a count by status (Imported / Approved / Rejected).</span></li>
-                </ol>
-              </section>
-              <section class="extensions-block" aria-label="Extensions">
-                <h4>Extensions</h4>
-                <ol class="extensions">
-                  <li class="extension ext-alt" data-branch="1a">
-                    <span class="branch-label">1a</span><span class="ext-class">alt</span>
-                    <ol class="extension-steps">
-                      <li class="step system-step">The System renders the empty-state message naming the entity ("No file logs yet"). [§5 Flow: File Log Overview exception]</li>
-                      <li class="step system-step">The System offers the upload CTA to Importers only. [§5 Flow: File Log Overview "Role-conditional behaviour"]</li>
-                    </ol>
-                  </li>
-                  <li class="extension ext-alt" data-branch="4a">
-                    <span class="branch-label">4a</span><span class="ext-class">alt</span>
-                    <ol class="extension-steps">
-                      <li class="step system-step">The System surfaces the file's current state prominently in the summary view. [BR-07]</li>
-                      <li class="step system-step">The System inhibits drill-down into transactions until retry succeeds. [BR-07]</li>
-                    </ol>
-                  </li>
-                </ol>
-              </section>
-            </article>
-
-            <article id="uc-UC04" class="uc-card level-user-goal" aria-labelledby="uc-UC04-id">
-              <header class="uc-card-header">
-                <span class="uc-id" id="uc-UC04-id">UC-04</span>
-                <h3 class="uc-title">Review imported transactions</h3>
-                <span class="level-chip level-user-goal">USER-GOAL</span>
-              </header>
-              <div class="uc-actor-row">
-                <span class="provenance provenance-from-personas" title="from-personas" aria-hidden="true">●</span>
-                <span class="actor-name">Approver</span>
-                <span class="goal-source src-from-user-stories" title="from-user-stories" aria-hidden="true"></span>
-                <span class="flow-source flow-from-task-flows" title="flow-from-task-flows" aria-hidden="true"></span>
-              </div>
-              <p class="goal-in-context">The Approver reviews the queue of Imported transactions to decide which ones to approve and which to reject.</p>
-              <dl class="uc-field-block">
-                <dt>Stakeholders</dt>
-                <dd><ul class="stakeholders">
-                  <li><strong>Approver</strong> — queue clarity and decision confidence (§3 Approver driving forces).</li>
-                  <li><strong>Audit team</strong> — every reviewed transaction is recorded with LastChangedUser / LastChangedDate (§6.6.4).</li>
-                  <li><strong>Downstream consumers</strong> — only approved transactions flow downstream (§1 Application context).</li>
-                </ul></dd>
-                <dt>Preconditions</dt>
-                <dd><ul class="preconditions">
-                  <li>The user is authenticated as an Approver. [§6.5 RBAC]</li>
-                  <li>The transaction table is reachable from navigation or from a file log row. [§5 Flow: Transaction Table]</li>
-                </ul></dd>
-                <dt>Success guarantees</dt>
-                <dd><ul class="success-guarantees">
-                  <li>The Approver sees the transaction table with columns Reference, Date, Account, Amount, Currency, and Status. <span class="src-ac">§6.1, §5 Flow: Transaction Table</span></li>
-                  <li>The Approver can browse Imported transactions and apply filters via UC-08. <span class="src-ac">§5 Flow: Transaction Table, §6.1</span></li>
-                  <li>Approve / Reject row actions are visible only for rows in Imported status. <span class="src-ac">BR-01</span></li>
-                </ul></dd>
-                <dt>Minimal guarantees</dt>
-                <dd><ul class="minimal-guarantees">
-                  <li>Empty filter results show active filter chips and a Clear-all action. [§5 Flow: Search & Filtering exception, §6.4]</li>
-                  <li>Empty data ("no data") is distinguished from "no results from a filter". [§5 Flow: Transaction Table exception]</li>
-                </ul></dd>
-                <dt>Trigger</dt>
-                <dd class="trigger">The Approver opens the transaction table from navigation or from a file log row. [§5 Flow: Transaction Table]</dd>
-              </dl>
-              <section class="scenario-block" aria-label="Main success scenario">
-                <h4>Main success scenario <span class="flow-source-label">(flow-from-task-flows)</span></h4>
-                <ol class="main-scenario">
-                  <li class="step system-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The System</span><span class="step-text">renders the transaction table with columns Reference, Date, Account, Amount, Currency, and Status.</span></li>
-                  <li class="step actor-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The Approver</span><span class="step-text">scans the transactions in the Imported state.</span></li>
-                  <li class="step actor-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The Approver</span><span class="step-text">applies filters to narrow the queue (UC-08).</span></li>
-                  <li class="step actor-step" data-step-no="4"><span class="step-no">4</span><span class="step-subject">The Approver</span><span class="step-text">determines whether each row warrants an approve or reject decision.</span></li>
-                  <li class="step system-step" data-step-no="5"><span class="step-no">5</span><span class="step-subject">The System</span><span class="step-text">keeps the row-level Approve / Reject actions available for rows in Imported status only.</span></li>
-                </ol>
-              </section>
-              <section class="extensions-block" aria-label="Extensions">
-                <h4>Extensions</h4>
-                <ol class="extensions">
-                  <li class="extension ext-alt" data-branch="1a">
-                    <span class="branch-label">1a</span><span class="ext-class">alt</span>
-                    <ol class="extension-steps">
-                      <li class="step system-step">The System renders the zero-results state naming the active filters. [§5 Flow: Search & Filtering exception, §6.4]</li>
-                      <li class="step system-step">The System offers Clear-all instead of the create CTA. [§6.4]</li>
-                    </ol>
-                  </li>
-                  <li class="extension ext-alt" data-branch="1b">
-                    <span class="branch-label">1b</span><span class="ext-class">alt</span>
-                    <ol class="extension-steps">
-                      <li class="step system-step">The System renders the empty-state message ("No transactions yet"). [§6.4]</li>
-                      <li class="step system-step">The System does not offer a create CTA (transactions are produced by upload, not created in-app). [§5 Flow: Transaction Table exception]</li>
-                    </ol>
-                  </li>
-                </ol>
-              </section>
-            </article>
-
-            <article id="uc-UC05" class="uc-card level-user-goal" aria-labelledby="uc-UC05-id">
-              <header class="uc-card-header">
-                <span class="uc-id" id="uc-UC05-id">UC-05</span>
-                <h3 class="uc-title">Approve a transaction</h3>
-                <span class="level-chip level-user-goal">USER-GOAL</span>
-              </header>
-              <div class="uc-actor-row">
-                <span class="provenance provenance-from-personas" title="from-personas" aria-hidden="true">●</span>
-                <span class="actor-name">Approver</span>
-                <span class="goal-source src-from-user-stories" title="from-user-stories" aria-hidden="true"></span>
-                <span class="flow-source flow-from-task-flows" title="flow-from-task-flows" aria-hidden="true"></span>
-              </div>
-              <p class="goal-in-context">The Approver approves a single Imported transaction with a confirmation step so it cannot be approved by accident.</p>
-              <dl class="uc-field-block">
-                <dt>Stakeholders</dt>
-                <dd><ul class="stakeholders">
-                  <li><strong>Approver</strong> — personal accountability for the approval (§3 Approver "Stakes").</li>
-                  <li><strong>Audit team</strong> — approval recorded with LastChangedUser / LastChangedDate (§6.6.4).</li>
-                  <li><strong>Downstream consumers</strong> — only correctly approved records propagate (§1).</li>
-                </ul></dd>
-                <dt>Preconditions</dt>
-                <dd><ul class="preconditions">
-                  <li>The user is authenticated as an Approver. [§6.5 RBAC, BR-03]</li>
-                  <li>The target transaction's Status is Imported. [BR-01]</li>
-                  <li>The Approver has located the transaction in the table. [§5 Flow: Approve Transaction]</li>
-                </ul></dd>
-                <dt>Success guarantees</dt>
-                <dd><ul class="success-guarantees">
-                  <li>The transaction's Status transitions from Imported to Approved. <span class="src-ac">§5 Flow: Approve Transaction</span></li>
-                  <li>The new status is reflected in the transaction table without a manual refresh. <span class="src-ac">BR-06</span></li>
-                  <li>LastChangedUser and LastChangedDate are recorded on the transaction. <span class="src-ac">§6.3, §6.6.4</span></li>
-                  <li>The approval event is recorded in the audit trail. <span class="src-ac">§6.6.4</span></li>
-                </ul></dd>
-                <dt>Minimal guarantees</dt>
-                <dd><ul class="minimal-guarantees">
-                  <li>On confirmation cancel, the transaction's Status remains Imported. [§5 Flow: Approve Transaction step 3]</li>
-                  <li class="derived"><em>On service failure, the transaction's Status is not partially updated (no partial commit).</em> <span class="marker">derived-from-risks</span></li>
-                  <li>The attempt is recorded in the audit trail. [§6.6.4]</li>
-                </ul></dd>
-                <dt>Trigger</dt>
-                <dd class="trigger">The Approver selects a target transaction and initiates approval. [§5 Flow: Approve Transaction]</dd>
-              </dl>
-              <section class="scenario-block" aria-label="Main success scenario">
-                <h4>Main success scenario <span class="flow-source-label">(flow-from-task-flows)</span></h4>
-                <ol class="main-scenario">
-                  <li class="step actor-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The Approver</span><span class="step-text">initiates the Approve action on the target Imported transaction.</span></li>
-                  <li class="step system-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The System</span><span class="step-text">renders a confirmation modal naming the affected transaction.</span></li>
-                  <li class="step actor-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The Approver</span><span class="step-text">confirms the approval.</span></li>
-                  <li class="step system-step" data-step-no="4"><span class="step-no">4</span><span class="step-subject">The System</span><span class="step-text">transitions the transaction's Status from Imported to Approved.</span></li>
-                  <li class="step system-step" data-step-no="5"><span class="step-no">5</span><span class="step-subject">The System</span><span class="step-text">records LastChangedUser and LastChangedDate on the transaction.</span></li>
-                  <li class="step system-step" data-step-no="6"><span class="step-no">6</span><span class="step-subject">The System</span><span class="step-text">refreshes the transaction table so the new status is visible without a manual refresh.</span></li>
-                </ol>
-              </section>
-              <section class="extensions-block" aria-label="Extensions">
-                <h4>Extensions</h4>
-                <ol class="extensions">
-                  <li class="extension ext-exception" data-branch="1a">
-                    <span class="branch-label">1a</span><span class="ext-class">exception</span>
-                    <ol class="extension-steps">
-                      <li class="step system-step">The System hides the Approve action on the row when the transaction is not in Imported status. [BR-01]</li>
-                    </ol>
-                  </li>
-                  <li class="extension ext-alt" data-branch="3a">
-                    <span class="branch-label">3a</span><span class="ext-class">alt</span>
-                    <ol class="extension-steps">
-                      <li class="step system-step">The System dismisses the confirmation modal. [§5 Flow: Approve Transaction step 3]</li>
-                      <li class="step system-step">The transaction's Status remains Imported. [§2.3 Transaction invariant]</li>
-                    </ol>
-                  </li>
-                  <li class="extension ext-exception" data-branch="4a">
-                    <span class="branch-label">4a</span><span class="ext-class">exception</span>
-                    <ol class="extension-steps">
-                      <li class="step system-step">The System surfaces the failure to the Approver. <em>derived-from-risks</em></li>
-                      <li class="step system-step">The transaction's Status remains Imported (no partial commit). <em>derived-from-risks</em></li>
-                    </ol>
-                  </li>
-                </ol>
-              </section>
-            </article>
-
-            <article id="uc-UC06" class="uc-card level-user-goal" aria-labelledby="uc-UC06-id">
-              <header class="uc-card-header">
-                <span class="uc-id" id="uc-UC06-id">UC-06</span>
-                <h3 class="uc-title">Reject a transaction</h3>
-                <span class="level-chip level-user-goal">USER-GOAL</span>
-              </header>
-              <div class="uc-actor-row">
-                <span class="provenance provenance-from-personas" title="from-personas" aria-hidden="true">●</span>
-                <span class="actor-name">Approver</span>
-                <span class="goal-source src-from-user-stories" title="from-user-stories" aria-hidden="true"></span>
-                <span class="flow-source flow-from-task-flows" title="flow-from-task-flows" aria-hidden="true"></span>
-              </div>
-              <p class="goal-in-context">The Approver rejects a single Imported transaction and records a mandatory note so the rejection rationale is captured for audit.</p>
-              <dl class="uc-field-block">
-                <dt>Stakeholders</dt>
-                <dd><ul class="stakeholders">
-                  <li><strong>Approver</strong> — defensible rejection rationale (§3 Approver driving forces).</li>
-                  <li><strong>Audit team</strong> — mandatory note captured for audit (BR-02, §6.6.4).</li>
-                  <li><strong>POPIA Regulator</strong> — 7-year retention of the rejection rationale (§6.6.4).</li>
-                </ul></dd>
-                <dt>Preconditions</dt>
-                <dd><ul class="preconditions">
-                  <li>The user is authenticated as an Approver. [§6.5 RBAC, BR-03]</li>
-                  <li>The target transaction's Status is Imported. [BR-01]</li>
-                  <li>The Approver has located the transaction in the table. [§5 Flow: Reject Transaction]</li>
-                </ul></dd>
-                <dt>Success guarantees</dt>
-                <dd><ul class="success-guarantees">
-                  <li>The transaction's Status transitions from Imported to Rejected. <span class="src-ac">§5 Flow: Reject Transaction</span></li>
-                  <li>A non-empty UserNote is recorded against the transaction. <span class="src-ac">BR-02, §7 Transaction.UserNote</span></li>
-                  <li>LastChangedUser and LastChangedDate are recorded on the transaction. <span class="src-ac">§6.3, §6.6.4</span></li>
-                  <li>The new status is reflected in the transaction table without a manual refresh. <span class="src-ac">BR-06</span></li>
-                  <li>The rejection event is recorded in the audit trail. <span class="src-ac">§6.6.4</span></li>
-                </ul></dd>
-                <dt>Minimal guarantees</dt>
-                <dd><ul class="minimal-guarantees">
-                  <li>If the note field is empty, the submit control remains disabled and inline validation flags the field as required. [§5 Flow: Reject Transaction exception, BR-02]</li>
-                  <li class="derived"><em>On submit failure, the transaction's Status is not partially updated (no partial commit).</em> <span class="marker">derived-from-risks</span></li>
-                  <li>The attempt is recorded in the audit trail. [§6.6.4]</li>
-                </ul></dd>
-                <dt>Trigger</dt>
-                <dd class="trigger">The Approver selects a target transaction and initiates rejection. [§5 Flow: Reject Transaction]</dd>
-              </dl>
-              <section class="scenario-block" aria-label="Main success scenario">
-                <h4>Main success scenario <span class="flow-source-label">(flow-from-task-flows)</span></h4>
-                <ol class="main-scenario">
-                  <li class="step actor-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The Approver</span><span class="step-text">initiates the Reject action on the target Imported transaction.</span></li>
-                  <li class="step system-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The System</span><span class="step-text">presents a mandatory note field.</span></li>
-                  <li class="step actor-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The Approver</span><span class="step-text">provides a non-empty note explaining the rejection.</span></li>
-                  <li class="step actor-step" data-step-no="4"><span class="step-no">4</span><span class="step-subject">The Approver</span><span class="step-text">submits the rejection.</span></li>
-                  <li class="step system-step" data-step-no="5"><span class="step-no">5</span><span class="step-subject">The System</span><span class="step-text">transitions the transaction's Status from Imported to Rejected.</span></li>
-                  <li class="step system-step" data-step-no="6"><span class="step-no">6</span><span class="step-subject">The System</span><span class="step-text">records the UserNote, LastChangedUser, and LastChangedDate on the transaction.</span></li>
-                  <li class="step system-step" data-step-no="7"><span class="step-no">7</span><span class="step-subject">The System</span><span class="step-text">refreshes the transaction table so the new status is visible without a manual refresh.</span></li>
-                </ol>
-              </section>
-              <section class="extensions-block" aria-label="Extensions">
-                <h4>Extensions</h4>
-                <ol class="extensions">
-                  <li class="extension ext-exception" data-branch="1a">
-                    <span class="branch-label">1a</span><span class="ext-class">exception</span>
-                    <ol class="extension-steps">
-                      <li class="step system-step">The System hides the Reject action on the row when the transaction is not in Imported status. [BR-01]</li>
-                    </ol>
-                  </li>
-                  <li class="extension ext-exception" data-branch="3a">
-                    <span class="branch-label">3a</span><span class="ext-class">exception</span>
-                    <ol class="extension-steps">
-                      <li class="step system-step">The System keeps the submit control disabled while the note field is empty. [§5 Flow: Reject Transaction exception, BR-02]</li>
-                      <li class="step system-step">The System surfaces inline validation flagging the note as required. [§5 Flow: Reject Transaction exception]</li>
-                    </ol>
-                  </li>
-                  <li class="extension ext-exception" data-branch="5a">
-                    <span class="branch-label">5a</span><span class="ext-class">exception</span>
-                    <ol class="extension-steps">
-                      <li class="step system-step">The System surfaces the failure to the Approver. <em>derived-from-risks</em></li>
-                      <li class="step system-step">The transaction's Status remains Imported (no partial commit). <em>derived-from-risks</em></li>
-                    </ol>
-                  </li>
-                </ol>
-              </section>
-            </article>
-
-            <article id="uc-UC07" class="uc-card level-user-goal" aria-labelledby="uc-UC07-id">
-              <header class="uc-card-header">
-                <span class="uc-id" id="uc-UC07-id">UC-07</span>
-                <h3 class="uc-title">Export filtered transactions</h3>
-                <span class="level-chip level-user-goal">USER-GOAL</span>
-              </header>
-              <div class="uc-actor-row">
-                <span class="provenance provenance-from-personas" title="from-personas" aria-hidden="true">●</span>
-                <span class="actor-name">Approver</span>
-                <span class="goal-source src-from-user-stories" title="from-user-stories" aria-hidden="true"></span>
-                <span class="flow-source flow-from-task-flows" title="flow-from-task-flows" aria-hidden="true"></span>
-              </div>
-              <p class="goal-in-context">The Approver exports the currently filtered transaction set to CSV for downstream consumption.</p>
-              <dl class="uc-field-block">
-                <dt>Stakeholders</dt>
-                <dd><ul class="stakeholders">
-                  <li><strong>Approver</strong> — faithful export of the currently filtered set (§3 Approver driving forces).</li>
-                  <li><strong>Downstream consumers</strong> — receive the exported CSV (§1 Application context).</li>
-                </ul></dd>
-                <dt>Preconditions</dt>
-                <dd><ul class="preconditions">
-                  <li>The user is authenticated as an Approver. [§6.5 RBAC]</li>
-                  <li>A transaction table view is active. [§5 Flow: Export Transactions]</li>
-                </ul></dd>
-                <dt>Success guarantees</dt>
-                <dd><ul class="success-guarantees">
-                  <li>A CSV file is generated and downloaded. <span class="src-ac">§5 Flow: Export Transactions, §6.1</span></li>
-                  <li>The CSV reflects the active filter set, not the full table. <span class="src-ac">§5 Flow: Export Transactions decision points, §6.1</span></li>
-                </ul></dd>
-                <dt>Minimal guarantees</dt>
-                <dd><ul class="minimal-guarantees">
-                  <li>An empty filtered dataset still produces a header-only CSV; the user is informed via a toast. [§5 Flow: Export Transactions exception]</li>
-                </ul></dd>
-                <dt>Trigger</dt>
-                <dd class="trigger">The Approver initiates the Export action from the transaction table. [§5 Flow: Export Transactions]</dd>
-              </dl>
-              <section class="scenario-block" aria-label="Main success scenario">
-                <h4>Main success scenario <span class="flow-source-label">(flow-from-task-flows)</span></h4>
-                <ol class="main-scenario">
-                  <li class="step actor-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The Approver</span><span class="step-text">optionally applies filters to narrow the dataset (UC-08).</span></li>
-                  <li class="step actor-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The Approver</span><span class="step-text">initiates the Export action.</span></li>
-                  <li class="step system-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The System</span><span class="step-text">generates a CSV reflecting the active filter set.</span></li>
-                  <li class="step system-step" data-step-no="4"><span class="step-no">4</span><span class="step-subject">The System</span><span class="step-text">delivers the CSV file to the Approver's browser for download.</span></li>
-                </ol>
-              </section>
-              <section class="extensions-block" aria-label="Extensions">
-                <h4>Extensions</h4>
-                <ol class="extensions">
-                  <li class="extension ext-alt" data-branch="3a">
-                    <span class="branch-label">3a</span><span class="ext-class">alt</span>
-                    <ol class="extension-steps">
-                      <li class="step system-step">The System generates a header-only CSV when the filtered dataset is empty. [§5 Flow: Export Transactions exception]</li>
-                      <li class="step system-step">The System informs the Approver via a toast. [§5 Flow: Export Transactions exception, §6.4]</li>
-                    </ol>
-                  </li>
-                </ol>
-              </section>
-            </article>
-
-            <article id="uc-UC09" class="uc-card level-user-goal" aria-labelledby="uc-UC09-id">
-              <header class="uc-card-header">
-                <span class="uc-id" id="uc-UC09-id">UC-09</span>
-                <h3 class="uc-title">Log out of the system</h3>
-                <span class="level-chip level-user-goal">USER-GOAL</span>
-              </header>
-              <div class="uc-actor-row">
-                <span class="provenance provenance-derived" title="derived-actor" aria-hidden="true">●</span>
-                <span class="actor-name">User</span>
-                <span class="goal-source src-from-prose" title="from-prose" aria-hidden="true"></span>
-                <span class="flow-source flow-derived" title="flow-derived" aria-hidden="true"></span>
-              </div>
-              <p class="goal-in-context">An authenticated user invalidates their session so the cookie is cleared and access ends.</p>
-              <dl class="uc-field-block">
-                <dt>Stakeholders</dt>
-                <dd><ul class="stakeholders">
-                  <li><strong>User</strong> — secure session termination at end of work.</li>
-                  <li><strong>Security team</strong> — session cookie is cleared (§6.6.1).</li>
-                </ul></dd>
-                <dt>Preconditions</dt>
-                <dd><ul class="preconditions">
-                  <li>The user holds an active session. [§6.6.1]</li>
-                </ul></dd>
-                <dt>Success guarantees</dt>
-                <dd><ul class="success-guarantees">
-                  <li>The session cookie is cleared via POST /v1/auth/logout (Max-Age=0). <span class="src-ac">§6.6.1, §6.1</span></li>
-                  <li>The user is no longer authenticated; subsequent requests require re-authentication. <span class="src-ac">§6.6.1</span></li>
-                  <li>The logout event is recorded in the audit trail. <span class="src-ac">§6.6.4</span></li>
-                </ul></dd>
-                <dt>Minimal guarantees</dt>
-                <dd><ul class="minimal-guarantees">
-                  <li class="derived"><em>On logout request failure, the session is not partially invalidated.</em> <span class="marker">derived-from-risks</span></li>
-                  <li>The logout attempt is recorded in the audit trail. [§6.6.4]</li>
-                </ul></dd>
-                <dt>Trigger</dt>
-                <dd class="trigger"><em>The user decides to end their session.</em> <span class="marker">derived-trigger</span></dd>
-              </dl>
-              <section class="scenario-block" aria-label="Main success scenario">
-                <h4>Main success scenario <span class="flow-source-label">(flow-derived)</span></h4>
-                <ol class="main-scenario">
-                  <li class="step actor-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The User</span><span class="step-text">initiates the logout action.</span></li>
-                  <li class="step system-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The System</span><span class="step-text">invalidates the session cookie via Max-Age=0 on POST /v1/auth/logout.</span></li>
-                  <li class="step system-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The System</span><span class="step-text">redirects the User to the login page.</span></li>
-                </ol>
-              </section>
-              <section class="extensions-block" aria-label="Extensions">
-                <h4>Extensions</h4>
-                <ol class="extensions">
-                  <li class="extension ext-exception" data-branch="2a">
-                    <span class="branch-label">2a</span><span class="ext-class">exception</span>
-                    <ol class="extension-steps">
-                      <li class="step system-step">The System informs the User of the logout failure. <em>derived-from-risks</em></li>
-                      <li class="step system-step">The session cookie remains set until retry. <em>derived-from-risks</em></li>
-                    </ol>
-                  </li>
-                </ol>
-              </section>
-            </article>
-
-          </div>
-        </section>
-
-        <section class="uc-level-block level-block-subfunction" aria-labelledby="block-subfunction-name">
-          <header class="level-block-header">
-            <h2 id="block-subfunction-name" class="level-block-title">Subfunction</h2>
-            <p class="level-block-caption">Fish-level UCs: sub-steps shared across multiple user-goal UCs; 1–3 steps; never walked-away-from in isolation.</p>
-          </header>
-          <div class="uc-grid">
-
-            <article id="uc-UC08" class="uc-card level-subfunction" aria-labelledby="uc-UC08-id">
-              <header class="uc-card-header">
-                <span class="uc-id" id="uc-UC08-id">UC-08</span>
-                <h3 class="uc-title">Filter a transaction list</h3>
-                <span class="level-chip level-subfunction">SUBFUNCTION</span>
-              </header>
-              <div class="uc-actor-row">
-                <span class="provenance provenance-derived" title="derived-actor" aria-hidden="true">●</span>
-                <span class="actor-name">User</span>
-                <span class="goal-source src-from-task-flows" title="from-task-flows" aria-hidden="true"></span>
-                <span class="flow-source flow-from-task-flows" title="flow-from-task-flows" aria-hidden="true"></span>
-              </div>
-              <p class="goal-in-context">A user narrows a transaction (or file log) list to a workable subset using Status, File, Date range, Amount range, or free-text filters.</p>
-              <dl class="uc-field-block">
-                <dt>Stakeholders</dt>
-                <dd><ul class="stakeholders">
-                  <li><strong>User</strong> — fast scan of a workable subset (§3 Approver driving forces, §3 Importer driving forces).</li>
-                </ul></dd>
-                <dt>Preconditions</dt>
-                <dd><ul class="preconditions">
-                  <li>The user is authenticated. [§6.5 RBAC]</li>
-                  <li>A transaction (or file log) list is rendered. [§5 Flow: Search & Filtering]</li>
-                </ul></dd>
-                <dt>Success guarantees</dt>
-                <dd><ul class="success-guarantees">
-                  <li>The list updates to show only rows matching the active filters. <span class="src-ac">§5 Flow: Search & Filtering, §6.1</span></li>
-                  <li>Filter chips reflect every active filter and offer Clear-all. <span class="src-ac">§5 Flow: Search & Filtering decision points, §6.4</span></li>
-                </ul></dd>
-                <dt>Minimal guarantees</dt>
-                <dd><ul class="minimal-guarantees">
-                  <li>Zero-results state names the active filters and offers Clear-all rather than the create CTA. [§5 Flow: Search & Filtering exception, §6.4]</li>
-                </ul></dd>
-                <dt>Trigger</dt>
-                <dd class="trigger">The User applies filters or enters search text on a transaction or file log list. [§5 Flow: Search & Filtering]</dd>
-              </dl>
-              <section class="scenario-block" aria-label="Main success scenario">
-                <h4>Main success scenario <span class="flow-source-label">(flow-from-task-flows)</span></h4>
-                <ol class="main-scenario">
-                  <li class="step actor-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The User</span><span class="step-text">chooses and applies one or more filter values (Status, File, Date range, Amount range, or text search).</span></li>
-                  <li class="step system-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The System</span><span class="step-text">updates the list to show only matching rows.</span></li>
-                  <li class="step system-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The System</span><span class="step-text">renders filter chips reflecting the active filters and offers Clear-all.</span></li>
-                </ol>
-              </section>
-              <section class="extensions-block" aria-label="Extensions">
-                <h4>Extensions</h4>
-                <ol class="extensions">
-                  <li class="extension ext-alt" data-branch="2a">
-                    <span class="branch-label">2a</span><span class="ext-class">alt</span>
-                    <ol class="extension-steps">
-                      <li class="step system-step">The System renders the zero-results state with active filter chips and a Clear-all action. [§5 Flow: Search & Filtering exception, §6.4]</li>
-                    </ol>
-                  </li>
-                </ol>
-              </section>
-            </article>
-
-          </div>
-        </section>
-
-      </section>
-    </div>
 
     <section id="uml-diagrams" aria-label="UML use case diagrams">
       <h2>UML use case diagrams</h2>
@@ -1646,7 +913,7 @@
       <figure class="uml-diagram uml-overview" aria-labelledby="uml-overview-title">
         <figcaption>
           <h3 id="uml-overview-title">System overview</h3>
-          <p class="uml-caption-meta">3 actors · 10 use cases · 8 «include» edges</p>
+          <p class="uml-caption-meta">2 actors · 10 use cases · 1 «include» edge</p>
         </figcaption>
         <svg viewBox="0 0 800 680" role="img" aria-label="UML use case diagram — system overview">
           <defs>
@@ -1673,150 +940,80 @@
             <line x1="80" y1="150" x2="92" y2="162"/>
             <text class="uml-actor-label" x="80" y="178" text-anchor="middle">Approver</text>
           </g>
-          <g class="uml-actor">
-            <circle cx="80" cy="188" r="6"/>
-            <line x1="80" y1="194" x2="80" y2="210"/>
-            <line x1="68" y1="198" x2="92" y2="198"/>
-            <line x1="80" y1="210" x2="68" y2="222"/>
-            <line x1="80" y1="210" x2="92" y2="222"/>
-            <text class="uml-actor-label" x="80" y="238" text-anchor="middle">User</text>
-          </g>
 
           <ellipse class="uml-uc level-user-goal" cx="500" cy="80" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="79" text-anchor="middle">Log in to the system</text>
+          <text class="uml-uc-label" x="500" y="79" text-anchor="middle">Authenticate</text>
           <text class="uml-uc-id" x="500" y="92" text-anchor="middle">UC-01</text>
 
           <ellipse class="uml-uc level-user-goal" cx="500" cy="140" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="139" text-anchor="middle">Upload a transaction file</text>
+          <text class="uml-uc-label" x="500" y="139" text-anchor="middle">Upload transaction file</text>
           <text class="uml-uc-id" x="500" y="152" text-anchor="middle">UC-02</text>
 
           <ellipse class="uml-uc level-user-goal" cx="500" cy="200" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="199" text-anchor="middle">Review file processing statu…</text>
+          <text class="uml-uc-label" x="500" y="199" text-anchor="middle">Monitor uploaded file proce…</text>
           <text class="uml-uc-id" x="500" y="212" text-anchor="middle">UC-03</text>
 
           <ellipse class="uml-uc level-user-goal" cx="500" cy="260" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="259" text-anchor="middle">Review imported transactions</text>
+          <text class="uml-uc-label" x="500" y="259" text-anchor="middle">View transaction list</text>
           <text class="uml-uc-id" x="500" y="272" text-anchor="middle">UC-04</text>
 
-          <ellipse class="uml-uc level-user-goal" cx="500" cy="320" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="319" text-anchor="middle">Approve a transaction</text>
+          <ellipse class="uml-uc level-subfunction" cx="500" cy="320" rx="110" ry="22"/>
+          <text class="uml-uc-label" x="500" y="319" text-anchor="middle">Filter and search transacti…</text>
           <text class="uml-uc-id" x="500" y="332" text-anchor="middle">UC-05</text>
 
           <ellipse class="uml-uc level-user-goal" cx="500" cy="380" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="379" text-anchor="middle">Reject a transaction</text>
+          <text class="uml-uc-label" x="500" y="379" text-anchor="middle">Approve a transaction</text>
           <text class="uml-uc-id" x="500" y="392" text-anchor="middle">UC-06</text>
 
           <ellipse class="uml-uc level-user-goal" cx="500" cy="440" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="439" text-anchor="middle">Export filtered transactions</text>
+          <text class="uml-uc-label" x="500" y="439" text-anchor="middle">Reject a transaction with a…</text>
           <text class="uml-uc-id" x="500" y="452" text-anchor="middle">UC-07</text>
 
-          <ellipse class="uml-uc level-subfunction" cx="500" cy="500" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="499" text-anchor="middle">Filter a transaction list</text>
+          <ellipse class="uml-uc level-user-goal" cx="500" cy="500" rx="110" ry="22"/>
+          <text class="uml-uc-label" x="500" y="499" text-anchor="middle">Export filtered transaction…</text>
           <text class="uml-uc-id" x="500" y="512" text-anchor="middle">UC-08</text>
 
           <ellipse class="uml-uc level-user-goal" cx="500" cy="560" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="559" text-anchor="middle">Log out of the system</text>
+          <text class="uml-uc-label" x="500" y="559" text-anchor="middle">View file summary</text>
           <text class="uml-uc-id" x="500" y="572" text-anchor="middle">UC-09</text>
 
-          <ellipse class="uml-uc level-summary" cx="500" cy="620" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="619" text-anchor="middle">Run a transaction approval c…</text>
+          <ellipse class="uml-uc level-user-goal" cx="500" cy="620" rx="110" ry="22"/>
+          <text class="uml-uc-label" x="500" y="619" text-anchor="middle">Log out</text>
           <text class="uml-uc-id" x="500" y="632" text-anchor="middle">UC-10</text>
-
-          <line class="uml-assoc" x1="120" y1="80" x2="390" y2="140"/>
-          <line class="uml-assoc" x1="120" y1="80" x2="390" y2="200"/>
-          <line class="uml-assoc" x1="120" y1="80" x2="390" y2="620"/>
-          <line class="uml-assoc" x1="120" y1="140" x2="390" y2="260"/>
-          <line class="uml-assoc" x1="120" y1="140" x2="390" y2="320"/>
-          <line class="uml-assoc" x1="120" y1="140" x2="390" y2="380"/>
-          <line class="uml-assoc" x1="120" y1="140" x2="390" y2="440"/>
-          <line class="uml-assoc" x1="120" y1="200" x2="390" y2="80"/>
-          <line class="uml-assoc" x1="120" y1="200" x2="390" y2="500"/>
-          <line class="uml-assoc" x1="120" y1="200" x2="390" y2="560"/>
-
-          <path class="uml-include" d="M 500 238 C 700 238, 700 478, 500 478" marker-end="url(#uml-arrow-open)"/>
-          <text class="uml-include-label" x="650" y="354" text-anchor="middle">«include»</text>
-
-          <path class="uml-include" d="M 500 418 C 700 418, 700 478, 500 478" marker-end="url(#uml-arrow-open)"/>
-          <text class="uml-include-label" x="650" y="444" text-anchor="middle">«include»</text>
-
-          <path class="uml-include" d="M 500 598 C 700 598, 700 58, 500 58" marker-end="url(#uml-arrow-open)"/>
-          <text class="uml-include-label" x="650" y="324" text-anchor="middle">«include»</text>
-
-          <path class="uml-include" d="M 500 598 C 700 598, 700 118, 500 118" marker-end="url(#uml-arrow-open)"/>
-          <text class="uml-include-label" x="650" y="354" text-anchor="middle">«include»</text>
-
-          <path class="uml-include" d="M 500 598 C 700 598, 700 238, 500 238" marker-end="url(#uml-arrow-open)"/>
-          <text class="uml-include-label" x="650" y="414" text-anchor="middle">«include»</text>
-
-          <path class="uml-include" d="M 500 598 C 700 598, 700 298, 500 298" marker-end="url(#uml-arrow-open)"/>
-          <text class="uml-include-label" x="650" y="444" text-anchor="middle">«include»</text>
-
-          <path class="uml-include" d="M 500 598 C 700 598, 700 358, 500 358" marker-end="url(#uml-arrow-open)"/>
-          <text class="uml-include-label" x="650" y="474" text-anchor="middle">«include»</text>
-
-          <path class="uml-include" d="M 500 598 C 700 598, 700 418, 500 418" marker-end="url(#uml-arrow-open)"/>
-          <text class="uml-include-label" x="650" y="504" text-anchor="middle">«include»</text>
-        </svg>
-      </figure>
-
-      <figure class="uml-diagram uml-per-actor uml-actor-approver" aria-labelledby="uml-actor-approver-title">
-        <figcaption>
-          <h3 id="uml-actor-approver-title">Approver — focus</h3>
-          <p class="uml-caption-meta">4 use cases</p>
-        </figcaption>
-        <svg viewBox="0 0 800 360" role="img" aria-label="UML use case diagram — Approver focus">
-          <defs>
-            <marker id="uml-arrow-open-approver" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
-              <path d="M0,0 L9,5 L0,10" fill="none" stroke="currentColor" stroke-width="1"/>
-            </marker>
-          </defs>
-          <rect class="uml-system-boundary" x="240" y="40" width="520" height="280"/>
-          <text class="uml-system-label" x="260" y="64">System</text>
-
-          <g class="uml-actor">
-            <circle cx="80" cy="68" r="6"/>
-            <line x1="80" y1="74" x2="80" y2="90"/>
-            <line x1="68" y1="78" x2="92" y2="78"/>
-            <line x1="80" y1="90" x2="68" y2="102"/>
-            <line x1="80" y1="90" x2="92" y2="102"/>
-            <text class="uml-actor-label" x="80" y="118" text-anchor="middle">Approver</text>
-          </g>
-
-          <ellipse class="uml-uc level-user-goal" cx="500" cy="80" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="79" text-anchor="middle">Review imported transactions</text>
-          <text class="uml-uc-id" x="500" y="92" text-anchor="middle">UC-04</text>
-
-          <ellipse class="uml-uc level-user-goal" cx="500" cy="140" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="139" text-anchor="middle">Approve a transaction</text>
-          <text class="uml-uc-id" x="500" y="152" text-anchor="middle">UC-05</text>
-
-          <ellipse class="uml-uc level-user-goal" cx="500" cy="200" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="199" text-anchor="middle">Reject a transaction</text>
-          <text class="uml-uc-id" x="500" y="212" text-anchor="middle">UC-06</text>
-
-          <ellipse class="uml-uc level-user-goal" cx="500" cy="260" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="259" text-anchor="middle">Export filtered transactions</text>
-          <text class="uml-uc-id" x="500" y="272" text-anchor="middle">UC-07</text>
 
           <line class="uml-assoc" x1="120" y1="80" x2="390" y2="80"/>
           <line class="uml-assoc" x1="120" y1="80" x2="390" y2="140"/>
           <line class="uml-assoc" x1="120" y1="80" x2="390" y2="200"/>
           <line class="uml-assoc" x1="120" y1="80" x2="390" y2="260"/>
+          <line class="uml-assoc" x1="120" y1="80" x2="390" y2="320"/>
+          <line class="uml-assoc" x1="120" y1="80" x2="390" y2="560"/>
+          <line class="uml-assoc" x1="120" y1="140" x2="390" y2="80"/>
+          <line class="uml-assoc" x1="120" y1="140" x2="390" y2="200"/>
+          <line class="uml-assoc" x1="120" y1="140" x2="390" y2="260"/>
+          <line class="uml-assoc" x1="120" y1="140" x2="390" y2="320"/>
+          <line class="uml-assoc" x1="120" y1="140" x2="390" y2="380"/>
+          <line class="uml-assoc" x1="120" y1="140" x2="390" y2="440"/>
+          <line class="uml-assoc" x1="120" y1="140" x2="390" y2="500"/>
+          <line class="uml-assoc" x1="120" y1="140" x2="390" y2="560"/>
+          <line class="uml-assoc" x1="120" y1="140" x2="390" y2="620"/>
+
+          <path class="uml-include" d="M 500 478 C 700 478, 700 298, 500 298" marker-end="url(#uml-arrow-open)"/>
+          <text class="uml-include-label" x="650" y="384" text-anchor="middle">«include»</text>
         </svg>
       </figure>
 
-      <figure class="uml-diagram uml-per-actor uml-actor-importer" aria-labelledby="uml-actor-importer-title">
+      <figure class="uml-diagram uml-per-actor uml-actor-importer" aria-labelledby="uml-importer-title">
         <figcaption>
-          <h3 id="uml-actor-importer-title">Importer — focus</h3>
-          <p class="uml-caption-meta">3 use cases · 1 «include» edge</p>
+          <h3 id="uml-importer-title">Importer — focus</h3>
+          <p class="uml-caption-meta">6 use cases</p>
         </figcaption>
-        <svg viewBox="0 0 800 360" role="img" aria-label="UML use case diagram — Importer focus">
+        <svg viewBox="0 0 800 440" role="img" aria-label="UML use case diagram — Importer focus">
           <defs>
             <marker id="uml-arrow-open-importer" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
               <path d="M0,0 L9,5 L0,10" fill="none" stroke="currentColor" stroke-width="1"/>
             </marker>
           </defs>
-          <rect class="uml-system-boundary" x="240" y="40" width="520" height="280"/>
+          <rect class="uml-system-boundary" x="240" y="40" width="520" height="360"/>
           <text class="uml-system-label" x="260" y="64">System</text>
 
           <g class="uml-actor">
@@ -1829,38 +1026,50 @@
           </g>
 
           <ellipse class="uml-uc level-user-goal" cx="500" cy="80" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="79" text-anchor="middle">Upload a transaction file</text>
-          <text class="uml-uc-id" x="500" y="92" text-anchor="middle">UC-02</text>
+          <text class="uml-uc-label" x="500" y="79" text-anchor="middle">Authenticate</text>
+          <text class="uml-uc-id" x="500" y="92" text-anchor="middle">UC-01</text>
 
           <ellipse class="uml-uc level-user-goal" cx="500" cy="140" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="139" text-anchor="middle">Review file processing statu…</text>
-          <text class="uml-uc-id" x="500" y="152" text-anchor="middle">UC-03</text>
+          <text class="uml-uc-label" x="500" y="139" text-anchor="middle">Upload transaction file</text>
+          <text class="uml-uc-id" x="500" y="152" text-anchor="middle">UC-02</text>
 
-          <ellipse class="uml-uc level-summary" cx="500" cy="200" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="199" text-anchor="middle">Run a transaction approval c…</text>
-          <text class="uml-uc-id" x="500" y="212" text-anchor="middle">UC-10</text>
+          <ellipse class="uml-uc level-user-goal" cx="500" cy="200" rx="110" ry="22"/>
+          <text class="uml-uc-label" x="500" y="199" text-anchor="middle">Monitor uploaded file proce…</text>
+          <text class="uml-uc-id" x="500" y="212" text-anchor="middle">UC-03</text>
+
+          <ellipse class="uml-uc level-user-goal" cx="500" cy="260" rx="110" ry="22"/>
+          <text class="uml-uc-label" x="500" y="259" text-anchor="middle">View transaction list</text>
+          <text class="uml-uc-id" x="500" y="272" text-anchor="middle">UC-04</text>
+
+          <ellipse class="uml-uc level-subfunction" cx="500" cy="320" rx="110" ry="22"/>
+          <text class="uml-uc-label" x="500" y="319" text-anchor="middle">Filter and search transacti…</text>
+          <text class="uml-uc-id" x="500" y="332" text-anchor="middle">UC-05</text>
+
+          <ellipse class="uml-uc level-user-goal" cx="500" cy="380" rx="110" ry="22"/>
+          <text class="uml-uc-label" x="500" y="379" text-anchor="middle">View file summary</text>
+          <text class="uml-uc-id" x="500" y="392" text-anchor="middle">UC-09</text>
 
           <line class="uml-assoc" x1="120" y1="80" x2="390" y2="80"/>
           <line class="uml-assoc" x1="120" y1="80" x2="390" y2="140"/>
           <line class="uml-assoc" x1="120" y1="80" x2="390" y2="200"/>
-
-          <path class="uml-include" d="M 500 178 C 700 178, 700 58, 500 58" marker-end="url(#uml-arrow-open-importer)"/>
-          <text class="uml-include-label" x="650" y="114" text-anchor="middle">«include»</text>
+          <line class="uml-assoc" x1="120" y1="80" x2="390" y2="260"/>
+          <line class="uml-assoc" x1="120" y1="80" x2="390" y2="320"/>
+          <line class="uml-assoc" x1="120" y1="80" x2="390" y2="380"/>
         </svg>
       </figure>
 
-      <figure class="uml-diagram uml-per-actor uml-actor-user" aria-labelledby="uml-actor-user-title">
+      <figure class="uml-diagram uml-per-actor uml-actor-approver" aria-labelledby="uml-approver-title">
         <figcaption>
-          <h3 id="uml-actor-user-title">User — focus</h3>
-          <p class="uml-caption-meta">3 use cases</p>
+          <h3 id="uml-approver-title">Approver — focus</h3>
+          <p class="uml-caption-meta">9 use cases · 1 «include» edge</p>
         </figcaption>
-        <svg viewBox="0 0 800 360" role="img" aria-label="UML use case diagram — User focus">
+        <svg viewBox="0 0 800 620" role="img" aria-label="UML use case diagram — Approver focus">
           <defs>
-            <marker id="uml-arrow-open-user" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
+            <marker id="uml-arrow-open-approver" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="strokeWidth">
               <path d="M0,0 L9,5 L0,10" fill="none" stroke="currentColor" stroke-width="1"/>
             </marker>
           </defs>
-          <rect class="uml-system-boundary" x="240" y="40" width="520" height="280"/>
+          <rect class="uml-system-boundary" x="240" y="40" width="520" height="540"/>
           <text class="uml-system-label" x="260" y="64">System</text>
 
           <g class="uml-actor">
@@ -1869,24 +1078,57 @@
             <line x1="68" y1="78" x2="92" y2="78"/>
             <line x1="80" y1="90" x2="68" y2="102"/>
             <line x1="80" y1="90" x2="92" y2="102"/>
-            <text class="uml-actor-label" x="80" y="118" text-anchor="middle">User</text>
+            <text class="uml-actor-label" x="80" y="118" text-anchor="middle">Approver</text>
           </g>
 
           <ellipse class="uml-uc level-user-goal" cx="500" cy="80" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="79" text-anchor="middle">Log in to the system</text>
+          <text class="uml-uc-label" x="500" y="79" text-anchor="middle">Authenticate</text>
           <text class="uml-uc-id" x="500" y="92" text-anchor="middle">UC-01</text>
 
-          <ellipse class="uml-uc level-subfunction" cx="500" cy="140" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="139" text-anchor="middle">Filter a transaction list</text>
-          <text class="uml-uc-id" x="500" y="152" text-anchor="middle">UC-08</text>
+          <ellipse class="uml-uc level-user-goal" cx="500" cy="140" rx="110" ry="22"/>
+          <text class="uml-uc-label" x="500" y="139" text-anchor="middle">Monitor uploaded file proce…</text>
+          <text class="uml-uc-id" x="500" y="152" text-anchor="middle">UC-03</text>
 
           <ellipse class="uml-uc level-user-goal" cx="500" cy="200" rx="110" ry="22"/>
-          <text class="uml-uc-label" x="500" y="199" text-anchor="middle">Log out of the system</text>
-          <text class="uml-uc-id" x="500" y="212" text-anchor="middle">UC-09</text>
+          <text class="uml-uc-label" x="500" y="199" text-anchor="middle">View transaction list</text>
+          <text class="uml-uc-id" x="500" y="212" text-anchor="middle">UC-04</text>
+
+          <ellipse class="uml-uc level-subfunction" cx="500" cy="260" rx="110" ry="22"/>
+          <text class="uml-uc-label" x="500" y="259" text-anchor="middle">Filter and search transacti…</text>
+          <text class="uml-uc-id" x="500" y="272" text-anchor="middle">UC-05</text>
+
+          <ellipse class="uml-uc level-user-goal" cx="500" cy="320" rx="110" ry="22"/>
+          <text class="uml-uc-label" x="500" y="319" text-anchor="middle">Approve a transaction</text>
+          <text class="uml-uc-id" x="500" y="332" text-anchor="middle">UC-06</text>
+
+          <ellipse class="uml-uc level-user-goal" cx="500" cy="380" rx="110" ry="22"/>
+          <text class="uml-uc-label" x="500" y="379" text-anchor="middle">Reject a transaction with a…</text>
+          <text class="uml-uc-id" x="500" y="392" text-anchor="middle">UC-07</text>
+
+          <ellipse class="uml-uc level-user-goal" cx="500" cy="440" rx="110" ry="22"/>
+          <text class="uml-uc-label" x="500" y="439" text-anchor="middle">Export filtered transaction…</text>
+          <text class="uml-uc-id" x="500" y="452" text-anchor="middle">UC-08</text>
+
+          <ellipse class="uml-uc level-user-goal" cx="500" cy="500" rx="110" ry="22"/>
+          <text class="uml-uc-label" x="500" y="499" text-anchor="middle">View file summary</text>
+          <text class="uml-uc-id" x="500" y="512" text-anchor="middle">UC-09</text>
+
+          <ellipse class="uml-uc level-user-goal" cx="500" cy="560" rx="110" ry="22"/>
+          <text class="uml-uc-label" x="500" y="559" text-anchor="middle">Log out</text>
+          <text class="uml-uc-id" x="500" y="572" text-anchor="middle">UC-10</text>
 
           <line class="uml-assoc" x1="120" y1="80" x2="390" y2="80"/>
           <line class="uml-assoc" x1="120" y1="80" x2="390" y2="140"/>
           <line class="uml-assoc" x1="120" y1="80" x2="390" y2="200"/>
+          <line class="uml-assoc" x1="120" y1="80" x2="390" y2="260"/>
+          <line class="uml-assoc" x1="120" y1="80" x2="390" y2="320"/>
+          <line class="uml-assoc" x1="120" y1="80" x2="390" y2="380"/>
+          <line class="uml-assoc" x1="120" y1="80" x2="390" y2="440"/>
+          <line class="uml-assoc" x1="120" y1="80" x2="390" y2="500"/>
+          <line class="uml-assoc" x1="120" y1="80" x2="390" y2="560"/>
+
+          <path class="uml-include" d="M 500 418 C 700 418, 700 238, 500 238" marker-end="url(#uml-arrow-open-approver)"/>
+          <text class="uml-include-label" x="650" y="324" text-anchor="middle">«include»</text>
         </svg>
       </figure>
 
@@ -1895,76 +1137,850 @@
         <div class="mermaid-caption">System overview — Mermaid does not have first-class UML use case diagrams; this is a `flowchart LR` approximation. Copy-paste into mermaid.live to render.</div>
         <pre>flowchart LR
   subgraph System["System"]
-    UC01(["UC-01 Log in to the system"])
-    UC02(["UC-02 Upload a transaction file"])
-    UC03(["UC-03 Review file processing status"])
-    UC04(["UC-04 Review imported transactions"])
-    UC05(["UC-05 Approve a transaction"])
-    UC06(["UC-06 Reject a transaction"])
-    UC07(["UC-07 Export filtered transactions"])
-    UC08(["UC-08 Filter a transaction list"])
-    UC09(["UC-09 Log out of the system"])
-    UC10(["UC-10 Run a transaction approval cycle"])
+    UC01([UC-01 Authenticate])
+    UC02([UC-02 Upload transaction file])
+    UC03([UC-03 Monitor uploaded file processing status])
+    UC04([UC-04 View transaction list])
+    UC05([UC-05 Filter and search transactions])
+    UC06([UC-06 Approve a transaction])
+    UC07([UC-07 Reject a transaction with a note])
+    UC08([UC-08 Export filtered transactions to CSV])
+    UC09([UC-09 View file summary])
+    UC10([UC-10 Log out])
   end
   importer((Importer))
   approver((Approver))
-  user((User))
+  importer --- UC01
   importer --- UC02
   importer --- UC03
-  importer --- UC10
+  importer --- UC04
+  importer --- UC05
+  importer --- UC09
+  approver --- UC01
+  approver --- UC03
   approver --- UC04
   approver --- UC05
   approver --- UC06
   approver --- UC07
-  user --- UC01
-  user --- UC08
-  user --- UC09
-  UC04 -.->|"«include»"| UC08
-  UC07 -.->|"«include»"| UC08
-  UC10 -.->|"«include»"| UC01
-  UC10 -.->|"«include»"| UC02
-  UC10 -.->|"«include»"| UC04
-  UC10 -.->|"«include»"| UC05
-  UC10 -.->|"«include»"| UC06
-  UC10 -.->|"«include»"| UC07</pre>
-        <div class="mermaid-caption">Approver — per-actor focus — `flowchart LR` approximation.</div>
-        <pre>flowchart LR
-  subgraph System["System"]
-    UC04(["UC-04 Review imported transactions"])
-    UC05(["UC-05 Approve a transaction"])
-    UC06(["UC-06 Reject a transaction"])
-    UC07(["UC-07 Export filtered transactions"])
-  end
-  approver((Approver))
-  approver --- UC04
-  approver --- UC05
-  approver --- UC06
-  approver --- UC07</pre>
+  approver --- UC08
+  approver --- UC09
+  approver --- UC10
+  UC08 -.->|«include»| UC05</pre>
         <div class="mermaid-caption">Importer — per-actor focus — `flowchart LR` approximation.</div>
         <pre>flowchart LR
   subgraph System["System"]
-    UC02(["UC-02 Upload a transaction file"])
-    UC03(["UC-03 Review file processing status"])
-    UC10(["UC-10 Run a transaction approval cycle"])
+    UC01([UC-01 Authenticate])
+    UC02([UC-02 Upload transaction file])
+    UC03([UC-03 Monitor uploaded file processing status])
+    UC04([UC-04 View transaction list])
+    UC05([UC-05 Filter and search transactions])
+    UC09([UC-09 View file summary])
   end
   importer((Importer))
+  importer --- UC01
   importer --- UC02
   importer --- UC03
-  importer --- UC10
-  UC10 -.->|"«include»"| UC02</pre>
-        <div class="mermaid-caption">User — per-actor focus — `flowchart LR` approximation.</div>
+  importer --- UC04
+  importer --- UC05
+  importer --- UC09</pre>
+        <div class="mermaid-caption">Approver — per-actor focus — `flowchart LR` approximation.</div>
         <pre>flowchart LR
   subgraph System["System"]
-    UC01(["UC-01 Log in to the system"])
-    UC08(["UC-08 Filter a transaction list"])
-    UC09(["UC-09 Log out of the system"])
+    UC01([UC-01 Authenticate])
+    UC03([UC-03 Monitor uploaded file processing status])
+    UC04([UC-04 View transaction list])
+    UC05([UC-05 Filter and search transactions])
+    UC06([UC-06 Approve a transaction])
+    UC07([UC-07 Reject a transaction with a note])
+    UC08([UC-08 Export filtered transactions to CSV])
+    UC09([UC-09 View file summary])
+    UC10([UC-10 Log out])
   end
-  user((User))
-  user --- UC01
-  user --- UC08
-  user --- UC09</pre>
+  approver((Approver))
+  approver --- UC01
+  approver --- UC03
+  approver --- UC04
+  approver --- UC05
+  approver --- UC06
+  approver --- UC07
+  approver --- UC08
+  approver --- UC09
+  approver --- UC10
+  UC08 -.->|«include»| UC05</pre>
       </details>
     </section>
+
+    <div id="diagrams" class="layout">
+      <aside class="actor-index" aria-label="Actor index">
+        <h3>Actors</h3>
+        <ul>
+          <li>
+            <span class="provenance provenance-from-personas" aria-hidden="true">●</span>
+            <span class="actor-name">Importer</span>
+            <span class="actor-uc-count">6 UCs</span>
+          </li>
+          <li>
+            <span class="provenance provenance-from-personas" aria-hidden="true">●</span>
+            <span class="actor-name">Approver</span>
+            <span class="actor-uc-count">9 UCs</span>
+          </li>
+        </ul>
+      </aside>
+      <section class="uc-board" aria-label="Use Cases map">
+
+        <section class="uc-level-block level-block-user-goal" aria-labelledby="block-user-goal-name">
+          <header class="level-block-header">
+            <h2 id="block-user-goal-name" class="level-block-title">User-Goal (sea)</h2>
+            <p class="level-block-caption">A single sitting; one primary actor; the actor walks away with the goal achieved or explicitly abandoned.</p>
+          </header>
+          <div class="uc-grid">
+
+            <article id="uc-uc01" class="uc-card level-user-goal" aria-labelledby="uc-uc01-id">
+              <header class="uc-card-header">
+                <span class="uc-id" id="uc-uc01-id">UC-01</span>
+                <h3 class="uc-title">Authenticate</h3>
+                <span class="level-chip level-user-goal">USER-GOAL</span>
+              </header>
+              <div class="uc-actor-row">
+                <span class="provenance provenance-from-personas" title="Primary actor named verbatim in §Personas" aria-hidden="true">●</span>
+                <span class="actor-name">Importer or Approver</span>
+                <span class="goal-source src-from-task-flows" title="Title derived from §Task flows" aria-hidden="true"></span>
+                <span class="flow-source flow-from-task-flows" title="Main flow sourced from §Task flows" aria-hidden="true"></span>
+              </div>
+              <p class="goal-in-context">An authenticated user gains access to their role-specific landing page.</p>
+              <dl class="uc-field-block">
+                <dt>Stakeholders</dt>
+                <dd>
+                  <ul class="stakeholders">
+                    <li><strong>Importer or Approver</strong> — reach the role-specific working surface.</li>
+                    <li><strong>Audit team</strong> — every authentication attempt recorded with timestamp and identity.</li>
+                    <li><strong>Security team</strong> — failed attempts and lockout policy enforced consistently.</li>
+                  </ul>
+                </dd>
+                <dt>Preconditions</dt>
+                <dd>
+                  <ul class="preconditions">
+                    <li>User account exists with bcrypt-hashed credentials (§6.6.1; §7 User).</li>
+                    <li>User provides their registered email and password (§5 Authentication trigger).</li>
+                  </ul>
+                </dd>
+                <dt>Success guarantees</dt>
+                <dd>
+                  <ul class="success-guarantees">
+                    <li>Session cookie issued with HttpOnly, Secure, SameSite=Strict attributes (§6.6.1).</li>
+                    <li>User is routed to the role-specific landing page (§5 Authentication step 4).</li>
+                    <li>Authentication event recorded in the audit trail (§6.6.4).</li>
+                  </ul>
+                </dd>
+                <dt>Minimal guarantees</dt>
+                <dd>
+                  <ul class="minimal-guarantees">
+                    <li>Error message does not reveal which credential field was incorrect (BR-05).</li>
+                    <li>Failed attempt is counted toward the lockout policy (§6.6.1).</li>
+                    <li>Failed attempt is recorded in the audit trail (§6.6.4).</li>
+                  </ul>
+                </dd>
+                <dt>Trigger</dt>
+                <dd class="trigger">The user submits credentials on the login page (§5 Authentication).</dd>
+              </dl>
+              <section class="scenario-block" aria-label="Main success scenario">
+                <h4>Main success scenario <span class="flow-source-label">(flow-from-task-flows)</span></h4>
+                <ol class="main-scenario">
+                  <li class="step actor-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The user</span><span class="step-text">submits credentials.</span></li>
+                  <li class="step system-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The System</span><span class="step-text">validates the credentials against the hashed credential store.</span></li>
+                  <li class="step system-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The System</span><span class="step-text">sets the HttpOnly, Secure, SameSite=Strict session cookie.</span></li>
+                  <li class="step system-step" data-step-no="4"><span class="step-no">4</span><span class="step-subject">The System</span><span class="step-text">routes the user to the role-specific landing page.</span></li>
+                </ol>
+              </section>
+              <section class="extensions-block" aria-label="Extensions">
+                <h4>Extensions</h4>
+                <ol class="extensions">
+                  <li class="extension ext-exception" data-branch="1a">
+                    <span class="branch-label">1a</span><span class="ext-class">exception</span>
+                    <ol class="extension-steps">
+                      <li class="step system-step">The System rejects the attempt with a generic error message that does not reveal which credential field was incorrect.</li>
+                      <li class="step system-step">The System increments the failed-attempt counter for the account.</li>
+                      <li class="step system-step">After five consecutive failures, the System places the account in a 15-minute cooldown.</li>
+                    </ol>
+                  </li>
+                  <li class="extension ext-exception" data-branch="2a">
+                    <span class="branch-label">2a</span><span class="ext-class">exception</span>
+                    <ol class="extension-steps">
+                      <li class="step system-step">The account is in a cooldown window; the System rejects authentication with the same generic message.</li>
+                    </ol>
+                  </li>
+                </ol>
+              </section>
+            </article>
+
+            <article id="uc-uc02" class="uc-card level-user-goal" aria-labelledby="uc-uc02-id">
+              <header class="uc-card-header">
+                <span class="uc-id" id="uc-uc02-id">UC-02</span>
+                <h3 class="uc-title">Upload transaction file</h3>
+                <span class="level-chip level-user-goal">USER-GOAL</span>
+              </header>
+              <div class="uc-actor-row">
+                <span class="provenance provenance-from-personas" title="Primary actor named verbatim in §Personas" aria-hidden="true">●</span>
+                <span class="actor-name">Importer</span>
+                <span class="goal-source src-from-user-stories" title="Title derived from §User stories" aria-hidden="true"></span>
+                <span class="flow-source flow-from-task-flows" title="Main flow sourced from §Task flows" aria-hidden="true"></span>
+              </div>
+              <p class="goal-in-context">The Importer submits a transaction file so the system can parse it into a File Log and downstream Transactions.</p>
+              <dl class="uc-field-block">
+                <dt>Stakeholders</dt>
+                <dd>
+                  <ul class="stakeholders">
+                    <li><strong>Importer</strong> — visible acceptance feedback to trust the daily ingestion cycle.</li>
+                    <li><strong>Audit team</strong> — uploads recorded with LastChangedUser / LastChangedDate (§6.6.4).</li>
+                    <li><strong>Upstream operations</strong> — visible if files fail to load (§3 Importer fears).</li>
+                  </ul>
+                </dd>
+                <dt>Preconditions</dt>
+                <dd>
+                  <ul class="preconditions">
+                    <li>Importer is authenticated and holds X access on File Upload (§6.5 RBAC).</li>
+                    <li>FileSettingId references an existing FileSetting (§7 File Log; §9 FileSetting).</li>
+                  </ul>
+                </dd>
+                <dt>Success guarantees</dt>
+                <dd>
+                  <ul class="success-guarantees">
+                    <li>A File Log record is created with FileName, SettingId, SettingName, and an initial state (§7 File Log; §6.1).</li>
+                    <li>The Importer is informed of acceptance and the File Log's current status is rendered (§5 File Upload step 5).</li>
+                    <li>Upload audited via LastChangedUser / LastChangedDate (§6.3; §6.6.4).</li>
+                  </ul>
+                </dd>
+                <dt>Minimal guarantees</dt>
+                <dd>
+                  <ul class="minimal-guarantees">
+                    <li>On failure, no File Log row is left in a Completed state (§5 File Upload exception path).</li>
+                    <li>Failed upload attempt is recorded in the audit trail (§6.6.4).</li>
+                  </ul>
+                </dd>
+                <dt>Trigger</dt>
+                <dd class="trigger">The Importer chooses a transaction file to upload (§5 File Upload trigger).</dd>
+              </dl>
+              <section class="scenario-block" aria-label="Main success scenario">
+                <h4>Main success scenario <span class="flow-source-label">(flow-from-task-flows)</span></h4>
+                <ol class="main-scenario">
+                  <li class="step actor-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The Importer</span><span class="step-text">chooses a transaction file to upload.</span></li>
+                  <li class="step actor-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The Importer</span><span class="step-text">provides FileSettingId, FileSettingName, and FileName.</span></li>
+                  <li class="step actor-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The Importer</span><span class="step-text">submits the upload.</span></li>
+                  <li class="step system-step" data-step-no="4"><span class="step-no">4</span><span class="step-subject">The System</span><span class="step-text">creates a File Log and parses the file into Transactions.</span></li>
+                  <li class="step system-step" data-step-no="5"><span class="step-no">5</span><span class="step-subject">The System</span><span class="step-text">reports upload success and renders the File Log's current status.</span></li>
+                </ol>
+              </section>
+              <section class="extensions-block" aria-label="Extensions">
+                <h4>Extensions</h4>
+                <ol class="extensions">
+                  <li class="extension ext-exception" data-branch="2a">
+                    <span class="branch-label">2a</span><span class="ext-class">exception</span>
+                    <ol class="extension-steps">
+                      <li class="step system-step">The System keeps the submit control disabled until FileSettingId, FileSettingName, and FileName are all provided.</li>
+                    </ol>
+                  </li>
+                  <li class="extension ext-exception" data-branch="4a">
+                    <span class="branch-label">4a</span><span class="ext-class">exception</span>
+                    <ol class="extension-steps">
+                      <li class="step system-step">File parsing fails; the System marks the File Log as Failed and does not create transactions in a Completed state.</li>
+                      <li class="step system-step">The System reports the failure to the Importer.</li>
+                    </ol>
+                  </li>
+                </ol>
+              </section>
+            </article>
+
+            <article id="uc-uc03" class="uc-card level-user-goal" aria-labelledby="uc-uc03-id">
+              <header class="uc-card-header">
+                <span class="uc-id" id="uc-uc03-id">UC-03</span>
+                <h3 class="uc-title">Monitor uploaded file processing status</h3>
+                <span class="level-chip level-user-goal">USER-GOAL</span>
+              </header>
+              <div class="uc-actor-row">
+                <span class="provenance provenance-from-personas" title="Primary actor named verbatim in §Personas" aria-hidden="true">●</span>
+                <span class="actor-name">Importer or Approver</span>
+                <span class="goal-source src-from-user-stories" title="Title derived from §User stories" aria-hidden="true"></span>
+                <span class="flow-source flow-from-task-flows" title="Main flow sourced from §Task flows" aria-hidden="true"></span>
+              </div>
+              <p class="goal-in-context">The Importer (or any authenticated user) confirms each uploaded file reached a non-failed state and can drill into a file's transactions when needed.</p>
+              <dl class="uc-field-block">
+                <dt>Stakeholders</dt>
+                <dd>
+                  <ul class="stakeholders">
+                    <li><strong>Importer</strong> — needs to act if any file is in a Failed state (§3 Importer).</li>
+                    <li><strong>Audit team</strong> — file states retained for audit (§6.6.4).</li>
+                  </ul>
+                </dd>
+                <dt>Preconditions</dt>
+                <dd>
+                  <ul class="preconditions">
+                    <li>User is authenticated (§6.5 RBAC).</li>
+                  </ul>
+                </dd>
+                <dt>Success guarantees</dt>
+                <dd>
+                  <ul class="success-guarantees">
+                    <li>The System lists every uploaded file with File Name, Process Date, Record Count, and Status (§5 File Log Overview step 2; §6.1).</li>
+                    <li>Each file's current state is visible and labelled (§7 File Log enum).</li>
+                  </ul>
+                </dd>
+                <dt>Minimal guarantees</dt>
+                <dd>
+                  <ul class="minimal-guarantees">
+                    <li>Empty state names "File Logs" and offers the upload CTA only to Importers (§5 File Log Overview exception path).</li>
+                    <li>Failed files remain visible with their Failed status surfaced prominently (BR-07).</li>
+                  </ul>
+                </dd>
+                <dt>Trigger</dt>
+                <dd class="trigger">The user opens the File Logs dashboard (§5 File Log Overview trigger).</dd>
+              </dl>
+              <section class="scenario-block" aria-label="Main success scenario">
+                <h4>Main success scenario <span class="flow-source-label">(flow-from-task-flows)</span></h4>
+                <ol class="main-scenario">
+                  <li class="step actor-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The user</span><span class="step-text">opens the File Logs dashboard.</span></li>
+                  <li class="step system-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The System</span><span class="step-text">displays each File Log with File Name, Process Date, Record Count, and Status.</span></li>
+                  <li class="step actor-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The user</span><span class="step-text">reviews each row's status.</span></li>
+                </ol>
+              </section>
+              <section class="extensions-block" aria-label="Extensions">
+                <h4>Extensions</h4>
+                <ol class="extensions">
+                  <li class="extension ext-alt" data-branch="2a">
+                    <span class="branch-label">2a</span><span class="ext-class">alt</span>
+                    <ol class="extension-steps">
+                      <li class="step system-step">No files have been uploaded yet; the System renders the empty state naming "File Logs" and offers the upload CTA only to Importers.</li>
+                    </ol>
+                  </li>
+                  <li class="extension ext-exception" data-branch="2b">
+                    <span class="branch-label">2b</span><span class="ext-class">exception</span>
+                    <ol class="extension-steps">
+                      <li class="step system-step">One or more files are in Failed state; the System surfaces the Failed status prominently and inhibits drill-down into transactions until retry succeeds.</li>
+                    </ol>
+                  </li>
+                </ol>
+              </section>
+            </article>
+
+            <article id="uc-uc04" class="uc-card level-user-goal" aria-labelledby="uc-uc04-id">
+              <header class="uc-card-header">
+                <span class="uc-id" id="uc-uc04-id">UC-04</span>
+                <h3 class="uc-title">View transaction list</h3>
+                <span class="level-chip level-user-goal">USER-GOAL</span>
+              </header>
+              <div class="uc-actor-row">
+                <span class="provenance provenance-from-personas" title="Primary actor named verbatim in §Personas" aria-hidden="true">●</span>
+                <span class="actor-name">Importer or Approver</span>
+                <span class="goal-source src-from-user-stories" title="Title derived from §User stories" aria-hidden="true"></span>
+                <span class="flow-source flow-from-task-flows" title="Main flow sourced from §Task flows" aria-hidden="true"></span>
+              </div>
+              <p class="goal-in-context">The authenticated user browses the transaction set in the system, optionally narrowed by filters, before deciding whether further action is needed.</p>
+              <dl class="uc-field-block">
+                <dt>Stakeholders</dt>
+                <dd>
+                  <ul class="stakeholders">
+                    <li><strong>Approver</strong> — primary working surface for the daily review cycle (§3 Approver).</li>
+                    <li><strong>Audit team</strong> — table reflects committed status of every Transaction.</li>
+                  </ul>
+                </dd>
+                <dt>Preconditions</dt>
+                <dd>
+                  <ul class="preconditions">
+                    <li>User is authenticated (§6.5 RBAC).</li>
+                  </ul>
+                </dd>
+                <dt>Success guarantees</dt>
+                <dd>
+                  <ul class="success-guarantees">
+                    <li>The System renders Reference, Date, Account, Amount, Currency, and Status columns (§5 Transaction Table step 2; §6.1).</li>
+                    <li>Single-column sorting is available, ascending on first click then descending; persists for the session (§6.4).</li>
+                    <li>Pagination control offers 5 / 10 / 20 / 50 rows-per-page with default 20 (§6.4).</li>
+                  </ul>
+                </dd>
+                <dt>Minimal guarantees</dt>
+                <dd>
+                  <ul class="minimal-guarantees">
+                    <li>Empty state distinguishes "no data" from "no results from a filter" (§5 Transaction Table exception path).</li>
+                    <li>No PII is rendered in error toasts or browser console (§6.6.4).</li>
+                  </ul>
+                </dd>
+                <dt>Trigger</dt>
+                <dd class="trigger">The user opens the transaction table from navigation or from a File Log row (§5 Transaction Table trigger).</dd>
+              </dl>
+              <section class="scenario-block" aria-label="Main success scenario">
+                <h4>Main success scenario <span class="flow-source-label">(flow-from-task-flows)</span></h4>
+                <ol class="main-scenario">
+                  <li class="step actor-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The user</span><span class="step-text">opens the transaction table.</span></li>
+                  <li class="step system-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The System</span><span class="step-text">renders Reference, Date, Account, Amount, Currency, and Status columns.</span></li>
+                  <li class="step actor-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The user</span><span class="step-text">browses the table, scrolling, paging, or sorting.</span></li>
+                </ol>
+              </section>
+              <section class="extensions-block" aria-label="Extensions">
+                <h4>Extensions</h4>
+                <ol class="extensions">
+                  <li class="extension ext-alt" data-branch="2a">
+                    <span class="branch-label">2a</span><span class="ext-class">alt</span>
+                    <ol class="extension-steps">
+                      <li class="step system-step">No transactions exist; the System renders the empty state naming "Transactions".</li>
+                    </ol>
+                  </li>
+                  <li class="extension ext-alt" data-branch="3a">
+                    <span class="branch-label">3a</span><span class="ext-class">alt</span>
+                    <ol class="extension-steps">
+                      <li class="step actor-step">The user narrows the view via UC-05 Filter and search transactions.</li>
+                    </ol>
+                  </li>
+                </ol>
+              </section>
+            </article>
+
+            <article id="uc-uc06" class="uc-card level-user-goal" aria-labelledby="uc-uc06-id">
+              <header class="uc-card-header">
+                <span class="uc-id" id="uc-uc06-id">UC-06</span>
+                <h3 class="uc-title">Approve a transaction</h3>
+                <span class="level-chip level-user-goal">USER-GOAL</span>
+              </header>
+              <div class="uc-actor-row">
+                <span class="provenance provenance-from-personas" title="Primary actor named verbatim in §Personas" aria-hidden="true">●</span>
+                <span class="actor-name">Approver</span>
+                <span class="goal-source src-from-user-stories" title="Title derived from §User stories" aria-hidden="true"></span>
+                <span class="flow-source flow-from-task-flows" title="Main flow sourced from §Task flows" aria-hidden="true"></span>
+              </div>
+              <p class="goal-in-context">The Approver moves a single Imported transaction to Approved status with a confirmation step that prevents accidental approvals.</p>
+              <dl class="uc-field-block">
+                <dt>Stakeholders</dt>
+                <dd>
+                  <ul class="stakeholders">
+                    <li><strong>Approver</strong> — personally accountable for every approval (§3 Approver).</li>
+                    <li><strong>Audit team</strong> — approve event recorded with LastChangedUser / LastChangedDate (§6.3; §6.6.4).</li>
+                    <li><strong>Downstream consumers</strong> — approved transactions flow downstream.</li>
+                  </ul>
+                </dd>
+                <dt>Preconditions</dt>
+                <dd>
+                  <ul class="preconditions">
+                    <li>Approver is authenticated and holds A†BR-01 access on Approve Transaction (§6.5 RBAC).</li>
+                    <li>Transaction is in Imported status (BR-01; §2.3 Transaction invariant).</li>
+                  </ul>
+                </dd>
+                <dt>Success guarantees</dt>
+                <dd>
+                  <ul class="success-guarantees">
+                    <li>The transaction status transitions Imported → Approved (BR-01; §2.3).</li>
+                    <li>The new status is reflected in the transaction table without a manual refresh (BR-06).</li>
+                    <li>Approve event audited with LastChangedUser / LastChangedDate (§6.3; §6.6.4).</li>
+                  </ul>
+                </dd>
+                <dt>Minimal guarantees</dt>
+                <dd>
+                  <ul class="minimal-guarantees">
+                    <li>Default focus on the confirmation modal is on Cancel, not on the destructive primary (§6.4).</li>
+                    <li class="derived"><em>On failure, no partial status change occurs (data integrity preserved).</em> <span class="marker">derived-from-constraints</span></li>
+                  </ul>
+                </dd>
+                <dt>Trigger</dt>
+                <dd class="trigger">The Approver decides to approve an Imported transaction (§5 Approve Transaction).</dd>
+              </dl>
+              <section class="scenario-block" aria-label="Main success scenario">
+                <h4>Main success scenario <span class="flow-source-label">(flow-from-task-flows)</span></h4>
+                <ol class="main-scenario">
+                  <li class="step actor-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The Approver</span><span class="step-text">chooses an Imported transaction to approve.</span></li>
+                  <li class="step actor-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The Approver</span><span class="step-text">initiates approval.</span></li>
+                  <li class="step system-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The System</span><span class="step-text">asks the Approver to confirm and identifies the affected transaction.</span></li>
+                  <li class="step actor-step" data-step-no="4"><span class="step-no">4</span><span class="step-subject">The Approver</span><span class="step-text">confirms the approval.</span></li>
+                  <li class="step system-step" data-step-no="5"><span class="step-no">5</span><span class="step-subject">The System</span><span class="step-text">transitions the transaction status to Approved and records the change in the audit trail.</span></li>
+                  <li class="step system-step" data-step-no="6"><span class="step-no">6</span><span class="step-subject">The System</span><span class="step-text">refreshes the transaction table to reflect the new status.</span></li>
+                </ol>
+              </section>
+              <section class="extensions-block" aria-label="Extensions">
+                <h4>Extensions</h4>
+                <ol class="extensions">
+                  <li class="extension ext-exception" data-branch="1a">
+                    <span class="branch-label">1a</span><span class="ext-class">exception</span>
+                    <ol class="extension-steps">
+                      <li class="step system-step">The transaction is not in Imported status; the System hides the Approve action on the row.</li>
+                    </ol>
+                  </li>
+                  <li class="extension ext-alt" data-branch="4a">
+                    <span class="branch-label">4a</span><span class="ext-class">alt</span>
+                    <ol class="extension-steps">
+                      <li class="step system-step">The Approver cancels at the confirmation modal; the System dismisses the modal with no status change.</li>
+                    </ol>
+                  </li>
+                  <li class="extension ext-exception" data-branch="5a">
+                    <span class="branch-label">5a</span><span class="ext-class">exception</span>
+                    <ol class="extension-steps">
+                      <li class="step system-step">Step-up authentication is required; the System prompts for MFA before recording the approval.</li>
+                    </ol>
+                  </li>
+                </ol>
+              </section>
+            </article>
+
+            <article id="uc-uc07" class="uc-card level-user-goal" aria-labelledby="uc-uc07-id">
+              <header class="uc-card-header">
+                <span class="uc-id" id="uc-uc07-id">UC-07</span>
+                <h3 class="uc-title">Reject a transaction with a note</h3>
+                <span class="level-chip level-user-goal">USER-GOAL</span>
+              </header>
+              <div class="uc-actor-row">
+                <span class="provenance provenance-from-personas" title="Primary actor named verbatim in §Personas" aria-hidden="true">●</span>
+                <span class="actor-name">Approver</span>
+                <span class="goal-source src-from-user-stories" title="Title derived from §User stories" aria-hidden="true"></span>
+                <span class="flow-source flow-from-task-flows" title="Main flow sourced from §Task flows" aria-hidden="true"></span>
+              </div>
+              <p class="goal-in-context">The Approver moves a single Imported transaction to Rejected status, capturing a mandatory rationale that lands in the audit record.</p>
+              <dl class="uc-field-block">
+                <dt>Stakeholders</dt>
+                <dd>
+                  <ul class="stakeholders">
+                    <li><strong>Approver</strong> — personally accountable; the note is the audit artefact (§3 Approver).</li>
+                    <li><strong>Audit team</strong> — rejection rationale retained for 7 years (§6.6.4).</li>
+                    <li><strong>Compliance review</strong> — note is the audit-trail explanation.</li>
+                  </ul>
+                </dd>
+                <dt>Preconditions</dt>
+                <dd>
+                  <ul class="preconditions">
+                    <li>Approver is authenticated and holds A†BR-02 access on Reject Transaction (§6.5 RBAC).</li>
+                    <li>Transaction is in Imported status (BR-01; §2.3 Transaction invariant).</li>
+                  </ul>
+                </dd>
+                <dt>Success guarantees</dt>
+                <dd>
+                  <ul class="success-guarantees">
+                    <li>The transaction status transitions Imported → Rejected (BR-01; §2.3).</li>
+                    <li>The non-empty user note is persisted against the Transaction (BR-02; §7 Transaction UserNote).</li>
+                    <li>The new status is reflected in the transaction table without a manual refresh (BR-06).</li>
+                    <li>Reject event audited with LastChangedUser / LastChangedDate (§6.3; §6.6.4).</li>
+                  </ul>
+                </dd>
+                <dt>Minimal guarantees</dt>
+                <dd>
+                  <ul class="minimal-guarantees">
+                    <li>Submit remains disabled while the note is empty; inline validation flags the field as required (§5 Reject Transaction exception; BR-02).</li>
+                    <li class="derived"><em>On failure, no partial status change occurs (data integrity preserved).</em> <span class="marker">derived-from-constraints</span></li>
+                  </ul>
+                </dd>
+                <dt>Trigger</dt>
+                <dd class="trigger">The Approver decides to reject an Imported transaction (§5 Reject Transaction).</dd>
+              </dl>
+              <section class="scenario-block" aria-label="Main success scenario">
+                <h4>Main success scenario <span class="flow-source-label">(flow-from-task-flows)</span></h4>
+                <ol class="main-scenario">
+                  <li class="step actor-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The Approver</span><span class="step-text">chooses an Imported transaction to reject.</span></li>
+                  <li class="step actor-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The Approver</span><span class="step-text">initiates rejection.</span></li>
+                  <li class="step system-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The System</span><span class="step-text">asks the Approver for a mandatory rejection note.</span></li>
+                  <li class="step actor-step" data-step-no="4"><span class="step-no">4</span><span class="step-subject">The Approver</span><span class="step-text">provides the rejection note.</span></li>
+                  <li class="step actor-step" data-step-no="5"><span class="step-no">5</span><span class="step-subject">The Approver</span><span class="step-text">submits the rejection.</span></li>
+                  <li class="step system-step" data-step-no="6"><span class="step-no">6</span><span class="step-subject">The System</span><span class="step-text">transitions the transaction status to Rejected, persists the note, and records the change in the audit trail.</span></li>
+                  <li class="step system-step" data-step-no="7"><span class="step-no">7</span><span class="step-subject">The System</span><span class="step-text">refreshes the transaction table to reflect the new status.</span></li>
+                </ol>
+              </section>
+              <section class="extensions-block" aria-label="Extensions">
+                <h4>Extensions</h4>
+                <ol class="extensions">
+                  <li class="extension ext-exception" data-branch="1a">
+                    <span class="branch-label">1a</span><span class="ext-class">exception</span>
+                    <ol class="extension-steps">
+                      <li class="step system-step">The transaction is not in Imported status; the System hides the Reject action on the row.</li>
+                    </ol>
+                  </li>
+                  <li class="extension ext-exception" data-branch="4a">
+                    <span class="branch-label">4a</span><span class="ext-class">exception</span>
+                    <ol class="extension-steps">
+                      <li class="step system-step">The Approver leaves the note empty; the System keeps Submit disabled and surfaces the note field as required.</li>
+                    </ol>
+                  </li>
+                  <li class="extension ext-alt" data-branch="5a">
+                    <span class="branch-label">5a</span><span class="ext-class">alt</span>
+                    <ol class="extension-steps">
+                      <li class="step system-step">The Approver cancels the reject form; the System dismisses the form with no status change.</li>
+                    </ol>
+                  </li>
+                  <li class="extension ext-exception" data-branch="6a">
+                    <span class="branch-label">6a</span><span class="ext-class">exception</span>
+                    <ol class="extension-steps">
+                      <li class="step system-step">Step-up authentication is required; the System prompts for MFA before recording the rejection.</li>
+                    </ol>
+                  </li>
+                </ol>
+              </section>
+            </article>
+
+            <article id="uc-uc08" class="uc-card level-user-goal" aria-labelledby="uc-uc08-id">
+              <header class="uc-card-header">
+                <span class="uc-id" id="uc-uc08-id">UC-08</span>
+                <h3 class="uc-title">Export filtered transactions to CSV</h3>
+                <span class="level-chip level-user-goal">USER-GOAL</span>
+              </header>
+              <div class="uc-actor-row">
+                <span class="provenance provenance-from-personas" title="Primary actor named verbatim in §Personas" aria-hidden="true">●</span>
+                <span class="actor-name">Approver</span>
+                <span class="goal-source src-from-user-stories" title="Title derived from §User stories" aria-hidden="true"></span>
+                <span class="flow-source flow-from-task-flows" title="Main flow sourced from §Task flows" aria-hidden="true"></span>
+              </div>
+              <p class="goal-in-context">The Approver downloads the currently filtered transaction set as CSV so it can be handed to downstream consumers.</p>
+              <dl class="uc-field-block">
+                <dt>Stakeholders</dt>
+                <dd>
+                  <ul class="stakeholders">
+                    <li><strong>Approver</strong> — output must match what is visible on screen (§3 Approver wants).</li>
+                    <li><strong>Downstream consumers</strong> — receive the exported CSV (Approver story 4).</li>
+                    <li><strong>Audit team</strong> — exports retained for traceability (§6.6.4).</li>
+                  </ul>
+                </dd>
+                <dt>Preconditions</dt>
+                <dd>
+                  <ul class="preconditions">
+                    <li>Approver is authenticated and holds X access on Export Transactions (§6.5 RBAC).</li>
+                  </ul>
+                </dd>
+                <dt>Success guarantees</dt>
+                <dd>
+                  <ul class="success-guarantees">
+                    <li>A CSV file is generated reflecting the active filter set (§5 Export Transactions decision points).</li>
+                    <li>The CSV is ready-to-download within the p99 budget of 3 s for ≤ 10 000 rows (§6.6.2).</li>
+                  </ul>
+                </dd>
+                <dt>Minimal guarantees</dt>
+                <dd>
+                  <ul class="minimal-guarantees">
+                    <li>An empty filtered dataset still produces a header-only CSV; the Approver is informed via a toast (§5 Export Transactions exception path).</li>
+                    <li class="derived"><em>The Export action is hidden for Importer.</em> <span class="marker">derived-from-constraints</span></li>
+                  </ul>
+                </dd>
+                <dt>Trigger</dt>
+                <dd class="trigger">The Approver decides to export the current view (§5 Export Transactions).</dd>
+              </dl>
+              <section class="scenario-block" aria-label="Main success scenario">
+                <h4>Main success scenario <span class="flow-source-label">(flow-from-task-flows)</span></h4>
+                <ol class="main-scenario">
+                  <li class="step actor-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The Approver</span><span class="step-text">applies filters to the transaction table (UC-05).</span></li>
+                  <li class="step actor-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The Approver</span><span class="step-text">initiates export.</span></li>
+                  <li class="step system-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The System</span><span class="step-text">generates a CSV reflecting the active filter set.</span></li>
+                  <li class="step system-step" data-step-no="4"><span class="step-no">4</span><span class="step-subject">The System</span><span class="step-text">delivers the CSV file to the Approver's browser.</span></li>
+                </ol>
+              </section>
+              <section class="extensions-block" aria-label="Extensions">
+                <h4>Extensions</h4>
+                <ol class="extensions">
+                  <li class="extension ext-alt" data-branch="3a">
+                    <span class="branch-label">3a</span><span class="ext-class">alt</span>
+                    <ol class="extension-steps">
+                      <li class="step system-step">The filtered dataset is empty; the System still produces a header-only CSV and notifies the Approver via a toast.</li>
+                    </ol>
+                  </li>
+                </ol>
+              </section>
+            </article>
+
+            <article id="uc-uc09" class="uc-card level-user-goal" aria-labelledby="uc-uc09-id">
+              <header class="uc-card-header">
+                <span class="uc-id" id="uc-uc09-id">UC-09</span>
+                <h3 class="uc-title">View file summary</h3>
+                <span class="level-chip level-user-goal">USER-GOAL</span>
+              </header>
+              <div class="uc-actor-row">
+                <span class="provenance provenance-from-personas" title="Primary actor named verbatim in §Personas" aria-hidden="true">●</span>
+                <span class="actor-name">Importer or Approver</span>
+                <span class="goal-source src-from-task-flows" title="Title derived from §Task flows" aria-hidden="true"></span>
+                <span class="flow-source flow-from-task-flows" title="Main flow sourced from §Task flows" aria-hidden="true"></span>
+              </div>
+              <p class="goal-in-context">The authenticated user inspects per-file aggregate counts (total, Imported, Approved, Rejected) for a specific File Log to confirm the file's outcome.</p>
+              <dl class="uc-field-block">
+                <dt>Stakeholders</dt>
+                <dd>
+                  <ul class="stakeholders">
+                    <li><strong>Importer</strong> — needs to act if any file is Failed (§3 Importer).</li>
+                    <li><strong>Approver</strong> — sees outcome distribution per file (§3 Approver).</li>
+                    <li><strong>Audit team</strong> — per-file totals retained for audit (§6.6.4).</li>
+                  </ul>
+                </dd>
+                <dt>Preconditions</dt>
+                <dd>
+                  <ul class="preconditions">
+                    <li>User is authenticated (§6.5 RBAC).</li>
+                    <li>The selected File Log exists (§7 File Log).</li>
+                  </ul>
+                </dd>
+                <dt>Success guarantees</dt>
+                <dd>
+                  <ul class="success-guarantees">
+                    <li>The System renders the total record count and per-status counts (Imported, Approved, Rejected) for the file (§5 File Summary View step 2).</li>
+                  </ul>
+                </dd>
+                <dt>Minimal guarantees</dt>
+                <dd>
+                  <ul class="minimal-guarantees">
+                    <li>If the file is still Processing or Failed, counts may be incomplete; the System shows the file's current state prominently (§5 File Summary View exception path; BR-07).</li>
+                  </ul>
+                </dd>
+                <dt>Trigger</dt>
+                <dd class="trigger">The user opens a File Log's summary view from the dashboard (§5 File Summary View).</dd>
+              </dl>
+              <section class="scenario-block" aria-label="Main success scenario">
+                <h4>Main success scenario <span class="flow-source-label">(flow-from-task-flows)</span></h4>
+                <ol class="main-scenario">
+                  <li class="step actor-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The user</span><span class="step-text">opens a File Log's summary view from the dashboard.</span></li>
+                  <li class="step system-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The System</span><span class="step-text">renders total record count and per-status counts (Imported, Approved, Rejected).</span></li>
+                  <li class="step system-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The System</span><span class="step-text">surfaces the file's current state prominently if Processing or Failed.</span></li>
+                </ol>
+              </section>
+              <section class="extensions-block" aria-label="Extensions">
+                <h4>Extensions</h4>
+                <ol class="extensions">
+                  <li class="extension ext-exception" data-branch="1a">
+                    <span class="branch-label">1a</span><span class="ext-class">exception</span>
+                    <ol class="extension-steps">
+                      <li class="step system-step">The file is still Processing or Failed; counts may be incomplete and the System renders the file's current state prominently.</li>
+                    </ol>
+                  </li>
+                  <li class="extension ext-exception" data-branch="1b">
+                    <span class="branch-label">1b</span><span class="ext-class">exception</span>
+                    <ol class="extension-steps">
+                      <li class="step system-step">The file is in Failed state; the System inhibits drill-down into transactions until retry succeeds.</li>
+                    </ol>
+                  </li>
+                </ol>
+              </section>
+            </article>
+
+            <article id="uc-uc10" class="uc-card level-user-goal" aria-labelledby="uc-uc10-id">
+              <header class="uc-card-header">
+                <span class="uc-id" id="uc-uc10-id">UC-10</span>
+                <h3 class="uc-title">Log out</h3>
+                <span class="level-chip level-user-goal">USER-GOAL</span>
+              </header>
+              <div class="uc-actor-row">
+                <span class="provenance provenance-from-personas" title="Primary actor named verbatim in §Personas" aria-hidden="true">●</span>
+                <span class="actor-name">Approver</span>
+                <span class="goal-source src-from-prose" title="Title derived from §1 Domain or running prose" aria-hidden="true"></span>
+                <span class="flow-source flow-derived" title="Main flow reconstructed from prose / acceptance phrasing" aria-hidden="true"></span>
+              </div>
+              <p class="goal-in-context">The Approver ends the session so the session cookie is invalidated and credentials cannot be reused without re-authentication.</p>
+              <dl class="uc-field-block">
+                <dt>Stakeholders</dt>
+                <dd>
+                  <ul class="stakeholders">
+                    <li><strong>Approver</strong> — controls own session.</li>
+                    <li><strong>Audit team</strong> — logout event recorded (§6.6.4).</li>
+                    <li><strong>Security team</strong> — session cookie invalidated promptly.</li>
+                  </ul>
+                </dd>
+                <dt>Preconditions</dt>
+                <dd>
+                  <ul class="preconditions">
+                    <li>Approver is authenticated; a session cookie is present (§6.6.1).</li>
+                  </ul>
+                </dd>
+                <dt>Success guarantees</dt>
+                <dd>
+                  <ul class="success-guarantees">
+                    <li>Session cookie is invalidated via Max-Age=0 (§6.6.1; §6.1).</li>
+                    <li>Logout event audited (§6.6.4).</li>
+                  </ul>
+                </dd>
+                <dt>Minimal guarantees</dt>
+                <dd>
+                  <ul class="minimal-guarantees">
+                    <li class="derived"><em>On failure, no privilege escalation occurs (data integrity preserved).</em> <span class="marker">derived-from-constraints</span></li>
+                  </ul>
+                </dd>
+                <dt>Trigger</dt>
+                <dd class="trigger"><em>The Approver decides to end the session.</em> <span class="marker">derived-trigger</span></dd>
+              </dl>
+              <section class="scenario-block" aria-label="Main success scenario">
+                <h4>Main success scenario <span class="flow-source-label">(flow-derived)</span></h4>
+                <ol class="main-scenario">
+                  <li class="step actor-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The Approver</span><span class="step-text">initiates logout.</span></li>
+                  <li class="step system-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The System</span><span class="step-text">invalidates the session cookie via Max-Age=0.</span></li>
+                  <li class="step system-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The System</span><span class="step-text">routes the Approver to the login page.</span></li>
+                </ol>
+              </section>
+              <section class="extensions-block" aria-label="Extensions">
+                <h4>Extensions</h4>
+                <p class="no-extensions">no-extensions-in-requirements</p>
+              </section>
+            </article>
+
+          </div>
+        </section>
+
+        <section class="uc-level-block level-block-subfunction" aria-labelledby="block-subfunction-name">
+          <header class="level-block-header">
+            <h2 id="block-subfunction-name" class="level-block-title">Subfunction (fish)</h2>
+            <p class="level-block-caption">A sub-step shared across multiple user-goal UCs; not a standalone user-goal.</p>
+          </header>
+          <div class="uc-grid">
+
+            <article id="uc-uc05" class="uc-card level-subfunction" aria-labelledby="uc-uc05-id">
+              <header class="uc-card-header">
+                <span class="uc-id" id="uc-uc05-id">UC-05</span>
+                <h3 class="uc-title">Filter and search transactions</h3>
+                <span class="level-chip level-subfunction">SUBFUNCTION</span>
+              </header>
+              <div class="uc-actor-row">
+                <span class="provenance provenance-from-personas" title="Primary actor named verbatim in §Personas" aria-hidden="true">●</span>
+                <span class="actor-name">Importer or Approver</span>
+                <span class="goal-source src-from-task-flows" title="Title derived from §Task flows" aria-hidden="true"></span>
+                <span class="flow-source flow-from-task-flows" title="Main flow sourced from §Task flows" aria-hidden="true"></span>
+              </div>
+              <p class="goal-in-context">The authenticated user narrows a list view to the relevant subset of records.</p>
+              <dl class="uc-field-block">
+                <dt>Stakeholders</dt>
+                <dd>
+                  <ul class="stakeholders">
+                    <li><strong>Authenticated user</strong> — relies on filters to find work-of-interest quickly.</li>
+                  </ul>
+                </dd>
+                <dt>Preconditions</dt>
+                <dd>
+                  <ul class="preconditions">
+                    <li>A list view (File Log Overview, Transaction Table) is open (§5 Search &amp; Filtering).</li>
+                  </ul>
+                </dd>
+                <dt>Success guarantees</dt>
+                <dd>
+                  <ul class="success-guarantees">
+                    <li>Active filters are reflected as chips; Clear-all is offered (§5 Search &amp; Filtering decision points).</li>
+                    <li>Filters apply across Status, File (FileLogId), Date range, Amount range, and free text on Reference / Account (§5; §6.1).</li>
+                  </ul>
+                </dd>
+                <dt>Minimal guarantees</dt>
+                <dd>
+                  <ul class="minimal-guarantees">
+                    <li>Zero-results state names the active filters and suppresses the create CTA (§5 Search &amp; Filtering exception path; §6.4).</li>
+                  </ul>
+                </dd>
+                <dt>Trigger</dt>
+                <dd class="trigger">The user begins narrowing the list (§5 Search &amp; Filtering).</dd>
+              </dl>
+              <section class="scenario-block" aria-label="Main success scenario">
+                <h4>Main success scenario <span class="flow-source-label">(flow-from-task-flows)</span></h4>
+                <ol class="main-scenario">
+                  <li class="step actor-step" data-step-no="1"><span class="step-no">1</span><span class="step-subject">The user</span><span class="step-text">begins applying filter criteria.</span></li>
+                  <li class="step actor-step" data-step-no="2"><span class="step-no">2</span><span class="step-subject">The user</span><span class="step-text">specifies filter criteria across Status, File, Date range, Amount range, or free text.</span></li>
+                  <li class="step system-step" data-step-no="3"><span class="step-no">3</span><span class="step-subject">The System</span><span class="step-text">applies the filters and updates the list.</span></li>
+                </ol>
+              </section>
+              <section class="extensions-block" aria-label="Extensions">
+                <h4>Extensions</h4>
+                <ol class="extensions">
+                  <li class="extension ext-alt" data-branch="3a">
+                    <span class="branch-label">3a</span><span class="ext-class">alt</span>
+                    <ol class="extension-steps">
+                      <li class="step system-step">Active filters yield no matching rows; the System surfaces the zero-results state naming the active filter chips and offering Clear-all.</li>
+                    </ol>
+                  </li>
+                </ol>
+              </section>
+            </article>
+
+          </div>
+        </section>
+
+      </section>
+    </div>
 
     <section id="tables" class="uc-index-wrap" aria-label="Use case index">
       <h2>Use Case Index</h2>
@@ -1974,86 +1990,16 @@
           <tr><th>UC</th><th>Title</th><th>Primary Actor</th><th>Level</th><th>Steps</th><th>Extensions</th></tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="uc-index-id"><a href="#uc-UC10">UC-10</a></td>
-            <td class="uc-index-title">Run a transaction approval cycle</td>
-            <td class="uc-index-actor">Importer</td>
-            <td class="uc-index-level"><span class="level-chip level-summary">SUMMARY</span></td>
-            <td class="uc-index-steps">6</td>
-            <td class="uc-index-extensions">1</td>
-          </tr>
-          <tr>
-            <td class="uc-index-id"><a href="#uc-UC01">UC-01</a></td>
-            <td class="uc-index-title">Log in to the system</td>
-            <td class="uc-index-actor">User</td>
-            <td class="uc-index-level"><span class="level-chip level-user-goal">USER-GOAL</span></td>
-            <td class="uc-index-steps">4</td>
-            <td class="uc-index-extensions">2</td>
-          </tr>
-          <tr>
-            <td class="uc-index-id"><a href="#uc-UC02">UC-02</a></td>
-            <td class="uc-index-title">Upload a transaction file</td>
-            <td class="uc-index-actor">Importer</td>
-            <td class="uc-index-level"><span class="level-chip level-user-goal">USER-GOAL</span></td>
-            <td class="uc-index-steps">5</td>
-            <td class="uc-index-extensions">2</td>
-          </tr>
-          <tr>
-            <td class="uc-index-id"><a href="#uc-UC03">UC-03</a></td>
-            <td class="uc-index-title">Review file processing status</td>
-            <td class="uc-index-actor">Importer</td>
-            <td class="uc-index-level"><span class="level-chip level-user-goal">USER-GOAL</span></td>
-            <td class="uc-index-steps">4</td>
-            <td class="uc-index-extensions">2</td>
-          </tr>
-          <tr>
-            <td class="uc-index-id"><a href="#uc-UC04">UC-04</a></td>
-            <td class="uc-index-title">Review imported transactions</td>
-            <td class="uc-index-actor">Approver</td>
-            <td class="uc-index-level"><span class="level-chip level-user-goal">USER-GOAL</span></td>
-            <td class="uc-index-steps">5</td>
-            <td class="uc-index-extensions">2</td>
-          </tr>
-          <tr>
-            <td class="uc-index-id"><a href="#uc-UC05">UC-05</a></td>
-            <td class="uc-index-title">Approve a transaction</td>
-            <td class="uc-index-actor">Approver</td>
-            <td class="uc-index-level"><span class="level-chip level-user-goal">USER-GOAL</span></td>
-            <td class="uc-index-steps">6</td>
-            <td class="uc-index-extensions">3</td>
-          </tr>
-          <tr>
-            <td class="uc-index-id"><a href="#uc-UC06">UC-06</a></td>
-            <td class="uc-index-title">Reject a transaction</td>
-            <td class="uc-index-actor">Approver</td>
-            <td class="uc-index-level"><span class="level-chip level-user-goal">USER-GOAL</span></td>
-            <td class="uc-index-steps">7</td>
-            <td class="uc-index-extensions">3</td>
-          </tr>
-          <tr>
-            <td class="uc-index-id"><a href="#uc-UC07">UC-07</a></td>
-            <td class="uc-index-title">Export filtered transactions</td>
-            <td class="uc-index-actor">Approver</td>
-            <td class="uc-index-level"><span class="level-chip level-user-goal">USER-GOAL</span></td>
-            <td class="uc-index-steps">4</td>
-            <td class="uc-index-extensions">1</td>
-          </tr>
-          <tr>
-            <td class="uc-index-id"><a href="#uc-UC09">UC-09</a></td>
-            <td class="uc-index-title">Log out of the system</td>
-            <td class="uc-index-actor">User</td>
-            <td class="uc-index-level"><span class="level-chip level-user-goal">USER-GOAL</span></td>
-            <td class="uc-index-steps">3</td>
-            <td class="uc-index-extensions">1</td>
-          </tr>
-          <tr>
-            <td class="uc-index-id"><a href="#uc-UC08">UC-08</a></td>
-            <td class="uc-index-title">Filter a transaction list</td>
-            <td class="uc-index-actor">User</td>
-            <td class="uc-index-level"><span class="level-chip level-subfunction">SUBFUNCTION</span></td>
-            <td class="uc-index-steps">3</td>
-            <td class="uc-index-extensions">1</td>
-          </tr>
+          <tr><td class="uc-index-id"><a href="#uc-uc01">UC-01</a></td><td class="uc-index-title">Authenticate</td><td class="uc-index-actor">Importer or Approver</td><td class="uc-index-level"><span class="level-chip level-user-goal">USER-GOAL</span></td><td class="uc-index-steps">4</td><td class="uc-index-extensions">2</td></tr>
+          <tr><td class="uc-index-id"><a href="#uc-uc02">UC-02</a></td><td class="uc-index-title">Upload transaction file</td><td class="uc-index-actor">Importer</td><td class="uc-index-level"><span class="level-chip level-user-goal">USER-GOAL</span></td><td class="uc-index-steps">5</td><td class="uc-index-extensions">2</td></tr>
+          <tr><td class="uc-index-id"><a href="#uc-uc03">UC-03</a></td><td class="uc-index-title">Monitor uploaded file processing status</td><td class="uc-index-actor">Importer or Approver</td><td class="uc-index-level"><span class="level-chip level-user-goal">USER-GOAL</span></td><td class="uc-index-steps">3</td><td class="uc-index-extensions">2</td></tr>
+          <tr><td class="uc-index-id"><a href="#uc-uc04">UC-04</a></td><td class="uc-index-title">View transaction list</td><td class="uc-index-actor">Importer or Approver</td><td class="uc-index-level"><span class="level-chip level-user-goal">USER-GOAL</span></td><td class="uc-index-steps">3</td><td class="uc-index-extensions">2</td></tr>
+          <tr><td class="uc-index-id"><a href="#uc-uc06">UC-06</a></td><td class="uc-index-title">Approve a transaction</td><td class="uc-index-actor">Approver</td><td class="uc-index-level"><span class="level-chip level-user-goal">USER-GOAL</span></td><td class="uc-index-steps">6</td><td class="uc-index-extensions">3</td></tr>
+          <tr><td class="uc-index-id"><a href="#uc-uc07">UC-07</a></td><td class="uc-index-title">Reject a transaction with a note</td><td class="uc-index-actor">Approver</td><td class="uc-index-level"><span class="level-chip level-user-goal">USER-GOAL</span></td><td class="uc-index-steps">7</td><td class="uc-index-extensions">4</td></tr>
+          <tr><td class="uc-index-id"><a href="#uc-uc08">UC-08</a></td><td class="uc-index-title">Export filtered transactions to CSV</td><td class="uc-index-actor">Approver</td><td class="uc-index-level"><span class="level-chip level-user-goal">USER-GOAL</span></td><td class="uc-index-steps">4</td><td class="uc-index-extensions">1</td></tr>
+          <tr><td class="uc-index-id"><a href="#uc-uc09">UC-09</a></td><td class="uc-index-title">View file summary</td><td class="uc-index-actor">Importer or Approver</td><td class="uc-index-level"><span class="level-chip level-user-goal">USER-GOAL</span></td><td class="uc-index-steps">3</td><td class="uc-index-extensions">2</td></tr>
+          <tr><td class="uc-index-id"><a href="#uc-uc10">UC-10</a></td><td class="uc-index-title">Log out</td><td class="uc-index-actor">Approver</td><td class="uc-index-level"><span class="level-chip level-user-goal">USER-GOAL</span></td><td class="uc-index-steps">3</td><td class="uc-index-extensions">0</td></tr>
+          <tr><td class="uc-index-id"><a href="#uc-uc05">UC-05</a></td><td class="uc-index-title">Filter and search transactions</td><td class="uc-index-actor">Importer or Approver</td><td class="uc-index-level"><span class="level-chip level-subfunction">SUBFUNCTION</span></td><td class="uc-index-steps">3</td><td class="uc-index-extensions">1</td></tr>
         </tbody>
       </table>
     </section>
@@ -2062,21 +2008,22 @@
       <summary>Diagnostics</summary>
       <section class="diagnostics">
         <h2>Diagnostics</h2>
-        <p>Use cases map — 10 UCs across 3 primary actors.</p>
-        <p>Levels: 1 summary, 8 user-goal, 1 subfunction (1 default-classified — UC-09 Log out of the system).</p>
-        <p>Provenance: 7 UCs with from-personas actor, 3 with derived-actor. Goal sources: 6 from-user-stories, 2 from-task-flows, 0 from-goals, 2 from-prose. Flow sources: 8 flow-from-task-flows, 2 flow-derived.</p>
-        <p>Conditions: 23 preconditions sourced, 0 derived. 26 success guarantees anchored to BR-NN / §5 task-flow language / §6.1 functional reqs (acting as §Acceptance criteria substitutes — this requirements doc has no AC-NN section); 2 derived-from-pains (UC-10 cycle-completion guarantees). 18 minimal guarantees sourced, 4 derived-from-risks. 8 triggers anchored to §5 task flows, 2 derived-trigger (UC-09, UC-10).</p>
-        <p>Extensions: 18 extensions sourced, 0 no-extensions-in-requirements markers.</p>
-        <p>UML diagrams: 1 overview, 3 per-actor; association edges: 10; «include» edges: 8; «extend» edges: 0 (Cockburn extensions model scenario branches, not UML extension points); «generalize» edges: 0 (no source signal in requirements).</p>
+        <p>Use cases map — 10 UCs across 2 primary actors.</p>
+        <p>Levels: 0 summary, 9 user-goal, 1 subfunction (0 default-classified).</p>
+        <p>Provenance: 2 actors from §Personas, 0 derived. Goal-source: 6 from-user-stories, 3 from-task-flows, 0 from-goals, 1 from-prose. Flow-source: 9 flow-from-task-flows, 1 flow-derived.</p>
+        <p>Conditions: 0 derived preconditions, 0 derived-from-pains success guarantees, 4 derived-from-constraints minimal guarantees (UC-06, UC-07, UC-08, UC-10), 1 derived-trigger (UC-10).</p>
+        <p>Extensions: 19 extensions sourced, 1 no-extensions-in-requirements marker (UC-10).</p>
+        <p>Dual-actor primary: 5 UCs (UC-01, UC-03, UC-04, UC-05, UC-09) name "Importer or Approver" as primary actor — preserves the literal §5 task-flow phrasing without inventing a generalised role. UML overview emits one association edge per (actor, UC) pair.</p>
         <ul>
-          <li class="check-pass">Gate 1 — Every UC has exactly one primary actor (or derived-actor fallback).</li>
-          <li class="check-pass">Gate 2 — Every UC title is an active-verb goal phrase (no forbidden vague or affordance verbs).</li>
+          <li class="check-pass">Gate 1 — Every UC has exactly one primary actor.</li>
+          <li class="check-pass">Gate 2 — Every UC title is an active-verb goal phrase.</li>
           <li class="check-pass">Gate 3 — Every UC has at least one precondition AND at least one success guarantee.</li>
-          <li class="check-pass">Gate 4 — Step-count is within bounds for the UC's level; summary UCs reference other UCs by ID.</li>
-          <li class="check-pass">Gate 5 — Every step is SVO; subject is a named actor or System; no affordance tokens.</li>
+          <li class="check-pass">Gate 4 — Step-count is within bounds for the UC's level.</li>
+          <li class="check-pass">Gate 5 — Every step is a subject-verb-object sentence; subject is a named actor or System.</li>
           <li class="check-pass">Gate 6 — Every UC has at least one extension OR carries the no-extensions-in-requirements marker.</li>
-          <li class="check-pass">Gate 7 — Every success guarantee anchors back to §Acceptance criteria (or substitute — BR-NN, §5 task-flow language, §6.1 functional reqs) OR carries the derived-from-pains marker.</li>
+          <li class="check-pass">Gate 7 — Every success guarantee anchors back to acceptance content (BR-NN / §-anchors) OR carries the derived-from-pains marker.</li>
         </ul>
+        <p>UML diagrams: 1 overview, 2 per-actor; association edges: 15; «include» edges: 1; «extend» edges: 0 (Cockburn extensions model scenario branches, not UML extension points); «generalize» edges: 0 (no source signal in requirements).</p>
       </section>
     </details>
 
