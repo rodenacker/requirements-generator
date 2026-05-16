@@ -12,7 +12,7 @@
     - [3.3 `/design-system`](#33-design-system)
         - [3.3.1 How it works](#331-how-it-works)
         - [3.3.2 What you get](#332-what-you-get)
-    - [3.4 `/analyse`](#34-analyse)
+    - [3.4 `/analyse-requirement`](#34-analyse-requirement)
         - [3.4.1 How it works](#341-how-it-works)
         - [3.4.2 Choose this when…](#342-choose-this-when)
         - [3.4.3 What you get](#343-what-you-get)
@@ -39,10 +39,10 @@ The five commands:
 - **`/start`** — pick which command to run.
 - **`/requirements`** — turn the loose pile of briefs, decks, screenshots, spreadsheets and PDFs the client gave you into a clean, structured `requirements.md`.
 - **`/design-system`** — get a complete brand-token brief (colours, typography, effects) for a designer, optionally extracted from a reference URL.
-- **`/analyse`** — go **deeper into what the requirements already contain** by re-expressing them through a chosen lens — object map, jobs-to-be-done, use cases, data model, sequence diagram, state diagram, activity diagram, or user journeys.
+- **`/analyse-requirement`** — go **deeper into what the requirements already contain** by re-expressing them through a chosen lens — object map, jobs-to-be-done, use cases, data model, sequence diagram, state diagram, activity diagram, or user journeys.
 - **`/review`** — **find what's missing or wrong** in your requirements doc so you can fix it before handoff — a strict adversarial critique, the ten most pressing BA questions, or the ten most pressing UX questions.
 
-`/analyse` and `/review` both read `requirements/requirements.md` — run `/requirements` first. `/start`, `/requirements`, and `/design-system` are stand-alone.
+`/analyse-requirement` and `/review` both read `requirements/requirements.md` — run `/requirements` first. `/start`, `/requirements`, and `/design-system` are stand-alone.
 
 ## 2. When to use which command
 
@@ -50,8 +50,8 @@ The five commands:
 | --- | --- | --- |
 | Client just sent you a pile of attachments and asked for a spec | `/requirements` | Turns the inputs into a structured doc you can iterate. |
 | Designer is waiting on a brand brief | `/design-system` | One run produces a complete colour + typography + effects brief. |
-| About to brief a developer on data structure | `/analyse` → `data-model` | Surfaces the entities, fields, and relationships already implied by the spec. |
-| About to brief a designer on screens and navigation | `/analyse` → `ooux` or `use-cases` | Surfaces the objects + CTAs, or the actor goals + flows. |
+| About to brief a developer on data structure | `/analyse-requirement` → `data-model` | Surfaces the entities, fields, and relationships already implied by the spec. |
+| About to brief a designer on screens and navigation | `/analyse-requirement` → `ooux` or `use-cases` | Surfaces the objects + CTAs, or the actor goals + flows. |
 | You sense something is missing in the spec but can't articulate it | `/review` → `ten-ba-questions` or `ten-ux-questions` | Surfaces the unasked questions in the consultant's blind spot. |
 | You need to defend the spec to a sceptical stakeholder | `/review` → `adversarial` | Strict critique with a Patch / Defer / Reject decision per finding. |
 
@@ -129,7 +129,7 @@ A single brand brief at **`design-system/design-system.md`** — a complete pale
 
 The doc also includes a machine-readable token section, so if a downstream tool consumes the brief programmatically (Figma plugin, CSS generator, etc.), the values are already in a structured form.
 
-### 3.4 `/analyse`
+### 3.4 `/analyse-requirement`
 
 Go **deeper into what your requirements doc already contains**. Pick an analytical lens (object map, data model, user journeys, etc.) and the framework re-expresses your `requirements.md` through that lens as a stand-alone artefact you can share with a designer or developer.
 
@@ -137,7 +137,7 @@ Use it when you have a working requirements doc but want a sharper view of one s
 
 #### 3.4.1 How it works
 
-`/analyse` requires `requirements/requirements.md` to exist. After the prerequisite check, it shows you the available methodologies, you pick one, and the chosen analysis runs interactively and asks for your acceptance before saving.
+`/analyse-requirement` requires `requirements/requirements.md` to exist. After the prerequisite check, it shows you the available methodologies, you pick one, and the chosen analysis runs interactively and asks for your acceptance before saving.
 
 ```mermaid
 flowchart LR
@@ -151,7 +151,7 @@ flowchart LR
     F -- accept --> G([Artefact at<br/>analyses/METHOD/...])
 ```
 
-`/analyse` never modifies your requirements doc — it only reads it.
+`/analyse-requirement` never modifies your requirements doc — it only reads it.
 
 #### 3.4.2 Choose this when…
 

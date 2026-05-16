@@ -18,7 +18,7 @@ Exactly one of:
 
 ## Used by
 
-- `framework/orchestrators/analyse-orch.md` — step 2.
+- `framework/orchestrators/analyse-requirement-orch.md` — step 2.
 
 ## Procedure
 
@@ -33,7 +33,7 @@ Exactly one of:
 
     After the methodology lines, append a blank line and a trailing cancel line:
 
-    `  0. Cancel — exit /analyse without running an analysis`
+    `  0. Cancel — exit /analyse-requirement without running an analysis`
 
     Let `N` be the count of MVP rows (and therefore the highest valid selection number).
 
@@ -47,7 +47,7 @@ Exactly one of:
       …
       N. /<name> — <description>
 
-      0. Cancel — exit /analyse without running an analysis
+      0. Cancel — exit /analyse-requirement without running an analysis
 
     Enter the number of the analysis to run (or 0 to cancel):
     ```

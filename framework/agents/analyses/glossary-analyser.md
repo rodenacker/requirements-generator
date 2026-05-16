@@ -70,7 +70,7 @@ Ten steps in order. Do not skip steps; do not collapse steps. Each step's succes
 
 - `Read requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees this file exists.
 - Compute and remember the SHA-256 of the file's bytes — it lands in the artefact's `Requirements SHA-256:` header line and in the `last_input_sha256` cursor field.
-- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/analyse`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
+- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/analyse-requirement`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
 - Locate the canonical sections (`§1 Application context`, `§2 Domain model`, `§3 Target users`, `§4 User goals & stories`, `§5 Task flows`, `§6 Requirements`, `§7 Data entities`, optional `§8 Prototype invariants`, optional `§9 General rules`). Record which sections are present, which are absent. Record the byte offsets / line ranges of each section so later rounds can grep them efficiently.
 
 ### Step 3 — Detect prior run
@@ -190,7 +190,7 @@ Per `glossary-reference.md > Quality checks`. Run all 7 hard checks. Each check 
 
 - Do **not** write the artefact.
 - Surface a structured error to the consultant listing every check that fired and every flagged item. Use `AskUserQuestion` with three options:
-  1. `Revise requirements — exit so the consultant can edit requirements/requirements.md and re-invoke /analyse (Recommended)`.
+  1. `Revise requirements — exit so the consultant can edit requirements/requirements.md and re-invoke /analyse-requirement (Recommended)`.
   2. `Override — proceed and write a known-incomplete artefact (the Run-history bullet for this run will record every violation)`.
   3. `Restart — re-run from Step 6 (Round 1 / 2) with a fresh extraction`.
 - On **Revise**: hand back to the orchestrator with a `failed-handback` state.

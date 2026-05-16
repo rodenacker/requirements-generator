@@ -52,4 +52,4 @@ Exactly one of:
 - Do not write to disk. This skill has no side effects beyond the single `AskUserQuestion` surface.
 - Do not silently skip rows with malformed frontmatter (missing required fields on an `mvp` row). Surface `empty-registry` and let the orchestrator report a configuration error rather than presenting a half-populated option that would crash on selection.
 - Do not present `status: future` rows even with a "coming soon" suffix. Future rows do not have reviewer agents on disk — selecting them would crash the orchestrator.
-- Do not confuse this skill with `framework/skills/analysis-selector.md`. The two skills are structurally identical but point at different registries; sharing implementation across the two would couple `/review` and `/analyse` and break the open/closed contract.
+- Do not confuse this skill with `framework/skills/analysis-selector.md`. The two skills are structurally identical but point at different registries; sharing implementation across the two would couple `/review` and `/analyse-requirement` and break the open/closed contract.

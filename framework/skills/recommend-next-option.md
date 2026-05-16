@@ -2,7 +2,7 @@
 
 # recommend-next-option.md
 
-**Purpose:** Reusable recommendation skill called by every orchestrator before surfacing a multi-option menu. Produces the Unicorn's recommended option together with a rationale grounded in the current state — never silent, never neutral. Includes inline offers for `/analyse` and `/research` as side actions when warranted.
+**Purpose:** Reusable recommendation skill called by every orchestrator before surfacing a multi-option menu. Produces the Unicorn's recommended option together with a rationale grounded in the current state — never silent, never neutral. Includes inline offers for `/analyse-requirement` and `/research` as side actions when warranted.
 
 **Inputs:** current stage + state, latest completeness-report findings (counts × severity), the menu's option set, `assets/persona-llm.md`, the current character file.
 
@@ -11,7 +11,7 @@
 **Used by:**
 - `framework/orchestrators/requirements-orch.md` — step 5 options menu, detect-rerun two-option prompt.
 - `framework/orchestrators/design-orch.md` — step 4 options menu, detect-rerun two-option prompt.
-- `framework/orchestrators/analyse-orch.md` — analysis-selector, per-analysis menu.
+- `framework/orchestrators/analyse-requirement-orch.md` — analysis-selector, per-analysis menu.
 - `framework/orchestrators/research-orch.md` — scope prompt, per-finding menu.
 
 **Used how:** Single source of truth for recommendation logic. Forward-compat stubs from day 1: (a) analyses-registry expansion beyond the 4 MVP methodologies; (b) research scope guidance.

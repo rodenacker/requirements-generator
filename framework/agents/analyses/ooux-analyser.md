@@ -38,7 +38,7 @@ Eleven steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - `Read requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees this file exists.
 - Compute and remember the SHA-256 of the file's bytes — it lands in the artefact's `REQUIREMENTS_SHA256` field so the artefact records exactly which version of the requirements doc it analysed.
-- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/analyse`."* No `AskUserQuestion`; this is a hard halt analogous to RF-04.
+- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/analyse-requirement`."* No `AskUserQuestion`; this is a hard halt analogous to RF-04.
 - Locate `§2 Domain model > §2.1 Concepts` if present. Record the anchor offset (header line number) so later steps can quote names verbatim. If `§2` is absent, note this in-memory so Step 4 flags every derived object explicitly.
 
 ### Step 3 — Round 1: Discovery
@@ -123,10 +123,10 @@ Run all seven checks from `ooux-reference.md > Quality checks` in order. Each ch
 
 - Do **not** write the artefact.
 - Surface a structured error to the consultant listing every check that fired and every flagged item (by name). Use `AskUserQuestion` with three options:
-    1. `Revise requirements — exit so the consultant can edit requirements/requirements.md and re-invoke /analyse (Recommended)`.
+    1. `Revise requirements — exit so the consultant can edit requirements/requirements.md and re-invoke /analyse-requirement (Recommended)`.
     2. `Override — proceed and write a known-incomplete map (the diagnostics block on the artefact will record every violation)`.
     3. `Restart — re-run from Step 3 with a fresh extraction`.
-- On **Revise**: hand back to the orchestrator with a `failed-handback` state. The orchestrator does not declare done; the consultant runs `/requirements` or edits manually and re-invokes `/analyse`.
+- On **Revise**: hand back to the orchestrator with a `failed-handback` state. The orchestrator does not declare done; the consultant runs `/requirements` or edits manually and re-invokes `/analyse-requirement`.
 - On **Override**: record each failing check in the in-memory diagnostics block (which lands in the rendered artefact), then advance to Step 9. The consultant has explicitly accepted the violations as known.
 - On **Restart**: re-enter Step 3. Do not loop more than three times in a single invocation; on the fourth fail-and-restart, force the **Revise** path with a one-line note that further iteration is not productive without consultant input.
 

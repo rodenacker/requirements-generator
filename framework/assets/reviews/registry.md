@@ -69,7 +69,7 @@ methodologies:
 
 **Purpose:** Methodology registry for `/review`. The frontmatter above is the **machine-readable** contract — `framework/skills/review-selector.md` filters `status == "mvp"` to present options to the consultant; `framework/orchestrators/review-orch.md` looks up `reviewer_agent` for the chosen methodology and invokes it.
 
-This registry is structurally identical to `framework/assets/analyses/registry.md` (which drives `/analyse`) so the two pipelines share the same registry-driven, open/closed extension contract. The semantic distinction is the *intent* of the output: `/analyse` produces derived structural models (object maps, job maps, use-case maps) that downstream design phases consume; `/review` produces critique reports flagging defects, gaps, ambiguities, and risks in `requirements/requirements.md` itself.
+This registry is structurally identical to `framework/assets/analyses/registry.md` (which drives `/analyse-requirement`) so the two pipelines share the same registry-driven, open/closed extension contract. The semantic distinction is the *intent* of the output: `/analyse-requirement` produces derived structural models (object maps, job maps, use-case maps) that downstream design phases consume; `/review` produces critique reports flagging defects, gaps, ambiguities, and risks in `requirements/requirements.md` itself.
 
 **Used by:**
 
@@ -105,8 +105,8 @@ Reviews and analyses are categorically different outputs:
 
 Folding reviews into the analyses registry would:
 
-- Muddy the consultant's choice list (the `/analyse` selector would show "Adversarial Review" alongside "OOUX" as if they were peers, when they have opposite semantics — one builds *from* the doc, the other critiques *the* doc).
+- Muddy the consultant's choice list (the `/analyse-requirement` selector would show "Adversarial Review" alongside "OOUX" as if they were peers, when they have opposite semantics — one builds *from* the doc, the other critiques *the* doc).
 - Complicate the stand-alone write invariant: analyses write to `analyses/<METHOD>/`; reviews must write to `reviews/<METHOD>/`. A single registry would need a per-row output-root field, replacing a clear two-pipeline split with a more brittle multiplexed one.
 - Break the natural mapping `slash-command → orchestrator → registry`. Two commands, two orchestrators, two registries is the right cardinality.
 
-The cost of duplication is one selector skill and one orchestrator — both clone the `/analyse` versions verbatim with path swaps. The benefit is clean semantic separation between *building from* and *critiquing of* the requirements doc.
+The cost of duplication is one selector skill and one orchestrator — both clone the `/analyse-requirement` versions verbatim with path swaps. The benefit is clean semantic separation between *building from* and *critiquing of* the requirements doc.

@@ -1,4 +1,4 @@
-# Analyse Orchestrator
+# Analyse Requirement Orchestrator
 
 ## Persona & Character
 
@@ -37,12 +37,12 @@ Unlike `requirements-orch.md`, this orchestrator does **not** maintain a `.progr
 ## Pipeline
 
 0. **Prerequisite gate** — `Read requirements/requirements.md`.
-    - If the file does not exist, OR exists but is empty (zero bytes after trim): emit the single plain-text line *"`requirements/requirements.md` is required to run `/analyse`. Run `/requirements` first to produce it, then re-invoke `/analyse`."* and exit cleanly. Do **not** invoke any agent, do **not** prompt the consultant, do **not** write any file. This is a hard, recovery-by-re-invoke exit — analogous in spirit to `RF-04`'s plain-text halt, but specific to this orchestrator's prerequisite.
+    - If the file does not exist, OR exists but is empty (zero bytes after trim): emit the single plain-text line *"`requirements/requirements.md` is required to run `/analyse-requirement`. Run `/requirements` first to produce it, then re-invoke `/analyse-requirement`."* and exit cleanly. Do **not** invoke any agent, do **not** prompt the consultant, do **not** write any file. This is a hard, recovery-by-re-invoke exit — analogous in spirit to `RF-04`'s plain-text halt, but specific to this orchestrator's prerequisite.
     - If the file exists and is non-empty: advance to step 0b.
 
-0b. **Preflight: context-bloat check** — performed only when step 0 did not exit. Call `framework/skills/check-context-bloat.md` with `artefact_dir = requirements/`, `manifest_path = requirements/source-manifest.json`, and `progress_path = framework/state/.progress.json`. On `ok`, proceed to step 1. On `RF-05 trigger`, surface the predicate per `framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` (analyse-orch surface variant, see below) via `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`.
+0b. **Preflight: context-bloat check** — performed only when step 0 did not exit. Call `framework/skills/check-context-bloat.md` with `artefact_dir = requirements/`, `manifest_path = requirements/source-manifest.json`, and `progress_path = framework/state/.progress.json`. On `ok`, proceed to step 1. On `RF-05 trigger`, surface the predicate per `framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` (analyse-requirement-orch surface variant, see below) via `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`.
     - `proceed-without-clear` — proceed to step 1.
-    - `continue-later` — output: *"Conversation context looks bloated from prior pipeline state. Run `/clear` and re-invoke `/analyse` for a clean run."* and exit cleanly. Do **not** write `framework/state/.progress.json` — same constraint as the `design-system-orch` surface variant of RF-05. Do **not** modify any path under `analyses/`.
+    - `continue-later` — output: *"Conversation context looks bloated from prior pipeline state. Run `/clear` and re-invoke `/analyse-requirement` for a clean run."* and exit cleanly. Do **not** write `framework/state/.progress.json` — same constraint as the `design-system-orch` surface variant of RF-05. Do **not** modify any path under `analyses/`.
 
 1. **Select methodology** — invoke `framework/skills/analysis-selector.md`. The skill reads the registry, filters `status == mvp`, surfaces an `AskUserQuestion` with one option per row plus a final `Cancel` option, and returns one of `selected | cancelled | empty-registry`.
     - `selected` — capture the returned row payload (eight registry fields) into in-memory variables: `chosen.name`, `chosen.analyser_agent`, `chosen.output_path`, `chosen.reference_asset`, `chosen.template_asset`, `chosen.map_skill`, `chosen.character`. Advance to step 2.
@@ -99,7 +99,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 - `framework/skills/check-context-bloat.md` — invoked once at step 0b before the analyser is called.
 - `framework/agents/analyses/<method>-analyser.md` — the analyser agent invoked at step 3, resolved per the chosen registry row's `analyser_agent` field. For the OOUX MVP: `framework/agents/analyses/ooux-analyser.md`.
 - `requirements/requirements.md` — read at step 0 (existence + non-empty check). This is the orchestrator's only read under `requirements/` outside the step-0b preflight.
-- `framework/shared/refusal-registry.md` — `RF-04` and `RF-05` (analyse-orch surface variant) semantics surfaced by this orchestrator and by the analyser at its write step.
+- `framework/shared/refusal-registry.md` — `RF-04` and `RF-05` (analyse-requirement-orch surface variant) semantics surfaced by this orchestrator and by the analyser at its write step.
 - `requirements/`, `requirements/source-manifest.json`, `framework/state/.progress.json` — read **only** as preflight inputs to step 0b's context-bloat skill. See the stand-alone constraint above.
 
 ## Output
@@ -114,15 +114,15 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 
 The orchestrator's tools are limited to the operations above. Every other read or write of analysis content belongs to the invoked agent; the agent uses the tools listed in its own agent file.
 
-## RF-05 — analyse-orch surface variant
+## RF-05 — analyse-requirement-orch surface variant
 
-`framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` is defined with two named surface variants (`requirements-orch`, `design-system-orch`). The `/analyse` pipeline uses a **third surface variant** identical in shape to the `design-system-orch` variant:
+`framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` is defined with two named surface variants (`requirements-orch`, `design-system-orch`). The `/analyse-requirement` pipeline uses a **third surface variant** identical in shape to the `design-system-orch` variant:
 
 - Fired once at step 0b, immediately after the step-0 prerequisite gate passes and before the methodology selector runs.
-- `proceed-without-clear` advances; `continue-later` exits cleanly with a *"run `/clear` and re-invoke `/analyse`"* message.
-- **No write to `framework/state/.progress.json`** on either branch. The `/analyse` pipeline is bound by the no-write-outside-`analyses/` invariant; the registry's analyse-orch surface variant for `RF-05` deliberately omits the `status: context-bloated` write that the requirements-orch variant performs.
+- `proceed-without-clear` advances; `continue-later` exits cleanly with a *"run `/clear` and re-invoke `/analyse-requirement`"* message.
+- **No write to `framework/state/.progress.json`** on either branch. The `/analyse-requirement` pipeline is bound by the no-write-outside-`analyses/` invariant; the registry's analyse-requirement-orch surface variant for `RF-05` deliberately omits the `status: context-bloated` write that the requirements-orch variant performs.
 
-When the registry file is next revised, append a third surface-variant block for `analyse-orch` to keep that document in sync. The runtime contract is captured here and in `framework/orchestrators/analyse-orch.md > Pipeline > step 0b` as the operational source of truth.
+When the registry file is next revised, append a third surface-variant block for `analyse-requirement-orch` to keep that document in sync. The runtime contract is captured here and in `framework/orchestrators/analyse-requirement-orch.md > Pipeline > step 0b` as the operational source of truth.
 
 ## Self-validation (run before declaring done)
 
@@ -154,7 +154,7 @@ When the registry file is next revised, append a third surface-variant block for
 - Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the checkpoint commit.
 - Do not maintain a `.progress.json` file. This orchestrator is single-agent and one-shot; progress tracking is unnecessary and out of scope.
 - Do not skip step 0b on a path that did not exit at step 0. The preflight is the only place where prior-conversation bloat is detected before the analyser runs.
-- Do not write `framework/state/.progress.json` on the `RF-05 continue-later` branch. The analyse pipeline is bound by the no-write-outside-`analyses/` invariant.
+- Do not write `framework/state/.progress.json` on the `RF-05 continue-later` branch. The analyse-requirement pipeline is bound by the no-write-outside-`analyses/` invariant.
 - Do not read `framework/state/` or `framework/shared/` outside the narrow exceptions documented in **Stand-alone constraint** (the step-0b preflight inputs and the refusal-registry references). This orchestrator and its analysers remain stand-alone for every other purpose.
 - Do not surface the step-1 methodology prompt from within this orchestrator. That prompt is the analysis-selector skill's responsibility; surfacing it inline duplicates the registry-read logic and breaks the open/closed extension contract (adding a methodology must require zero orchestrator edits).
 - Do not surface the step-3 accept/revise/restart prompt from within this orchestrator. That prompt belongs to the chosen analyser's handback step; surfacing it from the orchestrator would break the handback-gate contract.

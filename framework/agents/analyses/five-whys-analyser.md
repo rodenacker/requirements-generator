@@ -60,7 +60,7 @@ Thirteen steps in order. Do not skip steps; do not collapse steps. Each step's s
 
 - `Read requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees this file exists.
 - Compute and remember the SHA-256 of the file's bytes — it lands in the artefact's `Requirements SHA-256:` header line so the artefact records exactly which version of the requirements doc it analysed.
-- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/analyse`."* No `AskUserQuestion`; this is a hard halt analogous to RF-04.
+- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/analyse-requirement`."* No `AskUserQuestion`; this is a hard halt analogous to RF-04.
 - Locate the canonical sections (`§1 Application context`, `§3 Target users`, `§4 User goals & stories`, `§5 Task flows`, `§6 Requirements`, `§7 Data entities`). Record which sections are present, which are absent. Record the byte offsets / line ranges of each section so later rounds can grep them efficiently.
 - **No structural prerequisite gate on a specific section** beyond `§6` non-emptiness. If `§6 Requirements` is empty or absent, Round 1 will return zero candidates and the run will proceed to a scoring-summary-only artefact (per Round 2's empty-selection-valid contract).
 
@@ -222,7 +222,7 @@ For each chain and each sub-chain branch (one coverage row per chain or sub-chai
   - Extract the **root justification label** from the final why-row's Answer text. Tokenise; drop stopwords.
   - Search `§1 Application context` and all `§6` clauses for any text whose tokens overlap with the label at ≥ 50%.
   - If a match is found: row `coverage: cited` with the location ref + a verbatim snippet (e.g., *"`cited` — `§1` Application context line 12: 'GDPR compliance is a core constraint for the system's data-retention behaviour'"*).
-  - If no match is found: row `coverage: gap — root justification named at chain terminus but not anchored anywhere in §1 or §6; consultant should add the cite to §1 or §6, then re-run /requirements + /analyse five-whys to verify the gap is closed`.
+  - If no match is found: row `coverage: gap — root justification named at chain terminus but not anchored anywhere in §1 or §6; consultant should add the cite to §1 or §6, then re-run /requirements + /analyse-requirement five-whys to verify the gap is closed`.
 
 - If `terminator == INCOMPLETE` or `terminator == CAP`:
   - Row `coverage: n/a — chain did not reach an actionable root justification; coverage check is not applicable`.
@@ -269,10 +269,10 @@ Per `five-whys-reference.md > Quality checks`. Run all 10 hard checks plus the s
 
 - Do **not** write the artefact.
 - Surface a structured error to the consultant listing every check that fired and every flagged item. Use `AskUserQuestion` with three options:
-  1. `Revise requirements — exit so the consultant can edit requirements/requirements.md and re-invoke /analyse (Recommended)`.
+  1. `Revise requirements — exit so the consultant can edit requirements/requirements.md and re-invoke /analyse-requirement (Recommended)`.
   2. `Override — proceed and write a known-incomplete artefact (the diagnostics block will record every violation)`.
   3. `Restart — re-run from Round 1 with a fresh extraction`.
-- On **Revise**: hand back to the orchestrator with a `failed-handback` state. The orchestrator does not declare done; the consultant runs `/requirements` or edits manually and re-invokes `/analyse`.
+- On **Revise**: hand back to the orchestrator with a `failed-handback` state. The orchestrator does not declare done; the consultant runs `/requirements` or edits manually and re-invokes `/analyse-requirement`.
 - On **Override**: record each failing check in the in-memory diagnostics block (which lands in the rendered artefact), then advance to Step 11. The consultant has explicitly accepted the violations as known.
 - On **Restart**: re-enter Step 3. Do not loop more than three times in a single invocation; on the fourth fail-and-restart, force the **Revise** path with a one-line note that further iteration is not productive without consultant input.
 

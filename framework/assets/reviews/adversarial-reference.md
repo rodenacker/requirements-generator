@@ -254,7 +254,7 @@ BMAD categorises findings into three buckets: **Patch / Defer / Reject**. The re
 ### Reject
 
 - **Blocking.** The requirements doc cannot be consumed downstream until this is resolved.
-- Common patterns: two requirements that directly contradict; an absent role-permission section that gates `/design-system`; a missing data-model anchor that prevents `/analyse` from running; a POPIA-bearing data flow with no compliance treatment.
+- Common patterns: two requirements that directly contradict; an absent role-permission section that gates `/design-system`; a missing data-model anchor that prevents `/analyse-requirement` from running; a POPIA-bearing data flow with no compliance treatment.
 - Any single Reject finding makes the overall verdict `BLOCKED`.
 
 ### Disposition → Verdict mapping

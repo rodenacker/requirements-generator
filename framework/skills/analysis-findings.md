@@ -8,8 +8,8 @@
 
 **Outputs:** structured findings list with: section in `requirements.md` it relates to, what the analysis says, type (additive / confirmatory / contradictory), suggested resolution.
 
-**Used by:** `framework/orchestrators/analyse-orch.md` — step 4.
+**Used by:** `framework/orchestrators/analyse-requirement-orch.md` — step 4.
 
 **Used how:** Runs once per analysis after the analyser agent completes. Output drives the per-analysis four-option menu (Apply / Dismiss / Run another / Done).
 
-> Content TBD per `plan/v7b-Brief.md > §/analyse > step 4`.
+> Content TBD per `plan/v7b-Brief.md > §/analyse-requirement > step 4`.

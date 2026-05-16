@@ -8,7 +8,7 @@
 
 **Outputs:** classification + signals; on brownfield, the two-option prompt body (continue / start fresh).
 
-**Used by:** every stage orchestrator at step 1 (`requirements-orch.md`, `design-orch.md`, `analyse-orch.md`, `research-orch.md`, `style-orch.md`).
+**Used by:** every stage orchestrator at step 1 (`requirements-orch.md`, `design-orch.md`, `analyse-requirement-orch.md`, `research-orch.md`, `style-orch.md`).
 
 **Used how:** First call in every stage. Greenfield → silent proceed to step 1a. Brownfield → two-option prompt routed through `recommend-next-option.md`. Includes the `completeness-hash` check for forcing a fresh completeness report when the spec changed since the last report.
 

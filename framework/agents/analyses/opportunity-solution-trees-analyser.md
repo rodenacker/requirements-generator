@@ -51,7 +51,7 @@ Eleven steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - `Read requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees this file exists.
 - Compute and remember the SHA-256 of the file's bytes — it lands in the artefact's `REQUIREMENTS_SHA256` field so the artefact records exactly which version of the requirements doc it analysed.
-- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/analyse`."* No `AskUserQuestion`; this is a hard halt analogous to RF-04.
+- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/analyse-requirement`."* No `AskUserQuestion`; this is a hard halt analogous to RF-04.
 - Locate the canonical sections (`§Success metrics`, `§Goals`, `§Business goals`, `§Personas`, `§Personas.Pains`, `§User stories`, `§Acceptance criteria`, `§Pains`, `§1 Domain`, `§Features in scope`, `§Scope inclusions`, `§Risks`, `§Assumptions`, `§Open questions`). Record which sections are present and which are absent. Section absence drives later round behaviour (Step 3 hard-halt on no Outcome source; Step 6 placeholder on no Layer 4 source).
 
 ### Step 3 — Round 1: Outcome extraction
@@ -66,14 +66,14 @@ Per `opportunity-solution-trees-reference.md > Layer 1 — Outcome`:
 
 **Multiplicity handling:**
 
-- **Zero candidates → hard halt.** No fallback to prose. Surface: *"No `§Success metrics`, `§Goals`, or `§Business goals` section in `requirements/requirements.md`. The tree requires a single root Outcome and the analyser will not fabricate one from prose. Revise the requirements doc to add a goal, then re-invoke `/analyse`."* This is a hard halt analogous to the user-journeys-analyser's no-`§3` halt.
+- **Zero candidates → hard halt.** No fallback to prose. Surface: *"No `§Success metrics`, `§Goals`, or `§Business goals` section in `requirements/requirements.md`. The tree requires a single root Outcome and the analyser will not fabricate one from prose. Revise the requirements doc to add a goal, then re-invoke `/analyse-requirement`."* This is a hard halt analogous to the user-journeys-analyser's no-`§3` halt.
 - **Exactly one candidate → advance** with that single root.
 - **Multiple candidates → consult via `AskUserQuestion`.** Surface the candidates with their classifications and source citations. Options:
     1. `Use <candidate 1> as the single root Outcome (Recommended if it is the product outcome)`.
     2. `Use <candidate 2> as the single root Outcome`.
     3. (etc., one option per candidate, max 4 — if more than 4 candidates, group all `business-outcome` candidates under one option, all `product-outcome` under another, etc.)
     4. `Re-run the analyser once per Outcome (Recommended if no single primary outcome dominates)`.
-    On `Re-run once per Outcome` → halt with a structured note: *"OST canonically has a single root. Re-invoke `/analyse` once per Outcome, or revise `§Success metrics` to designate a single primary."*
+    On `Re-run once per Outcome` → halt with a structured note: *"OST canonically has a single root. Re-invoke `/analyse-requirement` once per Outcome, or revise `§Success metrics` to designate a single primary."*
 
 Output (in memory): `{outcome_id: "Out-1", text, measurement, horizon, classification, provenance}`.
 
@@ -235,10 +235,10 @@ Run all seven gates from `opportunity-solution-trees-reference.md > Quality gate
 
 - Do **not** write the artefact.
 - Surface a structured error to the consultant listing every gate that fired and every flagged node (by id + offending text). Use `AskUserQuestion` with three options:
-    1. `Revise requirements — exit so the consultant can edit requirements/requirements.md and re-invoke /analyse (Recommended)`.
+    1. `Revise requirements — exit so the consultant can edit requirements/requirements.md and re-invoke /analyse-requirement (Recommended)`.
     2. `Override — proceed and write a known-incomplete tree (the diagnostics block on the artefact will record every violation)`.
     3. `Restart — re-run from Step 3 with a fresh extraction`.
-- On **Revise**: hand back to the orchestrator with a `failed-handback` state. The orchestrator does not declare done; the consultant runs `/requirements` or edits manually and re-invokes `/analyse`.
+- On **Revise**: hand back to the orchestrator with a `failed-handback` state. The orchestrator does not declare done; the consultant runs `/requirements` or edits manually and re-invokes `/analyse-requirement`.
 - On **Override**: record each failing gate in the in-memory diagnostics block (which lands in the rendered artefact), then advance to Step 9. The consultant has explicitly accepted the violations as known.
 - On **Restart**: re-enter Step 3. Do not loop more than three times in a single invocation; on the fourth fail-and-restart, force the **Revise** path with a one-line note that further iteration is not productive without consultant input.
 

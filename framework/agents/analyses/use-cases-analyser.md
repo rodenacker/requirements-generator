@@ -51,7 +51,7 @@ Eleven primary steps plus two UML sub-steps (Step 8.5 — Round 7 UML diagram de
 
 - `Read requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees this file exists.
 - Compute and remember the SHA-256 of the file's bytes — it lands in the artefact's `REQUIREMENTS_SHA256` field so the artefact records exactly which version of the requirements doc it analysed.
-- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/analyse`."* No `AskUserQuestion`; this is a hard halt analogous to RF-04.
+- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/analyse-requirement`."* No `AskUserQuestion`; this is a hard halt analogous to RF-04.
 - Locate the canonical sections (`§Personas`, `§Task flows`, `§User stories`, `§Goals`, `§1 Domain`, `§Pains`, `§Acceptance criteria`, `§Constraints`, `§Success metrics`, `§Existing solutions` / `§Current process`, `§Risks`). Record which sections are present, which are absent. If `§Personas` is absent, note this in-memory so Step 3 flags every primary actor with `derived-actor` explicitly. If `§Task flows` is absent or sparse, note this in-memory so Step 7 flags every UC with `flow-derived` explicitly.
 
 ### Step 3 — Round 1: Actors & Scope
@@ -172,10 +172,10 @@ Run all seven gates from `use-cases-reference.md > Quality gates` in order. Each
 
 - Do **not** write the artefact.
 - Surface a structured error to the consultant listing every gate that fired and every flagged UC (by `uc_id` + offending text). Use `AskUserQuestion` with three options:
-    1. `Revise requirements — exit so the consultant can edit requirements/requirements.md and re-invoke /analyse (Recommended)`.
+    1. `Revise requirements — exit so the consultant can edit requirements/requirements.md and re-invoke /analyse-requirement (Recommended)`.
     2. `Override — proceed and write a known-incomplete map (the diagnostics block on the artefact will record every violation)`.
     3. `Restart — re-run from Step 3 with a fresh extraction`.
-- On **Revise**: hand back to the orchestrator with a `failed-handback` state. The orchestrator does not declare done; the consultant runs `/requirements` or edits manually and re-invokes `/analyse`.
+- On **Revise**: hand back to the orchestrator with a `failed-handback` state. The orchestrator does not declare done; the consultant runs `/requirements` or edits manually and re-invokes `/analyse-requirement`.
 - On **Override**: record each failing gate in the in-memory diagnostics block (which lands in the rendered artefact), then advance to Step 9. The consultant has explicitly accepted the violations as known.
 - On **Restart**: re-enter Step 3. Do not loop more than three times in a single invocation; on the fourth fail-and-restart, force the **Revise** path with a one-line note that further iteration is not productive without consultant input.
 

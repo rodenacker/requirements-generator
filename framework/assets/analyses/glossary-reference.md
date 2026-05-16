@@ -232,7 +232,7 @@ Run after Round 3 (merge) and before Round 5 (render). Each check operates on th
 
 On any hard-check failure: do **not** write the artefact. Surface `AskUserQuestion` with three options:
 
-1. `Revise — exit so the consultant can edit requirements/requirements.md and re-invoke /analyse (Recommended)`
+1. `Revise — exit so the consultant can edit requirements/requirements.md and re-invoke /analyse-requirement (Recommended)`
 2. `Override — proceed and write a known-incomplete artefact (the diagnostics block will record every violation)`
 3. `Restart — re-run from Round 1 with a fresh extraction`
 

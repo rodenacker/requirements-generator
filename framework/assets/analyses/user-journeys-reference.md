@@ -76,7 +76,7 @@ The *thoughts, emotions, pain points, opportunities* columns are typically **not
    - `§4 User goals & stories` (frequency / expertise / stakes as emotional proxies — high stakes → anxiety, rare event → confusion, high frequency → impatience with friction).
    - Existing-tool critique in `§8 Source UI references` (pain points reflect frustration with current tooling).
 2. Each inferred cell is flagged `[AI-SUGGESTED]`.
-3. The completeness report surfaces the inferred cells; consultant resolves via Q&A or via dropping research docs into `/input/` and re-running `/analyse`.
+3. The completeness report surfaces the inferred cells; consultant resolves via Q&A or via dropping research docs into `/input/` and re-running `/analyse-requirement`.
 
 **Richer inputs → richer journey outputs.** The methodology degrades gracefully: with thin evidence, the journey is mostly inferred and flagged; with rich evidence (interviews, surveys), inferences shrink and confidence rises.
 
