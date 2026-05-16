@@ -25,15 +25,16 @@ Exactly one of:
 1. **Read the registry.** `Read framework/assets/analyses/registry.md`. Parse the YAML frontmatter (the block between the opening `---` and the next `---`). Locate the `methodologies:` list.
 2. **Filter to MVP.** Retain only rows whose `status` field equals the literal string `mvp`. Discard `status: future` rows and any row whose `status` field is absent.
 3. **Defensive guard.** If the filtered list is empty, return `empty-registry`. Do not surface an `AskUserQuestion` with no options.
-4. **Build the numbered list.** Number the retained rows starting at **1**, in **registry order** (the order they appear in `registry.md` frontmatter). Do **not** re-sort. For each row, format one line:
+4. **Build the numbered list.** Number the retained rows starting at **1**, in **registry order** (the order they appear in `registry.md` frontmatter). Do **not** re-sort. For each row, format a two-line block:
 
-    `  {{n}}. /{{name}} — {{description}}`
+    `{{n}}. {{name}}`
+    `{{description}}`
 
-    where `{{n}}` is the 1-based index, `{{name}}` is the row's `name` field prefixed with `/` for visual consistency with slash commands, and `{{description}}` is the row's `description` field verbatim. Use two leading spaces, a period after the number, a single space, the `/`-prefixed name, an en-dash (`—`), then the description.
+    where `{{n}}` is the 1-based index, `{{name}}` is the row's `name` field verbatim (no `/` prefix), and `{{description}}` is the row's `description` field verbatim on the next line. No leading indent. Rows are separated from each other by a single blank line.
 
     After the methodology lines, append a blank line and a trailing cancel line:
 
-    `  0. Cancel — exit /analyse-requirement without running an analysis`
+    `0. Cancel — exit /analyse-requirement without running an analysis`
 
     Let `N` be the count of MVP rows (and therefore the highest valid selection number).
 
@@ -42,12 +43,18 @@ Exactly one of:
     ```
     Available analyses:
 
-      1. /<name> — <description>
-      2. /<name> — <description>
-      …
-      N. /<name> — <description>
+    1. <name>
+    <description>
 
-      0. Cancel — exit /analyse-requirement without running an analysis
+    2. <name>
+    <description>
+
+    …
+
+    N. <name>
+    <description>
+
+    0. Cancel — exit /analyse-requirement without running an analysis
 
     Enter the number of the analysis to run (or 0 to cancel):
     ```
