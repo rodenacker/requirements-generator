@@ -2,11 +2,11 @@
 
 ## 1. Project Purpose
 
-**What.** Consultant-driven Claude Code workspace. Four slash commands (`/requirements`, `/design-system`, `/analyse-requirement`, `/review`) — each a prompt-only pipeline of markdown orchestrators + agents + skills — that turn loose client material into structured artefacts. No runtime code: every "agent" is an `.md` file Claude reads and adopts as persona.
+**What.** Consultant-driven Claude Code workspace. Four slash commands (`/requirements`, `/design-system`, `/analyse-requirement`, `/review-requirement`) — each a prompt-only pipeline of markdown orchestrators + agents + skills — that turn loose client material into structured artefacts. No runtime code: every "agent" is an `.md` file Claude reads and adopts as persona.
 
 **For.** Solo consultants / BAs running Claude Code locally to produce deterministic, citation-grounded handoff docs (requirements specs, design-token sets, OOUX / JTBD / use-case / data-model / sequence-diag / state-diag / activity-diag / user-journey maps, adversarial reviews) from briefs, decks, screenshots, spreadsheets, PDFs.
 
-**Optimizes for.** Determinism + auditability over speed. Every fact in a final artefact must be traceable to either an input quote (sidecar NDJSON of `[SRC: C-NNN]` claims, verified verbatim) or a named provenance marker (`[AI-SUGGESTED]`, `[STANDARD-RULE: GR-NN]`, `[OUT-OF-SCOPE]`). Resumability: every pipeline checkpoints to disk so `/clear` + re-invoke continues at the first incomplete agent. Stand-alone pipelines: `/analyse-requirement`, `/review`, `/design-system` write only to their own dirs.
+**Optimizes for.** Determinism + auditability over speed. Every fact in a final artefact must be traceable to either an input quote (sidecar NDJSON of `[SRC: C-NNN]` claims, verified verbatim) or a named provenance marker (`[AI-SUGGESTED]`, `[STANDARD-RULE: GR-NN]`, `[OUT-OF-SCOPE]`). Resumability: every pipeline checkpoints to disk so `/clear` + re-invoke continues at the first incomplete agent. Stand-alone pipelines: `/analyse-requirement`, `/review-requirement`, `/design-system` write only to their own dirs.
 
 **Constraints.**
 - Target domain = **data-management productivity apps** (CRUD-heavy). Prototype defaults assume that, not marketing/content.
@@ -22,9 +22,9 @@
 
 | Path | Role |
 |---|---|
-| `.claude/commands/` | Slash-command entrypoints (`start`, `requirements`, `design-system`, `analyse-requirement`, `review`). Each is a thin shim that names its orchestrator. |
+| `.claude/commands/` | Slash-command entrypoints (`start`, `requirements`, `design-system`, `analyse-requirement`, `review-requirement`). Each is a thin shim that names its orchestrator. |
 | `framework/orchestrators/` | One orch per command. Owns control flow, progress/timing state, handback gates, reset procedure. Delegates all content work to agents. |
-| `framework/agents/` | Agents = `.md` persona+workflow files. Claude adopts the persona, executes the workflow verbatim, hands back when DoD met. `requirements-{input-handler,drafter,resolver,merger}.md` for `/requirements`; `design-system-styler.md` (+ `design-system-styler/{steps,prompt-templates,data}/`) for `/design-system`; `agents/analyses/<method>-analyser.md` for `/analyse-requirement`; `agents/reviews/<method>-reviewer.md` (+ `adversarial-dimension-worker.md`) for `/review`. |
+| `framework/agents/` | Agents = `.md` persona+workflow files. Claude adopts the persona, executes the workflow verbatim, hands back when DoD met. `requirements-{input-handler,drafter,resolver,merger}.md` for `/requirements`; `design-system-styler.md` (+ `design-system-styler/{steps,prompt-templates,data}/`) for `/design-system`; `agents/analyses/<method>-analyser.md` for `/analyse-requirement`; `agents/reviews/<method>-reviewer.md` (+ `adversarial-dimension-worker.md`) for `/review-requirement`. |
 | `framework/skills/` | Reusable units of agent behaviour. Caller-agnostic, parameterised by inputs. Examples: `verify-artifact-write`, `check-context-bloat`, `classify-input-tier`, `convert-input-file`, `build-source-manifest`, `completeness-gap-pass`, `grounding-verifier`, `mermaid-validator`, `analysis-selector`, `review-selector`, `set-build-target`. Plus `map-<method>-to-ui.md` per analysis methodology. |
 | `framework/assets/` | Read-only reference content: `template-*.md/html` (skeletons agents populate), `topics-*.md` (bijection invariants for gap-pass), `taxonomy-*.md`, `glossary.md`, `persona-llm.md`, `constraints.md`, `pattern-catalogue/` (auth/collections/feedback/forms/layouts/navigation/surfaces), `characters/*.md` (Unicorn voice per agent), `analyses/registry.md` + per-method reference/template, `reviews/registry.md` + per-method reference/template, `references/`. |
 | `framework/shared/` | Cross-pipeline invariants and policy: `general-rules.md` (`GR-NN` deterministic defaults), `prototype-scope.md` + `.index.md` (in/out-scope filter for gap-pass), `prototype-invariants.md` (`PI-01..05` appended to every merged requirements.md), `refusal-registry.md` (`RF-NN`), `setup-instructions/{markitdown,playwright}.md`. |
@@ -34,7 +34,7 @@
 | `requirements/` | `/requirements` outputs only: `source-manifest.json`, `requirements-draft.md`, `draft-claims.ndjson`, `draft-claims-verification.ndjson`, `consultant-answers.md`, `requirements.md`. |
 | `design-system/` | `/design-system` output: `design-system.md`. Workspace `.workspace/` is styler-owned. |
 | `analyses/<METHOD>/` | `/analyse-requirement` outputs, one HTML per methodology (OOUX, JTBD, DATA-MODEL, USE-CASES, SEQUENCE-DIAGRAM, STATE-DIAGRAM, ACTIVITY-DIAGRAM, USER-JOURNEYS). |
-| `reviews/<METHOD>/` | `/review` outputs (ADVERSARIAL MVP). |
+| `reviews/<METHOD>/` | `/review-requirement` outputs (ADVERSARIAL MVP). |
 
 ### Data flow
 
@@ -59,7 +59,7 @@
 - `/requirements` writes: `requirements/*`, `input/*.converted.md`, `framework/state/*`.
 - `/design-system` writes: `design-system/*`. Reads `requirements/`+`framework/state/` only for context-bloat preflight.
 - `/analyse-requirement` writes: `analyses/<METHOD>/*`. Reads `requirements/requirements.md` + same preflight exception.
-- `/review` writes: `reviews/<METHOD>/*`. Same read scope as `/analyse-requirement`.
+- `/review-requirement` writes: `reviews/<METHOD>/*`. Same read scope as `/analyse-requirement`.
 
 ### Where new system elements go
 

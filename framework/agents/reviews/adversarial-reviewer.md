@@ -44,7 +44,7 @@ Steps in order. Do not skip steps; do not collapse steps. Each step's success is
 
 - `Read requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees this file exists.
 - Compute and remember the SHA-256 of the file's bytes — it lands in the artefact's `REQUIREMENTS_SHA256` field so the artefact records exactly which version of the requirements doc it reviewed, **and** is passed as `{{SHA}}` to every Step-3 worker so each worker can re-verify the file has not changed between Step 2 and the worker's own read.
-- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/review`."* No `AskUserQuestion`; this is a hard halt analogous to RF-04.
+- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/review-requirement`."* No `AskUserQuestion`; this is a hard halt analogous to RF-04.
 - Build an in-memory **anchor index** of the doc: a map from each `§N.N` heading, each `BR-NN` / `G-NN` / `FR-NN` ID, and each line number to the verbatim text at that anchor. The index drives Location-field validation in Step 10 (quality gate 6) — any finding whose Location anchor is not in the index is invalid. The index is also serialised to JSON and inlined into every Step-3 worker prompt as `{{ANCHOR_INDEX_JSON}}` so workers can validate Location fields locally before returning (defence-in-depth — Step 10 re-validates at merge).
 - Build an in-memory **quote index**: a sorted list of all line-bounded substrings of the doc. This drives quality gate 5 (every Evidence field is verbatim). The index is also serialised to JSON and inlined into every Step-3 worker prompt as `{{QUOTE_INDEX_JSON}}` so workers can validate Evidence fields locally before returning.
 
@@ -119,7 +119,7 @@ The placeholders are substituted at dispatch time:
     - On **Abort**: exit cleanly without writing; the orchestrator's handback gate fails (artefact not produced).
     - On **Manual Justification**: accept the consultant's inline Justification block in their next message; validate it is ≥3 sentences and cites specific evidence; substitute it as the Dimension `N` payload with `status: justification`, `strict_bmad_rerun: true`, and a single-entry `anti_confirmation_prompts: ["consultant-supplied"]` log entry.
 
-    Any `status: error` with `error_kind: sha_mismatch` is a run-wide abort regardless of consultant choice — the requirements doc changed mid-run and no partial finding set is trustworthy. Surface: *"requirements/requirements.md changed mid-run (SHA mismatch reported by Dimension `{{N}}` worker). Aborting; no artefact written. Re-invoke `/review` for a fresh run."* and exit.
+    Any `status: error` with `error_kind: sha_mismatch` is a run-wide abort regardless of consultant choice — the requirements doc changed mid-run and no partial finding set is trustworthy. Surface: *"requirements/requirements.md changed mid-run (SHA mismatch reported by Dimension `{{N}}` worker). Aborting; no artefact written. Re-invoke `/review-requirement` for a fresh run."* and exit.
 
 2. **Deterministic ID assignment.** With all eight payloads accepted (originally returned or consultant-substituted), assign sequential `ADV-NN` IDs across the merged finding set:
 

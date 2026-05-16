@@ -28,7 +28,7 @@ This methodology operationalises that practice as a deterministic, registry-driv
 
 The output is a **stakeholder-conversation punch-list**, not a defect report and not a design critique. It tells the consultant: *here are the ten things you should go back and ask the business about before the next phase starts.*
 
-### How this differs from the other two `/review` lenses
+### How this differs from the other two `/review-requirement` lenses
 
 | Lens | Stance | Output | Remediation owner |
 |---|---|---|---|

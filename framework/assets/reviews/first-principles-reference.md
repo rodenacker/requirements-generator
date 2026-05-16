@@ -37,7 +37,7 @@ The output is **two views of the same evidence chain**:
 
 Plus a separate **Critical missing artefacts** section that lists Q7 orphans as `blocking` findings.
 
-### How this differs from the other four `/review` lenses
+### How this differs from the other four `/review-requirement` lenses
 
 | Lens | Stance | What gets surfaced | Remediation owner |
 |---|---|---|---|

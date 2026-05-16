@@ -45,7 +45,7 @@ Steps in order. Do not skip steps; do not collapse steps. Each step's success is
 
 - `Read requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees this file exists.
 - Compute and remember the SHA-256 of the file's bytes — it lands in the artefact's `REQUIREMENTS_SHA256` field so the artefact records exactly which version of the requirements doc it reviewed.
-- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/review`."*. No `AskUserQuestion`; this is a hard halt analogous to the BA reviewer's Step 2 empty-doc halt and to `RF-04` in posture.
+- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/review-requirement`."*. No `AskUserQuestion`; this is a hard halt analogous to the BA reviewer's Step 2 empty-doc halt and to `RF-04` in posture.
 - Locate the `### 4.2 Stories by persona` heading (or, defensively, the more permissive `## 4.2 Stories by persona` / `## Section 4.2` variants the requirements template might emit). If no §4.2 heading is found, halt with: *"`requirements/requirements.md` has no `§4.2 Stories by persona` section. The User Stories review has nothing to evaluate. Either re-run `/requirements` so the merger produces a populated §4.2, or pick a different review methodology."*. Hard halt; no `AskUserQuestion`.
 - Enumerate every `##### Story:` heading **between the §4.2 heading and the next `###` (or higher) heading**, walking in document order. For each story, capture an in-memory record:
 
@@ -62,7 +62,7 @@ linked_flow:        string | null  (from the story's `| Linked task flow (option
 
 Build a `personas` list (in document order, deduped). Build a counter `enumerated_count` = total stories enumerated. The counter is gate-1's denominator.
 
-If `enumerated_count == 0` (the §4.2 heading exists but has no `##### Story:` headings), halt with: *"`requirements/requirements.md > §4.2` contains no user stories. The User Stories review has nothing to evaluate. Run `/requirements` to populate stories, then re-invoke `/review`."*. Hard halt.
+If `enumerated_count == 0` (the §4.2 heading exists but has no `##### Story:` headings), halt with: *"`requirements/requirements.md > §4.2` contains no user stories. The User Stories review has nothing to evaluate. Run `/requirements` to populate stories, then re-invoke `/review-requirement`."*. Hard halt.
 
 Emit one status line: *"Enumerated `{{enumerated_count}}` user stories across `{{|personas|}}` personas (`{{personas-list}}`). Proceeding to evaluation."*
 

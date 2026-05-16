@@ -39,12 +39,12 @@ Unlike `requirements-orch.md`, this orchestrator does **not** maintain a `.progr
 ## Pipeline
 
 0. **Prerequisite gate** — `Read requirements/requirements.md`.
-    - If the file does not exist, OR exists but is empty (zero bytes after trim): emit the single plain-text line *"`requirements/requirements.md` is required to run `/review`. Run `/requirements` first to produce it, then re-invoke `/review`."* and exit cleanly. Do **not** invoke any agent, do **not** prompt the consultant, do **not** write any file. This is a hard, recovery-by-re-invoke exit — analogous in spirit to `RF-04`'s plain-text halt, but specific to this orchestrator's prerequisite.
+    - If the file does not exist, OR exists but is empty (zero bytes after trim): emit the single plain-text line *"`requirements/requirements.md` is required to run `/review-requirement`. Run `/requirements` first to produce it, then re-invoke `/review-requirement`."* and exit cleanly. Do **not** invoke any agent, do **not** prompt the consultant, do **not** write any file. This is a hard, recovery-by-re-invoke exit — analogous in spirit to `RF-04`'s plain-text halt, but specific to this orchestrator's prerequisite.
     - If the file exists and is non-empty: advance to step 0b.
 
-0b. **Preflight: context-bloat check** — performed only when step 0 did not exit. Call `framework/skills/check-context-bloat.md` with `artefact_dir = requirements/`, `manifest_path = requirements/source-manifest.json`, and `progress_path = framework/state/.progress.json`. On `ok`, proceed to step 1. On `RF-05 trigger`, surface the predicate per `framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` (review-orch surface variant, see below) via `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`.
+0b. **Preflight: context-bloat check** — performed only when step 0 did not exit. Call `framework/skills/check-context-bloat.md` with `artefact_dir = requirements/`, `manifest_path = requirements/source-manifest.json`, and `progress_path = framework/state/.progress.json`. On `ok`, proceed to step 1. On `RF-05 trigger`, surface the predicate per `framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` (review-requirement-orch surface variant, see below) via `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`.
     - `proceed-without-clear` — proceed to step 1.
-    - `continue-later` — output: *"Conversation context looks bloated from prior pipeline state. Run `/clear` and re-invoke `/review` for a clean run."* and exit cleanly. Do **not** write `framework/state/.progress.json` — same constraint as the `design-system-orch` and `analyse-requirement-orch` surface variants of RF-05. Do **not** modify any path under `reviews/`.
+    - `continue-later` — output: *"Conversation context looks bloated from prior pipeline state. Run `/clear` and re-invoke `/review-requirement` for a clean run."* and exit cleanly. Do **not** write `framework/state/.progress.json` — same constraint as the `design-system-orch` and `analyse-requirement-orch` surface variants of RF-05. Do **not** modify any path under `reviews/`.
 
 1. **Select methodology** — invoke `framework/skills/review-selector.md`. The skill reads the registry, filters `status == mvp`, surfaces an `AskUserQuestion` with one option per row plus a final `Cancel` option, and returns one of `selected | cancelled | empty-registry`.
     - `selected` — capture the returned row payload (eight registry fields) into in-memory variables: `chosen.name`, `chosen.reviewer_agent`, `chosen.output_path`, `chosen.reference_asset`, `chosen.template_asset`, `chosen.map_skill`, `chosen.character`. Advance to step 2.
@@ -101,7 +101,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 - `framework/skills/check-context-bloat.md` — invoked once at step 0b before the reviewer is called.
 - `framework/agents/reviews/<method>-reviewer.md` — the reviewer agent invoked at step 3, resolved per the chosen registry row's `reviewer_agent` field. For the Adversarial MVP: `framework/agents/reviews/adversarial-reviewer.md`.
 - `requirements/requirements.md` — read at step 0 (existence + non-empty check). This is the orchestrator's only read under `requirements/` outside the step-0b preflight.
-- `framework/shared/refusal-registry.md` — `RF-04` and `RF-05` (review-orch surface variant) semantics surfaced by this orchestrator and by the reviewer at its write step.
+- `framework/shared/refusal-registry.md` — `RF-04` and `RF-05` (review-requirement-orch surface variant) semantics surfaced by this orchestrator and by the reviewer at its write step.
 - `requirements/`, `requirements/source-manifest.json`, `framework/state/.progress.json` — read **only** as preflight inputs to step 0b's context-bloat skill. See the stand-alone constraint above.
 
 ## Output
@@ -116,15 +116,15 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 
 The orchestrator's tools are limited to the operations above. Every other read or write of review content belongs to the invoked agent; the agent uses the tools listed in its own agent file.
 
-## RF-05 — review-orch surface variant
+## RF-05 — review-requirement-orch surface variant
 
-`framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` is defined with named surface variants for `requirements-orch`, `design-system-orch`, and `analyse-requirement-orch`. The `/review` pipeline uses a **fourth surface variant** identical in shape to the `design-system-orch` and `analyse-requirement-orch` variants:
+`framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` is defined with named surface variants for `requirements-orch`, `design-system-orch`, and `analyse-requirement-orch`. The `/review-requirement` pipeline uses a **fourth surface variant** identical in shape to the `design-system-orch` and `analyse-requirement-orch` variants:
 
 - Fired once at step 0b, immediately after the step-0 prerequisite gate passes and before the methodology selector runs.
-- `proceed-without-clear` advances; `continue-later` exits cleanly with a *"run `/clear` and re-invoke `/review`"* message.
-- **No write to `framework/state/.progress.json`** on either branch. The `/review` pipeline is bound by the no-write-outside-`reviews/` invariant; the registry's review-orch surface variant for `RF-05` deliberately omits the `status: context-bloated` write that the requirements-orch variant performs.
+- `proceed-without-clear` advances; `continue-later` exits cleanly with a *"run `/clear` and re-invoke `/review-requirement`"* message.
+- **No write to `framework/state/.progress.json`** on either branch. The `/review-requirement` pipeline is bound by the no-write-outside-`reviews/` invariant; the registry's review-requirement-orch surface variant for `RF-05` deliberately omits the `status: context-bloated` write that the requirements-orch variant performs.
 
-When the registry file is next revised, append a fourth surface-variant block for `review-orch` to keep that document in sync. The runtime contract is captured here and in `framework/orchestrators/review-orch.md > Pipeline > step 0b` as the operational source of truth.
+When the registry file is next revised, append a fourth surface-variant block for `review-requirement-orch` to keep that document in sync. The runtime contract is captured here and in `framework/orchestrators/review-requirement-orch.md > Pipeline > step 0b` as the operational source of truth.
 
 ## Self-validation (run before declaring done)
 

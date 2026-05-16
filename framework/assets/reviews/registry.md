@@ -2,7 +2,7 @@
 role: asset
 kind: registry
 methodologies:
-  # MVP — fully implemented and selectable via /review. Listed alphabetically; none privileged.
+  # MVP — fully implemented and selectable via /review-requirement. Listed alphabetically; none privileged.
   - name: adversarial
     status: mvp
     description: Adversarial review of requirements.md (BMAD-style, strict mode — must find issues, eight review dimensions, Patch/Defer/Reject disposition). Choose this option to find out what's wrong in the requirements.
@@ -67,14 +67,14 @@ methodologies:
 
 # reviews/registry.md
 
-**Purpose:** Methodology registry for `/review`. The frontmatter above is the **machine-readable** contract — `framework/skills/review-selector.md` filters `status == "mvp"` to present options to the consultant; `framework/orchestrators/review-orch.md` looks up `reviewer_agent` for the chosen methodology and invokes it.
+**Purpose:** Methodology registry for `/review-requirement`. The frontmatter above is the **machine-readable** contract — `framework/skills/review-selector.md` filters `status == "mvp"` to present options to the consultant; `framework/orchestrators/review-requirement-orch.md` looks up `reviewer_agent` for the chosen methodology and invokes it.
 
-This registry is structurally identical to `framework/assets/analyses/registry.md` (which drives `/analyse-requirement`) so the two pipelines share the same registry-driven, open/closed extension contract. The semantic distinction is the *intent* of the output: `/analyse-requirement` produces derived structural models (object maps, job maps, use-case maps) that downstream design phases consume; `/review` produces critique reports flagging defects, gaps, ambiguities, and risks in `requirements/requirements.md` itself.
+This registry is structurally identical to `framework/assets/analyses/registry.md` (which drives `/analyse-requirement`) so the two pipelines share the same registry-driven, open/closed extension contract. The semantic distinction is the *intent* of the output: `/analyse-requirement` produces derived structural models (object maps, job maps, use-case maps) that downstream design phases consume; `/review-requirement` produces critique reports flagging defects, gaps, ambiguities, and risks in `requirements/requirements.md` itself.
 
 **Used by:**
 
 - `framework/skills/review-selector.md` — reads MVP-status rows; presents them via `AskUserQuestion`.
-- `framework/orchestrators/review-orch.md` — reads the chosen row's `reviewer_agent` and `output_path` to drive invocation and the prior-artefact gate.
+- `framework/orchestrators/review-requirement-orch.md` — reads the chosen row's `reviewer_agent` and `output_path` to drive invocation and the prior-artefact gate.
 - `framework/agents/reviews/<method>-reviewer.md` — each reviewer reads its own `reference_asset`, `character`, and `template_asset` paths at activation.
 
 **Adding a new methodology:**

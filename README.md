@@ -16,7 +16,7 @@
         - [3.4.1 How it works](#341-how-it-works)
         - [3.4.2 Choose this when…](#342-choose-this-when)
         - [3.4.3 What you get](#343-what-you-get)
-    - [3.5 `/review`](#35-review)
+    - [3.5 `/review-requirement`](#35-review-requirement)
         - [3.5.1 How it works](#351-how-it-works)
         - [3.5.2 Choose this when…](#352-choose-this-when)
         - [3.5.3 What you get](#353-what-you-get)
@@ -40,9 +40,9 @@ The five commands:
 - **`/requirements`** — turn the loose pile of briefs, decks, screenshots, spreadsheets and PDFs the client gave you into a clean, structured `requirements.md`.
 - **`/design-system`** — get a complete brand-token brief (colours, typography, effects) for a designer, optionally extracted from a reference URL.
 - **`/analyse-requirement`** — go **deeper into what the requirements already contain** by re-expressing them through a chosen lens — object map, jobs-to-be-done, use cases, data model, sequence diagram, state diagram, activity diagram, or user journeys.
-- **`/review`** — **find what's missing or wrong** in your requirements doc so you can fix it before handoff — a strict adversarial critique, the ten most pressing BA questions, or the ten most pressing UX questions.
+- **`/review-requirement`** — **find what's missing or wrong** in your requirements doc so you can fix it before handoff — a strict adversarial critique, the ten most pressing BA questions, or the ten most pressing UX questions.
 
-`/analyse-requirement` and `/review` both read `requirements/requirements.md` — run `/requirements` first. `/start`, `/requirements`, and `/design-system` are stand-alone.
+`/analyse-requirement` and `/review-requirement` both read `requirements/requirements.md` — run `/requirements` first. `/start`, `/requirements`, and `/design-system` are stand-alone.
 
 ## 2. When to use which command
 
@@ -52,8 +52,8 @@ The five commands:
 | Designer is waiting on a brand brief | `/design-system` | One run produces a complete colour + typography + effects brief. |
 | About to brief a developer on data structure | `/analyse-requirement` → `data-model` | Surfaces the entities, fields, and relationships already implied by the spec. |
 | About to brief a designer on screens and navigation | `/analyse-requirement` → `ooux` or `use-cases` | Surfaces the objects + CTAs, or the actor goals + flows. |
-| You sense something is missing in the spec but can't articulate it | `/review` → `ten-ba-questions` or `ten-ux-questions` | Surfaces the unasked questions in the consultant's blind spot. |
-| You need to defend the spec to a sceptical stakeholder | `/review` → `adversarial` | Strict critique with a Patch / Defer / Reject decision per finding. |
+| You sense something is missing in the spec but can't articulate it | `/review-requirement` → `ten-ba-questions` or `ten-ux-questions` | Surfaces the unasked questions in the consultant's blind spot. |
+| You need to defend the spec to a sceptical stakeholder | `/review-requirement` → `adversarial` | Strict critique with a Patch / Defer / Reject decision per finding. |
 
 ## 3. Commands
 
@@ -181,7 +181,7 @@ One HTML artefact per run, saved under `analyses/<METHOD>/`. Open it in a browse
 
 Pick another methodology to add another artefact alongside the first.
 
-### 3.5 `/review`
+### 3.5 `/review-requirement`
 
 **Find what's missing or wrong** in your requirements doc before you hand it over. Pick a review style and the framework critiques `requirements.md` for you, producing a punch-list you can act on.
 
@@ -189,7 +189,7 @@ Use it when the spec _feels_ close but you want a second pair of eyes — and es
 
 #### 3.5.1 How it works
 
-`/review` requires `requirements/requirements.md` to exist. After the prerequisite check, it shows you the available review styles, you pick one, and the chosen review runs interactively and asks for your acceptance before saving.
+`/review-requirement` requires `requirements/requirements.md` to exist. After the prerequisite check, it shows you the available review styles, you pick one, and the chosen review runs interactively and asks for your acceptance before saving.
 
 ```mermaid
 flowchart LR
@@ -203,7 +203,7 @@ flowchart LR
     F -- accept --> G([Artefact at<br/>reviews/METHOD/...])
 ```
 
-`/review` never modifies your requirements doc — it only reads it.
+`/review-requirement` never modifies your requirements doc — it only reads it.
 
 #### 3.5.2 Choose this when…
 
@@ -221,7 +221,7 @@ One markdown artefact per run, saved under `reviews/<METHOD>/`. Each run produce
 - `reviews/TEN-BA-QUESTIONS/ten-ba-questions-review.md` — the ten most pressing unanswered BA questions, each tagged blocking / major / minor so you know what to chase first.
 - `reviews/TEN-UX-QUESTIONS/ten-ux-questions-review.md` — the ten most pressing unanswered UX questions, same priority tagging.
 
-Treat the output as a punch-list: re-open `requirements/requirements.md`, fix the findings you accept, then re-run `/review` for a fresh pass if you want.
+Treat the output as a punch-list: re-open `requirements/requirements.md`, fix the findings you accept, then re-run `/review-requirement` for a fresh pass if you want.
 
 ## 4. Setup
 

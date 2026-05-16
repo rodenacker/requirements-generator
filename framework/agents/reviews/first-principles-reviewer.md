@@ -45,11 +45,11 @@ Steps in order. Do not skip steps; do not collapse steps. Each step's success is
 
 - `Read requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees this file exists.
 - Compute and remember the SHA-256 of the file's bytes — it lands in the artefact's `REQUIREMENTS_SHA256` field so the artefact records exactly which version of the requirements doc it audited. It also drives gate 11.
-- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/review`."* No `AskUserQuestion`; this is a hard halt analogous to RF-04.
+- If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/review-requirement`."* No `AskUserQuestion`; this is a hard halt analogous to RF-04.
 - Locate the canonical sections by walking headings: `§1`, `§3 Target users` (or `§3 Personas`), `§4.1 Goals` (or `§4.1 User goals`), `§4.2 Stories by persona` (or `§4.2 User stories by persona`), `§5 Task flows`, `§6 Requirements`, `§7 Data entities` (or `§7 Entities`). Defensive variants: `## 4.1 Goals` / `## §4.1 Goals` / `### 4.1 Goals` are all acceptable; the reviewer matches by section number prefix `4.1`, `4.2`, `6`, `7` followed by a recognisable heading word.
 - Build an in-memory **anchor index**: a map from each `§N.N` heading, each `G-NN`, `BR-NN`, `FR-NN`, `EN-NN` (or doc-equivalent IDs), each `##### Story:` heading, each line number, to the verbatim text at that anchor. The index drives gate 3 (verbatim evidence existence) and gate 9 (orphan-finding anchor validity).
 - Build an in-memory **quote index**: a sorted list of all line-bounded substrings of the doc. This drives gate 3 — every `yes-with-evidence` quote must exist in the index.
-- If §6 is empty or absent (no requirements to rate), halt with: *"`requirements/requirements.md > §6 Requirements` is empty or absent. The First Principles audit has no §6 subjects to rate. Run `/requirements` to populate §6, then re-invoke `/review`."* Hard halt; no `AskUserQuestion`. (§4.1 / §4.2 / §7 missing is a `warn` at Step 8 gate 8, not a hard halt — a doc may legitimately have goals but no stories yet, or no §7 entities; only §6 absence makes the audit vacuous.)
+- If §6 is empty or absent (no requirements to rate), halt with: *"`requirements/requirements.md > §6 Requirements` is empty or absent. The First Principles audit has no §6 subjects to rate. Run `/requirements` to populate §6, then re-invoke `/review-requirement`."* Hard halt; no `AskUserQuestion`. (§4.1 / §4.2 / §7 missing is a `warn` at Step 8 gate 8, not a hard halt — a doc may legitimately have goals but no stories yet, or no §7 entities; only §6 absence makes the audit vacuous.)
 
 ### Step 3 — Enumerate subjects
 
@@ -72,7 +72,7 @@ raw_position:   document-order index (used for ID assignment + diagnostics order
 
 Build the in-memory subject list, ordered by `raw_position`. Compute `enumerated_count` (the gate-1 denominator).
 
-If `enumerated_count == 0` (no §4–§7 subjects at all), halt with: *"`requirements/requirements.md` has no §4.1 goals, §4.2 stories, §6 requirements, or §7 entities. The First Principles audit has nothing to evaluate. Re-run `/requirements`, then re-invoke `/review`."* Hard halt. (This should be impossible given the Step-2 §6 absence halt, but defended for completeness.)
+If `enumerated_count == 0` (no §4–§7 subjects at all), halt with: *"`requirements/requirements.md` has no §4.1 goals, §4.2 stories, §6 requirements, or §7 entities. The First Principles audit has nothing to evaluate. Re-run `/requirements`, then re-invoke `/review-requirement`."* Hard halt. (This should be impossible given the Step-2 §6 absence halt, but defended for completeness.)
 
 Emit one status line: *"Enumerated `{{enumerated_count}}` subjects: `{{goals_count}}` goals, `{{stories_count}}` stories, `{{requirements_count}}` requirements, `{{entities_count}}` entities. Proceeding to per-subject evaluation."*
 
@@ -283,7 +283,7 @@ Output one short, concrete line listing the counts, top-10 range, orphan count, 
 Variants:
 
 - If Step 8 was Override'd, prepend: *"Quality-gate violations were accepted as known — diagnostics block records every flagged item."*
-- If `|ratings| == 0`: substitute the entire counts clause with *"`requirements/requirements.md` has no §4–§7 subjects. Artefact written with empty ratings table; the consultant should run `/requirements` before re-invoking `/review`."*. Still surface the Accept / Revise / Restart prompt.
+- If `|ratings| == 0`: substitute the entire counts clause with *"`requirements/requirements.md` has no §4–§7 subjects. Artefact written with empty ratings table; the consultant should run `/requirements` before re-invoking `/review-requirement`."*. Still surface the Accept / Revise / Restart prompt.
 
 **B. Accept / Revise / Restart loop**
 

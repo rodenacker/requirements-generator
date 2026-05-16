@@ -18,7 +18,7 @@ Exactly one of:
 
 ## Used by
 
-- `framework/orchestrators/review-orch.md` — step 1.
+- `framework/orchestrators/review-requirement-orch.md` — step 1.
 
 ## Procedure
 
@@ -28,7 +28,7 @@ Exactly one of:
 4. **Build the choice set.** For each retained row, prepare one `AskUserQuestion` option:
     - `label` — the row's `name` field, prefixed with `/` for visual consistency with slash commands (e.g. `adversarial` → `/adversarial`). If only one MVP row exists, this option is still presented (the consultant must confirm — keeps the UX consistent for when 2+ methodologies arrive).
     - `description` — the row's `description` field, verbatim.
-    - Append one additional option at the end: `label: "Cancel"`, `description: "Exit /review without running a review."`.
+    - Append one additional option at the end: `label: "Cancel"`, `description: "Exit /review-requirement without running a review."`.
 5. **Surface the prompt.** Call `AskUserQuestion`:
     - `question`: *"Which review methodology would you like to run?"*
     - `header`: `Methodology`
@@ -37,7 +37,7 @@ Exactly one of:
 6. **Return the consultant's choice.**
     - If the consultant selected a methodology row: return `selected` with the full row payload (all eight registry fields).
     - If the consultant selected `Cancel`: return `cancelled`.
-    - If the consultant selected the harness-provided "Other" override with free text: treat as `cancelled` and surface a one-line note that free-text input is not supported here — the orchestrator can re-invoke `/review` for a clean retry.
+    - If the consultant selected the harness-provided "Other" override with free text: treat as `cancelled` and surface a one-line note that free-text input is not supported here — the orchestrator can re-invoke `/review-requirement` for a clean retry.
 
 ## Self-validation
 
@@ -52,4 +52,4 @@ Exactly one of:
 - Do not write to disk. This skill has no side effects beyond the single `AskUserQuestion` surface.
 - Do not silently skip rows with malformed frontmatter (missing required fields on an `mvp` row). Surface `empty-registry` and let the orchestrator report a configuration error rather than presenting a half-populated option that would crash on selection.
 - Do not present `status: future` rows even with a "coming soon" suffix. Future rows do not have reviewer agents on disk — selecting them would crash the orchestrator.
-- Do not confuse this skill with `framework/skills/analysis-selector.md`. The two skills are structurally identical but point at different registries; sharing implementation across the two would couple `/review` and `/analyse-requirement` and break the open/closed contract.
+- Do not confuse this skill with `framework/skills/analysis-selector.md`. The two skills are structurally identical but point at different registries; sharing implementation across the two would couple `/review-requirement` and `/analyse-requirement` and break the open/closed contract.

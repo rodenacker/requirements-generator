@@ -29,7 +29,7 @@ This methodology operationalises that practice as a deterministic, registry-driv
 
 The output is a **story-quality punch-list**, not a gap-discovery list and not a defect citation against the rest of the doc. It tells the consultant: *here are the stories you need to rewrite before the next phase, and here's why each is currently not ready.*
 
-### How this differs from the other three `/review` lenses
+### How this differs from the other three `/review-requirement` lenses
 
 | Lens | Stance | Output | Remediation owner |
 |---|---|---|---|
@@ -378,6 +378,6 @@ The reviewer's stance is defined in `framework/assets/characters/user-stories-re
 - **Karl Wiegers — *Software Requirements*** (Microsoft Press, 3rd ed. 2013). Requirements-quality dimensions (clarity, completeness, testability, consistency) underpin the Testable, Meaningful, and Coherent criteria.
 - **IIBA — *A Guide to the Business Analysis Body of Knowledge® (BABOK® Guide), v3*** (IIBA, 2015). The *Requirements Analysis and Design Definition* knowledge area validates per-story quality auditing as a BA practice distinct from elicitation.
 - **Connextra format originators** (Connextra, 2001). The *As-a / I-want / so-that* shape is the contract this methodology audits; the Outcome-aligned criterion specifically tests the `so that …` clause.
-- **QA Madness — *Bug Severity vs Priority*** (`qamadness.com`). Canonical precedent for the `blocking / major / minor` severity tier semantics, used consistently across the four `/review` lenses in this framework.
+- **QA Madness — *Bug Severity vs Priority*** (`qamadness.com`). Canonical precedent for the `blocking / major / minor` severity tier semantics, used consistently across the four `/review-requirement` lenses in this framework.
 
 The synthesised six-criterion structure is this reference's own contribution: it integrates INVEST's quality attributes (minus the two backlog-management ones), splits Valuable into Meaningful and Outcome-aligned because the two failure modes need different fixes, adds Coherent as an explicit consistency check, and binds the severity labels to canonical defect-severity practice — yielding an auditable per-story, per-criterion methodology that respects the framework's deterministic-answer set (`GR-NN`, `PI-NN`) and that does not cross into the adjacent review lenses.
