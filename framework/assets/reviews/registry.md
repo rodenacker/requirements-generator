@@ -5,7 +5,7 @@ methodologies:
   # MVP — fully implemented and selectable via /review-requirement. Listed alphabetically; none privileged.
   - name: adversarial
     status: mvp
-    description: Adversarial review of requirements.md (BMAD-style, strict mode — must find issues, eight review dimensions, Patch/Defer/Reject disposition). Choose this option to find out what's wrong in the requirements.
+    description: Choose this to flush out defects in the requirements so design starts from a patched doc, not inherited weaknesses.
     output_path: reviews/ADVERSARIAL/adversarial-review.md
     reference_asset: framework/assets/reviews/adversarial-reference.md
     template_asset: framework/assets/reviews/template-adversarial.md
@@ -14,7 +14,7 @@ methodologies:
     character: framework/assets/characters/adversarial-review.md
   - name: first-principles
     status: mvp
-    description: First Principles review of every numbered item in §4–§7 against a 7-question rubric (why does this exist, which goal, which problem, which outcome, simplest way, consequence of removal, missing critical pieces). Rates every subject on a 0–6 defensibility score; surfaces the 10 least defensible with full per-question deep-dive; flags orphan goals/personas/stories/requirements/entities in a separate section. Choose this option to test whether requirements logically emerge from the stated business reality.
+    description: Choose this to test whether each requirement is defensible against business rationale, so weak items get cut or strengthened before design.
     output_path: reviews/FIRST-PRINCIPLES/first-principles-review.md
     reference_asset: framework/assets/reviews/first-principles-reference.md
     template_asset: framework/assets/reviews/template-first-principles.md
@@ -23,7 +23,7 @@ methodologies:
     character: framework/assets/characters/first-principles-review.md
   - name: ten-ba-questions
     status: mvp
-    description: 10 BA Questions — the most pressing unanswered questions an experienced Business Analyst (BABOK-aware) would ask after reading requirements.md (priority — blocking / major / minor; final 10 selected from a candidate pool of up to 50; eight BA gap categories). Choose this option before design or estimation to surface stakeholder questions the requirements doc has not yet answered.
+    description: Choose this before design or estimation to surface the ten most pressing stakeholder questions the doc has left unanswered.
     output_path: reviews/TEN-BA-QUESTIONS/ten-ba-questions-review.md
     reference_asset: framework/assets/reviews/ten-ba-questions-reference.md
     template_asset: framework/assets/reviews/template-ten-ba-questions.md
@@ -32,7 +32,7 @@ methodologies:
     character: framework/assets/characters/ten-ba-questions-review.md
   - name: ten-ux-questions
     status: mvp
-    description: 10 UX Questions — the most pressing unanswered questions an experienced UX designer would ask after reading requirements.md (priority — blocking / major / minor; final 10 selected from a candidate pool of up to 50; eight UX gap categories). Choose this option before designing to find out what's missing from the requirements.
+    description: Choose this before designing screens to surface the ten most pressing UX questions the doc has left unanswered, so you don't design against gaps.
     output_path: reviews/TEN-UX-QUESTIONS/ten-ux-questions-review.md
     reference_asset: framework/assets/reviews/ten-ux-questions-reference.md
     template_asset: framework/assets/reviews/template-ten-ux-questions.md
@@ -41,7 +41,7 @@ methodologies:
     character: framework/assets/characters/ten-ux-questions-review.md
   - name: user-stories
     status: mvp
-    description: User Stories Review — critiques every user story in §4.2 against six quality criteria (meaningful, implementable, testable, coherent, appropriately scoped, outcome-aligned). Surfaces every failing story grouped by persona, with violated criteria, reason, and fix suggestion (priority — blocking / major / minor; one finding per story; no cap; passing stories are not surfaced). Choose this option to identify stories that are not ready for design, estimation, or refinement.
+    description: Choose this to find which user stories aren't ready for design or estimation, so you can rework them before they enter the backlog.
     output_path: reviews/USER-STORIES/user-stories-review.md
     reference_asset: framework/assets/reviews/user-stories-reference.md
     template_asset: framework/assets/reviews/template-user-stories.md
