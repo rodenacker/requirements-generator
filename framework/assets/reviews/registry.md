@@ -12,6 +12,15 @@ methodologies:
     map_skill: null
     reviewer_agent: framework/agents/reviews/adversarial-reviewer.md
     character: framework/assets/characters/adversarial-review.md
+  - name: first-principles
+    status: mvp
+    description: First Principles review of every numbered item in §4–§7 against a 7-question rubric (why does this exist, which goal, which problem, which outcome, simplest way, consequence of removal, missing critical pieces). Rates every subject on a 0–6 defensibility score; surfaces the 10 least defensible with full per-question deep-dive; flags orphan goals/personas/stories/requirements/entities in a separate section. Choose this option to test whether requirements logically emerge from the stated business reality.
+    output_path: reviews/FIRST-PRINCIPLES/first-principles-review.md
+    reference_asset: framework/assets/reviews/first-principles-reference.md
+    template_asset: framework/assets/reviews/template-first-principles.md
+    map_skill: null
+    reviewer_agent: framework/agents/reviews/first-principles-reviewer.md
+    character: framework/assets/characters/first-principles-review.md
   - name: ten-ba-questions
     status: mvp
     description: 10 BA Questions — the most pressing unanswered questions an experienced Business Analyst (BABOK-aware) would ask after reading requirements.md (priority — blocking / major / minor; final 10 selected from a candidate pool of up to 50; eight BA gap categories). Choose this option before design or estimation to surface stakeholder questions the requirements doc has not yet answered.
