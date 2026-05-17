@@ -1,6 +1,6 @@
 # verify-artifact-write.md
 
-**Purpose:** Confirm that a freshly-written artefact on disk matches the in-memory render that produced it. Run by every artefact-producing step (input-handler manifest, drafter draft, resolver answers, merger requirements, plus any sibling `*.converted.md` written by `convert-input-file.md`) immediately after `Write` and before any schema or self-validation. Catches truncation, encoding glitches, wrong paths, and silent `Write` failures before downstream steps consume corrupt or absent artefacts.
+**Purpose:** Confirm that a freshly-written artefact on disk matches the in-memory render that produced it. Run by every artefact-producing step (input-handler manifest, drafter draft, resolver answers, merger requirements, plus any sibling `*.converted.md` written by `convert-input-file.md`, plus every analyser's HTML/MD artefact across `/analyse-requirement` and `/analyse-inputs`) immediately after `Write` and before any schema or self-validation. Catches truncation, encoding glitches, wrong paths, and silent `Write` failures before downstream steps consume corrupt or absent artefacts.
 
 **Inputs:**
 - `path` — absolute or repo-relative path of the file just written.
@@ -12,7 +12,7 @@
 - `RF-04 trigger` — the agent halts per the `RF-04 artifact_write_unverified` surface in `framework/shared/refusal-registry.md`.
 
 **Used by:**
-- `framework/agents/requirements-input-handler.md` — after writing each `*.converted.md` sibling and after writing `requirements/source-manifest.json`.
+- `framework/agents/input-handler.md` — after writing each `*.converted.md` sibling and after writing the source-manifest at `manifest_path` (always `requirements/source-manifest.json` in current usage). Shared between `/requirements` and `/analyse-inputs`.
 - `framework/agents/requirements-drafter.md` — after writing `requirements/requirements-draft.md`.
 - `framework/agents/requirements-resolver.md` — after writing `requirements/consultant-answers.md`.
 - `framework/agents/requirements-merger.md` — after writing `requirements/requirements.md`.

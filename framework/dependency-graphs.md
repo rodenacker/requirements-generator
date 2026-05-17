@@ -19,7 +19,7 @@ graph TD
     end
 
     subgraph Agents
-      agent_input[requirements-input-handler.md]
+      agent_input[input-handler.md]
       agent_drafter[requirements-drafter.md]
       agent_resolver[requirements-resolver.md]
       agent_merger[requirements-merger.md]
@@ -126,6 +126,7 @@ graph TD
 - `topics-requirements.md` is consulted by `completeness-gap-pass.md` (bijection invariants).
 - The pipeline output artefacts (`requirements/source-manifest.json`, `requirements-draft.md`, `consultant-answers.md`, `requirements.md`) are intentionally not drawn — they are produced by the agents, not loaded as dependencies.
 - The character file `requirements-qa.md` is a stub that does not transitively reference further framework files.
+- The `input-handler.md` agent node (previously `requirements-input-handler.md`) is **cross-pipeline**: it is also rooted under `analyse-inputs-orch.md` (graph 5). The agent is unchanged in shape; its `progress_path` parameter is the per-call hinge — `requirements-orch.md` passes `framework/state/.progress.json`, `analyse-inputs-orch.md` passes `null`. The five transitive skills below `agent_input` (classify-input-tier, preflight-mcp, convert-input-file, build-source-manifest, verify-artifact-write) are shared with graph 5.
 - No cycles. No `framework/assets/pattern-catalogue/` "see also" pointers appear in this subtree.
 
 ---
@@ -522,9 +523,97 @@ graph TD
 **Notes:**
 - The orchestrator is **registry-driven**: at design time it does not know which analyser will run. The `skill_ansel → asset_registry_an` edge is the discovery mechanism; `orch_an → agent_*` edges represent the runtime invocation paths once the consultant has selected a methodology via `analysis-selector.md`. **Adding a new MVP analyser requires zero orchestrator edits** — only a new registry row plus the four-asset shape (analyser agent + reference + template + character) plus the orchestrator-node edge in this graph. The `task-flows` row added in this PR follows that pattern.
 - Each analyser is itself **stand-alone-ish**: it reads `requirements/requirements.md` plus its own four assets (reference / character / template / map-skill stub) and nothing else under `requirements/`, `framework/state/`, or `framework/shared/`. The reference + template + character edges for `agent_tf` are drawn to illustrate the shape; the same shape applies to all seven other analyser nodes (omitted for readability — see each analyser's own *Inputs* section for the exact paths).
-- `check-context-bloat.md` is shared across all four orchestrators (`requirements-orch.md`, `design-system-orch.md`, `review-requirement-orch.md`, `analyse-requirement-orch.md`); the analyse-requirement-orch caller passes `requirements/` as `artefact_dir` because prior `/requirements` state on disk is the meaningful proxy for in-conversation bloat against the analyser.
+- `check-context-bloat.md` is shared across all five orchestrators (`requirements-orch.md`, `design-system-orch.md`, `review-requirement-orch.md`, `analyse-requirement-orch.md`, `analyse-inputs-orch.md`); the analyse-requirement-orch caller passes `requirements/` as `artefact_dir` because prior `/requirements` state on disk is the meaningful proxy for in-conversation bloat against the analyser. The `/analyse-inputs` caller passes `input/` as `artefact_dir` because the raw input folder is what enters the input-analyser's context.
 - `state/.progress.json` is read (existence + at-least-one-`completed`-event check) by `check-context-bloat.md` from the analyse-requirement orchestrator; the analyse-requirement orchestrator never writes to it, consistent with the no-write-outside-`analyses/` invariant. This mirrors the design-system-orch surface variant of RF-05 documented in `framework/orchestrators/analyse-requirement-orch.md > RF-05 — analyse-requirement-orch surface variant`.
-- `verify-artifact-write.md` is shared across all four orchestrators; every analyser calls it from its write step (Step 11 for `task-flows-analyser.md`).
+- `verify-artifact-write.md` is shared across all five orchestrators; every analyser calls it from its write step (Step 11 for `task-flows-analyser.md`).
 - `svg-overlap-check.md` is called from the write step of the three SVG-heavy analysers (`task-flows-analyser.md` Step 11, `data-model-analyser.md` Step 10, `state-diagram-analyser.md` Step 10) — only after `verify-artifact-write` passes, and only when the analyser actually emitted ≥1 inline SVG figure (i.e., a non-empty consultant selection at the figure-selection sub-step). Reads the just-written artefact; writes a report under `framework/state/svg-overlap-<pipeline>.ndjson`. Other analysers may adopt by passing their own node/edge class allowlists.
 - Per each analyser's stand-alone constraint, no edges reach `requirements/` (except `requirements/requirements.md` itself, which is the read target — implicit, not drawn), `design-system/`, `reviews/`, or `framework/state/` from the analyser subtrees. The orchestrator's narrow read exception for the step-0b preflight (read-only access to `requirements/`, `requirements/source-manifest.json`, `framework/state/.progress.json`) is captured by the `orch_an → skill_bloat_an → state_progress_an` edges and a documented stand-alone-constraint clause in the orchestrator.
 - No cycles.
+
+---
+
+## analyse-inputs-orch.md
+
+```mermaid
+graph TD
+    classDef orch fill:#1f2937,color:#fff,stroke:#000,stroke-width:2px,font-weight:bold
+    classDef agent fill:#2563eb,color:#fff,stroke:#1e40af
+    classDef skill fill:#0d9488,color:#fff,stroke:#0f766e
+    classDef asset fill:#d97706,color:#fff,stroke:#92400e
+    classDef shared fill:#7c3aed,color:#fff,stroke:#5b21b6
+    classDef state fill:#525252,color:#fff,stroke:#262626
+
+    subgraph Orchestrator
+      orch_ai[analyse-inputs-orch.md]
+    end
+
+    subgraph Agents
+      agent_input_ai[input-handler.md]
+    end
+
+    subgraph Skills
+      skill_ansel_ai[analysis-selector.md]
+      skill_bloat_ai[check-context-bloat.md]
+      skill_verifywrite_ai[verify-artifact-write.md]
+      skill_classify_ai[classify-input-tier.md]
+      skill_preflight_ai[preflight-mcp.md]
+      skill_convert_ai[convert-input-file.md]
+      skill_buildmanifest_ai[build-source-manifest.md]
+    end
+
+    subgraph Assets
+      asset_registry_ai[analyses-inputs/registry.md]
+    end
+
+    subgraph Shared
+      shared_refusal_ai[refusal-registry.md]
+      shared_setup_md_ai[setup-instructions/markitdown.md]
+    end
+
+    subgraph State
+      state_progress_ai[state/.progress.json]
+    end
+
+    orch_ai --> skill_ansel_ai
+    orch_ai --> skill_bloat_ai
+    orch_ai --> agent_input_ai
+    orch_ai --> shared_refusal_ai
+
+    skill_ansel_ai --> asset_registry_ai
+
+    skill_bloat_ai --> shared_refusal_ai
+    skill_bloat_ai --> state_progress_ai
+
+    agent_input_ai --> skill_classify_ai
+    agent_input_ai --> skill_preflight_ai
+    agent_input_ai --> skill_convert_ai
+    agent_input_ai --> skill_buildmanifest_ai
+    agent_input_ai --> skill_verifywrite_ai
+    agent_input_ai --> shared_refusal_ai
+    agent_input_ai --> shared_setup_md_ai
+
+    skill_classify_ai --> skill_convert_ai
+    skill_preflight_ai --> shared_refusal_ai
+    skill_convert_ai --> skill_verifywrite_ai
+    skill_convert_ai --> shared_refusal_ai
+    skill_buildmanifest_ai --> skill_verifywrite_ai
+    skill_verifywrite_ai --> shared_refusal_ai
+
+    class orch_ai orch
+    class agent_input_ai agent
+    class skill_ansel_ai,skill_bloat_ai,skill_verifywrite_ai,skill_classify_ai,skill_preflight_ai,skill_convert_ai,skill_buildmanifest_ai skill
+    class asset_registry_ai asset
+    class shared_refusal_ai,shared_setup_md_ai shared
+    class state_progress_ai state
+```
+
+**Stats:** 13 nodes / 21 edges / depth 4. (Per-analyser nodes — `agent_glossary`, `agent_jtbd`, `agent_five-whys`, and their reference / template / character / map-skill fan-outs — are intentionally omitted because **no analyser exists on disk in this PR**. Each future methodology PR adds one `orch_ai → agent_<method>` edge plus the standard four-asset fan-out, mirroring graph 4. The shape will then match the fan-out structure of `analyse-requirement-orch.md`.)
+
+**Notes:**
+- The orchestrator is **registry-driven** (same pattern as `analyse-requirement-orch.md`). The `skill_ansel_ai → asset_registry_ai` edge is the discovery mechanism; future `orch_ai → agent_<method>` edges represent the runtime invocation paths once the consultant has selected a methodology. **Adding a new MVP input-analyser requires zero orchestrator edits** — only a new MVP row in `framework/assets/analyses-inputs/registry.md`, the four-asset shape (analyser + reference + template + character), and the new edge in this graph.
+- The `input-handler.md` agent is **shared with `requirements-orch.md`** (graph 1, where it appears as `agent_input`). The five skills below it (`classify-input-tier`, `preflight-mcp`, `convert-input-file`, `build-source-manifest`, `verify-artifact-write`) and the two shared-policy edges (`refusal-registry.md`, `setup-instructions/markitdown.md`) are the same node identities; they appear in both graphs but represent one set of files on disk. The per-call difference between the two pipelines is the agent's `progress_path` parameter: `requirements-orch.md` passes `framework/state/.progress.json`; `analyse-inputs-orch.md` passes `null` (which suppresses the agent's `RF-01 continue-later` `.progress.json` write).
+- The shared `input-handler` invocation at step 1 is the **only** edge in this subtree that writes outside `analyses/inputs/<METHOD>/`. The writes it performs (`requirements/source-manifest.json` and `input/*.converted.md` siblings) are bounded to those paths and are documented as a cross-pipeline exception in `framework/orchestrators/analyse-inputs-orch.md > Stand-alone constraint`. No write reaches `requirements/requirements*.md`, `requirements/consultant-answers.md`, `requirements/requirements-draft.md`, `requirements/draft-claims*.ndjson`, `design-system/`, `analyses/<METHOD>/` (the requirement-doc analyses' scope, excluding the `analyses/inputs/` subtree), `reviews/`, or `framework/state/`.
+- `state/.progress.json` is read (existence + byte-size check) by `check-context-bloat.md` from this orchestrator; the orchestrator never writes to it, consistent with the no-write-outside-`analyses/inputs/` invariant. The shared `input-handler.md` agent **also** never writes to `.progress.json` from this pipeline because the orchestrator invokes it with `progress_path: null` (the agent's RF-01 continue-later write is suppressed in that mode).
+- `check-context-bloat.md` is invoked with `artefact_dir: input/` (not `requirements/`) — the byte volume of the raw input folder is the meaningful proxy for in-conversation bloat against an input-analyser, in contrast to the `/analyse-requirement` caller which passes `requirements/`.
+- On framework first-ship there are zero MVP rows in `framework/assets/analyses-inputs/registry.md`, so `skill_ansel_ai` always returns `empty-registry` and the orchestrator exits cleanly with the "no input analyses available yet" message before reaching step 0a. Once the first methodology row is promoted to `status: mvp`, the corresponding `agent_<method>` node lands in this graph and the pipeline becomes operational.
+- No cycles. No `framework/assets/pattern-catalogue/` "see also" pointers appear in this subtree.

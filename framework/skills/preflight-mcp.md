@@ -1,6 +1,6 @@
 # preflight-mcp.md
 
-**Purpose:** Confirm that an MCP-backed tool the input-handler may need is currently available in the harness's tool list. Presence-only check — no version validation, no functional probe. Runs as the first action of `requirements-input-handler.md`, before any file enumeration or classification, so a missing dependency surfaces as `RF-01 dependency_missing` immediately rather than mid-conversion.
+**Purpose:** Confirm that an MCP-backed tool the input-handler may need is currently available in the harness's tool list. Presence-only check — no version validation, no functional probe. Runs as the conditional preflight step of `framework/agents/input-handler.md` (when at least one input row has classified as `Supported-via-MCP`), before per-file conversion begins, so a missing dependency surfaces as `RF-01 dependency_missing` immediately rather than mid-conversion.
 
 **Inputs:**
 - `tool_name` — the fully-qualified MCP tool name to probe. Examples: `mcp__markitdown__convert_to_markdown`, `mcp__playwright__browser_navigate`.
@@ -12,7 +12,7 @@
 - `<rf_predicate> trigger` — the tool is absent. The agent surfaces the predicate per `framework/shared/refusal-registry.md > <rf_predicate>`, including the `advice_path` in the question text. The skill itself does not pick the surface mechanism — it returns the trigger and the *caller* applies the registry entry.
 
 **Used by:**
-- `framework/agents/requirements-input-handler.md` — first workflow step. Called once per session, before file enumeration. Uses default `rf_predicate = RF-01`.
+- `framework/agents/input-handler.md` — called once per session after classification, when at least one row is `Supported-via-MCP`. Uses default `rf_predicate = RF-01`. Shared between `/requirements` and `/analyse-inputs`.
 - `framework/agents/design-system-styler/steps/step-04-site-fetching.md` — called only when the consultant supplied a non-null `{{reference_url}}`. Passes `tool_name = mcp__playwright__browser_navigate`, `advice_path = framework/shared/setup-instructions/playwright.md`, `rf_predicate = RF-06`.
 
 ## Procedure

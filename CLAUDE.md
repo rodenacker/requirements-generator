@@ -2,11 +2,11 @@
 
 ## 1. Project Purpose
 
-**What.** Consultant-driven Claude Code workspace. Four slash commands (`/requirements`, `/design-system`, `/analyse-requirement`, `/review-requirement`) — each a prompt-only pipeline of markdown orchestrators + agents + skills — that turn loose client material into structured artefacts. No runtime code: every "agent" is an `.md` file Claude reads and adopts as persona.
+**What.** Consultant-driven Claude Code workspace. Five slash commands (`/requirements`, `/design-system`, `/analyse-requirement`, `/analyse-inputs`, `/review-requirement`) — each a prompt-only pipeline of markdown orchestrators + agents + skills — that turn loose client material into structured artefacts. No runtime code: every "agent" is an `.md` file Claude reads and adopts as persona. `/analyse-requirement` lenses the synthesised `requirements/requirements.md`; `/analyse-inputs` lenses the raw consultant-dropped material in `input/` (a parallel registry-driven pipeline that shares the input-handler agent with `/requirements`).
 
 **For.** Solo consultants / BAs running Claude Code locally to produce deterministic, citation-grounded handoff docs (requirements specs, design-token sets, OOUX / JTBD / use-case / data-model / sequence-diag / state-diag / activity-diag / user-journey maps, adversarial reviews) from briefs, decks, screenshots, spreadsheets, PDFs.
 
-**Optimizes for.** Determinism + auditability over speed. Every fact in a final artefact must be traceable to either an input quote (sidecar NDJSON of `[SRC: C-NNN]` claims, verified verbatim) or a named provenance marker (`[AI-SUGGESTED]`, `[STANDARD-RULE: GR-NN]`, `[OUT-OF-SCOPE]`). Resumability: every pipeline checkpoints to disk so `/clear` + re-invoke continues at the first incomplete agent. Stand-alone pipelines: `/analyse-requirement`, `/review-requirement`, `/design-system` write only to their own dirs.
+**Optimizes for.** Determinism + auditability over speed. Every fact in a final artefact must be traceable to either an input quote (sidecar NDJSON of `[SRC: C-NNN]` claims for `/requirements` drafts, verified verbatim; `[SRC: <filename>]` markers in `/analyse-inputs` artefacts citing manifest rows) or a named provenance marker (`[AI-SUGGESTED]`, `[STANDARD-RULE: GR-NN]`, `[OUT-OF-SCOPE]`). Resumability: every pipeline checkpoints to disk so `/clear` + re-invoke continues at the first incomplete agent. Stand-alone pipelines: `/analyse-requirement`, `/analyse-inputs`, `/review-requirement`, `/design-system` write only to their own dirs (the input-handler agent shared between `/requirements` and `/analyse-inputs` writes to `requirements/source-manifest.json` and `input/*.converted.md` — a documented cross-pipeline exception).
 
 **Constraints.**
 - Target domain = **data-management productivity apps** (CRUD-heavy). Prototype defaults assume that, not marketing/content.
@@ -22,18 +22,19 @@
 
 | Path | Role |
 |---|---|
-| `.claude/commands/` | Slash-command entrypoints (`start`, `requirements`, `design-system`, `analyse-requirement`, `review-requirement`). Each is a thin shim that names its orchestrator. |
+| `.claude/commands/` | Slash-command entrypoints (`start`, `requirements`, `design-system`, `analyse-requirement`, `analyse-inputs`, `review-requirement`). Each is a thin shim that names its orchestrator. |
 | `framework/orchestrators/` | One orch per command. Owns control flow, progress/timing state, handback gates, reset procedure. Delegates all content work to agents. |
-| `framework/agents/` | Agents = `.md` persona+workflow files. Claude adopts the persona, executes the workflow verbatim, hands back when DoD met. `requirements-{input-handler,drafter,resolver,merger}.md` for `/requirements`; `design-system-styler.md` (+ `design-system-styler/{steps,prompt-templates,data}/`) for `/design-system`; `agents/analyses/<method>-analyser.md` for `/analyse-requirement`; `agents/reviews/<method>-reviewer.md` (+ `adversarial-dimension-worker.md`) for `/review-requirement`. |
-| `framework/skills/` | Reusable units of agent behaviour. Caller-agnostic, parameterised by inputs. Examples: `verify-artifact-write`, `check-context-bloat`, `classify-input-tier`, `convert-input-file`, `build-source-manifest`, `completeness-gap-pass`, `grounding-verifier`, `mermaid-validator`, `analysis-selector`, `review-selector`, `set-build-target`. Plus `map-<method>-to-ui.md` per analysis methodology. |
-| `framework/assets/` | Read-only reference content: `template-*.md/html` (skeletons agents populate), `topics-*.md` (bijection invariants for gap-pass), `taxonomy-*.md`, `glossary.md`, `persona-llm.md`, `constraints.md`, `pattern-catalogue/` (auth/collections/feedback/forms/layouts/navigation/surfaces), `characters/*.md` (Unicorn voice per agent), `analyses/registry.md` + per-method reference/template, `reviews/registry.md` + per-method reference/template, `references/`. |
+| `framework/agents/` | Agents = `.md` persona+workflow files. Claude adopts the persona, executes the workflow verbatim, hands back when DoD met. `input-handler.md` (cross-pipeline — shared by `/requirements` and `/analyse-inputs`); `requirements-{drafter,resolver,merger}.md` for `/requirements`; `design-system-styler.md` (+ `design-system-styler/{steps,prompt-templates,data}/`) for `/design-system`; `agents/analyses/<method>-analyser.md` for `/analyse-requirement`; `agents/analyses-inputs/<method>-analyser.md` for `/analyse-inputs`; `agents/reviews/<method>-reviewer.md` (+ `adversarial-dimension-worker.md`) for `/review-requirement`. |
+| `framework/skills/` | Reusable units of agent behaviour. Caller-agnostic, parameterised by inputs. Examples: `verify-artifact-write`, `check-context-bloat`, `classify-input-tier`, `convert-input-file`, `build-source-manifest` (parameterised `manifest_path`), `completeness-gap-pass`, `grounding-verifier`, `mermaid-validator`, `analysis-selector` (parameterised `registry_path` — drives both analyses pipelines), `review-selector`, `set-build-target`. Plus `map-<method>-to-ui.md` per analysis methodology. |
+| `framework/assets/` | Read-only reference content: `template-*.md/html` (skeletons agents populate), `topics-*.md` (bijection invariants for gap-pass), `taxonomy-*.md`, `glossary.md`, `persona-llm.md`, `constraints.md`, `pattern-catalogue/` (auth/collections/feedback/forms/layouts/navigation/surfaces), `characters/*.md` (Unicorn voice per agent), `analyses/registry.md` + per-method reference/template (for `/analyse-requirement`), `analyses-inputs/registry.md` + per-method reference/template (for `/analyse-inputs`), `reviews/registry.md` + per-method reference/template, `references/`. |
 | `framework/shared/` | Cross-pipeline invariants and policy: `general-rules.md` (`GR-NN` deterministic defaults), `prototype-scope.md` + `.index.md` (in/out-scope filter for gap-pass), `prototype-invariants.md` (`PI-01..05` appended to every merged requirements.md), `refusal-registry.md` (`RF-NN`), `setup-instructions/{markitdown,playwright}.md`. |
-| `framework/state/` | Runtime state. `.progress.json` (requirements-orch only — append-only event log + status + pending_setup), `timing.ndjson` (append-only observability across all runs, never truncated), `draft-fragments/`, resolver sidecars (`resolver-manifest.ndjson`, `resolver-answers.ndjson`, `resolver-cursor.json`). |
+| `framework/state/` | Runtime state. `.progress.json` (requirements-orch only — append-only event log + status + pending_setup; not written by `/analyse-inputs` even when it invokes the shared input-handler), `timing.ndjson` (append-only observability across all runs, never truncated), `draft-fragments/`, resolver sidecars (`resolver-manifest.ndjson`, `resolver-answers.ndjson`, `resolver-cursor.json`). |
 | `framework/dependency-graphs.md` | Mermaid dep graphs per orchestrator. Source of truth for what loads what. |
-| `input/` | Consultant drop zone for `/requirements` inputs (briefs, decks, screenshots, PDFs, spreadsheets, .drawio, .yml). Input-handler enumerates here. `.converted.md` siblings produced by markitdown live here too. |
-| `requirements/` | `/requirements` outputs only: `source-manifest.json`, `requirements-draft.md`, `draft-claims.ndjson`, `draft-claims-verification.ndjson`, `consultant-answers.md`, `requirements.md`. |
+| `input/` | Consultant drop zone for inputs (briefs, decks, screenshots, PDFs, spreadsheets, .drawio, .yml). Read by `/requirements` and `/analyse-inputs`. Input-handler enumerates here. `.converted.md` siblings produced by markitdown live here too. |
+| `requirements/` | `/requirements` outputs: `source-manifest.json` (shared canonical manifest — also produced by `/analyse-inputs`'s shared input-handler invocation), `requirements-draft.md`, `draft-claims.ndjson`, `draft-claims-verification.ndjson`, `consultant-answers.md`, `requirements.md`. Everything except `source-manifest.json` is `/requirements`-private. |
 | `design-system/` | `/design-system` output: `design-system.md`. Workspace `.workspace/` is styler-owned. |
-| `analyses/<METHOD>/` | `/analyse-requirement` outputs, one HTML per methodology (OOUX, JTBD, DATA-MODEL, USE-CASES, SEQUENCE-DIAGRAM, STATE-DIAGRAM, ACTIVITY-DIAGRAM, USER-JOURNEYS). |
+| `analyses/<METHOD>/` | `/analyse-requirement` outputs, one HTML or MD per methodology (OOUX, JTBD, DATA-MODEL, USE-CASES, SEQUENCE-DIAGRAM, STATE-DIAGRAM, ACTIVITY-DIAGRAM, USER-JOURNEYS, TASK-FLOWS, OPPORTUNITY-SOLUTION-TREES, FIVE-WHYS, GLOSSARY). The methodology slug `inputs` is reserved and must not be used — it collides with `/analyse-inputs`'s output directory. |
+| `analyses/inputs/<METHOD>/` | `/analyse-inputs` outputs, one artefact per methodology (each methodology ships in its own follow-up PR; framework first-ship has zero MVP rows). |
 | `reviews/<METHOD>/` | `/review-requirement` outputs (ADVERSARIAL MVP). |
 
 ### Data flow
@@ -56,9 +57,10 @@
 
 ### Stand-alone constraints (write isolation)
 
-- `/requirements` writes: `requirements/*`, `input/*.converted.md`, `framework/state/*`.
+- `/requirements` writes: `requirements/*`, `input/*.converted.md`, `framework/state/*` (the input-handler invocation at Step 1 produces `requirements/source-manifest.json` and `input/*.converted.md`).
 - `/design-system` writes: `design-system/*`. Reads `requirements/`+`framework/state/` only for context-bloat preflight.
-- `/analyse-requirement` writes: `analyses/<METHOD>/*`. Reads `requirements/requirements.md` + same preflight exception.
+- `/analyse-requirement` writes: `analyses/<METHOD>/*` (where `<METHOD>` ≠ `inputs`). Reads `requirements/requirements.md` + same preflight exception.
+- `/analyse-inputs` writes: `analyses/inputs/<METHOD>/*`. Reads `requirements/source-manifest.json` (manifest) + `input/*` (per manifest rows, including multimodal vision for `Native-multimodal` tier) + same preflight exception. Documented cross-pipeline exception: when the manifest is absent at orchestrator Step 1, the shared `framework/agents/input-handler.md` agent is invoked and writes `requirements/source-manifest.json` and `input/*.converted.md` siblings (the canonical manifest is shared with `/requirements`; downstream `/requirements`-private artefacts are never written by `/analyse-inputs`). Does **not** write `framework/state/*` on any branch (input-handler invoked with `progress_path: null`).
 - `/review-requirement` writes: `reviews/<METHOD>/*`. Same read scope as `/analyse-requirement`.
 
 ### Where new system elements go
@@ -68,7 +70,8 @@
 | New slash command | `.claude/commands/<name>.md` (frontmatter `description:` + body that names the orchestrator) | New `framework/orchestrators/<name>-orch.md` |
 | New orchestrator | `framework/orchestrators/<name>-orch.md` | New `framework/dependency-graphs.md` entry |
 | New agent | `framework/agents/<pipeline>-<role>.md` (or subdir for multi-file agents like `design-system-styler/`) | Reference in orchestrator |
-| New analysis methodology | `framework/agents/analyses/<method>-analyser.md` + reference + template + character + map skill | Append row to `framework/assets/analyses/registry.md` (status: `mvp`). Zero orch changes. |
+| New analysis methodology (lenses `requirements/requirements.md`) | `framework/agents/analyses/<method>-analyser.md` + reference + template + character + map skill | Append row to `framework/assets/analyses/registry.md` (status: `mvp`). Zero orch changes. |
+| New input-analysis methodology (lenses raw `input/` via manifest) | `framework/agents/analyses-inputs/<method>-analyser.md` + `framework/assets/analyses-inputs/<method>-reference.md` + template (under `framework/assets/analyses-inputs/`) + character (under `framework/assets/characters/<method>-inputs-analysis.md`) + map skill (or reuse the existing `map-<method>-to-ui.md` if source-agnostic) | Promote a row in `framework/assets/analyses-inputs/registry.md` from `status: future` to `status: mvp` and fill all eight fields; `output_path` lives under `analyses/inputs/<METHOD>/`. Zero orch changes. |
 | New review methodology | `framework/agents/reviews/<method>-reviewer.md` + reference + template + character | Append row to `framework/assets/reviews/registry.md` (status: `mvp`). Zero orch changes. |
 | New skill | `framework/skills/<verb-noun>.md` | Reference from caller(s) |
 | New asset (template, taxonomy, character) | `framework/assets/<kind>/<name>.md` (or `framework/assets/<name>.md`) | Reference from agent/skill |
@@ -82,7 +85,7 @@
 ### Create new file
 
 - New methodology / agent / skill / asset / shared-rule / refusal / invariant — see the matrix above. Always **append** to registries and `NN`-numbered files; never renumber.
-- New pipeline output artefact → its pipeline's dedicated dir (`requirements/`, `design-system/`, `analyses/<METHOD>/`, `reviews/<METHOD>/`). **Never** write outside this dir from that pipeline.
+- New pipeline output artefact → its pipeline's dedicated dir (`requirements/`, `design-system/`, `analyses/<METHOD>/` for `/analyse-requirement`, `analyses/inputs/<METHOD>/` for `/analyse-inputs`, `reviews/<METHOD>/`). **Never** write outside this dir from that pipeline (the documented `/analyse-inputs` → `requirements/source-manifest.json` + `input/*.converted.md` exception is inherited from the shared input-handler's contract and is bounded to those two paths).
 - New `setup-instructions/<tool>.md` when an `RF-01`-style pause needs out-of-band install steps.
 - New `template-<thing>.md/html` in `framework/assets/` when an agent needs a populate-top-to-bottom skeleton.
 
@@ -110,7 +113,7 @@ Cross-pipeline policy (rules, scopes, refusals, invariants) goes in `framework/s
 
 - **Commands.** `.claude/commands/<verb>.md`. Single lowercase verb.
 - **Orchestrators.** `framework/orchestrators/<verb>-orch.md`.
-- **Agents.** `framework/agents/<pipeline>-<role>.md` for requirements (`requirements-drafter.md`); `framework/agents/<plural-pipeline>/<method>-analyser.md` for analyse / review (`analyses/ooux-analyser.md`, `reviews/adversarial-reviewer.md`); multi-file agent → subdir with `steps/`, `prompt-templates/`, `data/`.
+- **Agents.** `framework/agents/<pipeline>-<role>.md` for requirements-pipeline-private agents (`requirements-drafter.md`); `framework/agents/<role>.md` (no pipeline prefix) for cross-pipeline shared agents (`input-handler.md` — shared between `/requirements` and `/analyse-inputs`); `framework/agents/<plural-pipeline>/<method>-analyser.md` for analyse / review (`analyses/ooux-analyser.md`, `analyses-inputs/glossary-analyser.md`, `reviews/adversarial-reviewer.md`); multi-file agent → subdir with `steps/`, `prompt-templates/`, `data/`.
 - **Skills.** `framework/skills/<verb-noun>.md` — verb-led, hyphenated, lowercase (`verify-artifact-write.md`, `check-context-bloat.md`, `build-source-manifest.md`, `set-build-target.md`).
 - **Assets.**
   - Templates: `template-<thing>.{md,html}`.
@@ -121,7 +124,7 @@ Cross-pipeline policy (rules, scopes, refusals, invariants) goes in `framework/s
   - Registries: `registry.md` inside the pipeline-plural subdir.
 - **Shared.** `<noun>.md` / `<noun>-registry.md` / `<noun>-invariants.md`. Stable-ID files use `NN-NN` numbering inside (`GR-NN`, `RF-NN`, `PI-NN`); never renumber.
 - **State.** `.progress.json`, `timing.ndjson`, `<agent>-<role>.ndjson|json` under `framework/state/`.
-- **Pipeline outputs.** `<artefact>.md`/`.json`/`.ndjson` under the pipeline's own dir. Analyses use UPPERCASE-METHOD subdirs (`analyses/OOUX/`, `analyses/DATA-MODEL/`); reviews same (`reviews/ADVERSARIAL/`).
-- **Markers in content.** `[SRC: C-NNN]` (input-cited fact, sidecar-backed), `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` (drafter inference, resolver Q&A), `[STANDARD-RULE: GR-NN]` (deterministic, resolver skips), `[OUT-OF-SCOPE: domain-default]` (prototype-only, resolver skips). Stable-ID prefixes: `C-` (claims), `AI-` (suggestions), `GR-` (general rules), `RF-` (refusals), `PI-` (prototype invariants).
+- **Pipeline outputs.** `<artefact>.md`/`.json`/`.ndjson` under the pipeline's own dir. Analyses use UPPERCASE-METHOD subdirs (`analyses/OOUX/`, `analyses/DATA-MODEL/`); input-analyses use UPPERCASE-METHOD subdirs under `analyses/inputs/` (`analyses/inputs/GLOSSARY/`, `analyses/inputs/JTBD/`); reviews same (`reviews/ADVERSARIAL/`).
+- **Markers in content.** `[SRC: C-NNN]` (input-cited fact in the `/requirements` draft, sidecar-backed by `requirements/draft-claims.ndjson` and verified verbatim — used only inside `requirements/requirements-draft.md`; the merger strips them so the final `requirements.md` is clean), `[SRC: <filename>]` (filename-cited fact in `/analyse-inputs` analyser artefacts, payload is the manifest row's `filename` field — never used inside `/requirements` artefacts), `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` (drafter inference, resolver Q&A), `[STANDARD-RULE: GR-NN]` (deterministic, resolver skips), `[OUT-OF-SCOPE: domain-default]` (prototype-only, resolver skips). Stable-ID prefixes: `C-` (claims), `AI-` (suggestions), `GR-` (general rules), `RF-` (refusals), `PI-` (prototype invariants).
 - **Timing events.** `run_start`, `run_end`, `stage_start`, `stage_end`, `substep_start`, `substep_end`, `consultant_prompted`, `consultant_responded` — all NDJSON, append-only via PowerShell `Add-Content`.
 - **Progress events.** `called` / `completed` per agent.

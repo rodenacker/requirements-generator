@@ -1,12 +1,14 @@
 # analysis-selector.md
 
-**Purpose:** Read `framework/assets/analyses/registry.md`, filter the methodologies whose `status` is `mvp`, present them to the consultant as a printed numbered list, parse the consultant's typed reply, and return the consultant's selection as a structured row (the row's `name`, `analyser_agent`, `output_path`, `reference_asset`, `character`, `template_asset`, `map_skill`).
+**Purpose:** Read a methodology registry, filter the methodologies whose `status` is `mvp`, present them to the consultant as a printed numbered list, parse the consultant's typed reply, and return the consultant's selection as a structured row (the row's `name`, `analyser_agent`, `output_path`, `reference_asset`, `character`, `template_asset`, `map_skill`).
 
 The skill is **read-only**: one read, one printed list (plus up to two re-prompts on invalid input), one return. It does not invoke the analyser, does not touch state, and does not write any file.
 
+The skill is pipeline-neutral: it works against any registry that follows the field-shape contract documented in `framework/assets/analyses/registry.md`. The caller supplies the registry path; the skill does not hardcode it.
+
 ## Inputs
 
-- `framework/assets/analyses/registry.md` — the methodology registry. The frontmatter `methodologies:` list is the source of truth.
+- `registry_path` — repo-relative path to the methodology registry file. Required. Examples in current use: `framework/assets/analyses/registry.md` (for `/analyse-requirement`), `framework/assets/analyses-inputs/registry.md` (for `/analyse-inputs`). The file must carry a YAML frontmatter `methodologies:` list whose rows match the field-shape contract documented in the requirements-analyses registry.
 
 ## Outputs
 
@@ -18,11 +20,12 @@ Exactly one of:
 
 ## Used by
 
-- `framework/orchestrators/analyse-requirement-orch.md` — step 2.
+- `framework/orchestrators/analyse-requirement-orch.md` — step 1, with `registry_path: "framework/assets/analyses/registry.md"`.
+- `framework/orchestrators/analyse-inputs-orch.md` — step 0, with `registry_path: "framework/assets/analyses-inputs/registry.md"`.
 
 ## Procedure
 
-1. **Read the registry.** `Read framework/assets/analyses/registry.md`. Parse the YAML frontmatter (the block between the opening `---` and the next `---`). Locate the `methodologies:` list.
+1. **Read the registry.** `Read` the file at `registry_path`. Parse the YAML frontmatter (the block between the opening `---` and the next `---`). Locate the `methodologies:` list.
 2. **Filter to MVP.** Retain only rows whose `status` field equals the literal string `mvp`. Discard `status: future` rows and any row whose `status` field is absent.
 3. **Defensive guard.** If the filtered list is empty, return `empty-registry`. Do not surface an `AskUserQuestion` with no options.
 4. **Build the numbered list.** Number the retained rows starting at **1**, in **registry order** (the order they appear in `registry.md` frontmatter). Do **not** re-sort. For each row, format a two-line block:
@@ -34,7 +37,7 @@ Exactly one of:
 
     After the methodology lines, append a blank line and a trailing cancel line:
 
-    `0. Cancel — exit /analyse-requirement without running an analysis`
+    `0. Cancel — exit without running an analysis`
 
     Let `N` be the count of MVP rows (and therefore the highest valid selection number).
 
@@ -54,7 +57,7 @@ Exactly one of:
     N. <name>
     <description>
 
-    0. Cancel — exit /analyse-requirement without running an analysis
+    0. Cancel — exit without running an analysis
 
     Enter the number of the analysis to run (or 0 to cancel):
     ```
@@ -91,6 +94,7 @@ Exactly one of:
 - Do not re-prompt more than twice. The retry budget is two re-prompts; the third invalid reply must return `cancelled`. Looping further turns a typo into a stuck conversation.
 - Do not re-sort the methodologies. Registry order is the source of truth — re-sorting alphabetically (or by any other key) would change the numbering whenever a row is added, removed, or promoted from `future` to `mvp`.
 - Do not hardcode methodology names. The registry is the source of truth; the selector must work unchanged when a new MVP row is added.
+- Do not hardcode the registry path. `registry_path` is a required input parameter; the skill must work unchanged against any registry that follows the documented field-shape contract.
 - Do not invoke the analyser from this skill. Selection and invocation are separate concerns — the orchestrator owns invocation.
 - Do not write to disk. This skill has no side effects beyond the printed list and any re-prompts.
 - Do not silently skip rows with malformed frontmatter (missing required fields on an `mvp` row). Surface `empty-registry` and let the orchestrator report a configuration error rather than printing a half-populated line that would crash on selection.

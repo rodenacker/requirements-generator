@@ -1,6 +1,6 @@
 # convert-input-file.md
 
-**Purpose:** Convert one `Supported-via-MCP` input file into a markdown sibling the drafter can read. Office formats (`.docx`, `.xlsx`, `.pptx`) and PDFs are routed through `mcp__markitdown__convert_to_markdown` with a `file:///` URI. The original is left in place; the converted sibling is written next to it under `input/` with the suffix `.converted.md`. Each conversion is one call; the skill is invoked once per `Supported-via-MCP` row in the in-progress manifest.
+**Purpose:** Convert one `Supported-via-MCP` input file into a markdown sibling that downstream consumers can read. Office formats (`.docx`, `.xlsx`, `.pptx`) and PDFs are routed through `mcp__markitdown__convert_to_markdown` with a `file:///` URI. The original is left in place; the converted sibling is written next to it under `input/` with the suffix `.converted.md`. Each conversion is one call; the skill is invoked once per `Supported-via-MCP` row in the in-progress manifest.
 
 **Inputs:**
 - A single `Supported-via-MCP` file path under `input/` (e.g. `input/spec.docx`).
@@ -11,7 +11,7 @@
 - A `conversions_applied` string for the manifest row, in the form `"markitdown-mcp"` plus optional sub-tags separated by `; ` — for example `"markitdown-mcp; embedded-images-extracted"`, `"markitdown-mcp; tables-flattened"`, or `"failed — encrypted"`.
 
 **Used by:**
-- `framework/agents/requirements-input-handler.md` — called once per row that classifies as `Supported-via-MCP`.
+- `framework/agents/input-handler.md` — called once per row that classifies as `Supported-via-MCP`. Shared between `/requirements` and `/analyse-inputs`.
 
 ## Procedure
 

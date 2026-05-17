@@ -145,7 +145,7 @@ methodologies:
 
 **Field semantics:**
 
-- `name` — kebab-case slug. Used as the subdirectory name under `analyses/` and as the path component in the analyser agent file.
+- `name` — kebab-case slug. Used as the subdirectory name under `analyses/` and as the path component in the analyser agent file. **The slug `inputs` is reserved** and must not be used — it would collide with the sibling `/analyse-inputs` pipeline's output-directory scope (`analyses/inputs/<METHOD>/`). The same reservation applies in `framework/assets/analyses-inputs/registry.md`.
 - `status` — `mvp` (selectable now) or `future` (not yet built).
 - `description` — one-line label surfaced in the `AskUserQuestion` choice list.
 - `output_path` — relative path of the artefact the analyser writes. Drives the prior-artefact gate in the orchestrator.
