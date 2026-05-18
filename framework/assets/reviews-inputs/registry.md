@@ -27,7 +27,15 @@ methodologies:
     map_skill: null
     reviewer_agent: framework/agents/reviews-inputs/adversarial-reviewer.md
     character: framework/assets/characters/adversarial-inputs-review.md
-  - { name: completeness-review, status: future }
+  - name: completeness-review
+    status: mvp
+    description: Choose this to catalogue what is absent, partially covered, or explicitly excluded across the raw consultant inputs (stakeholder coverage, scope boundaries, data entities, workflows incl. non-happy paths, NFRs, business rules, acceptance criteria, integrations, constraints & assumptions, glossary — anchored to IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010) — with disposition-classified findings (Needs-Clarification / Standard-Rule-Applies / Out-of-Scope) ready for /requirements drafting.
+    output_path: review-inputs/COMPLETENESS-REVIEW/completeness-review.md
+    reference_asset: framework/assets/reviews-inputs/completeness-reference.md
+    template_asset: null
+    map_skill: null
+    reviewer_agent: framework/agents/reviews-inputs/completeness-reviewer.md
+    character: framework/assets/characters/completeness-inputs-review.md
   - name: ambiguity-review
     status: mvp
     description: Choose this to surface lexical, syntactic, referential, vague, subjective, weak-verb, and optionality ambiguities in the raw consultant inputs (Berry/Kamsties + Femmer taxonomy) — with ready-to-paste stakeholder elicitation questions per finding — before /requirements drafts from them.
