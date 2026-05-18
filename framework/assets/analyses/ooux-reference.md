@@ -9,7 +9,7 @@
 - `framework/agents/analyses/ooux-analyser.md` — drives the agent's six-round process plus the quality-check sweep.
 - `framework/skills/map-ooux-to-ui.md` — uses the object-map structure to derive UI inventory entries (downstream consumer; stub).
 
-**Output produced by the analyser:** `analyses/OOUX/ooux-object-map.html` — self-contained HTML object-map grid using `framework/assets/analyses/template-ooux.html` as scaffold.
+**Output produced by the analyser:** `analyse-requirements/OOUX/ooux-object-map.html` — self-contained HTML object-map grid using `framework/assets/analyses/template-ooux.html` as scaffold.
 
 ---
 

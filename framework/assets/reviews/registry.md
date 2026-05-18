@@ -6,7 +6,7 @@ methodologies:
   - name: adversarial
     status: mvp
     description: Choose this to flush out defects in the requirements so design starts from a patched doc, not inherited weaknesses.
-    output_path: reviews/ADVERSARIAL/adversarial-review.md
+    output_path: review-requirements/ADVERSARIAL/adversarial-review.md
     reference_asset: framework/assets/reviews/adversarial-reference.md
     template_asset: framework/assets/reviews/template-adversarial.md
     map_skill: null
@@ -15,7 +15,7 @@ methodologies:
   - name: first-principles
     status: mvp
     description: Choose this to test whether each requirement is defensible against business rationale, so weak items get cut or strengthened before design.
-    output_path: reviews/FIRST-PRINCIPLES/first-principles-review.md
+    output_path: review-requirements/FIRST-PRINCIPLES/first-principles-review.md
     reference_asset: framework/assets/reviews/first-principles-reference.md
     template_asset: framework/assets/reviews/template-first-principles.md
     map_skill: null
@@ -24,7 +24,7 @@ methodologies:
   - name: ten-ba-questions
     status: mvp
     description: Choose this before design or estimation to surface the ten most pressing stakeholder questions the doc has left unanswered.
-    output_path: reviews/TEN-BA-QUESTIONS/ten-ba-questions-review.md
+    output_path: review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md
     reference_asset: framework/assets/reviews/ten-ba-questions-reference.md
     template_asset: framework/assets/reviews/template-ten-ba-questions.md
     map_skill: null
@@ -33,7 +33,7 @@ methodologies:
   - name: ten-ux-questions
     status: mvp
     description: Choose this before designing screens to surface the ten most pressing UX questions the doc has left unanswered, so you don't design against gaps.
-    output_path: reviews/TEN-UX-QUESTIONS/ten-ux-questions-review.md
+    output_path: review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.md
     reference_asset: framework/assets/reviews/ten-ux-questions-reference.md
     template_asset: framework/assets/reviews/template-ten-ux-questions.md
     map_skill: null
@@ -42,7 +42,7 @@ methodologies:
   - name: user-stories
     status: mvp
     description: Choose this to find which user stories aren't ready for design or estimation, so you can rework them before they enter the backlog.
-    output_path: reviews/USER-STORIES/user-stories-review.md
+    output_path: review-requirements/USER-STORIES/user-stories-review.md
     reference_asset: framework/assets/reviews/user-stories-reference.md
     template_asset: framework/assets/reviews/template-user-stories.md
     map_skill: null
@@ -86,7 +86,7 @@ This registry is structurally identical to `framework/assets/analyses/registry.m
 
 **Field semantics:**
 
-- `name` — kebab-case slug. Used as the basis for the subdirectory name under `reviews/` (uppercased, e.g. `adversarial` → `reviews/ADVERSARIAL/`) and as the path component in the reviewer agent file.
+- `name` — kebab-case slug. Used as the basis for the subdirectory name under `review-requirements/` (uppercased, e.g. `adversarial` → `review-requirements/ADVERSARIAL/`) and as the path component in the reviewer agent file.
 - `status` — `mvp` (selectable now) or `future` (not yet built).
 - `description` — one-line label surfaced in the `AskUserQuestion` choice list.
 - `output_path` — relative path of the artefact the reviewer writes. Drives the prior-artefact gate in the orchestrator.
@@ -106,7 +106,7 @@ Reviews and analyses are categorically different outputs:
 Folding reviews into the analyses registry would:
 
 - Muddy the consultant's choice list (the `/analyse-requirement` selector would show "Adversarial Review" alongside "OOUX" as if they were peers, when they have opposite semantics — one builds *from* the doc, the other critiques *the* doc).
-- Complicate the stand-alone write invariant: analyses write to `analyses/<METHOD>/`; reviews must write to `reviews/<METHOD>/`. A single registry would need a per-row output-root field, replacing a clear two-pipeline split with a more brittle multiplexed one.
+- Complicate the stand-alone write invariant: analyses write to `analyse-requirements/<METHOD>/`; reviews must write to `review-requirements/<METHOD>/`. A single registry would need a per-row output-root field, replacing a clear two-pipeline split with a more brittle multiplexed one.
 - Break the natural mapping `slash-command → orchestrator → registry`. Two commands, two orchestrators, two registries is the right cardinality.
 
 The cost of duplication is one selector skill and one orchestrator — both clone the `/analyse-requirement` versions verbatim with path swaps. The benefit is clean semantic separation between *building from* and *critiquing of* the requirements doc.

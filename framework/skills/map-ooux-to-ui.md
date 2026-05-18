@@ -2,9 +2,9 @@
 
 # map-ooux-to-ui.md
 
-**Purpose:** Translate an OOUX object map (`artifacts/requirements/analyses/ooux.html`) into UI inventory entries: objects → screen-taxonomy elements + modifiers; CTAs → behaviour entries on appropriate atoms/molecules; relationships → navigation links between screens.
+**Purpose:** Translate an OOUX object map (`analyse-requirements/OOUX/ooux-object-map.html`) into UI inventory entries: objects → screen-taxonomy elements + modifiers; CTAs → behaviour entries on appropriate atoms/molecules; relationships → navigation links between screens.
 
-**Inputs:** `artifacts/requirements/analyses/ooux.html`, `assets/taxonomy-screens.md`.
+**Inputs:** `analyse-requirements/OOUX/ooux-object-map.html`, `assets/taxonomy-screens.md`.
 
 **Outputs:** UI inventory rows for the design spec.
 

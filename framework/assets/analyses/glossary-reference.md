@@ -4,7 +4,7 @@
 
 > **Method:** Walk `requirements/requirements.md` extracting domain terms at a consultant-chosen **scope tier** (1 = nouns + roles + statuses → 2 += acronyms → 3 += action verbs → 4 += field names; each tier strictly extends the prior). For every surfaced term, locate every occurrence in the document, record the section references, and look for an **explicit definition** at one of those sites. If a definition is found, lift it verbatim into the artefact and cite the section ref. If no explicit definition is found, surface the term in a separate **"Used without explicit definition"** section with use-site citations only — the analyser never authors a gloss from world knowledge. Across re-runs the artefact is **additive**: prior entries are preserved; widening the scope tier appends new entries.
 
-**Output file:** `analyses/GLOSSARY/glossary.md` — a self-contained markdown document. **No template scaffold:** Glossary is the second MVP analyser to exercise the registry's `template_asset: null` clause (pure markdown, no HTML / SVG / Mermaid). The first was `five-whys`.
+**Output file:** `analyse-requirements/GLOSSARY/glossary.md` — a self-contained markdown document. **No template scaffold:** Glossary is the second MVP analyser to exercise the registry's `template_asset: null` clause (pure markdown, no HTML / SVG / Mermaid). The first was `five-whys`.
 
 **Analyser agent:** `framework/agents/analyses/glossary-analyser.md`
 
@@ -160,7 +160,7 @@ A term with `explicit_definition == null` after this round is classified **"used
 
 ## Round 3 — Prior-run merge (additive)
 
-If a prior `analyses/GLOSSARY/glossary.md` exists, the analyser:
+If a prior `analyse-requirements/GLOSSARY/glossary.md` exists, the analyser:
 
 1. Parses the `<!-- glossary-meta: ... -->` header to read `last_scope_tier`, `last_input_sha256`, `run_count`.
 2. Parses each entry's heading and citation list to recover the set of already-surfaced terms.
@@ -189,7 +189,7 @@ The analyser computes the SHA-256 of `requirements/requirements.md` at run time 
 
 ## Round 5 — Render and verify
 
-Compose the markdown in memory section by section per §"Output structure". Compute the SHA-256 of the composed string. `Write` to `analyses/GLOSSARY/glossary.md`. Invoke `framework/skills/verify-artifact-write.md` with the path, the SHA-256, and a `expected_min_bytes` of 512 (a minimum legal render — Header + Meta + Summary + Run-history — clears 512 bytes comfortably; a first-run tier-1 artefact with even one definition row clears 1 KB).
+Compose the markdown in memory section by section per §"Output structure". Compute the SHA-256 of the composed string. `Write` to `analyse-requirements/GLOSSARY/glossary.md`. Invoke `framework/skills/verify-artifact-write.md` with the path, the SHA-256, and a `expected_min_bytes` of 512 (a minimum legal render — Header + Meta + Summary + Run-history — clears 512 bytes comfortably; a first-run tier-1 artefact with even one definition row clears 1 KB).
 
 On verify-pass: advance to handback. On verify-fail-twice: halt per RF-04 (write-unverified).
 
@@ -248,7 +248,7 @@ The analysis is complete when:
 
 - Every surfaced term has either a defined entry (with citation) or a "used without explicit definition" entry (with use-site citations).
 - All 7 hard quality checks pass, or the consultant chose Override.
-- `analyses/GLOSSARY/glossary.md` has been written and `verify-artifact-write` returned `pass`.
+- `analyse-requirements/GLOSSARY/glossary.md` has been written and `verify-artifact-write` returned `pass`.
 - The consultant chose Accept in the handback loop.
 
 ---

@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **t
 
 ## Purpose
 
-Produce `analyses/TASK-FLOWS/task-flows.html` — a self-contained HTML artefact carrying:
+Produce `analyse-requirements/TASK-FLOWS/task-flows.html` — a self-contained HTML artefact carrying:
 
 - **Tier 1 (always)**: a per-task catalogue with six tabular sections (Tasks, Subgoals & operations, Plans, Decision points, Exception paths, Cross-task operation matrix) plus a Diagnostics block — extracted from `requirements/requirements.md`. The catalogue implements the Hierarchical Task Analysis decomposition (Annett & Duncan 1967; Stanton 2006) — goals → subgoals → operations annotated with plans.
 - **Tier 2 (consultant-selected, 0..N tasks)**: per selected top-level task, **two** inline-SVG figures — an **HTA tree** (vertical, top-down: root goal at top, operations at leaves, plan badges on non-leaf nodes) and a **Task-Flow Diagram** (horizontal, left-to-right: start oval → numbered step rectangles → decision diamonds → exit ovals). Same data, two views per task. Empty selection is valid and produces a catalogue-only output.
@@ -36,7 +36,7 @@ The agent's only inputs are:
 - `framework/assets/analyses/task-flows-reference.md` (the methodology — read at activation).
 - `framework/assets/analyses/template-task-flows.html` (the HTML scaffold — read once at render time).
 
-The agent's only outputs are `analyses/TASK-FLOWS/task-flows.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `analyse-requirements/TASK-FLOWS/task-flows.html` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
@@ -293,11 +293,11 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 ### Step 11 — Write
 
-- Ensure the output directory exists: `Bash mkdir -p analyses/TASK-FLOWS`.
-- `Write analyses/TASK-FLOWS/task-flows.html` with the in-memory composed HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = analyses/TASK-FLOWS/task-flows.html`, `expected_sha256 = <step-10 sha>`, `expected_min_bytes = 2048` (a minimum legal render with the six catalogue tables, a non-empty diagnostics block, and a single HTA + TFD pair is comfortably above 2 KB; catalogue-only output also clears 2 KB).
-- On `pass`: invoke `framework/skills/svg-overlap-check.md` with `artefact_path = analyses/TASK-FLOWS/task-flows.html`, `report_path = framework/state/svg-overlap-task-flows.ndjson`, `node_class_allowlist = ["hta-goal", "hta-subgoal", "hta-operation", "tfd-start", "tfd-step", "tfd-decision", "tfd-exit-success", "tfd-exit-abort", "tfd-exit-escalate", "tfd-exit-retry", "tfd-exit-compensate"]`, `edge_class_allowlist = ["hta-edge", "tfd-edge"]`, `label_bg_class_suffix = "-bg"`. Skip the `plan-badge` and `plan-badge-label` classes (badges sit inside their parent node AABB by construction — see Step 10's badge positioning rule). On `pass` (`total: 0`): advance to Step 12. On `fail` (`total > 0`): append one diagnostics line per detected overlap (template *"SVG overlap — `<kind>` in figure `<figure_id>`: `<a_class>` ↔ `<b_class>` at `<aabb>`"*), then advance to Step 12 — the catalogue is correct, the inline diagram is the lossy view; the consultant has the Mermaid source as a clean fallback. If `chosen.tasks` is empty (no SVG figures emitted), skip this skill entirely.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyses/TASK-FLOWS/task-flows.html` after one retry."* and fail the handback. The orchestrator does not declare done.
+- Ensure the output directory exists: `Bash mkdir -p analyse-requirements/TASK-FLOWS`.
+- `Write analyse-requirements/TASK-FLOWS/task-flows.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = analyse-requirements/TASK-FLOWS/task-flows.html`, `expected_sha256 = <step-10 sha>`, `expected_min_bytes = 2048` (a minimum legal render with the six catalogue tables, a non-empty diagnostics block, and a single HTA + TFD pair is comfortably above 2 KB; catalogue-only output also clears 2 KB).
+- On `pass`: invoke `framework/skills/svg-overlap-check.md` with `artefact_path = analyse-requirements/TASK-FLOWS/task-flows.html`, `report_path = framework/state/svg-overlap-task-flows.ndjson`, `node_class_allowlist = ["hta-goal", "hta-subgoal", "hta-operation", "tfd-start", "tfd-step", "tfd-decision", "tfd-exit-success", "tfd-exit-abort", "tfd-exit-escalate", "tfd-exit-retry", "tfd-exit-compensate"]`, `edge_class_allowlist = ["hta-edge", "tfd-edge"]`, `label_bg_class_suffix = "-bg"`. Skip the `plan-badge` and `plan-badge-label` classes (badges sit inside their parent node AABB by construction — see Step 10's badge positioning rule). On `pass` (`total: 0`): advance to Step 12. On `fail` (`total > 0`): append one diagnostics line per detected overlap (template *"SVG overlap — `<kind>` in figure `<figure_id>`: `<a_class>` ↔ `<b_class>` at `<aabb>`"*), then advance to Step 12 — the catalogue is correct, the inline diagram is the lossy view; the consultant has the Mermaid source as a clean fallback. If `chosen.tasks` is empty (no SVG figures emitted), skip this skill entirely.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyse-requirements/TASK-FLOWS/task-flows.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 12 — Handback
 
@@ -305,7 +305,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-round counts, the quality-check result, and the `[AI-SUGGESTED]` density figure. No marketing language. Template:
 
-> *"Wrote `analyses/TASK-FLOWS/task-flows.html` — `{{TASK_COUNT}}` tasks, `{{SUBGOAL_COUNT}}` subgoals, `{{OPERATION_COUNT}}` operations, `{{PLAN_COUNT}}` plans, `{{DECISION_COUNT}}` decisions, `{{EXCEPTION_COUNT}}` exceptions. AI-SUGGESTED items: `{{AI_SUGGESTED_COUNT}}` (operation density `{{operation_ai_density_pct}}`%). Quality checks: `{{n_checks_passed}}/10` pass. Diagrams rendered: `{{TASKS_RENDERED}}`. Ready, or want changes?"*
+> *"Wrote `analyse-requirements/TASK-FLOWS/task-flows.html` — `{{TASK_COUNT}}` tasks, `{{SUBGOAL_COUNT}}` subgoals, `{{OPERATION_COUNT}}` operations, `{{PLAN_COUNT}}` plans, `{{DECISION_COUNT}}` decisions, `{{EXCEPTION_COUNT}}` exceptions. AI-SUGGESTED items: `{{AI_SUGGESTED_COUNT}}` (operation density `{{operation_ai_density_pct}}`%). Quality checks: `{{n_checks_passed}}/10` pass. Diagrams rendered: `{{TASKS_RENDERED}}`. Ready, or want changes?"*
 
 Variants:
 
@@ -338,7 +338,7 @@ Use `AskUserQuestion`:
     - For an exception-path edit (add / remove / re-exit-type / re-anchor-step): update in-memory exceptions, re-run checks 6/9, re-render, re-Write, re-verify, loop back to A.
     - For a task re-selection (consultant says "add submit-order" or "drop cancel-order"): update `chosen.tasks`, **do not re-run extraction or quality checks** — only re-render Step 10 with the new selection set, re-Write, re-verify, loop back to A.
     - For an `ai-suggested` reclassification (consultant supplies a source): update provenance marker and remove `[AI-SUGGESTED]` prefix, re-run check 9, recompute density, re-render, re-Write, re-verify, loop back to A.
-- **Restart** — re-enter Step 3. The previously-written `analyses/TASK-FLOWS/task-flows.html` is left in place; the next Step 11 will overwrite it.
+- **Restart** — re-enter Step 3. The previously-written `analyse-requirements/TASK-FLOWS/task-flows.html` is left in place; the next Step 11 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 11).
 
@@ -357,14 +357,14 @@ Output the final handback line:
 
 ## Output
 
-- `analyses/TASK-FLOWS/task-flows.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
+- `analyse-requirements/TASK-FLOWS/task-flows.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template scaffold, and the merged requirements document. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `framework/state/` other than the agent's own `svg-overlap-task-flows.ndjson` report, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyses/TASK-FLOWS/task-flows.html` and `framework/state/svg-overlap-task-flows.ndjson` (the latter owned by `svg-overlap-check` invoked from Step 11).
+- `Write` — write `analyse-requirements/TASK-FLOWS/task-flows.html` and `framework/state/svg-overlap-task-flows.ndjson` (the latter owned by `svg-overlap-check` invoked from Step 11).
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 10's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p analyses/TASK-FLOWS` (Step 11 setup). No other Bash usage.
+- `Bash` — `mkdir -p analyse-requirements/TASK-FLOWS` (Step 11 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 9 quality-check failure prompt (Revise / Override / Restart) when any hard check fires; surface the Step 9 task-selection multi-select; surface the Step 12 Accept / Revise / Restart prompt.
 
 **No MCP tools.** No Agent / Task delegation. The inline SVG is emitted by the analyser directly; there is no external rendering pipeline.
@@ -373,7 +373,7 @@ Output the final handback line:
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `analyses/TASK-FLOWS/task-flows.html` exists and `verify-artifact-write` returned `pass`.
+- `analyse-requirements/TASK-FLOWS/task-flows.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The catalogue section contains exactly six sub-sections in fixed order (`.tasks-block`, `.nodes-block`, `.plans-block`, `.decisions-block`, `.exceptions-block`, `.op-matrix-block`).
 - Every row in every Tier-1 table carries exactly one `.provenance-*` class — never zero, never two.
@@ -397,7 +397,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `analyses/TASK-FLOWS/task-flows.html` exists, has been verified, and contains a complete task-flows catalogue plus the consultant-selected inline-SVG figures (zero to N tasks × 2 figures each).
+- `analyse-requirements/TASK-FLOWS/task-flows.html` exists, has been verified, and contains a complete task-flows catalogue plus the consultant-selected inline-SVG figures (zero to N tasks × 2 figures each).
 - Either all 10 hard quality checks passed, or the consultant explicitly chose Override and the diagnostics block records every violation.
 - The consultant has accepted the artefact in the Step 12 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.

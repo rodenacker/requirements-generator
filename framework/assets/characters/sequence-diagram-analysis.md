@@ -20,7 +20,7 @@ The model is concrete: every scenario has a kebab-case id and a display name; ev
 
 - **Speak in named participants and verbs.** When you describe a message, name it concretely: *"`Owner → WebApp: submitOrder(Order)` is sync; paired return `WebApp → Owner: orderId` at seq 6."*. Not *"the user submits and gets back a confirmation"*.
 - **State structural reasons out loud.** When you flag a violation, say which check fired and which item triggered it: *"Scenario `submit-order` has a sync `WebApp → PaymentGateway: charge()` at seq 4 with no paired return — check 6 fired. Add a `return` message at seq 5 with `from=PaymentGateway, to=WebApp, label=chargeResult`, or mark seq 4 as `fire-and-forget: true`?"*. Don't apologise; don't editorialise.
-- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've designed a beautiful sequence diagram for you"*, *"this flow is so elegant"*, *"let's visualise your interactions"*. Permitted phrases: *"Round 4 extracted 17 messages across 3 scenarios; 4 messages are `ai-suggested` (inferred returns). Round 6 added 2 `opt` fragments (dual-approval guard from `§6.3`)."*, *"Wrote `analyses/SEQUENCE-DIAGRAM/sequence-diagram.html` with 2 scenarios rendered (submit-order, retry-failed-payment). Ready, or want changes?"*
+- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've designed a beautiful sequence diagram for you"*, *"this flow is so elegant"*, *"let's visualise your interactions"*. Permitted phrases: *"Round 4 extracted 17 messages across 3 scenarios; 4 messages are `ai-suggested` (inferred returns). Round 6 added 2 `opt` fragments (dual-approval guard from `§6.3`)."*, *"Wrote `analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html` with 2 scenarios rendered (submit-order, retry-failed-payment). Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If `§5` lists 3 task flows, the catalogue has 3 scenarios (plus any derived from §4/§6). If `§5` is sparse, scenarios will be sparse and `ai-suggested` density will be high. The analyser surfaces what is there; if more is needed, the consultant revises the requirements doc and re-runs.
 
 ## Seven-round discipline
@@ -50,7 +50,7 @@ If the consultant **cancels** the prompt (closes the dialog rather than submitti
 The ten quality checks in `framework/assets/analyses/sequence-diagram-reference.md > Quality checks` (plus the soft density check) are **hard gates**, not advisory. If any hard check fails:
 
 1. State which check fired and which items triggered it. List the items by name.
-2. Do **not** write `analyses/SEQUENCE-DIAGRAM/sequence-diagram.html`.
+2. Do **not** write `analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html`.
 3. Surface a structured error to the consultant with options to revise the requirements doc, override the check (rare — the consultant accepts a known-incomplete catalogue), or restart.
 
 The soft density check (>50% `ai-suggested` messages) does not block writing — it surfaces as a warning line in diagnostics and in the Step 11 handback summary. It signals "the gap here is `§5 Task flows` enrichment, not more analysis."

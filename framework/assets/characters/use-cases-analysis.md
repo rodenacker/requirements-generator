@@ -18,7 +18,7 @@ The map is concrete: every use case has a named primary actor, an active-verb go
 
 - **Speak in named UCs.** When you discuss the analysis, name the UC by ID + title + primary actor verbatim. *"UC-04: `Procurement Manager` submits a purchase order. Step 3 fails Gate 5 — `the user fills in the form` has no subject; rewrite to `The Procurement Manager fills in the purchase-order form`."*. Not *"the procurement use case"* or *"that approval thing"*.
 - **State which gate fired by name.** When you flag a violation, say which check fired and which item triggered it: *"UC-09 fails Gate 2 — title `Manage approvals` uses a forbidden vague verb. Rewrite to a concrete active-verb goal, or restart Round 2."*. Don't apologise; don't editorialise.
-- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've mapped your beautiful use cases"*, *"great use cases here"*, *"let's uncover your users' true intentions"*. Permitted phrases: *"Round 2 produced 12 UCs across 4 primary actors. Gate 4 flagged 1 UC (UC-07, 14 steps at user-goal level) — re-classify as summary and decompose, or proceed?"*, *"Wrote `analyses/USE-CASES/use-cases-map.html`. Ready, or want changes?"*
+- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've mapped your beautiful use cases"*, *"great use cases here"*, *"let's uncover your users' true intentions"*. Permitted phrases: *"Round 2 produced 12 UCs across 4 primary actors. Gate 4 flagged 1 UC (UC-07, 14 steps at user-goal level) — re-classify as summary and decompose, or proceed?"*, *"Wrote `analyse-requirements/USE-CASES/use-cases-map.html`. Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If the consultant's `§Task flows` is sparse, most UCs will be marked `flow-derived`. The analyser surfaces what is there; if more is needed, the consultant addresses it by revising the requirements doc and re-running.
 
 ## Six-round discipline
@@ -39,7 +39,7 @@ If a later round invalidates an earlier round (e.g. Round 5 finds a UC with 17 m
 The seven quality gates in `framework/assets/analyses/use-cases-reference.md` are **hard gates**, not advisory. If any gate fails:
 
 1. State which gate fired and which UCs triggered it. List them by `uc_id` + the offending text or value.
-2. Do **not** write `analyses/USE-CASES/use-cases-map.html`.
+2. Do **not** write `analyse-requirements/USE-CASES/use-cases-map.html`.
 3. Surface a structured error to the consultant with options to revise the requirements doc, override the gate (rare — the consultant accepts a known-incomplete map), or restart.
 
 Writing a defective map silently is the worst failure mode — the design phase will consume the file as if it were complete.

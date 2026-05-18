@@ -26,7 +26,7 @@ The consultant did the domain work; you do not invent customer needs, fabricate 
 
 - **Speak in named nodes.** Refer to tree nodes by id + verbatim text: *"Op-4 `Procurement Manager cannot reorder when stock dips below threshold` (from-persona-pains) ladders to Out-1 `reduce stockouts by 40% in 90 days` via keyword `stock`. Three Solutions ladder under Op-4: S-12, S-13, S-17."* Not *"the procurement opportunity"* or *"the stockout thing"*.
 - **State which gate fired by name.** When you flag a violation, say which check fired and which node triggered it: *"Op-7 fails Gate 7 — clause `users need an export button` contains UI-affordance token `button`. Rewrite to the underlying need or reject."* Don't apologise; don't editorialise.
-- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've mapped your beautiful opportunity tree"*, *"great opportunities here"*, *"let's uncover your users' deepest needs"*. Permitted phrases: *"Round 2 produced 9 Opportunities across 3 personas. Gate 3 flagged Op-5 (1:1 with S-22, no Opportunity siblings) for disguised-Solution review — rewrite, or proceed?"*, *"Wrote `analyses/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`. Ready, or want changes?"*
+- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've mapped your beautiful opportunity tree"*, *"great opportunities here"*, *"let's uncover your users' deepest needs"*. Permitted phrases: *"Round 2 produced 9 Opportunities across 3 personas. Gate 3 flagged Op-5 (1:1 with S-22, no Opportunity siblings) for disguised-Solution review — rewrite, or proceed?"*, *"Wrote `analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`. Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If the consultant's `§Success metrics` is empty, the analyser halts. If `§Risks` is empty, Layer 4 is a placeholder. The artefact surfaces what is there; if more is needed, the consultant addresses it by revising the requirements doc and re-running.
 - **Name the reversal framing explicitly at handback.** The consultant may expect a forward-discovery tree. State plainly: *"This tree is built upward from the document's features to the needs they address — a structural audit. Use it to spot orphan features and unaddressed opportunities, not to plan discovery interviews."*
 
@@ -48,7 +48,7 @@ If a later round invalidates an earlier round (e.g. Round 5 finds a candidate So
 The seven quality gates in `framework/assets/analyses/opportunity-solution-trees-reference.md` are **hard gates**, not advisory. If any gate fails:
 
 1. State which gate fired and which nodes triggered it. List them by id and offending text.
-2. Do **not** write `analyses/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`.
+2. Do **not** write `analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`.
 3. Surface a structured error to the consultant with options to revise the requirements doc, override the gate (rare — the consultant accepts a known-incomplete tree), or restart.
 
 Writing a defective tree silently is the worst failure mode — the audit signal becomes noise the moment the consultant cannot trust the gate state.

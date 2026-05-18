@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **u
 
 ## Purpose
 
-Produce `analyses/USE-CASES/use-cases-map.html` — a self-contained HTML use-case card grid — by applying the Cockburn fully-dressed Use Cases process (`framework/assets/analyses/use-cases-reference.md`) literally and exhaustively to the merged requirements document `requirements/requirements.md`. Every UC on the map is named by an active-verb goal phrase drawn verbatim from `§User stories` / `§Task flows` / `§Goals` where anchors exist, derived from another section where they do not, and carries an actor-provenance marker, a goal-source marker, and a flow-source marker either way. Every quality gate in the reference is a hard gate.
+Produce `analyse-requirements/USE-CASES/use-cases-map.html` — a self-contained HTML use-case card grid — by applying the Cockburn fully-dressed Use Cases process (`framework/assets/analyses/use-cases-reference.md`) literally and exhaustively to the merged requirements document `requirements/requirements.md`. Every UC on the map is named by an active-verb goal phrase drawn verbatim from `§User stories` / `§Task flows` / `§Goals` where anchors exist, derived from another section where they do not, and carries an actor-provenance marker, a goal-source marker, and a flow-source marker either way. Every quality gate in the reference is a hard gate.
 
 ## Output section order
 
@@ -32,7 +32,7 @@ The agent's only inputs are:
 - `framework/assets/analyses/use-cases-reference.md` (the methodology — read at activation).
 - `framework/assets/analyses/template-use-cases.html` (the HTML scaffold — read once at render time).
 
-The agent's only outputs are `analyses/USE-CASES/use-cases-map.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `analyse-requirements/USE-CASES/use-cases-map.html` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted.
 
@@ -257,11 +257,11 @@ Items rendered with a `derived-*` marker (preconditions, success guarantees, min
 
 ### Step 10 — Write
 
-- Ensure the output directory exists: `Bash mkdir -p analyses/USE-CASES`.
-- `Write analyses/USE-CASES/use-cases-map.html` with the in-memory composed HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = analyses/USE-CASES/use-cases-map.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with a non-empty diagnostics block is comfortably above 1 KB).
+- Ensure the output directory exists: `Bash mkdir -p analyse-requirements/USE-CASES`.
+- `Write analyse-requirements/USE-CASES/use-cases-map.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = analyse-requirements/USE-CASES/use-cases-map.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with a non-empty diagnostics block is comfortably above 1 KB).
 - On `pass`: advance to Step 11.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyses/USE-CASES/use-cases-map.html` after one retry."* and fail the handback. The orchestrator does not declare done.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyse-requirements/USE-CASES/use-cases-map.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 11 — Handback
 
@@ -269,7 +269,7 @@ Items rendered with a `derived-*` marker (preconditions, success guarantees, min
 
 Output one short, concrete line listing the per-round counts and the quality-gate result. No marketing language. Template:
 
-> *"Wrote `analyses/USE-CASES/use-cases-map.html` — `{{UC_COUNT}}` use cases across `{{ACTOR_COUNT}}` primary actors (`{{LEVEL_SUMMARY_COUNT}}` summary, `{{LEVEL_USER_GOAL_COUNT}}` user-goal, `{{LEVEL_SUBFUNCTION_COUNT}}` subfunction), `{{EXTENSION_COUNT}}` extensions. Quality gates: `{{n_gates_passed}}/7` pass. Ready, or want changes?"*
+> *"Wrote `analyse-requirements/USE-CASES/use-cases-map.html` — `{{UC_COUNT}}` use cases across `{{ACTOR_COUNT}}` primary actors (`{{LEVEL_SUMMARY_COUNT}}` summary, `{{LEVEL_USER_GOAL_COUNT}}` user-goal, `{{LEVEL_SUBFUNCTION_COUNT}}` subfunction), `{{EXTENSION_COUNT}}` extensions. Quality gates: `{{n_gates_passed}}/7` pass. Ready, or want changes?"*
 
 Variants:
 
@@ -298,7 +298,7 @@ Use `AskUserQuestion`:
     - For a step edit (text / subject / order): update Round 5 row, re-run gates 4 / 5, re-render, re-Write, re-verify, loop back to A.
     - For an extension edit: update Round 6 row, re-render, re-Write, re-verify, loop back to A.
     - For a diagram-selection edit (consultant wants different per-actor focus diagrams, or wants the per-actor selection skipped on a single-actor doc): re-run Step 8.6's `AskUserQuestion` prompt only — Rounds 1–7 derivation is not redone since the UML inventory is deterministic from gated card data. Then re-render Step 9, re-Write, re-verify, loop back to A.
-- **Restart** — re-enter Step 3. The previously-written `analyses/USE-CASES/use-cases-map.html` is left in place; the next Step 10 will overwrite it.
+- **Restart** — re-enter Step 3. The previously-written `analyse-requirements/USE-CASES/use-cases-map.html` is left in place; the next Step 10 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 10).
 
@@ -317,21 +317,21 @@ Output the final handback line:
 
 ## Output
 
-- `analyses/USE-CASES/use-cases-map.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
+- `analyse-requirements/USE-CASES/use-cases-map.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template scaffold, and the merged requirements document. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `framework/state/`, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyses/USE-CASES/use-cases-map.html`.
+- `Write` — write `analyse-requirements/USE-CASES/use-cases-map.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 9's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p analyses/USE-CASES` (Step 10 setup). No other Bash usage.
+- `Bash` — `mkdir -p analyse-requirements/USE-CASES` (Step 10 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 8 quality-gate failure prompt (Revise / Override / Restart) when any gate fires; surface the Step 11 Accept / Revise / Restart prompt.
 
 ## Self-validation (run before declaring done)
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `analyses/USE-CASES/use-cases-map.html` exists and `verify-artifact-write` returned `pass`.
+- `analyse-requirements/USE-CASES/use-cases-map.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - Every `<article class="uc-card">` has its level class set to exactly one of `level-summary`, `level-user-goal`, or `level-subfunction`. No unclassified cards.
 - Every UC card has its actor-provenance dot set to exactly one of `provenance-from-personas` or `provenance-derived`. No unmarked actors.
@@ -354,7 +354,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `analyses/USE-CASES/use-cases-map.html` exists, has been verified, and contains a complete use-case map.
+- `analyse-requirements/USE-CASES/use-cases-map.html` exists, has been verified, and contains a complete use-case map.
 - Either all seven quality gates passed, or the consultant explicitly chose Override and the diagnostics block records every violation.
 - The consultant has accepted the artefact in the Step 11 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.

@@ -6,13 +6,13 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **u
 
 ## Purpose
 
-Produce `reviews/USER-STORIES/user-stories-review.md` — a markdown document listing every user story under `requirements/requirements.md > §4.2 Stories by persona` that fails one or more of six quality criteria (`Meaningful`, `Implementable`, `Testable`, `Coherent`, `Appropriately scoped`, `Outcome-aligned`), sorted by headline priority (`blocking | major | minor`), grouped within each priority by persona then anchor, each finding annotated with the persona group, the violated criteria, a 1–3 sentence reason per criterion, and a 1–2 sentence directional fix hint per criterion. Passing stories are recorded in the diagnostics block but not surfaced in the body. Every quality gate in the reference is a hard gate.
+Produce `review-requirements/USER-STORIES/user-stories-review.md` — a markdown document listing every user story under `requirements/requirements.md > §4.2 Stories by persona` that fails one or more of six quality criteria (`Meaningful`, `Implementable`, `Testable`, `Coherent`, `Appropriately scoped`, `Outcome-aligned`), sorted by headline priority (`blocking | major | minor`), grouped within each priority by persona then anchor, each finding annotated with the persona group, the violated criteria, a 1–3 sentence reason per criterion, and a 1–2 sentence directional fix hint per criterion. Passing stories are recorded in the diagnostics block but not surfaced in the body. Every quality gate in the reference is a hard gate.
 
 The agent is **single-pass**: enumeration, criterion-by-criterion evaluation, filter, grouping, validate, render, and write all execute in this one thread without sub-agent fan-out. Six criteria over one document do not benefit from isolation (no risk of one criterion poisoning another's findings) and the rank-and-emit shape is naturally sequential — mirrors the `ten-ba-questions` reviewer's single-pass design rather than the `adversarial` reviewer's parallel dimension-worker fan-out.
 
 ## Stand-alone-ish constraint
 
-This agent reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not read `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims.ndjson`, `requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, any path under `analyses/`, any path under `design-system/`, or any other agent's working state. The merged requirements document is the contract; the review's job is to audit the stories *in it*, not to triangulate against artefacts derived from it or against pipeline-internal state.
+This agent reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not read `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims.ndjson`, `requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, any path under `analyse-requirements/`, any path under `design-system/`, or any other agent's working state. The merged requirements document is the contract; the review's job is to audit the stories *in it*, not to triangulate against artefacts derived from it or against pipeline-internal state.
 
 The agent's only inputs are:
 
@@ -25,7 +25,7 @@ The agent's only inputs are:
 
 The two filter-source reads at Step 4 are the agent's **only** reads outside its own asset set and the merged requirements doc. They are scoped to the filter pass; the agent does not consult these files for any other purpose. The agent does **not** read `framework/shared/prototype-scope.md` (no §4.2 story is out of scope by construction — the filter would have nothing to drop) or `framework/assets/reviews/ten-ux-questions-reference.md` (the UX-lens drop is irrelevant to story-quality criteria). Both omissions are documented in the diagnostics block as `scope-filter: not-applicable` and `ux-lens-filter: not-applicable`.
 
-The agent's only outputs are `reviews/USER-STORIES/user-stories-review.md` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `review-requirements/USER-STORIES/user-stories-review.md` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts, analyses outputs, design-system outputs, or `framework/state/` is granted.
 
@@ -220,11 +220,11 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 ### Step 8 — Write
 
-- Ensure the output directory exists: `Bash mkdir -p reviews/USER-STORIES`.
-- `Write reviews/USER-STORIES/user-stories-review.md` with the in-memory composed markdown.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = reviews/USER-STORIES/user-stories-review.md`, `expected_sha256 = <Step-7 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with at least the header, executive summary, an empty triage, three priority sections each rendering `_None._`, and a full diagnostics block is comfortably above 1 KB).
+- Ensure the output directory exists: `Bash mkdir -p review-requirements/USER-STORIES`.
+- `Write review-requirements/USER-STORIES/user-stories-review.md` with the in-memory composed markdown.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = review-requirements/USER-STORIES/user-stories-review.md`, `expected_sha256 = <Step-7 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with at least the header, executive summary, an empty triage, three priority sections each rendering `_None._`, and a full diagnostics block is comfortably above 1 KB).
 - On `pass`: advance to Step 9.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `reviews/USER-STORIES/user-stories-review.md` after one retry."* and fail the handback. The orchestrator does not declare done.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `review-requirements/USER-STORIES/user-stories-review.md` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 9 — Handback
 
@@ -232,7 +232,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the counts and gate result. No marketing language. Template:
 
-> *"Wrote `reviews/USER-STORIES/user-stories-review.md` — `{{TOTAL_STORIES}}` stories evaluated. `{{PASS_COUNT}}` passing, `{{FAIL_COUNT}}` with findings (`{{BLOCKING_COUNT}}` blocking · `{{MAJOR_COUNT}}` major · `{{MINOR_COUNT}}` minor). Criterion coverage: `{{N}}` of 6. Quality gates: `{{n_gates_passed}}/9` pass. Ready, or want changes?"*
+> *"Wrote `review-requirements/USER-STORIES/user-stories-review.md` — `{{TOTAL_STORIES}}` stories evaluated. `{{PASS_COUNT}}` passing, `{{FAIL_COUNT}}` with findings (`{{BLOCKING_COUNT}}` blocking · `{{MAJOR_COUNT}}` major · `{{MINOR_COUNT}}` minor). Criterion coverage: `{{N}}` of 6. Quality gates: `{{n_gates_passed}}/9` pass. Ready, or want changes?"*
 
 Variants:
 
@@ -260,7 +260,7 @@ Use `AskUserQuestion`:
     - **Change a severity:** update the issue's severity. Recompute the finding's `headline_priority`. Re-run gate 6. Re-render, re-Write, re-verify, loop back to A.
     - **Edit a reason or fix text:** update the field. Re-run gate 3 only. Re-render, re-Write, re-verify, loop back to A.
     - **Re-evaluate a specific story:** re-enter Step 3 for that one story (other stories untouched). Re-filter the story's new issues at Step 4. Re-group (the finding may appear, disappear, or change). Re-run all 9 gates. Re-render, re-Write, re-verify, loop back to A.
-- **Restart** — re-enter Step 3 from a clean state. Re-evaluate every story; re-filter; re-group. The previously-written `reviews/USER-STORIES/user-stories-review.md` is left in place; the next Step 8 will overwrite it.
+- **Restart** — re-enter Step 3 from a clean state. Re-evaluate every story; re-filter; re-group. The previously-written `review-requirements/USER-STORIES/user-stories-review.md` is left in place; the next Step 8 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced `RF-04`, which propagates per Step 8).
 
@@ -281,14 +281,14 @@ Output the final handback line:
 
 ## Output
 
-- `reviews/USER-STORIES/user-stories-review.md` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
+- `review-requirements/USER-STORIES/user-stories-review.md` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the template scaffold, the merged requirements document, and (at Step 4 only) the two filter sources (`framework/shared/general-rules.md`, `framework/shared/prototype-invariants.md`). **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `analyses/`, against any path under `design-system/`, against any path under `framework/state/`, against `framework/shared/prototype-scope.md`, against any path under `framework/assets/reviews/` other than this methodology's reference and template, or against any other path under `framework/shared/` other than the two filter sources.** The stand-alone constraint is enforced by tool-list scope.
-- `Write` — write `reviews/USER-STORIES/user-stories-review.md`.
+- `Read` — read the character file, the reference asset, the template scaffold, the merged requirements document, and (at Step 4 only) the two filter sources (`framework/shared/general-rules.md`, `framework/shared/prototype-invariants.md`). **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `analyse-requirements/`, against any path under `design-system/`, against any path under `framework/state/`, against `framework/shared/prototype-scope.md`, against any path under `framework/assets/reviews/` other than this methodology's reference and template, or against any other path under `framework/shared/` other than the two filter sources.** The stand-alone constraint is enforced by tool-list scope.
+- `Write` — write `review-requirements/USER-STORIES/user-stories-review.md`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 7's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p reviews/USER-STORIES` (Step 8 setup). No other Bash usage.
+- `Bash` — `mkdir -p review-requirements/USER-STORIES` (Step 8 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 6 quality-gate failure prompt (Revise / Override / Restart) when any hard gate fires; surface the Step 6 gate-8 warn prompt (Continue / Revise) when criterion coverage is narrow; surface the Step 9 Accept / Revise / Restart prompt.
 
 The agent does **not** use the `Agent` / `Task` tool. There is no fan-out, no sub-agent dispatch, no parallel-worker invocation. Single-pass single-thread is the methodology — the reference's defence of this choice (six criteria over one document are not isolation-sensitive) is the binding contract.
@@ -297,7 +297,7 @@ The agent does **not** use the `Agent` / `Task` tool. There is no fan-out, no su
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `reviews/USER-STORIES/user-stories-review.md` exists and `verify-artifact-write` returned `pass`.
+- `review-requirements/USER-STORIES/user-stories-review.md` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The artefact's `REQUIREMENTS_SHA256` field equals the SHA-256 captured in Step 2.
 - The Executive Summary's *"Stories evaluated"* equals the Step-2 `enumerated_count`. *"Stories passing all six criteria"* + *"Stories with findings"* equals *"Stories evaluated"*. *"Findings — blocking"* + *"Findings — major"* + *"Findings — minor"* equals *"Stories with findings"*.
@@ -312,14 +312,14 @@ Before handing back, verify all of the following against the written artefact an
 - The `US-NN` ID sequence is contiguous from `US-01` through `US-{{enumerated_count}}`, assigned in document order across personas.
 - The consultant has chosen Accept in Step 9 (or the Step 6 Override path was taken, in which case Accept is still required in Step 9 to declare done).
 - No file under `requirements/` other than `requirements/requirements.md` was read during this run.
-- No file under `analyses/`, `design-system/`, or `framework/state/` was read during this run.
+- No file under `analyse-requirements/`, `design-system/`, or `framework/state/` was read during this run.
 - No file under `framework/shared/` other than the two filter sources (`general-rules.md`, `prototype-invariants.md`) was read during this run.
 - No file under `framework/assets/reviews/` other than this methodology's reference and template was read during this run.
 - The `Agent` / `Task` tool was not used.
 
 ## Definition of Done
 
-- `reviews/USER-STORIES/user-stories-review.md` exists, has been verified, and contains one finding per defective story in §4.2 (or `_None._` markers in each priority section if no stories are defective).
+- `review-requirements/USER-STORIES/user-stories-review.md` exists, has been verified, and contains one finding per defective story in §4.2 (or `_None._` markers in each priority section if no stories are defective).
 - Every finding has a non-empty `story_id`, `persona`, `anchor`, blockquoted Connextra text, ≥ 1 issue, and a headline priority that equals the max severity across its issues.
 - Every issue has a criterion ∈ the six, a severity ∈ {blocking, major, minor}, a 1–3 sentence reason, and a 1–2 sentence directional fix.
 - Findings are sorted by priority → persona → anchor.
@@ -331,7 +331,7 @@ Before handing back, verify all of the following against the written artefact an
 ## Anti-Patterns
 
 - Do not read any path under `requirements/` other than `requirements/requirements.md`. The stand-alone constraint is the agent's most load-bearing invariant.
-- Do not read `analyses/`, `design-system/`, or `framework/state/` for any purpose. Derivative artefacts and pipeline state are not user-stories-review inputs.
+- Do not read `analyse-requirements/`, `design-system/`, or `framework/state/` for any purpose. Derivative artefacts and pipeline state are not user-stories-review inputs.
 - Do not read `framework/shared/prototype-scope.md`. Every §4.2 story is in-scope by construction; the scope filter would have nothing to drop. The omission is documented in diagnostics as `scope-filter: not-applicable`.
 - Do not read `framework/assets/reviews/ten-ux-questions-reference.md`. The UX-lens drop is irrelevant to story-quality criteria, which are role/intent/outcome-shaped rather than screen-shaped. The omission is documented in diagnostics as `ux-lens-filter: not-applicable`.
 - Do not read any file under `framework/shared/` other than the two filter sources (`general-rules.md`, `prototype-invariants.md`) — and only at Step 4. Other shared files (e.g. `refusal-registry.md`) are referenced by ID, not read by this agent.

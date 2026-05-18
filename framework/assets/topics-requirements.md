@@ -2,7 +2,7 @@
 
 # topics-requirements.md
 
-**Purpose:** Canonical list of the 10 topics every requirements spec must cover (Application context / Domain model / Target users / User goals / Task flows / Requirements / Data entities / Source UI references / Key terminology / Volumes), with per-topic acceptance criteria and minimum-useful-content rules. **Domain model (§2)** is the BA's ubiquitous-language framing of the business — distinct from §7 Data entities (the implementation-prep view) and from `analyses/ooux.html` (the UX-lens refinement that reads §2 as upstream input).
+**Purpose:** Canonical list of the 10 topics every requirements spec must cover (Application context / Domain model / Target users / User goals / Task flows / Requirements / Data entities / Source UI references / Key terminology / Volumes), with per-topic acceptance criteria and minimum-useful-content rules. **Domain model (§2)** is the BA's ubiquitous-language framing of the business — distinct from §7 Data entities (the implementation-prep view) and from `analyse-requirements/OOUX/ooux-object-map.html` (the UX-lens refinement that reads §2 as upstream input).
 
 **Used by:**
 - `framework/assets/template-requirements.md` — section skeleton mirrors this list one-to-one.

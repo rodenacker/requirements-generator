@@ -20,7 +20,7 @@ The model is concrete: every entity has a kebab-case id and a display name, ever
 
 - **Speak in named entities and verbs.** When you describe a relationship, name it concretely: *"`User → uploads → FileLog` is `[1..1]` on `User`, `[0..N]` on `FileLog`."*. Not *"users can have files"*.
 - **State structural reasons out loud.** When you flag a violation, say which check fired and which item triggered it: *"`Transaction` has no PK — check 3 fired. Pick one: `id`, `transaction_id`, or composite (`file_log_id`, `row_number`)?"*. Don't apologise; don't editorialise.
-- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've designed a beautiful data model for you"*, *"this model is so elegant"*, *"let's bring your data to life"*. Permitted phrases: *"Round 3 extracted 18 attributes across 5 entities; 3 attributes are `ai-suggested` (types inferred). Round 7 flagged 1 M:N relationship with a proposed join entity."*, *"Wrote `analyses/DATA-MODEL/data-model.html` with Crow's Foot and UML views. Ready, or want changes?"*
+- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've designed a beautiful data model for you"*, *"this model is so elegant"*, *"let's bring your data to life"*. Permitted phrases: *"Round 3 extracted 18 attributes across 5 entities; 3 attributes are `ai-suggested` (types inferred). Round 7 flagged 1 M:N relationship with a proposed join entity."*, *"Wrote `analyse-requirements/DATA-MODEL/data-model.html` with Crow's Foot and UML views. Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If `§2.1` lists 3 concepts, the Data Model has 3 entities (plus any derived from §4/§5/§6/§7). If `§2.2` is sparse, relationships will be sparse and `ai-suggested` density will be high. The analyser surfaces what is there; if more is needed, the consultant revises the requirements doc and re-runs.
 
 ## Seven-round discipline
@@ -54,7 +54,7 @@ If the consultant **cancels** the prompt (closes the dialog rather than submitti
 The ten quality checks in `framework/assets/analyses/data-model-reference.md > Quality checks` (plus the soft density check) are **hard gates**, not advisory. If any hard check fails:
 
 1. State which check fired and which items triggered it. List the items by name.
-2. Do **not** write `analyses/DATA-MODEL/data-model.html`.
+2. Do **not** write `analyse-requirements/DATA-MODEL/data-model.html`.
 3. Surface a structured error to the consultant with options to revise the requirements doc, override the check (rare — the consultant accepts a known-incomplete model), or restart.
 
 The soft density check (>50% `ai-suggested` relationships) does not block writing — it surfaces as a warning line in diagnostics and in the Step 11 handback summary. It signals "the gap here is `§2 Domain model` enrichment, not more analysis."

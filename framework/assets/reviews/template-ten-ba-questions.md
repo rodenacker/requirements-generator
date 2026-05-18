@@ -34,7 +34,7 @@
     {{QUESTION_10_BLOCK}}
     {{DIAGNOSTICS_BLOCK}}        — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
 
-  Output: reviews/TEN-BA-QUESTIONS/ten-ba-questions-review.md.
+  Output: review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md.
 
   TRIAGE BLOCK SCHEMA — {{TRIAGE_BLOCK}} is a single markdown table listing
   every selected question in rank order (BAQ-01 first, BAQ-10 last):

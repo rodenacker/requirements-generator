@@ -29,7 +29,7 @@
     {{MINOR_FINDINGS_BLOCK}}        — pre-rendered findings for headline_priority = minor (or "_None._")
     {{DIAGNOSTICS_BLOCK}}           — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
 
-  Output: reviews/USER-STORIES/user-stories-review.md.
+  Output: review-requirements/USER-STORIES/user-stories-review.md.
 
   TRIAGE BLOCK SCHEMA — {{TRIAGE_BLOCK}} is a single markdown table listing
   every finding in sort order (priority → persona → anchor):

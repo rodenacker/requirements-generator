@@ -4,7 +4,7 @@
 
 > **Method:** Extract a **per-flow activity-diagram catalogue** (flows, swimlanes, actions, control nodes, edges, cross-flow swimlane matrix) from `requirements/requirements.md` once. The tabular catalogue is always rendered. The consultant then picks **none, one, several, or all** of the discovered flows to add as inline-SVG `<figure>` blocks. Same data, the visuals are views onto the flows already listed in the catalogue.
 
-**Output file:** `analyses/ACTIVITY-DIAGRAM/activity-diagram.html` — a self-contained HTML artefact containing the per-flow tabular catalogue (always) plus zero or more inline-SVG activity-diagram figures (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
+**Output file:** `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` — a self-contained HTML artefact containing the per-flow tabular catalogue (always) plus zero or more inline-SVG activity-diagram figures (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
 
 **Analyser agent:** `framework/agents/analyses/activity-diagram-analyser.md`
 
@@ -300,7 +300,7 @@ Richer inputs → richer catalogue. Methodology degrades gracefully: with thin `
 
 ## Output shape (HTML schema)
 
-The artefact is a single self-contained HTML file at `analyses/ACTIVITY-DIAGRAM/activity-diagram.html`. The analyser populates `framework/assets/analyses/template-activity-diagram.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
+The artefact is a single self-contained HTML file at `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html`. The analyser populates `framework/assets/analyses/template-activity-diagram.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
 
 ### Header placeholders
 

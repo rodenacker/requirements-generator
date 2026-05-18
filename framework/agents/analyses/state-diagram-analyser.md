@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **s
 
 ## Purpose
 
-Produce `analyses/STATE-DIAGRAM/state-diagram.html` — a self-contained HTML artefact carrying:
+Produce `analyse-requirements/STATE-DIAGRAM/state-diagram.html` — a self-contained HTML artefact carrying:
 
 - **Tier 1 (always)**: a UML 2.5 § 14 state-diagram catalogue at system-level fidelity — six tabular sections (Entities, States, Internal activities, Transitions, Events, Cross-entity state coverage matrix) plus a Diagnostics block — extracted from `requirements/requirements.md`. Per-entity behaviour state machine; one row per state, one row per internal activity, one row per transition.
 - **Tier 2 (consultant-selected, 0..N)**: inline-SVG state-diagram figures, one per selected entity, plus a copy-pasteable Mermaid `stateDiagram-v2` source block per selected entity. Same data, visualised. Empty selection is valid and produces a catalogue-only output.
@@ -36,7 +36,7 @@ The agent's only inputs are:
 - `framework/assets/analyses/state-diagram-reference.md` (the methodology — read at activation).
 - `framework/assets/analyses/template-state-diagram.html` (the HTML scaffold — read once at render time).
 
-The agent's only outputs are `analyses/STATE-DIAGRAM/state-diagram.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `analyse-requirements/STATE-DIAGRAM/state-diagram.html` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
@@ -279,11 +279,11 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 ### Step 10 — Write
 
-- Ensure the output directory exists: `Bash mkdir -p analyses/STATE-DIAGRAM`.
-- `Write analyses/STATE-DIAGRAM/state-diagram.html` with the in-memory composed HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = analyses/STATE-DIAGRAM/state-diagram.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 1024` (a minimum legal render with the six catalogue tables and a non-empty diagnostics block is comfortably above 1 KB even when zero entities are selected).
-- On `pass`: invoke `framework/skills/svg-overlap-check.md` with `artefact_path = analyses/STATE-DIAGRAM/state-diagram.html`, `report_path = framework/state/svg-overlap-state-diagram.ndjson`, `node_class_allowlist = ["state-node", "composite-state", "initial-node", "final-node", "choice-node", "junction-node"]`, `edge_class_allowlist = ["transition-edge"]`, `label_bg_class_suffix = "-bg"`. On `pass` (`total: 0`): advance to Step 11. On `fail` (`total > 0`): append one diagnostics line per detected overlap (template *"SVG overlap — `<kind>` in figure `<figure_id>`: `<a_class>` ↔ `<b_class>` at `<aabb>`"*), then advance to Step 11 — the catalogue is correct, the inline diagram is the lossy view; the consultant has the Mermaid `stateDiagram-v2` source as a clean fallback. If `chosen.entities` is empty (no SVG figures emitted), skip this skill entirely.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyses/STATE-DIAGRAM/state-diagram.html` after one retry."* and fail the handback. The orchestrator does not declare done.
+- Ensure the output directory exists: `Bash mkdir -p analyse-requirements/STATE-DIAGRAM`.
+- `Write analyse-requirements/STATE-DIAGRAM/state-diagram.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = analyse-requirements/STATE-DIAGRAM/state-diagram.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 1024` (a minimum legal render with the six catalogue tables and a non-empty diagnostics block is comfortably above 1 KB even when zero entities are selected).
+- On `pass`: invoke `framework/skills/svg-overlap-check.md` with `artefact_path = analyse-requirements/STATE-DIAGRAM/state-diagram.html`, `report_path = framework/state/svg-overlap-state-diagram.ndjson`, `node_class_allowlist = ["state-node", "composite-state", "initial-node", "final-node", "choice-node", "junction-node"]`, `edge_class_allowlist = ["transition-edge"]`, `label_bg_class_suffix = "-bg"`. On `pass` (`total: 0`): advance to Step 11. On `fail` (`total > 0`): append one diagnostics line per detected overlap (template *"SVG overlap — `<kind>` in figure `<figure_id>`: `<a_class>` ↔ `<b_class>` at `<aabb>`"*), then advance to Step 11 — the catalogue is correct, the inline diagram is the lossy view; the consultant has the Mermaid `stateDiagram-v2` source as a clean fallback. If `chosen.entities` is empty (no SVG figures emitted), skip this skill entirely.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyse-requirements/STATE-DIAGRAM/state-diagram.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 11 — Handback
 
@@ -291,7 +291,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-round counts, the quality-check result, and the `[AI-SUGGESTED]` density figure. No marketing language. Template:
 
-> *"Wrote `analyses/STATE-DIAGRAM/state-diagram.html` — `{{ENTITY_COUNT}}` entities, `{{STATE_COUNT}}` states, `{{TRANSITION_COUNT}}` transitions, `{{EVENT_COUNT}}` events. AI-SUGGESTED items: `{{AI_SUGGESTED_COUNT}}` (state density `{{state_ai_density_pct}}`%, transition density `{{transition_ai_density_pct}}`%). Quality checks: `{{n_checks_passed}}/10` pass. Diagrams rendered: `{{ENTITIES_RENDERED}}`. Ready, or want changes?"*
+> *"Wrote `analyse-requirements/STATE-DIAGRAM/state-diagram.html` — `{{ENTITY_COUNT}}` entities, `{{STATE_COUNT}}` states, `{{TRANSITION_COUNT}}` transitions, `{{EVENT_COUNT}}` events. AI-SUGGESTED items: `{{AI_SUGGESTED_COUNT}}` (state density `{{state_ai_density_pct}}`%, transition density `{{transition_ai_density_pct}}`%). Quality checks: `{{n_checks_passed}}/10` pass. Diagrams rendered: `{{ENTITIES_RENDERED}}`. Ready, or want changes?"*
 
 Variants:
 
@@ -323,7 +323,7 @@ Use `AskUserQuestion`:
     - For an event change (re-kind / re-classify / merge / split): update in-memory events, propagate to transitions and internal activities, re-run checks 7/10, re-render, re-Write, re-verify, loop back to A.
     - For an entity re-selection (consultant says "add subscription" or "drop invoice"): update `chosen.entities`, **do not re-run extraction or quality checks** — only re-render Step 9 with the new selection set, re-Write, re-verify, loop back to A.
     - For an `ai-suggested` reclassification (consultant supplies a source): update provenance marker and remove `[AI-SUGGESTED]` prefix, re-run check 10, recompute density, re-render, re-Write, re-verify, loop back to A.
-- **Restart** — re-enter Step 3. The previously-written `analyses/STATE-DIAGRAM/state-diagram.html` is left in place; the next Step 10 will overwrite it.
+- **Restart** — re-enter Step 3. The previously-written `analyse-requirements/STATE-DIAGRAM/state-diagram.html` is left in place; the next Step 10 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 10).
 
@@ -342,14 +342,14 @@ Output the final handback line:
 
 ## Output
 
-- `analyses/STATE-DIAGRAM/state-diagram.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
+- `analyse-requirements/STATE-DIAGRAM/state-diagram.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template scaffold, and the merged requirements document. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `framework/state/` other than the agent's own `svg-overlap-state-diagram.ndjson` report, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyses/STATE-DIAGRAM/state-diagram.html` and `framework/state/svg-overlap-state-diagram.ndjson` (the latter owned by `svg-overlap-check` invoked from Step 10).
+- `Write` — write `analyse-requirements/STATE-DIAGRAM/state-diagram.html` and `framework/state/svg-overlap-state-diagram.ndjson` (the latter owned by `svg-overlap-check` invoked from Step 10).
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 9's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p analyses/STATE-DIAGRAM` (Step 10 setup). No other Bash usage.
+- `Bash` — `mkdir -p analyse-requirements/STATE-DIAGRAM` (Step 10 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 8 quality-check failure prompt (Revise / Override / Restart) when any hard check fires; surface the Step 8 entity-selection multi-select; surface the Step 11 Accept / Revise / Restart prompt.
 
 **No MCP tools.** No Agent / Task delegation. The inline SVG is emitted by the analyser directly; there is no external rendering pipeline.
@@ -358,7 +358,7 @@ Output the final handback line:
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `analyses/STATE-DIAGRAM/state-diagram.html` exists and `verify-artifact-write` returned `pass`.
+- `analyse-requirements/STATE-DIAGRAM/state-diagram.html` exists and `verify-artifact-write` returned `pass`.
 - `svg-overlap-check` has been invoked in Step 10 with the state-diagram allowlists (or skipped because `chosen.entities` was empty). If it returned `fail`, every detected overlap appears as a one-line entry inside the diagnostics block.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The catalogue section contains exactly six sub-sections in fixed order (`.entities-block`, `.states-block`, `.internal-activities-block`, `.transitions-block`, `.events-block`, `.matrix-block`).
@@ -382,7 +382,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `analyses/STATE-DIAGRAM/state-diagram.html` exists, has been verified, and contains a complete state-diagram catalogue plus the consultant-selected inline-SVG figures (zero to N) and Mermaid source blocks.
+- `analyse-requirements/STATE-DIAGRAM/state-diagram.html` exists, has been verified, and contains a complete state-diagram catalogue plus the consultant-selected inline-SVG figures (zero to N) and Mermaid source blocks.
 - Either all 10 hard quality checks passed, or the consultant explicitly chose Override and the diagnostics block records every violation.
 - The consultant has accepted the artefact in the Step 11 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.

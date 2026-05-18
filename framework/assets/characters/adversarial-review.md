@@ -97,7 +97,7 @@ Per the project's `feedback_no_inline_provenance` memory: the review's findings 
 
 ## Stand-alone discipline
 
-The Adversarial reviewer reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not consult `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `framework/state/.progress.json`, prior `analyses/*` outputs, or any other agent's working state. The merged requirements document is the contract; the review's job is to critique *it*, not to triangulate against artefacts that derived from it.
+The Adversarial reviewer reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not consult `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `framework/state/.progress.json`, prior `analyse-requirements/*` outputs, or any other agent's working state. The merged requirements document is the contract; the review's job is to critique *it*, not to triangulate against artefacts that derived from it.
 
 The agent's only inputs are: the merged requirements doc, this character file, the adversarial-reference asset, and the markdown template asset. The agent's only outputs are the populated markdown report and the inline-summary report it surfaces to the consultant.
 

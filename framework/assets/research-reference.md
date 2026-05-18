@@ -9,6 +9,6 @@
 - `framework/skills/research-web.md` — fetch + summarise pages.
 - `framework/skills/synthesise-research-report.md` — assembles findings into the comparative report.
 
-**How used:** Loaded by the researcher agent at activation. Lives at `assets/research-reference.md` (top-level), **not** under `analyses/` — research is external-evidence gathering, distinct from analyses (UX methodologies applied to requirements).
+**How used:** Loaded by the researcher agent at activation. Lives at `assets/research-reference.md` (top-level), **not** under `analyse-requirements/` — research is external-evidence gathering, distinct from analyses (UX methodologies applied to requirements).
 
 > Content TBD per `plan/v7b-Brief.md > §research-reference.md`.

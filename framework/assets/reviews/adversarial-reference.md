@@ -8,7 +8,7 @@
 
 - `framework/agents/reviews/adversarial-reviewer.md` — drives the agent's eight-dimension process plus the quality-gate sweep.
 
-**Output produced by the reviewer:** `reviews/ADVERSARIAL/adversarial-review.md` — a markdown punch-list of cited, severity-graded, dispositioned findings using `framework/assets/reviews/template-adversarial.md` as scaffold.
+**Output produced by the reviewer:** `review-requirements/ADVERSARIAL/adversarial-review.md` — a markdown punch-list of cited, severity-graded, dispositioned findings using `framework/assets/reviews/template-adversarial.md` as scaffold.
 
 ---
 
@@ -37,7 +37,7 @@ This reference operationalises BMAD's rule with explicit dimensions, a finding s
 The reviewer reads **only** `requirements/requirements.md` (plus this reference, the character file, and the markdown template). It does not consult:
 
 - `requirements/requirements-draft.md`, `requirements/source-manifest.json`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — pipeline-internal.
-- `analyses/*` outputs (OOUX maps, JTBD job maps, Use Cases) — derived; reviewing the requirements doc against derivatives of itself would conflate "what the doc says" with "what the analyser inferred". The review's contract is to critique the source doc as the source doc.
+- `analyse-requirements/*` outputs (OOUX maps, JTBD job maps, Use Cases) — derived; reviewing the requirements doc against derivatives of itself would conflate "what the doc says" with "what the analyser inferred". The review's contract is to critique the source doc as the source doc.
 - `design-system/*` outputs — not relevant to a requirements review.
 - `framework/state/*` — pipeline state is not a review input.
 
@@ -352,7 +352,7 @@ Eleven gates. All are hard. If any gate fails, the reviewer does **not** write t
 - **Severity inflation.** Calling every finding a Blocker dilutes the signal. Reserve Blocker for findings that genuinely prevent downstream consumption.
 - **Disposition collapse.** Disposition (Patch / Defer / Reject) is orthogonal to severity. A Minor finding can be a Reject (e.g., a small but blocking POPIA gap); a Major finding can be a Defer (e.g., a significant feature gap that is genuinely post-MVP).
 - **Collapsing dimensions.** Each dimension is its own pass with its own gate. Running them in a single combined sweep hides reasoning and breaks the diagnostics block.
-- **Reviewing against derivatives.** Do not consult `analyses/*` outputs to triangulate findings. The review's contract is to critique `requirements/requirements.md` as the source of truth.
+- **Reviewing against derivatives.** Do not consult `analyse-requirements/*` outputs to triangulate findings. The review's contract is to critique `requirements/requirements.md` as the source of truth.
 - **Inline `[SRC: ...]` markers.** Per project convention (`feedback_no_inline_provenance`), the merged requirements doc is clean of provenance markers; the review artefact is also clean. Findings cite by section/ID, not by `[SRC: ...]`.
 
 ---

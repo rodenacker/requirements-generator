@@ -24,7 +24,7 @@ Run a registry-driven, single-agent review pipeline whose source material is the
 This orchestrator and its reviewer agents are **isolated from the `/requirements`, `/design-system`, `/analyse-requirement`, `/analyse-inputs`, and `/review-requirement` pipelines** for write purposes, with one documented exception inherited from the shared input-handler's contract.
 
 **Writes (allowed):**
-- `reviews/inputs/<METHOD>/*` — the reviewer's output path (per the chosen registry row's `output_path` field).
+- `review-inputs/<METHOD>/*` — the reviewer's output path (per the chosen registry row's `output_path` field).
 - `requirements/source-manifest.json` — **only** when step 1's manifest preflight invokes `framework/agents/input-handler.md` to (re)build the manifest. The manifest path is shared with `/requirements` and `/analyse-inputs`; the write is bounded to a single canonical file. The input-handler also writes `input/<basename>.converted.md` siblings as part of the same invocation.
 - `framework/state/timing.ndjson` — **not** written by this orchestrator. This pipeline does not maintain timing state; timing observability is a `/requirements`-pipeline concern.
 - `framework/state/.progress.json` — **not** written by this orchestrator. The pipeline is a one-shot foreground run; resuming an interrupted run means restarting it. The orchestrator passes `progress_path: null` to the input-handler at step 1 so the agent's `RF-01 continue-later` write is suppressed.
@@ -52,7 +52,7 @@ Unlike `requirements-orch.md`, this orchestrator does **not** maintain a `.progr
 
 0a. **Preflight: context-bloat check** — performed only when step 0 returned `selected`. Call `framework/skills/check-context-bloat.md` with `artefact_dir = input/`, `manifest_path = requirements/source-manifest.json`, and `progress_path = framework/state/.progress.json`. The `input/` folder is the byte volume actually entering the reviewer's context, and is the realistic bloat source for this pipeline (in contrast to the `/requirements`-pipeline preflight which passes `requirements/`). On `ok`, proceed to step 1. On `RF-05 trigger`, surface the predicate per `framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` (review-inputs-orch surface variant, see below) via `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`.
     - `proceed-without-clear` — proceed to step 1.
-    - `continue-later` — output: *"Conversation context looks bloated from prior pipeline state. Run `/clear` and re-invoke `/review-inputs` for a clean run."* and exit cleanly. Do **not** write `framework/state/.progress.json` — same constraint as the `design-system-orch`, `analyse-requirement-orch`, and `analyse-inputs-orch` surface variants of RF-05. Do **not** modify any path under `reviews/inputs/`.
+    - `continue-later` — output: *"Conversation context looks bloated from prior pipeline state. Run `/clear` and re-invoke `/review-inputs` for a clean run."* and exit cleanly. Do **not** write `framework/state/.progress.json` — same constraint as the `design-system-orch`, `analyse-requirement-orch`, and `analyse-inputs-orch` surface variants of RF-05. Do **not** modify any path under `review-inputs/`.
 
 1. **Manifest preflight** — `Read requirements/source-manifest.json`.
     - **Manifest absent** — invoke `framework/agents/input-handler.md` in the foreground with `input_dir: "input/"`, `manifest_path: "requirements/source-manifest.json"`, and `progress_path: null`. The agent runs preflight, classification, conversion, manifest authoring, and write verification per its workflow. Wait until the agent hands back per its Definition of Done. If the agent fails its handback via `RF-01 continue-later` (with `progress_path: null` the agent records nothing on disk) or `RF-03 abort`, exit cleanly. On successful handback, advance to step 2.
@@ -140,21 +140,21 @@ When the registry file is next revised, append a fifth surface-variant block for
 
 Input-reviewers under this pipeline cite source-of-fact in their artefacts using `[SRC: <filename>]` markers, where `<filename>` is the manifest row's `filename` field (basename only, including extension). This matches the `/analyse-inputs` analyser convention and differs from the `/requirements`-pipeline drafter's `[SRC: C-NNN]` markers, which carry stable sidecar-claim IDs. All three forms can coexist in the workspace because:
 
-- The `/review-inputs` pipeline writes only to `reviews/inputs/<METHOD>/`; the `/requirements` pipeline never reads under that path.
-- `framework/skills/grounding-verifier.md` consumes only the `/requirements`-pipeline draft and its sidecar; it never reads under `reviews/inputs/`.
+- The `/review-inputs` pipeline writes only to `review-inputs/<METHOD>/`; the `/requirements` pipeline never reads under that path.
+- `framework/skills/grounding-verifier.md` consumes only the `/requirements`-pipeline draft and its sidecar; it never reads under `review-inputs/`.
 
 Each input-reviewer additionally records a source-roster section in its artefact listing every manifest row consumed (with `filename`, `tier`, `sha256` first eight chars) and every manifest row skipped (with reason). See each reviewer's own template for the exact section shape.
 
 ## Self-validation (run before declaring done)
 
 - Step 0 ran. The analysis-selector skill returned exactly one of `selected | cancelled | empty-registry`, and the orchestrator branched accordingly. On `empty-registry`, the orchestrator exited cleanly with the "no input reviews available yet" message and no further step ran.
-- Step 0a ran on every path that returned `selected` at step 0, and the consultant's `RF-05` choice (if surfaced) was honoured: `proceed-without-clear` advanced to step 1; `continue-later` exited cleanly without writing `framework/state/.progress.json` and without modifying `reviews/inputs/`.
+- Step 0a ran on every path that returned `selected` at step 0, and the consultant's `RF-05` choice (if surfaced) was honoured: `proceed-without-clear` advanced to step 1; `continue-later` exited cleanly without writing `framework/state/.progress.json` and without modifying `review-inputs/`.
 - Step 1 ran on every path that returned `selected` at step 0 and `proceed` (or `ok`) at step 0a. The manifest existence check ran; if absent, the input-handler was invoked with `progress_path: null`, ran to handback per its Definition of Done, and produced a manifest at `requirements/source-manifest.json` plus any required `*.converted.md` siblings. If the input-handler exited via `RF-01 continue-later` or `RF-03 abort`, the orchestrator exited cleanly and no reviewer was invoked.
 - If the consultant chose `Cancel` at the step-0 selector, `continue-later` at step 0a, or `Keep`/`Cancel` at the step-2 prior-artefact gate, no `Bash` was run and the reviewer was not invoked.
 - If the consultant chose `Overwrite` at step 2, the git checkpoint commit ran without `--no-verify`, without amend, and without push, and the prior artefact was deleted before the agent was invoked.
 - If the reviewer was invoked, its handback gate was met (artefact exists, verify pass, consultant accepted).
 - Every invoked agent was run in the foreground, never via the Agent / Task / fork / sub-agent mechanism.
-- No file was written outside `reviews/inputs/<chosen.name>/`, with the documented step-1 exception of `requirements/source-manifest.json` and `input/*.converted.md` siblings produced by the input-handler.
+- No file was written outside `review-inputs/<chosen.name>/`, with the documented step-1 exception of `requirements/source-manifest.json` and `input/*.converted.md` siblings produced by the input-handler.
 - `framework/state/.progress.json` was not written by this orchestrator on any branch.
 - `framework/state/timing.ndjson` was not written by this orchestrator on any branch.
 
@@ -181,10 +181,10 @@ Each input-reviewer additionally records a source-roster section in its artefact
 - Do not skip step 0a on a path that returned `selected` at step 0. The preflight is the only place where prior-conversation bloat is detected before the reviewer runs.
 - Do not skip step 1's manifest preflight on a path that has not returned `cancelled` or `empty-registry` at step 0. Without a manifest the reviewer has no source enumeration.
 - Do not invoke the input-handler with a non-null `progress_path`. This pipeline does not own a progress file; passing a path would orphan a `setup-pending` state with no orchestrator that watches for it.
-- Do not write `framework/state/.progress.json` on the `RF-05 continue-later` branch or on the input-handler's `RF-01 continue-later` branch. The review-inputs pipeline is bound by the no-write-outside-`reviews/inputs/` invariant (with the documented step-1 exceptions).
+- Do not write `framework/state/.progress.json` on the `RF-05 continue-later` branch or on the input-handler's `RF-01 continue-later` branch. The review-inputs pipeline is bound by the no-write-outside-`review-inputs/` invariant (with the documented step-1 exceptions).
 - Do not read `framework/state/` or `framework/shared/` outside the narrow exceptions documented in **Stand-alone constraint** (the step-0a preflight inputs and the refusal-registry references). This orchestrator and its reviewers remain stand-alone for every other purpose.
-- Do not write to `reviews/<METHOD>/` outside `reviews/inputs/<METHOD>/`. The `/review-requirement` pipeline owns `reviews/<METHOD>/` (top-level methodology directories); this pipeline writes only under `reviews/inputs/`. Crossing this boundary clobbers requirement-doc reviews.
-- Do not write to `analyses/inputs/<METHOD>/`. That subtree is owned by `/analyse-inputs`; review-inputs writes only under `reviews/inputs/`.
+- Do not write to `review-requirements/<METHOD>/`. That directory is owned by the `/review-requirement` pipeline; this pipeline writes only under `review-inputs/<METHOD>/`.
+- Do not write to `analyse-inputs/<METHOD>/`. That directory is owned by `/analyse-inputs`; review-inputs writes only under `review-inputs/<METHOD>/`.
 - Do not invoke `framework/skills/set-build-target.md`. The manifest's `target` field is a `/requirements`-pipeline concern; this pipeline leaves it `null` indefinitely. Setting it from here would imply a build-target choice the consultant never made for this run.
 - Do not surface the step-0 methodology prompt from within this orchestrator. That prompt is the analysis-selector skill's responsibility; surfacing it inline duplicates the registry-read logic and breaks the open/closed extension contract (adding a methodology must require zero orchestrator edits).
 - Do not surface the step-3 accept/revise/restart prompt from within this orchestrator. That prompt belongs to the chosen reviewer's handback step.

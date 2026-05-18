@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **d
 
 ## Purpose
 
-Produce `analyses/DATA-MODEL/data-model.html` — a self-contained HTML artefact carrying:
+Produce `analyse-requirements/DATA-MODEL/data-model.html` — a self-contained HTML artefact carrying:
 
 - **Tier 1 (always)**: a Logical Data Model (DAMA-DMBOK level) — five tabular sections (Entities, Attributes, Relationships, Business rules, Normalisation notes) extracted from `requirements/requirements.md`. Conceptual types only, no DBMS-specific types.
 - **Tier 2 (consultant-selected, 0..3)**: inline-SVG ERD visualisations in Crow's Foot, Chen, and/or UML class-diagram notation. Same data model, different views. Empty selection is valid and produces a Data-Model-only output.
@@ -36,7 +36,7 @@ The agent's only inputs are:
 - `framework/assets/analyses/data-model-reference.md` (the methodology — read at activation).
 - `framework/assets/analyses/template-data-model.html` (the HTML scaffold — read once at render time).
 
-The agent's only outputs are `analyses/DATA-MODEL/data-model.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `analyse-requirements/DATA-MODEL/data-model.html` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
@@ -282,11 +282,11 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 ### Step 10 — Write
 
-- Ensure the output directory exists: `Bash mkdir -p analyses/DATA-MODEL`.
-- `Write analyses/DATA-MODEL/data-model.html` with the in-memory composed HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = analyses/DATA-MODEL/data-model.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 1024` (a minimum legal render with the five Data Model tables and a non-empty diagnostics block is comfortably above 1 KB even when zero ERD views are selected).
-- On `pass`: invoke `framework/skills/svg-overlap-check.md` with `artefact_path = analyses/DATA-MODEL/data-model.html`, `report_path = framework/state/svg-overlap-data-model.ndjson`, `node_class_allowlist = ["entity-box", "entity-header", "chen-diamond"]`, `edge_class_allowlist = ["relationship-line"]`, `label_bg_class_suffix = "-bg"`. On `pass` (`total: 0`): advance to Step 11. On `fail` (`total > 0`): append one diagnostics line per detected overlap (template *"SVG overlap — `<kind>` in figure `<figure_id>`: `<a_class>` ↔ `<b_class>` at `<aabb>`"*), then advance to Step 11 — the catalogue tables are the canonical deliverable, the ERD views are an additive Tier-2 enrichment, and the Mermaid `erDiagram`/`classDiagram` source under each figure is the clean fallback. If `chosen.notations` is empty (no SVG figures emitted), skip this skill entirely.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyses/DATA-MODEL/data-model.html` after one retry."* and fail the handback. The orchestrator does not declare done.
+- Ensure the output directory exists: `Bash mkdir -p analyse-requirements/DATA-MODEL`.
+- `Write analyse-requirements/DATA-MODEL/data-model.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = analyse-requirements/DATA-MODEL/data-model.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 1024` (a minimum legal render with the five Data Model tables and a non-empty diagnostics block is comfortably above 1 KB even when zero ERD views are selected).
+- On `pass`: invoke `framework/skills/svg-overlap-check.md` with `artefact_path = analyse-requirements/DATA-MODEL/data-model.html`, `report_path = framework/state/svg-overlap-data-model.ndjson`, `node_class_allowlist = ["entity-box", "entity-header", "chen-diamond"]`, `edge_class_allowlist = ["relationship-line"]`, `label_bg_class_suffix = "-bg"`. On `pass` (`total: 0`): advance to Step 11. On `fail` (`total > 0`): append one diagnostics line per detected overlap (template *"SVG overlap — `<kind>` in figure `<figure_id>`: `<a_class>` ↔ `<b_class>` at `<aabb>`"*), then advance to Step 11 — the catalogue tables are the canonical deliverable, the ERD views are an additive Tier-2 enrichment, and the Mermaid `erDiagram`/`classDiagram` source under each figure is the clean fallback. If `chosen.notations` is empty (no SVG figures emitted), skip this skill entirely.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyse-requirements/DATA-MODEL/data-model.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 11 — Handback
 
@@ -294,7 +294,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-round counts, the quality-check result, and the `[AI-SUGGESTED]` density figure. No marketing language. Template:
 
-> *"Wrote `analyses/DATA-MODEL/data-model.html` — `{{ENTITY_COUNT}}` entities, `{{ATTRIBUTE_COUNT}}` attributes, `{{RELATIONSHIP_COUNT}}` relationships, `{{BUSINESS_RULE_COUNT}}` business rules. AI-SUGGESTED items: `{{AI_SUGGESTED_COUNT}}` (relationship density `{{relationship_ai_density_pct}}`%). Quality checks: `{{n_checks_passed}}/10` pass. ERD views: `{{NOTATIONS_SELECTED}}`. Ready, or want changes?"*
+> *"Wrote `analyse-requirements/DATA-MODEL/data-model.html` — `{{ENTITY_COUNT}}` entities, `{{ATTRIBUTE_COUNT}}` attributes, `{{RELATIONSHIP_COUNT}}` relationships, `{{BUSINESS_RULE_COUNT}}` business rules. AI-SUGGESTED items: `{{AI_SUGGESTED_COUNT}}` (relationship density `{{relationship_ai_density_pct}}`%). Quality checks: `{{n_checks_passed}}/10` pass. ERD views: `{{NOTATIONS_SELECTED}}`. Ready, or want changes?"*
 
 Variants:
 
@@ -325,7 +325,7 @@ Use `AskUserQuestion`:
     - For a business rule edit: update in-memory rules, re-run checks 9/10, re-render, re-Write, re-verify, loop back to A.
     - For a notation re-selection (consultant says "add UML" or "drop Chen"): update `chosen.notations`, **do not re-run extraction or quality checks** — only re-render Step 9 with the new notation set, re-Write, re-verify, loop back to A.
     - For an `ai-suggested` reclassification (consultant supplies a source): update provenance marker and remove `[AI-SUGGESTED]` prefix, re-run check 10, recompute density, re-render, re-Write, re-verify, loop back to A.
-- **Restart** — re-enter Step 3. The previously-written `analyses/DATA-MODEL/data-model.html` is left in place; the next Step 10 will overwrite it.
+- **Restart** — re-enter Step 3. The previously-written `analyse-requirements/DATA-MODEL/data-model.html` is left in place; the next Step 10 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 10).
 
@@ -344,14 +344,14 @@ Output the final handback line:
 
 ## Output
 
-- `analyses/DATA-MODEL/data-model.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
+- `analyse-requirements/DATA-MODEL/data-model.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template scaffold, and the merged requirements document. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `framework/state/` other than the agent's own `svg-overlap-data-model.ndjson` report, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyses/DATA-MODEL/data-model.html` and `framework/state/svg-overlap-data-model.ndjson` (the latter owned by `svg-overlap-check` invoked from Step 10).
+- `Write` — write `analyse-requirements/DATA-MODEL/data-model.html` and `framework/state/svg-overlap-data-model.ndjson` (the latter owned by `svg-overlap-check` invoked from Step 10).
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 9's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p analyses/DATA-MODEL` (Step 10 setup). No other Bash usage.
+- `Bash` — `mkdir -p analyse-requirements/DATA-MODEL` (Step 10 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 8 quality-check failure prompt (Revise / Override / Restart) when any hard check fires; surface the Step 8 notation-selection multi-select; surface the Step 11 Accept / Revise / Restart prompt.
 
 **No MCP tools.** No Agent / Task delegation. The inline SVG is emitted by the analyser directly; there is no external rendering pipeline.
@@ -360,7 +360,7 @@ Output the final handback line:
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `analyses/DATA-MODEL/data-model.html` exists and `verify-artifact-write` returned `pass`.
+- `analyse-requirements/DATA-MODEL/data-model.html` exists and `verify-artifact-write` returned `pass`.
 - `svg-overlap-check` has been invoked in Step 10 with the data-model allowlists (or skipped because `chosen.notations` was empty). If it returned `fail`, every detected overlap appears as a one-line entry inside the diagnostics block.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The Data Model section contains exactly five sub-sections in fixed order (`.entities-block`, `.attributes-block`, `.relationships-block`, `.business-rules-block`, `.normalisation-block`).
@@ -380,7 +380,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `analyses/DATA-MODEL/data-model.html` exists, has been verified, and contains a complete Logical Data Model plus the consultant-selected ERD views (zero to three).
+- `analyse-requirements/DATA-MODEL/data-model.html` exists, has been verified, and contains a complete Logical Data Model plus the consultant-selected ERD views (zero to three).
 - Either all 10 hard quality checks passed, or the consultant explicitly chose Override and the diagnostics block records every violation.
 - The consultant has accepted the artefact in the Step 11 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.

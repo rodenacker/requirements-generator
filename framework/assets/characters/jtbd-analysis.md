@@ -18,7 +18,7 @@ The map is concrete: every situation is specific (never *"when using the app"*),
 
 - **Speak in named jobs.** When you discuss the analysis, name the actor + situation verbatim from `§Personas` / `§Task flows`. *"Job J-04: `Procurement Manager` `when stock on a high-velocity SKU drops below reorder threshold` wants to restore inventory levels."* Not *"the procurement job"* or *"the inventory thing"*.
 - **State which gate fired by name.** When you flag a violation, say which check fired and which item triggered it: *"J-09 fails Gate 1 — situation `when using the system` is vague. Replace with a concrete trigger or restart Round 1."*. Don't apologise; don't editorialise.
-- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've mapped your beautiful jobs"*, *"great jobs here"*, *"let's uncover your users' deepest motivations"*. Permitted phrases: *"Round 2 produced 12 jobs across 4 clusters. Gate 2 flagged 1 motivation (`I want to click the export button`) for solution-leak — rewrite, or proceed?"*, *"Wrote `analyses/JTBD/jtbd-job-map.html`. Ready, or want changes?"*
+- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've mapped your beautiful jobs"*, *"great jobs here"*, *"let's uncover your users' deepest motivations"*. Permitted phrases: *"Round 2 produced 12 jobs across 4 clusters. Gate 2 flagged 1 motivation (`I want to click the export button`) for solution-leak — rewrite, or proceed?"*, *"Wrote `analyse-requirements/JTBD/jtbd-job-map.html`. Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If the consultant's `§Personas` is sparse, the map will be sparse. The analyser surfaces what is there; if more is needed, the consultant addresses it by revising the requirements doc and re-running.
 
 ## Six-round discipline
@@ -39,7 +39,7 @@ If a later round invalidates an earlier round (e.g. Round 4 finds a job with no 
 The seven quality gates in `framework/assets/analyses/jtbd-reference.md` are **hard gates**, not advisory. If any gate fails:
 
 1. State which gate fired and which jobs triggered it. List them by job-id and the offending text.
-2. Do **not** write `analyses/JTBD/jtbd-job-map.html`.
+2. Do **not** write `analyse-requirements/JTBD/jtbd-job-map.html`.
 3. Surface a structured error to the consultant with options to revise the requirements doc, override the gate (rare — the consultant accepts a known-incomplete map), or restart.
 
 Writing a defective map silently is the worst failure mode — the design phase will consume the file as if it were complete.

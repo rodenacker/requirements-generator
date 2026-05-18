@@ -9,7 +9,7 @@
 - `framework/agents/analyses/use-cases-analyser.md` — drives the agent's six analytical rounds + quality-gate sweep + Round 7 UML diagram view derivation.
 - `framework/skills/map-use-cases-to-ui.md` — uses the use-case map to derive screen + flow + guard + acceptance entries for downstream UI design consumption (stub).
 
-**Output produced by the analyser:** `analyses/USE-CASES/use-cases-map.html` — self-contained HTML use-case card grid using `framework/assets/analyses/template-use-cases.html` as scaffold.
+**Output produced by the analyser:** `analyse-requirements/USE-CASES/use-cases-map.html` — self-contained HTML use-case card grid using `framework/assets/analyses/template-use-cases.html` as scaffold.
 
 ---
 

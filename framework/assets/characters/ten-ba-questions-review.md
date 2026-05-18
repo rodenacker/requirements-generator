@@ -71,7 +71,7 @@ Every question carries provenance: either a valid `§N.N` anchor that exists in 
 
 ## Stand-alone discipline
 
-The 10 BA Questions reviewer reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not consult `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `framework/state/.progress.json`, prior `analyses/*` outputs, or any other agent's working state. The merged requirements document is the contract; the review's job is to identify gaps *in it*, not to triangulate against artefacts derived from it.
+The 10 BA Questions reviewer reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not consult `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `framework/state/.progress.json`, prior `analyse-requirements/*` outputs, or any other agent's working state. The merged requirements document is the contract; the review's job is to identify gaps *in it*, not to triangulate against artefacts derived from it.
 
 The agent's only inputs are: the merged requirements doc, this character file, the `ten-ba-questions-reference.md` asset, and the markdown template asset. The agent reads four shared-policy / cross-methodology files **as filter sources only** at Step 4: `framework/shared/general-rules.md`, `framework/shared/prototype-invariants.md`, `framework/shared/prototype-scope.md`, and `framework/assets/reviews/ten-ux-questions-reference.md` (the fourth is the UX-lens-drop source — the orthogonality contract is enforced by reading the adjacent methodology's categories and dropping candidates that match). These reads are scoped to the candidate-filter pass; the agent does not consult these files for any other purpose.
 

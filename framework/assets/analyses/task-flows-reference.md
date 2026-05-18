@@ -4,7 +4,7 @@
 
 > **Method:** Extract a **per-task catalogue** (tasks, subgoals/operations, plans, decision points, exception paths, cross-task operation matrix) from `requirements/requirements.md` once. The tabular catalogue is always rendered. The consultant then picks **none, one, several, or all** of the discovered top-level tasks to add as inline-SVG figures — each selected task produces **two** diagrams: a **Hierarchical Task Analysis (HTA) tree** (goal → subgoals → operations) and a **Task-Flow Diagram (TFD)** (linear narrative, start → steps → exits). Same data, two views per task.
 
-**Output file:** `analyses/TASK-FLOWS/task-flows.html` — a self-contained HTML artefact containing the tabular catalogue (always) plus zero or more inline-SVG figures (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
+**Output file:** `analyse-requirements/TASK-FLOWS/task-flows.html` — a self-contained HTML artefact containing the tabular catalogue (always) plus zero or more inline-SVG figures (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
 
 **Analyser agent:** `framework/agents/analyses/task-flows-analyser.md`
 
@@ -294,7 +294,7 @@ Richer inputs → richer catalogue. Methodology degrades gracefully: with thin `
 
 ## Output shape (HTML schema)
 
-The artefact is a single self-contained HTML file at `analyses/TASK-FLOWS/task-flows.html`. The analyser populates `framework/assets/analyses/template-task-flows.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
+The artefact is a single self-contained HTML file at `analyse-requirements/TASK-FLOWS/task-flows.html`. The analyser populates `framework/assets/analyses/template-task-flows.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
 
 ### Header placeholders
 

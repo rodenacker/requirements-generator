@@ -19,7 +19,7 @@ methodologies:
   - name: thematic-analysis
     status: mvp
     description: Surfaces the patterns the consultant's raw inputs already carry as codes, themes, and a theme-map — and bridges each theme to candidate requirements before /requirements drafts them.
-    output_path: analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md
+    output_path: analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md
     reference_asset: framework/assets/analyses-inputs/thematic-analysis-reference.md
     template_asset: null
     map_skill: framework/skills/map-thematic-analysis-to-ui.md
@@ -28,7 +28,7 @@ methodologies:
   - name: opportunity-solution-trees
     status: mvp
     description: Maps raw inputs into an outcome → opportunities → solutions → assumption-test discovery tree (Torres 2016), with a bridge of candidate-requirement seeds /requirements can pick up when the artefact is re-dropped into input/.
-    output_path: analyses/inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.md
+    output_path: analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.md
     reference_asset: framework/assets/analyses-inputs/opportunity-solution-trees-reference.md
     template_asset: null
     map_skill: framework/skills/map-opportunity-solution-trees-from-inputs-to-ui.md
@@ -63,22 +63,20 @@ methodologies:
 4. Author the character file at `framework/assets/characters/<method>-inputs-analysis.md` (Unicorn stance during the analyser run).
 5. (Optional) Author the template asset at `framework/assets/analyses-inputs/template-<method>.{html,md}`. Set `template_asset: null` for methodologies that emit pure Markdown without a scaffold (the `analyses/registry.md` precedent: `five-whys` and `glossary` both ship with `template_asset: null`).
 6. (Optional) Author the map-skill at `framework/skills/map-<method>-from-inputs-to-ui.md` — or reuse `framework/skills/map-<method>-to-ui.md` if the mapping is source-agnostic.
-7. Promote the registry row: flip `status: future` to `status: mvp` and populate all remaining fields (`description`, `output_path`, `reference_asset`, `template_asset`, `map_skill`, `analyser_agent`, `character`). `output_path` lives under `analyses/inputs/<METHOD>/` (uppercase methodology name) — e.g. `analyses/inputs/GLOSSARY/glossary.md`.
+7. Promote the registry row: flip `status: future` to `status: mvp` and populate all remaining fields (`description`, `output_path`, `reference_asset`, `template_asset`, `map_skill`, `analyser_agent`, `character`). `output_path` lives under `analyse-inputs/<METHOD>/` (uppercase methodology name) — e.g. `analyse-inputs/GLOSSARY/glossary.md`.
 8. Add the analyser node to graph 5 in `framework/dependency-graphs.md`.
 9. No orchestrator changes required — the selector skill picks the new MVP row up automatically.
 
 **Field semantics:**
 
-- `name` — kebab-case slug. Used as the subdirectory name under `analyses/inputs/` (uppercased to `analyses/inputs/<METHOD>/`) and as the path component in the analyser agent file. Methodology slugs are shared across registries (a row named `glossary` can exist in both `analyses/registry.md` and `analyses-inputs/registry.md`); the artefacts do not clobber because the output paths differ (`analyses/GLOSSARY/...` vs `analyses/inputs/GLOSSARY/...`).
+- `name` — kebab-case slug. Used as the subdirectory name under `analyse-inputs/` (uppercased to `analyse-inputs/<METHOD>/`) and as the path component in the analyser agent file. Methodology slugs are shared across registries (a row named `glossary` can exist in both `analyses/registry.md` and `analyses-inputs/registry.md`); the artefacts do not clobber because the output paths differ (`analyse-requirements/GLOSSARY/...` vs `analyse-inputs/GLOSSARY/...`).
 - `status` — `mvp` (selectable now) or `future` (not yet built; this is the default state for every row on framework first-ship).
 - `description` — one-line label surfaced in the selector's printed list. Required only when `status: mvp`.
-- `output_path` — relative path of the artefact the analyser writes. Drives the prior-artefact gate in the orchestrator. **Must** live under `analyses/inputs/` for write-isolation. Required only when `status: mvp`.
+- `output_path` — relative path of the artefact the analyser writes. Drives the prior-artefact gate in the orchestrator. **Must** live under `analyse-inputs/` for write-isolation. Required only when `status: mvp`.
 - `reference_asset` — the methodology reference the analyser follows. Required only when `status: mvp`.
 - `template_asset` — file scaffold the analyser populates (may be `null` for methodologies that emit pure Markdown).
 - `map_skill` — translates the analysis output into UI inventory entries for downstream design consumption. May reuse the existing `framework/skills/map-<method>-to-ui.md` if source-agnostic, or be a sibling `map-<method>-from-inputs-to-ui.md` if the mapping diverges. Not invoked by `/analyse-inputs`.
 - `analyser_agent` — the foreground agent invoked by the orchestrator. Required only when `status: mvp`.
 - `character` — stance the Unicorn adopts while running the analyser. Required only when `status: mvp`.
-
-**Forbidden name reservation:** the name `inputs` must not be used as a methodology slug in either this registry or `framework/assets/analyses/registry.md` — it would collide with this pipeline's output-directory scope (`analyses/inputs/`).
 
 **Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `thematic-analysis` and `opportunity-solution-trees` now at `status: mvp`, the selector presents two options to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.

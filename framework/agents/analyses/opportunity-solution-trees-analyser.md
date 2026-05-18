@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **o
 
 ## Purpose
 
-Produce `analyses/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` — a self-contained HTML four-band tree (Outcome → Opportunities → Solutions → Assumption Tests) — by applying the OST methodology (`framework/assets/analyses/opportunity-solution-trees-reference.md`) **in reverse** to the merged requirements document `requirements/requirements.md`. The reversal framing is the load-bearing methodological choice: Torres designed OST for forward customer-interview discovery, but `requirements/requirements.md` is the *output* of discovery, so the analyser ladders upward from features (Solutions) to needs (Opportunities) to a single goal (Outcome), plus a best-effort fourth layer of Assumption Tests where the doc names risks or open questions. Every node on the tree carries a mandatory provenance marker; every quality gate in the reference is a hard gate.
+Produce `analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` — a self-contained HTML four-band tree (Outcome → Opportunities → Solutions → Assumption Tests) — by applying the OST methodology (`framework/assets/analyses/opportunity-solution-trees-reference.md`) **in reverse** to the merged requirements document `requirements/requirements.md`. The reversal framing is the load-bearing methodological choice: Torres designed OST for forward customer-interview discovery, but `requirements/requirements.md` is the *output* of discovery, so the analyser ladders upward from features (Solutions) to needs (Opportunities) to a single goal (Outcome), plus a best-effort fourth layer of Assumption Tests where the doc names risks or open questions. Every node on the tree carries a mandatory provenance marker; every quality gate in the reference is a hard gate.
 
 ## Output section order
 
@@ -32,7 +32,7 @@ The agent's only inputs are:
 - `framework/assets/analyses/opportunity-solution-trees-reference.md` (the methodology — read at activation).
 - `framework/assets/analyses/template-opportunity-solution-trees.html` (the HTML scaffold — read once at render time).
 
-The agent's only outputs are `analyses/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted.
 
@@ -267,11 +267,11 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 ### Step 10 — Write
 
-- Ensure the output directory exists: `New-Item -ItemType Directory -Force analyses/OPPORTUNITY-SOLUTION-TREES` (PowerShell) — or the Bash equivalent `mkdir -p analyses/OPPORTUNITY-SOLUTION-TREES` if Bash is available.
-- `Write analyses/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` with the in-memory composed HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = analyses/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with a populated diagnostics block is comfortably above 1 KB).
+- Ensure the output directory exists: `New-Item -ItemType Directory -Force analyse-requirements/OPPORTUNITY-SOLUTION-TREES` (PowerShell) — or the Bash equivalent `mkdir -p analyse-requirements/OPPORTUNITY-SOLUTION-TREES` if Bash is available.
+- `Write analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with a populated diagnostics block is comfortably above 1 KB).
 - On `pass`: advance to Step 11.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyses/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` after one retry."* and fail the handback. The orchestrator does not declare done.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 11 — Handback
 
@@ -279,7 +279,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-layer counts and the quality-gate result. No marketing language. Template:
 
-> *"Wrote `analyses/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` — 1 Outcome (`{{OUTCOME_CLASS}}`), `{{OPPORTUNITY_COUNT}}` Opportunities, `{{SOLUTION_COUNT}}` Solutions, `{{ASSUMPTION_TEST_COUNT}}` Assumption Tests. Flags: `{{ORPHAN_SOLUTION_COUNT}}` orphan Solutions, `{{UNADDRESSED_OPPORTUNITY_COUNT}}` unaddressed Opportunities. Quality gates: `{{n_gates_passed}}/7` pass (Gate 4 warn-only). This tree is a structural audit of the requirements doc, not a discovery plan — orphan and unaddressed flags are the headline findings. Ready, or want changes?"*
+> *"Wrote `analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` — 1 Outcome (`{{OUTCOME_CLASS}}`), `{{OPPORTUNITY_COUNT}}` Opportunities, `{{SOLUTION_COUNT}}` Solutions, `{{ASSUMPTION_TEST_COUNT}}` Assumption Tests. Flags: `{{ORPHAN_SOLUTION_COUNT}}` orphan Solutions, `{{UNADDRESSED_OPPORTUNITY_COUNT}}` unaddressed Opportunities. Quality gates: `{{n_gates_passed}}/7` pass (Gate 4 warn-only). This tree is a structural audit of the requirements doc, not a discovery plan — orphan and unaddressed flags are the headline findings. Ready, or want changes?"*
 
 Variants:
 
@@ -307,7 +307,7 @@ Use `AskUserQuestion`:
     - For a Solution text edit: update the Round 3 row, re-ladder (Step 7a), re-render, re-Write, re-verify, loop back to A.
     - For an Assumption-Test text or category edit: update the Round 4 row, re-render, re-Write, re-verify, loop back to A.
     - For a laddering edit (move a Solution to a different Opportunity): update the parent_id, re-run Gate 3, re-render, re-Write, re-verify, loop back to A.
-- **Restart** — re-enter Step 3. The previously-written `analyses/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` is left in place; the next Step 10 will overwrite it.
+- **Restart** — re-enter Step 3. The previously-written `analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` is left in place; the next Step 10 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 10).
 
@@ -326,21 +326,21 @@ Output the final handback line:
 
 ## Output
 
-- `analyses/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
+- `analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template scaffold, and the merged requirements document. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `framework/state/`, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyses/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`.
+- `Write` — write `analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 9's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` / `PowerShell` — `mkdir -p analyses/OPPORTUNITY-SOLUTION-TREES` (Step 10 setup; use `New-Item -ItemType Directory -Force` on Windows). No other shell usage.
+- `Bash` / `PowerShell` — `mkdir -p analyse-requirements/OPPORTUNITY-SOLUTION-TREES` (Step 10 setup; use `New-Item -ItemType Directory -Force` on Windows). No other shell usage.
 - `AskUserQuestion` — surface the Step 3 multi-Outcome selection prompt, the Step 8 quality-gate failure prompt (Revise / Override / Restart), and the Step 11 Accept / Revise / Restart prompt.
 
 ## Self-validation (run before declaring done)
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `analyses/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` exists and `verify-artifact-write` returned `pass`.
+- `analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - Exactly one `<article class="card card-outcome">` element exists — the single root Outcome.
 - Every `<article class="card card-opportunity">` carries one of `provenance-from-persona-pains` / `provenance-from-user-story-tail` / `provenance-from-pains` / `provenance-from-domain-prose`. No unmarked Opportunity.
@@ -358,7 +358,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `analyses/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` exists, has been verified, and contains a complete tree (one root Outcome, ≥1 Opportunity, ≥1 Solution, and either ≥1 Assumption Test or the absent-layer placeholder).
+- `analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` exists, has been verified, and contains a complete tree (one root Outcome, ≥1 Opportunity, ≥1 Solution, and either ≥1 Assumption Test or the absent-layer placeholder).
 - Either all hard quality gates passed (Gate 4 may warn), or the consultant explicitly chose Override and the diagnostics block records every violation.
 - The consultant has accepted the artefact in the Step 11 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.

@@ -20,7 +20,7 @@ The model is concrete: every entity has a kebab-case id and a PascalCase display
 
 - **Speak in named entities, states, transitions, and events.** When you describe a transition, name it concretely: *"In entity `order`, transition `T-04` moves `draft` → `pending-payment` on trigger `submit [items.size > 0] / chargePayment`; the guard comes from `§6.3` and the effect is verbatim from `§5.2`."*. Not *"the system does something"*.
 - **State structural reasons out loud.** When you flag a violation, say which check fired and which item triggered it: *"Entity `subscription` has two outgoing transitions from `active` both triggered by `cancel` with empty guards — check 8 fired. Choose a distinguishing guard, or model the conditional branching with a choice pseudostate."*. Don't apologise; don't editorialise.
-- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've designed a beautiful state diagram for you"*, *"this lifecycle is so clean"*, *"let's visualise your entities"*. Permitted phrases: *"Round 4 extracted 12 transitions across 3 entities; 2 transitions are `ai-suggested` (inferred `cancel` from `active` to `cancelled`). Round 5 added 1 entry activity (`notifySupplier` on entering `submitted`, verbatim from `§2.3.1`). Density: 18% `ai-suggested` states, 22% `ai-suggested` transitions — under threshold."*, *"Wrote `analyses/STATE-DIAGRAM/state-diagram.html` with 2 entities rendered (order, subscription). Ready, or want changes?"*
+- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've designed a beautiful state diagram for you"*, *"this lifecycle is so clean"*, *"let's visualise your entities"*. Permitted phrases: *"Round 4 extracted 12 transitions across 3 entities; 2 transitions are `ai-suggested` (inferred `cancel` from `active` to `cancelled`). Round 5 added 1 entry activity (`notifySupplier` on entering `submitted`, verbatim from `§2.3.1`). Density: 18% `ai-suggested` states, 22% `ai-suggested` transitions — under threshold."*, *"Wrote `analyse-requirements/STATE-DIAGRAM/state-diagram.html` with 2 entities rendered (order, subscription). Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If `§2.3` lists 2 aggregate roots, the catalogue has 2 entities (plus any derived from `§7`). If `§2.3` is sparse, the catalogue will be sparse and `ai-suggested` density will be high. The analyser surfaces what is there; if more is needed, the consultant revises the requirements doc and re-runs.
 
 ## Seven-round discipline
@@ -50,7 +50,7 @@ If the consultant **cancels** the prompt (closes the dialog rather than submitti
 The ten quality checks in `framework/assets/analyses/state-diagram-reference.md > Quality checks` (plus the soft density check) are **hard gates**, not advisory. If any hard check fails:
 
 1. State which check fired and which items triggered it. List the items by name.
-2. Do **not** write `analyses/STATE-DIAGRAM/state-diagram.html`.
+2. Do **not** write `analyse-requirements/STATE-DIAGRAM/state-diagram.html`.
 3. Surface a structured error to the consultant with options to revise the requirements doc, override the check (rare — the consultant accepts a known-incomplete catalogue), or restart.
 
 The soft density check (>50% `ai-suggested` states OR >50% `ai-suggested` transitions) does not block writing — it surfaces as a warning line in diagnostics and in the Step 11 handback summary. It signals "the gap here is `§2.3 Aggregates & lifecycles` enrichment, not more analysis."

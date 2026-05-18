@@ -4,7 +4,7 @@
 
 > **Method:** Extract a **per-scenario sequence-diagram catalogue** (scenarios, participants, messages, combined fragments, cross-scenario participant matrix) from `requirements/requirements.md` once. The tabular catalogue is always rendered. The consultant then picks **none, one, several, or all** of the discovered scenarios to add as inline-SVG `<figure>` blocks. Same data, the visuals are views onto the scenarios already listed in the catalogue.
 
-**Output file:** `analyses/SEQUENCE-DIAGRAM/sequence-diagram.html` — a self-contained HTML artefact containing the per-scenario tabular catalogue (always) plus zero or more inline-SVG sequence-diagram figures (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
+**Output file:** `analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html` — a self-contained HTML artefact containing the per-scenario tabular catalogue (always) plus zero or more inline-SVG sequence-diagram figures (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
 
 **Analyser agent:** `framework/agents/analyses/sequence-diagram-analyser.md`
 
@@ -279,7 +279,7 @@ Richer inputs → richer catalogue. Methodology degrades gracefully: with thin `
 
 ## Output shape (HTML schema)
 
-The artefact is a single self-contained HTML file at `analyses/SEQUENCE-DIAGRAM/sequence-diagram.html`. The analyser populates `framework/assets/analyses/template-sequence-diagram.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
+The artefact is a single self-contained HTML file at `analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html`. The analyser populates `framework/assets/analyses/template-sequence-diagram.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
 
 ### Header placeholders
 

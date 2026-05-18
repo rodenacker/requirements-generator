@@ -77,7 +77,7 @@ Every finding carries provenance: the anchor `§4.2 / {Persona} / story #{N}` pl
 
 ## Stand-alone discipline
 
-The User Stories reviewer reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not consult `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `framework/state/.progress.json`, prior `analyses/*` outputs, or any other agent's working state. The merged requirements document is the contract; the review's job is to audit the stories *in it*, not to triangulate against artefacts derived from it.
+The User Stories reviewer reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not consult `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `framework/state/.progress.json`, prior `analyse-requirements/*` outputs, or any other agent's working state. The merged requirements document is the contract; the review's job is to audit the stories *in it*, not to triangulate against artefacts derived from it.
 
 The agent reads two shared-policy files **as filter sources only** at Step 4: `framework/shared/general-rules.md` and `framework/shared/prototype-invariants.md`. These reads are scoped to the candidate-filter pass; the agent does not consult these files for any other purpose. The agent does **not** read `framework/shared/prototype-scope.md` (every story under §4.2 is by definition in-scope for the prototype — the scope filter would have nothing to drop) and does **not** read `framework/assets/reviews/ten-ux-questions-reference.md` (the UX-lens drop is irrelevant to story-quality criteria, which are role/intent/outcome-shaped rather than screen-shaped). The deliberate omission is documented in the reference.
 

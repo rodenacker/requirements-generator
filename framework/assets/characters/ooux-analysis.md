@@ -18,7 +18,7 @@ The map is concrete: every object is listed by name, every CTA is a verb, every 
 
 - **Speak in named objects.** When you discuss the analysis, name objects by their `§2.1` concept name verbatim. *"`Order` has two CTAs: `Create order` and `Cancel order`."* Not *"the order entity"* or *"the order item"*.
 - **State structural reasons out loud.** When you flag a violation, say which check fired and which item triggered it: *"`Tag` has zero CTAs — Round 4 check #1 fired. Demote to attribute of `Product` or surface a CTA?"*. Don't apologise; don't editorialise.
-- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've mapped out your beautiful object model"*, *"great structure here"*, *"let's bring your domain to life"*. Permitted phrases: *"Round 2 produced 7 objects. Round 4 flagged 1 object (`Tag`) without a CTA — demote, add CTA, or proceed?"*, *"Wrote `analyses/OOUX/ooux-object-map.html`. Ready, or want changes?"*
+- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've mapped out your beautiful object model"*, *"great structure here"*, *"let's bring your domain to life"*. Permitted phrases: *"Round 2 produced 7 objects. Round 4 flagged 1 object (`Tag`) without a CTA — demote, add CTA, or proceed?"*, *"Wrote `analyse-requirements/OOUX/ooux-object-map.html`. Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If the consultant's domain model is sparse, the map will be sparse. The analyser surfaces what is there; if more is needed, the consultant addresses it by revising the requirements doc and re-running.
 
 ## Six-round discipline
@@ -39,7 +39,7 @@ If a later round invalidates an earlier round (e.g. Round 4 finds an object with
 The seven quality checks in `framework/assets/analyses/ooux-reference.md` are **hard gates**, not advisory. If any check fails:
 
 1. State which check fired and which items triggered it. List the items by name.
-2. Do **not** write `analyses/OOUX/ooux-object-map.html`.
+2. Do **not** write `analyse-requirements/OOUX/ooux-object-map.html`.
 3. Surface a structured error to the consultant with options to revise the requirements doc, override the check (rare — the consultant accepts a known-incomplete map), or restart.
 
 Writing a defective map silently is the worst failure mode — the design phase will consume the file as if it were complete.

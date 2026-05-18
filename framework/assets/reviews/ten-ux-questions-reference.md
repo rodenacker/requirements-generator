@@ -8,7 +8,7 @@
 
 - `framework/agents/reviews/ten-ux-questions-reviewer.md` — drives the agent's candidate-generation, filter, score-and-select, validate, render, and write workflow.
 
-**Output produced by the reviewer:** `reviews/TEN-UX-QUESTIONS/ten-ux-questions-review.md` — a markdown document listing the ten most pressing unanswered UX questions an experienced UX designer would ask after reading `requirements/requirements.md`, each tagged `blocking | major | minor`, each anchored to a section or marked as a missing-section gap, each with a 1–2 sentence rationale on the design impact of leaving the question unanswered. Selection is from a candidate pool of up to 50.
+**Output produced by the reviewer:** `review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.md` — a markdown document listing the ten most pressing unanswered UX questions an experienced UX designer would ask after reading `requirements/requirements.md`, each tagged `blocking | major | minor`, each anchored to a section or marked as a missing-section gap, each with a 1–2 sentence rationale on the design impact of leaving the question unanswered. Selection is from a candidate pool of up to 50.
 
 The scaffold for the artefact is `framework/assets/reviews/template-ten-ux-questions.md`.
 
@@ -55,7 +55,7 @@ The reviewer reads **only** the following:
 It does **not** consult:
 
 - `requirements/requirements-draft.md`, `requirements/source-manifest.json`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — pipeline-internal.
-- `analyses/*` outputs — derived artefacts; reviewing the requirements doc against derivatives of itself would conflate "what the doc says" with "what an analyser inferred". The review's contract is to identify gaps in the source doc.
+- `analyse-requirements/*` outputs — derived artefacts; reviewing the requirements doc against derivatives of itself would conflate "what the doc says" with "what an analyser inferred". The review's contract is to identify gaps in the source doc.
 - `design-system/*` outputs — not relevant to a UX questions review.
 - `framework/state/*` — pipeline state is not a review input.
 
@@ -390,7 +390,7 @@ Eight gates. All are hard. If any gate fails, the reviewer does **not** write th
 - **Generic questions.** *"What about the user experience?"* is not a finding. Cite the section (or the missing section); state the specific decision the answer would unlock.
 - **Phantom anchors.** A question citing `§4.3.2` when the doc has no `§4.3.2` is a gate-5 failure. Use the Step-2 anchor index to validate every citation.
 - **Hidden quotas.** *"Make at least one blocking question"* is not a quota the reviewer enforces. The priority distribution falls out of the doc; a clean doc produces zero blockings legitimately.
-- **Reviewing against derivatives.** Do not consult `analyses/*` outputs to triangulate gaps. The review's contract is to read `requirements/requirements.md` as the source of truth.
+- **Reviewing against derivatives.** Do not consult `analyse-requirements/*` outputs to triangulate gaps. The review's contract is to read `requirements/requirements.md` as the source of truth.
 - **Inline `[SRC: ...]` markers.** Per project convention (`feedback_no_inline_provenance`), the merged requirements doc is clean of provenance markers; the review artefact is also clean. Questions cite by section number, not by `[SRC: ...]`.
 
 ---

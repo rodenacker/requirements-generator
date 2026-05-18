@@ -148,7 +148,7 @@ flowchart LR
     D -- overwrite --> E
     E --> F{You accept<br/>the result?}
     F -- revise --> E
-    F -- accept --> G([Artefact at<br/>analyses/METHOD/...])
+    F -- accept --> G([Artefact at<br/>analyse-requirements/METHOD/...])
 ```
 
 `/analyse-requirement` never modifies your requirements doc — it only reads it.
@@ -168,16 +168,16 @@ flowchart LR
 
 #### 3.4.3 What you get
 
-One HTML artefact per run, saved under `analyses/<METHOD>/`. Open it in a browser — it's formatted to share directly with the designer or developer who needed the insight. Each run produces exactly one of these:
+One HTML artefact per run, saved under `analyse-requirements/<METHOD>/`. Open it in a browser — it's formatted to share directly with the designer or developer who needed the insight. Each run produces exactly one of these:
 
-- `analyses/OOUX/ooux-object-map.html`
-- `analyses/JTBD/jtbd-job-map.html`
-- `analyses/USE-CASES/use-cases-map.html`
-- `analyses/DATA-MODEL/data-model.html`
-- `analyses/SEQUENCE-DIAGRAM/sequence-diagram.html`
-- `analyses/STATE-DIAGRAM/state-diagram.html`
-- `analyses/ACTIVITY-DIAGRAM/activity-diagram.html`
-- `analyses/USER-JOURNEYS/user-journeys-map.html`
+- `analyse-requirements/OOUX/ooux-object-map.html`
+- `analyse-requirements/JTBD/jtbd-job-map.html`
+- `analyse-requirements/USE-CASES/use-cases-map.html`
+- `analyse-requirements/DATA-MODEL/data-model.html`
+- `analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html`
+- `analyse-requirements/STATE-DIAGRAM/state-diagram.html`
+- `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html`
+- `analyse-requirements/USER-JOURNEYS/user-journeys-map.html`
 
 Pick another methodology to add another artefact alongside the first.
 
@@ -200,7 +200,7 @@ flowchart LR
     D -- overwrite --> E
     E --> F{You accept<br/>the result?}
     F -- revise --> E
-    F -- accept --> G([Artefact at<br/>reviews/METHOD/...])
+    F -- accept --> G([Artefact at<br/>review-requirements/METHOD/...])
 ```
 
 `/review-requirement` never modifies your requirements doc — it only reads it.
@@ -215,11 +215,11 @@ flowchart LR
 
 #### 3.5.3 What you get
 
-One markdown artefact per run, saved under `reviews/<METHOD>/`. Each run produces exactly one of:
+One markdown artefact per run, saved under `review-requirements/<METHOD>/`. Each run produces exactly one of:
 
-- `reviews/ADVERSARIAL/adversarial-review.md` — a strict critique structured by finding, with a Patch / Defer / Reject disposition for each.
-- `reviews/TEN-BA-QUESTIONS/ten-ba-questions-review.md` — the ten most pressing unanswered BA questions, each tagged blocking / major / minor so you know what to chase first.
-- `reviews/TEN-UX-QUESTIONS/ten-ux-questions-review.md` — the ten most pressing unanswered UX questions, same priority tagging.
+- `review-requirements/ADVERSARIAL/adversarial-review.md` — a strict critique structured by finding, with a Patch / Defer / Reject disposition for each.
+- `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md` — the ten most pressing unanswered BA questions, each tagged blocking / major / minor so you know what to chase first.
+- `review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.md` — the ten most pressing unanswered UX questions, same priority tagging.
 
 Treat the output as a punch-list: re-open `requirements/requirements.md`, fix the findings you accept, then re-run `/review-requirement` for a fresh pass if you want.
 

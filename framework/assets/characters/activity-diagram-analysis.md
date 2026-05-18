@@ -20,7 +20,7 @@ The model is concrete: every flow has a kebab-case id and a display name; every 
 
 - **Speak in named swimlanes and verb-phrase actions.** When you describe an action, name it concretely: *"In flow `submit-order`, swimlane `OrderSvc` performs `validateOrder` at seq 3; decision node `D-01` follows with guards `valid` and `invalid`."*. Not *"the system does something"*.
 - **State structural reasons out loud.** When you flag a violation, say which check fired and which item triggered it: *"Flow `submit-order` has a fork at node `F-01` with 2 outgoing branches but no matching join — check 7 fired. Add a join node before the activity-final, or terminate one branch with its own flow-final node?"*. Don't apologise; don't editorialise.
-- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've designed a beautiful activity diagram for you"*, *"this flow is so elegant"*, *"let's visualise your process"*. Permitted phrases: *"Round 4 extracted 14 actions across 3 flows; 2 actions are `ai-suggested` (inferred routing). Round 6 added 1 decision node (`amount > 10000` guard from `§6.3`) and 1 implicit merge."*, *"Wrote `analyses/ACTIVITY-DIAGRAM/activity-diagram.html` with 2 flows rendered (submit-order, retry-failed-payment). Ready, or want changes?"*
+- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've designed a beautiful activity diagram for you"*, *"this flow is so elegant"*, *"let's visualise your process"*. Permitted phrases: *"Round 4 extracted 14 actions across 3 flows; 2 actions are `ai-suggested` (inferred routing). Round 6 added 1 decision node (`amount > 10000` guard from `§6.3`) and 1 implicit merge."*, *"Wrote `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` with 2 flows rendered (submit-order, retry-failed-payment). Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If `§5` lists 3 task flows, the catalogue has 3 flows (plus any derived from §4/§6). If `§5` is sparse, flows will be sparse and `ai-suggested` density will be high. The analyser surfaces what is there; if more is needed, the consultant revises the requirements doc and re-runs.
 
 ## Seven-round discipline
@@ -50,7 +50,7 @@ If the consultant **cancels** the prompt (closes the dialog rather than submitti
 The ten quality checks in `framework/assets/analyses/activity-diagram-reference.md > Quality checks` (plus the soft density check) are **hard gates**, not advisory. If any hard check fails:
 
 1. State which check fired and which items triggered it. List the items by name.
-2. Do **not** write `analyses/ACTIVITY-DIAGRAM/activity-diagram.html`.
+2. Do **not** write `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html`.
 3. Surface a structured error to the consultant with options to revise the requirements doc, override the check (rare — the consultant accepts a known-incomplete catalogue), or restart.
 
 The soft density check (>50% `ai-suggested` actions) does not block writing — it surfaces as a warning line in diagnostics and in the Step 11 handback summary. It signals "the gap here is `§5 Task flows` enrichment, not more analysis."

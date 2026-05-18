@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **a
 
 ## Purpose
 
-Produce `analyses/ACTIVITY-DIAGRAM/activity-diagram.html` — a self-contained HTML artefact carrying:
+Produce `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` — a self-contained HTML artefact carrying:
 
 - **Tier 1 (always)**: a UML 2.5 activity-diagram catalogue at system-level fidelity — six tabular sections (Flows, Swimlanes, Actions, Control nodes, Edges, Cross-flow swimlane matrix) plus a Diagnostics block — extracted from `requirements/requirements.md`. Per-flow process view with swimlane responsibility partitioning; one row per action, one row per control node, one row per edge.
 - **Tier 2 (consultant-selected, 0..N)**: inline-SVG activity-diagram figures, one per selected flow. Same data, visualised. Empty selection is valid and produces a catalogue-only output.
@@ -36,7 +36,7 @@ The agent's only inputs are:
 - `framework/assets/analyses/activity-diagram-reference.md` (the methodology — read at activation).
 - `framework/assets/analyses/template-activity-diagram.html` (the HTML scaffold — read once at render time).
 
-The agent's only outputs are `analyses/ACTIVITY-DIAGRAM/activity-diagram.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
@@ -310,11 +310,11 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 ### Step 10 — Write
 
-- Ensure the output directory exists: `Bash mkdir -p analyses/ACTIVITY-DIAGRAM`.
-- `Write analyses/ACTIVITY-DIAGRAM/activity-diagram.html` with the in-memory composed HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = analyses/ACTIVITY-DIAGRAM/activity-diagram.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 1024` (a minimum legal render with the six catalogue tables and a non-empty diagnostics block is comfortably above 1 KB even when zero flows are selected).
+- Ensure the output directory exists: `Bash mkdir -p analyse-requirements/ACTIVITY-DIAGRAM`.
+- `Write analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 1024` (a minimum legal render with the six catalogue tables and a non-empty diagnostics block is comfortably above 1 KB even when zero flows are selected).
 - On `pass`: advance to Step 11.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyses/ACTIVITY-DIAGRAM/activity-diagram.html` after one retry."* and fail the handback. The orchestrator does not declare done.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 11 — Handback
 
@@ -322,7 +322,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-round counts, the quality-check result, and the `[AI-SUGGESTED]` density figure. No marketing language. Template:
 
-> *"Wrote `analyses/ACTIVITY-DIAGRAM/activity-diagram.html` — `{{FLOW_COUNT}}` flows, `{{SWIMLANE_COUNT}}` swimlanes, `{{ACTION_COUNT}}` actions, `{{CONTROL_NODE_COUNT}}` control nodes, `{{EDGE_COUNT}}` edges. AI-SUGGESTED items: `{{AI_SUGGESTED_COUNT}}` (action density `{{action_ai_density_pct}}`%). Quality checks: `{{n_checks_passed}}/10` pass. Diagrams rendered: `{{FLOWS_RENDERED}}`. Ready, or want changes?"*
+> *"Wrote `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` — `{{FLOW_COUNT}}` flows, `{{SWIMLANE_COUNT}}` swimlanes, `{{ACTION_COUNT}}` actions, `{{CONTROL_NODE_COUNT}}` control nodes, `{{EDGE_COUNT}}` edges. AI-SUGGESTED items: `{{AI_SUGGESTED_COUNT}}` (action density `{{action_ai_density_pct}}`%). Quality checks: `{{n_checks_passed}}/10` pass. Diagrams rendered: `{{FLOWS_RENDERED}}`. Ready, or want changes?"*
 
 Variants:
 
@@ -353,7 +353,7 @@ Use `AskUserQuestion`:
     - For an edge edit (add / remove / re-guard / re-endpoint): update in-memory edges, re-run checks 5/6/10, re-render, re-Write, re-verify, loop back to A.
     - For a flow re-selection (consultant says "add submit-order" or "drop retry-failed-payment"): update `chosen.flows`, **do not re-run extraction or quality checks** — only re-render Step 9 with the new selection set, re-Write, re-verify, loop back to A.
     - For an `ai-suggested` reclassification (consultant supplies a source): update provenance marker and remove `[AI-SUGGESTED]` prefix, re-run check 10, recompute density, re-render, re-Write, re-verify, loop back to A.
-- **Restart** — re-enter Step 3. The previously-written `analyses/ACTIVITY-DIAGRAM/activity-diagram.html` is left in place; the next Step 10 will overwrite it.
+- **Restart** — re-enter Step 3. The previously-written `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` is left in place; the next Step 10 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 10).
 
@@ -372,14 +372,14 @@ Output the final handback line:
 
 ## Output
 
-- `analyses/ACTIVITY-DIAGRAM/activity-diagram.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
+- `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template scaffold, and the merged requirements document. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `framework/state/`, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyses/ACTIVITY-DIAGRAM/activity-diagram.html`.
+- `Write` — write `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 9's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p analyses/ACTIVITY-DIAGRAM` (Step 10 setup). No other Bash usage.
+- `Bash` — `mkdir -p analyse-requirements/ACTIVITY-DIAGRAM` (Step 10 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 8 quality-check failure prompt (Revise / Override / Restart) when any hard check fires; surface the Step 8 flow-selection multi-select; surface the Step 11 Accept / Revise / Restart prompt.
 
 **No MCP tools.** No Agent / Task delegation. The inline SVG is emitted by the analyser directly; there is no external rendering pipeline.
@@ -388,7 +388,7 @@ Output the final handback line:
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `analyses/ACTIVITY-DIAGRAM/activity-diagram.html` exists and `verify-artifact-write` returned `pass`.
+- `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The catalogue section contains exactly six sub-sections in fixed order (`.flows-block`, `.swimlanes-block`, `.actions-block`, `.control-nodes-block`, `.edges-block`, `.matrix-block`).
 - Every row in every Tier-1 table carries exactly one `.provenance-*` class — never zero, never two.
@@ -408,7 +408,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `analyses/ACTIVITY-DIAGRAM/activity-diagram.html` exists, has been verified, and contains a complete activity-diagram catalogue plus the consultant-selected inline-SVG figures (zero to N).
+- `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` exists, has been verified, and contains a complete activity-diagram catalogue plus the consultant-selected inline-SVG figures (zero to N).
 - Either all 10 hard quality checks passed, or the consultant explicitly chose Override and the diagnostics block records every violation.
 - The consultant has accepted the artefact in the Step 11 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.

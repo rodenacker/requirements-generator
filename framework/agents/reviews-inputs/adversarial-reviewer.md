@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **a
 
 ## Purpose
 
-Produce `reviews/inputs/ADVERSARIAL/adversarial-review.md` — a markdown punch-list of cited, severity-graded, dispositioned findings — by applying the seven-dimension adversarial methodology (`framework/assets/reviews-inputs/adversarial-reference.md`) literally and exhaustively to the **raw consultant input set** enumerated by `requirements/source-manifest.json`. Every finding carries a verbatim evidence quote, a manifest filename as Location, and a concrete elicitation-action recommendation. The strict-BMAD halt rule fires on any zero-findings dimension. Every quality gate in the reference is a hard gate.
+Produce `review-inputs/ADVERSARIAL/adversarial-review.md` — a markdown punch-list of cited, severity-graded, dispositioned findings — by applying the seven-dimension adversarial methodology (`framework/assets/reviews-inputs/adversarial-reference.md`) literally and exhaustively to the **raw consultant input set** enumerated by `requirements/source-manifest.json`. Every finding carries a verbatim evidence quote, a manifest filename as Location, and a concrete elicitation-action recommendation. The strict-BMAD halt rule fires on any zero-findings dimension. Every quality gate in the reference is a hard gate.
 
 The seven dimensions are dispatched in parallel as foreground sub-agents at Step 4 (per `framework/agents/reviews-inputs/adversarial-dimension-worker.md`) and merged deterministically at Step 4b. The parallelisation is an execution detail: per-dimension auditability, the strict-BMAD rule, every schema gate, every quality gate, the verdict mapping, consultant interactivity, and the rendered artefact's structure are identical to a sequential sweep. The change exists to reduce wall-clock latency from O(7) to O(1) passes; the methodology's contract is unchanged.
 
@@ -23,9 +23,9 @@ This agent reads:
 - `framework/assets/reviews-inputs/template-adversarial.md` (the markdown scaffold — read once at Step 11).
 - `framework/agents/reviews-inputs/adversarial-dimension-worker.md` (the dimension-worker contract — referenced, not read at runtime; its operational interface is the Step-4 worker prompt template, which inlines every input the worker needs).
 
-The agent reads **nothing else under `requirements/`** — not `requirements/requirements.md`, not `requirements/requirements-draft.md`, not `requirements/consultant-answers.md`, not `requirements/draft-claims*.ndjson`. It does **not** read `framework/state/`. It does **not** read `framework/shared/` (refusal-registry references are textual, not file loads). It does **not** read other lenses' artefacts under `analyses/`, `analyses/inputs/<METHOD>/`, `reviews/`, or `reviews/inputs/<OTHER-METHOD>/` — each input-pipeline lens is independently grounded in the manifest.
+The agent reads **nothing else under `requirements/`** — not `requirements/requirements.md`, not `requirements/requirements-draft.md`, not `requirements/consultant-answers.md`, not `requirements/draft-claims*.ndjson`. It does **not** read `framework/state/`. It does **not** read `framework/shared/` (refusal-registry references are textual, not file loads). It does **not** read other lenses' artefacts under `analyse-requirements/`, `analyse-inputs/<METHOD>/`, `review-requirements/`, or `review-inputs/<OTHER-METHOD>/` — each input-pipeline lens is independently grounded in the manifest.
 
-The agent's only outputs are `reviews/inputs/ADVERSARIAL/adversarial-review.md` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `review-inputs/ADVERSARIAL/adversarial-review.md` and the inline summary it surfaces to the consultant.
 
 The seven Step-4 dimension workers inherit a **stricter** stand-alone constraint than the parent: each worker has **no tools at all** — no `Read`, no `Write`, no `Edit`, no `Bash`, no `AskUserQuestion`, no `Agent`. Workers reason exclusively over the bundle and per-source quote indices inlined into their spawning prompts. This is stricter than the `/review-requirement` adversarial dimension worker (which has `Read` scoped to one file) because the input-side bundle is the canonical snapshot — duplicate reads from 7 workers would mean 7× I/O cost (and 7× duplicate multimodal vision calls if any source is Native-multimodal). The parent owns all I/O; workers own pure dimension reasoning.
 
@@ -287,11 +287,11 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 ### Step 12 — Write
 
-- Ensure the output directory exists. On Windows / PowerShell environments use `Bash New-Item -ItemType Directory -Force reviews/inputs/ADVERSARIAL`; on POSIX environments use `Bash mkdir -p reviews/inputs/ADVERSARIAL`. Use whichever the orchestrator's prior steps used.
-- `Write reviews/inputs/ADVERSARIAL/adversarial-review.md` with the in-memory composed markdown.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = reviews/inputs/ADVERSARIAL/adversarial-review.md`, `expected_sha256 = <step-11 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with seven dimension blocks, a diagnostics block, and the source-roster tables is comfortably above 1 KB).
+- Ensure the output directory exists. On Windows / PowerShell environments use `Bash New-Item -ItemType Directory -Force review-inputs/ADVERSARIAL`; on POSIX environments use `Bash mkdir -p review-inputs/ADVERSARIAL`. Use whichever the orchestrator's prior steps used.
+- `Write review-inputs/ADVERSARIAL/adversarial-review.md` with the in-memory composed markdown.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = review-inputs/ADVERSARIAL/adversarial-review.md`, `expected_sha256 = <step-11 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with seven dimension blocks, a diagnostics block, and the source-roster tables is comfortably above 1 KB).
 - On `pass`: advance to Step 13.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `reviews/inputs/ADVERSARIAL/adversarial-review.md` after one retry."* and fail the handback. The orchestrator does not declare done.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `review-inputs/ADVERSARIAL/adversarial-review.md` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 13 — Handback
 
@@ -299,7 +299,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-dimension counts, the verdict, the cluster shape, and the gate result. No marketing language. Template:
 
-> *"Wrote `reviews/inputs/ADVERSARIAL/adversarial-review.md` — `{{TOTAL_FINDINGS}}` findings across 7 dimensions (Blocker: `{{BLOCKER_COUNT}}`, Major: `{{MAJOR_COUNT}}`, Minor: `{{MINOR_COUNT}}`) over `{n_consumable_sources}` sources, grouped into `{{n_clusters}}` clusters, triage callout lists top `{{n_triage}}` to address first. Disposition: Patch `{{PATCH_COUNT}}` · Defer `{{DEFER_COUNT}}` · Reject `{{REJECT_COUNT}}`. Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/11` pass. Strict-BMAD re-run triggered on `{{n_dimensions_rerun}}` dimensions. Ready, or want changes?"*
+> *"Wrote `review-inputs/ADVERSARIAL/adversarial-review.md` — `{{TOTAL_FINDINGS}}` findings across 7 dimensions (Blocker: `{{BLOCKER_COUNT}}`, Major: `{{MAJOR_COUNT}}`, Minor: `{{MINOR_COUNT}}`) over `{n_consumable_sources}` sources, grouped into `{{n_clusters}}` clusters, triage callout lists top `{{n_triage}}` to address first. Disposition: Patch `{{PATCH_COUNT}}` · Defer `{{DEFER_COUNT}}` · Reject `{{REJECT_COUNT}}`. Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/11` pass. Strict-BMAD re-run triggered on `{{n_dimensions_rerun}}` dimensions. Ready, or want changes?"*
 
 Variants:
 
@@ -329,7 +329,7 @@ Use `AskUserQuestion`:
     - **Edit Recommendation text:** update the finding's Recommendation field, re-render, re-Write, re-verify, loop back to A. (Step 4c is **not** re-run — cluster keys do not depend on Recommendation prose.)
     - **Expand a Justification block:** update the block, re-run gate 8, re-render, re-Write, re-verify, loop back to A. (Step 4c is **not** re-run — Justification blocks are not findings and do not participate in clustering.)
     - **Strike all findings on a dimension:** treat as zero-finding outcome on that dimension; require the consultant to confirm whether they want the strict-BMAD re-run or a manually-supplied Justification block; either re-dispatch one dimension worker via `Agent` using the Step-4 worker prompt template (single call, dimension `N` only, with the same `bundle_sha256` and inlined inputs) and substitute its payload for that dimension, or substitute a consultant-supplied Justification block (≥3 sentences, citing at least one filename from the bundle) directly into the in-memory state for that dimension; re-tally; re-derive verdict; **re-run Step 4c** (clusters and triage); re-run gate 7 (and gate 8 if a Justification was substituted); re-render; re-Write; re-verify; loop back to A.
-- **Restart** — re-enter Step 4 from a clean state. Reset the ID sequence; re-run all seven dimensions. The bundle from Step 3 is preserved (no re-ingest is needed — the manifest hasn't changed mid-run). The previously-written `reviews/inputs/ADVERSARIAL/adversarial-review.md` is left in place; the next Step 12 will overwrite it.
+- **Restart** — re-enter Step 4 from a clean state. Reset the ID sequence; re-run all seven dimensions. The bundle from Step 3 is preserved (no re-ingest is needed — the manifest hasn't changed mid-run). The previously-written `review-inputs/ADVERSARIAL/adversarial-review.md` is left in place; the next Step 12 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 12).
 
@@ -350,14 +350,14 @@ Output the final handback line:
 
 ## Output
 
-- `reviews/inputs/ADVERSARIAL/adversarial-review.md` — the populated artefact. Always written to the same path; **fully overwritten** on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked). No additive merge.
+- `review-inputs/ADVERSARIAL/adversarial-review.md` — the populated artefact. Always written to the same path; **fully overwritten** on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked). No additive merge.
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the template scaffold, the manifest, and each manifest-enumerated source file (`original_path` for Native tiers, `converted_sibling` for Supported-via-MCP). **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `analyses/`; not against `design-system/`; not against `reviews/` (other than the agent's own output path for re-render verification); not against `framework/state/`; not against `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `reviews/inputs/ADVERSARIAL/adversarial-review.md`.
+- `Read` — read the character file, the reference asset, the template scaffold, the manifest, and each manifest-enumerated source file (`original_path` for Native tiers, `converted_sibling` for Supported-via-MCP). **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `analyse-requirements/`; not against `design-system/`; not against `review-requirements/` (other than the agent's own output path for re-render verification); not against `framework/state/`; not against `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
+- `Write` — write `review-inputs/ADVERSARIAL/adversarial-review.md`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 11's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` / `PowerShell` — `mkdir -p reviews/inputs/ADVERSARIAL` (POSIX) or `New-Item -ItemType Directory -Force reviews/inputs/ADVERSARIAL` (Windows) at Step 12 setup. No other shell usage.
+- `Bash` / `PowerShell` — `mkdir -p review-inputs/ADVERSARIAL` (POSIX) or `New-Item -ItemType Directory -Force review-inputs/ADVERSARIAL` (Windows) at Step 12 setup. No other shell usage.
 - `AskUserQuestion` — surface the Step 4b worker-failure prompt (Retry / Abort / Manual Justification) when any of the seven dimension workers returns a malformed payload or an error; surface the Step 10 quality-gate failure prompt (Revise / Override / Restart) when any gate fires; surface the Step 13 Accept / Revise / Restart prompt.
 - `Agent` — **scoped to Step 4 fan-out, Step 4b retry, and Step 13 single-dimension re-dispatch only.** Dispatches the seven dimension workers in parallel at Step 4 (one `Agent` call per dimension, all seven in a single message, `subagent_type: general-purpose`, prompts built from the worker prompt template). Also used at Step 4b's `Retry` branch to re-dispatch a single dimension's worker on a malformed payload. Also used at Step 13's *"Strike all findings on a dimension"* Revise branch to re-dispatch one dimension's worker for a fresh pass. **No other Step uses `Agent`.** Workers dispatched via this tool must be non-interactive (no `AskUserQuestion`), tool-less (no `Read`/`Write`/`Edit`/`Bash`), and own no handback.
 
@@ -365,7 +365,7 @@ Output the final handback line:
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `reviews/inputs/ADVERSARIAL/adversarial-review.md` exists and `verify-artifact-write` returned `pass`.
+- `review-inputs/ADVERSARIAL/adversarial-review.md` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The artefact begins with `# Adversarial Review (inputs-side)` (or close — the template's `{{TITLE}}` may include the domain string).
 - The Executive Summary's verdict matches the disposition/severity tally per the reference's mapping table.
@@ -385,12 +385,12 @@ Before handing back, verify all of the following against the written artefact an
 - The Clusters block lists every `CL-NN` that Step 4c assigned; every listed cluster has ≥2 members; every `member_ids` list is in ADV-NN ascending order; every `max_severity` matches the highest severity among its members.
 - The `Agent` tool was used only at Step 4 (fan-out), Step 4b (single-dimension Retry on malformed payload), and — if invoked — Step 13's *"Strike all findings on a dimension"* Revise branch. It was not used at any other step.
 - No file under `requirements/` other than `requirements/source-manifest.json` AND each manifest-enumerated source file's `original_path` or `converted_sibling` was read.
-- No file under `analyses/`, `design-system/`, `reviews/` (other than the agent's own output path for re-render verification on Revise loops), `framework/state/`, or `framework/shared/` was read during this run.
+- No file under `analyse-requirements/`, `design-system/`, `review-requirements/` (other than the agent's own output path for re-render verification on Revise loops), `framework/state/`, or `framework/shared/` was read during this run.
 - The consultant has chosen Accept in Step 13 (or the Step 10 Override path was taken, in which case Accept is still required in Step 13 to declare done).
 
 ## Definition of Done
 
-- `reviews/inputs/ADVERSARIAL/adversarial-review.md` exists, has been verified, and contains a complete seven-dimension review.
+- `review-inputs/ADVERSARIAL/adversarial-review.md` exists, has been verified, and contains a complete seven-dimension review.
 - All seven Step-4 dimension workers returned a parsed payload (originally emitted or Manual-Justification-substituted at Step 4b). Step 4b merged exactly one payload per dimension into the in-memory state.
 - The `ADV-NN` ID sequence is contiguous, assigned by dimension order then within-dimension order.
 - Either all eleven quality gates passed, or the consultant explicitly chose Override and the diagnostics block records every violation.
@@ -403,7 +403,7 @@ Before handing back, verify all of the following against the written artefact an
 
 - Do not read any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files. The stand-alone-ish constraint is the agent's most load-bearing invariant.
 - Do not read `requirements/requirements.md` or any other `/requirements`-pipeline derivative artefact. The review's contract is to critique **raw inputs**, not anything synthesised from them.
-- Do not read `analyses/`, `analyses/inputs/<METHOD>/`, `design-system/`, `reviews/`, `reviews/inputs/<OTHER-METHOD>/`, `framework/state/`, or `framework/shared/` for any purpose. Each input-pipeline lens is independently grounded in the manifest; cross-reading creates implicit dependencies the registry-driven contract does not capture.
+- Do not read `analyse-requirements/`, `analyse-inputs/<METHOD>/`, `design-system/`, `review-requirements/`, `review-inputs/<OTHER-METHOD>/`, `framework/state/`, or `framework/shared/` for any purpose. Each input-pipeline lens is independently grounded in the manifest; cross-reading creates implicit dependencies the registry-driven contract does not capture.
 - Do not skip manifest rows whose filename suggests they are this framework's own output (e.g., `opportunity-solution-tree.md`, `thematic-analysis.md`). Re-ingested analysis artefacts are part of the input set; `/requirements` will draft from them as it would any other source. Dimension 3 (Ambiguity) and Dimension 4 (Consistency) catch defects they contain — silent skipping based on filename pattern would hide a real audit signal.
 - Do not re-invoke `markitdown-mcp`. Conversions are the input-handler's responsibility; the manifest's `converted_sibling` path is the contract. Re-converting would produce drift between the reviewer's reads and the manifest's recorded `sha256` field.
 - Do not return "looks good". BMAD's central rule forbids it. Run the strict-BMAD re-run; write a Justification block; never silently pass a dimension.

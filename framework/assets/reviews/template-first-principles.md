@@ -35,7 +35,7 @@
     {{CS_FINDINGS_BLOCK}}           — pre-rendered cross-subject findings per CS BLOCK SCHEMA below
     {{DIAGNOSTICS_BLOCK}}           — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
 
-  Output: reviews/FIRST-PRINCIPLES/first-principles-review.md.
+  Output: review-requirements/FIRST-PRINCIPLES/first-principles-review.md.
 
   TOP-TEN BLOCK SCHEMA — {{TOP_TEN_BLOCK}} is one heading per entry, in
   ascending-score order (lowest first), tie-broken by subject-type

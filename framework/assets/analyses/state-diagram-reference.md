@@ -4,7 +4,7 @@
 
 > **Method:** Extract a **per-entity state-diagram catalogue** (entities, states, internal activities, transitions, events, cross-entity state coverage matrix) from `requirements/requirements.md` once. The tabular catalogue is always rendered. The consultant then picks **none, one, several, or all** of the discovered entities to add as inline-SVG `<figure>` blocks. Same data, the visuals are views onto the state machines already listed in the catalogue.
 
-**Output file:** `analyses/STATE-DIAGRAM/state-diagram.html` — a self-contained HTML artefact containing the per-entity tabular catalogue (always) plus zero or more inline-SVG state-diagram figures (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
+**Output file:** `analyse-requirements/STATE-DIAGRAM/state-diagram.html` — a self-contained HTML artefact containing the per-entity tabular catalogue (always) plus zero or more inline-SVG state-diagram figures (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
 
 **Analyser agent:** `framework/agents/analyses/state-diagram-analyser.md`
 
@@ -297,7 +297,7 @@ Richer inputs → richer catalogue. Methodology degrades gracefully: with thin `
 
 ## Output shape (HTML schema)
 
-The artefact is a single self-contained HTML file at `analyses/STATE-DIAGRAM/state-diagram.html`. The analyser populates `framework/assets/analyses/template-state-diagram.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
+The artefact is a single self-contained HTML file at `analyse-requirements/STATE-DIAGRAM/state-diagram.html`. The analyser populates `framework/assets/analyses/template-state-diagram.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
 
 ### Header placeholders
 

@@ -6,13 +6,13 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **f
 
 ## Purpose
 
-Produce `reviews/FIRST-PRINCIPLES/first-principles-review.md` — a markdown document that (a) rates every numbered item in `requirements/requirements.md > §4.1 Goals`, `§4.2 Stories by persona`, `§6 Requirements`, and `§7 Data entities` against six per-subject defensibility questions (Q1–Q6), (b) surfaces the ten least defensible subjects in a deep-dive callout with full Q1–Q6 answers + verbatim evidence (or absence-reasoning) per answer, (c) walks the artefact graph once more to find orphan goals / personas / stories / requirements / entities (Q7 coverage pass), (d) walks the whole doc once more to surface **cross-subject coherence findings** under five lenses (CS1 Contradictory Objectives; CS2 Hidden Assumptions / False Constraints; CS3 Missing System Thinking / Architectural Consequence Blindness; CS4 Missing Operational Reality; CS5 Human Cost Allocation), and (e) records every gate result, score histogram, weakest-question distribution, coverage result, CS-pass result, and filter drop/rescue (per-subject Q3/Q5 and cross-subject CS2/CS4/CS5) in a diagnostics block. Every quality gate in the reference is a hard gate (gate 8 has a `warn` variant for absent layers); the cross-subject pass adds gates 12–14.
+Produce `review-requirements/FIRST-PRINCIPLES/first-principles-review.md` — a markdown document that (a) rates every numbered item in `requirements/requirements.md > §4.1 Goals`, `§4.2 Stories by persona`, `§6 Requirements`, and `§7 Data entities` against six per-subject defensibility questions (Q1–Q6), (b) surfaces the ten least defensible subjects in a deep-dive callout with full Q1–Q6 answers + verbatim evidence (or absence-reasoning) per answer, (c) walks the artefact graph once more to find orphan goals / personas / stories / requirements / entities (Q7 coverage pass), (d) walks the whole doc once more to surface **cross-subject coherence findings** under five lenses (CS1 Contradictory Objectives; CS2 Hidden Assumptions / False Constraints; CS3 Missing System Thinking / Architectural Consequence Blindness; CS4 Missing Operational Reality; CS5 Human Cost Allocation), and (e) records every gate result, score histogram, weakest-question distribution, coverage result, CS-pass result, and filter drop/rescue (per-subject Q3/Q5 and cross-subject CS2/CS4/CS5) in a diagnostics block. Every quality gate in the reference is a hard gate (gate 8 has a `warn` variant for absent layers); the cross-subject pass adds gates 12–14.
 
 The agent is **single-pass**: enumeration, per-subject Q1–Q6 evaluation, Q7 coverage pass, CS1–CS5 cross-subject pass, filter, ranking, validate, render, and write all execute in this one thread without sub-agent fan-out. Six questions over each subject probe the same justification chain (Q1's chain-entry is a precondition for Q2's chain-landing); parallelisation would either duplicate evidence searches or produce inconsistent verdicts per subject. The five cross-subject lenses share evidence — the same anchor pair can trigger multiple lenses (CS1 + CS3 + CS5 on a contradictory goal/requirement pair) — so single-thread execution emits findings independently per lens, then a post-scan consolidation step clusters findings sharing the same anchor-set. The single-pass design mirrors `framework/agents/reviews/user-stories-reviewer.md` (six story-quality criteria over each story) rather than `framework/agents/reviews/adversarial-reviewer.md` (eight orthogonal defect lenses with parallel workers); the CS lenses share evidence too tightly for fan-out.
 
 ## Stand-alone-ish constraint
 
-This agent reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not read `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims.ndjson`, `requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, any path under `analyses/` (including `analyses/FIVE-WHYS/` — the methodologically-adjacent analyser whose output is *not* consulted), any path under `design-system/`, or any other agent's working state. The merged requirements document is the contract; the review's job is to audit *its* internal chains, not to triangulate against artefacts derived from it.
+This agent reads `requirements/requirements.md` and **nothing else under `requirements/`**. It does not read `requirements/source-manifest.json`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims.ndjson`, `requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, any path under `analyse-requirements/` (including `analyse-requirements/FIVE-WHYS/` — the methodologically-adjacent analyser whose output is *not* consulted), any path under `design-system/`, or any other agent's working state. The merged requirements document is the contract; the review's job is to audit *its* internal chains, not to triangulate against artefacts derived from it.
 
 The agent's only inputs are:
 
@@ -25,7 +25,7 @@ The agent's only inputs are:
 
 The two filter-source reads at Step 6 are the agent's **only** reads outside its own asset set and the merged requirements doc. They are scoped to (a) the per-subject Q3/Q5 filter pass and (b) the cross-subject CS2/CS4/CS5 filter pass — both run in Step 6 against the same two files. The agent does not consult these files for any other purpose. The agent does **not** read `framework/shared/prototype-scope.md` (every §4–§7 subject is in-scope for first-principles evaluation by construction) and does **not** read other reviewers' references. Both omissions are documented in the diagnostics block as `scope-filter: not-applicable` and `cross-methodology-filter: not-applicable`.
 
-The agent's only outputs are `reviews/FIRST-PRINCIPLES/first-principles-review.md` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `review-requirements/FIRST-PRINCIPLES/first-principles-review.md` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts, analyses outputs, design-system outputs, or `framework/state/` is granted.
 
@@ -334,11 +334,11 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 ### Step 10 — Write
 
-- Ensure the output directory exists: `Bash mkdir -p reviews/FIRST-PRINCIPLES`.
-- `Write reviews/FIRST-PRINCIPLES/first-principles-review.md` with the in-memory composed markdown.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = reviews/FIRST-PRINCIPLES/first-principles-review.md`, `expected_sha256 = <Step-9 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with at least the header, executive summary, an empty Top-10 placeholder, an empty ratings table, an empty coverage section, an empty CS findings section, and a full diagnostics block is comfortably above 1 KB; the diagnostics block alone now carries 14 gate rows and a 5-row CS table).
+- Ensure the output directory exists: `Bash mkdir -p review-requirements/FIRST-PRINCIPLES`.
+- `Write review-requirements/FIRST-PRINCIPLES/first-principles-review.md` with the in-memory composed markdown.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = review-requirements/FIRST-PRINCIPLES/first-principles-review.md`, `expected_sha256 = <Step-9 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with at least the header, executive summary, an empty Top-10 placeholder, an empty ratings table, an empty coverage section, an empty CS findings section, and a full diagnostics block is comfortably above 1 KB; the diagnostics block alone now carries 14 gate rows and a 5-row CS table).
 - On `pass`: advance to Step 11.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `reviews/FIRST-PRINCIPLES/first-principles-review.md` after one retry."* and fail the handback. The orchestrator does not declare done.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `review-requirements/FIRST-PRINCIPLES/first-principles-review.md` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 11 — Handback
 
@@ -346,7 +346,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the counts, top-10 range, orphan count, and gate result. No marketing language. Template:
 
-> *"Wrote `reviews/FIRST-PRINCIPLES/first-principles-review.md` — `{{TOTAL_SUBJECTS}}` subjects rated (`{{GOALS_COUNT}}` goals · `{{STORIES_COUNT}}` stories · `{{REQUIREMENTS_COUNT}}` reqs · `{{ENTITIES_COUNT}}` entities). Score histogram: `{{SCORE_HISTOGRAM}}`. Top-10 score range: `{{TOP_TEN_SCORE_RANGE}}`. Orphans: `{{ORPHAN_COUNT}}` (goal `{{n_goal}}` · persona `{{n_persona}}` · story `{{n_story}}` · business-rule `{{n_br}}` · entity `{{n_entity}}`). CS findings: `{{CS_FINDINGS_COUNT}}` (blocking `{{n_cs_blocking}}` · major `{{n_cs_major}}` · minor `{{n_cs_minor}}`; by lens CS1 `{{n_cs1}}` · CS2 `{{n_cs2}}` · CS3 `{{n_cs3}}` · CS4 `{{n_cs4}}` · CS5 `{{n_cs5}}`). Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/14` pass. Ready, or want changes?"*
+> *"Wrote `review-requirements/FIRST-PRINCIPLES/first-principles-review.md` — `{{TOTAL_SUBJECTS}}` subjects rated (`{{GOALS_COUNT}}` goals · `{{STORIES_COUNT}}` stories · `{{REQUIREMENTS_COUNT}}` reqs · `{{ENTITIES_COUNT}}` entities). Score histogram: `{{SCORE_HISTOGRAM}}`. Top-10 score range: `{{TOP_TEN_SCORE_RANGE}}`. Orphans: `{{ORPHAN_COUNT}}` (goal `{{n_goal}}` · persona `{{n_persona}}` · story `{{n_story}}` · business-rule `{{n_br}}` · entity `{{n_entity}}`). CS findings: `{{CS_FINDINGS_COUNT}}` (blocking `{{n_cs_blocking}}` · major `{{n_cs_major}}` · minor `{{n_cs_minor}}`; by lens CS1 `{{n_cs1}}` · CS2 `{{n_cs2}}` · CS3 `{{n_cs3}}` · CS4 `{{n_cs4}}` · CS5 `{{n_cs5}}`). Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/14` pass. Ready, or want changes?"*
 
 Variants:
 
@@ -379,7 +379,7 @@ Use `AskUserQuestion`:
     - **Reclassify a CS finding's severity** (consultant judges that a `blocking` is actually `major`, or vice versa): update the severity field; re-tally CS counts; re-derive verdict; re-run gate 10; re-render; re-Write; re-verify; loop back to A.
     - **Rewrite a CS `consequence` line to remove a prescriptive verb** (gate 13 failure already fired): update the line with the consultant's preferred observational phrasing; re-run gate 13 (lexical-filter); re-render; re-Write; re-verify; loop back to A.
     - **Add a CS finding the consultant believes was missed** (consultant raises a contradiction or hidden assumption the agent did not catch): accept the consultant-supplied lens, anchors, evidence-quotes (must be verbatim — re-check against the Step-2 quote index), relation, and consequence (must be observational); append to `cs_findings`; re-run post-scan consolidation; re-tally CS counts; re-derive verdict; re-run gates 10, 12, 13, 14; re-render; re-Write; re-verify; loop back to A. *(The reviewer does not invent CS findings on Revise — the consultant supplies the substance; the agent enforces schema.)*
-- **Restart** — re-enter Step 4 from a clean state. Re-evaluate every subject; re-coverage-pass; re-CS-pass (Step 5b); re-filter (sub-passes A and B); re-rank. The previously-written `reviews/FIRST-PRINCIPLES/first-principles-review.md` is left in place; the next Step 10 will overwrite it.
+- **Restart** — re-enter Step 4 from a clean state. Re-evaluate every subject; re-coverage-pass; re-CS-pass (Step 5b); re-filter (sub-passes A and B); re-rank. The previously-written `review-requirements/FIRST-PRINCIPLES/first-principles-review.md` is left in place; the next Step 10 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced `RF-04`, which propagates per Step 10).
 
@@ -400,14 +400,14 @@ Output the final handback line:
 
 ## Output
 
-- `reviews/FIRST-PRINCIPLES/first-principles-review.md` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
+- `review-requirements/FIRST-PRINCIPLES/first-principles-review.md` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the template scaffold, the merged requirements document, and (at Step 6 only) the two filter sources (`framework/shared/general-rules.md`, `framework/shared/prototype-invariants.md`). **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `analyses/`, against any path under `design-system/`, against any path under `framework/state/`, against `framework/shared/prototype-scope.md`, against any path under `framework/assets/reviews/` other than this methodology's reference and template, against any path under `framework/assets/characters/` other than this methodology's character file, or against any other path under `framework/shared/` other than the two filter sources.** The stand-alone constraint is enforced by tool-list scope.
-- `Write` — write `reviews/FIRST-PRINCIPLES/first-principles-review.md`.
+- `Read` — read the character file, the reference asset, the template scaffold, the merged requirements document, and (at Step 6 only) the two filter sources (`framework/shared/general-rules.md`, `framework/shared/prototype-invariants.md`). **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `analyse-requirements/`, against any path under `design-system/`, against any path under `framework/state/`, against `framework/shared/prototype-scope.md`, against any path under `framework/assets/reviews/` other than this methodology's reference and template, against any path under `framework/assets/characters/` other than this methodology's character file, or against any other path under `framework/shared/` other than the two filter sources.** The stand-alone constraint is enforced by tool-list scope.
+- `Write` — write `review-requirements/FIRST-PRINCIPLES/first-principles-review.md`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 9's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p reviews/FIRST-PRINCIPLES` (Step 10 setup). No other Bash usage.
+- `Bash` — `mkdir -p review-requirements/FIRST-PRINCIPLES` (Step 10 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 8 quality-gate failure prompt (Revise / Override / Restart) when any hard gate fires; surface the Step 8 gate-8 warn prompt (Continue / Revise) when a coverage relation is `not-applicable`; surface the Step 11 Accept / Revise / Restart prompt.
 
 The agent does **not** use the `Agent` / `Task` tool. There is no fan-out, no sub-agent dispatch, no parallel-worker invocation. Single-pass single-thread is the methodology — Q1–Q6 over each subject share the same evidence chain and benefit from coherent application; parallelisation would either duplicate evidence searches or produce inconsistent verdicts per subject.
@@ -416,7 +416,7 @@ The agent does **not** use the `Agent` / `Task` tool. There is no fan-out, no su
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `reviews/FIRST-PRINCIPLES/first-principles-review.md` exists and `verify-artifact-write` returned `pass`.
+- `review-requirements/FIRST-PRINCIPLES/first-principles-review.md` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The artefact's `REQUIREMENTS_SHA256` field equals the SHA-256 captured in Step 2.
 - The Executive Summary's *"Subjects rated"* equals the Step-3 `enumerated_count`. *"Goals + Stories + Requirements + Entities"* sums to *"Subjects rated"*. The score-histogram entries sum to *"Subjects rated"*.
@@ -436,7 +436,7 @@ Before handing back, verify all of the following against the written artefact an
 - The `G-NN` / `US-NN` / `BR-NN` / `FR-NN` / `EN-NN` IDs in the ratings table are consistent with the doc's enumeration (existing IDs reused where present; otherwise zero-padded document-order assignment).
 - The consultant has chosen Accept in Step 11 (or the Step 8 Override path was taken, in which case Accept is still required in Step 11 to declare done).
 - No file under `requirements/` other than `requirements/requirements.md` was read during this run.
-- No file under `analyses/`, `design-system/`, or `framework/state/` was read during this run.
+- No file under `analyse-requirements/`, `design-system/`, or `framework/state/` was read during this run.
 - No file under `framework/shared/` other than the two filter sources (`general-rules.md`, `prototype-invariants.md`) was read during this run.
 - No file under `framework/assets/reviews/` other than this methodology's reference and template was read during this run.
 - No file under `framework/assets/characters/` other than this methodology's character file was read during this run.
@@ -444,7 +444,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `reviews/FIRST-PRINCIPLES/first-principles-review.md` exists, has been verified, and contains a complete first-principles audit of every numbered item in §4.1, §4.2, §6, §7 (or empty placeholders if a layer is absent and gate 8 fired its `warn`).
+- `review-requirements/FIRST-PRINCIPLES/first-principles-review.md` exists, has been verified, and contains a complete first-principles audit of every numbered item in §4.1, §4.2, §6, §7 (or empty placeholders if a layer is absent and gate 8 fired its `warn`).
 - Every subject has a rating with six Q1–Q6 answers, a score ∈ {0..6}, and a weakest-question marker ∈ {Q1..Q6}.
 - The Top-10 deep-dive lists exactly `min(10, |ratings|)` entries in ascending-score order with full per-question evidence/reasoning.
 - The full ratings table lists every subject in the same sort order.
@@ -459,7 +459,7 @@ Before handing back, verify all of the following against the written artefact an
 ## Anti-Patterns
 
 - Do not read any path under `requirements/` other than `requirements/requirements.md`. The stand-alone-ish constraint is the agent's most load-bearing invariant.
-- Do not read `analyses/` (including `analyses/FIVE-WHYS/`, the methodologically-adjacent analyser whose output is *not* a first-principles input), `design-system/`, or `framework/state/` for any purpose. Derivative artefacts and pipeline state are not first-principles-review inputs.
+- Do not read `analyse-requirements/` (including `analyse-requirements/FIVE-WHYS/`, the methodologically-adjacent analyser whose output is *not* a first-principles input), `design-system/`, or `framework/state/` for any purpose. Derivative artefacts and pipeline state are not first-principles-review inputs.
 - Do not read `framework/shared/prototype-scope.md`. Every §4–§7 subject is in-scope for first-principles evaluation by construction; the scope filter would have nothing to drop. The omission is documented in diagnostics as `scope-filter: not-applicable`.
 - Do not read other reviewers' references (`adversarial-reference.md`, `ten-ba-questions-reference.md`, `ten-ux-questions-reference.md`, `user-stories-reference.md`). The four sibling lenses are independent — there is no cross-methodology filter source. The omission is documented as `cross-methodology-filter: not-applicable`.
 - Do not read any file under `framework/shared/` other than the two filter sources (`general-rules.md`, `prototype-invariants.md`) — and only at Step 6. Other shared files (e.g. `refusal-registry.md`) are referenced by ID, not read by this agent.

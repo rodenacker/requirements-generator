@@ -2,7 +2,7 @@
 
 # derive-ui-inventory.md
 
-**Purpose:** Produce the design-spec UI inventory directly from `requirements.md` when no analyses are present in `artifacts/requirements/analyses/` — the requirements-only fallback. Screens by task flow, CTAs by user goals, structure by entity model.
+**Purpose:** Produce the design-spec UI inventory directly from `requirements.md` when no analyses are present in `analyse-requirements/` — the requirements-only fallback. Screens by task flow, CTAs by user goals, structure by entity model.
 
 **Inputs:** `requirements.md`, `assets/taxonomy-screens.md`, `assets/taxonomy-tasks.md`, `assets/topics-design.md`.
 

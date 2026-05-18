@@ -10,7 +10,7 @@ The skill itself does not surface refusal predicates. The caller (a renderer-sta
 
 **Inputs (caller-supplied):**
 
-- `artefact_path` — **required** — repo-relative path to the rendered HTML artefact (e.g., `analyses/DATA-MODEL/data-model.html`, `analyses/TASK-FLOWS/task-flows.html`, `analyses/STATE-DIAGRAM/state-diagram.html`). The skill parses *only* the `<svg>...</svg>` blocks inside the file.
+- `artefact_path` — **required** — repo-relative path to the rendered HTML artefact (e.g., `analyse-requirements/DATA-MODEL/data-model.html`, `analyse-requirements/TASK-FLOWS/task-flows.html`, `analyse-requirements/STATE-DIAGRAM/state-diagram.html`). The skill parses *only* the `<svg>...</svg>` blocks inside the file.
 - `report_path` — **required** — path the skill writes its NDJSON output to (e.g., `framework/state/svg-overlap-<slug>.ndjson`). One line per detected overlap; zero lines on `pass`.
 - `node_class_allowlist` — **required** — caller-supplied list of CSS class substrings that identify *node* primitives (not edges, not labels, not backgrounds). Per pipeline:
   - Task-flows: `["hta-goal", "hta-subgoal", "hta-operation", "tfd-start", "tfd-step", "tfd-decision", "tfd-exit-success", "tfd-exit-abort", "tfd-exit-escalate", "tfd-exit-retry", "tfd-exit-compensate", "plan-badge"]`.

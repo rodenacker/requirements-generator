@@ -8,7 +8,7 @@
 
 - `framework/agents/reviews/user-stories-reviewer.md` — drives the agent's enumeration, criterion-by-criterion evaluation, filter, grouping, validate, render, and write workflow.
 
-**Output produced by the reviewer:** `reviews/USER-STORIES/user-stories-review.md` — a markdown document listing every user story in §4.2 that fails one or more of six quality criteria, sorted by priority (`blocking | major | minor`), grouped within each priority by persona then anchor, each finding annotated with the persona group, the violated criteria, the reason for each violation, and a concise fix suggestion. Passing stories are not surfaced in the body; their pass-count is recorded in the diagnostics block.
+**Output produced by the reviewer:** `review-requirements/USER-STORIES/user-stories-review.md` — a markdown document listing every user story in §4.2 that fails one or more of six quality criteria, sorted by priority (`blocking | major | minor`), grouped within each priority by persona then anchor, each finding annotated with the persona group, the violated criteria, the reason for each violation, and a concise fix suggestion. Passing stories are not surfaced in the body; their pass-count is recorded in the diagnostics block.
 
 The scaffold for the artefact is `framework/assets/reviews/template-user-stories.md`.
 
@@ -84,7 +84,7 @@ The reviewer reads **only** the following:
 It does **not** consult:
 
 - `requirements/requirements-draft.md`, `requirements/source-manifest.json`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — pipeline-internal.
-- `analyses/*` outputs — derived artefacts; the review's contract is to audit the stories in the source doc.
+- `analyse-requirements/*` outputs — derived artefacts; the review's contract is to audit the stories in the source doc.
 - `design-system/*` outputs — not relevant to a user-stories quality review.
 - `framework/state/*` — pipeline state is not a review input.
 - `framework/shared/prototype-scope.md` — every story under §4.2 is by definition in-scope for the prototype (a story narrating an out-of-scope concern would have been caught at `/requirements` time). The scope filter would have nothing to drop, so the file is not read; the omission saves a read and is documented in diagnostics as `scope-filter: not-applicable`.
@@ -359,7 +359,7 @@ Nine gates. All are hard. If any gate fails, the reviewer does **not** write the
 - **Padding the blocking count.** A clean set legitimately produces zero blocking findings. The priority distribution is honest signal; no quota enforcement.
 - **Generic issues.** *"This story is unclear"* is not a finding. Cite the specific criterion and the specific property of the story that fails it.
 - **Re-flagging GR-NN / PI-NN-resolved concerns.** Step-4 filters them; gate 5 catches escapees. A finding whose root cause is `GR-04` (confirmation modal policy) is dropped.
-- **Reviewing against derivatives.** Do not consult `analyses/*` outputs to triangulate story quality. The review's contract is to read `requirements/requirements.md` as the source of truth.
+- **Reviewing against derivatives.** Do not consult `analyse-requirements/*` outputs to triangulate story quality. The review's contract is to read `requirements/requirements.md` as the source of truth.
 - **Inline `[SRC: ...]` markers.** Per project convention (`feedback_no_inline_provenance`), the merged requirements doc is clean of provenance markers; the review artefact is also clean. Findings cite by `§4.2 / Persona / story #N`, not by `[SRC: ...]`.
 - **Editing the template scaffold.** Only the documented `{{placeholders}}` are substituted; section ordering, table column headers, and the diagnostics layout are fixed.
 

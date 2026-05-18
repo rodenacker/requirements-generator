@@ -4,7 +4,7 @@
 
 **Purpose:** Translate JTBD statements into primary-task weighting for screen prioritisation + Core Content Priority signals per screen. Job importance × satisfaction gap → screen primacy; main/emotional/social job mix → content-priority emphasis.
 
-**Inputs:** `artifacts/requirements/analyses/jtbd.md`, `assets/taxonomy-screens.md`.
+**Inputs:** `analyse-requirements/JTBD/jtbd-job-map.html`, `assets/taxonomy-screens.md`.
 
 **Outputs:** screen-prioritisation hints + per-screen CCP signals for the design-spec drafter.
 

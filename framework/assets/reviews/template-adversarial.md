@@ -37,7 +37,7 @@
     {{DIMENSION_8_BLOCK}}
     {{DIAGNOSTICS_BLOCK}}      — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
 
-  Output: reviews/ADVERSARIAL/adversarial-review.md.
+  Output: review-requirements/ADVERSARIAL/adversarial-review.md.
 
   FINDINGS TABLE SCHEMA — each row the reviewer emits has the shape:
 

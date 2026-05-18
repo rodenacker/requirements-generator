@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **t
 
 ## Purpose
 
-Produce `analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md` — a self-contained markdown artefact with an inline Mermaid theme-map diagram, carrying:
+Produce `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md` — a self-contained markdown artefact with an inline Mermaid theme-map diagram, carrying:
 
 - A **Header** (title, generation timestamp, manifest fingerprint, run count).
 - A **thematic-meta** HTML comment line carrying the additive-merge cursor (`manifest_fingerprint`, `run_count`).
@@ -65,15 +65,15 @@ This agent reads:
 
 - `requirements/source-manifest.json` (read once in Step 2; the orchestrator's Step 1 input-handler invocation guarantees its presence).
 - For each manifest row whose `tier != "Unsupported"`: the file at `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`).
-- `analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md` (read once in Step 3 if present, for additive merge).
+- `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md` (read once in Step 3 if present, for additive merge).
 - `framework/assets/characters/thematic-analysis-inputs-analysis.md` (the character — loaded once in Step 1).
 - `framework/assets/analyses-inputs/thematic-analysis-reference.md` (the methodology — read once in Step 1).
 
-The agent reads **nothing else under `requirements/`** — not `requirements/requirements.md`, not `requirements/requirements-draft.md`, not `requirements/consultant-answers.md`, not `requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry references are textual, not file loads). It does not read other analyses' artefacts under `analyses/` or under `analyses/inputs/<OTHER-METHOD>/`.
+The agent reads **nothing else under `requirements/`** — not `requirements/requirements.md`, not `requirements/requirements-draft.md`, not `requirements/consultant-answers.md`, not `requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry references are textual, not file loads). It does not read other analyses' artefacts under `analyse-requirements/` or under `analyse-inputs/<OTHER-METHOD>/`.
 
 No template asset. Thematic Analysis composes markdown directly from in-memory state and embeds the Mermaid diagram in a fenced block.
 
-The agent's only outputs are `analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
@@ -104,12 +104,12 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 ### Step 3 — Detect prior artefact (additive vs re-extract)
 
-- Attempt to `Read analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md`. If absent, set `prior_run = null` and skip to Step 4.
+- Attempt to `Read analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md`. If absent, set `prior_run = null` and skip to Step 4.
 - If present:
   - Parse the `<!-- thematic-meta: ... -->` header line. Extract `manifest_fingerprint` (hex string) and `run_count` (integer ≥ 1).
   - Walk the body to enumerate every theme heading (`### <theme label>` under `## Themes`); record `prior_themes_by_label: Dict[label, {definition, codes[], candidate_requirements[]}]` with the full per-block byte ranges so the merge can preserve bodies verbatim.
   - Validate the meta-comment values parse cleanly. If they do not, surface `AskUserQuestion`:
-    - Question: *"The prior `analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md` has an unparseable thematic-meta header (`{reason}`). Treat it as if absent and start fresh, or abort so you can inspect manually?"*
+    - Question: *"The prior `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md` has an unparseable thematic-meta header (`{reason}`). Treat it as if absent and start fresh, or abort so you can inspect manually?"*
     - Header: `Prior run`
     - Options: `Start fresh — ignore the unreadable prior file (Recommended)`, `Abort — let me inspect`.
   - On `Start fresh`: set `prior_run = null`; advance to Step 4.
@@ -441,11 +441,11 @@ The SHA-256 captured at the end of Sub-step B is final unless Sub-step C re-rend
 
 ### Step 11 — Write + verify-artifact-write
 
-- Ensure the output directory exists: `Bash mkdir -p analyses/inputs/THEMATIC-ANALYSIS` (on Windows-only environments, the PowerShell-equivalent `New-Item -ItemType Directory -Force analyses/inputs/THEMATIC-ANALYSIS` may be used; the orchestrator's environment determines which shell is in use — use whichever the orchestrator's prior steps used).
-- `Write analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md` with the in-memory composed string.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md`, `expected_sha256 = <Step 10 sha>`, `expected_min_bytes = 1024`. A minimum legal render (Header + Meta + Summary + ≥ 1 Theme + Mermaid block + ≥ 0 Bridge + Coverage 3-list + Source roster + Run history) clears 1 KB.
+- Ensure the output directory exists: `Bash mkdir -p analyse-inputs/THEMATIC-ANALYSIS` (on Windows-only environments, the PowerShell-equivalent `New-Item -ItemType Directory -Force analyse-inputs/THEMATIC-ANALYSIS` may be used; the orchestrator's environment determines which shell is in use — use whichever the orchestrator's prior steps used).
+- `Write analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md` with the in-memory composed string.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md`, `expected_sha256 = <Step 10 sha>`, `expected_min_bytes = 1024`. A minimum legal render (Header + Meta + Summary + ≥ 1 Theme + Mermaid block + ≥ 0 Bridge + Coverage 3-list + Source roster + Run history) clears 1 KB.
 - **On `pass`:** advance to Step 12 (Handback).
-- **On `RF-04 trigger`:** halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md` after one retry."* and fail handback. The orchestrator does not declare done.
+- **On `RF-04 trigger`:** halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md` after one retry."* and fail handback. The orchestrator does not declare done.
 
 ### Step 12 — Handback (Accept / Revise / Restart)
 
@@ -453,7 +453,7 @@ The SHA-256 captured at the end of Sub-step B is final unless Sub-step C re-rend
 
 Output one short, concrete line listing the run's counts, the quality-check result, and the coverage shape. Template:
 
-> *"Wrote `analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md` (run #{run_count}) — {len(final_themes)} themes, {len(codes)} codes, {len(candidate_requirements)} candidate-requirements across {len(consumed_rows)} sources. Coverage frame: {n_covered} covered, {n_gap} gap-deductive, {n_silent} silent. Quality checks: 6/6 pass. Ready, or want changes?"*
+> *"Wrote `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md` (run #{run_count}) — {len(final_themes)} themes, {len(codes)} codes, {len(candidate_requirements)} candidate-requirements across {len(consumed_rows)} sources. Coverage frame: {n_covered} covered, {n_gap} gap-deductive, {n_silent} silent. Quality checks: 6/6 pass. Ready, or want changes?"*
 
 Variants:
 
@@ -486,7 +486,7 @@ Use `AskUserQuestion`:
   - **Drop a coverage gap** ("the `NFR` gap is out of scope — accept as silent"): re-classify the entry from `gap-deductive` to `silent` (with a Run-history note that the consultant explicitly accepted this gap); re-render; re-Mermaid-validate; re-Write; re-verify; loop back to A. Note: the consultant cannot **invent** coverage — they may only re-classify a `gap-deductive` to `silent`, never the reverse.
   - **Toggle code nodes in the Mermaid diagram** ("include codes in the theme-map"): set the `include-codes` flag; re-render the Mermaid block with `c<j>((<code_label>))` nodes and `T<i> --> c<j>` edges; re-Mermaid-validate; re-Write; re-verify; loop back to A.
   - **Add an Override note** for a previously-failed gate: append the note to the Run-history bullet for this run; re-render; re-Write; re-verify; loop back to A.
-- **Restart** — re-enter Step 4 (Phase 1). The previously-written `analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md` is left in place; the next Step 11 will overwrite it.
+- **Restart** — re-enter Step 4 (Phase 1). The previously-written `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md` is left in place; the next Step 11 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04 / mermaid-validator halt, which propagates per Step 10 / Step 11).
 
@@ -500,7 +500,7 @@ Output the final handback line:
 
 - `requirements/source-manifest.json` — the manifest enumerating consumable input files. Read once in Step 2. The orchestrator's Step 1 input-handler invocation guarantees its presence.
 - Each manifest row's `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`). Read in Step 2.
-- `analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md` — the prior run's artefact. Read once in Step 3 if present; absent on first run.
+- `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md` — the prior run's artefact. Read once in Step 3 if present; absent on first run.
 - `framework/assets/characters/thematic-analysis-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/thematic-analysis-reference.md` — the methodology reference. Read once in Step 1.
 
@@ -508,14 +508,14 @@ Output the final handback line:
 
 ## Output
 
-- `analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md` — the populated artefact. Always written to the same path; **additively merged** with the prior run's contents (prior theme headings + bodies preserved verbatim unless the consultant chose the `re-extract-everything` drift branch).
+- `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md` — the populated artefact. Always written to the same path; **additively merged** with the prior run's contents (prior theme headings + bodies preserved verbatim unless the consultant chose the `re-extract-everything` drift branch).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the manifest, each manifest-enumerated source file (via `original_path` or `converted_sibling`), and (if present) the prior thematic-analysis artefact. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md`.
+- `Write` — write `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 10's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p analyses/inputs/THEMATIC-ANALYSIS` (Step 11 setup). No other Bash usage.
+- `Bash` — `mkdir -p analyse-inputs/THEMATIC-ANALYSIS` (Step 11 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 3 prior-run reconciliation prompt (only if the prior meta header is unparseable, or for the drift gate when the manifest fingerprint changed); surface the Step 10 quality-check failure prompt (Revise / Override / Restart); surface the Step 12 Accept / Revise / Restart prompt.
 
 The mermaid-validator skill at Step 10 sub-C is invoked **inline as a procedure** (the agent reads its workflow and executes the `mmdc` invocation directly via `Bash`). It is not a delegated sub-agent.
@@ -526,7 +526,7 @@ The mermaid-validator skill at Step 10 sub-C is invoked **inline as a procedure*
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md` exists and `verify-artifact-write` returned `pass`.
+- `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{...}` placeholder strings.
 - The artefact begins with `# Thematic Analysis`.
 - The artefact's Header line contains the `manifest_fingerprint` captured in Step 2.
@@ -547,7 +547,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md` exists, has been verified, and contains a complete thematic analysis: Header, Meta comment, Summary, Themes (≥ 1), Theme-map (valid Mermaid), Theme-to-requirement-candidates, Coverage gaps and silent areas (10 entries), Source roster, Run history.
+- `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md` exists, has been verified, and contains a complete thematic analysis: Header, Meta comment, Summary, Themes (≥ 1), Theme-map (valid Mermaid), Theme-to-requirement-candidates, Coverage gaps and silent areas (10 entries), Source roster, Run history.
 - Either all 6 hard quality gates passed, or the consultant explicitly chose Override and the Run-history bullet for this run records every violation.
 - The Mermaid theme-map validated `valid`.
 - Additive-merge contract honoured: every prior-run theme heading is present in the new artefact (unless the consultant explicitly dropped it via Revise or the `re-extract-everything` drift branch re-clustered it away with a Run-history note).

@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **u
 
 ## Purpose
 
-Produce `analyses/USER-JOURNEYS/user-journeys-map.html` — a self-contained HTML journey atlas — by applying the user-journeys reference (`framework/assets/analyses/user-journeys-reference.md`) literally and exhaustively to the merged requirements document `requirements/requirements.md`. Every journey is anchored to one named persona from `§3 Target users` and one named scenario from `§4 User goals & stories` or `§5 Task flows` (no invented personas, no invented scenarios). Every rendered cell carries exactly one provenance marker. The emotion score on every phase is an integer in [−2, +2]. Every quality check in the reference is a hard gate; the soft density check is a non-blocking warning surfaced in diagnostics and handback.
+Produce `analyse-requirements/USER-JOURNEYS/user-journeys-map.html` — a self-contained HTML journey atlas — by applying the user-journeys reference (`framework/assets/analyses/user-journeys-reference.md`) literally and exhaustively to the merged requirements document `requirements/requirements.md`. Every journey is anchored to one named persona from `§3 Target users` and one named scenario from `§4 User goals & stories` or `§5 Task flows` (no invented personas, no invented scenarios). Every rendered cell carries exactly one provenance marker. The emotion score on every phase is an integer in [−2, +2]. Every quality check in the reference is a hard gate; the soft density check is a non-blocking warning surfaced in diagnostics and handback.
 
 ## Output section order
 
@@ -30,7 +30,7 @@ The agent's only inputs are:
 - `framework/assets/analyses/user-journeys-reference.md` (the methodology — read at activation).
 - `framework/assets/analyses/template-user-journeys.html` (the HTML scaffold — read once at render time).
 
-The agent's only outputs are `analyses/USER-JOURNEYS/user-journeys-map.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `analyse-requirements/USER-JOURNEYS/user-journeys-map.html` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
@@ -163,11 +163,11 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 ### Step 10 — Write
 
-- Ensure the output directory exists: `Bash mkdir -p analyses/USER-JOURNEYS`.
-- `Write analyses/USER-JOURNEYS/user-journeys-map.html` with the in-memory composed HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = analyses/USER-JOURNEYS/user-journeys-map.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with one journey card and a non-empty diagnostics block is comfortably above 1 KB).
+- Ensure the output directory exists: `Bash mkdir -p analyse-requirements/USER-JOURNEYS`.
+- `Write analyse-requirements/USER-JOURNEYS/user-journeys-map.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = analyse-requirements/USER-JOURNEYS/user-journeys-map.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with one journey card and a non-empty diagnostics block is comfortably above 1 KB).
 - On `pass`: advance to Step 11.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyses/USER-JOURNEYS/user-journeys-map.html` after one retry."* and fail the handback. The orchestrator does not declare done.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyse-requirements/USER-JOURNEYS/user-journeys-map.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 11 — Handback
 
@@ -175,7 +175,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-round counts, the quality-check result, and the `[AI-SUGGESTED]` density figure. No marketing language. Template:
 
-> *"Wrote `analyses/USER-JOURNEYS/user-journeys-map.html` — `{{JOURNEY_COUNT}}` journeys across `{{PERSONA_COUNT}}` personas, `{{PHASE_COUNT}}` phases, `{{ACTION_COUNT}}` actions, `{{PAIN_POINT_COUNT}}` pain points, `{{OPPORTUNITY_COUNT}}` opportunities. AI-SUGGESTED density: `{{ai_suggested_density_pct}}`%. Quality checks: `{{n_checks_passed}}/8` pass. Ready, or want changes?"*
+> *"Wrote `analyse-requirements/USER-JOURNEYS/user-journeys-map.html` — `{{JOURNEY_COUNT}}` journeys across `{{PERSONA_COUNT}}` personas, `{{PHASE_COUNT}}` phases, `{{ACTION_COUNT}}` actions, `{{PAIN_POINT_COUNT}}` pain points, `{{OPPORTUNITY_COUNT}}` opportunities. AI-SUGGESTED density: `{{ai_suggested_density_pct}}`%. Quality checks: `{{n_checks_passed}}/8` pass. Ready, or want changes?"*
 
 Variants:
 
@@ -202,7 +202,7 @@ Use `AskUserQuestion`:
     - For a phase / action / touchpoint edit: update the in-memory structure, re-run checks 2/3/4 as applicable, re-render, re-Write, re-verify, loop back to A.
     - For an emotion-score / pain-point / opportunity edit: update in-memory, re-run checks 5/6, recompute moment-of-truth flags, re-render (including re-drawing the SVG polyline), re-Write, re-verify, loop back to A.
     - For an `ai-suggested` reclassification (consultant supplies a source): update provenance marker and remove `[AI-SUGGESTED]` prefix, re-run check #7, recompute density, re-render, re-Write, re-verify, loop back to A.
-- **Restart** — re-enter Step 3. The previously-written `analyses/USER-JOURNEYS/user-journeys-map.html` is left in place; the next Step 10 will overwrite it.
+- **Restart** — re-enter Step 3. The previously-written `analyse-requirements/USER-JOURNEYS/user-journeys-map.html` is left in place; the next Step 10 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 10).
 
@@ -221,14 +221,14 @@ Output the final handback line:
 
 ## Output
 
-- `analyses/USER-JOURNEYS/user-journeys-map.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
+- `analyse-requirements/USER-JOURNEYS/user-journeys-map.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template scaffold, and the merged requirements document. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `framework/state/`, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyses/USER-JOURNEYS/user-journeys-map.html`.
+- `Write` — write `analyse-requirements/USER-JOURNEYS/user-journeys-map.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 9's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p analyses/USER-JOURNEYS` (Step 10 setup). No other Bash usage.
+- `Bash` — `mkdir -p analyse-requirements/USER-JOURNEYS` (Step 10 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 8 quality-check failure prompt (Revise / Override / Restart) when any hard check fires; surface the Step 11 Accept / Revise / Restart prompt.
 
 **No MCP tools.** No Agent / Task delegation. The inline SVG is emitted by the analyser directly; there is no external rendering pipeline.
@@ -237,7 +237,7 @@ Output the final handback line:
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `analyses/USER-JOURNEYS/user-journeys-map.html` exists and `verify-artifact-write` returned `pass`.
+- `analyse-requirements/USER-JOURNEYS/user-journeys-map.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - Every `<section class="journey-card">` has its `--phase-count` inline style set, and the swimlane table column count matches.
 - Every `<tr>` inside a `<table class="journey-swimlane">` is one of the five named lanes (`.lane-actions`, `.lane-thoughts`, `.lane-emotion`, `.lane-touchpoints`, `.lane-painpoints`). All five lanes are present per card; empty cells render as `<td class="provenance-...">—</td>` rather than being omitted.
@@ -255,7 +255,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `analyses/USER-JOURNEYS/user-journeys-map.html` exists, has been verified, and contains a complete journey atlas.
+- `analyse-requirements/USER-JOURNEYS/user-journeys-map.html` exists, has been verified, and contains a complete journey atlas.
 - Either all eight hard quality checks passed, or the consultant explicitly chose Override and the diagnostics block records every violation.
 - The consultant has accepted the artefact in the Step 11 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.

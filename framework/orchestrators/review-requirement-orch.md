@@ -18,11 +18,11 @@ The reviewer agent **may** internally dispatch non-interactive analytical sub-ag
 
 ## Purpose
 
-Run a registry-driven, single-agent review pipeline. The orchestrator does not know which reviewer will be invoked at design time; it discovers the available reviewers at runtime via `framework/assets/reviews/registry.md` and the `review-selector` skill. The first methodology shipped is Adversarial Review (`framework/agents/reviews/adversarial-reviewer.md` writing `reviews/ADVERSARIAL/adversarial-review.md`). Adding methodologies later requires no orchestrator changes — only registry rows, reviewer agents, and supporting assets.
+Run a registry-driven, single-agent review pipeline. The orchestrator does not know which reviewer will be invoked at design time; it discovers the available reviewers at runtime via `framework/assets/reviews/registry.md` and the `review-selector` skill. The first methodology shipped is Adversarial Review (`framework/agents/reviews/adversarial-reviewer.md` writing `review-requirements/ADVERSARIAL/adversarial-review.md`). Adding methodologies later requires no orchestrator changes — only registry rows, reviewer agents, and supporting assets.
 
 ## Stand-alone constraint
 
-This orchestrator and its reviewer agents are **isolated from the `/requirements`, `/design-system`, and `/analyse-requirement` pipelines** for write purposes. They write only to `reviews/<METHOD>/` (the reviewer's output path) and never to `requirements/`, `design-system/`, `analyses/`, `framework/state/`, or `framework/shared/`. The orchestrator does **read** the following pipeline-external paths:
+This orchestrator and its reviewer agents are **isolated from the `/requirements`, `/design-system`, and `/analyse-requirement` pipelines** for write purposes. They write only to `review-requirements/<METHOD>/` (the reviewer's output path) and never to `requirements/`, `design-system/`, `analyse-requirements/`, `framework/state/`, or `framework/shared/`. The orchestrator does **read** the following pipeline-external paths:
 
 - `requirements/requirements.md` — the prerequisite gate (existence + non-empty). Read-only.
 - `framework/assets/reviews/registry.md` — methodology registry. Read-only.
@@ -44,14 +44,14 @@ Unlike `requirements-orch.md`, this orchestrator does **not** maintain a `.progr
 
 0b. **Preflight: context-bloat check** — performed only when step 0 did not exit. Call `framework/skills/check-context-bloat.md` with `artefact_dir = requirements/`, `manifest_path = requirements/source-manifest.json`, and `progress_path = framework/state/.progress.json`. On `ok`, proceed to step 1. On `RF-05 trigger`, surface the predicate per `framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` (review-requirement-orch surface variant, see below) via `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`.
     - `proceed-without-clear` — proceed to step 1.
-    - `continue-later` — output: *"Conversation context looks bloated from prior pipeline state. Run `/clear` and re-invoke `/review-requirement` for a clean run."* and exit cleanly. Do **not** write `framework/state/.progress.json` — same constraint as the `design-system-orch` and `analyse-requirement-orch` surface variants of RF-05. Do **not** modify any path under `reviews/`.
+    - `continue-later` — output: *"Conversation context looks bloated from prior pipeline state. Run `/clear` and re-invoke `/review-requirement` for a clean run."* and exit cleanly. Do **not** write `framework/state/.progress.json` — same constraint as the `design-system-orch` and `analyse-requirement-orch` surface variants of RF-05. Do **not** modify any path under `review-requirements/`.
 
 1. **Select methodology** — invoke `framework/skills/review-selector.md`. The skill reads the registry, filters `status == mvp`, surfaces an `AskUserQuestion` with one option per row plus a final `Cancel` option, and returns one of `selected | cancelled | empty-registry`.
     - `selected` — capture the returned row payload (eight registry fields) into in-memory variables: `chosen.name`, `chosen.reviewer_agent`, `chosen.output_path`, `chosen.reference_asset`, `chosen.template_asset`, `chosen.map_skill`, `chosen.character`. Advance to step 2.
     - `cancelled` — emit *"Cancelled. No review run."* and exit cleanly.
     - `empty-registry` — emit *"Configuration error: no review methodologies are registered with `status: mvp` in `framework/assets/reviews/registry.md`. Cannot continue."* and exit cleanly. This is a defensive guard; should never fire in normal operation.
 
-2. **Detect prior artefact for the chosen methodology** — `Read chosen.output_path`. (For Adversarial Review: `reviews/ADVERSARIAL/adversarial-review.md`.)
+2. **Detect prior artefact for the chosen methodology** — `Read chosen.output_path`. (For Adversarial Review: `review-requirements/ADVERSARIAL/adversarial-review.md`.)
     - **No prior artefact** — proceed directly to step 3.
     - **Prior artefact exists** — surface a single `AskUserQuestion`:
         - Question: *"`{{chosen.output_path}}` already exists. Overwrite it with a fresh run, keep it and exit, or cancel?"*
@@ -106,7 +106,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 
 ## Output
 
-- `<chosen.output_path>` — produced by the reviewer at its write step. For Adversarial Review: `reviews/ADVERSARIAL/adversarial-review.md`. The orchestrator produces no other artefact.
+- `<chosen.output_path>` — produced by the reviewer at its write step. For Adversarial Review: `review-requirements/ADVERSARIAL/adversarial-review.md`. The orchestrator produces no other artefact.
 
 ## Tools
 
@@ -122,20 +122,20 @@ The orchestrator's tools are limited to the operations above. Every other read o
 
 - Fired once at step 0b, immediately after the step-0 prerequisite gate passes and before the methodology selector runs.
 - `proceed-without-clear` advances; `continue-later` exits cleanly with a *"run `/clear` and re-invoke `/review-requirement`"* message.
-- **No write to `framework/state/.progress.json`** on either branch. The `/review-requirement` pipeline is bound by the no-write-outside-`reviews/` invariant; the registry's review-requirement-orch surface variant for `RF-05` deliberately omits the `status: context-bloated` write that the requirements-orch variant performs.
+- **No write to `framework/state/.progress.json`** on either branch. The `/review-requirement` pipeline is bound by the no-write-outside-`review-requirements/` invariant; the registry's review-requirement-orch surface variant for `RF-05` deliberately omits the `status: context-bloated` write that the requirements-orch variant performs.
 
 When the registry file is next revised, append a fourth surface-variant block for `review-requirement-orch` to keep that document in sync. The runtime contract is captured here and in `framework/orchestrators/review-requirement-orch.md > Pipeline > step 0b` as the operational source of truth.
 
 ## Self-validation (run before declaring done)
 
 - Step 0 ran. `requirements/requirements.md` exists and is non-empty. If it did not, the orchestrator exited cleanly with the prerequisite message and no agent was invoked.
-- Step 0b ran on every path that did not exit at step 0, and the consultant's `RF-05` choice (if surfaced) was honoured: `proceed-without-clear` advanced to step 1; `continue-later` exited cleanly without writing `framework/state/.progress.json` and without modifying `reviews/`.
+- Step 0b ran on every path that did not exit at step 0, and the consultant's `RF-05` choice (if surfaced) was honoured: `proceed-without-clear` advanced to step 1; `continue-later` exited cleanly without writing `framework/state/.progress.json` and without modifying `review-requirements/`.
 - Step 1 ran. The review-selector skill returned exactly one of `selected | cancelled | empty-registry`, and the orchestrator branched accordingly.
 - If the consultant chose `Cancel` at the step-1 selector or `Keep`/`Cancel` at the step-2 prior-artefact gate, no `Bash` was run and the reviewer was not invoked.
 - If the consultant chose `Overwrite` at step 2, the git checkpoint commit ran without `--no-verify`, without amend, and without push, and the prior artefact was deleted before the agent was invoked.
 - If the reviewer was invoked, its handback gate was met (artefact exists, verify pass, consultant accepted).
 - The agent was run in the foreground, never via the Agent / Task / fork / sub-agent mechanism.
-- No file was written outside `reviews/<chosen.name uppercased>/` (excluding the step-2 git checkpoint commit, which is a git-history write, not a filesystem artefact under a state directory).
+- No file was written outside `review-requirements/<chosen.name uppercased>/` (excluding the step-2 git checkpoint commit, which is a git-history write, not a filesystem artefact under a state directory).
 
 ## Definition of Done
 
@@ -156,7 +156,7 @@ When the registry file is next revised, append a fourth surface-variant block fo
 - Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the checkpoint commit.
 - Do not maintain a `.progress.json` file. This orchestrator is single-agent and one-shot; progress tracking is unnecessary and out of scope.
 - Do not skip step 0b on a path that did not exit at step 0. The preflight is the only place where prior-conversation bloat is detected before the reviewer runs.
-- Do not write `framework/state/.progress.json` on the `RF-05 continue-later` branch. The review pipeline is bound by the no-write-outside-`reviews/` invariant.
+- Do not write `framework/state/.progress.json` on the `RF-05 continue-later` branch. The review pipeline is bound by the no-write-outside-`review-requirements/` invariant.
 - Do not read `framework/state/` or `framework/shared/` outside the narrow exceptions documented in **Stand-alone constraint** (the step-0b preflight inputs and the refusal-registry references). This orchestrator and its reviewers remain stand-alone for every other purpose.
 - Do not surface the step-1 methodology prompt from within this orchestrator. That prompt is the review-selector skill's responsibility; surfacing it inline duplicates the registry-read logic and breaks the open/closed extension contract (adding a methodology must require zero orchestrator edits).
 - Do not surface the step-3 accept/revise/restart prompt from within this orchestrator. That prompt belongs to the chosen reviewer's handback step; surfacing it from the orchestrator would break the handback-gate contract.

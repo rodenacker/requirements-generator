@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **j
 
 ## Purpose
 
-Produce `analyses/JTBD/jtbd-job-map.html` — a self-contained HTML job-card grid — by applying the JTBD-X process (`framework/assets/analyses/jtbd-reference.md`) literally and exhaustively to the merged requirements document `requirements/requirements.md`. Every job on the map is named by an actor + situation drawn verbatim from the requirements doc where `§Personas` / `§Task flows` / `§User stories` anchor them, derived from another section where they do not, and carries an actor-provenance marker and a situation-provenance marker either way. Every quality gate in the reference is a hard gate.
+Produce `analyse-requirements/JTBD/jtbd-job-map.html` — a self-contained HTML job-card grid — by applying the JTBD-X process (`framework/assets/analyses/jtbd-reference.md`) literally and exhaustively to the merged requirements document `requirements/requirements.md`. Every job on the map is named by an actor + situation drawn verbatim from the requirements doc where `§Personas` / `§Task flows` / `§User stories` anchor them, derived from another section where they do not, and carries an actor-provenance marker and a situation-provenance marker either way. Every quality gate in the reference is a hard gate.
 
 ## Output section order
 
@@ -31,7 +31,7 @@ The agent's only inputs are:
 - `framework/assets/analyses/jtbd-reference.md` (the methodology — read at activation).
 - `framework/assets/analyses/template-jtbd.html` (the HTML scaffold — read once at render time).
 
-The agent's only outputs are `analyses/JTBD/jtbd-job-map.html` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `analyse-requirements/JTBD/jtbd-job-map.html` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted.
 
@@ -179,11 +179,11 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 ### Step 10 — Write
 
-- Ensure the output directory exists: `Bash mkdir -p analyses/JTBD`.
-- `Write analyses/JTBD/jtbd-job-map.html` with the in-memory composed HTML.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = analyses/JTBD/jtbd-job-map.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with a non-empty diagnostics block is comfortably above 1 KB).
+- Ensure the output directory exists: `Bash mkdir -p analyse-requirements/JTBD`.
+- `Write analyse-requirements/JTBD/jtbd-job-map.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = analyse-requirements/JTBD/jtbd-job-map.html`, `expected_sha256 = <step-9 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with a non-empty diagnostics block is comfortably above 1 KB).
 - On `pass`: advance to Step 11.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyses/JTBD/jtbd-job-map.html` after one retry."* and fail the handback. The orchestrator does not declare done.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyse-requirements/JTBD/jtbd-job-map.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 11 — Handback
 
@@ -191,7 +191,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-round counts and the quality-gate result. No marketing language. Template:
 
-> *"Wrote `analyses/JTBD/jtbd-job-map.html` — `{{JOB_COUNT}}` jobs across `{{CLUSTER_COUNT}}` clusters (`{{FUNCTIONAL_COUNT}}` functional, `{{EMOTIONAL_COUNT}}` emotional, `{{SOCIAL_COUNT}}` social), `{{HIGH_OPPORTUNITY_COUNT}}` at High priority. Quality gates: `{{n_gates_passed}}/7` pass. Ready, or want changes?"*
+> *"Wrote `analyse-requirements/JTBD/jtbd-job-map.html` — `{{JOB_COUNT}}` jobs across `{{CLUSTER_COUNT}}` clusters (`{{FUNCTIONAL_COUNT}}` functional, `{{EMOTIONAL_COUNT}}` emotional, `{{SOCIAL_COUNT}}` social), `{{HIGH_OPPORTUNITY_COUNT}}` at High priority. Quality gates: `{{n_gates_passed}}/7` pass. Ready, or want changes?"*
 
 Variant:
 
@@ -218,7 +218,7 @@ Use `AskUserQuestion`:
     - For an outcome measure edit: update Round 4 row, re-run gates 3/7, re-render, re-Write, re-verify, loop back to A.
     - For an importance / satisfaction edit: recompute `opportunity` and `band`, update the matrix, re-render, re-Write, re-verify, loop back to A.
     - For a force edit: update Round 6 cluster row, re-render, re-Write, re-verify, loop back to A.
-- **Restart** — re-enter Step 3. The previously-written `analyses/JTBD/jtbd-job-map.html` is left in place; the next Step 10 will overwrite it.
+- **Restart** — re-enter Step 3. The previously-written `analyse-requirements/JTBD/jtbd-job-map.html` is left in place; the next Step 10 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 10).
 
@@ -237,21 +237,21 @@ Output the final handback line:
 
 ## Output
 
-- `analyses/JTBD/jtbd-job-map.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
+- `analyse-requirements/JTBD/jtbd-job-map.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template scaffold, and the merged requirements document. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `framework/state/`, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyses/JTBD/jtbd-job-map.html`.
+- `Write` — write `analyse-requirements/JTBD/jtbd-job-map.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 9's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p analyses/JTBD` (Step 10 setup). No other Bash usage.
+- `Bash` — `mkdir -p analyse-requirements/JTBD` (Step 10 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 8 quality-gate failure prompt (Revise / Override / Restart) when any gate fires; surface the Step 11 Accept / Revise / Restart prompt.
 
 ## Self-validation (run before declaring done)
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `analyses/JTBD/jtbd-job-map.html` exists and `verify-artifact-write` returned `pass`.
+- `analyse-requirements/JTBD/jtbd-job-map.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - Every `<article class="job-card">` has its type class set to exactly one of `type-functional`, `type-emotional`, or `type-social`. No unclassified cards.
 - Every job card has its actor-provenance dot set to exactly one of `provenance-from-personas` or `provenance-derived`. No unmarked actors.
@@ -268,7 +268,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `analyses/JTBD/jtbd-job-map.html` exists, has been verified, and contains a complete job map.
+- `analyse-requirements/JTBD/jtbd-job-map.html` exists, has been verified, and contains a complete job map.
 - Either all seven quality gates passed, or the consultant explicitly chose Override and the diagnostics block records every violation.
 - The consultant has accepted the artefact in the Step 11 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.

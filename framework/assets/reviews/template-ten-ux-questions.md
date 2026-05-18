@@ -34,7 +34,7 @@
     {{QUESTION_10_BLOCK}}
     {{DIAGNOSTICS_BLOCK}}        — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
 
-  Output: reviews/TEN-UX-QUESTIONS/ten-ux-questions-review.md.
+  Output: review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.md.
 
   TRIAGE BLOCK SCHEMA — {{TRIAGE_BLOCK}} is a single markdown table listing
   every selected question in rank order (UXQ-01 first, UXQ-10 last):

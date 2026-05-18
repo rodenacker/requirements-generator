@@ -42,7 +42,7 @@
     {{DIMENSION_7_BLOCK}}
     {{DIAGNOSTICS_BLOCK}}      — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below (includes Quality gates, Coverage map, Strict-BMAD re-run log, Override log, Source roster Consumed + Skipped tables)
 
-  Output: reviews/inputs/ADVERSARIAL/adversarial-review.md.
+  Output: review-inputs/ADVERSARIAL/adversarial-review.md.
 
   FINDINGS TABLE SCHEMA — each row the reviewer emits has the shape:
 

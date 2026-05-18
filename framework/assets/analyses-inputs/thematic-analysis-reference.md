@@ -4,7 +4,7 @@
 
 > **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json`, generate per-source observations (Phase 1), transform them into codes anchored to verbatim extracts (Phase 2), cluster the codes into candidate themes (Phase 3), refine the themes against their underlying codes (Phase 4), define and name the final themes (Phase 5), then produce the report — including a bridge from each theme to candidate-requirement seeds and a deductive coverage check against a fixed 10-area concern frame (Phase 6). Every code, theme-definition, and candidate-requirement carries one or more `[SRC: <filename>]` markers naming a manifest row. Coverage gaps surface as `[GAP-DEDUCTIVE: <concern>]` markers in a diagnostics section — **never** as invented themes. Across re-runs the artefact is **additive**: prior theme headings, code lists, and candidate-requirements are preserved; new manifest content extends them.
 
-**Output file:** `analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md` — a self-contained markdown document with an inline Mermaid theme-map diagram. **No template scaffold:** Thematic Analysis is the first MVP analyser of `/analyse-inputs` to exercise the registry's `template_asset: null` clause (pure markdown + Mermaid, no HTML).
+**Output file:** `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md` — a self-contained markdown document with an inline Mermaid theme-map diagram. **No template scaffold:** Thematic Analysis is the first MVP analyser of `/analyse-inputs` to exercise the registry's `template_asset: null` clause (pure markdown + Mermaid, no HTML).
 
 **Analyser agent:** `framework/agents/analyses-inputs/thematic-analysis-analyser.md`
 
@@ -254,7 +254,7 @@ The analyser **never** reads:
 - Any path under `requirements/` other than `requirements/source-manifest.json`.
 - Any path under `framework/state/`.
 - Any path under `framework/shared/` (textual references to `RF-NN` / `GR-NN` in this file and in the analyser are links for the reader, not file loads).
-- Other analyses' artefacts (`analyses/<OTHER-METHOD>/...`, `analyses/inputs/<OTHER-METHOD>/...`).
+- Other analyses' artefacts (`analyse-requirements/<OTHER-METHOD>/...`, `analyse-inputs/<OTHER-METHOD>/...`).
 - Any pattern-catalogue or design-system file.
 
 ---
@@ -304,7 +304,7 @@ The analysis is complete when:
 - `final_themes` is non-empty (or the consultant Override'd a zero-theme run with a recorded reason).
 - All 6 hard gates pass, or the consultant chose Override and the failures are recorded in Diagnostics.
 - The Mermaid theme-map validated `valid`.
-- `analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md` has been written and `verify-artifact-write` returned `pass`.
+- `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md` has been written and `verify-artifact-write` returned `pass`.
 - The consultant chose Accept in the handback loop.
 
 ---

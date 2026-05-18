@@ -9,6 +9,6 @@
 - `framework/skills/map-user-stories-to-ui.md` — stories → acceptance criteria per screen + CTAs.
 - `framework/assets/persona-llm.md` — loaded into persona context (if registered + present).
 
-**Output:** `artifacts/requirements/analyses/user-stories.md` — markdown with `##` per target-user persona, `###` per priority, bullet per story + acceptance criteria.
+**Output:** `analyse-requirements/USER-STORIES/user-stories.md` — markdown with `##` per target-user persona, `###` per priority, bullet per story + acceptance criteria.
 
 > Content TBD per `plan/v7b-Brief.md > §analyses/user-stories-reference.md`.

@@ -8,7 +8,7 @@
 
 - `framework/agents/reviews/ten-ba-questions-reviewer.md` — drives the agent's candidate-generation, filter, score-and-select, validate, render, and write workflow.
 
-**Output produced by the reviewer:** `reviews/TEN-BA-QUESTIONS/ten-ba-questions-review.md` — a markdown document listing the ten most pressing **unanswered** questions an experienced Business Analyst (BABOK-aware) would put back to the consultant after carefully reading `requirements/requirements.md`, each tagged `blocking | major | minor`, each anchored to a section or marked as a missing-section gap, each with a 1–2 sentence rationale on the business impact of leaving the question unanswered. Selection is from a candidate pool of up to 50.
+**Output produced by the reviewer:** `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md` — a markdown document listing the ten most pressing **unanswered** questions an experienced Business Analyst (BABOK-aware) would put back to the consultant after carefully reading `requirements/requirements.md`, each tagged `blocking | major | minor`, each anchored to a section or marked as a missing-section gap, each with a 1–2 sentence rationale on the business impact of leaving the question unanswered. Selection is from a candidate pool of up to 50.
 
 The scaffold for the artefact is `framework/assets/reviews/template-ten-ba-questions.md`.
 
@@ -79,7 +79,7 @@ The reviewer reads **only** the following:
 It does **not** consult:
 
 - `requirements/requirements-draft.md`, `requirements/source-manifest.json`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — pipeline-internal.
-- `analyses/*` outputs — derived artefacts; reviewing the requirements doc against derivatives of itself would conflate "what the doc says" with "what an analyser inferred". The review's contract is to identify gaps in the source doc.
+- `analyse-requirements/*` outputs — derived artefacts; reviewing the requirements doc against derivatives of itself would conflate "what the doc says" with "what an analyser inferred". The review's contract is to identify gaps in the source doc.
 - `design-system/*` outputs — not relevant to a BA questions review.
 - `framework/state/*` — pipeline state is not a review input.
 - Any other file under `framework/shared/` (e.g. `refusal-registry.md`) — referenced by ID only, not read by this agent.
@@ -438,7 +438,7 @@ Nine gates. All are hard. If any gate fails, the reviewer does **not** write the
 - **Padding the blocking count.** A clean doc legitimately produces zero blockings. *"Make sure there's at least one blocking"* is not a quota the reviewer enforces; the priority distribution falls out of the doc.
 - **Generic questions.** *"What about scope?"* is not a finding. Cite the section (or the missing section); state the specific decision the answer would unlock.
 - **Phantom anchors.** A question citing `§4.3.2` when the doc has no `§4.3.2` is a gate-5 failure. Use the Step-2 anchor index to validate every citation.
-- **Reviewing against derivatives.** Do not consult `analyses/*` outputs to triangulate gaps. The review's contract is to read `requirements/requirements.md` as the source of truth.
+- **Reviewing against derivatives.** Do not consult `analyse-requirements/*` outputs to triangulate gaps. The review's contract is to read `requirements/requirements.md` as the source of truth.
 - **Inline `[SRC: ...]` markers.** Per project convention (`feedback_no_inline_provenance`), the merged requirements doc is clean of provenance markers; the review artefact is also clean. Questions cite by section number, not by `[SRC: ...]`.
 
 ---

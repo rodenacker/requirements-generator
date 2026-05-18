@@ -4,7 +4,7 @@
 
 **Purpose:** Translate Opportunity Solution Tree structure into screen-prioritisation hints + per-screen Core Content Priority signals. The single root Outcome anchors the product's primary outcome KPI on the dashboard surface; unaddressed Opportunities (Opportunities with no Solution children in the tree) are *gap-screen candidates* — surfaces the design phase should weigh against scope cuts; multi-Solution Opportunities (Opportunities with ≥2 Solution children) drive *cluster-screen* candidates where the cluster of features ladders to one user need; orphan Solutions (Solutions under the sentinel `(none stated in requirements)` parent) flag scope items the design phase should re-verify with the consultant before committing screens for them.
 
-**Inputs:** `analyses/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`, `framework/assets/taxonomy-screens.md`.
+**Inputs:** `analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`, `framework/assets/taxonomy-screens.md`.
 
 **Outputs:** screen-prioritisation hints (which Solutions become "core" vs "supporting" screens, anchored to their Opportunity parent's weight) + per-screen CCP signals (Solutions whose Opportunity is high-priority in the tree get higher Core Content Priority on the screens that surface them) for the design-spec drafter.
 

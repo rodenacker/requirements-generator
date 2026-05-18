@@ -4,7 +4,7 @@
 
 **Purpose:** Translate user stories into acceptance criteria per screen/view + CTAs per story. Story role → role-gating in design spec; story action → CTA on the relevant screen/view; story outcome → success state in the screen's state table.
 
-**Inputs:** `artifacts/requirements/analyses/user-stories.md`, `assets/taxonomy-screens.md`.
+**Inputs:** `analyse-requirements/USER-STORIES/user-stories.md`, `assets/taxonomy-screens.md`.
 
 **Outputs:** acceptance-criteria entries + CTA assignments + role-gating instructions for design-spec UI inventory.
 

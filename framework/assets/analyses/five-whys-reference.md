@@ -4,7 +4,7 @@
 
 > **Method:** Auto-extract the **5 highest-priority candidate requirements for rationale analysis** from `requirements/requirements.md > §6 Requirements`, scored by Five-Whys-fitness category match (business goal / operational capability / workflow constraint / policy-driven behaviour) plus secondary signals (workflow anchors, modal strength, depth, implementation-detail penalty). Present the 5 to the consultant as a `multiSelect: true` prompt; let the consultant add additional requirements via the built-in Other input; anchor each consultant-stated requirement back to its `§6` source clause before analysing. For every requirement in the final analysis set, build a why-chain that interrogates **"why does this requirement exist?"** — drilling level by level toward the underlying user goal, business driver, or external mandate.
 
-**Output file:** `analyses/FIVE-WHYS/five-whys.md` — a self-contained markdown document containing the scoring table, per-requirement why-chains, coverage checks, and diagnostics. **No template scaffold:** Five Whys is the first MVP analyser to exercise the registry's `template_asset: null` clause (pure markdown, no HTML / SVG / Mermaid).
+**Output file:** `analyse-requirements/FIVE-WHYS/five-whys.md` — a self-contained markdown document containing the scoring table, per-requirement why-chains, coverage checks, and diagnostics. **No template scaffold:** Five Whys is the first MVP analyser to exercise the registry's `template_asset: null` clause (pure markdown, no HTML / SVG / Mermaid).
 
 **Analyser agent:** `framework/agents/analyses/five-whys-analyser.md`
 
@@ -388,7 +388,7 @@ Richer inputs (rationale-rich `§1`, explicit *Objective* clauses in `§4`, regu
 
 ## Output shape (markdown)
 
-The artefact is a single self-contained markdown file at `analyses/FIVE-WHYS/five-whys.md`. No template scaffold — the analyser composes the markdown string directly from in-memory tables. Top-to-bottom section order is fixed.
+The artefact is a single self-contained markdown file at `analyse-requirements/FIVE-WHYS/five-whys.md`. No template scaffold — the analyser composes the markdown string directly from in-memory tables. Top-to-bottom section order is fixed.
 
 ### Header block
 

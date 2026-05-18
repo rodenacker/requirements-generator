@@ -4,7 +4,7 @@
 
 **Purpose:** Translate journey maps into navigation model + per-stage screen sequences + pain-point mitigation notes. Stages → navigation order; touchpoints → screen list; pain points → constraints/states; opportunities → global design decisions.
 
-**Inputs:** `analyses/USER-JOURNEYS/user-journeys-map.html`, `assets/taxonomy-screens.md`.
+**Inputs:** `analyse-requirements/USER-JOURNEYS/user-journeys-map.html`, `assets/taxonomy-screens.md`.
 
 **Outputs:** navigation-model entries + per-stage screen sequencing + opportunities for §Global design decisions in the design spec.
 

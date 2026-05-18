@@ -9,7 +9,7 @@
 - `framework/agents/analyses/opportunity-solution-trees-analyser.md` — drives the agent's six-round process plus the quality-gate sweep.
 - `framework/skills/map-opportunity-solution-trees-to-ui.md` — uses the tree structure to derive primary-opportunity weighting + per-screen Core Content Priority signals (downstream consumer; stub).
 
-**Output produced by the analyser:** `analyses/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` — self-contained HTML tree using `framework/assets/analyses/template-opportunity-solution-trees.html` as scaffold.
+**Output produced by the analyser:** `analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` — self-contained HTML tree using `framework/assets/analyses/template-opportunity-solution-trees.html` as scaffold.
 
 ---
 

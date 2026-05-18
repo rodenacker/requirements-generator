@@ -4,7 +4,7 @@
 
 > **Method:** Extract the **Logical Data Model** (entities, attributes, relationships, cardinalities, business rules, normalisation notes) from `requirements/requirements.md` once. The Data Model is always rendered as tabular sections. The consultant then picks **none, one, several, or all** of three ER-diagram notations (Crow's Foot, Chen, UML class diagram) to add as visual `<figure>` blocks. Same data, multiple views.
 
-**Output file:** `analyses/DATA-MODEL/data-model.html` — a self-contained HTML artefact containing the Data Model (always) plus zero or more ERD visualisations (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
+**Output file:** `analyse-requirements/DATA-MODEL/data-model.html` — a self-contained HTML artefact containing the Data Model (always) plus zero or more ERD visualisations (per consultant selection). No external CSS/JS dependencies; viewable by opening `file://` in a browser.
 
 **Analyser agent:** `framework/agents/analyses/data-model-analyser.md`
 
@@ -156,7 +156,7 @@ Richer inputs → richer Data Model. Methodology degrades gracefully: with thin 
 
 ## Output shape (HTML schema)
 
-The artefact is a single self-contained HTML file at `analyses/DATA-MODEL/data-model.html`. The analyser populates `framework/assets/analyses/template-data-model.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
+The artefact is a single self-contained HTML file at `analyse-requirements/DATA-MODEL/data-model.html`. The analyser populates `framework/assets/analyses/template-data-model.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
 
 ### Header placeholders
 

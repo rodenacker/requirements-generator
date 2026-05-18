@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **f
 
 ## Purpose
 
-Produce `analyses/FIVE-WHYS/five-whys.md` — a self-contained markdown artefact carrying:
+Produce `analyse-requirements/FIVE-WHYS/five-whys.md` — a self-contained markdown artefact carrying:
 
 - A **Summary** block (counts: auto-extracted ≤ 5; category mix across the four Five-Whys-fitness categories; consultant-stated additions; total analysed; total why-levels; root justifications identified; incomplete chains; coverage gaps; AI-suggested density).
 - A **Rationale-analysis priority scoring (Round 1) table** with one row per auto-extracted candidate, exposing the full score breakdown (categories, anchors, modal, refs, depth, penalty, score). Every component is auditable.
@@ -41,7 +41,7 @@ The agent's only inputs are:
 
 No template asset. Five Whys composes markdown directly from in-memory tables.
 
-The agent's only outputs are `analyses/FIVE-WHYS/five-whys.md` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `analyse-requirements/FIVE-WHYS/five-whys.md` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
@@ -392,11 +392,11 @@ After the full string is composed, compute its SHA-256.
 
 ### Step 12 — Write
 
-- Ensure the output directory exists: `Bash mkdir -p analyses/FIVE-WHYS`.
-- `Write analyses/FIVE-WHYS/five-whys.md` with the in-memory composed markdown.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = analyses/FIVE-WHYS/five-whys.md`, `expected_sha256 = <step-11 sha>`, `expected_min_bytes = 1024`. A minimum legal render (Header + Summary + scoring table with ≥ 1 row + Diagnostics) clears 1 KB comfortably; a single-requirement render with one chain comfortably clears 2 KB.
+- Ensure the output directory exists: `Bash mkdir -p analyse-requirements/FIVE-WHYS`.
+- `Write analyse-requirements/FIVE-WHYS/five-whys.md` with the in-memory composed markdown.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = analyse-requirements/FIVE-WHYS/five-whys.md`, `expected_sha256 = <step-11 sha>`, `expected_min_bytes = 1024`. A minimum legal render (Header + Summary + scoring table with ≥ 1 row + Diagnostics) clears 1 KB comfortably; a single-requirement render with one chain comfortably clears 2 KB.
 - On `pass`: advance to Step 13.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyses/FIVE-WHYS/five-whys.md` after one retry."* and fail the handback. The orchestrator does not declare done.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `analyse-requirements/FIVE-WHYS/five-whys.md` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 13 — Handback
 
@@ -404,13 +404,13 @@ After the full string is composed, compute its SHA-256.
 
 Output one short, concrete line listing per-requirement counts, the quality-check result, the `ai-suggested` density figure, and notable totals. No marketing language. Template:
 
-> *"Wrote `analyses/FIVE-WHYS/five-whys.md` — `{N_used + M}` requirements analysed ({N_used} from auto-extraction, {M} consultant-stated), `{L}` why-levels total. Terminations: `{R}` PASS (Sufficiency Test), `{I}` INCOMPLETE (source exhausted or cap-reached). Coverage: `{cited_count}` cited, `{G}` gaps, `{na_count}` n/a. AI-SUGGESTED density: `{density_pct}`%. Quality checks: `{n_checks_passed}/10` pass. Ready, or want changes?"*
+> *"Wrote `analyse-requirements/FIVE-WHYS/five-whys.md` — `{N_used + M}` requirements analysed ({N_used} from auto-extraction, {M} consultant-stated), `{L}` why-levels total. Terminations: `{R}` PASS (Sufficiency Test), `{I}` INCOMPLETE (source exhausted or cap-reached). Coverage: `{cited_count}` cited, `{G}` gaps, `{na_count}` n/a. AI-SUGGESTED density: `{density_pct}`%. Quality checks: `{n_checks_passed}/10` pass. Ready, or want changes?"*
 
 Variants:
 
 - If Step 10 was Override'd, prepend: *"Quality-check violations were accepted as known — diagnostics block records every flagged item."*
 - If the soft density check fired, append: *"Density warning: `{density_pct}`% of rows are `ai-suggested`. Enrich `§1` business drivers and `§4` *Objectives* and re-run for higher-confidence chains."*
-- If the analysis set was empty, replace the body with: *"Wrote `analyses/FIVE-WHYS/five-whys.md` with scoring summary only — empty selection. The Round 1 scoring table preserves the 5 auto-extracted candidates so you can re-run and pick one."*
+- If the analysis set was empty, replace the body with: *"Wrote `analyse-requirements/FIVE-WHYS/five-whys.md` with scoring summary only — empty selection. The Round 1 scoring table preserves the 5 auto-extracted candidates so you can re-run and pick one."*
 - If any chain hit CAP, append: *"Cap notes: chain(s) `{list}` capped at 7 levels — chains did not converge on an axiomatic driver."*
 - If any requirements were dropped (zero-why-rows), append: *"Dropped: `{list of requirement ids}` — no anchor in §1, §4, or §5; consultant interview needed."*
 - If cross-requirement links fired, append: *"Cross-requirement links: `{count}` pair(s) trace to the same root justification — see diagnostics."*
@@ -436,7 +436,7 @@ Use `AskUserQuestion`:
   - **Why-row reclassify** (consultant supplies a source for an `ai-suggested` row): update that row's provenance to `from-requirements` or `derived-from-§N`, strip the `[AI-SUGGESTED]` prefix, update the Evidence column; re-run checks 4/5/7 for that chain; if the row was previously the last `ai-suggested` of three consecutive (INCOMPLETE termination), re-run Round 4 from that row onward to see if the chain now reaches PASS; re-render; re-Write; re-verify; loop back to A.
   - **Coverage-row reclassify** (consultant points to a cite the analyser missed): flip `gap` → `cited` with the supplied location and a verbatim quote; re-render; re-Write; re-verify; loop back to A.
   - **Scoring override** (consultant disagrees with Round 1 top-5 — e.g., wants a candidate scored lower than 5th elevated): the scoring table is preserved unchanged in the artefact (auditing-only), but the consultant supplies the alternative via the Revise add-requirement flow (Specify §6.N manually). The analysis set is updated; the scoring table remains a frozen Round 1 record.
-- **Restart** — re-enter Step 3. The previously-written `analyses/FIVE-WHYS/five-whys.md` is left in place; the next Step 12 will overwrite it.
+- **Restart** — re-enter Step 3. The previously-written `analyse-requirements/FIVE-WHYS/five-whys.md` is left in place; the next Step 12 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 12).
 
@@ -456,14 +456,14 @@ Output the final handback line:
 
 ## Output
 
-- `analyses/FIVE-WHYS/five-whys.md` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
+- `analyse-requirements/FIVE-WHYS/five-whys.md` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, and the merged requirements document. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `framework/state/`, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyses/FIVE-WHYS/five-whys.md`.
+- `Write` — write `analyse-requirements/FIVE-WHYS/five-whys.md`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 11's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p analyses/FIVE-WHYS` (Step 12 setup). No other Bash usage.
+- `Bash` — `mkdir -p analyse-requirements/FIVE-WHYS` (Step 12 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 4 Round 2 multi-select prompt with Other input; surface the Step 5 Round 3 anchoring confirmation / multi-match / no-match prompts; surface the Step 10 quality-check failure prompt (Revise / Override / Restart) when any hard check fires; surface the Step 13 Accept / Revise / Restart prompt.
 
 **No MCP tools.** No Agent / Task delegation. The analyser composes markdown directly; there is no external rendering pipeline.
@@ -472,7 +472,7 @@ Output the final handback line:
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `analyses/FIVE-WHYS/five-whys.md` exists and `verify-artifact-write` returned `pass`.
+- `analyse-requirements/FIVE-WHYS/five-whys.md` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{...}` placeholder strings (the analyser composed markdown directly; placeholders are an authoring-time concept that must not leak into output).
 - The artefact begins with `# Five Whys Justification Analysis — `.
 - The artefact's `Requirements SHA-256:` line equals the SHA-256 captured in Step 2 — proving the analysis matched the requirements doc as-read, not a stale copy.
@@ -498,7 +498,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `analyses/FIVE-WHYS/five-whys.md` exists, has been verified, and contains a complete Five Whys justification analysis: Header, Summary, Rationale-analysis priority scoring (Round 1) table, zero-or-more per-requirement sections (each with a complete why-chain, termination row, and coverage row; branched requirements emit one sub-chain section per branch), and a Diagnostics block reporting all 10 hard-check results plus the AI-suggested density.
+- `analyse-requirements/FIVE-WHYS/five-whys.md` exists, has been verified, and contains a complete Five Whys justification analysis: Header, Summary, Rationale-analysis priority scoring (Round 1) table, zero-or-more per-requirement sections (each with a complete why-chain, termination row, and coverage row; branched requirements emit one sub-chain section per branch), and a Diagnostics block reporting all 10 hard-check results plus the AI-suggested density.
 - Either all 10 hard quality checks passed, or the consultant explicitly chose Override and the diagnostics block records every violation.
 - The consultant has accepted the artefact in the Step 13 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.

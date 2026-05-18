@@ -8,7 +8,7 @@
 
 - `framework/agents/reviews-inputs/adversarial-reviewer.md` — drives the agent's seven-dimension process plus the quality-gate sweep.
 
-**Output produced by the reviewer:** `reviews/inputs/ADVERSARIAL/adversarial-review.md` — a markdown punch-list of cited, severity-graded, dispositioned findings using `framework/assets/reviews-inputs/template-adversarial.md` as scaffold.
+**Output produced by the reviewer:** `review-inputs/ADVERSARIAL/adversarial-review.md` — a markdown punch-list of cited, severity-graded, dispositioned findings using `framework/assets/reviews-inputs/template-adversarial.md` as scaffold.
 
 **Sibling lens:** `framework/assets/reviews/adversarial-reference.md` runs the same methodology against the synthesised `requirements/requirements.md` after `/requirements` has produced it. The two references are complementary, not redundant — this one critiques the *source of truth*; the sibling critiques the *derivation*. Fixing input-set defects shifts ground truth; fixing finished-doc defects only re-litigates whatever the inputs already let through. The dimensions, examples, and citation format differ; the BMAD rule, finding schema, disposition rubric, clustering, triage, and verdict mapping are preserved.
 
@@ -47,8 +47,8 @@ The reviewer reads:
 The reviewer does **not** read:
 
 - `requirements/requirements.md`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — derivative artefacts; the review's contract is to critique the raw inputs themselves, not anything `/requirements` has already synthesised.
-- `analyses/*` or `analyses/inputs/*` outputs — derived; reviewing the raw inputs against a parallel analysis of those same inputs conflates "what the source material says" with "what an analyser inferred". The review's contract is to critique the inputs as the inputs.
-- `design-system/*`, `reviews/*` (including the requirement-doc adversarial review), `framework/state/*`, `framework/shared/*` (except as textual references in this document) — out of scope.
+- `analyse-requirements/*` or `analyse-inputs/*` outputs — derived; reviewing the raw inputs against a parallel analysis of those same inputs conflates "what the source material says" with "what an analyser inferred". The review's contract is to critique the inputs as the inputs.
+- `design-system/*`, `review-requirements/*` (including the requirement-doc adversarial review), `framework/state/*`, `framework/shared/*` (except as textual references in this document) — out of scope.
 
 The raw consultant input set is the contract. If the inputs don't say it, the inputs don't say it — and that is a finding. **Inputs re-ingested from `/analyse-inputs` outputs (a thematic-analysis or opportunity-solution-tree artefact re-dropped into `input/`) are part of the input set and are reviewed as such**; they are not skipped or treated specially. The whole point is that the merged input corpus is what `/requirements` will draft from.
 
@@ -382,7 +382,7 @@ Eleven gates. All are hard. If any gate fails, the reviewer does **not** write t
 - **Disposition collapse.** Disposition (Patch / Defer / Reject) is orthogonal to severity. A Minor finding can be a Reject (e.g., a small but blocking POPIA gap); a Major finding can be a Defer (e.g., a significant role-voice gap for a phase-2 persona).
 - **Collapsing dimensions.** Each dimension is its own pass with its own gate. Running them in a single combined sweep hides reasoning and breaks the diagnostics block. The parent reviewer dispatches seven parallel workers; collapsing into a single agent pass defeats per-dimension auditability.
 - **Reviewing against the synthesised requirements doc.** Do not consult `requirements/requirements.md` or any other `/requirements`-pipeline derivative. The review's contract is to critique the **raw inputs**; `/requirements` has not run yet (or if it has, that run's correctness is downstream and out of scope here).
-- **Reviewing against parallel analyses.** Do not consult `analyses/inputs/<METHOD>/*` outputs to triangulate findings. Each input-pipeline lens is independently grounded in the manifest; cross-reading creates implicit dependencies and conflates source material with derived structures.
+- **Reviewing against parallel analyses.** Do not consult `analyse-inputs/<METHOD>/*` outputs to triangulate findings. Each input-pipeline lens is independently grounded in the manifest; cross-reading creates implicit dependencies and conflates source material with derived structures.
 - **Skipping re-ingested analysis artefacts.** Do not skip manifest rows whose filename suggests they are this framework's own output (e.g., `opportunity-solution-tree.md`, `thematic-analysis.md`). Re-ingested analysis artefacts are part of the input set; `/requirements` will draft from them as it would any other source. Dimension 3 (Ambiguity) and Dimension 4 (Consistency) catch defects they contain — silent skipping based on filename pattern would hide a real audit signal.
 - **Line numbers in Location.** The Location field is `filename` only — no line numbers, no section anchors. Line numbers in `.converted.md` siblings drift between markitdown runs; multimodal sources have no lines.
 - **Inline `[SRC: ...]` markers in findings.** The Evidence + Location pair is the citation; do not duplicate it with inline markers in the Problem or Recommendation fields. The artefact's source-roster tables in Diagnostics aggregate filenames so the consultant can navigate.

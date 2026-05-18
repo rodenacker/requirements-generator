@@ -1,10 +1,10 @@
-<!-- ROLE: asset (P2 analysis reference). v7a-derived seed (from .claude/skills/wds-3-scenarios/data/scenario-outline-template.md). Heavy rewrite applied: WDS scenario / 8-question dialog framing dropped; Mermaid trigger-map cross-references dropped; "shortest path" + sunshine-path concept retained as the journey's *primary* track but extended with the full journey-map column set; replaced flat-step list with the canonical journey-map columns (stage → touchpoint → action → thoughts → emotions → pain points → opportunities) per v7b-Brief.md > §analyses/user-journeys-reference.md. Output convention aligned with OOUX/JTBD/USE-CASES MVPs — self-contained HTML under `analyses/<METHOD>/`, not markdown. -->
+<!-- ROLE: asset (P2 analysis reference). v7a-derived seed (from .claude/skills/wds-3-scenarios/data/scenario-outline-template.md). Heavy rewrite applied: WDS scenario / 8-question dialog framing dropped; Mermaid trigger-map cross-references dropped; "shortest path" + sunshine-path concept retained as the journey's *primary* track but extended with the full journey-map column set; replaced flat-step list with the canonical journey-map columns (stage → touchpoint → action → thoughts → emotions → pain points → opportunities) per v7b-Brief.md > §analyses/user-journeys-reference.md. Output convention aligned with OOUX/JTBD/USE-CASES MVPs — self-contained HTML under `analyse-requirements/<METHOD>/`, not markdown. -->
 
 # User-Journeys analysis reference
 
 > **Method:** Per primary target-user persona, per top-level user goal, produce a temporal flow map showing where the user is, what they're doing, what they're thinking and feeling, and where the application could help most.
 
-**Output file:** `analyses/USER-JOURNEYS/user-journeys-map.html` — a self-contained HTML artefact containing one journey card per (persona × top-level goal). Each card carries a tabular swimlane grid (phases × {actions, thoughts, emotions, touchpoints, pain-points, opportunities}) plus an inline-SVG emotion-curve visualisation. No external CSS/JS dependencies; viewable by opening `file://` in a browser.
+**Output file:** `analyse-requirements/USER-JOURNEYS/user-journeys-map.html` — a self-contained HTML artefact containing one journey card per (persona × top-level goal). Each card carries a tabular swimlane grid (phases × {actions, thoughts, emotions, touchpoints, pain-points, opportunities}) plus an inline-SVG emotion-curve visualisation. No external CSS/JS dependencies; viewable by opening `file://` in a browser.
 
 **Analyser agent:** `framework/agents/analyses/user-journeys-analyser.md`
 
@@ -84,7 +84,7 @@ The *thoughts, emotions, pain points, opportunities* columns are typically **not
 
 ## Output shape (HTML schema)
 
-The artefact is a single self-contained HTML file at `analyses/USER-JOURNEYS/user-journeys-map.html`. The analyser populates `framework/assets/analyses/template-user-journeys.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
+The artefact is a single self-contained HTML file at `analyse-requirements/USER-JOURNEYS/user-journeys-map.html`. The analyser populates `framework/assets/analyses/template-user-journeys.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
 
 ### Header placeholders
 

@@ -17,11 +17,11 @@ methodologies:
   # Slug-collision note: methodology slugs are shared across registries (a row named
   # `completeness` could exist in both `reviews-inputs/registry.md` and
   # `reviews/registry.md`); the artefacts do not clobber because the output paths
-  # differ (`reviews/inputs/COMPLETENESS/...` vs `reviews/COMPLETENESS/...`).
+  # differ (`review-inputs/COMPLETENESS/...` vs `review-requirements/COMPLETENESS/...`).
   - name: adversarial
     status: mvp
     description: Choose this to flush out defects in the raw consultant inputs (stakeholder gaps, ambiguity, cross-source conflicts, missing edge cases, sampling bias) before /requirements drafts from them.
-    output_path: reviews/inputs/ADVERSARIAL/adversarial-review.md
+    output_path: review-inputs/ADVERSARIAL/adversarial-review.md
     reference_asset: framework/assets/reviews-inputs/adversarial-reference.md
     template_asset: framework/assets/reviews-inputs/template-adversarial.md
     map_skill: null
@@ -64,22 +64,20 @@ Folding input-reviews into the analyses-inputs registry would muddy the consulta
 3. Author the reference asset at `framework/assets/reviews-inputs/<method>-reference.md` (methodology rules and patterns).
 4. Author the character file at `framework/assets/characters/<method>-inputs-review.md` (Unicorn stance during the reviewer run).
 5. (Optional) Author the template asset at `framework/assets/reviews-inputs/template-<method>.{html,md}`. Set `template_asset: null` for methodologies that emit pure Markdown without a scaffold.
-6. Promote the registry row: flip `status: future` to `status: mvp` and populate all remaining fields (`description`, `output_path`, `reference_asset`, `template_asset`, `map_skill`, `reviewer_agent`, `character`). `output_path` lives under `reviews/inputs/<METHOD>/` (uppercase methodology name) — e.g. `reviews/inputs/COMPLETENESS-REVIEW/completeness-review.md`.
+6. Promote the registry row: flip `status: future` to `status: mvp` and populate all remaining fields (`description`, `output_path`, `reference_asset`, `template_asset`, `map_skill`, `reviewer_agent`, `character`). `output_path` lives under `review-inputs/<METHOD>/` (uppercase methodology name) — e.g. `review-inputs/COMPLETENESS-REVIEW/completeness-review.md`.
 7. Add the reviewer node to graph 6 in `framework/dependency-graphs.md`.
 8. No orchestrator changes required — the selector skill picks the new MVP row up automatically.
 
 **Field semantics:**
 
-- `name` — kebab-case slug. Used as the subdirectory name under `reviews/inputs/` (uppercased to `reviews/inputs/<METHOD>/`) and as the path component in the reviewer agent file. Methodology slugs are shared across registries; the artefacts do not clobber because the output paths differ.
+- `name` — kebab-case slug. Used as the subdirectory name under `review-inputs/` (uppercased to `review-inputs/<METHOD>/`) and as the path component in the reviewer agent file. Methodology slugs are shared across registries; the artefacts do not clobber because the output paths differ.
 - `status` — `mvp` (selectable now) or `future` (not yet built; reviewer / reference / character / template files do not exist on disk).
 - `description` — one-line label surfaced in the selector's printed list. Required only when `status: mvp`.
-- `output_path` — relative path of the artefact the reviewer writes. Drives the prior-artefact gate in the orchestrator. **Must** live under `reviews/inputs/` for write-isolation. Required only when `status: mvp`.
+- `output_path` — relative path of the artefact the reviewer writes. Drives the prior-artefact gate in the orchestrator. **Must** live under `review-inputs/` for write-isolation. Required only when `status: mvp`.
 - `reference_asset` — the methodology reference the reviewer follows. Required only when `status: mvp`.
 - `template_asset` — file scaffold the reviewer populates (may be `null` for methodologies that emit pure Markdown).
 - `map_skill` — present for parity with `analyses-inputs/registry.md`; **almost always `null`** for reviews because reviews don't translate into UI inventory. Mirrors the `reviews/registry.md` convention.
 - `reviewer_agent` — the foreground agent invoked by the orchestrator. Required only when `status: mvp`.
 - `character` — stance the Unicorn adopts while running the reviewer. Required only when `status: mvp`.
-
-**Forbidden name reservation:** the name `inputs` must not be used as a methodology slug in either this registry or `framework/assets/reviews/registry.md` — it would collide with this pipeline's output-directory scope (`reviews/inputs/`).
 
 **Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input reviews available yet" message and exits cleanly. With the `adversarial` row at `status: mvp`, the selector returns `selected` for that methodology when chosen. If every MVP row is later removed, the empty-registry behaviour resumes — it is not an error.

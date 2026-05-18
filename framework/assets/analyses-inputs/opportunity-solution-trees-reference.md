@@ -4,7 +4,7 @@
 
 > **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json`, extract a single root **Outcome** (Round 1; multi-outcome candidates surface an interactive picker), inductively surface customer-perspective **Opportunities** (Round 2), inductively surface candidate **Solutions** (Round 3), best-effort extract **Assumption Tests** (Round 4), **ladder** the four layers into a tree (Round 5), then produce the report — including a **bridge** from each Opportunity to candidate-requirement seeds the `/requirements` drafter can pick up when the artefact is re-ingested (Round 6). Every node carries one or more `[SRC: <filename>]` markers naming a manifest row whose `filename` field equals the marker payload. Across re-runs the artefact is **additive**: prior tree nodes, ladder edges, and candidate-requirement lines are preserved; new manifest content extends them.
 
-**Output file:** `analyses/inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.md` — a self-contained markdown document with an inline Mermaid `graph TD` tree diagram. **No template scaffold:** OST follows the `thematic-analysis` precedent (pure markdown + Mermaid, `template_asset: null`).
+**Output file:** `analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.md` — a self-contained markdown document with an inline Mermaid `graph TD` tree diagram. **No template scaffold:** OST follows the `thematic-analysis` precedent (pure markdown + Mermaid, `template_asset: null`).
 
 **Analyser agent:** `framework/agents/analyses-inputs/opportunity-solution-trees-analyser.md`
 
@@ -351,7 +351,7 @@ The analyser **never** reads:
 - Any path under `requirements/` other than `requirements/source-manifest.json`.
 - Any path under `framework/state/`.
 - Any path under `framework/shared/` (textual references to `RF-NN` / `GR-NN` are links for the reader, not file loads).
-- Other analyses' artefacts (`analyses/<OTHER-METHOD>/...`, `analyses/inputs/<OTHER-METHOD>/...`) — including `analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md`, even though both lenses operate on the same inputs.
+- Other analyses' artefacts (`analyse-requirements/<OTHER-METHOD>/...`, `analyse-inputs/<OTHER-METHOD>/...`) — including `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md`, even though both lenses operate on the same inputs.
 - Any pattern-catalogue or design-system file.
 
 ---
@@ -412,7 +412,7 @@ The analysis is complete when:
 - A primary root Outcome exists (Round 1 produced ≥ 1 candidate, and the consultant picked one on multi-candidate runs).
 - All 6 hard gates pass, or the consultant chose Override and the failures are recorded in Diagnostics.
 - The Mermaid tree validated `valid`.
-- `analyses/inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.md` has been written and `verify-artifact-write` returned `pass`.
+- `analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.md` has been written and `verify-artifact-write` returned `pass`.
 - The consultant chose Accept in the handback loop.
 
 ---

@@ -20,7 +20,7 @@ The model is concrete: every task has a kebab-case id and a display name; every 
 
 - **Speak in hierarchical ids and verb-phrase operations.** When you describe a node, name it concretely: *"Task `submit-order` decomposes into 3 subgoals; subgoal `T-1.2 Validate the order` has plan `selection` with guard `valid`; operation `T-1.2.1 checkStock` is `from-task-flow`."*. Not *"the system does something"*.
 - **State structural reasons out loud.** When you flag a violation, say which check fired and which item triggered it: *"Tree `submit-order` has depth 4 — cap is 3 (check 7 fired). Either fold `T-1.2.1.1 checkInventoryReservation` into its parent or lift `T-1.2 Validate the order` to a top-level task."*. Don't apologise; don't editorialise.
-- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've built a beautiful HTA for you"*, *"this decomposition is so clean"*, *"let's visualise your tasks"*. Permitted phrases: *"Round 3 produced 4 HTA trees across 4 top-level tasks, total 17 operations; 3 operations are `ai-suggested` (inferred subgoal-operation splits on §5.3 step `'validate the order'`). Round 4 assigned 6 plans: 4 `sequence`, 1 `selection` (from §5.3 *Decision points*), 1 `iteration` (from §6.2 BR-04)."*, *"Wrote `analyses/TASK-FLOWS/task-flows.html` with 2 tasks rendered (submit-order, cancel-order; 2 HTA + 2 TFD figures). Ready, or want changes?"*
+- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've built a beautiful HTA for you"*, *"this decomposition is so clean"*, *"let's visualise your tasks"*. Permitted phrases: *"Round 3 produced 4 HTA trees across 4 top-level tasks, total 17 operations; 3 operations are `ai-suggested` (inferred subgoal-operation splits on §5.3 step `'validate the order'`). Round 4 assigned 6 plans: 4 `sequence`, 1 `selection` (from §5.3 *Decision points*), 1 `iteration` (from §6.2 BR-04)."*, *"Wrote `analyse-requirements/TASK-FLOWS/task-flows.html` with 2 tasks rendered (submit-order, cancel-order; 2 HTA + 2 TFD figures). Ready, or want changes?"*
 - **Don't editorialise about the methodology.** HTA is Annett & Duncan 1967 / Stanton 2006; TFD is NN/G + Hackos & Redish 1998; the pair is the practitioner standard. The analyser is a literal lens — it surfaces what `§5` and supporting sections name. If `§5` is sparse, the trees will be sparse and `ai-suggested` density will be high. The consultant addresses it by revising the requirements doc and re-running.
 
 ## Seven-round discipline
@@ -50,7 +50,7 @@ If the consultant **cancels** the prompt (closes the dialog rather than submitti
 The ten quality checks in `framework/assets/analyses/task-flows-reference.md > Quality checks` (plus the soft density check) are **hard gates**, not advisory. If any hard check fails:
 
 1. State which check fired and which items triggered it. List the items by id.
-2. Do **not** write `analyses/TASK-FLOWS/task-flows.html`.
+2. Do **not** write `analyse-requirements/TASK-FLOWS/task-flows.html`.
 3. Surface a structured error to the consultant with options to revise the requirements doc, override the check, or restart.
 
 The soft density check (>50% `ai-suggested` operations) does not block writing — it surfaces as a warning line in diagnostics and in the Step 11 handback summary. It signals "the gap here is `§5 Task flows` *Steps* enrichment, not more analysis."

@@ -18,7 +18,7 @@ The map is concrete: every persona is named verbatim, every scenario is a single
 
 - **Speak in named personas.** When you discuss a journey, name the persona by its `§3 Target users` entry verbatim. *"`Importer` triggers the journey from the file-receipt email."* Not *"the importer user"* or *"the persona who uploads files"*.
 - **State structural reasons out loud.** When you flag a violation, say which check fired and which item triggered it: *"`Approver — Review queue` has a pain point with no opportunity — check 6 fired. Add an opportunity row or demote the pain point?"*. Don't apologise; don't editorialise.
-- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've crafted a beautiful journey for you"*, *"this user's story is so compelling"*, *"let's bring your users to life"*. Permitted phrases: *"Round 1 produced 4 candidate journeys; Round 2 picked 3 (capped per reference doc line 53). Round 5 flagged 14 cells as `[AI-SUGGESTED]` — density 67%."*, *"Wrote `analyses/USER-JOURNEYS/user-journeys-map.html`. Ready, or want changes?"*
+- **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've crafted a beautiful journey for you"*, *"this user's story is so compelling"*, *"let's bring your users to life"*. Permitted phrases: *"Round 1 produced 4 candidate journeys; Round 2 picked 3 (capped per reference doc line 53). Round 5 flagged 14 cells as `[AI-SUGGESTED]` — density 67%."*, *"Wrote `analyse-requirements/USER-JOURNEYS/user-journeys-map.html`. Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If `§3` has one persona, the artefact has journeys for one persona. If `§5` task flows are sparse, the journey phases will be sparse. The analyser surfaces what is there; if more is needed, the consultant addresses it by revising the requirements doc and re-running.
 
 ## Six-round discipline
@@ -39,7 +39,7 @@ If a later round invalidates an earlier round (e.g. Round 4 finds an action whos
 The eight quality checks in `framework/assets/analyses/user-journeys-reference.md > Quality checks` (plus the soft density check) are **hard gates**, not advisory. If any hard check fails:
 
 1. State which check fired and which items triggered it. List the items by name.
-2. Do **not** write `analyses/USER-JOURNEYS/user-journeys-map.html`.
+2. Do **not** write `analyse-requirements/USER-JOURNEYS/user-journeys-map.html`.
 3. Surface a structured error to the consultant with options to revise the requirements doc, override the check (rare — the consultant accepts a known-incomplete map), or restart.
 
 The soft density check (>75% `ai-suggested` cells per journey) does not block writing — it surfaces as a warning line in diagnostics and in the Step 11 handback summary. It signals "the gap here is user research, not more analysis."
