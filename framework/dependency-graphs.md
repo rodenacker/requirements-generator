@@ -549,6 +549,7 @@ graph TD
 
     subgraph Agents
       agent_input_ai[input-handler.md]
+      agent_ta[thematic-analysis-analyser.md]
     end
 
     subgraph Skills
@@ -559,10 +560,14 @@ graph TD
       skill_preflight_ai[preflight-mcp.md]
       skill_convert_ai[convert-input-file.md]
       skill_buildmanifest_ai[build-source-manifest.md]
+      skill_mermaid_ai[mermaid-validator.md]
     end
 
     subgraph Assets
       asset_registry_ai[analyses-inputs/registry.md]
+      asset_ta_ref[analyses-inputs/thematic-analysis-reference.md]
+      asset_ta_char[characters/thematic-analysis-inputs-analysis.md]
+      asset_ta_map[skills/map-thematic-analysis-to-ui.md]
     end
 
     subgraph Shared
@@ -577,9 +582,15 @@ graph TD
     orch_ai --> skill_ansel_ai
     orch_ai --> skill_bloat_ai
     orch_ai --> agent_input_ai
+    orch_ai --> agent_ta
     orch_ai --> shared_refusal_ai
 
     skill_ansel_ai --> asset_registry_ai
+
+    agent_ta --> asset_ta_ref
+    agent_ta --> asset_ta_char
+    agent_ta --> skill_verifywrite_ai
+    agent_ta --> skill_mermaid_ai
 
     skill_bloat_ai --> shared_refusal_ai
     skill_bloat_ai --> state_progress_ai
@@ -600,14 +611,14 @@ graph TD
     skill_verifywrite_ai --> shared_refusal_ai
 
     class orch_ai orch
-    class agent_input_ai agent
-    class skill_ansel_ai,skill_bloat_ai,skill_verifywrite_ai,skill_classify_ai,skill_preflight_ai,skill_convert_ai,skill_buildmanifest_ai skill
-    class asset_registry_ai asset
+    class agent_input_ai,agent_ta agent
+    class skill_ansel_ai,skill_bloat_ai,skill_verifywrite_ai,skill_classify_ai,skill_preflight_ai,skill_convert_ai,skill_buildmanifest_ai,skill_mermaid_ai skill
+    class asset_registry_ai,asset_ta_ref,asset_ta_char,asset_ta_map asset
     class shared_refusal_ai,shared_setup_md_ai shared
     class state_progress_ai state
 ```
 
-**Stats:** 13 nodes / 21 edges / depth 4. (Per-analyser nodes — `agent_glossary`, `agent_jtbd`, `agent_five-whys`, and their reference / template / character / map-skill fan-outs — are intentionally omitted because **no analyser exists on disk in this PR**. Each future methodology PR adds one `orch_ai → agent_<method>` edge plus the standard four-asset fan-out, mirroring graph 4. The shape will then match the fan-out structure of `analyse-requirement-orch.md`.)
+**Stats:** 18 nodes / 26 edges / depth 4 (1 MVP analyser: `thematic-analysis`). The remaining `status: future` rows (`glossary`, `jtbd`, `five-whys`) are intentionally omitted from the graph because their agent / reference / character / map-skill files do not exist on disk yet. Each future methodology PR adds one `orch_ai → agent_<method>` edge plus the standard four-asset fan-out, mirroring graph 4. The shape matches the fan-out structure of `analyse-requirement-orch.md`. Note: `agent_ta` has no edge to `asset_ta_map` — the map-skill is registry metadata consumed by the future design-spec-drafter, not by the analyser itself, mirroring the precedent in graph 4.)
 
 **Notes:**
 - The orchestrator is **registry-driven** (same pattern as `analyse-requirement-orch.md`). The `skill_ansel_ai → asset_registry_ai` edge is the discovery mechanism; future `orch_ai → agent_<method>` edges represent the runtime invocation paths once the consultant has selected a methodology. **Adding a new MVP input-analyser requires zero orchestrator edits** — only a new MVP row in `framework/assets/analyses-inputs/registry.md`, the four-asset shape (analyser + reference + template + character), and the new edge in this graph.
@@ -615,5 +626,6 @@ graph TD
 - The shared `input-handler` invocation at step 1 is the **only** edge in this subtree that writes outside `analyses/inputs/<METHOD>/`. The writes it performs (`requirements/source-manifest.json` and `input/*.converted.md` siblings) are bounded to those paths and are documented as a cross-pipeline exception in `framework/orchestrators/analyse-inputs-orch.md > Stand-alone constraint`. No write reaches `requirements/requirements*.md`, `requirements/consultant-answers.md`, `requirements/requirements-draft.md`, `requirements/draft-claims*.ndjson`, `design-system/`, `analyses/<METHOD>/` (the requirement-doc analyses' scope, excluding the `analyses/inputs/` subtree), `reviews/`, or `framework/state/`.
 - `state/.progress.json` is read (existence + byte-size check) by `check-context-bloat.md` from this orchestrator; the orchestrator never writes to it, consistent with the no-write-outside-`analyses/inputs/` invariant. The shared `input-handler.md` agent **also** never writes to `.progress.json` from this pipeline because the orchestrator invokes it with `progress_path: null` (the agent's RF-01 continue-later write is suppressed in that mode).
 - `check-context-bloat.md` is invoked with `artefact_dir: input/` (not `requirements/`) — the byte volume of the raw input folder is the meaningful proxy for in-conversation bloat against an input-analyser, in contrast to the `/analyse-requirement` caller which passes `requirements/`.
-- On framework first-ship there are zero MVP rows in `framework/assets/analyses-inputs/registry.md`, so `skill_ansel_ai` always returns `empty-registry` and the orchestrator exits cleanly with the "no input analyses available yet" message before reaching step 0a. Once the first methodology row is promoted to `status: mvp`, the corresponding `agent_<method>` node lands in this graph and the pipeline becomes operational.
+- The `mermaid-validator.md` skill is invoked inline from `agent_ta` at Step 10 sub-step C to validate the inline theme-map diagram before write; on `not-installed` the agent halts per the validator's own copy and fails handback. This is the first edge into `mermaid-validator.md` from the `/analyse-inputs` subtree (other analyses-pipeline analysers — `sequence-diagram`, `state-diagram`, `activity-diagram` in graph 4 — also depend on it; the file on disk is shared across pipelines).
+- `thematic-analysis` is the first MVP methodology of `/analyse-inputs`. Its registry row carries `template_asset: null` (pure-markdown analyser; the Mermaid diagram embeds as a fenced block within the markdown artefact). The remaining `status: future` rows (`glossary`, `jtbd`, `five-whys`) become operational only when their analyser / reference / character / map-skill files are authored and the row is promoted to `status: mvp` in a follow-up PR.
 - No cycles. No `framework/assets/pattern-catalogue/` "see also" pointers appear in this subtree.

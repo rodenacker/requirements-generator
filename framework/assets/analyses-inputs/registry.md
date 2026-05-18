@@ -2,14 +2,24 @@
 role: asset
 kind: registry
 methodologies:
-  # Planned methodologies for /analyse-inputs. None are mvp on framework first-ship — each
-  # methodology lands in its own follow-up development, promoting `status: future` to
-  # `status: mvp` and filling in the remaining seven fields. Until then, the selector
-  # returns `empty-registry` and the orchestrator exits cleanly with a "no input
-  # analyses available yet" message.
+  # Planned methodologies for /analyse-inputs. Each methodology lands in its own
+  # follow-up development, promoting `status: future` to `status: mvp` and filling in
+  # the remaining seven fields. The first MVP methodology is `thematic-analysis` —
+  # an adapted Braun & Clarke (2006) six-phase reflexive thematic analysis with a
+  # deductive coverage check against a fixed 10-area concern frame. Output is pure
+  # markdown with an inline Mermaid theme-map diagram.
   - { name: glossary, status: future }
   - { name: jtbd, status: future }
   - { name: five-whys, status: future }
+  - name: thematic-analysis
+    status: mvp
+    description: Surfaces the patterns the consultant's raw inputs already carry as codes, themes, and a theme-map — and bridges each theme to candidate requirements before /requirements drafts them.
+    output_path: analyses/inputs/THEMATIC-ANALYSIS/thematic-analysis.md
+    reference_asset: framework/assets/analyses-inputs/thematic-analysis-reference.md
+    template_asset: null
+    map_skill: framework/skills/map-thematic-analysis-to-ui.md
+    analyser_agent: framework/agents/analyses-inputs/thematic-analysis-analyser.md
+    character: framework/assets/characters/thematic-analysis-inputs-analysis.md
 ---
 
 # analyses-inputs/registry.md
@@ -57,4 +67,4 @@ methodologies:
 
 **Forbidden name reservation:** the name `inputs` must not be used as a methodology slug in either this registry or `framework/assets/analyses/registry.md` — it would collide with this pipeline's output-directory scope (`analyses/inputs/`).
 
-**Empty-MVP behaviour:** on framework first-ship every row has `status: future` and the selector returns `empty-registry`. The orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This is the expected steady state until the first methodology PR lands; it is not an error.
+**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `thematic-analysis` now at `status: mvp`, the selector presents at least one option to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.
