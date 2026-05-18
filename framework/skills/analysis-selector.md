@@ -1,27 +1,32 @@
 # analysis-selector.md
 
-**Purpose:** Read a methodology registry, filter the methodologies whose `status` is `mvp`, present them to the consultant as a printed numbered list, parse the consultant's typed reply, and return the consultant's selection as a structured row (the row's `name`, `analyser_agent`, `output_path`, `reference_asset`, `character`, `template_asset`, `map_skill`).
+**Purpose:** Read a methodology registry, filter the methodologies whose `status` is `mvp`, present them to the consultant as a printed numbered list, parse the consultant's typed reply, and return the consultant's selection as a structured row (the row's `name`, `output_path`, `reference_asset`, `character`, `template_asset`, `map_skill`, plus the caller-specific agent-pointer field — `analyser_agent` in analyses registries or `reviewer_agent` in reviews registries).
 
-The skill is **read-only**: one read, one printed list (plus up to two re-prompts on invalid input), one return. It does not invoke the analyser, does not touch state, and does not write any file.
+The skill is **read-only**: one read, one printed list (plus up to two re-prompts on invalid input), one return. It does not invoke the chosen agent, does not touch state, and does not write any file.
 
 The skill is pipeline-neutral: it works against any registry that follows the field-shape contract documented in `framework/assets/analyses/registry.md`. The caller supplies the registry path; the skill does not hardcode it.
 
+The skill's printed prompt nouns ("Available analyses:" and "Enter the number of the analysis to run") are also caller-parameterisable via the optional `list_label` and `verb_label` inputs below. Callers that select reviews rather than analyses (e.g. `/review-inputs`) pass `list_label: "reviews"` and `verb_label: "review"` so the prompt reads naturally; callers that omit these inputs get the analysis-flavoured defaults unchanged.
+
 ## Inputs
 
-- `registry_path` — repo-relative path to the methodology registry file. Required. Examples in current use: `framework/assets/analyses/registry.md` (for `/analyse-requirement`), `framework/assets/analyses-inputs/registry.md` (for `/analyse-inputs`). The file must carry a YAML frontmatter `methodologies:` list whose rows match the field-shape contract documented in the requirements-analyses registry.
+- `registry_path` — repo-relative path to the methodology registry file. Required. Examples in current use: `framework/assets/analyses/registry.md` (for `/analyse-requirement`), `framework/assets/analyses-inputs/registry.md` (for `/analyse-inputs`), `framework/assets/reviews-inputs/registry.md` (for `/review-inputs`). The file must carry a YAML frontmatter `methodologies:` list whose rows match the field-shape contract documented in the requirements-analyses registry.
+- `list_label` — optional string used in the printed list heading `Available <list_label>:`. Default: `"analyses"`. Callers selecting reviews pass `"reviews"`.
+- `verb_label` — optional string used in the printed prompt `Enter the number of the <verb_label> to run (or 0 to cancel):`. Default: `"analysis"`. Callers selecting reviews pass `"review"`.
 
 ## Outputs
 
 Exactly one of:
 
-- **`selected`** — a structured row with the eight registry fields populated. The orchestrator consumes `name`, `analyser_agent`, and `output_path` directly; the analyser agent reads `reference_asset`, `character`, and `template_asset` at activation.
-- **`cancelled`** — the consultant chose to cancel out of the selection prompt. The orchestrator exits cleanly without invoking any analyser.
+- **`selected`** — a structured row with every registry field populated, returned verbatim from the YAML row. The orchestrator consumes `name`, `output_path`, and the per-pipeline agent-pointer field — `analyser_agent` for analyses pipelines, `reviewer_agent` for reviews pipelines — directly; the chosen agent reads `reference_asset`, `character`, and `template_asset` at activation. The selector does not rename or normalise the agent-pointer field; it returns whatever the row carries.
+- **`cancelled`** — the consultant chose to cancel out of the selection prompt. The orchestrator exits cleanly without invoking any analyser or reviewer.
 - **`empty-registry`** — defensive: zero `mvp` rows were found in the registry. The orchestrator surfaces a configuration error and exits.
 
 ## Used by
 
-- `framework/orchestrators/analyse-requirement-orch.md` — step 1, with `registry_path: "framework/assets/analyses/registry.md"`.
-- `framework/orchestrators/analyse-inputs-orch.md` — step 0, with `registry_path: "framework/assets/analyses-inputs/registry.md"`.
+- `framework/orchestrators/analyse-requirement-orch.md` — step 1, with `registry_path: "framework/assets/analyses/registry.md"` (default labels).
+- `framework/orchestrators/analyse-inputs-orch.md` — step 0, with `registry_path: "framework/assets/analyses-inputs/registry.md"` (default labels).
+- `framework/orchestrators/review-inputs-orch.md` — step 0, with `registry_path: "framework/assets/reviews-inputs/registry.md"`, `list_label: "reviews"`, `verb_label: "review"`.
 
 ## Procedure
 
@@ -37,14 +42,16 @@ Exactly one of:
 
     After the methodology lines, append a blank line and a trailing cancel line:
 
-    `0. Cancel — exit without running an analysis`
+    `0. Cancel — exit without running a {{verb_label}}`
+
+    (With the default `verb_label: "analysis"` this renders as `0. Cancel — exit without running an analysis`. Callers passing `verb_label: "review"` render `0. Cancel — exit without running a review`.)
 
     Let `N` be the count of MVP rows (and therefore the highest valid selection number).
 
-5. **Surface the prompt and parse the reply.** Print the assembled block to the consultant as plain text in this shape:
+5. **Surface the prompt and parse the reply.** Print the assembled block to the consultant as plain text in this shape (substituting `{{list_label}}` and `{{verb_label}}` from the inputs; defaults `"analyses"` and `"analysis"` preserve historical wording):
 
     ```
-    Available analyses:
+    Available {{list_label}}:
 
     1. <name>
     <description>
@@ -57,9 +64,9 @@ Exactly one of:
     N. <name>
     <description>
 
-    0. Cancel — exit without running an analysis
+    0. Cancel — exit without running a {{verb_label}}
 
-    Enter the number of the analysis to run (or 0 to cancel):
+    Enter the number of the {{verb_label}} to run (or 0 to cancel):
     ```
 
     Then end the turn. The consultant's next chat message is the reply. On that turn:
@@ -84,8 +91,8 @@ Exactly one of:
 - The numbered list was printed at most three times in total (initial print plus up to two re-prompts on invalid input). The skill never loops indefinitely.
 - Methodologies were numbered in registry order; no row was re-sorted alphabetically or otherwise.
 - `0` and `cancel` / `q` / `exit` (case-insensitive, with whitespace trimmed) were honoured as cancel signals at every prompt.
-- The `0. Cancel — …` line was the last line above the prompt at every print, and the prompt line was *"Enter the number of the analysis to run (or 0 to cancel):"*.
-- The returned row (when `selected`) has every required field populated (`name`, `analyser_agent`, `output_path`, `reference_asset`, `character`). The `template_asset` and `map_skill` fields may be `null` for methodologies that don't require them.
+- The `0. Cancel — …` line was the last line above the prompt at every print, and the prompt line was *"Enter the number of the {{verb_label}} to run (or 0 to cancel):"* (with `{{verb_label}}` substituted from the input; default `"analysis"`).
+- The returned row (when `selected`) has every required field populated (`name`, `output_path`, `reference_asset`, `character`, and the caller-specific agent-pointer field — `analyser_agent` for analyses-pipeline registries or `reviewer_agent` for reviews-pipeline registries). The `template_asset` and `map_skill` fields may be `null` for methodologies that don't require them.
 - The retry budget was respected — exactly **2** re-prompts are permitted; the third invalid reply returns `cancelled` with the *"Too many invalid selections."* line.
 
 ## Anti-Patterns
@@ -95,7 +102,8 @@ Exactly one of:
 - Do not re-sort the methodologies. Registry order is the source of truth — re-sorting alphabetically (or by any other key) would change the numbering whenever a row is added, removed, or promoted from `future` to `mvp`.
 - Do not hardcode methodology names. The registry is the source of truth; the selector must work unchanged when a new MVP row is added.
 - Do not hardcode the registry path. `registry_path` is a required input parameter; the skill must work unchanged against any registry that follows the documented field-shape contract.
-- Do not invoke the analyser from this skill. Selection and invocation are separate concerns — the orchestrator owns invocation.
+- Do not hardcode the printed prompt nouns. `list_label` and `verb_label` are optional input parameters with backwards-compatible defaults; the skill must substitute them into the printed list heading, the cancel-line tail, and the prompt line so callers selecting reviews (rather than analyses) read naturally.
+- Do not invoke the chosen agent (analyser or reviewer) from this skill. Selection and invocation are separate concerns — the orchestrator owns invocation.
 - Do not write to disk. This skill has no side effects beyond the printed list and any re-prompts.
 - Do not silently skip rows with malformed frontmatter (missing required fields on an `mvp` row). Surface `empty-registry` and let the orchestrator report a configuration error rather than printing a half-populated line that would crash on selection.
 - Do not present `status: future` rows even with a "coming soon" suffix. Future rows do not have analyser agents on disk — selecting them would crash the orchestrator.

@@ -4,10 +4,15 @@ kind: registry
 methodologies:
   # Planned methodologies for /analyse-inputs. Each methodology lands in its own
   # follow-up development, promoting `status: future` to `status: mvp` and filling in
-  # the remaining seven fields. The first MVP methodology is `thematic-analysis` —
-  # an adapted Braun & Clarke (2006) six-phase reflexive thematic analysis with a
-  # deductive coverage check against a fixed 10-area concern frame. Output is pure
-  # markdown with an inline Mermaid theme-map diagram.
+  # the remaining seven fields. MVP methodologies so far:
+  #   - `thematic-analysis` (Braun & Clarke 2006, six-phase reflexive thematic
+  #     analysis with a deductive coverage check against a fixed 10-area concern
+  #     frame; pure markdown + Mermaid theme-map).
+  #   - `opportunity-solution-trees` (Teresa Torres 2016, four-layer discovery
+  #     tree adapted for raw consultant inputs — forward discovery, vs the
+  #     reverse-discovery sibling under /analyse-requirement; pure markdown +
+  #     Mermaid graph TD; carries a `## Candidate requirements` bridge that
+  #     `/requirements` consumes when the artefact is re-dropped into `input/`).
   - { name: glossary, status: future }
   - { name: jtbd, status: future }
   - { name: five-whys, status: future }
@@ -20,6 +25,15 @@ methodologies:
     map_skill: framework/skills/map-thematic-analysis-to-ui.md
     analyser_agent: framework/agents/analyses-inputs/thematic-analysis-analyser.md
     character: framework/assets/characters/thematic-analysis-inputs-analysis.md
+  - name: opportunity-solution-trees
+    status: mvp
+    description: Maps raw inputs into an outcome → opportunities → solutions → assumption-test discovery tree (Torres 2016), with a bridge of candidate-requirement seeds /requirements can pick up when the artefact is re-dropped into input/.
+    output_path: analyses/inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.md
+    reference_asset: framework/assets/analyses-inputs/opportunity-solution-trees-reference.md
+    template_asset: null
+    map_skill: framework/skills/map-opportunity-solution-trees-from-inputs-to-ui.md
+    analyser_agent: framework/agents/analyses-inputs/opportunity-solution-trees-analyser.md
+    character: framework/assets/characters/opportunity-solution-trees-inputs-analysis.md
 ---
 
 # analyses-inputs/registry.md
@@ -67,4 +81,4 @@ methodologies:
 
 **Forbidden name reservation:** the name `inputs` must not be used as a methodology slug in either this registry or `framework/assets/analyses/registry.md` — it would collide with this pipeline's output-directory scope (`analyses/inputs/`).
 
-**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `thematic-analysis` now at `status: mvp`, the selector presents at least one option to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.
+**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `thematic-analysis` and `opportunity-solution-trees` now at `status: mvp`, the selector presents two options to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.

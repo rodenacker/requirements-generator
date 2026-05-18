@@ -523,9 +523,9 @@ graph TD
 **Notes:**
 - The orchestrator is **registry-driven**: at design time it does not know which analyser will run. The `skill_ansel → asset_registry_an` edge is the discovery mechanism; `orch_an → agent_*` edges represent the runtime invocation paths once the consultant has selected a methodology via `analysis-selector.md`. **Adding a new MVP analyser requires zero orchestrator edits** — only a new registry row plus the four-asset shape (analyser agent + reference + template + character) plus the orchestrator-node edge in this graph. The `task-flows` row added in this PR follows that pattern.
 - Each analyser is itself **stand-alone-ish**: it reads `requirements/requirements.md` plus its own four assets (reference / character / template / map-skill stub) and nothing else under `requirements/`, `framework/state/`, or `framework/shared/`. The reference + template + character edges for `agent_tf` are drawn to illustrate the shape; the same shape applies to all seven other analyser nodes (omitted for readability — see each analyser's own *Inputs* section for the exact paths).
-- `check-context-bloat.md` is shared across all five orchestrators (`requirements-orch.md`, `design-system-orch.md`, `review-requirement-orch.md`, `analyse-requirement-orch.md`, `analyse-inputs-orch.md`); the analyse-requirement-orch caller passes `requirements/` as `artefact_dir` because prior `/requirements` state on disk is the meaningful proxy for in-conversation bloat against the analyser. The `/analyse-inputs` caller passes `input/` as `artefact_dir` because the raw input folder is what enters the input-analyser's context.
+- `check-context-bloat.md` is shared across all six orchestrators (`requirements-orch.md`, `design-system-orch.md`, `review-requirement-orch.md`, `analyse-requirement-orch.md`, `analyse-inputs-orch.md`, `review-inputs-orch.md`); the analyse-requirement-orch caller passes `requirements/` as `artefact_dir` because prior `/requirements` state on disk is the meaningful proxy for in-conversation bloat against the analyser. The `/analyse-inputs` and `/review-inputs` callers both pass `input/` as `artefact_dir` because the raw input folder is what enters their agents' context.
 - `state/.progress.json` is read (existence + at-least-one-`completed`-event check) by `check-context-bloat.md` from the analyse-requirement orchestrator; the analyse-requirement orchestrator never writes to it, consistent with the no-write-outside-`analyses/` invariant. This mirrors the design-system-orch surface variant of RF-05 documented in `framework/orchestrators/analyse-requirement-orch.md > RF-05 — analyse-requirement-orch surface variant`.
-- `verify-artifact-write.md` is shared across all five orchestrators; every analyser calls it from its write step (Step 11 for `task-flows-analyser.md`).
+- `verify-artifact-write.md` is shared across all six orchestrators; every analyser and reviewer calls it from its write step (Step 11 for `task-flows-analyser.md`). For `/review-inputs`, no reviewer is on disk yet on framework first-ship, but each future reviewer will call `verify-artifact-write.md` from its own write step per the standard pattern.
 - `svg-overlap-check.md` is called from the write step of the three SVG-heavy analysers (`task-flows-analyser.md` Step 11, `data-model-analyser.md` Step 10, `state-diagram-analyser.md` Step 10) — only after `verify-artifact-write` passes, and only when the analyser actually emitted ≥1 inline SVG figure (i.e., a non-empty consultant selection at the figure-selection sub-step). Reads the just-written artefact; writes a report under `framework/state/svg-overlap-<pipeline>.ndjson`. Other analysers may adopt by passing their own node/edge class allowlists.
 - Per each analyser's stand-alone constraint, no edges reach `requirements/` (except `requirements/requirements.md` itself, which is the read target — implicit, not drawn), `design-system/`, `reviews/`, or `framework/state/` from the analyser subtrees. The orchestrator's narrow read exception for the step-0b preflight (read-only access to `requirements/`, `requirements/source-manifest.json`, `framework/state/.progress.json`) is captured by the `orch_an → skill_bloat_an → state_progress_an` edges and a documented stand-alone-constraint clause in the orchestrator.
 - No cycles.
@@ -550,6 +550,7 @@ graph TD
     subgraph Agents
       agent_input_ai[input-handler.md]
       agent_ta[thematic-analysis-analyser.md]
+      agent_ost_ai[opportunity-solution-trees-analyser.md]
     end
 
     subgraph Skills
@@ -568,6 +569,9 @@ graph TD
       asset_ta_ref[analyses-inputs/thematic-analysis-reference.md]
       asset_ta_char[characters/thematic-analysis-inputs-analysis.md]
       asset_ta_map[skills/map-thematic-analysis-to-ui.md]
+      asset_ost_ai_ref[analyses-inputs/opportunity-solution-trees-reference.md]
+      asset_ost_ai_char[characters/opportunity-solution-trees-inputs-analysis.md]
+      asset_ost_ai_map[skills/map-opportunity-solution-trees-from-inputs-to-ui.md]
     end
 
     subgraph Shared
@@ -583,6 +587,7 @@ graph TD
     orch_ai --> skill_bloat_ai
     orch_ai --> agent_input_ai
     orch_ai --> agent_ta
+    orch_ai --> agent_ost_ai
     orch_ai --> shared_refusal_ai
 
     skill_ansel_ai --> asset_registry_ai
@@ -591,6 +596,11 @@ graph TD
     agent_ta --> asset_ta_char
     agent_ta --> skill_verifywrite_ai
     agent_ta --> skill_mermaid_ai
+
+    agent_ost_ai --> asset_ost_ai_ref
+    agent_ost_ai --> asset_ost_ai_char
+    agent_ost_ai --> skill_verifywrite_ai
+    agent_ost_ai --> skill_mermaid_ai
 
     skill_bloat_ai --> shared_refusal_ai
     skill_bloat_ai --> state_progress_ai
@@ -611,14 +621,14 @@ graph TD
     skill_verifywrite_ai --> shared_refusal_ai
 
     class orch_ai orch
-    class agent_input_ai,agent_ta agent
+    class agent_input_ai,agent_ta,agent_ost_ai agent
     class skill_ansel_ai,skill_bloat_ai,skill_verifywrite_ai,skill_classify_ai,skill_preflight_ai,skill_convert_ai,skill_buildmanifest_ai,skill_mermaid_ai skill
-    class asset_registry_ai,asset_ta_ref,asset_ta_char,asset_ta_map asset
+    class asset_registry_ai,asset_ta_ref,asset_ta_char,asset_ta_map,asset_ost_ai_ref,asset_ost_ai_char,asset_ost_ai_map asset
     class shared_refusal_ai,shared_setup_md_ai shared
     class state_progress_ai state
 ```
 
-**Stats:** 18 nodes / 26 edges / depth 4 (1 MVP analyser: `thematic-analysis`). The remaining `status: future` rows (`glossary`, `jtbd`, `five-whys`) are intentionally omitted from the graph because their agent / reference / character / map-skill files do not exist on disk yet. Each future methodology PR adds one `orch_ai → agent_<method>` edge plus the standard four-asset fan-out, mirroring graph 4. The shape matches the fan-out structure of `analyse-requirement-orch.md`. Note: `agent_ta` has no edge to `asset_ta_map` — the map-skill is registry metadata consumed by the future design-spec-drafter, not by the analyser itself, mirroring the precedent in graph 4.)
+**Stats:** 22 nodes / 31 edges / depth 4 (2 MVP analysers: `thematic-analysis`, `opportunity-solution-trees`). The remaining `status: future` rows (`glossary`, `jtbd`, `five-whys`) are intentionally omitted from the graph because their agent / reference / character / map-skill files do not exist on disk yet. Each future methodology PR adds one `orch_ai → agent_<method>` edge plus the standard four-asset fan-out, mirroring graph 4. The shape matches the fan-out structure of `analyse-requirement-orch.md`. Note: neither `agent_ta` nor `agent_ost_ai` has an edge to its `asset_*_map` map-skill — map-skills are registry metadata consumed by the future design-spec-drafter, not by the analyser itself, mirroring the precedent in graph 4.)
 
 **Notes:**
 - The orchestrator is **registry-driven** (same pattern as `analyse-requirement-orch.md`). The `skill_ansel_ai → asset_registry_ai` edge is the discovery mechanism; future `orch_ai → agent_<method>` edges represent the runtime invocation paths once the consultant has selected a methodology. **Adding a new MVP input-analyser requires zero orchestrator edits** — only a new MVP row in `framework/assets/analyses-inputs/registry.md`, the four-asset shape (analyser + reference + template + character), and the new edge in this graph.
@@ -626,6 +636,95 @@ graph TD
 - The shared `input-handler` invocation at step 1 is the **only** edge in this subtree that writes outside `analyses/inputs/<METHOD>/`. The writes it performs (`requirements/source-manifest.json` and `input/*.converted.md` siblings) are bounded to those paths and are documented as a cross-pipeline exception in `framework/orchestrators/analyse-inputs-orch.md > Stand-alone constraint`. No write reaches `requirements/requirements*.md`, `requirements/consultant-answers.md`, `requirements/requirements-draft.md`, `requirements/draft-claims*.ndjson`, `design-system/`, `analyses/<METHOD>/` (the requirement-doc analyses' scope, excluding the `analyses/inputs/` subtree), `reviews/`, or `framework/state/`.
 - `state/.progress.json` is read (existence + byte-size check) by `check-context-bloat.md` from this orchestrator; the orchestrator never writes to it, consistent with the no-write-outside-`analyses/inputs/` invariant. The shared `input-handler.md` agent **also** never writes to `.progress.json` from this pipeline because the orchestrator invokes it with `progress_path: null` (the agent's RF-01 continue-later write is suppressed in that mode).
 - `check-context-bloat.md` is invoked with `artefact_dir: input/` (not `requirements/`) — the byte volume of the raw input folder is the meaningful proxy for in-conversation bloat against an input-analyser, in contrast to the `/analyse-requirement` caller which passes `requirements/`.
-- The `mermaid-validator.md` skill is invoked inline from `agent_ta` at Step 10 sub-step C to validate the inline theme-map diagram before write; on `not-installed` the agent halts per the validator's own copy and fails handback. This is the first edge into `mermaid-validator.md` from the `/analyse-inputs` subtree (other analyses-pipeline analysers — `sequence-diagram`, `state-diagram`, `activity-diagram` in graph 4 — also depend on it; the file on disk is shared across pipelines).
-- `thematic-analysis` is the first MVP methodology of `/analyse-inputs`. Its registry row carries `template_asset: null` (pure-markdown analyser; the Mermaid diagram embeds as a fenced block within the markdown artefact). The remaining `status: future` rows (`glossary`, `jtbd`, `five-whys`) become operational only when their analyser / reference / character / map-skill files are authored and the row is promoted to `status: mvp` in a follow-up PR.
+- The `mermaid-validator.md` skill is invoked inline from `agent_ta` (Step 10 sub-step C) **and** from `agent_ost_ai` (Step 10 sub-step C) to validate the inline diagram before write; on `not-installed` each agent halts per the validator's own copy and fails handback. Both `/analyse-inputs` MVP analysers depend on `mermaid-validator.md`; other analyses-pipeline analysers — `sequence-diagram`, `state-diagram`, `activity-diagram` in graph 4 — also depend on it; the file on disk is shared across pipelines.
+- `thematic-analysis` and `opportunity-solution-trees` are the two MVP methodologies of `/analyse-inputs`. Both registry rows carry `template_asset: null` (pure-markdown analyser; the Mermaid diagram embeds as a fenced block within the markdown artefact). The OST inputs-side analyser is the **forward-discovery** sibling of the reverse-discovery `opportunity-solution-trees` analyser under `/analyse-requirement` (graph 4); the slug is shared across both registries and the output paths differ (`analyses/inputs/OPPORTUNITY-SOLUTION-TREES/...` vs `analyses/OPPORTUNITY-SOLUTION-TREES/...`), so the artefacts never clash. The inputs-side OST analyser's load-bearing addition vs its sibling is a `## Candidate requirements` bridge that the `/requirements` drafter reads as candidate-requirement seeds when the consultant re-drops the artefact into `input/` — the same re-ingestion mechanism `thematic-analysis`'s `Theme-to-requirement-candidates` bridge uses. The remaining `status: future` rows (`glossary`, `jtbd`, `five-whys`) become operational only when their analyser / reference / character / map-skill files are authored and the row is promoted to `status: mvp` in a follow-up PR.
+- No cycles. No `framework/assets/pattern-catalogue/` "see also" pointers appear in this subtree.
+
+---
+
+## review-inputs-orch.md
+
+```mermaid
+graph TD
+    classDef orch fill:#1f2937,color:#fff,stroke:#000,stroke-width:2px,font-weight:bold
+    classDef agent fill:#2563eb,color:#fff,stroke:#1e40af
+    classDef skill fill:#0d9488,color:#fff,stroke:#0f766e
+    classDef asset fill:#d97706,color:#fff,stroke:#92400e
+    classDef shared fill:#7c3aed,color:#fff,stroke:#5b21b6
+    classDef state fill:#525252,color:#fff,stroke:#262626
+
+    subgraph Orchestrator
+      orch_ri[review-inputs-orch.md]
+    end
+
+    subgraph Agents
+      agent_input_ri[input-handler.md]
+    end
+
+    subgraph Skills
+      skill_ansel_ri[analysis-selector.md]
+      skill_bloat_ri[check-context-bloat.md]
+      skill_verifywrite_ri[verify-artifact-write.md]
+      skill_classify_ri[classify-input-tier.md]
+      skill_preflight_ri[preflight-mcp.md]
+      skill_convert_ri[convert-input-file.md]
+      skill_buildmanifest_ri[build-source-manifest.md]
+    end
+
+    subgraph Assets
+      asset_registry_ri[reviews-inputs/registry.md]
+    end
+
+    subgraph Shared
+      shared_refusal_ri[refusal-registry.md]
+      shared_setup_md_ri[setup-instructions/markitdown.md]
+    end
+
+    subgraph State
+      state_progress_ri[state/.progress.json]
+    end
+
+    orch_ri --> skill_ansel_ri
+    orch_ri --> skill_bloat_ri
+    orch_ri --> agent_input_ri
+    orch_ri --> shared_refusal_ri
+
+    skill_ansel_ri --> asset_registry_ri
+
+    skill_bloat_ri --> shared_refusal_ri
+    skill_bloat_ri --> state_progress_ri
+
+    agent_input_ri --> skill_classify_ri
+    agent_input_ri --> skill_preflight_ri
+    agent_input_ri --> skill_convert_ri
+    agent_input_ri --> skill_buildmanifest_ri
+    agent_input_ri --> skill_verifywrite_ri
+    agent_input_ri --> shared_refusal_ri
+    agent_input_ri --> shared_setup_md_ri
+
+    skill_classify_ri --> skill_convert_ri
+    skill_preflight_ri --> shared_refusal_ri
+    skill_convert_ri --> skill_verifywrite_ri
+    skill_convert_ri --> shared_refusal_ri
+    skill_buildmanifest_ri --> skill_verifywrite_ri
+    skill_verifywrite_ri --> shared_refusal_ri
+
+    class orch_ri orch
+    class agent_input_ri agent
+    class skill_ansel_ri,skill_bloat_ri,skill_verifywrite_ri,skill_classify_ri,skill_preflight_ri,skill_convert_ri,skill_buildmanifest_ri skill
+    class asset_registry_ri asset
+    class shared_refusal_ri,shared_setup_md_ri shared
+    class state_progress_ri state
+```
+
+**Stats:** 14 nodes / 18 edges / depth 3 (zero MVP reviewers — framework first-ship). Each future methodology PR adds one `orch_ri → agent_<method>` edge plus the standard four-asset fan-out (reviewer + reference + character + template, the last possibly `null`), mirroring graphs 4 and 5. With zero MVP rows, no reviewer subtree is drawn; the graph captures the structural shape of the pipeline only.
+
+**Notes:**
+- The orchestrator is **registry-driven** (same pattern as `analyse-requirement-orch.md` and `analyse-inputs-orch.md`). The `skill_ansel_ri → asset_registry_ri` edge is the discovery mechanism; future `orch_ri → agent_<method>` edges represent the runtime invocation paths once the consultant has selected a methodology. **Adding a new MVP input-reviewer requires zero orchestrator edits** — only a new MVP row in `framework/assets/reviews-inputs/registry.md`, the four-asset shape (reviewer + reference + template + character), and the new edge in this graph.
+- The `analysis-selector.md` skill is **shared with graphs 4 and 5** (`/analyse-requirement` and `/analyse-inputs`); `/review-inputs` is its third caller. The skill is methodology-neutral and pipeline-neutral — `/review-inputs` passes the new registry path plus `list_label: "reviews"` and `verb_label: "review"` so the printed prompt reads naturally for reviewing rather than analysing.
+- The `input-handler.md` agent is **shared with `requirements-orch.md` (graph 1) and `analyse-inputs-orch.md` (graph 5)**. The seven nodes below it (`classify-input-tier`, `preflight-mcp`, `convert-input-file`, `build-source-manifest`, `verify-artifact-write`, plus the two shared-policy edges to `refusal-registry.md` and `setup-instructions/markitdown.md`) are the same node identities; they appear in three graphs but represent one set of files on disk. The per-call difference between the three pipelines is the agent's `progress_path` parameter: `requirements-orch.md` passes `framework/state/.progress.json`; both `analyse-inputs-orch.md` and `review-inputs-orch.md` pass `null` (which suppresses the agent's `RF-01 continue-later` `.progress.json` write).
+- The shared `input-handler` invocation at step 1 is the **only** edge in this subtree that writes outside `reviews/inputs/<METHOD>/`. The writes it performs (`requirements/source-manifest.json` and `input/*.converted.md` siblings) are bounded to those paths and are documented as a cross-pipeline exception in `framework/orchestrators/review-inputs-orch.md > Stand-alone constraint`. No write reaches `requirements/requirements*.md`, `requirements/consultant-answers.md`, `requirements/requirements-draft.md`, `requirements/draft-claims*.ndjson`, `design-system/`, `analyses/<METHOD>/`, `analyses/inputs/<METHOD>/`, `reviews/<METHOD>/` (the requirement-doc reviews' scope, excluding the `reviews/inputs/` subtree), or `framework/state/`.
+- `state/.progress.json` is read (existence + byte-size check) by `check-context-bloat.md` from this orchestrator; the orchestrator never writes to it, consistent with the no-write-outside-`reviews/inputs/` invariant. The shared `input-handler.md` agent **also** never writes to `.progress.json` from this pipeline because the orchestrator invokes it with `progress_path: null`.
+- `check-context-bloat.md` is invoked with `artefact_dir: input/` (matching graph 5's `/analyse-inputs` caller) — the byte volume of the raw input folder is the meaningful proxy for in-conversation bloat against an input-reviewer.
+- Framework first-ship has zero MVP reviewers; the orchestrator's selector returns `empty-registry` and exits cleanly. The `status: future` rows in `reviews-inputs/registry.md` (e.g. `completeness-review`, `ambiguity-review`) become operational only when their reviewer / reference / character / template files are authored and the row is promoted to `status: mvp` in a follow-up PR.
 - No cycles. No `framework/assets/pattern-catalogue/` "see also" pointers appear in this subtree.
