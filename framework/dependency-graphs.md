@@ -525,7 +525,7 @@ graph TD
 - Each analyser is itself **stand-alone-ish**: it reads `requirements/requirements.md` plus its own four assets (reference / character / template / map-skill stub) and nothing else under `requirements/`, `framework/state/`, or `framework/shared/`. The reference + template + character edges for `agent_tf` are drawn to illustrate the shape; the same shape applies to all seven other analyser nodes (omitted for readability — see each analyser's own *Inputs* section for the exact paths).
 - `check-context-bloat.md` is shared across all six orchestrators (`requirements-orch.md`, `design-system-orch.md`, `review-requirement-orch.md`, `analyse-requirement-orch.md`, `analyse-inputs-orch.md`, `review-inputs-orch.md`); the analyse-requirement-orch caller passes `requirements/` as `artefact_dir` because prior `/requirements` state on disk is the meaningful proxy for in-conversation bloat against the analyser. The `/analyse-inputs` and `/review-inputs` callers both pass `input/` as `artefact_dir` because the raw input folder is what enters their agents' context.
 - `state/.progress.json` is read (existence + at-least-one-`completed`-event check) by `check-context-bloat.md` from the analyse-requirement orchestrator; the analyse-requirement orchestrator never writes to it, consistent with the no-write-outside-`analyses/` invariant. This mirrors the design-system-orch surface variant of RF-05 documented in `framework/orchestrators/analyse-requirement-orch.md > RF-05 — analyse-requirement-orch surface variant`.
-- `verify-artifact-write.md` is shared across all six orchestrators; every analyser and reviewer calls it from its write step (Step 11 for `task-flows-analyser.md`). For `/review-inputs`, no reviewer is on disk yet on framework first-ship, but each future reviewer will call `verify-artifact-write.md` from its own write step per the standard pattern.
+- `verify-artifact-write.md` is shared across all six orchestrators; every analyser and reviewer calls it from its write step (Step 11 for `task-flows-analyser.md`, Step 12 for `adversarial-reviewer.md`). For `/review-inputs`, the `adversarial` reviewer (graph 6) is now MVP and calls `verify-artifact-write.md` from its Step 12; future reviewers in that pipeline will call it from their own write steps per the standard pattern.
 - `svg-overlap-check.md` is called from the write step of the three SVG-heavy analysers (`task-flows-analyser.md` Step 11, `data-model-analyser.md` Step 10, `state-diagram-analyser.md` Step 10) — only after `verify-artifact-write` passes, and only when the analyser actually emitted ≥1 inline SVG figure (i.e., a non-empty consultant selection at the figure-selection sub-step). Reads the just-written artefact; writes a report under `framework/state/svg-overlap-<pipeline>.ndjson`. Other analysers may adopt by passing their own node/edge class allowlists.
 - Per each analyser's stand-alone constraint, no edges reach `requirements/` (except `requirements/requirements.md` itself, which is the read target — implicit, not drawn), `design-system/`, `reviews/`, or `framework/state/` from the analyser subtrees. The orchestrator's narrow read exception for the step-0b preflight (read-only access to `requirements/`, `requirements/source-manifest.json`, `framework/state/.progress.json`) is captured by the `orch_an → skill_bloat_an → state_progress_an` edges and a documented stand-alone-constraint clause in the orchestrator.
 - No cycles.
@@ -648,8 +648,10 @@ graph TD
 graph TD
     classDef orch fill:#1f2937,color:#fff,stroke:#000,stroke-width:2px,font-weight:bold
     classDef agent fill:#2563eb,color:#fff,stroke:#1e40af
+    classDef worker fill:#3b82f6,color:#fff,stroke:#1d4ed8,stroke-dasharray:3 3
     classDef skill fill:#0d9488,color:#fff,stroke:#0f766e
     classDef asset fill:#d97706,color:#fff,stroke:#92400e
+    classDef char fill:#db2777,color:#fff,stroke:#9d174d
     classDef shared fill:#7c3aed,color:#fff,stroke:#5b21b6
     classDef state fill:#525252,color:#fff,stroke:#262626
 
@@ -659,6 +661,11 @@ graph TD
 
     subgraph Agents
       agent_input_ri[input-handler.md]
+      agent_adv_ri[adversarial-reviewer.md]
+    end
+
+    subgraph Workers
+      worker_adv_dim_ri[adversarial-dimension-worker.md]
     end
 
     subgraph Skills
@@ -673,6 +680,12 @@ graph TD
 
     subgraph Assets
       asset_registry_ri[reviews-inputs/registry.md]
+      asset_ref_adv_ri[reviews-inputs/adversarial-reference.md]
+      asset_tmpl_adv_ri[reviews-inputs/template-adversarial.md]
+    end
+
+    subgraph Characters
+      char_adv_ri[characters/adversarial-inputs-review.md]
     end
 
     subgraph Shared
@@ -687,6 +700,7 @@ graph TD
     orch_ri --> skill_ansel_ri
     orch_ri --> skill_bloat_ri
     orch_ri --> agent_input_ri
+    orch_ri --> agent_adv_ri
     orch_ri --> shared_refusal_ri
 
     skill_ansel_ri --> asset_registry_ri
@@ -702,6 +716,12 @@ graph TD
     agent_input_ri --> shared_refusal_ri
     agent_input_ri --> shared_setup_md_ri
 
+    agent_adv_ri --> char_adv_ri
+    agent_adv_ri --> asset_ref_adv_ri
+    agent_adv_ri --> asset_tmpl_adv_ri
+    agent_adv_ri --> skill_verifywrite_ri
+    agent_adv_ri --> worker_adv_dim_ri
+
     skill_classify_ri --> skill_convert_ri
     skill_preflight_ri --> shared_refusal_ri
     skill_convert_ri --> skill_verifywrite_ri
@@ -710,14 +730,16 @@ graph TD
     skill_verifywrite_ri --> shared_refusal_ri
 
     class orch_ri orch
-    class agent_input_ri agent
+    class agent_input_ri,agent_adv_ri agent
+    class worker_adv_dim_ri worker
     class skill_ansel_ri,skill_bloat_ri,skill_verifywrite_ri,skill_classify_ri,skill_preflight_ri,skill_convert_ri,skill_buildmanifest_ri skill
-    class asset_registry_ri asset
+    class asset_registry_ri,asset_ref_adv_ri,asset_tmpl_adv_ri asset
+    class char_adv_ri char
     class shared_refusal_ri,shared_setup_md_ri shared
     class state_progress_ri state
 ```
 
-**Stats:** 14 nodes / 18 edges / depth 3 (zero MVP reviewers — framework first-ship). Each future methodology PR adds one `orch_ri → agent_<method>` edge plus the standard four-asset fan-out (reviewer + reference + character + template, the last possibly `null`), mirroring graphs 4 and 5. With zero MVP rows, no reviewer subtree is drawn; the graph captures the structural shape of the pipeline only.
+**Stats:** 19 nodes / 24 edges / depth 4 (1 MVP reviewer: `adversarial`). Each future methodology PR adds one `orch_ri → agent_<method>` edge plus the standard four-asset fan-out (reviewer + reference + character + template, the last possibly `null`), mirroring graphs 4 and 5. The `adversarial` reviewer also fans out to a parallel dimension worker (drawn with a dashed border) — a pattern shared with the `/review-requirement` adversarial reviewer in graph 3.
 
 **Notes:**
 - The orchestrator is **registry-driven** (same pattern as `analyse-requirement-orch.md` and `analyse-inputs-orch.md`). The `skill_ansel_ri → asset_registry_ri` edge is the discovery mechanism; future `orch_ri → agent_<method>` edges represent the runtime invocation paths once the consultant has selected a methodology. **Adding a new MVP input-reviewer requires zero orchestrator edits** — only a new MVP row in `framework/assets/reviews-inputs/registry.md`, the four-asset shape (reviewer + reference + template + character), and the new edge in this graph.
@@ -726,5 +748,7 @@ graph TD
 - The shared `input-handler` invocation at step 1 is the **only** edge in this subtree that writes outside `reviews/inputs/<METHOD>/`. The writes it performs (`requirements/source-manifest.json` and `input/*.converted.md` siblings) are bounded to those paths and are documented as a cross-pipeline exception in `framework/orchestrators/review-inputs-orch.md > Stand-alone constraint`. No write reaches `requirements/requirements*.md`, `requirements/consultant-answers.md`, `requirements/requirements-draft.md`, `requirements/draft-claims*.ndjson`, `design-system/`, `analyses/<METHOD>/`, `analyses/inputs/<METHOD>/`, `reviews/<METHOD>/` (the requirement-doc reviews' scope, excluding the `reviews/inputs/` subtree), or `framework/state/`.
 - `state/.progress.json` is read (existence + byte-size check) by `check-context-bloat.md` from this orchestrator; the orchestrator never writes to it, consistent with the no-write-outside-`reviews/inputs/` invariant. The shared `input-handler.md` agent **also** never writes to `.progress.json` from this pipeline because the orchestrator invokes it with `progress_path: null`.
 - `check-context-bloat.md` is invoked with `artefact_dir: input/` (matching graph 5's `/analyse-inputs` caller) — the byte volume of the raw input folder is the meaningful proxy for in-conversation bloat against an input-reviewer.
-- Framework first-ship has zero MVP reviewers; the orchestrator's selector returns `empty-registry` and exits cleanly. The `status: future` rows in `reviews-inputs/registry.md` (e.g. `completeness-review`, `ambiguity-review`) become operational only when their reviewer / reference / character / template files are authored and the row is promoted to `status: mvp` in a follow-up PR.
+- The `adversarial` reviewer fans out **seven** non-interactive tool-less dimension workers per `adversarial-dimension-worker.md` at its Step 4; this is the only sub-agent dispatch under the `/review-inputs` pipeline (and parallels the eight-worker fan-out in graph 3 for `/review-requirement` adversarial). The worker node is drawn with a dashed border to indicate it is a parallel sub-agent rather than an orchestrator-invoked agent. Inputs-side workers are stricter than requirements-side workers: they have **no tools at all** (no Read scope) because the parent inlines a frozen evidence bundle plus per-source quote indices, eliminating the need for any worker disk access. The seven dimensions are tuned for raw-input defects (Stakeholder & Role Coverage, Domain & Workflow Coverage, Ambiguity & Vague Language, Source Provenance/Consistency/Conflict, Quantitative & Measurable Signal, Scope & MVP Signal, Bias/Sampling/Self-Selection) — one fewer than the requirements-side eight, and a different synthesis: Dim 7 (Bias/Sampling) has no requirements-side analogue.
+- The `adversarial` reviewer is **full overwrite** per run (no additive merge, no manifest-fingerprint cursor, no Run-history section) — each run reflects only the current input set. This differs from the `/analyse-inputs` analysers in graph 5 (`thematic-analysis`, `opportunity-solution-trees`), which use additive merge to grow understanding across runs. The semantic difference: analysis artefacts *grow* understanding; review punch-lists *change* as inputs change.
+- Framework first-ship has one MVP reviewer (`adversarial`). The `status: future` rows in `reviews-inputs/registry.md` (`completeness-review`, `ambiguity-review`) become operational only when their reviewer / reference / character / template files are authored and the row is promoted to `status: mvp` in a follow-up PR.
 - No cycles. No `framework/assets/pattern-catalogue/` "see also" pointers appear in this subtree.

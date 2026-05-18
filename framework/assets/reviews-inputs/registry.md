@@ -2,16 +2,31 @@
 role: asset
 kind: registry
 methodologies:
-  # Planned methodologies for /review-inputs. Each methodology lands in its own
-  # follow-up development, promoting `status: future` to `status: mvp` and filling in
-  # the remaining eight fields. No methodology is `status: mvp` on framework first-ship —
-  # the orchestrator's selector returns `empty-registry` and exits cleanly with a
-  # friendly "no input reviews available yet" message until the first row is promoted.
+  # Methodologies for /review-inputs. Each methodology ships as a separate development,
+  # promoting `status: future` to `status: mvp` and filling in the remaining eight fields.
+  # The `adversarial` row is the first MVP — a BMAD-style seven-dimension critique of
+  # the raw consultant input set, paralleling the eight-dimension /review-requirement
+  # adversarial reviewer with dimensions tuned for input-set defects (stakeholder
+  # coverage, workflow coverage, ambiguity, cross-source conflict, quantitative signal,
+  # scope signal, sampling bias). Additional `status: future` rows below become
+  # operational only when their reviewer / reference / character / template files are
+  # authored and the row's status is flipped to `mvp`. If every MVP row were removed,
+  # the selector returns `empty-registry` and the orchestrator surfaces a friendly
+  # "no input reviews available yet" message and exits cleanly.
   #
   # Slug-collision note: methodology slugs are shared across registries (a row named
   # `completeness` could exist in both `reviews-inputs/registry.md` and
   # `reviews/registry.md`); the artefacts do not clobber because the output paths
   # differ (`reviews/inputs/COMPLETENESS/...` vs `reviews/COMPLETENESS/...`).
+  - name: adversarial
+    status: mvp
+    description: Choose this to flush out defects in the raw consultant inputs (stakeholder gaps, ambiguity, cross-source conflicts, missing edge cases, sampling bias) before /requirements drafts from them.
+    output_path: reviews/inputs/ADVERSARIAL/adversarial-review.md
+    reference_asset: framework/assets/reviews-inputs/adversarial-reference.md
+    template_asset: framework/assets/reviews-inputs/template-adversarial.md
+    map_skill: null
+    reviewer_agent: framework/agents/reviews-inputs/adversarial-reviewer.md
+    character: framework/assets/characters/adversarial-inputs-review.md
   - { name: completeness-review, status: future }
   - { name: ambiguity-review, status: future }
 ---
@@ -56,7 +71,7 @@ Folding input-reviews into the analyses-inputs registry would muddy the consulta
 **Field semantics:**
 
 - `name` — kebab-case slug. Used as the subdirectory name under `reviews/inputs/` (uppercased to `reviews/inputs/<METHOD>/`) and as the path component in the reviewer agent file. Methodology slugs are shared across registries; the artefacts do not clobber because the output paths differ.
-- `status` — `mvp` (selectable now) or `future` (not yet built; this is the default state for every row on framework first-ship).
+- `status` — `mvp` (selectable now) or `future` (not yet built; reviewer / reference / character / template files do not exist on disk).
 - `description` — one-line label surfaced in the selector's printed list. Required only when `status: mvp`.
 - `output_path` — relative path of the artefact the reviewer writes. Drives the prior-artefact gate in the orchestrator. **Must** live under `reviews/inputs/` for write-isolation. Required only when `status: mvp`.
 - `reference_asset` — the methodology reference the reviewer follows. Required only when `status: mvp`.
@@ -67,4 +82,4 @@ Folding input-reviews into the analyses-inputs registry would muddy the consulta
 
 **Forbidden name reservation:** the name `inputs` must not be used as a methodology slug in either this registry or `framework/assets/reviews/registry.md` — it would collide with this pipeline's output-directory scope (`reviews/inputs/`).
 
-**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input reviews available yet" message and exits cleanly. This is the **expected** steady state on framework first-ship until methodologies are added in follow-up PRs. If every MVP row is later removed, the empty-registry behaviour resumes — it is not an error.
+**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input reviews available yet" message and exits cleanly. With the `adversarial` row at `status: mvp`, the selector returns `selected` for that methodology when chosen. If every MVP row is later removed, the empty-registry behaviour resumes — it is not an error.
