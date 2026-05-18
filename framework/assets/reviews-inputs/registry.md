@@ -28,7 +28,15 @@ methodologies:
     reviewer_agent: framework/agents/reviews-inputs/adversarial-reviewer.md
     character: framework/assets/characters/adversarial-inputs-review.md
   - { name: completeness-review, status: future }
-  - { name: ambiguity-review, status: future }
+  - name: ambiguity-review
+    status: mvp
+    description: Choose this to surface lexical, syntactic, referential, vague, subjective, weak-verb, and optionality ambiguities in the raw consultant inputs (Berry/Kamsties + Femmer taxonomy) — with ready-to-paste stakeholder elicitation questions per finding — before /requirements drafts from them.
+    output_path: review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md
+    reference_asset: framework/assets/reviews-inputs/ambiguity-reference.md
+    template_asset: null
+    map_skill: null
+    reviewer_agent: framework/agents/reviews-inputs/ambiguity-reviewer.md
+    character: framework/assets/characters/ambiguity-inputs-review.md
 ---
 
 # reviews-inputs/registry.md

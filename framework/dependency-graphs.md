@@ -662,6 +662,7 @@ graph TD
     subgraph Agents
       agent_input_ri[input-handler.md]
       agent_adv_ri[adversarial-reviewer.md]
+      agent_amb_ri[ambiguity-reviewer.md]
     end
 
     subgraph Workers
@@ -682,10 +683,12 @@ graph TD
       asset_registry_ri[reviews-inputs/registry.md]
       asset_ref_adv_ri[reviews-inputs/adversarial-reference.md]
       asset_tmpl_adv_ri[reviews-inputs/template-adversarial.md]
+      asset_ref_amb_ri[reviews-inputs/ambiguity-reference.md]
     end
 
     subgraph Characters
       char_adv_ri[characters/adversarial-inputs-review.md]
+      char_amb_ri[characters/ambiguity-inputs-review.md]
     end
 
     subgraph Shared
@@ -701,6 +704,7 @@ graph TD
     orch_ri --> skill_bloat_ri
     orch_ri --> agent_input_ri
     orch_ri --> agent_adv_ri
+    orch_ri --> agent_amb_ri
     orch_ri --> shared_refusal_ri
 
     skill_ansel_ri --> asset_registry_ri
@@ -722,6 +726,10 @@ graph TD
     agent_adv_ri --> skill_verifywrite_ri
     agent_adv_ri --> worker_adv_dim_ri
 
+    agent_amb_ri --> char_amb_ri
+    agent_amb_ri --> asset_ref_amb_ri
+    agent_amb_ri --> skill_verifywrite_ri
+
     skill_classify_ri --> skill_convert_ri
     skill_preflight_ri --> shared_refusal_ri
     skill_convert_ri --> skill_verifywrite_ri
@@ -730,16 +738,16 @@ graph TD
     skill_verifywrite_ri --> shared_refusal_ri
 
     class orch_ri orch
-    class agent_input_ri,agent_adv_ri agent
+    class agent_input_ri,agent_adv_ri,agent_amb_ri agent
     class worker_adv_dim_ri worker
     class skill_ansel_ri,skill_bloat_ri,skill_verifywrite_ri,skill_classify_ri,skill_preflight_ri,skill_convert_ri,skill_buildmanifest_ri skill
-    class asset_registry_ri,asset_ref_adv_ri,asset_tmpl_adv_ri asset
-    class char_adv_ri char
+    class asset_registry_ri,asset_ref_adv_ri,asset_tmpl_adv_ri,asset_ref_amb_ri asset
+    class char_adv_ri,char_amb_ri char
     class shared_refusal_ri,shared_setup_md_ri shared
     class state_progress_ri state
 ```
 
-**Stats:** 19 nodes / 24 edges / depth 4 (1 MVP reviewer: `adversarial`). Each future methodology PR adds one `orch_ri → agent_<method>` edge plus the standard four-asset fan-out (reviewer + reference + character + template, the last possibly `null`), mirroring graphs 4 and 5. The `adversarial` reviewer also fans out to a parallel dimension worker (drawn with a dashed border) — a pattern shared with the `/review-requirement` adversarial reviewer in graph 3.
+**Stats:** 22 nodes / 28 edges / depth 4 (2 MVP reviewers: `adversarial`, `ambiguity-review`). Each future methodology PR adds one `orch_ri → agent_<method>` edge plus the standard four-asset fan-out (reviewer + reference + character + template, the last possibly `null`), mirroring graphs 4 and 5. The `adversarial` reviewer also fans out to a parallel dimension worker (drawn with a dashed border) — a pattern shared with the `/review-requirement` adversarial reviewer in graph 3. The `ambiguity-review` reviewer is **sequential / single-threaded** — no dimension workers, no `Agent`/`Task` dispatch; its seven dimensions sweep in steps 4–10 of the agent, then cross-dimension consolidation collapses same-span multi-dimension hits in step 11. `ambiguity-review` carries `template_asset: null` (pure-markdown renderer; no scaffold) and `map_skill: null` (reviews don't translate into UI inventory).
 
 **Notes:**
 - The orchestrator is **registry-driven** (same pattern as `analyse-requirement-orch.md` and `analyse-inputs-orch.md`). The `skill_ansel_ri → asset_registry_ri` edge is the discovery mechanism; future `orch_ri → agent_<method>` edges represent the runtime invocation paths once the consultant has selected a methodology. **Adding a new MVP input-reviewer requires zero orchestrator edits** — only a new MVP row in `framework/assets/reviews-inputs/registry.md`, the four-asset shape (reviewer + reference + template + character), and the new edge in this graph.
@@ -749,6 +757,7 @@ graph TD
 - `state/.progress.json` is read (existence + byte-size check) by `check-context-bloat.md` from this orchestrator; the orchestrator never writes to it, consistent with the no-write-outside-`review-inputs/` invariant. The shared `input-handler.md` agent **also** never writes to `.progress.json` from this pipeline because the orchestrator invokes it with `progress_path: null`.
 - `check-context-bloat.md` is invoked with `artefact_dir: input/` (matching graph 5's `/analyse-inputs` caller) — the byte volume of the raw input folder is the meaningful proxy for in-conversation bloat against an input-reviewer.
 - The `adversarial` reviewer fans out **seven** non-interactive tool-less dimension workers per `adversarial-dimension-worker.md` at its Step 4; this is the only sub-agent dispatch under the `/review-inputs` pipeline (and parallels the eight-worker fan-out in graph 3 for `/review-requirement` adversarial). The worker node is drawn with a dashed border to indicate it is a parallel sub-agent rather than an orchestrator-invoked agent. Inputs-side workers are stricter than requirements-side workers: they have **no tools at all** (no Read scope) because the parent inlines a frozen evidence bundle plus per-source quote indices, eliminating the need for any worker disk access. The seven dimensions are tuned for raw-input defects (Stakeholder & Role Coverage, Domain & Workflow Coverage, Ambiguity & Vague Language, Source Provenance/Consistency/Conflict, Quantitative & Measurable Signal, Scope & MVP Signal, Bias/Sampling/Self-Selection) — one fewer than the requirements-side eight, and a different synthesis: Dim 7 (Bias/Sampling) has no requirements-side analogue.
-- The `adversarial` reviewer is **full overwrite** per run (no additive merge, no manifest-fingerprint cursor, no Run-history section) — each run reflects only the current input set. This differs from the `/analyse-inputs` analysers in graph 5 (`thematic-analysis`, `opportunity-solution-trees`), which use additive merge to grow understanding across runs. The semantic difference: analysis artefacts *grow* understanding; review punch-lists *change* as inputs change.
-- Framework first-ship has one MVP reviewer (`adversarial`). The `status: future` rows in `reviews-inputs/registry.md` (`completeness-review`, `ambiguity-review`) become operational only when their reviewer / reference / character / template files are authored and the row is promoted to `status: mvp` in a follow-up PR.
+- The `adversarial` reviewer is **full overwrite** per run (no additive merge, no manifest-fingerprint cursor, no Run-history section) — each run reflects only the current input set. This differs from the `/analyse-inputs` analysers in graph 5 (`thematic-analysis`, `opportunity-solution-trees`), which use additive merge to grow understanding across runs. The semantic difference: analysis artefacts *grow* understanding; review punch-lists *change* as inputs change. The `ambiguity-review` reviewer follows the same full-overwrite contract.
+- The `ambiguity-review` reviewer is the second MVP under `/review-inputs`. Its seven dimensions are tuned for linguistic ambiguity (Berry & Kamsties 2004 + Femmer requirements-smells): lexical, syntactic, referential, vague predicates, subjective qualifiers, weak verbs, optionality + agentless passive. Its central methodology rule is the **≥2-interpretations test** — every finding must list ≥2 plausible readings (each producing a different downstream requirement) before logging; candidates that fail the test are dropped to adversarial-review territory. Its finding schema is 8 fields (ID, Dimension(s), Severity, Location, Evidence, Interpretations, Problem, Elicitation question) — distinct from adversarial's 8-field schema (which carries a Patch/Defer/Reject Disposition rubric in place of Interpretations + Elicitation question). Its Severity rubric is Blocker/Major/Minor (no Disposition) and the verdict mapping is severity-only. Each finding carries a ready-to-paste stakeholder elicitation question grouped by source filename in a dedicated artefact section — the value-prop that earns the methodology its keep over adversarial's coarser Dimension 3 (Ambiguity & Vague Language).
+- Framework first-ship now carries two MVP reviewers (`adversarial`, `ambiguity-review`). The one remaining `status: future` row in `reviews-inputs/registry.md` (`completeness-review`) becomes operational only when its reviewer / reference / character / template files are authored and the row is promoted to `status: mvp` in a follow-up PR.
 - No cycles. No `framework/assets/pattern-catalogue/` "see also" pointers appear in this subtree.
