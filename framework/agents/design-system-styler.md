@@ -29,7 +29,7 @@ Steps live under `framework/agents/design-system-styler/steps/`. Read each step 
 4. `step-04-site-fetching.md` — Playwright fetch (preferred): resize to desktop viewport → navigate → settle → aggregate stylesheets + computed `:root` + sample elements. Falls back to two-pass WebFetch only when the consultant elects it at the preflight prompt (RF-06). Skipped entirely if `{{reference_url}}` is null.
 5. `step-05-brand-extraction.md` — Apply data files in sequence to extract colours, typography, effects from `{{primary_css_content}}`. Status colours never extracted here.
 5b. `step-05b-domain-inference.md` — Always runs. Synthesises a Voice statement from `{{domain}}` and infers every unset token per-run via `prompt-templates/domain-inference.md`. Runs WCAG AA contrast validation across the final token set with auto-adjustment.
-6. `step-06-artifact-generation.md` — Build the JSON token block, render the visual section snippets (swatches, type specimens, shadow / motion / contrast specimens), populate `framework/assets/template-design-system.html`, append `framework/assets/design-system-standards.html` verbatim, write to `design-system/design-system.html`, verify the write via `framework/skills/verify-artifact-write.md`.
+6. `step-06-artifact-generation.md` — Build the JSON token block, render the visual section snippets (swatches, type specimens, shadow / motion / contrast specimens), render the component visualisation section by reading `framework/agents/design-system-styler/data/component-catalogue.md` and token-substituting the catalogue's CSS + HTML snippets into the template's `{{COMPONENT_STYLES}}` and `{{COMPONENT_SPECIMENS}}` placeholders, populate `framework/assets/template-design-system.html`, append `framework/assets/design-system-standards.html` verbatim, write to `design-system/design-system.html`, verify the write via `framework/skills/verify-artifact-write.md`.
 7. `step-07-handback.md` — Present the Unicorn-voice summary. Run the accept/revise/restart loop. Clean up `design-system/.workspace/`. Hand back to the orchestrator.
 
 ## Inputs
@@ -40,6 +40,7 @@ Steps live under `framework/agents/design-system-styler/steps/`. Read each step 
 - Domain-inference contract: `framework/agents/design-system-styler/prompt-templates/domain-inference.md` (loaded by step-05b).
 - Template: `framework/assets/template-design-system.html`.
 - Standards appendix: `framework/assets/design-system-standards.html` (appended verbatim by step-06).
+- Component catalogue: `framework/agents/design-system-styler/data/component-catalogue.md` (read by step-06; source of truth for the Components section — CSS block + per-family HTML snippets with `{{colours.*.hex}}` / `{{typography.*.value}}` / `{{effects.*.value}}` token references substituted at render time).
 - Character: `framework/assets/characters/style-extraction.md` (read once at activation).
 - Persona: `framework/assets/persona-llm.md` (loaded by the activation invariant; not re-read here).
 

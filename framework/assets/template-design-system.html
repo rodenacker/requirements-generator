@@ -33,7 +33,18 @@
     7. #contrast          — 4 contrast pairs (text/text-muted × bg/surface),
                             each rendered as text on its actual bg with the
                             ratio + pass/fail annotation. Adjustments line.
-    8. {{STANDARDS_BLOCK}} — replaced by the verbatim contents of
+    8. #components        — Interactive component visualisations (buttons,
+                            form inputs, alerts, badges, cards, data table,
+                            tabs, modal) rendered with the brand tokens.
+                            CSS-only interactivity (:hover / :focus / :active
+                            / :checked / <details>). Each family also shows
+                            a labelled side-by-side state matrix using
+                            .cv-force-{state} classes so screenshots and
+                            PDF exports capture every state. Sourced from
+                            framework/agents/design-system-styler/data/
+                            component-catalogue.md — edit the catalogue to
+                            add, remove, or tweak families.
+    9. {{STANDARDS_BLOCK}} — replaced by the verbatim contents of
                              framework/assets/design-system-standards.html at
                              render time. The standards file opens with its
                              own <section id="standards"> wrapper.
@@ -63,6 +74,18 @@
     {{CONTRAST_PAIRS}}         — pre-rendered HTML for 4 text-on-bg blocks.
                                  See CONTRAST PAIR SCHEMA below.
     {{CONTRAST_ADJUSTMENTS}}   — adjustments line (or "none").
+    {{COMPONENT_STYLES}}       — component-visualisation CSS sourced from
+                                 the catalogue's single fenced css block,
+                                 with all {{colours.*.hex}} / {{typography.
+                                 *.value}} / {{effects.*.value}} references
+                                 token-substituted. Inserted inside the
+                                 template's <style> block, immediately
+                                 before </style>.
+    {{COMPONENT_SPECIMENS}}    — pre-rendered HTML for the component
+                                 visualisation section body. Concatenation
+                                 of one wrapper per enabled family (live
+                                 demo + states matrix), in catalogue
+                                 render-order. Sourced from the catalogue.
     {{STANDARDS_BLOCK}}        — verbatim contents of
                                  framework/assets/design-system-standards.html.
 
@@ -201,6 +224,20 @@
   Sample text in every typography / contrast block is the fixed pangram
   "The quick brown fox jumps over the lazy dog 1234567890" so the consultant
   sees a consistent string across all specimens.
+
+  COMPONENT SECTION — {{COMPONENT_STYLES}} and {{COMPONENT_SPECIMENS}} are
+  sourced from `framework/agents/design-system-styler/data/component-catalogue.md`.
+  The catalogue owns the single CSS block + per-family (live demo + states
+  matrix) HTML snippets. step-06 reads it after this template, token-
+  substitutes any `{{colours.*.hex}}` / `{{typography.*.value}}` /
+  `{{effects.*.value}}` references inside the catalogue, and substitutes
+  the resulting CSS into {{COMPONENT_STYLES}} and the resulting HTML into
+  {{COMPONENT_SPECIMENS}}.
+
+  Live components react to real :hover / :focus / :active / :disabled /
+  :checked in a browser. The matched .cv-force-{state} classes render the
+  same visuals statically for screenshots / PDF export. Tabs use hidden
+  radio inputs + :checked; modal uses native <details>/<summary>. No JS.
 
   No external <script> tags in this template — the JSON block is data, not code.
   No HTTP/CDN resources referenced anywhere. The file is openable via file://.
@@ -612,6 +649,19 @@
       border-radius: 3px;
       font-size: 0.92em;
     }
+
+    /* --- components section base scaffold ------------------------------- */
+    /* Per-component CSS (.cv-btn, .cv-input, etc.) is injected into
+       {{COMPONENT_STYLES}} from the catalogue. Only the section-level
+       layout lives here, mirroring .shadow-grid / .contrast-grid. */
+    section#components .components-intro {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0 0 16px 0;
+    }
+    section#components .cv-family > h3 + p.cv-note { color: var(--muted); }
+
+    {{COMPONENT_STYLES}}
   </style>
 </head>
 <body>
@@ -667,6 +717,12 @@
       {{CONTRAST_PAIRS}}
     </div>
     <p class="contrast-adjustments"><strong>Adjustments:</strong> {{CONTRAST_ADJUSTMENTS}}</p>
+  </section>
+
+  <section id="components" class="token-section">
+    <h2>Components</h2>
+    <p class="components-intro">Common UI patterns rendered with the brand's tokens. The <strong>live demo</strong> for each family reacts to real <code>:hover</code>, <code>:focus</code>, <code>:active</code>, <code>:disabled</code>, and <code>:checked</code> in your browser. The <strong>states matrix</strong> below each demo shows every state side-by-side using forced-state classes — useful for screenshots and PDF export. Tabs use hidden radio buttons + <code>:checked</code>; the modal uses native <code>&lt;details&gt;</code>. No JavaScript. Edit <code>framework/agents/design-system-styler/data/component-catalogue.md</code> to add, remove, or tweak families.</p>
+    {{COMPONENT_SPECIMENS}}
   </section>
 
   {{STANDARDS_BLOCK}}

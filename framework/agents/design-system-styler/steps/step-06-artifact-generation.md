@@ -5,6 +5,7 @@ description: 'Build the JSON token block, render the visual sections, populate t
 # prompt_artifact_generation: 'framework/agents/design-system-styler/prompt-templates/artifact-generation.md'
 # template_path: 'framework/assets/template-design-system.html'
 # standards_path: 'framework/assets/design-system-standards.html'
+# component_catalogue: 'framework/agents/design-system-styler/data/component-catalogue.md'
 # output_path: 'design-system/design-system.html'
 ---
 
@@ -26,9 +27,11 @@ Read tool: framework/agents/design-system-styler/prompt-templates/artifact-gener
 - `{{voice}}` — one-line Voice statement synthesised in step-05b
 - `{{extraction_status}}`, `{{extraction_date}}`, `{{domain}}`, `{{reference_url}}`, `{{css_source_type}}`, `{{css_source_url}}`
 
-## A. Source the Template
+## A. Source the Template and the Component Catalogue
 
 Read `framework/assets/template-design-system.html`. Use it as the structural base. Replace every `{{placeholder}}` with the corresponding in-memory value. Do not insert, remove, or reorder sections.
+
+Then read `framework/agents/design-system-styler/data/component-catalogue.md`. The catalogue owns the **Components** section content (the single `css` block and every family's `Live demo` + `States matrix` HTML snippets). Step-06 substitutes its content into the template's `{{COMPONENT_STYLES}}` and `{{COMPONENT_SPECIMENS}}` placeholders — see Section B.4 below for the substitution procedure.
 
 ## B. Apply the Artifact-Generation Prompt
 
@@ -46,6 +49,13 @@ Apply the prompt template's instructions in order:
     - `{{MOTION_SPECIMENS}}` — 4 `<div class="motion-row">` blocks (transition-fast / transition-base / transition-slow / easing-standard) per the MOTION SCHEMA. The animated dot's inline style is `animation-duration: {{value}}; animation-timing-function: {{easing-token-value}};` for transition rows, and `animation-duration: 2s; animation-timing-function: {{value}};` for the easing-standard row.
     - `{{CONTRAST_PAIRS}}` — 4 `<div class="contrast-card">` blocks per the CONTRAST PAIR SCHEMA. Inline style: `background: {{bg-hex}}; color: {{fg-hex}};`. Pair label and ratio printed inside; the status badge uses class `status-pass` (ratio ≥ 4.5) or `status-fail`.
     - `{{CONTRAST_ADJUSTMENTS}}` — the adjustments line (`none`, or the comma-separated `{token} adjusted from {original} to {adjusted} ({pair} contrast was {ratio}:1)` record).
+    - `{{COMPONENT_STYLES}}` and `{{COMPONENT_SPECIMENS}}` — sourced from the component catalogue. Procedure:
+        1. Parse the catalogue's `## Render order` list. Each numbered bullet is a family slug (`buttons`, `form-inputs`, `alerts`, `badges`, `cards`, `data-table`, `tabs`, `modal`). A bullet whose line starts with `<!--` or `#` is **skipped** — the family is not rendered.
+        2. Extract the single fenced `css` block under `## Component CSS`. Its inner content (no fences) is the **component-css buffer**.
+        3. For each enabled family slug, in render order, locate the catalogue heading `## {{slug}}`, then extract the two fenced `html` blocks under `### Live demo` and `### States matrix` (in that order). Wrap each family's two snippets in `<div class="cv-family"><h3>{{Title-Case-Slug}}</h3><p class="cv-note">Live demo</p>{{live-demo-html}}<p class="cv-note">States matrix</p>{{states-matrix-html}}</div>`. Append to the **component-specimens buffer**.
+        4. **Token-substitute** both buffers in memory: for every reference of the form `{{colours.<name>.hex}}`, `{{typography.<name>.value}}`, or `{{effects.<name>.value}}`, replace with the literal value from the in-memory token set built in step-05 / step-05b. This is plain string replacement — no other substitution semantics. After this pass, **no `{{colours.…}}` / `{{typography.…}}` / `{{effects.…}}` references must remain** in either buffer.
+        5. Substitute the component-css buffer into the template's `{{COMPONENT_STYLES}}` placeholder (which sits inside the `<style>` block, immediately before `</style>`).
+        6. Substitute the component-specimens buffer into the template's `{{COMPONENT_SPECIMENS}}` placeholder (which sits inside `<section id="components">`).
 5. **Section 7 — Page-level scalars.** Substitute `{{DOMAIN}}` (the lowercased+trimmed consultant input) and `{{GENERATED_AT}}` (ISO date) into the `<head>` `<title>`, the H1, and the generated-at line.
 
 The artefact is generated even when `{{extraction_status}}` ≠ `"success"`. The doc is always complete (every token domain-inferred if extraction was skipped); the JSON `meta.extraction_status` field records *why* the URL path didn't yield extracted values.
@@ -63,13 +73,15 @@ After the template is fully rendered (all placeholders replaced except `{{STANDA
 Before calling `Write`:
 
 - Render the full artefact (template body + substituted standards) as one string in memory.
-- Confirm: every `{{placeholder}}` has been replaced. No literal `{{...}}` substrings remain. (The standards block contains no placeholders.)
+- Confirm: every `{{placeholder}}` has been replaced. No literal `{{...}}` substrings remain. (The standards block contains no placeholders. The catalogue's token references — `{{colours.…}}`, `{{typography.…}}`, `{{effects.…}}` — must also be fully substituted; any survivor indicates a typo in the catalogue or a missing token in the in-memory set, and is a hard halt.)
 - Confirm: the `<script type="application/json" id="design-tokens">` block is present, and its inner content is **valid JSON** — parse it back in memory to verify. If parsing fails, halt and do not Write.
 - Confirm: the JSON `meta`, `colours`, `typography`, `effects`, and `contrast` keys are all present.
 - Confirm: every `prov` value in the JSON is one of `extracted-from-url` or `inferred-from-domain`. No third marker.
 - Confirm: status-colour entries (success/warning/error/info) all carry `prov: "inferred-from-domain"` regardless of the URL outcome.
 - Confirm: the document closes with `</body>\n</html>` (the template's literal closing tags are intact and not duplicated).
 - Confirm: the rendered string contains the literal substring `<section id="standards"` (from the appended standards file) exactly once.
+- Confirm: the rendered string contains the literal substring `<section id="components"` exactly once.
+- Confirm: the rendered string contains the literal substring `class="cv-btn` at least once (smoke test that the component CSS / HTML from the catalogue actually landed in the artefact; a buffer-substitution failure would drop it silently).
 - Compute `sha256` of the rendered byte string (template + standards). Store as `{{expected_sha256}}`.
 
 ## D. Write
@@ -84,7 +96,7 @@ Invoke `framework/skills/verify-artifact-write.md` with:
 
 - `path = "design-system/design-system.html"`
 - `expected_sha256 = {{expected_sha256}}`
-- `expected_min_bytes = 8000` (HTML body + inlined CSS + JSON block + visual sections + standards appendix runs well above this; a truncated render that drops any section will not)
+- `expected_min_bytes = 14000` (HTML body + inlined CSS + JSON block + visual sections + components section + standards appendix runs well above this; a truncated render that drops the components section or the standards appendix will not. The threshold was raised from 8000 to 14000 when the components section was added.)
 
 If the skill returns `pass`, advance to step-07.
 

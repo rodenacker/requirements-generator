@@ -183,6 +183,7 @@ graph TD
       data_shadow[data/shadow-motion-rules.md]
       data_contrast[data/contrast-validation.md]
       data_insuff[data/insufficient-data-handling.md]
+      data_catalogue[data/component-catalogue.md]
     end
 
     subgraph Skills
@@ -251,6 +252,7 @@ graph TD
     step06 --> pt_artifact
     step06 --> asset_template_ds
     step06 --> asset_standards
+    step06 --> data_catalogue
     step06 --> skill_verifywrite_ds
 
     skill_verifywrite_ds --> shared_refusal_ds
@@ -261,7 +263,7 @@ graph TD
     class agent_styler agent
     class step01,step02,step04,step05,step05b,step06,step07 step
     class pt_site,pt_css,pt_brand,pt_domain,pt_artifact prompt
-    class data_color,data_font,data_typo,data_shadow,data_contrast,data_insuff data
+    class data_color,data_font,data_typo,data_shadow,data_contrast,data_insuff,data_catalogue data
     class skill_preflight_ds,skill_verifywrite_ds,skill_bloat_ds skill
     class asset_persona,asset_template_ds,asset_standards asset
     class char_style char
@@ -270,11 +272,12 @@ graph TD
     classDef state fill:#525252,color:#fff,stroke:#262626
 ```
 
-**Stats:** 29 nodes / 40 edges / depth 5.
+**Stats:** 30 nodes / 41 edges / depth 5.
 
 **Notes:**
 - Step-05b (domain-inference) loads `prompt-templates/domain-inference.md` to derive an inferred token set per-run from the consultant's `{{domain}}` string. Status colours and any token unset after step-05 are filled here.
 - `template-design-system.html` is shared between `step-06-artifact-generation.md` (the operative loader) and `prompt-templates/artifact-generation.md` (which instructs step-06 to read it).
+- `data/component-catalogue.md` is read by `step-06-artifact-generation.md` only. It owns the **Components** section's single CSS block + per-family `Live demo` and `States matrix` HTML snippets. Step-06 token-substitutes any `{{colours.*.hex}}` / `{{typography.*.value}}` / `{{effects.*.value}}` references against the in-memory token set, then injects the resulting CSS into the template's `{{COMPONENT_STYLES}}` placeholder and the resulting HTML into `{{COMPONENT_SPECIMENS}}`. Edits to which components render, what their HTML / CSS looks like, and what states are shown happen in this one file.
 - `refusal-registry.md` is shared between `step-04-site-fetching.md`, `preflight-mcp.md`, `verify-artifact-write.md`, and `check-context-bloat.md`.
 - `check-context-bloat.md` is shared between both orchestrators (`requirements-orch.md` and `design-system-orch.md`); the design-system caller passes `requirements/` as `artefact_dir` because prior `/requirements` state on disk is the meaningful proxy for in-conversation bloat against the styler.
 - `state/.progress.json` is read (existence + at-least-one-`completed`-event check) by `check-context-bloat.md` from both orchestrators; the design-system orchestrator never writes to it.

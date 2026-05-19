@@ -17,7 +17,7 @@ Section order (contractual — do not reorder; matches the template):
 
 ```
 <head>
-  <title>, <meta>, inlined <style>
+  <title>, <meta>, inlined <style>     ← {{COMPONENT_STYLES}} substituted before </style>
 </head>
 <body>
   <script type="application/json" id="design-tokens"> ← JSON token block
@@ -27,6 +27,7 @@ Section order (contractual — do not reorder; matches the template):
     <section id="typography">   ← 2 family + 8 size + 3 line-height specimens
     <section id="effects">      ← 3 shadow cards + 3 transition rows + 1 easing row
     <section id="contrast">     ← 4 text-on-bg pairs + adjustments line
+    <section id="components">   ← {{COMPONENT_SPECIMENS}}: live demos + state matrices from catalogue
     {{STANDARDS_BLOCK}}         ← verbatim insertion of design-system-standards.html
   </main>
 </body>
@@ -148,6 +149,24 @@ Four pairs: `text on background`, `text on surface`, `text-muted on background`,
 ### `{{CONTRAST_ADJUSTMENTS}}` (single line)
 
 `none` if no adjustments were needed, else the comma-separated record `{token} adjusted from {original_hex} to {adjusted_hex} ({pair} contrast was {original_ratio}:1)`.
+
+### `{{COMPONENT_STYLES}}` and `{{COMPONENT_SPECIMENS}}` (component catalogue)
+
+The component visualisation section is sourced from `framework/agents/design-system-styler/data/component-catalogue.md` — the single source of truth for which components render, in what order, and how. Defer all per-component schema decisions to the catalogue itself; this prompt template only describes the read / extract / substitute mechanic.
+
+**Read order in step-06:** read this prompt template → read the HTML template → **read the catalogue** → render JSON + visual snippets in memory → render the component buffers → substitute everything → pre-write self-check → Write → verify.
+
+**Render order:** parse the catalogue's `## Render order` list. Each numbered bullet is a family slug; render families in list order. A slug whose line starts with `<!--` or `#` is skipped (the family is not rendered). This is the consultant's hook for cheaply toggling families on / off without touching any other file.
+
+**Two snippets per family:** under each `## {{slug}}` heading the catalogue contains two fenced `html` blocks — `### Live demo` and `### States matrix`. Extract both, in that order. Wrap them in a `<div class="cv-family">` with an `<h3>{{Title-Case-Slug}}</h3>`, a `<p class="cv-note">Live demo</p>` lead-in for the demo, a `<p class="cv-note">States matrix</p>` lead-in for the matrix, and append the wrapper to the component-specimens buffer.
+
+**Token-reference substitution convention:** inside the catalogue's CSS block and its HTML snippets, token references take one of three forms — `{{colours.<name>.hex}}`, `{{typography.<name>.value}}`, `{{effects.<name>.value}}` — matching the JSON-shape paths defined in Section 3. The styler does plain string replacement against the in-memory token set built in step-05 / step-05b. No other substitution semantics; no expression evaluation; no fallback. A typo or a missing token leaves a literal `{{…}}` that the pre-write self-check (Section C in step-06) refuses to write.
+
+**Structural-constant policy:** the catalogue's CSS contains hardcoded neutral constants for padding (`8px 16px` for buttons, `8px 12px` for inputs, `16px` for cards, etc.), border-radii (`4px` small, `6px` medium, `8px` large), border colours (`rgba(0,0,0,0.20)` strong, `rgba(0,0,0,0.08)` light), and focus-ring offsets. These are **not tokens** — they are pattern decisions shared across brands, not brand decisions. Adding spacing / radius / border-colour token categories is deliberately out of scope here; if a future requirement is "extract spacing from the brand site too", the constants in the catalogue become the seed values for the new tokens.
+
+**Interactivity policy:** the catalogue's CSS pairs every `:hover` / `:focus` / `:active` / `:disabled` / `:checked` rule with a `.cv-force-{state}` sibling so live demos respond to real interaction and the state matrix renders the same visuals statically. Tabs use hidden `<input type="radio">` + `:checked`; the modal uses native `<details>`/`<summary>`. **No `<script>` tags.** The template invariant ("No external `<script>` tags — the JSON block is data, not code") is preserved.
+
+**The catalogue is the contract.** Do not duplicate per-family schemas in this prompt template — the catalogue's HTML and CSS *are* the schema. Edits to which components render, what their HTML looks like, what states are shown, and what CSS applies happen in one file: the catalogue.
 
 ---
 
