@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-05-19T08:33:45.1683831Z",
+  "target": null,
+  "rows": [
+    {
+      "filename": "PrototypeBrief.md",
+      "tier": "Native-text",
+      "kind": "primary",
+      "sha256": "7cb6525cbc6f767dad13896141b1ee7d0b25e4f4ed4afab2cbf5d8f86e350c02",
+      "conversions_applied": "none",
+      "original_path": "input/PrototypeBrief.md",
+      "converted_sibling": null
+    }
+  ]
+}
