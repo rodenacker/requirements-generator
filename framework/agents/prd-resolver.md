@@ -19,14 +19,14 @@ To avoid re-reading the multi-hundred-line draft on every turn — and to avoid 
     Line 1 is the run header: `{"run_started_at":"<ISO-8601 UTC>","blocking_total":N,"non_blocking_total":M}`. Lines 2..N+M+1 are items, each:
 
     ```json
-    {"line":2,"id":"PAI-NNN","classification":"blocking","section_heading":"<most-specific enclosing #/##/### heading>","source_location":"<section / field reference>","original_suggestion":"<verbatim text from draft>","draft_context":"<optional one-line context from the drafter>","phase2_batch_key":"<heading-based key>"}
+    {"line":2,"id":"PAI-NNN","classification":"blocking","section_heading":"<most-specific enclosing #/##/### heading>","source_location":"<section / field reference>","original_suggestion":"<verbatim text from draft>","draft_context":"<optional one-line context from the drafter>","phase2_batch_key":"<heading-based key, used by Phase 2 batched non-blocking flow>"}
     ```
 
-    `line` is the 1-based line number of this entry within the file. Items are written in PAI-NNN order so section batches (Level 1.5 and Phase 2) map to contiguous line ranges.
+    `line` is the 1-based line number of this entry within the file. Items are written in PAI-NNN order so Phase 2 section batches map to contiguous line ranges.
 
     `draft_context` is **optional**. When the drafter's gap pass emits a `draft_context` value alongside an `[AI-SUGGESTED]` marker tuple (per `framework/skills/completeness-gap-pass-prd.md` and `framework/agents/prd-drafter.md > Classification`), the resolver carries it onto the manifest line and renders it into the question text so the consultant can answer without flipping back to the draft. Manifest lines without a `draft_context` field fall back to question text built from `source_location` + `original_suggestion`. The resolver never invents `draft_context`.
 
-    On every later turn, **slice-Read** rather than full-Read: use `Read(file_path = ".../prd-resolver-manifest.ndjson", offset = <next-line>, limit = 1)` for Level 1 (single active item) or `limit = N` for a Level 1.5 or Phase 2 batch of N ≤ 10 items. The full manifest is Read in full only on the very first turn (to build it); at self-validation the manifest is touched only by a slice-Read of line 1 (the run header). If an item is escalated `non-blocking → blocking` mid-run, Edit its line in place to update `classification`.
+    On every later turn, **slice-Read** rather than full-Read: use `Read(file_path = ".../prd-resolver-manifest.ndjson", offset = <next-line>, limit = 1)` for a Phase 1 single blocking item, or `limit = N` for a Phase 2 batch of N ≤ 10 non-blocking items. The full manifest is Read in full only on the very first turn (to build it); at self-validation the manifest is touched only by a slice-Read of line 1 (the run header). If an item is escalated `non-blocking → blocking` mid-run, Edit its line in place to update `classification`.
 
 - **`framework/state/prd-resolver-answers.ndjson`** — newline-delimited JSON, append-only resolution log. One resolved entry per line:
 
@@ -71,22 +71,20 @@ The resolver operates in two modes, governed by the classification of the curren
 
 Draft-wide contradiction sweeps — comparing answers against the rest of `prd/prd-draft.md` — happen once at self-validation, not per-question.
 
-### Phase 1 — Blocking items (Level 1 single + Level 1.5 section batch)
+### Phase 1 — Blocking items (one at a time)
 
-Phase 1 has two presentation levels, both selected automatically by the resolver based on the section grouping of still-open blocking items. The blocking-protection invariant is preserved at both levels: every blocking item ends the phase with an explicit affirmative (per-item answer, `accept-all-in-batch`, or `accept-all-remaining-blocking`) — there is no silent accept path.
+Phase 1 surfaces every blocking item individually. The blocking-protection invariant is preserved by construction: every blocking item ends the phase with an explicit affirmative (per-item answer or `accept-all-remaining-blocking`) — there is no silent accept path. Section grouping is not used in Phase 1; section grouping is a Phase 2 (non-blocking) concept only.
 
-**Level 1 (single item).** Used when the next open blocking item is the only still-open blocking item in its `section_heading`. The item is asked as a single, focused `AskUserQuestion` with the choice set `{confirm, correct, drop, accept-all-remaining-blocking}` plus free-text "Other". Follow-ups, if needed, are one-at-a-time on the same item until it is unambiguous, consistent, and complete.
+**Level 1 (single item) — the only Phase 1 mode.** The next open blocking item is asked as a single, focused `AskUserQuestion` with the choice set `{confirm, correct, drop, accept-all-remaining-blocking}` plus free-text "Other". Follow-ups, if needed, are one-at-a-time on the same item until it is unambiguous, consistent, and complete. Items are processed in PAI-NNN order across the manifest, regardless of `section_heading`.
 
-**Level 1.5 (section batch).** Used when the next open blocking item shares its `section_heading` with ≥1 other still-open blocking item. The resolver presents that section's *blocking subset* as a single `AskUserQuestion` whose text lists each item (PAI-NNN, `source_location`, `original_suggestion`, and `draft_context` when present), with the choice set `{accept-all-in-batch, review-individually, drop-all-in-batch, accept-all-remaining-blocking}` plus free-text "Other" for per-PAI-NNN exceptions. Batch size cap is ≤ 10 items per `AskUserQuestion`; sections with more split into consecutive Level 1.5 batches of 10. Never mix items from different sections in the same batch. Within a section, preserve PAI-NNN order across batches.
+- `confirm` — item recorded with `status: "confirmed"` and the gap-pass's original `marker_payload` value as `resolved_value`.
+- `correct` — consultant supplies a replacement value via the follow-up; item recorded with `status: "corrected"` and the replacement as `resolved_value`.
+- `drop` — item recorded with `status: "dropped"`.
+- `accept-all-remaining-blocking` — every still-open blocking item across the remaining manifest is recorded with `status: "accepted-as-is"` and `consultant_answer: "accept-all-remaining-blocking"`; the resolver advances to Phase 2 immediately. This is the escape hatch for consultants who have judged the residual blocking pool acceptable.
+- **Free-text "Other".** Verbatim consultant text is recorded as the item's `consultant_answer`. If the resolution is unclear, raise a follow-up on the same item before advancing.
+- **Ambiguity / contradiction / incompleteness.** If any consultant response is unclear, raise a follow-up on the same item before advancing to the next blocking item.
 
-- `accept-all-in-batch` — every item in the batch is recorded with `status: "confirmed"` and `consultant_answer: "accept-all-in-batch"`.
-- `review-individually` — fall back to Level 1 for **this section only**, then automatically resume Level 1.5 on the next section that qualifies.
-- `drop-all-in-batch` — every item in the batch is recorded with `status: "dropped"`.
-- `accept-all-remaining-blocking` — every still-open blocking item across every remaining section is recorded with `status: "accepted-as-is"` and `consultant_answer: "accept-all-remaining-blocking"`; the resolver advances to Phase 2 immediately.
-- **Free-text overrides.** Apply named exceptions (e.g., "accept all except PAI-002 and PAI-004; drop PAI-004; correct PAI-002 to 'X'") to the chosen choice. Each exception's verbatim consultant text is recorded against its PAI-NNN.
-- **Ambiguity / contradiction / incompleteness.** If any item's resolution is unclear, escalate it out of the batch into a Level 1 follow-up before moving on.
-
-`accept-all-remaining-blocking` must be an **explicit, distinct option** in the choice set at both Level 1 and Level 1.5 — not a free-text override. Items captured via this option carry `status: "accepted-as-is"`; items captured via Level 1.5's `accept-all-in-batch` carry `status: "confirmed"`.
+`accept-all-remaining-blocking` must be an **explicit, distinct option** in the choice set — not a free-text override. Items captured via this option carry `status: "accepted-as-is"`; per-item `confirm` records `confirmed` (the consultant explicitly affirmed this specific item, in contrast to bulk-skipping the residual).
 
 ### Phase 2 — Non-blocking items: grouped batches by section heading (Level 2)
 
@@ -103,14 +101,14 @@ Once Phase 1 is complete, ask non-blocking items in **grouped batches**:
 - **Free-text overrides.** Apply named exceptions; capture the rest per the chosen choice.
 - **Ambiguity / contradiction / incompleteness.** If any item's resolution is unclear, escalate it out of the batch into a Level 1 follow-up before moving on.
 
-**Expected distribution.** PRD drafts typically produce far fewer total `[AI-SUGGESTED]` items than requirements drafts (roughly: 1 per primary metric baseline, 1 per hypothesis falsification condition, 1-2 per risk mitigation, plus stakeholder sign-off domains and phase definitions). Most batches will be size 1 (Level 1 fires) and Level 1.5 will rarely activate. This is expected behaviour — the protocol is identical to the requirements resolver for consistency, but the section-batching branch will be underused. Do **not** simplify the protocol — consistency across pipelines wins over micro-optimisation.
+**Expected distribution.** PRD drafts typically produce far fewer total `[AI-SUGGESTED]` items than requirements drafts (roughly: 1 per primary metric baseline, 1 per hypothesis falsification condition, 1-2 per risk mitigation, plus stakeholder sign-off domains and phase definitions). The Phase 1 / Phase 2 protocol is identical to the requirements resolver for consistency — both process blocking items one-at-a-time in ID order, and both batch non-blocking items by section.
 
 ## Auto-launch behaviour
 
 On invocation, the agent **immediately**:
 
 1. Builds (or, if a consistent file exists from an interrupted run, reuses) `framework/state/prd-resolver-manifest.ndjson` by Reading + Grepping `prd/prd-draft.md`. Writes the run-header line plus one item line per `[AI-SUGGESTED:` marker in PAI-NNN order. While building, populate `draft_context` on each item line from the drafter's gap-pass tuple (when emitted); omit the field when the drafter did not supply one.
-1a. Computes the in-memory section index `{section_heading → [open_blocking_PAI_NNN, …], [open_non_blocking_PAI_NNN, …]}` over the manifest, used by Phase 1 to decide Level 1 vs Level 1.5.
+1a. Computes the in-memory **non-blocking** section index `{section_heading → [open_non_blocking_PAI_NNN, …]}` over the manifest, used by Phase 2 to size each non-blocking section batch. Phase 1 (blocking) does not consult a section index — every blocking item is asked individually in PAI-NNN order regardless of section.
 2. Reads `framework/state/prd-resolver-cursor.json` if present (resume case). If absent or stale, full-Read `framework/state/prd-resolver-answers.ndjson` (also if present) once to reconstruct the cursor: `next_open_id`, `phase`, `next_manifest_line`, and the resolved counters. Then write the cursor and proceed.
 3. Asks the first open question or batch via `AskUserQuestion` — no preamble, no "ready to start?" prompt.
 
@@ -139,7 +137,7 @@ Non-blocking issues: <non-blocking-resolved>/<non-blocking-total>
 The Q&A modes section is the spec. This list is the runnable checklist:
 
 1. On first turn, build the manifest from the draft.
-2. Run Phase 1 (blocking; Level 1 for single-item sections, Level 1.5 for sections with ≥2 open blocking items, batch cap ≤10). Edit-append each resolution to `prd-resolver-answers.ndjson` and Write the updated `prd-resolver-cursor.json`. Do not render `prd/consultant-answers.md` at Phase 1 close.
+2. Run Phase 1 (blocking; one item at a time in PAI-NNN order). Edit-append each resolution to `prd-resolver-answers.ndjson` and Write the updated `prd-resolver-cursor.json`. Do not render `prd/consultant-answers.md` at Phase 1 close.
 3. Run Phase 2 (non-blocking, grouped batches ≤10 by section). Edit-append each batch's resolutions to `prd-resolver-answers.ndjson` and Write the updated `prd-resolver-cursor.json`. Do not render `prd/consultant-answers.md` at Phase 2 close.
 4. Run self-validation; on pass, render `prd/consultant-answers.md` from `prd-resolver-answers.ndjson` via a single `Write`.
 5. Do not modify `prd/prd-draft.md`. Reconciliation is a downstream step.
@@ -150,7 +148,7 @@ The Q&A modes section is the spec. This list is the runnable checklist:
 
 The PRD resolver does **not** consult `framework/shared/general-rules.md`, `framework/shared/prototype-scope.md`, or their index files. The PRD pipeline does not enforce those rules.
 
-The Phase 1 / Phase 2 / Level 1 / Level 1.5 / Level 2 protocol is fully specified in this agent file.
+The Phase 1 (one-at-a-time) / Phase 2 (Level 2 batched) protocol is fully specified in this agent file.
 
 ## Output
 
@@ -172,12 +170,11 @@ Working-state files (`framework/state/prd-resolver-manifest.ndjson`, `framework/
 
 ## Tools
 
-- **Read** — read `prd/prd-draft.md` once on first turn (manifest build) and once during self-validation (cross-document Grep sweep). **Slice-Read** `framework/state/prd-resolver-manifest.ndjson` per turn at the cursor's `next_manifest_line` (Level 1: `limit=1`; Level 1.5 and Phase 2: `limit=next_batch_size`); full-Read it only on first turn (build). At self-validation, slice-Read line 1 only (the run header). **Read** `framework/state/prd-resolver-cursor.json` per turn (small file). **Read** `framework/state/prd-resolver-answers.ndjson` only on resume (cursor missing/stale) and at self-validation.
+- **Read** — read `prd/prd-draft.md` once on first turn (manifest build) and once during self-validation (cross-document Grep sweep). **Slice-Read** `framework/state/prd-resolver-manifest.ndjson` per turn at the cursor's `next_manifest_line` (Phase 1: `limit=1`; Phase 2: `limit=next_batch_size`); full-Read it only on first turn (build). At self-validation, slice-Read line 1 only (the run header). **Read** `framework/state/prd-resolver-cursor.json` per turn (small file). **Read** `framework/state/prd-resolver-answers.ndjson` only on resume (cursor missing/stale) and at self-validation.
 - **Grep** — used **only**: (a) on first turn, to enumerate `[AI-SUGGESTED:` markers and resolve each item's enclosing section heading for the manifest; (b) during self-validation, for cross-document contradiction checks across both `prd/prd-draft.md` and `framework/state/prd-resolver-answers.ndjson`. Do **not** Grep the draft per-question during Q&A.
 - **AskUserQuestion** — the question tool.
-    - Phase 1 Level 1: `{confirm, correct, drop, accept-all-remaining-blocking}` + free-text.
-    - Phase 1 Level 1.5: `{accept-all-in-batch, review-individually, drop-all-in-batch, accept-all-remaining-blocking}` + free-text.
-    - Phase 2: `{accept-all-in-batch, review-individually, drop-all-in-batch, accept-all-remaining-non-blocking}` + free-text.
+    - Phase 1 (single blocking item): `{confirm, correct, drop, accept-all-remaining-blocking}` + free-text "Other".
+    - Phase 2 (non-blocking section batch, ≤10 items): `{accept-all-in-batch, review-individually, drop-all-in-batch, accept-all-remaining-non-blocking}` + free-text for per-PAI-NNN exceptions.
 - **Write** — write `framework/state/prd-resolver-manifest.ndjson` (first turn only), `framework/state/prd-resolver-cursor.json` (after each resolution), and `prd/consultant-answers.md` (once, after self-validation passes).
 - **Edit** — append entries to `framework/state/prd-resolver-answers.ndjson`, and update individual lines in `framework/state/prd-resolver-manifest.ndjson` when an item is escalated `non-blocking → blocking`.
 
@@ -187,16 +184,16 @@ Verify all of the following.
 
 - Every `[AI-SUGGESTED]` ID present in `prd/prd-draft.md` has exactly one entry in `prd-resolver-answers.ndjson`. The coverage check is performed by (a) reading line 1 of `prd-resolver-manifest.ndjson` for `blocking_total` and `non_blocking_total`, (b) asserting `cursor.blocking_resolved == blocking_total` and `cursor.non_blocking_resolved == non_blocking_total`, (c) full-reading `prd-resolver-answers.ndjson` and asserting one entry per PAI-NNN. The cross-document Grep sweep against the draft is the authoritative coverage check.
 - Every entry has all required fields: `Source location`, `Original suggestion`, `Initial classification` matching the draft, `Revised classification` (`unchanged` or `blocking` with reason), `Status` (one of `confirmed | corrected | dropped | accepted-as-is`), `Consultant answer`, `Follow-ups`, and `Resolved value` (populated unless status is `dropped`).
-- Every `blocking` item (initial or revised) was resolved in Phase 1 via one of: (a) an individual Level 1 answer, (b) a Level 1.5 section-batch answer plus any per-PAI-NNN exception, or (c) an explicit `accept-all-remaining-blocking`. `accepted-as-is` is permitted for a blocking item only via path (c).
+- Every `blocking` item (initial or revised) was resolved in Phase 1 via one of: (a) an individual per-item answer (`confirm | correct | drop` or free-text "Other"), or (b) an explicit `accept-all-remaining-blocking` (which captures every still-open blocking item across the remaining manifest as `accepted-as-is`). `accepted-as-is` is permitted for a blocking item only via path (b); per-item `confirm` records `confirmed`, not `accepted-as-is`.
 - Phase order held: no `non-blocking` item was asked before Phase 1 closed.
-- Every Level 1.5 batch and every Phase 2 batch contained ≤ 10 items from a single section heading, and section groups were processed in draft order within each phase.
-- Cross-document sweep: Grep the draft and `prd-resolver-answers.ndjson` for conflicting commitments. Any conflict triggers a Level 1 follow-up before declaring done.
+- Every Phase 2 batch contained ≤ 10 items from a single section heading, and section groups were processed in draft order within Phase 2.
+- Cross-document sweep: Grep the draft and `prd-resolver-answers.ndjson` for conflicting commitments. Any conflict triggers a follow-up before declaring done.
 
 ## Definition of Done
 
 - `prd/consultant-answers.md` exists and contains a resolved entry for every AI-SUGGESTED ID found in `prd/prd-draft.md`.
 - All self-validation checks pass.
-- The consultant has either (a) answered each item individually, (b) confirmed a section batch via `accept-all-in-batch`, or (c) explicitly chosen `accept-all-remaining-*` for the residual set.
+- The consultant has either (a) answered each item individually (every blocking item in Phase 1, or Level 2 fall-back via `review-individually` in Phase 2), (b) confirmed a Phase 2 section batch via `accept-all-in-batch`, or (c) explicitly chosen `accept-all-remaining-blocking` (Phase 1) and/or `accept-all-remaining-non-blocking` (Phase 2) for the residual set.
 
 ## Anti-Patterns
 
@@ -206,7 +203,7 @@ Verify all of the following.
 - Do not advance the progress counter for follow-ups on an item or batch that is not yet captured.
 - Do not downgrade `blocking → non-blocking`; the drafter's blocking call is sticky upward only.
 - Do not use any asset, skill, or tool not listed in this document.
-- Do not re-Read `prd-draft.md` during Q&A — slice-Read the manifest at the cursor's `next_manifest_line`.
+- Do not re-Read `prd-draft.md` during Q&A — slice-Read the manifest at the cursor's `next_manifest_line` (Phase 1: `limit=1`; Phase 2: `limit=next_batch_size`).
 - Do not full-Read `prd-resolver-manifest.ndjson` per turn.
 - Do not Write the entire `prd-resolver-answers.ndjson` per update — Edit-append a new line.
 - Do not consult `framework/shared/general-rules.md` or `framework/shared/prototype-scope.md` — those are requirements-pipeline files. The PRD pipeline does not apply rule lookups or scope deferrals during Q&A.

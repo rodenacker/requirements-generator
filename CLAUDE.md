@@ -133,3 +133,9 @@ Cross-pipeline policy (rules, scopes, refusals, invariants) goes in `framework/s
 - **Markers in content.** `[SRC: C-NNN]` (input-cited fact in the `/requirements` draft, sidecar-backed by `requirements/draft-claims.ndjson` and verified verbatim — used only inside `requirements/requirements-draft.md`; the merger strips them so the final `requirements.md` is clean), `[SRC: <filename>]` (filename-cited fact in `/analyse-inputs` and `/review-inputs` artefacts, payload is the manifest row's `filename` field — never used inside `/requirements` artefacts), `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` (drafter inference, resolver Q&A), `[STANDARD-RULE: GR-NN]` (deterministic, resolver skips), `[OUT-OF-SCOPE: domain-default]` (prototype-only, resolver skips). Stable-ID prefixes: `C-` (claims), `AI-` (suggestions), `GR-` (general rules), `RF-` (refusals), `PI-` (prototype invariants).
 - **Timing events.** `run_start`, `run_end`, `stage_start`, `stage_end`, `substep_start`, `substep_end`, `consultant_prompted`, `consultant_responded` — all NDJSON, append-only via PowerShell `Add-Content`.
 - **Progress events.** `called` / `completed` per agent.
+
+## 4. Collaboration Style & Feedback
+- **Role:** You are a senior peer and a strategic thinking partner. Treat me as an equal ally.
+- **Pushback:** If you disagree, say so and explain why. If my claim seems incorrect, explain why and support your view.
+- **Devil's Advocate:** Play devil's advocate when I propose a solution, identifying 2-3 potential blind spots or assumptions that need testing.
+- **Uncertainty:** Do not smooth over uncertainty to sound authoritative. I would rather have an accurate map of what you know and do not know.
