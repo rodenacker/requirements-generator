@@ -30,12 +30,12 @@ Topics that directly affect what the user sees and interacts with in a prototype
 
 Topics that belong to backend, infrastructure, or implementation domains and cannot be represented in a UI prototype:
 
-- **Backend API implementation details** — endpoint logic, middleware, request handling
-- **Database schema and migration specifics** — table definitions, indexes, migration scripts
-- **Authentication/authorization implementation** — OAuth flows, token management, session internals
-- **DevOps, CI/CD, infrastructure** — deployment pipelines, container orchestration, monitoring
-- **Performance optimization techniques** — caching strategies, query optimization, CDN configuration
-- **Data migration strategies** — ETL processes, data transformation scripts
-- **Security implementation details** — encryption, input sanitization, CORS policies
-- **Third-party service integration internals** — SDK configuration, webhook handlers, API keys
-- **Server-side business logic implementation** — calculation engines, rule processors, scheduling
+- **Backend internals** — endpoint logic, middleware, request handling, persistence design, queue infrastructure. The FE consumes the backend only as contracts (§6.10), specified in a sibling backend requirements document under the `application` target or replaced by fixtures under the `prototype` target.
+- **Database schema and migration specifics** — table definitions, indexes, migration scripts (FE references §7 data shapes only, never storage shape).
+- **Authentication/authorization implementation** — OAuth flows, token management, session storage internals. UI surfaces of auth (timeout warnings, re-auth modal trigger, sign-in screens) remain in scope via §6.6.1.
+- **DevOps, CI/CD, infrastructure** — deployment pipelines, container orchestration, monitoring.
+- **Performance optimization techniques** (backend-side) — caching strategies, query optimization, CDN configuration. FE perf budgets (TTI, bundle size, render budget) remain in scope via §6.6.2.
+- **Data migration strategies** — ETL processes, data transformation scripts.
+- **Security implementation details** — encryption, input sanitization, CORS policies.
+- **Third-party service integration internals** — SDK configuration, webhook handlers, API keys.
+- **Server-side business logic implementation** — calculation engines, rule processors, scheduling. UI surfaces of derived values (§7.X Derivations) remain in scope as business-language rules.

@@ -16,20 +16,21 @@ Turn unstructured input documents into a structured, **self-contained** requirem
     - If `tier = "Unsupported"` — skip. The row is a forensic record only.
    The manifest is the sole enumeration of inputs; do not Glob `input/` directly.
 2. Extract facts mentally by template section as you read; do not re-read inputs per section.
-3. *(Timing — emit batched `substep_end[read-inputs]` + `substep_start[populate-template]` in one tool call before this step's first template emission.)* Populate `framework/assets/template-requirements.md` top-to-bottom in a single pass; no `{{placeholders}}` and no blanks. **In this pass, fill only from input-stated facts and domain defaults — emit no `[AI-SUGGESTED]`, `[STANDARD-RULE]`, or `[OUT-OF-SCOPE]` markers yet, and leave §2.4 as an empty placeholder.** Markers and §2.4 are applied later (steps 5–6). For every value populated from an **input-stated fact**, append a trailing `[SRC: C-NNN]` tag with a unique, monotonically assigned id (C-001, C-002, …) and remember the verbatim source quote that grounds it — these citations are materialised to a sidecar at step 7a. Domain-default tentative fills carry no `[SRC:]` tag at step 3; the gap pass at step 5 will assign them the appropriate marker. The `[SRC:]` tagging covers every unmarked, template-defined field value in the scope list under **Citation scope** below; free-prose narrative is excluded.
+3. *(Timing — emit batched `substep_end[read-inputs]` + `substep_start[populate-template]` in one tool call before this step's first template emission.)* Populate `framework/assets/template-requirements.md` top-to-bottom in a single pass; no `{{placeholders}}` and no blanks. **In this pass, fill only from input-stated facts and domain defaults — emit no `[AI-SUGGESTED]`, `[STANDARD-RULE]`, or `[OUT-OF-SCOPE]` markers yet, and leave §2.4 as an empty placeholder.** Markers and §2.4 are applied later (steps 5–7). For every value populated from an **input-stated fact**, append a trailing `[SRC: C-NNN]` tag with a unique, monotonically assigned id (C-001, C-002, …) and remember the verbatim source quote that grounds it — these citations are materialised to a sidecar at step 8a. Domain-default tentative fills carry no `[SRC:]` tag at step 3; the gap pass at step 5 will assign them the appropriate marker. The `[SRC:]` tagging covers every unmarked, template-defined field value in the scope list under **Citation scope** below; free-prose narrative is excluded.
 4. *(Timing — emit batched `substep_end[populate-template]` + `substep_start[grep-crosscheck]` in one tool call before this step's first Grep.)* Use Grep only to cross-check the populated draft, not to re-read inputs.
 5. *(Timing — emit batched `substep_end[grep-crosscheck]` + `substep_start[gap-pass]` in one tool call before invoking the skill.)* **Gap pass.** Run the `framework/skills/completeness-gap-pass.md` skill against the in-memory populated draft, passing `manifest_target` as the skill's `target` parameter. For each gap tuple emitted by the skill, walk the decision tree in **Classification** below and apply the corresponding marker per the tuple's `marker_kind`: `[STANDARD-RULE: GR-NN]`, `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]`, `[OUT-OF-SCOPE: domain-default]` (emitted only when `manifest_target == "prototype"`), or no marker at all (emitted by the gap pass for OOS-routed tuples when `manifest_target == "application"`; the tuple's value is applied without any surrounding marker). Fabricate missing elements (entities, stories, RBAC rows/columns, BR rows, etc.) as the gap pass directs. AI-NNN IDs are unique within the draft and assigned monotonically. **The set of `[AI-SUGGESTED]` markers emitted is identical under both targets** — only the `[OUT-OF-SCOPE]` markers differ (emitted under prototype, suppressed under application).
-6. *(Timing — emit batched `substep_end[gap-pass]` + `substep_start[author-mermaid]` in one tool call before authoring the block.)* Author §2.4 as an inline Mermaid block per the **Domain-model diagram** section. This must run **after** the gap pass so §2.4 reflects any §2.1 concepts added in step 5.
-7. *(Timing — emit batched `substep_end[author-mermaid]` + `substep_start[write-draft]` in one tool call before Self-validation begins. On `RF-04 trigger`, do **not** emit `substep_end[write-draft]` — the orphan start is the halt signal.)* Run **Self-validation**; fix and re-run until it passes; Write the draft. Immediately after the Write, call `framework/skills/verify-artifact-write.md` with `path: "requirements/requirements-draft.md"`, `expected_sha256: <hash of the rendered draft bytes>`, `expected_min_bytes: <byte length of the rendered draft>`. On `RF-04 trigger`, halt per `framework/shared/refusal-registry.md > RF-04`; do not advance.
-7a. *(Timing — emit batched `substep_end[write-draft]` + `substep_start[write-claims-sidecar]` in one tool call before the sidecar Write. On `RF-04 trigger`, do **not** emit `substep_end[write-claims-sidecar]`.)* **Emit the claims sidecar.** Write `requirements/draft-claims.ndjson` — one NDJSON line per `[SRC: C-NNN]` tag in the just-written draft, with shape `{claim_id, draft_locator, claim_text, source_file, source_quote}` per the **Claims sidecar** section below. Immediately after the Write, call `framework/skills/verify-artifact-write.md` with `path: "requirements/draft-claims.ndjson"`, `expected_sha256: <hash of the rendered sidecar bytes>`, `expected_min_bytes: <byte length of the rendered sidecar>`. On `RF-04 trigger`, halt per `framework/shared/refusal-registry.md > RF-04`; do not advance.
-7b. *(Timing — emit batched `substep_end[write-claims-sidecar]` + `substep_start[grounding-verify]` in one tool call before the first verifier invocation. The pair wraps the **entire** FAIL+remediate loop — re-Edits and re-Writes inside the loop are part of `grounding-verify` and do **not** re-open `write-draft` or `write-claims-sidecar`.)* **Run grounding-verifier.** Call `framework/skills/grounding-verifier.md` with `claims_path: "requirements/draft-claims.ndjson"`, `manifest_path: "requirements/source-manifest.json"`, `draft_path: "requirements/requirements-draft.md"`, `verification_path: "requirements/draft-claims-verification.ndjson"`. On `failed: 0`, advance to step 8. On `failed: > 0`, walk the verifier's NDJSON output and remediate each FAIL line per the **Grounding remediation** section below — for each failing claim, **either** edit the draft + sidecar to substitute a citation whose `source_quote` is a real verbatim substring of the cited file, **or** convert the field's value in the draft to carry an `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` marker (replacing its `[SRC: C-NNN]` tag) and remove the matching line from the sidecar. After remediation, re-Write whatever changed, re-`verify-artifact-write` for both files, and re-run the verifier. Loop until `failed: 0`. This step must complete cleanly **before** step 8.
-8. *(Timing — emit batched `substep_end[grounding-verify]` + `substep_start[mermaid-validate]` in one tool call before the first mmdc invocation; after the validator passes cleanly (mmdc exit 0, no parse errors), emit standalone `substep_end[mermaid-validate]` as the drafter's final timing emission before handback. The pair wraps the **entire** validate+remediate loop — re-Edits, re-Writes, and re-validations inside the loop are part of `mermaid-validate`.)* Run the `framework/skills/mermaid-validator.md` skill against the written draft to confirm the §2.4 Mermaid block parses and renders. If validation fails, edit the diagram in place, re-run **Self-validation**, re-Write, re-`verify-artifact-write`, and re-validate; loop until the validator passes. This step must complete cleanly **before** the draft is considered done — i.e., before the orchestrator's handback gate can present it to the consultant for acceptance.
+6. *(Timing — emit batched `substep_end[gap-pass]` + `substep_start[derive-architectural-implications]` in one tool call before authoring §1.7.)* **Derive architectural implications.** Walk §6.1 functional requirements + §10 volumes + §6.7 reporting rows against the inline capability catalogue under **Architectural-implications catalogue** below. For each active category, emit one §1.7 row: `Capability category` = the catalogue category name; `Driving requirement(s)` = concatenated cross-refs (`→ §6.1 F-NN`, `→ §10`, `→ §6.7 RPT-NN`); `Recommendation` = populated **only** when a deterministic guidance applies (e.g. "≤10⁴ records → in-memory acceptable"), otherwise blank. Every row carries `[AI-SUGGESTED: AI-NNN | non-blocking]` — resolver Q&A refines. Stack picks (frameworks, vendors, products, versions) are forbidden in every cell per `GR-20`; the drafter speaks in capability categories only. This step must run **after** the gap pass so §6 fabrications are visible, and **before** the Mermaid step so the body stabilises before the diagram is authored.
+7. *(Timing — emit batched `substep_end[derive-architectural-implications]` + `substep_start[author-mermaid]` in one tool call before authoring the block.)* Author §2.4 as an inline Mermaid block per the **Domain-model diagram** section. This must run **after** the gap pass so §2.4 reflects any §2.1 concepts added in step 5.
+8. *(Timing — emit batched `substep_end[author-mermaid]` + `substep_start[write-draft]` in one tool call before Self-validation begins. On `RF-04 trigger`, do **not** emit `substep_end[write-draft]` — the orphan start is the halt signal.)* Run **Self-validation**; fix and re-run until it passes; Write the draft. Immediately after the Write, call `framework/skills/verify-artifact-write.md` with `path: "requirements/requirements-draft.md"`, `expected_sha256: <hash of the rendered draft bytes>`, `expected_min_bytes: <byte length of the rendered draft>`. On `RF-04 trigger`, halt per `framework/shared/refusal-registry.md > RF-04`; do not advance.
+8a. *(Timing — emit batched `substep_end[write-draft]` + `substep_start[write-claims-sidecar]` in one tool call before the sidecar Write. On `RF-04 trigger`, do **not** emit `substep_end[write-claims-sidecar]`.)* **Emit the claims sidecar.** Write `requirements/draft-claims.ndjson` — one NDJSON line per `[SRC: C-NNN]` tag in the just-written draft, with shape `{claim_id, draft_locator, claim_text, source_file, source_quote}` per the **Claims sidecar** section below. Immediately after the Write, call `framework/skills/verify-artifact-write.md` with `path: "requirements/draft-claims.ndjson"`, `expected_sha256: <hash of the rendered sidecar bytes>`, `expected_min_bytes: <byte length of the rendered sidecar>`. On `RF-04 trigger`, halt per `framework/shared/refusal-registry.md > RF-04`; do not advance.
+8b. *(Timing — emit batched `substep_end[write-claims-sidecar]` + `substep_start[grounding-verify]` in one tool call before the first verifier invocation. The pair wraps the **entire** FAIL+remediate loop — re-Edits and re-Writes inside the loop are part of `grounding-verify` and do **not** re-open `write-draft` or `write-claims-sidecar`.)* **Run grounding-verifier.** Call `framework/skills/grounding-verifier.md` with `claims_path: "requirements/draft-claims.ndjson"`, `manifest_path: "requirements/source-manifest.json"`, `draft_path: "requirements/requirements-draft.md"`, `verification_path: "requirements/draft-claims-verification.ndjson"`. On `failed: 0`, advance to step 9. On `failed: > 0`, walk the verifier's NDJSON output and remediate each FAIL line per the **Grounding remediation** section below — for each failing claim, **either** edit the draft + sidecar to substitute a citation whose `source_quote` is a real verbatim substring of the cited file, **or** convert the field's value in the draft to carry an `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` marker (replacing its `[SRC: C-NNN]` tag) and remove the matching line from the sidecar. After remediation, re-Write whatever changed, re-`verify-artifact-write` for both files, and re-run the verifier. Loop until `failed: 0`. This step must complete cleanly **before** step 9.
+9. *(Timing — emit batched `substep_end[grounding-verify]` + `substep_start[mermaid-validate]` in one tool call before the first mmdc invocation; after the validator passes cleanly (mmdc exit 0, no parse errors), emit standalone `substep_end[mermaid-validate]` as the drafter's final timing emission before handback. The pair wraps the **entire** validate+remediate loop — re-Edits, re-Writes, and re-validations inside the loop are part of `mermaid-validate`.)* Run the `framework/skills/mermaid-validator.md` skill against the written draft to confirm the §2.4 Mermaid block parses and renders. If validation fails, edit the diagram in place, re-run **Self-validation**, re-Write, re-`verify-artifact-write`, and re-validate; loop until the validator passes. This step must complete cleanly **before** the draft is considered done — i.e., before the orchestrator's handback gate can present it to the consultant for acceptance.
 
 If any single input exceeds ~30k tokens, segment it section-by-section but still read each segment only once.
 
 ## Timing log (sub-steps)
 
-This agent writes its own `substep_start` / `substep_end` events to `framework/state/timing.ndjson` for nine instrumented sub-steps inside its workflow. These events are **nested** between the orchestrator's `stage_start` (stage=`drafter`) / `stage_end` (stage=`drafter`) pair and are observability only — this agent never reads the file, never gates on its contents, and never modifies past events.
+This agent writes its own `substep_start` / `substep_end` events to `framework/state/timing.ndjson` for ten instrumented sub-steps inside its workflow. These events are **nested** between the orchestrator's `stage_start` (stage=`drafter`) / `stage_end` (stage=`drafter`) pair and are observability only — this agent never reads the file, never gates on its contents, and never modifies past events.
 
 - **Path:** `framework/state/timing.ndjson` (the same append-only file the orchestrator writes to; see `framework/orchestrators/requirements-orch.md > Timing log` for file-level conventions, the authoritative event-type catalogue, and the **Halt-signal contract** that authorises orphan `substep_start` as a load-bearing in-step-halt signal).
 - **Event schema** (one JSON object per line, append-only):
@@ -39,7 +40,7 @@ This agent writes its own `substep_start` / `substep_end` events to `framework/s
     {"t":"<iso>","type":"substep_end","stage":"drafter","substep":"<name>","run_id":"<iso>"}
     ```
 
-    `t` is an ISO-8601 UTC timestamp captured at write time. `stage` is always `"drafter"`. `substep` is one of the nine names in the table below. `run_id` is propagated per the rule below.
+    `t` is an ISO-8601 UTC timestamp captured at write time. `stage` is always `"drafter"`. `substep` is one of the ten names in the table below. `run_id` is propagated per the rule below.
 
 - **`run_id` propagation.** Every `substep_start` / `substep_end` event carries the `run_id` of the current invocation's `run_start` event. The orchestrator wrote `run_start` at its Step 0 with `run_id` set to that event's own `t` value. Because this agent runs foreground in the same conversational thread as the orchestrator, that `run_id` is already in context — capture it once at the start of `read-inputs` and reuse it on every subsequent emission. **Fallback** (only when context recovery fails, e.g. after compaction): recover the latest `run_id` with a single Bash invocation before any other timing emission — `Get-Content framework/state/timing.ndjson | Select-String '"type":"run_start"' | Select-Object -Last 1` — and parse the `run_id` field from that line. The fallback is the only authorised Read of `timing.ndjson` by this agent.
 
@@ -51,15 +52,16 @@ This agent writes its own `substep_start` / `substep_end` events to `framework/s
     | `populate-template` | Steps 2–3 | immediately after `read-inputs`'s `substep_end` (steps 2 and 3 form one synthesis pass — mental extraction folds into top-down template population) | after the top-to-bottom template population pass completes, before `grep-crosscheck` begins |
     | `grep-crosscheck` | Step 4 | before the first cross-check Grep against the populated draft | after the last cross-check Grep returns |
     | `gap-pass` | Step 5 | before invoking `framework/skills/completeness-gap-pass.md` | after every gap-pass tuple has been applied (markers + fabricated elements written into the in-memory draft) |
-    | `author-mermaid` | Step 6 | before authoring the §2.4 Mermaid block | after the §2.4 block is in the in-memory draft |
-    | `write-draft` | Step 7 | before running Self-validation for the first time on the draft Write | after `verify-artifact-write` for `requirements/requirements-draft.md` returns `pass` |
-    | `write-claims-sidecar` | Step 7a | before writing `requirements/draft-claims.ndjson` | after `verify-artifact-write` for `requirements/draft-claims.ndjson` returns `pass` |
-    | `grounding-verify` | Step 7b (entire remediation loop) | before the first invocation of `framework/skills/grounding-verifier.md` | after the verifier reports `failed: 0` (any intermediate FAIL+remediate iterations are inside the substep, not separately instrumented) |
-    | `mermaid-validate` | Step 8 (entire remediation loop) | before the first invocation of `framework/skills/mermaid-validator.md` | after mmdc exits 0 with no parse errors (any intermediate FAIL+remediate iterations are inside the substep, not separately instrumented) |
+    | `derive-architectural-implications` | Step 6 | before walking §6/§10/§6.7 against the capability catalogue | after every active §1.7 row has been emitted into the in-memory draft |
+    | `author-mermaid` | Step 7 | before authoring the §2.4 Mermaid block | after the §2.4 block is in the in-memory draft |
+    | `write-draft` | Step 8 | before running Self-validation for the first time on the draft Write | after `verify-artifact-write` for `requirements/requirements-draft.md` returns `pass` |
+    | `write-claims-sidecar` | Step 8a | before writing `requirements/draft-claims.ndjson` | after `verify-artifact-write` for `requirements/draft-claims.ndjson` returns `pass` |
+    | `grounding-verify` | Step 8b (entire remediation loop) | before the first invocation of `framework/skills/grounding-verifier.md` | after the verifier reports `failed: 0` (any intermediate FAIL+remediate iterations are inside the substep, not separately instrumented) |
+    | `mermaid-validate` | Step 9 (entire remediation loop) | before the first invocation of `framework/skills/mermaid-validator.md` | after mmdc exits 0 with no parse errors (any intermediate FAIL+remediate iterations are inside the substep, not separately instrumented) |
 
 - **Pairing rule + halt semantics.** Every `substep_start` must be followed by exactly one `substep_end` with the same `substep` name on clean completion of the substep. For substeps that contain a remediation loop (`grounding-verify`, `mermaid-validate`), the pair wraps the **entire** loop — re-Edits, re-Writes, and re-invocations of the verifier/validator inside the loop are part of the wrapping substep. If this agent halts inside a substep (e.g., `RF-04 trigger` from a failing `verify-artifact-write`, or any other in-step abort), do **not** write the `substep_end` — the orphan `substep_start` is the halt signal per the orchestrator's **Halt-signal contract**.
 
-- **Paired-adjacent batching idiom (write multiple events in one tool call).** To minimise tool-call overhead, emit `end[N]` together with the immediately-following `start[N+1]` in a **single** Bash → PowerShell invocation containing two `Add-Content` commands. The standalone events are `substep_start[read-inputs]` (the very first emission) and `substep_end[mermaid-validate]` (the very last). Total per clean drafter run: **10 tool calls for 18 events**.
+- **Paired-adjacent batching idiom (write multiple events in one tool call).** To minimise tool-call overhead, emit `end[N]` together with the immediately-following `start[N+1]` in a **single** Bash → PowerShell invocation containing two `Add-Content` commands. The standalone events are `substep_start[read-inputs]` (the very first emission) and `substep_end[mermaid-validate]` (the very last). Total per clean drafter run: **11 tool calls for 20 events**.
 
     Paired-adjacent emission at a sub-step transition — share `$now` between the two events because they fire at the same instant by construction:
 
@@ -101,7 +103,7 @@ The blocking / non-blocking sub-rule applies only to `[AI-SUGGESTED]` markers. O
 
 **Blocking examples:** RBAC matrix entries; volume bands that gate UI pattern choice (pagination thresholds, virtualization triggers); status-transition rules that drive badge state; conditional UI visibility tied to compliance.
 
-**Non-blocking examples:** UI control choice for a goal; layout/screen routing labels; cosmetic timestamps.
+**Non-blocking examples:** UI control choice for a goal; screen routing labels; cosmetic timestamps; §1.7 architectural-implication rows (capability inferences are cheap to revise post-hoc).
 
 **Tie-breaker:** when in doubt, classify as **blocking**. False positives cost a question; false negatives cost a guess shipping unchallenged.
 
@@ -136,28 +138,63 @@ erDiagram
     }
 ```
 
-Do not save the rendered SVG into the requirements artefact and do not present a preview of the diagram to the consultant; the diagram is emitted inline in the markdown. The `mermaid-validator` skill — which runs `mmdc` against the written draft to a throw-away SVG purely to verify syntax — is required (see **Workflow** step 8) and is the only permitted use of an external Mermaid renderer.
+Do not save the rendered SVG into the requirements artefact and do not present a preview of the diagram to the consultant; the diagram is emitted inline in the markdown. The `mermaid-validator` skill — which runs `mmdc` against the written draft to a throw-away SVG purely to verify syntax — is required (see **Workflow** step 9) and is the only permitted use of an external Mermaid renderer.
+
+## Architectural-implications catalogue
+
+Consumed at **Workflow** step 6 (`derive-architectural-implications`). The catalogue is a fixed list of ≤15 capability categories. For each category, the drafter walks §6.1 functional requirements, §10 volumes, and §6.7 reporting rows and emits one §1.7 row when ≥1 driving requirement matches. Categories are capability-level only — **no framework, library, vendor, or product name appears in any cell** (`GR-20`). The recommendation cell is populated only when a deterministic guidance applies; otherwise blank.
+
+| # | Category name (use verbatim in §1.7 row) | Match heuristic (any of) | Deterministic recommendation (only when condition holds) |
+|---|---|---|---|
+| 1 | Client-side state management | every CRUD app — always emits | blank |
+| 2 | Client-side search / filtering | §6.4 row mentions search OR §6.7 has filter dimensions | §10 data volume ≤10⁴ records → "in-memory index acceptable" |
+| 3 | Charting / visualisation capability | §6.7 row's `Measures` ≠ none and audience-implied chart use | blank |
+| 4 | Real-time updates | §6.8 row's channel is `in-app` AND trigger is event-based; OR §6.4 names live updates | blank |
+| 5 | Offline cache / local persistence | §6.4 names offline mode OR §6.6.2 budget assumes degraded connectivity | blank |
+| 6 | File upload / binary blob handling | any field with `Type ∈ {file, binary, image}` in §7 | "binary blob storage tier required" |
+| 7 | Rich-text editing capability | §7 field type is `richtext` OR §6.4 row names formatted content authoring | blank |
+| 8 | Geospatial display | §7 field type is `geo` / `coords` OR §6.4 names map / location | blank |
+| 9 | Export rendering capability | any §6.7 row's `Export formats` ≠ none | blank |
+| 10 | Notification delivery surface | any §6.8 row exists | category-level mapping to channels listed in §6.8 |
+| 11 | Multi-tab / multi-window sync | §6.4 names concurrent edits OR §10 concurrency >1 per persona | blank |
+| 12 | Drag-and-drop interaction | §6.4 row explicitly names reorder / drag interactions | blank |
+| 13 | Audit-trail viewer | §6.9 is emitted | blank |
+| 14 | Role-conditional rendering | §6.5 has ≥1 conditional access cell (`U†BR-NN` or similar) | blank |
+| 15 | Infinite-scroll / pagination at scale | §10 data volume ≥10⁵ records OR §6.7 row's source concept is high-volume | "virtualization required at this volume" |
+
+The catalogue is the **closed set** of categories the drafter is permitted to emit. Adding a category is a one-line table append; never invent ad-hoc categories at draft time. If a requirement does not match any category, do not emit a §1.7 row for it — §1.7 is a derived view, not a catch-all.
 
 ## Citation scope
 
 `[SRC: C-NNN]` tags are required on every **unmarked, template-defined field value** in the following scope. Free-prose narrative paragraphs and §2.4 Mermaid diagram syntax are excluded.
 
 - §1 application name, purpose / business value, domain, business goal — each as a single field value.
+- §1.5 every cell in the In / Out / Deferred buckets.
+- §1.6 every cell (kind, statement).
+- §1.7 every cell **except** the optional `Recommendation` column (a deterministic guidance phrase is not a quotable source claim).
 - §2.1 every concept row — concept name, persistence value, definition.
+- §2.5 the `Trigger` and `Pre-condition` cells of every transition row (when §2.5 is emitted).
 - §3 every persona's name, role, expertise, stakes, drivers.
 - §4.1 every goal-id text.
-- §4.2 every story (the action / outcome clause).
-- §5 every flow's actor, trigger, decision points, exception paths.
-- §6.2 every BR-NN condition, outcome, enforcement point.
+- §4.2 every story (the action / outcome clause) **and** every story's `Acceptance criteria` cell.
+- §5 every flow's actor, trigger, decision points, exception paths, **and** every flow's step value when input-grounded (acceptance signal embedded per step is in scope as part of the step cell).
+- §6.1 every F-NN row's `Statement` **and** `Acceptance criteria` cells.
+- §6.2 every BR-NN row's condition, outcome, enforcement point, **and** `Acceptance criteria` cell.
+- §6.4 every UI-NN row (feature need + linked refs + acceptance).
 - §6.5 every RBAC cell value.
-- §7 every entity name and every attribute name.
+- §6.7 every RPT-NN row (every column).
+- §6.8 every NT-NN row (every column).
+- §6.9 every row (when emitted).
+- §6.10 every row (every column of the sub-block matching `manifest.target`).
+- §7 every shape name and every field name; the `Source` line per shape is not citable (it is auto-filled from `manifest.target`).
+- §7.X every row (when emitted).
 - §10 the three volume bands.
 
 Marked fields (`[AI-SUGGESTED]`, `[STANDARD-RULE]`, `[OUT-OF-SCOPE]`) carry no `[SRC:]` tag — the marker is the field's classification, the tag is mutually exclusive. No field carries both.
 
 ## Claims sidecar (`requirements/draft-claims.ndjson`)
 
-One JSON object per non-empty line, in `claim_id` order, written by step 7a after the draft is on disk. Schema:
+One JSON object per non-empty line, in `claim_id` order, written by step 8a after the draft is on disk. Schema:
 
 ```json
 {"claim_id":"C-001","draft_locator":"§3.persona[Sales Manager].stakes","claim_text":"Hit quarterly target","source_file":"input/brief.md","source_quote":"Sales Managers are under increasing pressure to hit quarterly numbers"}
@@ -171,7 +208,7 @@ One JSON object per non-empty line, in `claim_id` order, written by step 7a afte
 
 If a field cannot be grounded with a verbatim substring of any manifest-listed source, it MUST instead carry an `[AI-SUGGESTED]` marker — there is no third path. This is the load-bearing fall-through that keeps the citation system closed.
 
-## Grounding remediation (consumed at step 7b)
+## Grounding remediation (consumed at step 8b)
 
 The grounding-verifier emits one or more NDJSON lines per FAIL. Reasons and remediations:
 
@@ -191,49 +228,64 @@ The grounding-verifier emits one or more NDJSON lines per FAIL. Reasons and reme
 - `framework/shared/general-rules.md` — catalogue of `GR-NN` deterministic rules; consulted by the gap pass before any `[AI-SUGGESTED]` marker.
 - `framework/shared/refusal-registry.md` — `RF-04 artifact_write_unverified` semantics for the post-Write verification.
 - `framework/skills/verify-artifact-write.md` — read-back / hash-check called immediately after the draft Write.
-- `framework/skills/completeness-gap-pass.md` — the gap-pass skill invoked at **Workflow** step 6.
-- `framework/skills/mermaid-validator.md` — the validator skill invoked at **Workflow** step 8 to confirm the §2.4 Mermaid block parses and renders.
-- `framework/skills/grounding-verifier.md` — the deterministic substring-and-cross-check verifier invoked at **Workflow** step 7b. Confirms every `[SRC: C-NNN]` tag in the draft has a sidecar line whose `source_quote` is a verbatim substring of `source_file`.
+- `framework/skills/completeness-gap-pass.md` — the gap-pass skill invoked at **Workflow** step 5.
+- `framework/skills/mermaid-validator.md` — the validator skill invoked at **Workflow** step 9 to confirm the §2.4 Mermaid block parses and renders.
+- `framework/skills/grounding-verifier.md` — the deterministic substring-and-cross-check verifier invoked at **Workflow** step 8b. Confirms every `[SRC: C-NNN]` tag in the draft has a sidecar line whose `source_quote` is a verbatim substring of `source_file`.
 
 ## Output
 
 - `requirements/requirements-draft.md`.
-- `requirements/draft-claims.ndjson` — the claims sidecar emitted at **Workflow** step 7a; the verifier and the orchestrator's drafter-handoff gate consume it. The merger does **not** consume it; the sidecar is forensic only beyond step 7b.
-- `requirements/draft-claims-verification.ndjson` — the verifier's NDJSON output, written at **Workflow** step 7b. The summary line on stdout (`grounding-verifier: total=… passed=… failed=…`) is the orchestrator's handoff signal; `failed: 0` is required to advance.
+- `requirements/draft-claims.ndjson` — the claims sidecar emitted at **Workflow** step 8a; the verifier and the orchestrator's drafter-handoff gate consume it. The merger does **not** consume it; the sidecar is forensic only beyond step 8b.
+- `requirements/draft-claims-verification.ndjson` — the verifier's NDJSON output, written at **Workflow** step 8b. The summary line on stdout (`grounding-verifier: total=… passed=… failed=…`) is the orchestrator's handoff signal; `failed: 0` is required to advance.
 - `framework/state/timing.ndjson` — append-only timing log. This agent appends `substep_start` / `substep_end` events for each of the nine instrumented sub-steps in its workflow per **Timing log (sub-steps)**, nested between the orchestrator's `stage_start` (stage=`drafter`) / `stage_end` (stage=`drafter`) pair. The log is observability only — never read by this agent, never gated on.
 
 ## Tools
 
-- Read — read `requirements/source-manifest.json`, the manifest-registered input files (originals for Native tiers, `*.converted.md` siblings for Supported-via-MCP), the template, `framework/shared/prototype-scope.md`, `framework/shared/general-rules.md`, `framework/skills/completeness-gap-pass.md`, the just-written draft for the post-Write verification, and `requirements/draft-claims-verification.ndjson` to consume the grounding-verifier's output at step 7b.
+- Read — read `requirements/source-manifest.json`, the manifest-registered input files (originals for Native tiers, `*.converted.md` siblings for Supported-via-MCP), the template, `framework/shared/prototype-scope.md`, `framework/shared/general-rules.md`, `framework/skills/completeness-gap-pass.md`, the just-written draft for the post-Write verification, and `requirements/draft-claims-verification.ndjson` to consume the grounding-verifier's output at step 8b.
 - Grep — cross-check the populated draft, including the `\[SRC: C-\d{3}\]` tag enumeration used by the grounding-verifier and by self-validation.
 - Write — emit `requirements/requirements-draft.md` and `requirements/draft-claims.ndjson`.
-- Edit — apply gap-pass tuples to the populated draft (insert markers, fabricated elements) at **Workflow** step 6, fix the §2.4 Mermaid block in place when the validator at **Workflow** step 8 reports an error, and at **Workflow** step 7b apply remediations to the draft and the sidecar (substitute citations or convert fields to `[AI-SUGGESTED]`) so the rest of the draft does not need to be rewritten.
-- Bash — invoke `mmdc` per the `mermaid-validator` skill at **Workflow** step 8; compute sha256 of the rendered draft bytes and the rendered sidecar bytes for the two `verify-artifact-write` calls (steps 7 and 7a); and append `substep_start` / `substep_end` events to `framework/state/timing.ndjson` via the PowerShell `Add-Content` idiom documented in **Timing log (sub-steps)** (single events or paired-adjacent batched pairs in a single PowerShell invocation — append-only; never use Bash to read, edit, rewrite, or delete `timing.ndjson`). The one authorised Read of `timing.ndjson` is the `run_id` fallback recovery documented in **Timing log (sub-steps) > `run_id` propagation**, invoked only when in-thread context recovery fails. No other Bash usage is permitted.
+- Edit — apply gap-pass tuples to the populated draft (insert markers, fabricated elements) at **Workflow** step 5, emit §1.7 architectural-implication rows at **Workflow** step 6, fix the §2.4 Mermaid block in place when the validator at **Workflow** step 9 reports an error, and at **Workflow** step 8b apply remediations to the draft and the sidecar (substitute citations or convert fields to `[AI-SUGGESTED]`) so the rest of the draft does not need to be rewritten.
+- Bash — invoke `mmdc` per the `mermaid-validator` skill at **Workflow** step 9; compute sha256 of the rendered draft bytes and the rendered sidecar bytes for the two `verify-artifact-write` calls (steps 8 and 8a); and append `substep_start` / `substep_end` events to `framework/state/timing.ndjson` via the PowerShell `Add-Content` idiom documented in **Timing log (sub-steps)** (single events or paired-adjacent batched pairs in a single PowerShell invocation — append-only; never use Bash to read, edit, rewrite, or delete `timing.ndjson`). The one authorised Read of `timing.ndjson` is the `run_id` fallback recovery documented in **Timing log (sub-steps) > `run_id` propagation**, invoked only when in-thread context recovery fails. No other Bash usage is permitted.
 
 ## Self-validation (run before declaring the draft done)
 
 If any check fails, fix the draft (or sidecar, where indicated) and re-run.
 
-Most bullets are checked **before** the Write at **Workflow** step 7 — they assert in-memory invariants of the draft. A small number reference post-Write artefacts (the claims sidecar at step 7a, the verifier output at step 7b, the Mermaid validator at step 8) and are satisfied at the workflow step indicated in the bullet itself; in practice this means re-Write loops are common — fix, Write, verify, and continue.
+Most bullets are checked **before** the Write at **Workflow** step 8 — they assert in-memory invariants of the draft. A small number reference post-Write artefacts (the claims sidecar at step 8a, the verifier output at step 8b, the Mermaid validator at step 9) and are satisfied at the workflow step indicated in the bullet itself; in practice this means re-Write loops are common — fix, Write, verify, and continue.
 
 - `requirements/source-manifest.json` was read; every row with `tier ∈ {"Native-text", "Native-multimodal"}` had its `original_path` Read; every row with `tier = "Supported-via-MCP"` had its `converted_sibling` Read; every row with `tier = "Unsupported"` was skipped. No file under `input/` was Read except via the manifest.
 - Template structure preserved; no `{{placeholders}}` remain; every field populated.
 - Every inferred value carries exactly one of three markers per the **Classification** decision tree: `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` (with a unique AI-NNN ID and a single classification from `{blocking, non-blocking}`), `[STANDARD-RULE: GR-NN]`, or `[OUT-OF-SCOPE: domain-default]`. Stated-from-input values carry no marker. **Stated-from-input values in the **Citation scope** carry exactly one trailing `[SRC: C-NNN]` tag with a unique, monotonically assigned id; no field carries both a marker and a `[SRC:]` tag.**
-- **Grounding (sidecar exists and parses)** — satisfied at **Workflow** step 7a: `requirements/draft-claims.ndjson` exists, every non-empty line parses as a single JSON object with the keys `{claim_id, draft_locator, claim_text, source_file, source_quote}`, and `claim_id` values are unique within the file.
-- **Grounding (bidirectional cross-check + verbatim substring)** — satisfied at **Workflow** step 7b: every `source_file` is a path listed in `requirements/source-manifest.json` (the row's `original_path` for Native tiers or `converted_sibling` for Supported-via-MCP); every `source_quote` is a verbatim substring of its `source_file`'s contents; every `[SRC: C-NNN]` tag in the draft body has exactly one matching `claim_id` in the sidecar and vice-versa. The canonical assertion is `framework/skills/grounding-verifier.md` returning a summary line with `failed: 0` on its last invocation. If a verbatim substring cannot be produced for a field, that field MUST instead carry an `[AI-SUGGESTED]` marker (and no `[SRC:]` tag).
+- **Grounding (sidecar exists and parses)** — satisfied at **Workflow** step 8a: `requirements/draft-claims.ndjson` exists, every non-empty line parses as a single JSON object with the keys `{claim_id, draft_locator, claim_text, source_file, source_quote}`, and `claim_id` values are unique within the file.
+- **Grounding (bidirectional cross-check + verbatim substring)** — satisfied at **Workflow** step 8b: every `source_file` is a path listed in `requirements/source-manifest.json` (the row's `original_path` for Native tiers or `converted_sibling` for Supported-via-MCP); every `source_quote` is a verbatim substring of its `source_file`'s contents; every `[SRC: C-NNN]` tag in the draft body has exactly one matching `claim_id` in the sidecar and vice-versa. The canonical assertion is `framework/skills/grounding-verifier.md` returning a summary line with `failed: 0` on its last invocation. If a verbatim substring cannot be produced for a field, that field MUST instead carry an `[AI-SUGGESTED]` marker (and no `[SRC:]` tag).
 - **Relatedness invariants (Tier A bijections from `completeness-gap-pass.md`):**
     - Every §3 persona has ≥1 story in §4.2 (A1).
     - Every §4.2 story references exactly one §4.1 goal-id (A2).
     - Every §3 persona is a row in §6.5 RBAC (A3).
-    - Every §7 entity is a column or scoped action in §6.5 (A4).
+    - Every §7 shape is a column or scoped action in §6.5 (A4).
     - Every §5 task flow is a column or scoped action in §6.5 (A5).
-    - Every §2.1 *persistent* concept appears as a §7 entity (A6).
-    - Every §7 entity's "Domain concept" field names an existing §2.1 concept (A7).
+    - Every §2.1 *persistent* concept appears as a §7 shape (A6).
+    - Every §7 shape's "Domain concept" field names an existing §2.1 concept (A7).
     - Every §5 flow's Actor names an existing §3 persona (A8).
     - §10 Volumes has all three fields filled (A9).
-- **Tier C / out-of-scope hygiene:** §6.6.1, §6.6.2, §6.6.3, FK/index/DB-only fields in §7, and any §2.3→§6.2 BR with no visual manifestation contain **no `[AI-SUGGESTED]` markers under either target**. Under `manifest_target == "prototype"` they carry `[OUT-OF-SCOPE: domain-default]`; under `manifest_target == "application"` they carry the same domain-default values with **no marker at all** (no `[OUT-OF-SCOPE]`, no `[AI-SUGGESTED]`). §6.6.5 Accessibility may carry `[AI-SUGGESTED]` when inferred, under both targets.
+    - §1.5 Scope has ≥1 In row (A10).
+    - When §2.5 is emitted, every §2.3 invariant naming a state appears as a §2.5 row (A11).
+    - Every §6.7 row's `Source concept(s)` names an existing §2.1 concept (A12).
+    - Every §6.8 row's `Audience` names an existing §3 persona (A13).
+    - Every §6.10 row's `Operation` maps to a §6.1 F-NN (A14).
+    - When §7.X is emitted, every §7.X row names an existing §2.1 concept with `Persistence = derived` (A15).
+- **Acceptance-criteria coverage (Tier B5):** every §4.2 story, every §6.1 F-NN row, every §6.2 BR-NN row, and every §5 task-flow step has a non-empty `Acceptance criteria` cell. Drafter auto-fabricated cells carry `[AI-SUGGESTED: AI-NNN | non-blocking]`.
+- **§1.7 driving-requirement coverage (Tier B4):** every §1.7 row's `Driving requirement(s)` cell cross-references at least one §6.1 / §6.7 / §10 row that exists in the draft. Dangling cross-refs are a remediate-and-re-run condition.
+- **Conditional-section emit predicates:**
+    - §2.5 is present **iff** ≥1 §2.3 aggregate's `Lifecycle states` list has more than 2 states.
+    - §6.9 is present **iff** §6.6.4 or input documents call for user-visible audit history.
+    - §7.X is present **iff** ≥1 §2.1 concept has `Persistence = derived`.
+    - §6.10 emits exactly one sub-block — the one matching `manifest_target`. The off-mode sub-block is absent.
+- **`GR-20` no-stack guard:** a single Grep over the draft body using the blocklist alternation in `framework/shared/general-rules.md > GR-20` returns zero matches. A single hit is a hard validation FAIL — fix the offending cell (rephrase in capability-category terms) and re-run; no retry loop.
+- **`GR-21` no-layout guard:** a single Grep over §6.4 / §6.7 / §6.8 / §6.9 (only) using the layout-vocab alternation in `framework/shared/general-rules.md > GR-21` returns zero matches. §5 / §6.5 / §8 are exempt from this check per `GR-21`'s exception clause. A single hit is a hard validation FAIL.
+- **Tier C / out-of-scope hygiene:** §7 fields with `UI-display = hidden`, §2.5 transition rows whose `Visible effect` is purely server-side, and any §2.3→§6.2 BR with no visual manifestation contain **no `[AI-SUGGESTED]` markers under either target**. Under `manifest_target == "prototype"` they carry `[OUT-OF-SCOPE: domain-default]`; under `manifest_target == "application"` they carry the same domain-default values with **no marker at all**. §6.6.1 Session UX, §6.6.2 FE performance budgets, §6.6.4 Compliance UI behaviour, and §6.6.5 Accessibility are **in-scope** under both targets and may carry `[AI-SUGGESTED]` (when inferred) or `[STANDARD-RULE: GR-19]` (session-timeout fields where input is silent).
 - **General-rules precedence:** for every `[AI-SUGGESTED]` marker, no rule in `framework/shared/general-rules.md` covered the gap (general-rules consultation must precede any AI-suggestion).
-- §2.4 contains a non-stub Mermaid block (`classDiagram` or `erDiagram`) with valid syntax that passes the `mermaid-validator` skill (mmdc exit 0, no parse errors). The validator runs at **Workflow** step 8 against the written draft; this self-validation bullet is the in-spec acceptance criterion that step 8 satisfies.
+- §2.4 contains a non-stub Mermaid block (`classDiagram` or `erDiagram`) with valid syntax that passes the `mermaid-validator` skill (mmdc exit 0, no parse errors). The validator runs at **Workflow** step 9 against the written draft; this self-validation bullet is the in-spec acceptance criterion that step 9 satisfies.
 - The draft is self-contained: no field defers to an input by reference (e.g., "see `requirements-v1.md` §3"). The only permitted form of in-body provenance is the structured `[SRC: C-NNN]` tag system on field values per **Citation scope**; ad-hoc inline citations (e.g., "Source: stated", footnote-style references) are not permitted. Replacement-by-reference is not permitted under any form.
 - No two fields contradict each other; no field is ambiguous or incoherent in context.
 
@@ -243,7 +295,7 @@ Most bullets are checked **before** the Write at **Workflow** step 7 — they as
 - `requirements/draft-claims.ndjson` exists with one line per `[SRC: C-NNN]` tag in the draft body, and each line's `source_quote` is a verbatim substring of its `source_file`.
 - `requirements/draft-claims-verification.ndjson` exists and its summary line shows `failed: 0`.
 - All self-validation checks pass.
-- The `mermaid-validator` skill has been run against the written draft (per **Workflow** step 8) and reports the §2.4 Mermaid block as valid.
+- The `mermaid-validator` skill has been run against the written draft (per **Workflow** step 9) and reports the §2.4 Mermaid block as valid.
 
 ## Anti-Patterns
 
@@ -255,10 +307,15 @@ Most bullets are checked **before** the Write at **Workflow** step 7 — they as
 - Do not emit `[AI-SUGGESTED]` for any field that is (a) covered by `framework/shared/general-rules.md`, (b) out-of-scope per `framework/shared/prototype-scope.md`, or (c) not gated by a Tier A/B/D rule in `framework/skills/completeness-gap-pass.md`. Use `[STANDARD-RULE]` or `[OUT-OF-SCOPE]` respectively under `manifest_target == "prototype"`; under `manifest_target == "application"` the `[STANDARD-RULE]` path is unchanged, and the `[OUT-OF-SCOPE]` path becomes a value-only fill (no marker). Under no circumstances does `manifest_target == "application"` promote an OOS-routed tuple to `[AI-SUGGESTED]`.
 - Do not skip the `general-rules.md` lookup before producing an `[AI-SUGGESTED]` marker.
 - Do not classify by default; apply the **Classification** rubric, and use the tie-breaker (**blocking**) when uncertain.
-- Do not skip **Workflow** step 6 (`completeness-gap-pass`) — the draft is incomplete without it.
+- Do not skip **Workflow** step 5 (`completeness-gap-pass`) — the draft is incomplete without it.
+- Do not skip **Workflow** step 6 (`derive-architectural-implications`) — §1.7 must be populated on every clean run. If no catalogue category matches, §1.7 is empty save for `Client-side state management` (always emits per the catalogue) — never an absent section.
 - Do not use any assets, skills, or tools not explicitly listed in this document.
-- Do not skip **Workflow** step 8 (`mermaid-validator`) under any circumstance, and do not declare the draft complete while the validator is failing. Edit the §2.4 Mermaid block and re-validate until it passes.
-- Do not skip **Workflow** steps 7a (sidecar emission + verify-artifact-write) or 7b (`grounding-verifier`). The drafter-handoff gate refuses to advance until `failed: 0`.
+- Do not skip **Workflow** step 9 (`mermaid-validator`) under any circumstance, and do not declare the draft complete while the validator is failing. Edit the §2.4 Mermaid block and re-validate until it passes.
+- Do not skip **Workflow** steps 8a (sidecar emission + verify-artifact-write) or 8b (`grounding-verifier`). The drafter-handoff gate refuses to advance until `failed: 0`.
+- Do not name a framework, library, vendor, product, or version string in any cell. `GR-20` enforces this with a Grep blocklist; a single hit is a hard FAIL with no retry loop. Speak in capability categories.
+- Do not specify UI layout, position, component name, or visual design in §6.4 / §6.7 / §6.8 / §6.9. `GR-21` enforces this with a Grep blocklist over those sections; layout determination belongs to a later UX design step.
+- Do not invent §1.7 capability categories outside the catalogue under **Architectural-implications catalogue**. The catalogue is the closed set; extension is a one-line table append, never an ad-hoc emission.
+- Do not emit conditional sections (§2.5 / §6.9 / §7.X / off-mode §6.10 sub-block) when their emit-predicate is false. The drafter's self-validation does not require their presence in that case.
 - Do not cite a paraphrase, summary, or reformulation as `source_quote`. The grounding-verifier's match is byte-exact; a near-miss is a FAIL. If a verbatim substring of a manifest-listed file cannot be produced for a field, mark the field `[AI-SUGGESTED]` (and remove its `[SRC:]` tag and sidecar line) — that is the only legal alternative.
 - Do not emit a `[SRC:]` tag on a marked field, and do not emit a marker on a `[SRC:]`-tagged field. Tags and markers are mutually exclusive on a per-field basis.
 - Do not tag free-prose narrative paragraphs or §2.4 Mermaid syntax with `[SRC:]`. The citation scope is bounded to the template-defined field values listed under **Citation scope**.

@@ -6,15 +6,15 @@ The "Not Prototypable (Filter Out)" list below is the strict predicate for `defe
 
 ## Not Prototypable (Filter Out) — defer-out-of-scope categories
 
-- Backend API implementation details
+- Backend internals (FE consumes contracts via §6.10 only)
 - Database schema and migration specifics
-- Authentication/authorization implementation
+- Authentication/authorization implementation (UI auth surfaces remain in scope via §6.6.1)
 - DevOps, CI/CD, infrastructure
-- Performance optimization techniques
+- Performance optimization techniques (backend-side; FE perf budgets remain in scope via §6.6.2)
 - Data migration strategies
 - Security implementation details
 - Third-party service integration internals
-- Server-side business logic implementation
+- Server-side business logic implementation (UI surfaces of derivations remain in scope via §7.X)
 
 ## Prototypable (In Scope) — orientation only
 

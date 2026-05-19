@@ -157,3 +157,21 @@ Each rule has a stable ID `GR-NN`, a scope predicate (template field/element it 
 **Rule:** Apply by §1 domain. Financial / healthcare / regulated → idle 15 min, absolute 8 h, warning at T-1 min, step-up auth required for approve-class actions. Internal tools → idle 30 min, absolute 12 h, warning at T-1 min. Marketing / public-facing → idle 60 min, absolute 24 h, no warning.
 
 **Rationale:** §6.6.1 is otherwise the most-flagged `[AI-SUGGESTED: blocking]` row across requirements drafts; codified domain defaults remove the cycle.
+
+## GR-20 — No stack specifics in requirements
+
+**Applies to:** every template field value (every cell, every bullet, every prose phrase) across §1–§10.
+
+**Rule:** Cells must not name a framework, library, runtime, database product, hosting vendor, browser engine, build tool, ORM, message broker, identity provider, or any product/vendor brand. Versions and major-release strings (e.g. "v18", "ES2022") are also forbidden. Speak in **capability categories** instead — "client-side state management", "rich-text editing capability", "binary blob storage tier", "push delivery channel", "identity provider", "search index tier". Drafter enforces with a Grep blocklist over the produced draft pre-Write; a single hit is a hard validation FAIL (no retry loop — fix the cell and re-run).
+
+**Rationale:** the requirements doc is consumed by code-generation LLMs that pick the stack at generation time. Specifying products at spec time bakes implementation decisions into immutable provenance and removes the LLM's degrees of freedom. Capability-category phrasing keeps the spec stable across stack changes.
+
+**Blocklist seed (extensible — append as patterns emerge):** `React|Vue|Angular|Svelte|Next\.?js|Nuxt|Remix|Astro|Solid|Postgres(?:QL)?|MySQL|MariaDB|MongoDB|DynamoDB|Cassandra|Redis|Memcached|Elastic(?:search)?|Algolia|Kafka|RabbitMQ|SQS|Kinesis|AWS|Azure|GCP|Cloudflare|Vercel|Netlify|Heroku|Firebase|Supabase|Auth0|Okta|Clerk|Cognito|Stripe|Braintree|Twilio|SendGrid|Mailgun|Datadog|Sentry|TypeScript|JavaScript|Python|Rust|Go(?:lang)?|Java|Kotlin|Swift|webpack|Vite|Rollup|esbuild|Tailwind|MUI|Chakra|Bootstrap|Ant Design|shadcn`. The drafter's enforcement Grep treats this as a case-insensitive alternation. Adding to the list is a one-line append; no renumbering.
+
+## GR-21 — No UI layout in requirements
+
+**Applies to:** §6.4 UI feature needs, §6.7 reporting feature needs, §6.8 notification points, §6.9 audit-trail UI feature. Exceptions: §5 task-flow steps may name screen-level navigation moves; §6.5 RBAC may describe role-conditional visibility states; §8 source UI references may quote consultant-supplied layout observations (those are input citations, not normative spec).
+
+**Rule:** In-scope cells must describe **what UI elements/behaviours must exist** ("user can filter the order list by status", "save action is available", "list paginates"), never **how they are arranged or styled** ("filter chips in the toolbar", "sticky header with sort indicators", "modal in the upper-right"). Forbidden vocabulary in cell values: `column|row|grid|sidebar|header|footer|breakpoint|top-right|bottom-left|above|below|left of|right of|sticky|fixed`, and named component categories `Card|Modal|Drawer|Popover|Tooltip|Accordion|Tabs|Stepper|Wizard` when used as a layout prescription. Drafter enforces with a Grep blocklist over the listed in-scope sections pre-Write; a single hit is a hard validation FAIL.
+
+**Rationale:** layout, component choice, and visual design are produced by a later UX design step that consumes this spec. Baking layout into the requirements doc removes the UX step's degrees of freedom and conflates *what is needed* with *how it looks*. Behavioural phrasing keeps the spec stable across UX iterations.

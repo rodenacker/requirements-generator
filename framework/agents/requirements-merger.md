@@ -6,7 +6,7 @@ A 30-year software professional spanning UX, business analysis, architecture, an
 
 ## Purpose
 
-Merge the requirements draft and the captured consultant answers into a single, coherent `requirements/requirements.md` — a finalised document with no `[AI-SUGGESTED]`, `[STANDARD-RULE]`, `[OUT-OF-SCOPE]` markers, no `[SRC: C-NNN]` source-quote tags, and no unresolved items.
+Merge the requirements draft and the captured consultant answers into a single, coherent `requirements/requirements.md` — a finalised document with no `[AI-SUGGESTED]`, `[STANDARD-RULE]`, or `[OUT-OF-SCOPE]` markers and no unresolved items. `[SRC: C-NNN]` provenance tags are **retained** in the final doc as inline references for downstream LLM consumers (review, design, and code-gen pipelines); the `requirements/draft-claims.ndjson` sidecar remains the authoritative store of verbatim source quotes.
 
 ## Responsibilities
 
@@ -19,7 +19,7 @@ Merge the requirements draft and the captured consultant answers into a single, 
     - **dropped** — remove the field, row, or sub-item entirely; if removal would leave a structural hole (e.g. an orphan table row reference, a broken cross-reference), repair the surrounding text in the same Edit so the document still reads cleanly.
 - For every `[STANDARD-RULE: GR-NN]` marker: retain the drafter's value verbatim and strip the marker. These markers carry deterministic answers from `framework/shared/general-rules.md` and were not subject to Q&A.
 - For every `[OUT-OF-SCOPE: domain-default]` marker: retain the drafter's value verbatim and strip the marker. These markers carry domain-default values for template fields outside prototype scope and were not subject to Q&A. Under `manifest_target == "application"`, the drafter's gap pass suppressed these markers at draft time, so the draft contains zero `[OUT-OF-SCOPE]` markers and this step is a no-op (the field values are still present, unmarked, and pass through unchanged).
-- For every `[SRC: C-NNN]` tag: retain the drafter's value verbatim and strip the tag, including the single space that precedes it (e.g., `Hit quarterly target [SRC: C-027]` → `Hit quarterly target`). These tags carry source-quote citations into the draft for grounding verification at draft time; they are not consumed by the merger or by downstream design phases. The merger does **not** read `requirements/draft-claims.ndjson` — the sidecar remains in `requirements/` as a forensic record only.
+- For every `[SRC: C-NNN]` tag: **retain the tag verbatim** alongside the drafter's value (e.g., `Hit quarterly target [SRC: C-027]` passes through unchanged). The audience for the merged doc is downstream LLM agents (review, analysis, design, code-gen) — `[SRC:]` tags are high-signal provenance for those agents and do not need stripping. The merger does **not** read `requirements/draft-claims.ndjson` — the sidecar remains in `requirements/` as the authoritative store of verbatim source quotes, joined against the merged doc's tags on demand by downstream consumers.
 - Preserve the structure established in the draft — same section order, same field set, no `{{placeholders}}` (none should be present in the draft to begin with).
 - After applying every answer, scan the merged document for residual incoherence — contradictions introduced by corrections, dangling references to dropped items, or ambiguous wording — and fix them in place via `Edit`.
 - Append the contents of `framework/shared/prototype-invariants.md` to the end of the merged document under a single `## Prototype invariants` heading **only when `manifest_target == "prototype"`**. The per-invariant subsections (`### PI-NN — …`) are appended verbatim — do not edit, summarise, paraphrase, reorder, or interleave with other content. The source file's own top-level heading and preamble are stripped; only the per-invariant subsections are appended below the new `## Prototype invariants` heading. **When `manifest_target == "application"`, skip this step entirely** — do not Read `framework/shared/prototype-invariants.md`, do not append a `## Prototype invariants` heading, and do not introduce any `PI-NN` content. This is the single user-visible difference between application-mode and prototype-mode `requirements/requirements.md`.
@@ -62,7 +62,7 @@ If a `consultant_prompted` event is written but the consultant never responds (e
 
 ## Output
 
-- `requirements/requirements.md` — the finalised, merged requirements document. Structure matches `framework/assets/template-requirements.md`, with a `## Prototype invariants` section appended at the end per Responsibilities. The output must contain zero of the forbidden tokens listed under Self-validation — including no `[SRC: C-NNN]` source-quote tags, which are stripped from the draft body during merge.
+- `requirements/requirements.md` — the finalised, merged requirements document. Structure matches `framework/assets/template-requirements.md`, with a `## Prototype invariants` section appended at the end per Responsibilities (prototype target only). The output must contain zero of the forbidden tokens listed under Self-validation. `[SRC: C-NNN]` tags are retained from the draft as inline provenance and are explicitly **not** forbidden.
 - `framework/state/timing.ndjson` — append-only timing log. The merger appends one `consultant_prompted` / `consultant_responded` pair per accept/edit/reject iteration (per **Timing log**). It does not create, rewrite, or truncate this file.
 
 ## Tools
@@ -78,10 +78,10 @@ If a `consultant_prompted` event is written but the consultant never responds (e
 Run a single alternation Grep against `requirements/requirements.md` with `output_mode: count`. The count must be `0`:
 
 ```
-\[AI-SUGGESTED:|\[STANDARD-RULE:|\[OUT-OF-SCOPE:|\[SRC:|\| (?:non-)?blocking\]|AI-\d{3}|GR-\d{2}|C-\d{3}
+\[AI-SUGGESTED:|\[STANDARD-RULE:|\[OUT-OF-SCOPE:|\| (?:non-)?blocking\]|AI-\d{3}|GR-\d{2}
 ```
 
-This pattern catches: residual marker prefixes (in any classification variant), residual `[SRC: ...]` source-quote tags, residual `| blocking` / `| non-blocking` fragments, and any `AI-NNN`, `GR-NN`, or `C-NNN` IDs left in the body (those IDs belong only to the answers ledger, the rules catalogue, or the draft-claims sidecar respectively, never to the merged spec).
+This pattern catches: residual marker prefixes (in any classification variant), residual `| blocking` / `| non-blocking` fragments, and any `AI-NNN` or `GR-NN` IDs left in the body (those IDs belong only to the answers ledger and the rules catalogue, never to the merged spec). **`[SRC: C-NNN]` tags and `C-NNN` IDs are intentionally preserved** as inline provenance and are **not** part of this alternation.
 
 Then verify:
 
@@ -89,7 +89,7 @@ Then verify:
 - Every field is populated.
 - Every AI-SUGGESTED unique ID present in the draft has been applied per its entry in `resolver-answers.ndjson` — none ignored, none invented.
 - Every `dropped` item has been fully removed and its surrounding text repaired; no dangling cross-references remain.
-- The merged document is self-contained: it does not introduce any new pointer-to-input phrases (e.g., "see `requirements-v1.md`") that were absent in the draft. All `[SRC: C-NNN]` source-quote tags from the draft are stripped during merge; the merged document carries no inline provenance, and no replacement-by-reference content is introduced.
+- The merged document is self-contained: it does not introduce any new pointer-to-input phrases (e.g., "see `requirements-v1.md`") that were absent in the draft. `[SRC: C-NNN]` provenance tags from the draft are **retained verbatim** in the merged document as inline references for downstream LLM consumers; the `requirements/draft-claims.ndjson` sidecar remains the authoritative store of verbatim quotes. No replacement-by-reference content is introduced beyond these structured tags.
 - The post-merge coherence sweep (see Responsibilities) ran and produced no remaining contradictions, ambiguities, or incoherence.
 - Under `manifest_target == "prototype"`, the merged document ends with the prototype-invariants append per Responsibilities; no PI-NN is missing, reordered, paraphrased, or interleaved. Under `manifest_target == "application"`, the merged document contains **no `## Prototype invariants` heading and no `PI-NN` token anywhere in the body** — Grep `^## Prototype invariants$|PI-\d{2}` against `requirements/requirements.md` must return zero hits.
 

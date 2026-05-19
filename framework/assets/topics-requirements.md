@@ -1,31 +1,100 @@
-<!-- ROLE: asset. STATUS: stub — author during phase-1 build-order step 1. -->
+<!-- ROLE: asset. Canonical topic list mirroring `framework/assets/template-requirements.md` one-to-one. -->
 
 # topics-requirements.md
 
-**Purpose:** Canonical list of the 10 topics every requirements spec must cover (Application context / Domain model / Target users / User goals / Task flows / Requirements / Data entities / Source UI references / Key terminology / Volumes), with per-topic acceptance criteria and minimum-useful-content rules. **Domain model (§2)** is the BA's ubiquitous-language framing of the business — distinct from §7 Data entities (the implementation-prep view) and from `analyse-requirements/OOUX/ooux-object-map.html` (the UX-lens refinement that reads §2 as upstream input).
+**Purpose:** Canonical list of the topics every requirements spec must cover, with per-topic acceptance criteria and minimum-useful-content rules. Sections marked *conditional* are emitted only when their predicate holds. **Domain model (§2)** is the BA's ubiquitous-language framing — distinct from §7 Data shapes (the FE-consumed view) and from `analyse-requirements/OOUX/ooux-object-map.html` (the UX-lens refinement that reads §2 as upstream input).
 
 **Used by:**
 - `framework/assets/template-requirements.md` — section skeleton mirrors this list one-to-one.
-- `framework/agents/requirements-drafter/agent.md` — drives extraction + categorisation.
-- `framework/skills/categorise-by-topic.md` — bucket assignment.
-- `framework/skills/completeness-report.md` — per-topic completeness checks.
+- `framework/agents/requirements-drafter.md` — drives extraction + categorisation + citation scope.
+- `framework/skills/completeness-gap-pass.md` — per-topic completeness checks (Tier A/B/C/D rules).
 
-**How used:** Loaded by drafter + completeness-report skill. Defines the canonical bucket list for the §What's well-defined section of completeness reports. Authoring a new topic requires updating this file plus the template.
+**How used:** Loaded by drafter + gap-pass skill. Authoring a new topic requires updating this file, the template, and the gap-pass rules together.
 
-> Content TBD per `plan/v7b-Brief.md > §topics-requirements.md`.
+## Section list (mirrors template 1:1)
 
-**Pre-authoring invariants (preserve when filling in):**
-- §4 is split into **§4.1 Goals catalogue** (flat list, stable G-NN IDs, outcome-level: quality signals + goal kind live here) and **§4.2 Stories by persona** (Connextra-triple stories grouped by persona, each referencing a goal ID from §4.1). M:N: a single goal may be referenced by stories under multiple personas.
-- Every persona in §3 Target users **MUST** have ≥1 user story in §4.2.
+| § | Topic | Emit predicate |
+| --- | --- | --- |
+| 0.1 | Target-mode applicability reference | always |
+| 1 | Application context | always |
+| 1.5 | Scope (in / out / deferred) | always |
+| 1.6 | Assumptions & dependencies | always |
+| 1.7 | Architectural implications | always (drafter-derived) |
+| 2.1 | Concepts | always |
+| 2.2 | Relationships | always |
+| 2.3 | Aggregates & lifecycles | always |
+| 2.4 | Diagram (Mermaid) | always |
+| 2.5 | State-transition matrix | conditional — ≥1 aggregate has >2 lifecycle states |
+| 3 | Target users (personas) | always |
+| 4.1 | Goals catalogue | always |
+| 4.2 | Stories by persona | always |
+| 5 | Task flows | always |
+| 6.1 | Functional requirements | always |
+| 6.2 | Business rules | always |
+| 6.4 | UI feature needs (formerly "User-facing") | always |
+| 6.5 | Access control (RBAC) | always |
+| 6.6.1 | Session UX | always |
+| 6.6.2 | FE performance budgets | always |
+| 6.6.4 | Compliance UI behaviour | always (may be `[OUT-OF-SCOPE]` if not applicable) |
+| 6.6.5 | Accessibility | always |
+| 6.7 | Reporting feature needs | conditional — inputs name reports/dashboards/exports, or domain implies them |
+| 6.8 | Notification points | conditional — inputs name notifications/alerts, or domain implies them |
+| 6.9 | Audit-trail UI feature | conditional — §6.6.4 or inputs call for user-visible audit history |
+| 6.10 | Consumed backend contracts | always (sub-block matches `manifest.target`) |
+| 7 | Data shapes consumed by the FE | always |
+| 7.X | Derivations | conditional — ≥1 §2.1 concept marked `Persistence = derived` |
+| 8 | Source UI references | always |
+| 9 | Key terminology | always |
+| 10 | Volumes | always |
+
+Sections retired vs. prior versions: **§6.3 Data** (subsumed into §7 + §6.4); **§6.6.3 Availability** (backend concern; lives in sibling backend doc).
+
+## Pre-authoring invariants (preserve when filling in)
+
+- §4 is split into **§4.1 Goals catalogue** (flat list, stable G-NN IDs, outcome-level — quality signals + goal kind live here) and **§4.2 Stories by persona** (Connextra-triple stories grouped by persona, each referencing a goal ID from §4.1). M:N: a single goal may be referenced by stories under multiple personas.
+- Every persona in §3 **MUST** have ≥1 user story in §4.2.
 - Every story in §4.2 **MUST** reference exactly one goal ID from §4.1. Every goal in §4.1 SHOULD be referenced by ≥1 story (orphan goals are a vague-finding, not a blocker).
 - Quality signals are recorded on the goal, never restated on the story.
-- §6 Requirements has six sub-sections: §6.1 Functional, §6.2 Business rules, §6.3 Data, §6.4 User-facing, §6.5 Access control (RBAC), §6.6 Non-functional. The four-bucket free-form layout is deprecated.
-- §6.2 Business rules are typed rows (BR-NN), not free bullets. Each row carries Statement / Enforcement point / Source / Severity. Bijection: every §2.3 aggregate `Key invariant` appears as a BR; every BR sourced from §2.3 cites it.
-- §6.5 Access control (RBAC) is a roles-×-resources matrix. Bijection: every §3 persona is a row; every §7 persistent entity and every §5 flow is a column (or scoped action within one). Conditional cells cite a BR-NN from §6.2.
-- §6.6 Non-functional **MUST** be filled even when inferred — empty NFRs are a vague-finding, not "not applicable". Required sub-sections: Security & session, Performance, Availability, Compliance & audit, Accessibility. Within Security & session, idle timeout / absolute timeout / idle warning lead-time / re-auth scope / lockout / MFA are all required fields. Marker chosen per the drafter's decision tree (`framework/agents/requirements-drafter.md > Classification`): §6.6.5 Accessibility is in-scope (uses `[AI-SUGGESTED]` when inferred); §6.6.1–§6.6.4 are out-of-scope per `framework/shared/prototype-scope.md` and use `[OUT-OF-SCOPE: domain-default]` instead.
-- §10 Volumes is **in-scope** — projected volumes drive UI pattern selection. All three fields (data volume, frequency, concurrency) must be filled; inferred values carry `[AI-SUGGESTED]`.
-- Completeness checks (aligned with Tier A/B/D in `framework/skills/completeness-gap-pass.md`):
-    - **Tier A:** `personas_without_stories == 0`; `stories_without_goal_ref == 0`; `personas_missing_from_rbac == 0`; `entities_unscoped_in_rbac == 0`; `flows_unscoped_in_rbac == 0`; `persistent_concepts_without_entity == 0`; `entity_domain_concept_dangling == 0`; `flow_actor_dangling == 0`; `volumes_complete == true`.
-    - **Tier B:** `goals_without_story_ref == 0`; `rbac_conditional_cells_dangling == 0`; `entity_relationships_misaligned_with_2_2` warns only.
-    - **Tier D:** `aggregate_invariants_without_br == 0` (every §2.3 invariant produces a §6.2 BR row; marker chosen per visual-manifestation test).
-    - **Tier C (do not gate):** §6.6.1–§6.6.4 emptiness no longer fails completeness; only §6.6.5 Accessibility gates (`nfr_5_accessibility_present == true`).
+- §4.2 stories, §6.1 functional reqs, §6.2 business rules, and every §5 task-flow step **MUST** carry an Acceptance criteria value (behavioural / observable signal; `GR-21` applies — no visual phrasing). Drafter auto-fabricates from observable signals when input is silent (Tier B5).
+- §6 sub-sections: §6.1 Functional, §6.2 Business rules, §6.4 UI feature needs, §6.5 RBAC, §6.6 NFR (FE-only), §6.7 Reporting (conditional), §6.8 Notifications (conditional), §6.9 Audit-trail UI (conditional), §6.10 Consumed backend contracts.
+- §6.2 Business rules are typed rows (BR-NN), not free bullets. Each row carries Statement / Enforcement point / Acceptance criteria / Source / Severity. Bijection: every §2.3 aggregate `Key invariant` appears as a BR; every BR sourced from §2.3 cites it.
+- §6.4 UI feature needs are typed rows (UI-NN). `GR-21` forbids layout vocabulary; cells describe *what must exist*, not *how it is arranged*. Rows deterministically resolved by `GR-05..GR-18` carry `[STANDARD-RULE: GR-NN]`.
+- §6.5 RBAC is a roles-×-resources matrix. Bijection: every §3 persona is a row; every §7 entity and every §5 flow is a column (or scoped action). Conditional cells cite a BR-NN from §6.2.
+- §6.6 NFR is **FE-only**. Required sub-sections: §6.6.1 Session UX, §6.6.2 FE performance budgets, §6.6.4 Compliance UI behaviour, §6.6.5 Accessibility. Backend availability / throughput / persistence concerns belong in the sibling backend doc. Marker per drafter Classification: §6.6.5 Accessibility is in-scope (uses `[AI-SUGGESTED]` when inferred); §6.6.1 / §6.6.2 / §6.6.4 are also in-scope (FE-relevant) and may carry `[AI-SUGGESTED]` when inferred.
+- §6.7 Reporting needs **never** specify chart type or layout (`GR-21`). Source concept(s) must reference §2.1; audience must reference §3.
+- §6.8 Notification points use capability-level channel names only (`in-app`, `email`, `sms`, `webhook`, `push`); no vendor name (`GR-20`).
+- §6.10 Consumed backend contracts emits exactly one sub-block — the one matching `manifest.target`. Prototype variant rows reference fixture paths; application variant rows are *pointers only* into the sibling backend doc and never restate the contract.
+- §7 Data shapes captures the FE-consumed shape only — persistence design (indexes, FKs, storage layout) is the backend doc's concern. Validation timing moves to §6.4 with `GR-05`.
+- §7.X Derivations is emitted only when ≥1 §2.1 concept has `Persistence = derived`. Rule cells are business-language; computation tier appears in §1.7.
+- §10 Volumes is **in-scope** — projected volumes drive UI pattern selection. All three fields (data volume, frequency, concurrency) must be filled; inferred values carry `[AI-SUGGESTED]`. Capacity planning is the backend doc's concern.
+
+## Completeness checks (aligned with Tier A/B/C/D in `framework/skills/completeness-gap-pass.md`)
+
+- **Tier A (hard bijection):**
+  - `personas_without_stories == 0`
+  - `stories_without_goal_ref == 0`
+  - `personas_missing_from_rbac == 0`
+  - `entities_unscoped_in_rbac == 0`
+  - `flows_unscoped_in_rbac == 0`
+  - `persistent_concepts_without_entity == 0`
+  - `entity_domain_concept_dangling == 0`
+  - `flow_actor_dangling == 0`
+  - `volumes_complete == true`
+  - **A10** `scope_has_at_least_one_in_row == true` — §1.5 has ≥1 In bucket entry; drafter fabricates from §1 purpose if absent.
+  - **A11** `state_transition_invariants_covered == true` — every §2.3 invariant naming a state appears as a §2.5 row (only when §2.5 is emitted).
+  - **A12** `reporting_source_concept_resolves == true` — every §6.7 row names ≥1 existing §2.1 concept.
+  - **A13** `notification_audience_resolves == true` — every §6.8 row's Audience names an existing §3 persona.
+  - **A14** `backend_op_maps_to_functional_req == true` — every §6.10 Operation maps to a §6.1 F-NN.
+  - **A15** `derived_shape_resolves == true` — every §7.X concept exists in §2.1 with `Persistence = derived`.
+- **Tier B (soft / warn or fabricate):**
+  - `goals_without_story_ref == 0`
+  - `rbac_conditional_cells_dangling == 0`
+  - `entity_relationships_misaligned_with_2_2` — warn only.
+  - **B4** `architectural_implication_cites_requirement == true` — every §1.7 row's Driving requirement cell cross-refs ≥1 §6 / §10 row; warn-only.
+  - **B5** `acceptance_criteria_populated == true` — every §4.2 story / §6.1 F-NN / §6.2 BR-NN / §5 flow step has a populated Acceptance criteria cell; drafter auto-fabricates from observable signals when silent (`[AI-SUGGESTED]`).
+- **Tier C (do not gate — domain-default fill):**
+  - §6.6 sub-sections are FE-relevant under both targets; emptiness no longer fails completeness because they always populate from `GR-19` defaults or `[AI-SUGGESTED]` inferences. (§6.6.3 Availability is retired entirely from the template — backend concern.)
+- **Tier D (visual-manifestation gating):**
+  - `aggregate_invariants_without_br == 0` — every §2.3 invariant produces a §6.2 BR row; marker chosen per visual-manifestation test.
+  - **D3** `state_transitions_server_only_marked == true` — §2.5 rows whose Visible effect is purely server-side carry `[OUT-OF-SCOPE]` (prototype) / no marker (application).
+  - **D4** `reporting_audience_has_rbac_read == true` — every §6.7 row's audience persona has read access to the named source concept per §6.5; mismatch is a warn-level Tier B flag.

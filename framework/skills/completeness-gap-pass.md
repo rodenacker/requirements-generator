@@ -46,6 +46,12 @@ The Tier C sections below are short-circuited at step 4 — they are completenes
 | A7 | Every §7 entity's "Domain concept" field names an existing §2.1 concept | if reference dangles: prefer adding the concept to §2.1 (with `[AI-SUGGESTED]`) over silently renaming the entity, unless inputs more strongly support the rename |
 | A8 | Every §5 flow's Actor names an existing §3 persona | prefer adding the persona to §3 (with `[AI-SUGGESTED]`) over silently renaming the flow's Actor, unless inputs more strongly support the rename |
 | A9 | §10 Volumes has all three fields filled (data volume, frequency, concurrency) | infer bands per domain heuristics (e.g. SaaS B2B: 10²–10⁴ records, daily frequency, 10¹–10² concurrent users); per-field `[AI-SUGGESTED]` |
+| A10 | §1.5 Scope has ≥1 In row (`[OUT-OF-SCOPE]` is **not** valid in this section) | fabricate ≥1 In bucket entry inferred from §1 purpose; `[AI-SUGGESTED: blocking]`. Empty Out and Deferred buckets are acceptable. |
+| A11 | When §2.5 is emitted (≥1 §2.3 aggregate has >2 states), every §2.3 invariant naming a state appears as a §2.5 row | fabricate §2.5 row from invariant; per-cell `[AI-SUGGESTED]`. When §2.5 is **not** emitted, this rule is skipped entirely. |
+| A12 | Every §6.7 row names ≥1 existing §2.1 concept in `Source concept(s)` | resolve cross-reference; if the named concept does not exist, prefer adding it to §2.1 (with `[AI-SUGGESTED]`) over silently renaming the report's source. |
+| A13 | Every §6.8 row's `Audience` names an existing §3 persona | prefer adding the persona to §3 (with `[AI-SUGGESTED]`) over silently renaming the notification's audience, unless inputs more strongly support the rename. |
+| A14 | Every §6.10 row's `Operation` maps to a §6.1 F-NN | fabricate F-NN if missing; `[AI-SUGGESTED]`. Under `target == "application"` the row's pointer column still references the sibling backend doc — that pointer is not gap-pass-validated. |
+| A15 | When §7.X is emitted (≥1 §2.1 concept has `Persistence = derived`), every §7.X row names an existing §2.1 concept with `Persistence = derived` | if the named concept is not in §2.1 or is not `derived`, prefer updating §2.1 (set the concept's persistence to `derived`, with `[AI-SUGGESTED]` on the cell) over dropping the §7.X row. When §7.X is **not** emitted, this rule is skipped. |
 
 ## Tier B — soft references
 
@@ -54,6 +60,8 @@ The Tier C sections below are short-circuited at step 4 — they are completenes
 | B1 | Every §4.1 goal is referenced by ≥1 §4.2 story | fabricate story under most plausible persona; mark `[AI-SUGGESTED]` |
 | B2 | Every §6.5 conditional cell `<action>†BR-NN` names a real §6.2 BR-NN | fabricate BR-NN row in §6.2 inferred from the role + action + entity context; mark `[AI-SUGGESTED]` |
 | B3 | §7 entity relationships align with §2.2 | warn only; **no fabrication** (FK fabrication is too error-prone without input support) |
+| B4 | Every §1.7 row's `Driving requirement(s)` cell cross-refs ≥1 §6 / §10 row | warn only when the cross-ref is missing or dangles; the drafter's `derive-architectural-implications` substep is responsible for setting it. No fabrication here. |
+| B5 | Every §4.2 story / §6.1 F-NN / §6.2 BR-NN / §5 task-flow step has a populated `Acceptance criteria` cell | fabricate from observable signals when input is silent; `[AI-SUGGESTED: non-blocking]`. Phrase behaviourally per `GR-21`; never visually. |
 
 ## Tier D — mixed (in-scope only when visually manifested)
 
@@ -72,10 +80,16 @@ The Tier C sections below are short-circuited at step 4 — they are completenes
 
 §2.3 itself is **not** filtered — all invariants stay in the domain model artefact for downstream design.
 
-**D2 — §7 entity field-level (UI-display test).** A field gates `[AI-SUGGESTED]` only if it appears in a UI surface: form input, table column, detail-view label, status chip, dropdown enum, search filter (identical under both targets). FK columns, internal IDs, audit timestamps, indexes:
+**D2 — §7 shape field-level (UI-display test).** A field gates `[AI-SUGGESTED]` only if its `UI-display` cell names a visible surface (`form-input`, `table-col`, `detail`, `chip`, `enum`) — identical under both targets. Fields whose `UI-display` is `hidden` (internal IDs, opaque keys) are treated as Tier C: `target == "prototype"` → `[OUT-OF-SCOPE: domain-default]`; `target == "application"` → filled with the same domain default, **no marker**. §7 no longer carries explicit FK / index / validation-timing columns — those concerns now live in the backend doc (FKs / indexes) and §6.4 with `GR-05` (validation timing) respectively.
 
-- `target == "prototype"` → `[OUT-OF-SCOPE: domain-default]`.
-- `target == "application"` → filled with the same domain default, **no marker**.
+**D3 — §2.5 state-transition visible-effect test.** Every §2.5 row's `Visible effect` cell is evaluated:
+
+- If the effect manifests in the UI (status-badge change, screen route, action gained/lost, banner appears) → `[AI-SUGGESTED]` per Tier A11. Identical under both targets.
+- Otherwise (purely server-side state change — scheduled job, audit append, server-side reconciliation):
+  - `target == "prototype"` → `[OUT-OF-SCOPE: domain-default]`.
+  - `target == "application"` → filled with the same domain-default row, **no marker**.
+
+**D4 — §6.7 audience-has-RBAC-read test.** Every §6.7 row's `Audience` persona must have read access to the row's `Source concept(s)` per §6.5. Mismatch emits a warn-only Tier B-style flag in the gap-pass log (not a fabrication; the drafter resolves by adjusting either §6.5 or the report's audience after consulting the gap-pass log).
 
 ## Tier C — out-of-scope sections (per-target marker emission)
 
@@ -83,11 +97,16 @@ Tier C sections are completeness-required by the template (`fill every field`) b
 
 | Section | Rationale (basis for the prototype-mode OOS marker; application mode suppresses the marker) |
 |---|---|
-| §6.6.1 Security & session (idle/absolute timeout, idle warning, re-auth, lockout, MFA) | `prototype-scope.md` "Authentication/authorization implementation", "Security implementation details" |
-| §6.6.2 Performance | `prototype-scope.md` "Performance optimization techniques" |
-| §6.6.3 Availability (uptime, maintenance window, RTO/RPO) | `prototype-scope.md` "DevOps, CI/CD, infrastructure" |
-| §6.6.4 Compliance & audit | `prototype-scope.md` "Security implementation details" — **exception:** regimes that drive consent banners or PII screen redaction → `[AI-SUGGESTED]` under both targets |
-| §7 entity FK / index / DB-only fields | `prototype-scope.md` Data model elements — explicit exclusion of "database table definitions, indexes, foreign key constraints" |
+| §7 shape fields with `UI-display = hidden` (internal IDs, opaque keys) | `prototype-scope.md` Data model elements — explicit exclusion of "database table definitions, indexes, foreign key constraints"; FE never displays these so they cannot be `[AI-SUGGESTED]` (no UI surface to validate against) |
+| §2.5 transitions whose `Visible effect` is purely server-side | per **D3** above |
+| §6.10 sub-block not matching `manifest.target` | drafter emits only the matching variant; the off-mode sub-block is suppressed entirely (no marker, no row). This is a structural conditional, not a Tier C row in the traditional sense, but is listed here for symmetry. |
+
+**Retired from Tier C** (these sections are now treated as FE-relevant and in-scope under both targets — fields carry `[AI-SUGGESTED]` when inferred and no input states them, or `[STANDARD-RULE: GR-NN]` when a deterministic rule applies):
+
+- §6.6.1 Session UX — UI surfaces of session policy (timeout warning copy, re-auth modal trigger, lockout messaging). `GR-19` provides domain defaults; otherwise `[AI-SUGGESTED]`.
+- §6.6.2 FE performance budgets — TTI, bundle size, render budgets. `[AI-SUGGESTED]` when inferred from volumes (§10).
+- §6.6.3 Availability — **retired entirely from the template** (backend concern; FE doc no longer has this section).
+- §6.6.4 Compliance UI behaviour — consent banners, PII screen redaction, regional UI variants. `[AI-SUGGESTED]` when inferred from domain. Backend audit retention is the backend doc's concern and is not in this section.
 
 §6.6.5 Accessibility is **in-scope** under both targets — drives design tokens & screen states.
 
@@ -111,5 +130,7 @@ Tier C sections are completeness-required by the template (`fill every field`) b
 - Do not emit `[AI-SUGGESTED]` for any tuple whose decision tree resolved at step 2 (general-rules) or step 4 (out-of-scope). This rule holds under both targets — `target == "application"` suppresses the `[OUT-OF-SCOPE]` marker but does not promote those tuples to `[AI-SUGGESTED]`.
 - Do not skip the `general-rules.md` lookup; it must precede every `[AI-SUGGESTED]` decision.
 - Do not modify §2.3 — invariant filtering applies only at the §2.3 → §6.2 projection.
+- Do not emit tuples for conditional sections whose emit-predicate is false. §2.5 / §6.9 / §7.X / the off-mode sub-block of §6.10 produce zero tuples when not emitted. The drafter's self-validation does not require their presence in that case.
+- Do not enforce `GR-20` (no stack specifics) or `GR-21` (no UI layout) here — those are drafter pre-Write Grep guards over the produced draft, not gap-pass decision-tree outcomes. The gap-pass produces values that are themselves capability-category and behavioural; the drafter's self-validation catches any leak.
 - Do not widen the AI-SUGGESTED set when `target == "application"`. The contract with the consultant is that they answer questions only about facts the AI fabricated; widening the set under application mode would surface redundant or ungrounded questions. The application-mode behavioural change is OOS-marker suppression only.
 - Do not skip the prototype-scope predicate evaluation under `target == "application"`. The predicate is still needed to identify which tuples would have been OOS, so the skill can route them to the `marker_kind = "none"` branch. The file is consulted under both targets.
