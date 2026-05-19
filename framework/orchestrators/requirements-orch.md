@@ -122,10 +122,11 @@ This procedure runs **only** when the consultant chose `start-fresh` **and** som
 
 Perform the steps in this order. If any step fails, stop and surface the failure to the consultant; do not proceed to the next step.
 
-1. **Git commit.** Stage and commit any current state of `requirements/`, `framework/state/.progress.json`, and `framework/state/timing.ndjson` (if it exists) so the prior run is preserved in history before deletion.
-    - `git add requirements/ framework/state/.progress.json framework/state/timing.ndjson`
+1. **Git commit.** Stage and commit any current state of `requirements/`, `input/`, `framework/state/.progress.json`, `framework/state/timing.ndjson`, and the three resolver working-state sidecars under `framework/state/` (each "if it exists") so every artefact that subsequent steps will overwrite or delete is preserved in history before deletion.
+    - `git add requirements/ input/ framework/state/.progress.json framework/state/timing.ndjson framework/state/resolver-manifest.ndjson framework/state/resolver-answers.ndjson framework/state/resolver-cursor.json`
     - `git commit -m "checkpoint: prior requirements run before reset"` (use `--allow-empty` only if there are no staged changes, so the checkpoint marker exists in history regardless).
     - Do not push, do not amend, do not bypass hooks.
+    - The `input/` stage covers `input/*.converted.md` siblings deleted in step 4 (and incidentally stages any uncommitted originals — that breadth is intentional, since a checkpoint should err on the side of preserving more rather than less). The three explicit `framework/state/resolver-*.{ndjson,json}` paths cover the sidecars deleted in step 5. Non-existent paths in this list cause `git add` to error in some shells; if a path is absent on disk, omit it from the invocation rather than letting the command fail — the prose lists the maximum set, not a required set.
 2. **Reset the progress file.** Overwrite `framework/state/.progress.json` with an empty events array and a fresh `status`:
 
     ```json

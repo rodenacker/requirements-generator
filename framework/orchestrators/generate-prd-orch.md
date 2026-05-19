@@ -130,10 +130,11 @@ This procedure runs **only** when the consultant chose `start-fresh` **and** som
 
 Perform the steps in this order. If any step fails, stop and surface the failure to the consultant; do not proceed to the next step.
 
-1. **Git commit.** Stage and commit any current state of `prd/`, `framework/state/.prd-progress.json`, and `framework/state/timing.ndjson` (if it exists) so the prior run is preserved in history before deletion.
-    - `git add prd/ framework/state/.prd-progress.json framework/state/timing.ndjson`
+1. **Git commit.** Stage and commit any current state of `prd/`, `framework/state/.prd-progress.json`, `framework/state/timing.ndjson`, and the three prd-resolver working-state sidecars under `framework/state/` (each "if it exists") so every artefact that subsequent steps will overwrite or delete is preserved in history before deletion.
+    - `git add prd/ framework/state/.prd-progress.json framework/state/timing.ndjson framework/state/prd-resolver-manifest.ndjson framework/state/prd-resolver-answers.ndjson framework/state/prd-resolver-cursor.json`
     - `git commit -m "checkpoint: prior generate-prd run before reset"` (use `--allow-empty` only if there are no staged changes).
     - Do not push, do not amend, do not bypass hooks.
+    - The three explicit `framework/state/prd-resolver-*.{ndjson,json}` paths cover the sidecars deleted in step 4. Non-existent paths in this list cause `git add` to error in some shells; if a path is absent on disk, omit it from the invocation rather than letting the command fail — the prose lists the maximum set, not a required set.
 2. **Reset the progress file.** Overwrite `framework/state/.prd-progress.json` with an empty events array and a fresh `status`:
 
     ```json

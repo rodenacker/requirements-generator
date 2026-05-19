@@ -60,10 +60,11 @@ Run this once, at the very start of every invocation, before step 0b and step 1.
 
 This procedure runs **only** when the consultant chose `Overwrite` and a prior artefact was detected. Perform the steps in this order; if any step fails, stop and surface the failure to the consultant — do not proceed.
 
-1. **Git checkpoint.** Stage and commit the current state of the artefact so the prior run is preserved in history before deletion.
-    - `Bash git add design-system/design-system.md`
-    - `Bash git commit -m "checkpoint: prior design-system run before reset"` (use `--allow-empty` only if the file is unstaged, so the checkpoint marker exists in history regardless).
+1. **Git checkpoint.** Stage and commit the current state of the artefact and its workspace so everything subsequent steps will delete is preserved in history before deletion.
+    - `Bash git add design-system/design-system.md design-system/.workspace` (each "if it exists" — omit any path absent on disk rather than letting `git add` fail).
+    - `Bash git commit -m "checkpoint: prior design-system run before reset"` (use `--allow-empty` only if nothing was staged, so the checkpoint marker exists in history regardless).
     - Do not push, do not amend, do not bypass hooks.
+    - The `design-system/.workspace` stage covers the directory deleted (best-effort) in step 3. `.workspace/` is conventional scratch, but it is not gitignored and may contain non-trivial intermediate state worth preserving.
 2. **Delete the prior artefact.**
     - `Bash rm -f design-system/design-system.md`
 3. **Delete the prior workspace, if any.**
