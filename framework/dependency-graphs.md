@@ -778,3 +778,122 @@ graph TD
 - The `completeness-reviewer` agent's two cross-edge shared-policy dependencies — `shared_genrules_ri` (always read at Step 15 disposition assignment) and `shared_protoscope_ri` (dashed edge, read at Step 15 **only when** the manifest's `target == "prototype"`) — are unique to this reviewer in the `/review-inputs` subtree. The adversarial and ambiguity-review reviewers read neither file (their methodologies are taxonomy-driven and do not need to map findings onto rule-resolved or scope-resolved dispositions). The two shared-policy reads honour the stand-alone-ish constraint by being **read-only** and bounded to the disposition step; no write reaches `framework/shared/`. The conditional dashed edge to `prototype-scope.md` follows the convention established in graph 3 (ten-ba-questions reviewer's filter-source edges to `ten-ux-questions-reference.md`) — dashed edges indicate non-default loads governed by a runtime predicate.
 - Framework now carries three MVP reviewers under `/review-inputs` (`adversarial`, `ambiguity-review`, `completeness-review`); the `reviews-inputs/registry.md` carries no remaining `status: future` rows.
 - No cycles. No `framework/assets/pattern-catalogue/` "see also" pointers appear in this subtree.
+
+---
+
+## generate-prd-orch.md
+
+```mermaid
+graph TD
+    classDef orch fill:#1f2937,color:#fff,stroke:#000,stroke-width:2px,font-weight:bold
+    classDef agent fill:#2563eb,color:#fff,stroke:#1e40af
+    classDef skill fill:#0d9488,color:#fff,stroke:#0f766e
+    classDef asset fill:#d97706,color:#fff,stroke:#92400e
+    classDef shared fill:#7c3aed,color:#fff,stroke:#5b21b6
+    classDef char fill:#db2777,color:#fff,stroke:#9d174d
+    classDef state fill:#525252,color:#fff,stroke:#262626
+
+    subgraph Orchestrator
+      orch_prd[generate-prd-orch.md]
+    end
+
+    subgraph Agents
+      agent_input_prd[input-handler.md]
+      agent_prd_drafter[prd-drafter.md]
+      agent_prd_resolver[prd-resolver.md]
+      agent_prd_merger[prd-merger.md]
+    end
+
+    subgraph Skills
+      skill_classify_prd[classify-input-tier.md]
+      skill_preflight_prd[preflight-mcp.md]
+      skill_convert_prd[convert-input-file.md]
+      skill_buildmanifest_prd[build-source-manifest.md]
+      skill_verifywrite_prd[verify-artifact-write.md]
+      skill_bloat_prd[check-context-bloat.md]
+      skill_gappass_prd[completeness-gap-pass-prd.md]
+      skill_grounding_prd[grounding-verifier.md]
+    end
+
+    subgraph Assets
+      asset_template_prd[template-prd.md]
+      asset_topics_prd[topics-prd.md]
+    end
+
+    subgraph Characters
+      char_prd_drafting[characters/prd-drafting.md]
+      char_prd_resolving[characters/prd-resolving.md]
+      char_prd_finalising[characters/prd-finalising.md]
+    end
+
+    subgraph Shared
+      shared_refusal_prd[refusal-registry.md]
+      shared_setup_md_prd[setup-instructions/markitdown.md]
+    end
+
+    subgraph State
+      state_prd_progress[state/.prd-progress.json]
+    end
+
+    orch_prd --> agent_input_prd
+    orch_prd --> agent_prd_drafter
+    orch_prd --> agent_prd_resolver
+    orch_prd --> agent_prd_merger
+    orch_prd --> skill_bloat_prd
+    orch_prd --> shared_refusal_prd
+    orch_prd --> state_prd_progress
+
+    agent_input_prd --> skill_classify_prd
+    agent_input_prd --> skill_preflight_prd
+    agent_input_prd --> skill_convert_prd
+    agent_input_prd --> skill_buildmanifest_prd
+    agent_input_prd --> skill_verifywrite_prd
+    agent_input_prd --> shared_refusal_prd
+    agent_input_prd --> shared_setup_md_prd
+
+    skill_classify_prd --> skill_convert_prd
+    skill_preflight_prd --> shared_refusal_prd
+    skill_convert_prd --> skill_verifywrite_prd
+    skill_convert_prd --> shared_refusal_prd
+    skill_buildmanifest_prd --> skill_verifywrite_prd
+    skill_verifywrite_prd --> shared_refusal_prd
+    skill_bloat_prd --> shared_refusal_prd
+    skill_bloat_prd --> state_prd_progress
+
+    agent_prd_drafter --> asset_template_prd
+    agent_prd_drafter --> char_prd_drafting
+    agent_prd_drafter --> shared_refusal_prd
+    agent_prd_drafter --> skill_verifywrite_prd
+    agent_prd_drafter --> skill_gappass_prd
+    agent_prd_drafter --> skill_grounding_prd
+
+    skill_gappass_prd --> asset_topics_prd
+
+    agent_prd_resolver --> char_prd_resolving
+
+    agent_prd_merger --> char_prd_finalising
+
+    class orch_prd orch
+    class agent_input_prd,agent_prd_drafter,agent_prd_resolver,agent_prd_merger agent
+    class skill_classify_prd,skill_preflight_prd,skill_convert_prd,skill_buildmanifest_prd,skill_verifywrite_prd,skill_bloat_prd,skill_gappass_prd,skill_grounding_prd skill
+    class asset_template_prd,asset_topics_prd asset
+    class char_prd_drafting,char_prd_resolving,char_prd_finalising char
+    class shared_refusal_prd,shared_setup_md_prd shared
+    class state_prd_progress state
+```
+
+**Stats:** 22 nodes / 32 edges / depth 4.
+
+**Notes:**
+- The `input-handler.md` agent is **shared with `requirements-orch.md` (graph 1), `analyse-inputs-orch.md` (graph 5), and `review-inputs-orch.md` (graph 6)**. The five transitive skills below it (`classify-input-tier`, `preflight-mcp`, `convert-input-file`, `build-source-manifest`, `verify-artifact-write`) plus the two shared-policy edges to `refusal-registry.md` and `setup-instructions/markitdown.md` are the same node identities across all four graphs. The per-call difference is the agent's `progress_path` parameter: `requirements-orch.md` passes `framework/state/.progress.json`; `generate-prd-orch.md` passes `framework/state/.prd-progress.json` (a distinct progress file for the PRD pipeline, so `RF-01 continue-later` halts don't conflate with `/requirements`-in-flight state); `analyse-inputs-orch.md` and `review-inputs-orch.md` both pass `null` (which suppresses the agent's `RF-01 continue-later` progress-file write).
+- The shared `requirements/source-manifest.json` is read but its `target` field is **informational only** for the PRD pipeline — surfaced in §1 metadata of the PRD as a reference, but no decision tree branches on it. The PRD orchestrator does **not** invoke `framework/skills/set-build-target.md`; if `target` is `null` on entry (typical when `/generate-prd` runs before `/requirements`), the drafter surfaces "to-be-determined" in §1 and proceeds without writing the field.
+- The PRD pipeline emits exactly **two markers** in draft body: `[SRC: PC-NNN]` (PRD-namespaced citations, sidecar at `prd/draft-claims.ndjson`) and `[AI-SUGGESTED: PAI-NNN | blocking|non-blocking]`. **No `[STANDARD-RULE]`, `[OUT-OF-SCOPE]`, or `[REQ:]` markers** are ever emitted — the `GR-NN` rules in `framework/shared/general-rules.md` govern UI behaviour (irrelevant to PRD content), §10 is the out-of-scope section (self-referential marker would be incoherent), and the pipeline is fully independent of `requirements/requirements.md` (no cross-doc pointers). The PRD-drafter does **not** depend on `framework/shared/general-rules.md` or `framework/shared/prototype-scope.md` — the only shared edge from the drafter is to `refusal-registry.md` (for `RF-04`).
+- `completeness-gap-pass-prd.md` is a clone-and-modify of `framework/skills/completeness-gap-pass.md` (the requirements-pipeline gap-pass). The PRD version has a smaller decision tree (two marker outcomes only), no general-rules lookup, no out-of-scope routing, no Tier C, no Tier D visual-manifestation gating. Tier A invariants are PRD-shaped (B1–B10: metric↔problem/hypothesis, hypothesis↔falsification, risk↔mitigation, persona↔phasing, stakeholder↔sign-off-role, phase↔release-criterion, phase↔milestone, capability↔upstream-tie, competitive-landscape-named, out-of-scope-nonempty). Cloning rather than parameterising is justified per CLAUDE.md §3's "extract only when ≥2 callers and clean parameter inputs" rule — the bijection sets are pipeline-specific (not clean parameter inputs).
+- `topics-prd.md` is consulted by `completeness-gap-pass-prd.md` for the bijection invariants — same pattern as `topics-requirements.md`'s relationship to `completeness-gap-pass.md` in graph 1.
+- The drafter's workflow has **seven** instrumented substeps in `framework/state/timing.ndjson` (was ten in the requirements drafter): `read-inputs`, `populate-template`, `grep-crosscheck`, `gap-pass`, `write-draft`, `write-claims-sidecar`, `grounding-verify`. The three dropped substeps from the requirements drafter (`derive-architectural-implications`, `author-mermaid`, `mermaid-validate`) do not apply — PRDs don't ship architectural-implications catalogues or Mermaid diagrams. Total per clean PRD-drafter run: 8 tool calls for 14 events.
+- The merger **retains** `[SRC: PC-NNN]` provenance tags in the final `prd/prd.md` (same convention as `/requirements`-pipeline merger retains `[SRC: C-NNN]`). Downstream LLM consumers (review pipelines reading the PRD, analysers consuming it) can read provenance inline; the sidecar `prd/draft-claims.ndjson` remains the authoritative store of verbatim quotes for grounding re-verification.
+- The merger **does not** append a `## Prototype invariants` block. PI-NN are prototype-build invariants for the FE spec — they have no place in a PRD's strategic framing. The merger explicitly never Reads `framework/shared/prototype-invariants.md` (no edge in this graph).
+- `state/.prd-progress.json` is a state file written by the orchestrator and read by `check-context-bloat.md` and `agent_input_prd`; it is **distinct from `state/.progress.json`** so the two pipelines can be in flight concurrently without state collision. The two resolver sidecar triplets are likewise PRD-namespaced (`prd-resolver-{manifest,answers,cursor}.{ndjson,json}`) and live alongside the requirements-pipeline triplets in `framework/state/` without overlap.
+- The PRD resolver has **no edges to `framework/shared/general-rules.md` or `framework/shared/prototype-scope.md`** (unlike the requirements resolver in graph 1, which consults both via `flag-gaps-ambiguities.md`). The PRD resolver does not run the `apply-rule` / `defer-out-of-scope` follow-up filter — the PRD pipeline does not apply rule lookups or scope deferrals during Q&A.
+- The PRD pipeline writes to: `prd/*`, `framework/state/.prd-progress.json`, `framework/state/prd-resolver-*.{ndjson,json}`, `framework/state/timing.ndjson` (append-only). The documented cross-pipeline exception (inherited from the shared input-handler) writes `requirements/source-manifest.json` and `input/*.converted.md` siblings. No write reaches `requirements/requirements*.md`, `requirements/consultant-answers.md`, `requirements/requirements-draft.md`, `requirements/draft-claims*.ndjson`, `requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, `framework/state/resolver-*` (those belong to `/requirements`), `design-system/`, `analyse-requirements/<METHOD>/`, `analyse-inputs/<METHOD>/`, `review-requirements/<METHOD>/`, or `review-inputs/<METHOD>/`.
+- No cycles. No `framework/assets/pattern-catalogue/` "see also" pointers appear in this subtree.
