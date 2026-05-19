@@ -180,7 +180,9 @@ The catalogue is the **closed set** of categories the drafter is permitted to em
 - §5 every flow's actor, trigger, decision points, exception paths, **and** every flow's step value when input-grounded (acceptance signal embedded per step is in scope as part of the step cell).
 - §6.1 every F-NN row's `Statement` **and** `Acceptance criteria` cells.
 - §6.2 every BR-NN row's condition, outcome, enforcement point, **and** `Acceptance criteria` cell.
+- §6.3 every row's `Field`, `Validation type`, `Rule`, **and** `Error message` cell (when input states the validation; rules inferred from domain defaults carry `[AI-SUGGESTED]`).
 - §6.4 every UI-NN row (feature need + linked refs + acceptance).
+- §6.4.5 every row's `Surface`, `Condition`, `Expected UI behaviour`, **and** `Recovery action` cell (when input states the edge-state behaviour; behaviours fabricated from §5 `exception_paths` or domain defaults carry `[AI-SUGGESTED]`).
 - §6.5 every RBAC cell value.
 - §6.7 every RPT-NN row (every column).
 - §6.8 every NT-NN row (every column).

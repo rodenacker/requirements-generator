@@ -31,7 +31,9 @@
 | 5 | Task flows | always |
 | 6.1 | Functional requirements | always |
 | 6.2 | Business rules | always |
+| 6.3 | Validation rules | always (may be empty) |
 | 6.4 | UI feature needs (formerly "User-facing") | always |
+| 6.4.5 | Edge, empty & error states | conditional — ≥1 §5 flow has `exception_paths` OR ≥1 §6.4 row implies state branching |
 | 6.5 | Access control (RBAC) | always |
 | 6.6.1 | Session UX | always |
 | 6.6.2 | FE performance budgets | always |
@@ -47,7 +49,7 @@
 | 9 | Key terminology | always |
 | 10 | Volumes | always |
 
-Sections retired vs. prior versions: **§6.3 Data** (subsumed into §7 + §6.4); **§6.6.3 Availability** (backend concern; lives in sibling backend doc).
+Sections retired vs. prior versions: **§6.6.3 Availability** (backend concern; lives in sibling backend doc). The §6.3 slot — previously retired as `Data` (subsumed into §7 + §6.4) — is now **reinstated** as **Validation rules** (visible field-level UI validation; backend invariants remain in §6.2 / sibling backend doc).
 
 ## Pre-authoring invariants (preserve when filling in)
 
@@ -56,15 +58,17 @@ Sections retired vs. prior versions: **§6.3 Data** (subsumed into §7 + §6.4);
 - Every story in §4.2 **MUST** reference exactly one goal ID from §4.1. Every goal in §4.1 SHOULD be referenced by ≥1 story (orphan goals are a vague-finding, not a blocker).
 - Quality signals are recorded on the goal, never restated on the story.
 - §4.2 stories, §6.1 functional reqs, §6.2 business rules, and every §5 task-flow step **MUST** carry an Acceptance criteria value (behavioural / observable signal; `GR-21` applies — no visual phrasing). Drafter auto-fabricates from observable signals when input is silent (Tier B5).
-- §6 sub-sections: §6.1 Functional, §6.2 Business rules, §6.4 UI feature needs, §6.5 RBAC, §6.6 NFR (FE-only), §6.7 Reporting (conditional), §6.8 Notifications (conditional), §6.9 Audit-trail UI (conditional), §6.10 Consumed backend contracts.
+- §6 sub-sections: §6.1 Functional, §6.2 Business rules, §6.3 Validation rules, §6.4 UI feature needs, §6.4.5 Edge / empty / error states (conditional), §6.5 RBAC, §6.6 NFR (FE-only), §6.7 Reporting (conditional), §6.8 Notifications (conditional), §6.9 Audit-trail UI (conditional), §6.10 Consumed backend contracts.
 - §6.2 Business rules are typed rows (BR-NN), not free bullets. Each row carries Statement / Enforcement point / Acceptance criteria / Source / Severity. Bijection: every §2.3 aggregate `Key invariant` appears as a BR; every BR sourced from §2.3 cites it.
+- §6.3 Validation rules capture the *visible* field-level validation surface (required-field markers, format / range / length / enum / cross-field errors). Field cell references a §7 shape field; `business-rule-ref` cells cite a §6.2 BR-NN. Backend enforcement of business invariants belongs to §6.2 and the sibling backend doc. Validation *timing* (real-time / on-blur / on-submit) is governed by `GR-05` and captured in §6.4.
 - §6.4 UI feature needs are typed rows (UI-NN). `GR-21` forbids layout vocabulary; cells describe *what must exist*, not *how it is arranged*. Rows deterministically resolved by `GR-05..GR-18` carry `[STANDARD-RULE: GR-NN]`.
+- §6.4.5 Edge, empty & error states is emitted when ≥1 §5 flow has `exception_paths` OR a §6.4 row implies state branching. Surface cell references a §4.2 story, §5 flow, or §6.4 UI-NN; condition uses the closed vocabulary `{empty, partial, error, offline, loading, permission-denied}`. Behavioural phrasing only (`GR-21`).
 - §6.5 RBAC is a roles-×-resources matrix. Bijection: every §3 persona is a row; every §7 entity and every §5 flow is a column (or scoped action). Conditional cells cite a BR-NN from §6.2.
 - §6.6 NFR is **FE-only**. Required sub-sections: §6.6.1 Session UX, §6.6.2 FE performance budgets, §6.6.4 Compliance UI behaviour, §6.6.5 Accessibility. Backend availability / throughput / persistence concerns belong in the sibling backend doc. Marker per drafter Classification: §6.6.5 Accessibility is in-scope (uses `[AI-SUGGESTED]` when inferred); §6.6.1 / §6.6.2 / §6.6.4 are also in-scope (FE-relevant) and may carry `[AI-SUGGESTED]` when inferred.
 - §6.7 Reporting needs **never** specify chart type or layout (`GR-21`). Source concept(s) must reference §2.1; audience must reference §3.
 - §6.8 Notification points use capability-level channel names only (`in-app`, `email`, `sms`, `webhook`, `push`); no vendor name (`GR-20`).
 - §6.10 Consumed backend contracts emits exactly one sub-block — the one matching `manifest.target`. Prototype variant rows reference fixture paths; application variant rows are *pointers only* into the sibling backend doc and never restate the contract.
-- §7 Data shapes captures the FE-consumed shape only — persistence design (indexes, FKs, storage layout) is the backend doc's concern. Validation timing moves to §6.4 with `GR-05`.
+- §7 Data shapes captures the FE-consumed shape only — persistence design (indexes, FKs, storage layout) is the backend doc's concern. Validation *rules* live in §6.3; validation *timing* (when feedback appears) is captured in §6.4 with `GR-05`.
 - §7.X Derivations is emitted only when ≥1 §2.1 concept has `Persistence = derived`. Rule cells are business-language; computation tier appears in §1.7.
 - §10 Volumes is **in-scope** — projected volumes drive UI pattern selection. All three fields (data volume, frequency, concurrency) must be filled; inferred values carry `[AI-SUGGESTED]`. Capacity planning is the backend doc's concern.
 

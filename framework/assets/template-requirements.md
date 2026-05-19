@@ -21,6 +21,8 @@
 
 ## 0.1 Target-mode applicability
 
+<!-- format: table[4-col: section, prototype, application, mode-conditional?]; one row per mode-conditional section -->
+
 > The `target` field on the source manifest is `prototype` or `application`. The drafter picks the matching variant for the rows below at fill-time; the merger does not see both.
 
 | Section | `prototype` | `application` | Mode-conditional? |
@@ -33,6 +35,8 @@
 ---
 
 ## 1. Application context
+
+<!-- format: narrative[4-field: name, purpose, domain, business_goal]; one short paragraph or phrase per field; no bullets -->
 
 **Name:** {{application_name}}
 
@@ -48,6 +52,9 @@
 
 ## 1.5 Scope
 
+<!-- format: table[3-row: In, Out, Deferred; comma-separated capability list per cell]; capability categories only (GR-20) -->
+<!-- guidance: ≥1 entry in In bucket (A10); Out/Deferred may be empty -->
+
 > §1.5 is in-scope-only — unsupplied buckets emit `[AI-SUGGESTED]` under both targets. `[OUT-OF-SCOPE: domain-default]` is **not** valid in this section (the section *defines* scope; OOS would be self-referential).
 
 | Bucket | Items |
@@ -61,6 +68,8 @@
 ---
 
 ## 1.6 Assumptions & dependencies
+
+<!-- format: table[3-col: kind, statement, source]; one row per assumption; kind ∈ {abstract-service-dependency, persona-prerequisite, environment-assumption} -->
 
 > Abstract services, persona prerequisites, environment assumptions. Cells naming a product or vendor fail `GR-20`.
 
@@ -77,6 +86,8 @@
 ---
 
 ## 1.7 Architectural implications
+
+<!-- format: table[3-col: capability_category, driving_requirements, recommendation]; capability_category from drafter's inline catalogue (≤15 entries); recommendation optional -->
 
 > Capability categories derived by the drafter from §6 functional requirements + §10 volumes + §6.7 reporting needs, against an inline catalogue of ≤15 categories (see `framework/agents/requirements-drafter.md > derive-architectural-implications`). Drafter seeds every row as `[AI-SUGGESTED: AI-NNN | non-blocking]`; resolver Q&A refines. Recommendation column is **optional** and **non-deterministic** — a stack choice belongs in the code-generation step, not here.
 
@@ -96,6 +107,8 @@
 
 ### 2.1 Concepts
 
+<!-- format: table[3-col: concept, persistence∈{persistent,derived,policy}, definition]; one ubiquitous-language sentence per definition -->
+
 | Concept          | Persistence                   | Definition (ubiquitous language)     |
 | ---------------- | ----------------------------- | ------------------------------------ |
 | {{concept_name}} | persistent / derived / policy | {{one-sentence business definition}} |
@@ -104,11 +117,15 @@
 
 ### 2.2 Relationships
 
+<!-- format: bullets; pattern "{ConceptA} **{verb-phrase}** {ConceptB} [{cardinality}]"; verbs business-sourced not data-sourced -->
+
 - {{Concept A}} **{{verb-phrase}}** {{Concept B}} [{{cardinality}}]
 
 <!-- verbs come from the business ("Borrower **submits** Application"), not from data ("Borrower hasMany Application"); cardinality optional but recommended -->
 
 ### 2.3 Aggregates & lifecycles
+
+<!-- format: per-aggregate table[3-row: member_concepts, lifecycle_states, key_invariants]; lifecycle_states is an ordered arrow chain -->
 
 #### {{aggregate_root}}
 
@@ -122,6 +139,8 @@
 
 ### 2.4 Diagram (optional)
 
+<!-- format: mermaid[classDiagram|erDiagram]; classDiagram for concept-centric, erDiagram for storage-shape; every §2.1 concept appears ≥1× -->
+
 ```mermaid
 classDiagram
     %% Mermaid classDiagram or erDiagram in domain mode; markdown-native, diff-able, tool-agnostic.
@@ -129,6 +148,8 @@ classDiagram
 ```
 
 ### 2.5 State-transition matrix
+
+<!-- format: per-aggregate table[4-col: from→to, trigger, precondition, visible_effect]; prototype: server-side-only rows carry [OUT-OF-SCOPE]; application: same rows unmarked -->
 
 > Emitted only when ≥1 §2.3 aggregate has more than two lifecycle states. One sub-block per qualifying aggregate. Pre-condition cells may reference `→ §6.2 BR-NN`.
 
@@ -145,6 +166,8 @@ classDiagram
 ---
 
 ## 3. Target users
+
+<!-- format: per-persona table[6-row: role, expertise, stakes, frequency, positive_drivers, negative_drivers]; ≥1 story in §4.2 required per persona (A1) -->
 
 > Target-user personas — the end users of the application being designed. Not to be confused with the Unicorn (LLM) or the Consultant (audience).
 
@@ -171,6 +194,8 @@ classDiagram
 
 ### 4.1 Goals catalogue
 
+<!-- format: table[6-col: ID(G-NN), goal_statement, quality_signals, goal_kind∈{top,sub,interaction}, layout_pref?, ux_pattern_pref?]; outcome-level only -->
+
 | ID | Goal statement | Quality signals | Goal kind | Layout pref (optional) | UX-pattern pref (optional) |
 | --- | --- | --- | --- | --- | --- |
 | G-{{nn}} | {{goal_statement}} | {{quality_signals}} <!-- resolve via taxonomy-goals.md --> | top-level / sub-level / interaction-level | {{layout_preference}} | {{ux_pattern_preference}} |
@@ -178,6 +203,9 @@ classDiagram
 <!-- repeat per goal; IDs are stable and referenced from §4.2 stories and §5 task flows -->
 
 ### 4.2 Stories by persona
+
+<!-- format: per-persona heading then per-story heading "Story: As a {role}, I want {intent}, so that {benefit}", followed by table[5-row: goal_ref, objective, context, linked_flow?, acceptance_criteria]; AC behavioural — given-when-then OR observable-signal bullet -->
+<!-- guidance: every persona ≥1 story (A1); every story exactly 1 §4.1 goal-id (A2) -->
 
 #### {{persona_name}} <!-- → §3 -->
 
@@ -196,6 +224,9 @@ classDiagram
 ---
 
 ## 5. Task flows
+
+<!-- format: per-flow table[6-row: actor, trigger, steps, decision_points, exception_paths, role_conditional]; steps as ordered "(action; observable_result)" pairs; exception_paths structured "{trigger → message → recovery_action}" -->
+<!-- guidance: every flow's actor names an existing §3 persona (A8); every step carries an observable signal (B5) -->
 
 ### Flow: {{flow_name}}
 
@@ -216,6 +247,9 @@ classDiagram
 
 ### 6.1 Functional
 
+<!-- format: table[4-col: ID(F-NN), statement, acceptance_criteria, source]; statement is atomic — single capability per row, no compound "and"; AC as Given-When-Then OR observable-signal bullet -->
+<!-- guidance: atomic decomposition aids gap-pass mapping to §6.10 ops (A14) and BR refs -->
+
 | ID       | Statement              | Acceptance criteria                                                       | Source                                |
 | -------- | ---------------------- | ------------------------------------------------------------------------- | ------------------------------------- |
 | F-{{nn}} | {{functional_requirement}} | {{given_when_then_or_observable_signal}} <!-- Tier B5 auto-fabricates --> | stated / → §X / inferred              |
@@ -224,13 +258,31 @@ classDiagram
 
 ### 6.2 Business rules
 
+<!-- format: table[6-col: ID(BR-NN), statement(when/then), enforcement_point∈{ui,service,data,cross-layer}, acceptance_criteria, source, severity∈{blocker,major,minor}]; statement form "When {condition}, then {required_outcome}" -->
+
 | ID | Statement (when / then) | Enforcement point | Acceptance criteria | Source | Severity |
 | --- | --- | --- | --- | --- | --- |
 | BR-{{nn}} | When {{condition}}, then {{required_outcome}} | UI / service / data / cross-layer | {{observable_signal_or_test}} <!-- Tier B5 --> | → §2.3 invariant / → §6.1 F-{{nn}} / consultant input | blocker / major / minor |
 
 <!-- repeat per business rule; IDs are stable and may be referenced from §5 task flows (decision points), §6.5 access control (action gating), and §2.5 state transitions (pre-conditions) -->
 
+### 6.3 Validation rules
+
+<!-- format: table[4-col: field→§7, validation_type∈{required,format,range,length,enum,cross-field,business-rule-ref}, rule, error_message]; references §7 fields; business-rule-ref points to §6.2 BR-NN -->
+<!-- guidance: prototypable inline error feedback only; backend validation logic is OOS per `framework/shared/prototype-scope.md` -->
+
+> Field-level validation surfaced to the user as inline UI feedback (required-field markers, format hints, range/length errors). Validation timing follows `GR-05`. Backend enforcement of business invariants belongs to §6.2 BR-NN and the sibling backend doc; this section captures the *visible* validation surface only.
+
+| Field (→ §7)              | Validation type                                                                | Rule                          | Error message              |
+| ------------------------- | ------------------------------------------------------------------------------ | ----------------------------- | -------------------------- |
+| {{shape}}.{{field}}       | required / format / range / length / enum / cross-field / business-rule-ref    | {{rule_or_BR_ref}}            | {{user_facing_message}}    |
+
+<!-- repeat per validation rule; field cell references a §7 shape field; cross-field rule may reference ≥1 sibling field; business-rule-ref cites a §6.2 BR-NN -->
+
 ### 6.4 UI feature needs
+
+<!-- format: table[4-col: ID(UI-NN), feature_need, linked(G/story/BR), acceptance_criteria]; behavioural phrasing only — "user can …", "system shows …"; GR-21 forbids layout vocabulary -->
+<!-- guidance: rows deterministically resolved by GR-05..GR-18 carry [STANDARD-RULE: GR-NN] -->
 
 > *What UI elements and behaviours the FE must provide.* Never layout, position, framework, component name, or visual design (`GR-21`). Phrase behaviourally ("user can filter by status", "save action is available"); do not phrase visually ("filter chips in the toolbar"). UI feature rows resolved deterministically by `GR-05..GR-18` carry `[STANDARD-RULE: GR-NN]`.
 
@@ -240,7 +292,23 @@ classDiagram
 
 <!-- repeat per feature need -->
 
+#### 6.4.5 Edge, empty & error states
+
+<!-- format: table[4-col: surface→(§4.2 story | §5 flow | UI-NN), condition∈{empty,partial,error,offline,loading,permission-denied}, expected_ui_behaviour, recovery_action]; behavioural phrasing only (GR-21) -->
+<!-- guidance: emit when §5 flow has exception_paths OR §6.4 row implies state branching; prototypable per `framework/shared/prototype-scope.md` -->
+
+> The UI behaviour the user sees in non-happy-path states. Captures empty datasets, partial loads, transient errors, offline degradation, loading affordances, and permission-denied surfaces. Behavioural phrasing only (`GR-21` — describe what the user sees and can do, not where it sits on screen).
+
+| Surface (→ story / flow / UI-NN) | Condition                                                                | Expected UI behaviour                                          | Recovery action                       |
+| -------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------- | ------------------------------------- |
+| {{surface_ref}}                  | empty / partial / error / offline / loading / permission-denied          | {{behavioural_description}}                                    | {{user_action_or_system_retry}}       |
+
+<!-- repeat per edge state; surface cell references a §4.2 story, a §5 flow, or a §6.4 UI-NN row; condition uses the closed vocabulary -->
+
 ### 6.5 Access control (RBAC)
+
+<!-- format: matrix[rows=§3 personas, cols=§7 entities + §5 flows]; cell-vocabulary ∈ {C,R,U,D,X,A,—}; conditional cells "U†BR-NN" -->
+<!-- guidance: every §3 persona is a row; every §7 entity & §5 flow is a column (A3/A4/A5) -->
 
 > Roles-×-resources matrix. Cell values use the action vocabulary below; blanks mean "no access".
 
@@ -258,6 +326,8 @@ classDiagram
 
 #### 6.6.1 Session UX
 
+<!-- format: table[3-col: field, value, source]; quantified — minutes/seconds/hours, never "soon"; GR-19 supplies defaults when input is silent -->
+
 | Field                    | Value                                                                             | Source            |
 | ------------------------ | --------------------------------------------------------------------------------- | ----------------- |
 | Idle session timeout     | {{minutes}}                                                                       | stated / inferred |
@@ -269,6 +339,8 @@ classDiagram
 
 #### 6.6.2 Frontend performance budgets
 
+<!-- format: table[3-col: metric, target, source]; targets quantified with units & percentile (e.g. "p95 ≤ 2.0s", "≤ 250KB gzipped") — never "fast" or "small" -->
+
 | Metric                                                | Target    | Source            |
 | ----------------------------------------------------- | --------- | ----------------- |
 | Time to interactive (p95)                             | {{value}} | stated / inferred |
@@ -278,13 +350,19 @@ classDiagram
 
 #### 6.6.4 Compliance UI behaviour
 
+<!-- format: bullets; one consent / redaction / regional-variant per bullet; backend retention is OOS -->
+
 - {{consent_and_redaction_requirements}} <!-- e.g. cookie / consent banners, PII screen-redaction rules, regional UI variants. Backend audit retention and storage rules are out of scope. -->
 
 #### 6.6.5 Accessibility
 
+<!-- format: bullets; one accessibility target per bullet (e.g. WCAG 2.2 AA, assistive-tech scope, keyboard-only path) -->
+
 - {{accessibility_target}} <!-- e.g. WCAG 2.2 AA; assistive-tech scope -->
 
 ### 6.7 Reporting feature needs
+
+<!-- format: table[8-col: ID(RPT-NN), purpose, audience→§3, source_concepts→§2.1, filters, measures, export_formats∈{csv,pdf,json,none}, scheduling∈{on-demand,daily,weekly,monthly}]; chart-type/layout forbidden (GR-21) -->
 
 > Each row captures *what reporting must exist*, never *how it is visualised*. Chart type, layout, and visualisation choice are determined by the later UX step (`GR-21`).
 
@@ -296,6 +374,8 @@ classDiagram
 
 ### 6.8 Notification points
 
+<!-- format: table[5-col: ID(NT-NN), event, audience→§3, channel_category∈{in-app,email,sms,webhook,push}, trigger_condition_or_BR_ref]; capability-level channel only (GR-20) -->
+
 > Channel category is capability-level only (`in-app`, `email`, `sms`, `webhook`, `push`); never a vendor name (`GR-20`). Trigger condition may reference a `BR-NN`.
 
 | ID | Event | Audience (→ §3) | Channel category | Trigger condition |
@@ -306,6 +386,8 @@ classDiagram
 
 ### 6.9 Audit-trail UI feature
 
+<!-- format: table[4-col: entity→§7, audited_fields, retention_surface, viewer_access→§6.5]; viewer UI only; backend audit logging is OOS -->
+
 > Emitted only when §6.6.4 compliance or input documents call for user-visible audit history. Backend audit logging is out of scope; this section specifies the *viewer UI* only.
 
 | Entity (→ §7) | Audited fields | Retention surface         | Viewer access (→ §6.5)    |
@@ -315,6 +397,9 @@ classDiagram
 <!-- repeat per audited entity -->
 
 ### 6.10 Consumed backend contracts
+
+<!-- format: prototype: table[3-col: operation, fixture_reference, notes]; application: table[3-col: operation, backend_contract_pointer, notes]; emit only the sub-block matching manifest.target -->
+<!-- guidance: every operation maps to §6.1 F-NN (A14); application-mode pointer never restates the contract -->
 
 > FE-facing only. The drafter emits one sub-block matching `manifest.target`; the merger does not see both.
 
@@ -336,6 +421,9 @@ classDiagram
 
 ## 7. Data shapes consumed by the FE
 
+<!-- format: per-shape table[5-col: field, type, required∈{yes,no}, ui_display∈{form-input,table-col,detail,chip,enum,hidden}, notes]; followed by trailing meta lines: domain_concept→§2.1, source∈{prototype-fixture,backend-contract}, enums -->
+<!-- guidance: every persistent §2.1 concept appears here (A6); ui_display=hidden gates D2 marker behaviour -->
+
 > Shape of data the FE reads and writes. Under `target = prototype`: the shape of in-memory fixtures (PI-02). Under `target = application`: the shape of payloads exchanged with the backend (authoritative shape lives in the sibling backend requirements doc). Persistence design — indexes, FK constraints, storage layout — is the backend doc's concern, not this section's.
 
 ### Shape: {{shape_name}}
@@ -352,6 +440,8 @@ classDiagram
 
 ### 7.X Derivations
 
+<!-- format: table[4-col: derived_concept→§2.1, derivation_rule, inputs, refresh_trigger∈{on-load,on-change,scheduled}]; emitted iff ≥1 §2.1 concept has persistence=derived -->
+
 > Emitted only when ≥1 §2.1 concept has `Persistence = derived`. Derivation rule phrased in business language; computation tier is determined at code-generation time (capability category appears in §1.7 if non-trivial).
 
 | Derived concept (→ §2.1) | Derivation rule (business language) | Inputs                          | Refresh trigger                |
@@ -364,6 +454,8 @@ classDiagram
 
 ## 8. Source UI references
 
+<!-- format: table[3-col: reference_name, location_path_or_url, notes]; input citations only — exempt from GR-21 -->
+
 | Reference | Location        | Notes                                                        |
 | --------- | --------------- | ------------------------------------------------------------ |
 | {{name}}  | {{path_or_url}} | {{layout / fields / navigation / states / actions observed}} |
@@ -374,6 +466,8 @@ classDiagram
 
 ## 9. Key terminology
 
+<!-- format: table[3-col: term, definition_or_§2.1_ref, inconsistency_flag]; domain or non-domain terms -->
+
 > Domain-concept definitions or non-domain-concept terms (process, role, UI).
 
 | Term     | Definition                                 | Inconsistency flag                              |
@@ -383,6 +477,8 @@ classDiagram
 ---
 
 ## 10. Volumes
+
+<!-- format: table[3-col: metric, value, source]; three required rows: data_volume, frequency, concurrency — all populated (A9); inferred values [AI-SUGGESTED] -->
 
 > Volumes drive UI pattern selection only — pagination thresholds, virtualization choices, list-vs-card density, chart-type suitability. Capacity planning, infrastructure sizing, and load testing belong to the backend doc.
 
