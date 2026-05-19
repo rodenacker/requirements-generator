@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-19T08:33:45.1683831Z",
-  "target": null,
+  "generated_at": "2026-05-19T10:58:18.7325476Z",
+  "target": "prototype",
   "rows": [
     {
       "filename": "PrototypeBrief.md",

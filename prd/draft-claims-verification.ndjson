@@ -1,0 +1,14 @@
+{"claim_id":"PC-001","status":"pass","reason":"ok"}
+{"claim_id":"PC-002","status":"pass","reason":"ok"}
+{"claim_id":"PC-003","status":"pass","reason":"ok"}
+{"claim_id":"PC-004","status":"pass","reason":"ok"}
+{"claim_id":"PC-005","status":"pass","reason":"ok"}
+{"claim_id":"PC-006","status":"pass","reason":"ok"}
+{"claim_id":"PC-007","status":"pass","reason":"ok"}
+{"claim_id":"PC-008","status":"pass","reason":"ok"}
+{"claim_id":"PC-009","status":"pass","reason":"ok"}
+{"claim_id":"PC-010","status":"pass","reason":"ok"}
+{"claim_id":"PC-011","status":"pass","reason":"ok"}
+{"claim_id":"PC-012","status":"pass","reason":"ok"}
+{"claim_id":"PC-013","status":"pass","reason":"ok"}
+grounding-verifier: total=13 passed=13 failed=0

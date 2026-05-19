@@ -1,0 +1,15 @@
+{
+  "run_started_at": "2026-05-19T08:32:06.2170928Z",
+  "status": "complete",
+  "pending_setup": null,
+  "events": [
+    { "agent": "input-handler", "event": "called", "at": "2026-05-19T08:33:30.0000000Z" },
+    { "agent": "input-handler", "event": "completed", "at": "2026-05-19T08:34:00.0000000Z" },
+    { "agent": "prd-drafter", "event": "called", "at": "2026-05-19T08:34:50.0000000Z" },
+    { "agent": "prd-drafter", "event": "completed", "at": "2026-05-19T08:50:00.0000000Z" },
+    { "agent": "prd-resolver", "event": "called", "at": "2026-05-19T09:14:00.0000000Z" },
+    { "agent": "prd-resolver", "event": "completed", "at": "2026-05-19T09:25:00.0000000Z" },
+    { "agent": "prd-merger", "event": "called", "at": "2026-05-19T09:26:30.0000000Z" },
+    { "agent": "prd-merger", "event": "completed", "at": "2026-05-19T09:28:30.0000000Z" }
+  ]
+}
