@@ -1,0 +1,677 @@
+<!--
+  ROLE: asset (HTML template). Populated by
+  `framework/agents/design-system-styler/steps/step-06-artifact-generation.md`.
+
+  Purpose: Self-contained HTML scaffold for the brand design-system doc.
+  `<!doctype html>` + inlined `<style>` + `<body>` — no external CSS/JS, no CDN.
+  Viewable via `file://` in a browser; shareable with consultants without tooling.
+
+  Dual-purpose encoding:
+    1. <script type="application/json" id="design-tokens"> — full token set
+       + provenance + metadata. LLMs extract this block, JSON.parse it, and
+       consume tokens programmatically.
+    2. <main> visual sections — colour swatches, typography specimens, shadow
+       specimens, motion specimens, contrast pairs. Consultants verify the
+       brand by eye.
+
+  The duality replaces the old `.md` "Extraction Summary vs Brand sections"
+  split. Every token appears in both the JSON (machine) and the visual block
+  (human); drop a section in one, drop it in the other.
+
+  Section order — contractual, do not reorder:
+    1. <head>             — <title>, <meta>, inlined <style>.
+    2. <script id="design-tokens"> — JSON token block.
+    3. <header>           — H1, attribution blockquote, generated-at line.
+    4. #colours           — 11 swatches (primary..info), each with hex,
+                            source-context, and provenance label.
+    5. #typography        — 2 family specimens (heading + body), 8 size
+                            specimens (text-xs..text-4xl), 3 line-height
+                            specimens.
+    6. #effects           — 3 shadow specimens (sm/md/lg) on sample cards,
+                            3 transition specimens + 1 easing specimen as an
+                            animated dot.
+    7. #contrast          — 4 contrast pairs (text/text-muted × bg/surface),
+                            each rendered as text on its actual bg with the
+                            ratio + pass/fail annotation. Adjustments line.
+    8. {{STANDARDS_BLOCK}} — replaced by the verbatim contents of
+                             framework/assets/design-system-standards.html at
+                             render time. The standards file opens with its
+                             own <section id="standards"> wrapper.
+
+  Placeholders (string substitution). Token VALUES (hex codes, CSS lengths,
+  font-family stacks, shadow declarations) contain no HTML-special
+  characters under any extraction status, so verbatim substitution is safe;
+  pre-rendered HTML BLOCKS are produced by the styler and inserted as-is:
+
+    {{DOMAIN}}                 — consultant domain string (e.g. "retail-banking").
+    {{GENERATED_AT}}           — ISO-8601 date the artefact was rendered.
+    {{ATTRIBUTION_PARAGRAPH}}  — pre-rendered inner HTML of the attribution
+                                 blockquote variant per extraction_status /
+                                 reference_url state. The styler picks the
+                                 variant per prompt-template Section 4.
+    {{TOKENS_JSON}}            — full token set serialised as JSON with
+                                 2-space indent. See JSON SHAPE below.
+    {{COLOUR_SWATCHES}}        — pre-rendered HTML for the 11 colour rows.
+                                 See COLOUR ROW SCHEMA below.
+    {{TYPE_FAMILY_SPECIMENS}}  — pre-rendered HTML for heading + body family.
+                                 See TYPE SPECIMEN SCHEMA below.
+    {{TYPE_SIZE_SPECIMENS}}    — pre-rendered HTML for 8 size specimens.
+    {{TYPE_LH_SPECIMENS}}      — pre-rendered HTML for 3 line-height specimens.
+    {{SHADOW_SPECIMENS}}       — pre-rendered HTML for 3 shadow cards.
+    {{MOTION_SPECIMENS}}       — pre-rendered HTML for 3 transition rows +
+                                 1 easing row. See MOTION SCHEMA below.
+    {{CONTRAST_PAIRS}}         — pre-rendered HTML for 4 text-on-bg blocks.
+                                 See CONTRAST PAIR SCHEMA below.
+    {{CONTRAST_ADJUSTMENTS}}   — adjustments line (or "none").
+    {{STANDARDS_BLOCK}}        — verbatim contents of
+                                 framework/assets/design-system-standards.html.
+
+  JSON SHAPE — the {{TOKENS_JSON}} substitution must serialise to this:
+
+    {
+      "meta": {
+        "domain":             "<domain, lowercased + trimmed>",
+        "reference_url":      "<url-or-null>",
+        "extraction_date":    "<ISO date>",
+        "extraction_status":  "<success | no_url | fetch_failed | no_css |
+                                css_fetch_failed | insufficient_data |
+                                workspace_read_failed | playwright_unavailable>",
+        "css_source_type":    "<string-or-null>",
+        "css_source_url":     "<url-or-null>"
+      },
+      "colours": {
+        "primary":    {"hex": "#RRGGBB", "prov": "extracted-from-url|inferred-from-domain", "source": "<source context>"},
+        "secondary":  { ... },
+        "accent":     { ... },
+        "background": { ... },
+        "surface":    { ... },
+        "text":       { ... },
+        "text_muted": { ... },
+        "success":    { ... },   // always inferred-from-domain
+        "warning":    { ... },   // always inferred-from-domain
+        "error":      { ... },   // always inferred-from-domain
+        "info":       { ... }    // always inferred-from-domain
+      },
+      "typography": {
+        "heading_family": {"value": "<family stack>", "prov": "...", "source": "..."},
+        "heading_weight": { ... },
+        "body_family":    { ... },
+        "body_weight":    { ... },
+        "size_xs":        { ... },
+        "size_sm":        { ... },
+        "size_base":      { ... },
+        "size_lg":        { ... },
+        "size_xl":        { ... },
+        "size_2xl":       { ... },
+        "size_3xl":       { ... },
+        "size_4xl":       { ... },
+        "lh_tight":       { ... },
+        "lh_base":        { ... },
+        "lh_loose":       { ... }
+      },
+      "effects": {
+        "shadow_sm":       {"value": "<box-shadow declaration>", "prov": "...", "source": "..."},
+        "shadow_md":       { ... },
+        "shadow_lg":       { ... },
+        "transition_fast": {"value": "<duration>", "prov": "...", "source": "..."},
+        "transition_base": { ... },
+        "transition_slow": { ... },
+        "easing_standard": {"value": "<cubic-bezier(...) or keyword>", "prov": "...", "source": "..."}
+      },
+      "contrast": {
+        "text_on_background":       {"ratio": 7.2, "status": "Pass"},
+        "text_on_surface":          { ... },
+        "text_muted_on_background": { ... },
+        "text_muted_on_surface":    { ... },
+        "adjustments": "<comma-separated adjustments record or 'none'>"
+      }
+    }
+
+  COLOUR ROW SCHEMA — {{COLOUR_SWATCHES}} substitutes 11 <li> blocks of:
+
+      <li class="swatch-row swatch-{{token}}">
+        <div class="swatch" style="background:{{hex}}" aria-hidden="true"></div>
+        <div class="swatch-meta">
+          <strong class="swatch-token">{{token-name}}</strong>
+          <code class="swatch-hex">{{hex}}</code>
+          <span class="swatch-source">{{source-context}}</span>
+          <span class="prov prov-{{prov-slug}}">{{prov}}</span>
+        </div>
+      </li>
+
+  TYPE SPECIMEN SCHEMA — every family/size/line-height specimen is a
+  <div class="type-specimen"> with a meta column and a sample column:
+
+      <div class="type-specimen">
+        <div class="type-meta">
+          <span class="token-name">{{token-name}}</span>
+          <span class="token-value">{{value}}</span>
+          <span class="type-source">{{source-context}}</span>
+          <span class="prov prov-{{prov-slug}}">{{prov}}</span>
+        </div>
+        <div class="type-sample" style="{{inline-style-using-this-token}}">
+          The quick brown fox jumps over the lazy dog 1234567890
+        </div>
+      </div>
+
+  The inline style is computed per token kind:
+    - heading_family / body_family: style="font-family: {{value}}; font-weight: {{paired-weight}};"
+    - heading_weight / body_weight: rendered inside the corresponding family
+      row (sample uses both); single weight row may also be shown with a
+      sample at font-weight: {{value}}.
+    - size_*:  style="font-size: {{value}};"
+    - lh_*:    style="line-height: {{value}};"
+              (sample is two lines so the line-height is visible)
+
+  MOTION SCHEMA — {{MOTION_SPECIMENS}} substitutes 4 <div class="motion-row">:
+
+      <div class="motion-row">
+        <div class="type-meta">
+          <span class="token-name">{{token-name}}</span>
+          <span class="token-value">{{value}}</span>
+          <span class="prov prov-{{prov-slug}}">{{prov}}</span>
+        </div>
+        <div class="motion-track" aria-hidden="true">
+          <div class="motion-dot"
+               style="animation-duration: {{duration-or-2s-for-easing}};
+                      animation-timing-function: {{easing-value-or-token}};">
+          </div>
+        </div>
+        <div class="type-source">{{source-context}}</div>
+      </div>
+
+  For the easing_standard row, animation-duration is set to a fixed 2s so the
+  easing curve is visible. For each transition_* row, animation-timing-function
+  uses the brand's easing_standard value.
+
+  CONTRAST PAIR SCHEMA — {{CONTRAST_PAIRS}} substitutes 4 <div class="contrast-card">:
+
+      <div class="contrast-card" style="background: {{bg-hex}}; color: {{fg-hex}};">
+        <p class="sample">
+          {{pair-label}}: The quick brown fox jumps over the lazy dog
+        </p>
+        <div class="contrast-meta">
+          <span class="contrast-ratio">{{ratio}}:1</span>
+          <span class="{{status-class}}">{{status}}</span>
+        </div>
+      </div>
+
+  status-class is `status-pass` when ratio >= 4.5, otherwise `status-fail`.
+
+  Sample text in every typography / contrast block is the fixed pangram
+  "The quick brown fox jumps over the lazy dog 1234567890" so the consultant
+  sees a consistent string across all specimens.
+
+  No external <script> tags in this template — the JSON block is data, not code.
+  No HTTP/CDN resources referenced anywhere. The file is openable via file://.
+
+  Output: design-system/design-system.html.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Design System — {{DOMAIN}}</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --section-bg: #ffffff;
+      --code-bg: #f0f0f0;
+      --prov-extracted: #2a8a2a;
+      --prov-inferred: #b86a00;
+      --status-fail: #b81a1a;
+      --shadow-card: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+
+    header.doc-header {
+      margin-bottom: 32px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin: 0 0 12px 0;
+    }
+
+    blockquote.attribution {
+      margin: 0;
+      padding: 12px 16px;
+      border-left: 3px solid var(--border-strong);
+      background: var(--section-bg);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    p.generated-at {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    section.token-section {
+      margin: 32px 0;
+      padding: 24px;
+      background: var(--section-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-shadow: var(--shadow-card);
+    }
+
+    section.token-section > h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 16px 0;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    section.token-section > h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 24px 0 12px 0;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* --- colours --------------------------------------------------------- */
+    ul.swatch-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+
+    li.swatch-row {
+      display: flex;
+      align-items: stretch;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .swatch {
+      width: 88px;
+      flex: 0 0 88px;
+      min-height: 88px;
+      border-right: 1px solid var(--border);
+    }
+
+    .swatch-meta {
+      flex: 1 1 auto;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .swatch-token {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .swatch-hex {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      color: var(--fg);
+      background: var(--code-bg);
+      padding: 1px 6px;
+      border-radius: 3px;
+      align-self: flex-start;
+    }
+
+    .swatch-source,
+    .type-source {
+      font-size: 11px;
+      color: var(--muted);
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .prov {
+      font-size: 10px;
+      font-weight: 600;
+      align-self: flex-start;
+      padding: 1px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .prov-extracted-from-url {
+      background: rgba(42, 138, 42, 0.12);
+      color: var(--prov-extracted);
+    }
+
+    .prov-inferred-from-domain {
+      background: rgba(184, 106, 0, 0.12);
+      color: var(--prov-inferred);
+    }
+
+    /* --- typography ------------------------------------------------------ */
+    .type-specimen {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 16px;
+      align-items: baseline;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .type-specimen:last-child {
+      border-bottom: 0;
+    }
+
+    .type-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .type-meta .token-name {
+      color: var(--fg);
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .type-meta .token-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      color: var(--fg);
+      background: var(--code-bg);
+      padding: 1px 6px;
+      border-radius: 3px;
+      align-self: flex-start;
+      word-break: break-all;
+    }
+
+    .type-meta .prov {
+      margin-top: 4px;
+    }
+
+    .type-sample {
+      color: var(--fg);
+    }
+
+    /* --- effects: shadows ----------------------------------------------- */
+    .shadow-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 28px;
+      padding: 24px 4px 8px;
+    }
+
+    .shadow-card {
+      background: #ffffff;
+      border-radius: 6px;
+      padding: 24px 16px;
+      text-align: center;
+    }
+
+    .shadow-card .token-name {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .shadow-card .token-value {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      color: var(--muted);
+      word-break: break-all;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .shadow-card .prov {
+      display: inline-block;
+    }
+
+    /* --- effects: motion ------------------------------------------------- */
+    .motion-row {
+      display: grid;
+      grid-template-columns: 200px 1fr 1fr;
+      gap: 16px;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .motion-row:last-child {
+      border-bottom: 0;
+    }
+
+    .motion-track {
+      position: relative;
+      height: 24px;
+      background: var(--code-bg);
+      border-radius: 12px;
+    }
+
+    .motion-dot {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--fg);
+      animation-name: motion-demo;
+      animation-iteration-count: infinite;
+      animation-direction: alternate;
+    }
+
+    @keyframes motion-demo {
+      from { left: 4px; }
+      to   { left: calc(100% - 20px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .motion-dot {
+        animation: none;
+        left: 4px;
+      }
+    }
+
+    /* --- contrast -------------------------------------------------------- */
+    .contrast-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .contrast-card {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      min-height: 110px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .contrast-card .sample {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .contrast-meta {
+      margin-top: 12px;
+      font-size: 11px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.85);
+      color: var(--fg);
+      padding: 4px 8px;
+      border-radius: 3px;
+    }
+
+    .contrast-ratio {
+      font-weight: 600;
+    }
+
+    .status-pass {
+      color: var(--prov-extracted);
+      font-weight: 600;
+    }
+
+    .status-fail {
+      color: var(--status-fail);
+      font-weight: 600;
+    }
+
+    .contrast-adjustments {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* --- standards (appended HTML) -------------------------------------- */
+    section.standards {
+      margin-top: 48px;
+      padding: 24px;
+      background: var(--section-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-shadow: var(--shadow-card);
+    }
+
+    section.standards > h2 {
+      font-size: 22px;
+      margin: 0 0 12px 0;
+    }
+
+    section.standards h3 {
+      font-size: 17px;
+      margin: 24px 0 8px 0;
+      color: var(--fg);
+    }
+
+    section.standards h4 {
+      font-size: 14px;
+      margin: 16px 0 6px 0;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    section.standards ul {
+      margin: 6px 0 10px 22px;
+    }
+
+    section.standards li {
+      margin: 2px 0;
+    }
+
+    section.standards blockquote {
+      margin: 8px 0 16px 0;
+      padding: 8px 12px;
+      border-left: 3px solid var(--border-strong);
+      background: var(--bg);
+      color: var(--muted);
+    }
+
+    section.standards code,
+    section.standards kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      background: var(--code-bg);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 0.92em;
+    }
+  </style>
+</head>
+<body>
+
+<script type="application/json" id="design-tokens">
+{{TOKENS_JSON}}
+</script>
+
+<main>
+
+  <header class="doc-header">
+    <h1>Design System — {{DOMAIN}}</h1>
+    <blockquote class="attribution">{{ATTRIBUTION_PARAGRAPH}}</blockquote>
+    <p class="generated-at">Generated: {{GENERATED_AT}}</p>
+  </header>
+
+  <section id="colours" class="token-section">
+    <h2>Colours</h2>
+    <ul class="swatch-list">
+      {{COLOUR_SWATCHES}}
+    </ul>
+  </section>
+
+  <section id="typography" class="token-section">
+    <h2>Typography</h2>
+
+    <h3>Families</h3>
+    {{TYPE_FAMILY_SPECIMENS}}
+
+    <h3>Sizes</h3>
+    {{TYPE_SIZE_SPECIMENS}}
+
+    <h3>Line heights</h3>
+    {{TYPE_LH_SPECIMENS}}
+  </section>
+
+  <section id="effects" class="token-section">
+    <h2>Effects</h2>
+
+    <h3>Shadows</h3>
+    <div class="shadow-grid">
+      {{SHADOW_SPECIMENS}}
+    </div>
+
+    <h3>Motion</h3>
+    {{MOTION_SPECIMENS}}
+  </section>
+
+  <section id="contrast" class="token-section">
+    <h2>Contrast validation</h2>
+    <p style="font-size:12px;color:var(--muted);margin:0 0 16px 0;">WCAG AA validation for the four required text/background pairs (minimum 4.5:1 for normal body text). Auto-adjustment runs against the <code>text</code> and <code>text-muted</code> tokens until each pair passes.</p>
+    <div class="contrast-grid">
+      {{CONTRAST_PAIRS}}
+    </div>
+    <p class="contrast-adjustments"><strong>Adjustments:</strong> {{CONTRAST_ADJUSTMENTS}}</p>
+  </section>
+
+  {{STANDARDS_BLOCK}}
+
+</main>
+
+</body>
+</html>

@@ -195,8 +195,8 @@ graph TD
 
     subgraph Assets
       asset_persona[persona-llm.md]
-      asset_template_ds[template-design-system.md]
-      asset_standards[design-system-standards.md]
+      asset_template_ds[template-design-system.html]
+      asset_standards[design-system-standards.html]
     end
 
     subgraph Characters
@@ -272,11 +272,11 @@ graph TD
 
 **Notes:**
 - Step-05b (domain-inference) loads `prompt-templates/domain-inference.md` to derive an inferred token set per-run from the consultant's `{{domain}}` string. Status colours and any token unset after step-05 are filled here.
-- `template-design-system.md` is shared between `step-06-artifact-generation.md` (the operative loader) and `prompt-templates/artifact-generation.md` (which instructs step-06 to read it).
+- `template-design-system.html` is shared between `step-06-artifact-generation.md` (the operative loader) and `prompt-templates/artifact-generation.md` (which instructs step-06 to read it).
 - `refusal-registry.md` is shared between `step-04-site-fetching.md`, `preflight-mcp.md`, `verify-artifact-write.md`, and `check-context-bloat.md`.
 - `check-context-bloat.md` is shared between both orchestrators (`requirements-orch.md` and `design-system-orch.md`); the design-system caller passes `requirements/` as `artefact_dir` because prior `/requirements` state on disk is the meaningful proxy for in-conversation bloat against the styler.
 - `state/.progress.json` is read (existence + at-least-one-`completed`-event check) by `check-context-bloat.md` from both orchestrators; the design-system orchestrator never writes to it.
-- `design-system-standards.md` references `framework/assets/template-design-spec.md` only as a passing comment ("document exceptions in the design-spec, not the design-system output") — not a load target. Not drawn as an edge.
+- `design-system-standards.html` references `framework/assets/template-design-spec.md` only as a passing comment ("document exceptions in the design-spec, not the design-system output") — not a load target. Not drawn as an edge. (Its `.md` sibling is the human-edit source of truth, kept in sync with the `.html`; the styler reads only the `.html`.)
 - Per the styler's stand-alone constraint, no edges reach `requirements/`, `framework/state/`, `prototype-scope.md`, `general-rules.md`, or `prototype-invariants.md` from the styler subtree. The orchestrator's narrow read exception for the step-0b preflight (read-only access to `requirements/`, `requirements/source-manifest.json`, `framework/state/.progress.json`) is captured by the `orch_ds → skill_bloat_ds → state_progress_ds` edges and a documented stand-alone-constraint clause in the orchestrator.
 - No cycles.
 

@@ -1,4 +1,9 @@
-<!-- ROLE: asset (static appendix). Appended verbatim to every generated design-system doc by `framework/agents/design-system-styler/steps/step-06-artifact-generation.md`. No `{{placeholders}}`, no domain-specific content — these rules are identical in every output. -->
+<!-- ROLE: asset (static appendix, canonical source).
+     The styler appends `design-system-standards.html` (the rendered sibling)
+     to every generated design-system doc — not this `.md`. This file is the
+     human-edit source of truth. Keep in sync with `design-system-standards.html`:
+     any rule edit here must be mirrored in the `.html`. No `{{placeholders}}`,
+     no domain-specific content — these rules are identical in every output. -->
 
 ---
 

@@ -8,7 +8,7 @@
 
 ## 1. Inference Contract
 
-The inference must produce **33 tokens**, by name, matching `framework/assets/template-design-system.md`:
+The inference must produce **33 tokens**, by name, matching `framework/assets/template-design-system.html` (the JSON SHAPE comment block at the top of the template is the canonical list):
 
 - **11 colours:** `primary`, `secondary`, `accent`, `background`, `surface`, `text`, `text-muted`, `success`, `warning`, `error`, `info`
 - **15 typography tokens:** `heading-family`, `heading-weight`, `body-family`, `body-weight`, `text-xs`, `text-sm`, `text-base`, `text-lg`, `text-xl`, `text-2xl`, `text-3xl`, `text-4xl`, `line-height-tight`, `line-height-base`, `line-height-loose`

@@ -13,7 +13,7 @@ Output one short, concrete summary line listing token counts and provenance brea
 
 Template:
 
-> "Wrote `design-system/design-system.md` — `{{n_colors_extracted}}/11` colour tokens extracted, `{{n_typo_extracted}}/15` typography tokens extracted, `{{n_effects_extracted}}/7` effects tokens extracted; the rest filled from `{{domain}}` defaults. Contrast: `{{cv_pass_count}}/4` pairs pass at WCAG AA (`{{cv_adjustment_count}}` adjustments). Ready, or want changes?"
+> "Wrote `design-system/design-system.html` — `{{n_colors_extracted}}/11` colour tokens extracted, `{{n_typo_extracted}}/15` typography tokens extracted, `{{n_effects_extracted}}/7` effects tokens extracted; the rest filled from `{{domain}}` defaults. Contrast: `{{cv_pass_count}}/4` pairs pass at WCAG AA (`{{cv_adjustment_count}}` adjustments). Ready, or want changes?"
 
 Variants:
 
@@ -41,7 +41,7 @@ Use `AskUserQuestion`:
    - For provenance: a revised value retains the marker that was on it before — the consultant's edit is treated as a downstream correction, not a re-source. (Per the locked decision, there is no `consultant-specified` marker in v1.)
    - Re-render the artefact (re-enter step-06's procedure, including sha256 + verify-artifact-write).
    - Loop back to §A and present the updated summary.
-- **Restart** — re-enter `step-02-inputs.md`. The previously-written `design-system/design-system.md` is left in place; the next step-06 will overwrite it.
+- **Restart** — re-enter `step-02-inputs.md`. The previously-written `design-system/design-system.html` is left in place; the next step-06 will overwrite it.
 
 The accept/revise/restart loop continues until the consultant chooses Accept.
 
@@ -58,7 +58,7 @@ Output the final handback line:
 
 > "Design system accepted. Handing back to the orchestrator."
 
-The orchestrator's handback gate is satisfied when `design-system/design-system.md` exists and has been verified by `verify-artifact-write` with a `pass`, the consultant has chosen Accept, and the workspace folder has been removed.
+The orchestrator's handback gate is satisfied when `design-system/design-system.html` exists and has been verified by `verify-artifact-write` with a `pass`, the consultant has chosen Accept, and the workspace folder has been removed.
 
 ---
 

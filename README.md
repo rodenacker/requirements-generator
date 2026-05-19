@@ -115,19 +115,19 @@ flowchart LR
     C -- yes --> D[Playwright fetch<br/>extract tokens from CSS]
     C -- no --> E[domain-inference<br/>infer all tokens from domain]
     D --> E
-    E --> F[Render design-system.md]
+    E --> F[Render design-system.html]
     F --> G{Consultant<br/>accepts?}
     G -- revise --> F
     G -- accept --> H([Done])
 ```
 
-If a prior `design-system.md` already exists, you'll be asked whether to **overwrite** (the old one is safely committed to git first), **keep** it, or **cancel**.
+If a prior `design-system.html` already exists, you'll be asked whether to **overwrite** (the old one is safely committed to git first), **keep** it, or **cancel**.
 
 #### 3.3.2 What you get
 
-A single brand brief at **`design-system/design-system.md`** — a complete palette of colour, typography, and effect tokens you can hand a designer as-is. Every token is annotated with where it came from: either _extracted from the reference URL_ or _inferred from the domain string_. The designer can see at a glance which decisions are evidence-based and which are sensible defaults you'd want them to validate.
+A single brand brief at **`design-system/design-system.html`** — a self-contained HTML document you can open in any browser via `file://`. Colour swatches, typography specimens at their actual sizes, shadow cards, motion samples, and contrast-validation pairs all render visually so a designer (or you) can verify the brand by eye. Every token is annotated with where it came from: either _extracted from the reference URL_ or _inferred from the domain string_.
 
-The doc also includes a machine-readable token section, so if a downstream tool consumes the brief programmatically (Figma plugin, CSS generator, etc.), the values are already in a structured form.
+The doc also embeds a `<script type="application/json" id="design-tokens">` block carrying the full machine-readable token set + provenance, so if a downstream tool consumes the brief programmatically (Figma plugin, CSS generator, future LLM pipeline), the values are already in a structured form — one regex + `JSON.parse` and you're in.
 
 ### 3.4 `/analyse-requirement`
 

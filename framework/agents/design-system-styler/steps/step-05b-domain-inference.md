@@ -8,7 +8,7 @@ description: 'Infer every unset token from the consultant-provided domain string
 
 # Step 5b: Domain-Inference Fill + Contrast Validation
 
-This step always runs. It fills every token still unset after step-05 (or the entire token set, if step-05 was skipped) by inferring values from the consultant's free-text `{{domain}}` string against the canonical token list defined in `framework/assets/template-design-system.md`. It then runs contrast validation across the final token set.
+This step always runs. It fills every token still unset after step-05 (or the entire token set, if step-05 was skipped) by inferring values from the consultant's free-text `{{domain}}` string against the canonical token list defined in `framework/assets/template-design-system.html` (the JSON SHAPE comment block at the top of the template enumerates all 33 token names). It then runs contrast validation across the final token set.
 
 ## A. Load the Inference Contract
 

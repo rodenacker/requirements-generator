@@ -30,7 +30,9 @@
       "Bash(rm -f framework/state/resolver-manifest.json)",
       "Bash(rm -f framework/state/resolver-answers.json)",
       "Bash(rm -f input/*.converted.md)",
+      "Bash(rm -f design-system/design-system.html)",
       "Bash(rm -f design-system/design-system.md)",
+      "Bash(rm -f design-system/design-system.html design-system/design-system.md)",
       "Bash(rm -rf design-system/.workspace)",
 
       "Bash(npx *)",

@@ -40,11 +40,11 @@ There is no step 2. After the handback gate is met, the orchestrator declares do
 
 Run this once, at the very start of every invocation, before step 0b and step 1.
 
-1. **Inspect state.** Use `Read` to check whether `design-system/design-system.md` exists.
+1. **Inspect state.** Use `Read` to check whether `design-system/design-system.html` exists. (During the transition window, also check whether a stale `design-system/design-system.md` exists from a prior pipeline version; treat its presence the same as a prior artefact for the purpose of the gate below.)
 2. **Branch.**
     - **No prior artefact** — proceed to step 0b with no prompt.
     - **Prior artefact exists** — surface a single `AskUserQuestion`:
-        - Question: *"`design-system/design-system.md` already exists. Overwrite it with a fresh run, keep it and exit, or cancel?"*
+        - Question: *"`design-system/design-system.html` already exists. Overwrite it with a fresh run, keep it and exit, or cancel?"*
         - Header: `Prior artefact`
         - Options:
             1. `Overwrite — checkpoint and re-run`
@@ -52,7 +52,7 @@ Run this once, at the very start of every invocation, before step 0b and step 1.
             3. `Cancel — exit without changes`
 3. **Branch on the consultant's choice.**
     - **Overwrite** — perform the **Reset procedure** below, then proceed to step 0b.
-    - **Keep** — output: *"Keeping existing `design-system/design-system.md`. No changes made."* and exit cleanly.
+    - **Keep** — output: *"Keeping existing `design-system/design-system.html`. No changes made."* and exit cleanly.
     - **Cancel** — output: *"Cancelled. No changes made."* and exit cleanly.
 4. After the prompt is answered (and the reset has run, if applicable), proceed.
 
@@ -61,12 +61,12 @@ Run this once, at the very start of every invocation, before step 0b and step 1.
 This procedure runs **only** when the consultant chose `Overwrite` and a prior artefact was detected. Perform the steps in this order; if any step fails, stop and surface the failure to the consultant — do not proceed.
 
 1. **Git checkpoint.** Stage and commit the current state of the artefact and its workspace so everything subsequent steps will delete is preserved in history before deletion.
-    - `Bash git add design-system/design-system.md design-system/.workspace` (each "if it exists" — omit any path absent on disk rather than letting `git add` fail).
+    - `Bash git add design-system/design-system.html design-system/design-system.md design-system/.workspace` (each "if it exists" — omit any path absent on disk rather than letting `git add` fail). The `.md` is staged only for the transition window where a stale prior-version artefact may still exist.
     - `Bash git commit -m "checkpoint: prior design-system run before reset"` (use `--allow-empty` only if nothing was staged, so the checkpoint marker exists in history regardless).
     - Do not push, do not amend, do not bypass hooks.
     - The `design-system/.workspace` stage covers the directory deleted (best-effort) in step 3. `.workspace/` is conventional scratch, but it is not gitignored and may contain non-trivial intermediate state worth preserving.
 2. **Delete the prior artefact.**
-    - `Bash rm -f design-system/design-system.md`
+    - `Bash rm -f design-system/design-system.html design-system/design-system.md` (deletes the current-format `.html`, plus any stale `.md` left over from a prior pipeline version — both safe `-f` no-ops if absent).
 3. **Delete the prior workspace, if any.**
     - `Bash rm -rf design-system/.workspace`
     - This is best-effort; if it fails, log a warning and continue.
@@ -77,7 +77,7 @@ After the reset completes, proceed to step 0b.
 
 The styler has handed control back when:
 
-- `design-system/design-system.md` exists,
+- `design-system/design-system.html` exists,
 - The agent's `verify-artifact-write` invocation in step-06 returned `pass`,
 - The consultant has chosen `Accept` in the step-07 accept/revise/restart loop,
 - `design-system/.workspace/` has been deleted (best-effort) in step-07.
@@ -87,19 +87,19 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 ## Inputs
 
 - `framework/agents/design-system-styler.md` — the single agent invoked by this orchestrator.
-- `design-system/design-system.md` — read at startup (existence check) and overwritten by the agent's step-06 on a fresh run.
+- `design-system/design-system.html` — read at startup (existence check) and overwritten by the agent's step-06 on a fresh run.
 - `framework/skills/check-context-bloat.md` — invoked once at step 0b before the styler is called.
 - `framework/shared/refusal-registry.md` — `RF-05` (design-system-orch surface variant) and `RF-06` semantics surfaced by this orchestrator and by the styler's step-04.
 - `requirements/`, `requirements/source-manifest.json`, `framework/state/.progress.json` — read **only** as preflight inputs to step 0b's context-bloat skill. See the stand-alone constraint above.
 
 ## Output
 
-- `design-system/design-system.md` — produced by the agent in step-06. The orchestrator produces no other artefact.
+- `design-system/design-system.html` — produced by the agent in step-06. The orchestrator produces no other artefact.
 
 ## Tools
 
-- `Read` — check whether `design-system/design-system.md` exists at startup; read `framework/state/.progress.json`, `requirements/source-manifest.json`, and the `.md` / `.json` files directly under `requirements/` (existence and byte size only) as preflight inputs to the step-0b context-bloat skill. No other reads outside `design-system/` are permitted.
-- `Bash` — git checkpoint commit + `rm -f design-system/design-system.md` + `rm -rf design-system/.workspace` during the Reset procedure. No other Bash usage. Never use destructive operations beyond those explicitly named paths. Never push or skip hooks.
+- `Read` — check whether `design-system/design-system.html` (and the transition-window stale `design-system/design-system.md`) exists at startup; read `framework/state/.progress.json`, `requirements/source-manifest.json`, and the `.md` / `.json` files directly under `requirements/` (existence and byte size only) as preflight inputs to the step-0b context-bloat skill. No other reads outside `design-system/` are permitted.
+- `Bash` — git checkpoint commit + `rm -f design-system/design-system.html design-system/design-system.md` (the `.md` arg is the transition-window cleanup) + `rm -rf design-system/.workspace` during the Reset procedure. No other Bash usage. Never use destructive operations beyond those explicitly named paths. Never push or skip hooks.
 - `AskUserQuestion` — surface the `{ Overwrite, Keep, Cancel }` prompt at startup when a prior artefact exists, and surface the `RF-05 { proceed-without-clear, continue-later }` prompt when the step-0b preflight returns `RF-05 trigger`.
 
 The orchestrator's tools are limited to the operations above. Every other read or write of design-system content belongs to the invoked agent; the agent uses the tools listed in its own agent file.
@@ -117,17 +117,17 @@ The orchestrator's tools are limited to the operations above. Every other read o
 
 - Either the consultant chose `Keep` / `Cancel` at startup (and the orchestrator exited cleanly), or
 - The consultant chose `continue-later` at the step-0b RF-05 prompt (and the orchestrator exited cleanly with no state write), or
-- The agent ran to handback with a consultant Accept, and `design-system/design-system.md` exists with `verify-artifact-write` having returned `pass`.
+- The agent ran to handback with a consultant Accept, and `design-system/design-system.html` exists with `verify-artifact-write` having returned `pass`.
 
 ## Anti-Patterns
 
 - Do not perform any task other than the steps listed above.
 - Do not advance past the handback gate before it is met.
-- Do not read, write, or edit `design-system/design-system.md` directly. The orchestrator's only direct disk operations are the existence check (Read), the Reset procedure (Bash rm + git commit), and the step-0b preflight reads. Every other read or write belongs to the agent.
+- Do not read, write, or edit `design-system/design-system.html` directly. The orchestrator's only direct disk operations are the existence check (Read), the Reset procedure (Bash rm + git commit), and the step-0b preflight reads. Every other read or write belongs to the agent.
 - Do not call any skill, asset, or tool not invoked transitively by the agent or listed in this orchestrator's **Tools** section.
 - Do not run the agent as a background / sub / async agent. The agent must run in the foreground in the same thread so consultant Q&A and acceptance happen in-thread.
 - Do not run the Reset procedure when no prior artefact was detected, and do not run it when the consultant chose `Keep` or `Cancel`.
-- Do not delete anything in `design-system/` other than `design-system.md` and the `.workspace/` folder during a reset.
+- Do not delete anything in `design-system/` other than `design-system.html` (the current-format artefact), `design-system.md` (the transition-window stale artefact, if present), and the `.workspace/` folder during a reset.
 - Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the checkpoint commit.
 - Do not maintain a `.progress.json` file. This orchestrator is single-agent and one-shot; progress tracking is unnecessary and out of scope.
 - Do not skip step 0b on a fresh run or after an `Overwrite` reset. The preflight is the only place where prior-conversation bloat is detected before the styler runs.

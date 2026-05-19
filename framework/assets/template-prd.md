@@ -32,7 +32,7 @@
 **Reading list (companion artefacts):**
 
 - {{companion_doc_1}} <!-- e.g. "requirements/requirements.md — the FE spec derived from this PRD" -->
-- {{companion_doc_2}} <!-- e.g. "design-system/design-system.md — the design tokens" -->
+- {{companion_doc_2}} <!-- e.g. "design-system/design-system.html — the design tokens" -->
 
 <!-- rev: run-N YYYY-MM-DD -->
 

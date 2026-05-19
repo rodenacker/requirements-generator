@@ -34,7 +34,7 @@ The PRD has no conditional sections. Every gap becomes either a `[SRC: PC-NNN]` 
 
 ## Pre-authoring invariants (preserve when filling in)
 
-- §1 metadata includes a **reading list** of companion artefacts (`requirements/requirements.md`, `design-system/design-system.md`, analyses, reviews) when they exist. Pointers are by filename only — never restate content from those files inside the PRD.
+- §1 metadata includes a **reading list** of companion artefacts (`requirements/requirements.md`, `design-system/design-system.html`, analyses, reviews) when they exist. Pointers are by filename only — never restate content from those files inside the PRD.
 - §2 problem statement leads with user/stakeholder pain in plain language, then sizes the opportunity. §2.3 opportunity-size dimensions (affected users, frequency, cost of inaction, trend) are all required cells.
 - §3 competitive context names competitors, alternatives, and "do nothing" — never abstract phrasing like "the market alternative." This is the section most likely to need vendor names and is exempt from `GR-20`.
 - §4 stakeholders includes a sign-off domain for every row. "No sign-off needed" is not a valid sign-off domain; if a person doesn't sign off on anything, they belong in §12 dependencies, not §4 stakeholders.

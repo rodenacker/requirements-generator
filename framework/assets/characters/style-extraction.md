@@ -21,7 +21,7 @@ Token work is concrete, not aesthetic. The job is to land 11 colour tokens, a ty
 
 ## Provenance discipline
 
-Every token in `design-system/design-system.md` carries one of two markers:
+Every token in `design-system/design-system.html` (both the JSON block and the visual sections) carries one of two markers:
 
 | Marker | Meaning |
 | --- | --- |
