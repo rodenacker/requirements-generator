@@ -175,3 +175,17 @@ Each rule has a stable ID `GR-NN`, a scope predicate (template field/element it 
 **Rule:** In-scope cells must describe **what UI elements/behaviours must exist** ("user can filter the order list by status", "save action is available", "list paginates"), never **how they are arranged or styled** ("filter chips in the toolbar", "sticky header with sort indicators", "modal in the upper-right"). Forbidden vocabulary in cell values: `column|row|grid|sidebar|header|footer|breakpoint|top-right|bottom-left|above|below|left of|right of|sticky|fixed`, and named component categories `Card|Modal|Drawer|Popover|Tooltip|Accordion|Tabs|Stepper|Wizard` when used as a layout prescription. Drafter enforces with a Grep blocklist over the listed in-scope sections pre-Write; a single hit is a hard validation FAIL.
 
 **Rationale:** layout, component choice, and visual design are produced by a later UX design step that consumes this spec. Baking layout into the requirements doc removes the UX step's degrees of freedom and conflates *what is needed* with *how it looks*. Behavioural phrasing keeps the spec stable across UX iterations.
+
+## GR-22 — AI-SUGGESTED marker cap
+
+**Applies to:** the count of `[AI-SUGGESTED]` markers emitted into `requirements/requirements-draft.md` by the drafter (consumed by `framework/skills/completeness-gap-pass.md` at its cap step).
+
+**Rule:** the total count of `[AI-SUGGESTED]` markers in the written draft is capped at **50**. Within the cap:
+
+- Every `blocking` marker is kept regardless of count. Blocking is the tie-breaker-of-record from the drafter's classification rubric — capping it would silently swallow exactly the items consultants need to see.
+- Non-blocking markers are kept in `(priority_score desc, AI-NNN asc)` order until `blocking_count + kept_non_blocking_count == 50`.
+- Surplus non-blocking tuples are demoted to value-only fills (`marker_kind: "none"`), inheriting the same emission path that `target == "application"` uses for OOS-routed tuples. Demoted fields carry the gap-pass's domain-default value, no marker, no Q&A.
+
+**Override:** edit this rule's cap integer for a project requiring a different ceiling. The cap is read by the gap-pass skill on every drafter invocation; there is no per-run prompt. If `blocking_count >= 50`, every blocking item is still kept and the non-blocking budget is zero — the cap is a floor for blocking, not a ceiling.
+
+**Rationale:** drafts on the current pipeline typically emit 100–150 `[AI-SUGGESTED]` markers (12 blocking + 88–138 non-blocking), of which the non-blocking majority is bulk-accepted by the consultant in Phase 2. Surfacing every bijection-filler item as a question costs Phase 2 turns disproportionate to the answer-value. The cap respects the byte-for-byte identical-set invariant in `completeness-gap-pass.md` (applied uniformly across both targets, narrowing only) and preserves the closed system: a field is `[AI-SUGGESTED]` (Q&A required), `[STANDARD-RULE: GR-NN]` (deterministic), `[OUT-OF-SCOPE]` (prototype-only marker), or value-only fill (no marker). The cap simply rebalances the AI-SUGGESTED vs value-only split by priority.

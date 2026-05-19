@@ -10,10 +10,27 @@
 - `framework/assets/topics-requirements.md` — bijection invariants.
 
 **Outputs:**
-- A list of `(rule_id, location, action, marker_kind, marker_payload, draft_context)` tuples that the drafter applies to the draft via Edit / Write.
+- A list of `(rule_id, location, action, marker_kind, marker_payload, draft_context, priority_score)` tuples that the drafter applies to the draft via Edit / Write.
 - The next-available `AI-NNN` index, continuing the existing counter.
 
-`draft_context` is a single, optional, one-line string emitted on tuples whose `marker_kind = "AI-SUGGESTED"` (only). It is a brief, plain-English orientation for the consultant — what the field represents, what kind of answer is expected, and (when useful) the candidate value set — phrased so the consultant can answer without re-locating the cell in the draft. Example for an RBAC matrix cell: `"RBAC matrix cell — what access does the Importer role need to the User entity? (typical answers: R = Read, X = none, C = Create, U = Update)"`. Tuples with `marker_kind ∈ {"STANDARD-RULE", "OUT-OF-SCOPE", "none"}` do not carry `draft_context` (those markers do not surface to the resolver's Q&A). The drafter is the sole author of `draft_context`; the resolver copies it onto the manifest line on first turn (per `framework/agents/requirements-resolver.md > Working state`) and never invents one.
+`draft_context` is a single, optional, one-line string emitted on tuples whose `marker_kind = "AI-SUGGESTED"` (only). It is a brief, plain-English orientation for the consultant — what the field represents, what kind of answer is expected, and (when useful) the candidate value set — phrased so the consultant can answer without re-locating the cell in the draft. Example for an RBAC matrix cell: `"RBAC matrix cell — what access does the Importer role need to the User entity? (typical answers: R = Read, X = none, C = Create, U = Update)"`. Tuples with `marker_kind ∈ {"STANDARD-RULE", "OUT-OF-SCOPE", "none"}` do not carry `draft_context` (those markers do not surface to the resolver's Q&A). The drafter is the sole author of `draft_context`; the resolver copies it onto the manifest line on first turn (per `framework/agents/requirements-resolver.md > Working state`) and never invents one. A tuple that is **demoted** by the cap step (see Algorithm step 6) has its `draft_context` cleared along with its `marker_kind` change to `"none"`.
+
+`priority_score` is an integer in `0..10` assigned to every tuple. Tuples with `marker_kind = "AI-SUGGESTED"` carry a real score per the Priority scoring table below; tuples with any other `marker_kind` carry `priority_score = 0` (unused). Consumed only by the cap step at the end of the algorithm — the drafter does not write it into the draft body.
+
+## Priority scoring (consumed by the cap step)
+
+Every tuple whose decision tree resolves to `marker_kind = "AI-SUGGESTED"` is assigned a `priority_score` (integer, 0–10) drawn from the closed table below. The score is keyed on the `rule_id` that emitted the tuple — A1..A15, B1..B5, D1..D4. Tuples whose `marker_kind` is not `"AI-SUGGESTED"` carry `priority_score = 0` and the score is unused.
+
+| Rule(s) | Score | Rationale |
+|---|---|---|
+| A1 personas↔stories · A3 personas↔RBAC · A9 §10 volumes · A10 §1.5 In-scope rows · A13 §6.8 notification audiences | 10 | Cross-cuts UI pattern choice and drives §6.5 / §6.7 / §6.8 — wrong guesses propagate. |
+| A2 goals↔stories · A8 §5 flow actors · A11 §2.5 state-transition rows · A12 §6.7 report source concepts · D3 visible state-transition effects | 7 | Drives flow logic and UI narrative; revision is bounded but costs design rework. |
+| A14 §6.10 operations · B2 conditional `<action>†BR-NN` rows · B5 acceptance-criteria fabrications | 5 | Behavioural detail. Adjustable post-hoc; surfacing is valuable but not load-bearing. |
+| A4 entity-RBAC columns · A5 flow-RBAC columns · A6 persistent entity stubs · A7 entity↔concept refs · A15 §7.X derived shapes · B1 goal→story filler · D1 server-side §6.2 BR projections · D2 hidden-field defaults | 3 | Bijection-filler — structural completeness, low decision-value per item. The set that the cap demotes first. |
+
+Tier C is never AI-SUGGESTED (it routes to `[OUT-OF-SCOPE]` or value-only by target), so it has no row here. Tier B3 (warn-only) and B4 (warn-only) emit no AI-SUGGESTED tuples, so they have no row either.
+
+The table is the **closed set** of priority scores. Adding a new Tier A/B/D rule to this skill must include an explicit row here when the rule ships; otherwise the cap step has no basis to rank that rule's tuples and they would tie at score 0 (sorted last among AI-SUGGESTED items, demoted first).
 
 ## Decision tree (per gap)
 
@@ -114,11 +131,18 @@ Tier C sections are completeness-required by the template (`fill every field`) b
 
 1. Walk the populated draft section-by-section.
 2. For each rule in Tier A, B, D, evaluate the predicate against the draft state.
-3. For each violation, run the decision tree above (parameterised by `target`) to produce a `(rule_id, location, action, marker_kind, marker_payload, draft_context)` tuple. Under `target == "application"`, any tuple whose decision tree resolves to "OUT-OF-SCOPE" is emitted with `marker_kind = "none"` and a domain-default `marker_payload` value — the drafter still applies the value via Edit, but no `[OUT-OF-SCOPE: domain-default]` tag is written into the draft. For tuples with `marker_kind = "AI-SUGGESTED"`, emit a one-line `draft_context` derived from the tuple's `rule_id` + `location` + (when useful) the candidate value set — this is consumed by the resolver's Q&A presentation, not written into the draft body. Tuples with any other `marker_kind` carry no `draft_context`.
+3. For each violation, run the decision tree above (parameterised by `target`) to produce a `(rule_id, location, action, marker_kind, marker_payload, draft_context, priority_score)` tuple. Under `target == "application"`, any tuple whose decision tree resolves to "OUT-OF-SCOPE" is emitted with `marker_kind = "none"` and a domain-default `marker_payload` value — the drafter still applies the value via Edit, but no `[OUT-OF-SCOPE: domain-default]` tag is written into the draft. For tuples with `marker_kind = "AI-SUGGESTED"`, emit a one-line `draft_context` derived from the tuple's `rule_id` + `location` + (when useful) the candidate value set — this is consumed by the resolver's Q&A presentation, not written into the draft body — and assign `priority_score` from the Priority scoring table above. Tuples with any other `marker_kind` carry no `draft_context` and `priority_score = 0`.
 4. Emit the tuple list to the drafter, plus the running `AI-NNN` counter.
 5. The drafter applies the tuples to the draft (via Edit) before writing the final file. The drafter also carries each `AI-SUGGESTED` tuple's `draft_context` into the resolver's manifest at the resolver's first-turn build step (per `framework/agents/requirements-resolver.md > Working state`); the field is observability for the resolver and never written into the draft body itself.
+6. **Apply the cap.** Read the AI-SUGGESTED cap value from `framework/shared/general-rules.md > GR-22` (default 50). On the in-memory tuple list:
+    - Partition AI-SUGGESTED tuples by `marker_payload` classification (`blocking` vs `non-blocking`). Tuples with any other `marker_kind` are unaffected by this step.
+    - Keep **all** blocking tuples regardless of count.
+    - Sort the `non-blocking` tuples by `(priority_score desc, AI-NNN asc)` — higher priority first, AI-NNN tiebreaker for stable ordering.
+    - Walk the sorted non-blocking list and keep tuples until `blocking_count + kept_non_blocking_count == cap`. Once the cap is reached, **demote** every remaining non-blocking tuple: set `marker_kind = "none"`, clear `draft_context` (`null`), keep the existing `marker_payload` value (the domain-default fill the gap pass produced), and clear `priority_score` to 0. The demoted tuple's `rule_id` is preserved for forensic logging in the drafter's gap-pass output but the field is not consumed downstream.
+    - **Renumber AI-NNN** monotonically over the surviving `[AI-SUGGESTED]` set (blocking + kept non-blocking, processed in their pre-cap AI-NNN order), starting at AI-001, so the drafter's tag-assignment stays gap-free in the written draft. Demoted tuples no longer carry an AI-NNN identifier.
+    - If `blocking_count >= cap`, keep every blocking tuple anyway (the cap is a floor for blocking, not a ceiling) and demote every non-blocking tuple.
 
-**Invariant.** For the same draft state, the set of tuples with `marker_kind = "AI-SUGGESTED"` is byte-for-byte identical under `target == "prototype"` and `target == "application"`. Only `marker_kind = "OUT-OF-SCOPE"` tuples differ between targets (emitted as OOS under prototype; emitted with `marker_kind = "none"` under application).
+**Invariant.** For the same draft state, the set of tuples with `marker_kind = "AI-SUGGESTED"` **after the cap step at step 6** is byte-for-byte identical under `target == "prototype"` and `target == "application"`. Only `marker_kind = "OUT-OF-SCOPE"` tuples differ between targets (emitted as OOS under prototype; emitted with `marker_kind = "none"` under application). The cap step is applied uniformly under both targets — it narrows the AI-SUGGESTED set, never widens it, so the invariant is preserved across the cap. Demoted tuples land on the `marker_kind = "none"` branch under both targets and are indistinguishable from application-mode OOS-routed fills in the produced draft.
 
 ## Used by
 
@@ -134,3 +158,7 @@ Tier C sections are completeness-required by the template (`fill every field`) b
 - Do not enforce `GR-20` (no stack specifics) or `GR-21` (no UI layout) here — those are drafter pre-Write Grep guards over the produced draft, not gap-pass decision-tree outcomes. The gap-pass produces values that are themselves capability-category and behavioural; the drafter's self-validation catches any leak.
 - Do not widen the AI-SUGGESTED set when `target == "application"`. The contract with the consultant is that they answer questions only about facts the AI fabricated; widening the set under application mode would surface redundant or ungrounded questions. The application-mode behavioural change is OOS-marker suppression only.
 - Do not skip the prototype-scope predicate evaluation under `target == "application"`. The predicate is still needed to identify which tuples would have been OOS, so the skill can route them to the `marker_kind = "none"` branch. The file is consulted under both targets.
+- Do not apply the cap step differently across targets. The cap is a uniform narrowing rule; per-target caps would break the byte-for-byte identical-set invariant the skill enforces at step 6.
+- Do not cap blocking items. Blocking is the tie-breaker-of-record from the drafter's classification rubric — capping blocking would silently swallow exactly the items consultants need to see. If `blocking_count >= cap`, every blocking tuple is still kept and the non-blocking budget is zero.
+- Do not promote a demoted (`marker_kind = "none"`) tuple back to AI-SUGGESTED in a later pass or by post-hoc edit. The cap is one-shot at the end of the algorithm; promoting a demoted tuple would either re-introduce the over-emission the cap exists to prevent or break the AI-NNN gap-free renumber.
+- Do not introduce ad-hoc `priority_score` values outside the Priority scoring table. New scoring rows ship with the gap-pass rule they describe; off-table scores would break the ranking's reproducibility across runs.
