@@ -62,3 +62,4 @@
 {"label":"review-iteration-1","type":"consultant_responded","outcome":"accept","stage":"merger","t":"2026-05-19T11:37:36.7738744Z"}
 {"stage":"merger","type":"stage_end","t":"2026-05-19T11:37:42.8220531Z"}
 {"t":"2026-05-19T11:37:42.8911494Z","type":"run_end"}
+{"run_id":"2026-05-20T11:28:34.0653973Z","t":"2026-05-20T11:28:34.0354211Z","type":"run_start"}
