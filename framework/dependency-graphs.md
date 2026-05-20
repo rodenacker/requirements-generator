@@ -30,6 +30,7 @@ graph TD
       skill_preflight[preflight-mcp.md]
       skill_convert[convert-input-file.md]
       skill_buildmanifest[build-source-manifest.md]
+      skill_checkfresh[check-manifest-freshness.md]
       skill_verifywrite[verify-artifact-write.md]
       skill_bloat[check-context-bloat.md]
       skill_gappass[completeness-gap-pass.md]
@@ -68,6 +69,7 @@ graph TD
     orch_req --> shared_refusal
     orch_req --> state_progress
 
+    agent_input --> skill_checkfresh
     agent_input --> skill_classify
     agent_input --> skill_preflight
     agent_input --> skill_convert
@@ -111,22 +113,22 @@ graph TD
 
     class orch_req orch
     class agent_input,agent_drafter,agent_resolver,agent_merger agent
-    class skill_classify,skill_preflight,skill_convert,skill_buildmanifest,skill_verifywrite,skill_bloat,skill_gappass,skill_mermaid,skill_qa1,skill_qa2,skill_flag skill
+    class skill_classify,skill_preflight,skill_convert,skill_buildmanifest,skill_checkfresh,skill_verifywrite,skill_bloat,skill_gappass,skill_mermaid,skill_qa1,skill_qa2,skill_flag skill
     class asset_template_req,asset_topics_req asset
     class char_req_qa char
     class shared_refusal,shared_protoscope,shared_genrules,shared_protoinv,shared_setup_md shared
     class state_progress state
 ```
 
-**Stats:** 25 nodes / 39 edges / depth 4.
+**Stats:** 26 nodes / 40 edges / depth 4.
 
 **Notes:**
-- Shared subtrees: `refusal-registry.md` is referenced from 7 ancestors (orchestrator, input-handler, preflight-mcp, convert-input-file, verify-artifact-write, check-context-bloat, drafter). `prototype-scope.md` and `general-rules.md` are each shared between drafter, completeness-gap-pass, resolver, and flag-gaps-ambiguities.
+- Shared subtrees: `refusal-registry.md` is referenced from 7 ancestors (orchestrator, input-handler, preflight-mcp, convert-input-file, verify-artifact-write, check-context-bloat, drafter). `prototype-scope.md` and `general-rules.md` are each shared between drafter, completeness-gap-pass, resolver, and flag-gaps-ambiguities. `check-manifest-freshness.md` is a sub-skill of `input-handler.md` (added in step 0 of the agent's workflow to gate the create / refresh / no-op / halt decision); it is shared across all four input-handler-using graphs (1, 5, 6, 7) but represents one file on disk.
 - `state/.progress.json` is a state file written by the orchestrator and read by `check-context-bloat.md`; included as a deliberate working-state node, not an asset.
 - `topics-requirements.md` is consulted by `completeness-gap-pass.md` (bijection invariants).
 - The pipeline output artefacts (`requirements/source-manifest.json`, `requirements-draft.md`, `consultant-answers.md`, `requirements.md`) are intentionally not drawn — they are produced by the agents, not loaded as dependencies.
 - The character file `requirements-qa.md` is a stub that does not transitively reference further framework files.
-- The `input-handler.md` agent node (previously `requirements-input-handler.md`) is **cross-pipeline**: it is also rooted under `analyse-inputs-orch.md` (graph 5). The agent is unchanged in shape; its `progress_path` parameter is the per-call hinge — `requirements-orch.md` passes `framework/state/.progress.json`, `analyse-inputs-orch.md` passes `null`. The five transitive skills below `agent_input` (classify-input-tier, preflight-mcp, convert-input-file, build-source-manifest, verify-artifact-write) are shared with graph 5.
+- The `input-handler.md` agent node (previously `requirements-input-handler.md`) is **cross-pipeline**: it is also rooted under `analyse-inputs-orch.md` (graph 5), `review-inputs-orch.md` (graph 6), and `generate-prd-orch.md` (graph 7). The agent is unchanged in shape; its `progress_path` parameter is the per-call hinge — `requirements-orch.md` passes `framework/state/.progress.json`, `generate-prd-orch.md` passes `framework/state/.prd-progress.json`, `analyse-inputs-orch.md` and `review-inputs-orch.md` both pass `null`. The six transitive skills below `agent_input` (`check-manifest-freshness`, `classify-input-tier`, `preflight-mcp`, `convert-input-file`, `build-source-manifest`, `verify-artifact-write`) are shared across all four input-handler-using graphs. `check-manifest-freshness` is the newest addition: it runs at the agent's step 0 to compare manifest vs disk state and decide whether to create / refresh / no-op / halt; the other five skills run at steps 3–6 on the create / refresh paths only.
 - The drafter's `derive-architectural-implications` substep (step 6 in its workflow) consumes an **inline** capability catalogue declared in `requirements-drafter.md` itself; it does **not** add a new file dependency. §1.7 architectural-implication rows are emitted as `[AI-SUGGESTED: non-blocking]` and refined through the resolver's Phase 2.
 - The drafter's workflow has **nine** instrumented substeps in `framework/state/timing.ndjson`: `read-inputs`, `populate-template`, `gap-pass`, `derive-architectural-implications`, `author-mermaid`, `write-draft`, `write-claims-sidecar`, `grounding-verify`, `mermaid-validate`. Total per clean drafter run: 10 tool calls for 18 events. (`grep-crosscheck` was removed as a redundant in-memory substep; the gap pass enumerates the same bijections deterministically and the post-Write self-validation Greps target the on-disk draft.)
 - The merger **retains** `[SRC: C-NNN]` provenance tags in the final `requirements/requirements.md` (was: stripped). Downstream LLM consumers (review-requirement, analyse-requirement, design phases) can read provenance inline without joining against `requirements/draft-claims.ndjson`; the sidecar remains the authoritative store of verbatim quotes for grounding re-verification.
@@ -569,6 +571,7 @@ graph TD
       skill_preflight_ai[preflight-mcp.md]
       skill_convert_ai[convert-input-file.md]
       skill_buildmanifest_ai[build-source-manifest.md]
+      skill_checkfresh_ai[check-manifest-freshness.md]
       skill_mermaid_ai[mermaid-validator.md]
     end
 
@@ -613,6 +616,7 @@ graph TD
     skill_bloat_ai --> shared_refusal_ai
     skill_bloat_ai --> state_progress_ai
 
+    agent_input_ai --> skill_checkfresh_ai
     agent_input_ai --> skill_classify_ai
     agent_input_ai --> skill_preflight_ai
     agent_input_ai --> skill_convert_ai
@@ -630,18 +634,18 @@ graph TD
 
     class orch_ai orch
     class agent_input_ai,agent_ta,agent_ost_ai agent
-    class skill_ansel_ai,skill_bloat_ai,skill_verifywrite_ai,skill_classify_ai,skill_preflight_ai,skill_convert_ai,skill_buildmanifest_ai,skill_mermaid_ai skill
+    class skill_ansel_ai,skill_bloat_ai,skill_verifywrite_ai,skill_classify_ai,skill_preflight_ai,skill_convert_ai,skill_buildmanifest_ai,skill_checkfresh_ai,skill_mermaid_ai skill
     class asset_registry_ai,asset_ta_ref,asset_ta_char,asset_ta_map,asset_ost_ai_ref,asset_ost_ai_char,asset_ost_ai_map asset
     class shared_refusal_ai,shared_setup_md_ai shared
     class state_progress_ai state
 ```
 
-**Stats:** 22 nodes / 31 edges / depth 4 (2 MVP analysers: `thematic-analysis`, `opportunity-solution-trees`). The remaining `status: future` rows (`glossary`, `jtbd`, `five-whys`) are intentionally omitted from the graph because their agent / reference / character / map-skill files do not exist on disk yet. Each future methodology PR adds one `orch_ai → agent_<method>` edge plus the standard four-asset fan-out, mirroring graph 4. The shape matches the fan-out structure of `analyse-requirement-orch.md`. Note: neither `agent_ta` nor `agent_ost_ai` has an edge to its `asset_*_map` map-skill — map-skills are registry metadata consumed by the future design-spec-drafter, not by the analyser itself, mirroring the precedent in graph 4.)
+**Stats:** 23 nodes / 32 edges / depth 4 (2 MVP analysers: `thematic-analysis`, `opportunity-solution-trees`). The remaining `status: future` rows (`glossary`, `jtbd`, `five-whys`) are intentionally omitted from the graph because their agent / reference / character / map-skill files do not exist on disk yet. Each future methodology PR adds one `orch_ai → agent_<method>` edge plus the standard four-asset fan-out, mirroring graph 4. The shape matches the fan-out structure of `analyse-requirement-orch.md`. Note: neither `agent_ta` nor `agent_ost_ai` has an edge to its `asset_*_map` map-skill — map-skills are registry metadata consumed by the future design-spec-drafter, not by the analyser itself, mirroring the precedent in graph 4.)
 
 **Notes:**
 - The orchestrator is **registry-driven** (same pattern as `analyse-requirement-orch.md`). The `skill_ansel_ai → asset_registry_ai` edge is the discovery mechanism; future `orch_ai → agent_<method>` edges represent the runtime invocation paths once the consultant has selected a methodology. **Adding a new MVP input-analyser requires zero orchestrator edits** — only a new MVP row in `framework/assets/analyses-inputs/registry.md`, the four-asset shape (analyser + reference + template + character), and the new edge in this graph.
-- The `input-handler.md` agent is **shared with `requirements-orch.md`** (graph 1, where it appears as `agent_input`). The five skills below it (`classify-input-tier`, `preflight-mcp`, `convert-input-file`, `build-source-manifest`, `verify-artifact-write`) and the two shared-policy edges (`refusal-registry.md`, `setup-instructions/markitdown.md`) are the same node identities; they appear in both graphs but represent one set of files on disk. The per-call difference between the two pipelines is the agent's `progress_path` parameter: `requirements-orch.md` passes `framework/state/.progress.json`; `analyse-inputs-orch.md` passes `null` (which suppresses the agent's `RF-01 continue-later` `.progress.json` write).
-- The shared `input-handler` invocation at step 1 is the **only** edge in this subtree that writes outside `analyse-inputs/<METHOD>/`. The writes it performs (`requirements/source-manifest.json` and `input/*.converted.md` siblings) are bounded to those paths and are documented as a cross-pipeline exception in `framework/orchestrators/analyse-inputs-orch.md > Stand-alone constraint`. No write reaches `requirements/requirements*.md`, `requirements/consultant-answers.md`, `requirements/requirements-draft.md`, `requirements/draft-claims*.ndjson`, `design-system/`, `analyse-requirements/<METHOD>/`, `review-requirements/`, `review-inputs/`, or `framework/state/`.
+- The `input-handler.md` agent is **shared with `requirements-orch.md`** (graph 1, where it appears as `agent_input`), `review-inputs-orch.md` (graph 6), and `generate-prd-orch.md` (graph 7). The six skills below it (`check-manifest-freshness`, `classify-input-tier`, `preflight-mcp`, `convert-input-file`, `build-source-manifest`, `verify-artifact-write`) and the two shared-policy edges (`refusal-registry.md`, `setup-instructions/markitdown.md`) are the same node identities; they appear in all four input-handler-using graphs but represent one set of files on disk. The per-call difference across pipelines is the agent's `progress_path` parameter: `requirements-orch.md` passes `framework/state/.progress.json`, `generate-prd-orch.md` passes `framework/state/.prd-progress.json`, `analyse-inputs-orch.md` and `review-inputs-orch.md` both pass `null` (which suppresses the agent's `RF-01 continue-later` `.progress.json` write). `check-manifest-freshness` runs at the agent's step 0 on every invocation when an existing manifest is present, deciding whether to create / refresh / no-op / halt; the other five skills run at steps 3–6 on the create / refresh paths only.
+- The shared `input-handler` invocation at step 1 is the **only** edge in this subtree that writes outside `analyse-inputs/<METHOD>/`. The writes it performs (`requirements/source-manifest.json` and `input/*.converted.md` siblings) are bounded to those paths and are documented as a cross-pipeline exception in `framework/orchestrators/analyse-inputs-orch.md > Stand-alone constraint`. Writes happen on the input-handler's `mode = "create"` or `mode = "refresh"` paths only; on `mode = "no-op"` (fresh) and `mode = "proceed-stale"`, no write occurs. No write reaches `requirements/requirements*.md`, `requirements/consultant-answers.md`, `requirements/requirements-draft.md`, `requirements/draft-claims*.ndjson`, `design-system/`, `analyse-requirements/<METHOD>/`, `review-requirements/`, `review-inputs/`, or `framework/state/`.
 - `state/.progress.json` is read (existence + byte-size check) by `check-context-bloat.md` from this orchestrator; the orchestrator never writes to it, consistent with the no-write-outside-`analyse-inputs/` invariant. The shared `input-handler.md` agent **also** never writes to `.progress.json` from this pipeline because the orchestrator invokes it with `progress_path: null` (the agent's RF-01 continue-later write is suppressed in that mode).
 - `check-context-bloat.md` is invoked with `artefact_dir: input/` (not `requirements/`) — the byte volume of the raw input folder is the meaningful proxy for in-conversation bloat against an input-analyser, in contrast to the `/analyse-requirement` caller which passes `requirements/`.
 - The `mermaid-validator.md` skill is invoked inline from `agent_ta` (Step 10 sub-step C) **and** from `agent_ost_ai` (Step 10 sub-step C) to validate the inline diagram before write; on `not-installed` each agent halts per the validator's own copy and fails handback. Both `/analyse-inputs` MVP analysers depend on `mermaid-validator.md`; other analyses-pipeline analysers — `sequence-diagram`, `state-diagram`, `activity-diagram` in graph 4 — also depend on it; the file on disk is shared across pipelines.
@@ -686,6 +690,7 @@ graph TD
       skill_preflight_ri[preflight-mcp.md]
       skill_convert_ri[convert-input-file.md]
       skill_buildmanifest_ri[build-source-manifest.md]
+      skill_checkfresh_ri[check-manifest-freshness.md]
     end
 
     subgraph Assets
@@ -726,6 +731,7 @@ graph TD
     skill_bloat_ri --> shared_refusal_ri
     skill_bloat_ri --> state_progress_ri
 
+    agent_input_ri --> skill_checkfresh_ri
     agent_input_ri --> skill_classify_ri
     agent_input_ri --> skill_preflight_ri
     agent_input_ri --> skill_convert_ri
@@ -760,20 +766,20 @@ graph TD
     class orch_ri orch
     class agent_input_ri,agent_adv_ri,agent_amb_ri,agent_comp_ri agent
     class worker_adv_dim_ri worker
-    class skill_ansel_ri,skill_bloat_ri,skill_verifywrite_ri,skill_classify_ri,skill_preflight_ri,skill_convert_ri,skill_buildmanifest_ri skill
+    class skill_ansel_ri,skill_bloat_ri,skill_verifywrite_ri,skill_classify_ri,skill_preflight_ri,skill_convert_ri,skill_buildmanifest_ri,skill_checkfresh_ri skill
     class asset_registry_ri,asset_ref_adv_ri,asset_tmpl_adv_ri,asset_ref_amb_ri,asset_ref_comp_ri asset
     class char_adv_ri,char_amb_ri,char_comp_ri char
     class shared_refusal_ri,shared_setup_md_ri,shared_genrules_ri,shared_protoscope_ri shared
     class state_progress_ri state
 ```
 
-**Stats:** 27 nodes / 34 edges / depth 4 (3 MVP reviewers: `adversarial`, `ambiguity-review`, `completeness-review`). Each future methodology PR adds one `orch_ri → agent_<method>` edge plus the standard four-asset fan-out (reviewer + reference + character + template, the last possibly `null`), mirroring graphs 4 and 5. The `adversarial` reviewer also fans out to a parallel dimension worker (drawn with a dashed border) — a pattern shared with the `/review-requirement` adversarial reviewer in graph 3. The `ambiguity-review` and `completeness-review` reviewers are both **sequential / single-threaded** — no dimension workers, no `Agent`/`Task` dispatch; their dimensions sweep one-per-agent-step, then cross-dimension consolidation collapses same-span / same-topic multi-dimension hits. `ambiguity-review` carries `template_asset: null` (pure-markdown renderer; no scaffold); `completeness-review` likewise. Both carry `map_skill: null` (reviews don't translate into UI inventory).
+**Stats:** 28 nodes / 35 edges / depth 4 (3 MVP reviewers: `adversarial`, `ambiguity-review`, `completeness-review`). Each future methodology PR adds one `orch_ri → agent_<method>` edge plus the standard four-asset fan-out (reviewer + reference + character + template, the last possibly `null`), mirroring graphs 4 and 5. The `adversarial` reviewer also fans out to a parallel dimension worker (drawn with a dashed border) — a pattern shared with the `/review-requirement` adversarial reviewer in graph 3. The `ambiguity-review` and `completeness-review` reviewers are both **sequential / single-threaded** — no dimension workers, no `Agent`/`Task` dispatch; their dimensions sweep one-per-agent-step, then cross-dimension consolidation collapses same-span / same-topic multi-dimension hits. `ambiguity-review` carries `template_asset: null` (pure-markdown renderer; no scaffold); `completeness-review` likewise. Both carry `map_skill: null` (reviews don't translate into UI inventory).
 
 **Notes:**
 - The orchestrator is **registry-driven** (same pattern as `analyse-requirement-orch.md` and `analyse-inputs-orch.md`). The `skill_ansel_ri → asset_registry_ri` edge is the discovery mechanism; future `orch_ri → agent_<method>` edges represent the runtime invocation paths once the consultant has selected a methodology. **Adding a new MVP input-reviewer requires zero orchestrator edits** — only a new MVP row in `framework/assets/reviews-inputs/registry.md`, the four-asset shape (reviewer + reference + template + character), and the new edge in this graph.
 - The `analysis-selector.md` skill is **shared with graphs 4 and 5** (`/analyse-requirement` and `/analyse-inputs`); `/review-inputs` is its third caller. The skill is methodology-neutral and pipeline-neutral — `/review-inputs` passes the new registry path plus `list_label: "reviews"` and `verb_label: "review"` so the printed prompt reads naturally for reviewing rather than analysing.
-- The `input-handler.md` agent is **shared with `requirements-orch.md` (graph 1) and `analyse-inputs-orch.md` (graph 5)**. The seven nodes below it (`classify-input-tier`, `preflight-mcp`, `convert-input-file`, `build-source-manifest`, `verify-artifact-write`, plus the two shared-policy edges to `refusal-registry.md` and `setup-instructions/markitdown.md`) are the same node identities; they appear in three graphs but represent one set of files on disk. The per-call difference between the three pipelines is the agent's `progress_path` parameter: `requirements-orch.md` passes `framework/state/.progress.json`; both `analyse-inputs-orch.md` and `review-inputs-orch.md` pass `null` (which suppresses the agent's `RF-01 continue-later` `.progress.json` write).
-- The shared `input-handler` invocation at step 1 is the **only** edge in this subtree that writes outside `review-inputs/<METHOD>/`. The writes it performs (`requirements/source-manifest.json` and `input/*.converted.md` siblings) are bounded to those paths and are documented as a cross-pipeline exception in `framework/orchestrators/review-inputs-orch.md > Stand-alone constraint`. No write reaches `requirements/requirements*.md`, `requirements/consultant-answers.md`, `requirements/requirements-draft.md`, `requirements/draft-claims*.ndjson`, `design-system/`, `analyse-requirements/<METHOD>/`, `analyse-inputs/<METHOD>/`, `review-requirements/<METHOD>/`, or `framework/state/`.
+- The `input-handler.md` agent is **shared with `requirements-orch.md` (graph 1), `analyse-inputs-orch.md` (graph 5), and `generate-prd-orch.md` (graph 7)**. The eight nodes below it (`check-manifest-freshness`, `classify-input-tier`, `preflight-mcp`, `convert-input-file`, `build-source-manifest`, `verify-artifact-write`, plus the two shared-policy edges to `refusal-registry.md` and `setup-instructions/markitdown.md`) are the same node identities; they appear in all four input-handler-using graphs but represent one set of files on disk. The per-call difference across pipelines is the agent's `progress_path` parameter: `requirements-orch.md` passes `framework/state/.progress.json`; `generate-prd-orch.md` passes `framework/state/.prd-progress.json`; `analyse-inputs-orch.md` and `review-inputs-orch.md` both pass `null` (which suppresses the agent's `RF-01 continue-later` `.progress.json` write). `check-manifest-freshness` is the newest sub-skill: it runs at the agent's step 0 to gate the create / refresh / no-op / halt decision.
+- The shared `input-handler` invocation at step 1 is the **only** edge in this subtree that writes outside `review-inputs/<METHOD>/`. The writes it performs (`requirements/source-manifest.json` and `input/*.converted.md` siblings) are bounded to those paths and are documented as a cross-pipeline exception in `framework/orchestrators/review-inputs-orch.md > Stand-alone constraint`. Writes happen on the input-handler's `mode = "create"` or `mode = "refresh"` paths only; on `mode = "no-op"` (fresh) and `mode = "proceed-stale"`, no write occurs. No write reaches `requirements/requirements*.md`, `requirements/consultant-answers.md`, `requirements/requirements-draft.md`, `requirements/draft-claims*.ndjson`, `design-system/`, `analyse-requirements/<METHOD>/`, `analyse-inputs/<METHOD>/`, `review-requirements/<METHOD>/`, or `framework/state/`.
 - `state/.progress.json` is read (existence + byte-size check) by `check-context-bloat.md` from this orchestrator; the orchestrator never writes to it, consistent with the no-write-outside-`review-inputs/` invariant. The shared `input-handler.md` agent **also** never writes to `.progress.json` from this pipeline because the orchestrator invokes it with `progress_path: null`.
 - `check-context-bloat.md` is invoked with `artefact_dir: input/` (matching graph 5's `/analyse-inputs` caller) — the byte volume of the raw input folder is the meaningful proxy for in-conversation bloat against an input-reviewer.
 - The `adversarial` reviewer fans out **six** non-interactive tool-less dimension workers per `adversarial-dimension-worker.md` at its Step 4; this is the only sub-agent dispatch under the `/review-inputs` pipeline (and parallels the eight-worker fan-out in graph 3 for `/review-requirement` adversarial). The worker node is drawn with a dashed border to indicate it is a parallel sub-agent rather than an orchestrator-invoked agent. Inputs-side workers are stricter than requirements-side workers: they have **no tools at all** (no Read scope) because the parent inlines a frozen evidence bundle plus per-source quote indices, eliminating the need for any worker disk access. The six dimensions are tuned for raw-input defects under the *corpus IS the voice* principle (Stakeholder & Role Coverage incl. first-hand vs second-hand voice authenticity, Domain & Workflow Coverage, Ambiguity & Vague Language, Source Provenance/Consistency/Conflict, Quantitative & Measurable Signal, Scope & MVP Signal). Recommendations are restricted to five sanctioned corpus-handling forms (Reconcile in-corpus / Label / Treat as silence / Treat as second-hand / Resolve at draft time) — never elicitation. A prior seventh dimension (Bias / Sampling / Self-Selection) existed in earlier drafts but was structurally incompatible with the principle (the corpus IS the voice — there is no should-be larger corpus to recommend); its observability content survives in the artefact's Diagnostics block as the **Corpus Shape** subsection (source count / distinct-author count / time-window / tier distribution — reported, not findings-generating).
@@ -814,6 +820,7 @@ graph TD
       skill_preflight_prd[preflight-mcp.md]
       skill_convert_prd[convert-input-file.md]
       skill_buildmanifest_prd[build-source-manifest.md]
+      skill_checkfresh_prd[check-manifest-freshness.md]
       skill_verifywrite_prd[verify-artifact-write.md]
       skill_bloat_prd[check-context-bloat.md]
       skill_gappass_prd[completeness-gap-pass-prd.md]
@@ -848,6 +855,7 @@ graph TD
     orch_prd --> shared_refusal_prd
     orch_prd --> state_prd_progress
 
+    agent_input_prd --> skill_checkfresh_prd
     agent_input_prd --> skill_classify_prd
     agent_input_prd --> skill_preflight_prd
     agent_input_prd --> skill_convert_prd
@@ -880,17 +888,17 @@ graph TD
 
     class orch_prd orch
     class agent_input_prd,agent_prd_drafter,agent_prd_resolver,agent_prd_merger agent
-    class skill_classify_prd,skill_preflight_prd,skill_convert_prd,skill_buildmanifest_prd,skill_verifywrite_prd,skill_bloat_prd,skill_gappass_prd,skill_grounding_prd skill
+    class skill_classify_prd,skill_preflight_prd,skill_convert_prd,skill_buildmanifest_prd,skill_checkfresh_prd,skill_verifywrite_prd,skill_bloat_prd,skill_gappass_prd,skill_grounding_prd skill
     class asset_template_prd,asset_topics_prd asset
     class char_prd_drafting,char_prd_resolving,char_prd_finalising char
     class shared_refusal_prd,shared_setup_md_prd shared
     class state_prd_progress state
 ```
 
-**Stats:** 22 nodes / 32 edges / depth 4.
+**Stats:** 23 nodes / 33 edges / depth 4.
 
 **Notes:**
-- The `input-handler.md` agent is **shared with `requirements-orch.md` (graph 1), `analyse-inputs-orch.md` (graph 5), and `review-inputs-orch.md` (graph 6)**. The five transitive skills below it (`classify-input-tier`, `preflight-mcp`, `convert-input-file`, `build-source-manifest`, `verify-artifact-write`) plus the two shared-policy edges to `refusal-registry.md` and `setup-instructions/markitdown.md` are the same node identities across all four graphs. The per-call difference is the agent's `progress_path` parameter: `requirements-orch.md` passes `framework/state/.progress.json`; `generate-prd-orch.md` passes `framework/state/.prd-progress.json` (a distinct progress file for the PRD pipeline, so `RF-01 continue-later` halts don't conflate with `/requirements`-in-flight state); `analyse-inputs-orch.md` and `review-inputs-orch.md` both pass `null` (which suppresses the agent's `RF-01 continue-later` progress-file write).
+- The `input-handler.md` agent is **shared with `requirements-orch.md` (graph 1), `analyse-inputs-orch.md` (graph 5), and `review-inputs-orch.md` (graph 6)**. The six transitive skills below it (`check-manifest-freshness`, `classify-input-tier`, `preflight-mcp`, `convert-input-file`, `build-source-manifest`, `verify-artifact-write`) plus the two shared-policy edges to `refusal-registry.md` and `setup-instructions/markitdown.md` are the same node identities across all four input-handler-using graphs. The per-call difference is the agent's `progress_path` parameter: `requirements-orch.md` passes `framework/state/.progress.json`; `generate-prd-orch.md` passes `framework/state/.prd-progress.json` (a distinct progress file for the PRD pipeline, so `RF-01 continue-later` halts don't conflate with `/requirements`-in-flight state); `analyse-inputs-orch.md` and `review-inputs-orch.md` both pass `null` (which suppresses the agent's `RF-01 continue-later` progress-file write). `check-manifest-freshness` runs at the agent's step 0 to gate the create / refresh / no-op / halt decision on every invocation when an existing manifest is present.
 - The shared `requirements/source-manifest.json` is read but its `target` field is **informational only** for the PRD pipeline — surfaced in §1 metadata of the PRD as a reference, but no decision tree branches on it. The PRD orchestrator does **not** invoke `framework/skills/set-build-target.md`; if `target` is `null` on entry (typical when `/generate-prd` runs before `/requirements`), the drafter surfaces "to-be-determined" in §1 and proceeds without writing the field.
 - The PRD pipeline emits exactly **two markers** in draft body: `[SRC: PC-NNN]` (PRD-namespaced citations, sidecar at `prd/draft-claims.ndjson`) and `[AI-SUGGESTED: PAI-NNN | blocking|non-blocking]`. **No `[STANDARD-RULE]`, `[OUT-OF-SCOPE]`, or `[REQ:]` markers** are ever emitted — the `GR-NN` rules in `framework/shared/general-rules.md` govern UI behaviour (irrelevant to PRD content), §10 is the out-of-scope section (self-referential marker would be incoherent), and the pipeline is fully independent of `requirements/requirements.md` (no cross-doc pointers). The PRD-drafter does **not** depend on `framework/shared/general-rules.md` or `framework/shared/prototype-scope.md` — the only shared edge from the drafter is to `refusal-registry.md` (for `RF-04`).
 - `completeness-gap-pass-prd.md` is a clone-and-modify of `framework/skills/completeness-gap-pass.md` (the requirements-pipeline gap-pass). The PRD version has a smaller decision tree (two marker outcomes only), no general-rules lookup, no out-of-scope routing, no Tier C, no Tier D visual-manifestation gating. Tier A invariants are PRD-shaped (B1–B10: metric↔problem/hypothesis, hypothesis↔falsification, risk↔mitigation, persona↔phasing, stakeholder↔sign-off-role, phase↔release-criterion, phase↔milestone, capability↔upstream-tie, competitive-landscape-named, out-of-scope-nonempty). Cloning rather than parameterising is justified per CLAUDE.md §3's "extract only when ≥2 callers and clean parameter inputs" rule — the bijection sets are pipeline-specific (not clean parameter inputs).
