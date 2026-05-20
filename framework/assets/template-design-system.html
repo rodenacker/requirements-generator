@@ -22,18 +22,14 @@
     1. <head>             — <title>, <meta>, inlined <style>.
     2. <script id="design-tokens"> — JSON token block.
     3. <header>           — H1, attribution blockquote, generated-at line.
-    4. #colours           — 11 swatches (primary..info), each with hex,
+    4. <nav class="doc-toc"> — Anchor links to every section below
+                            (#colours, #components, #typography, #effects,
+                            #contrast, #standards). Static markup — no
+                            placeholders. Renders as flex-wrapping chips
+                            so the TOC reflows on narrow viewports.
+    5. #colours           — 11 swatches (primary..info), each with hex,
                             source-context, and provenance label.
-    5. #typography        — 2 family specimens (heading + body), 8 size
-                            specimens (text-xs..text-4xl), 3 line-height
-                            specimens.
-    6. #effects           — 3 shadow specimens (sm/md/lg) on sample cards,
-                            3 transition specimens + 1 easing specimen as an
-                            animated dot.
-    7. #contrast          — 4 contrast pairs (text/text-muted × bg/surface),
-                            each rendered as text on its actual bg with the
-                            ratio + pass/fail annotation. Adjustments line.
-    8. #components        — Interactive component visualisations (buttons,
+    6. #components        — Interactive component visualisations (buttons,
                             form inputs, alerts, badges, cards, data table,
                             tabs, modal) rendered with the brand tokens.
                             CSS-only interactivity (:hover / :focus / :active
@@ -44,10 +40,26 @@
                             framework/agents/design-system-styler/data/
                             component-catalogue.md — edit the catalogue to
                             add, remove, or tweak families.
-    9. {{STANDARDS_BLOCK}} — replaced by the verbatim contents of
+    7. #typography        — 2 family specimens (heading + body), 8 size
+                            specimens (text-xs..text-4xl), 3 line-height
+                            specimens.
+    8. #effects           — 3 shadow specimens (sm/md/lg) on sample cards,
+                            3 transition specimens + 1 easing specimen as an
+                            animated dot.
+    9. #contrast          — 4 contrast pairs (text/text-muted × bg/surface),
+                            each rendered as text on its actual bg with the
+                            ratio + pass/fail annotation. Adjustments line.
+   10. {{STANDARDS_BLOCK}} — replaced by the verbatim contents of
                              framework/assets/design-system-standards.html at
                              render time. The standards file opens with its
                              own <section id="standards"> wrapper.
+
+  Responsive layout: the doc is intentionally flexible — every grid uses
+  `auto-fit, minmax(...)` so swatches, shadows, and contrast cards reflow
+  without media queries. The two fixed 2-col grids (`.type-specimen`,
+  `.motion-row`) collapse to single-column at <= 720px via the media
+  queries block at the end of `<style>`. Swatches reflow from horizontal
+  to vertical at <= 480px so the colour band stays legible on phones.
 
   Placeholders (string substitution). Token VALUES (hex codes, CSS lengths,
   font-family stacks, shadow declarations) contain no HTML-special
@@ -267,6 +279,11 @@
 
     * { box-sizing: border-box; }
 
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 16px;
+    }
+
     html, body {
       margin: 0;
       padding: 0;
@@ -285,7 +302,66 @@
     }
 
     header.doc-header {
-      margin-bottom: 32px;
+      margin-bottom: 24px;
+    }
+
+    /* --- table of contents ---------------------------------------------- */
+    nav.doc-toc {
+      margin: 0 0 32px 0;
+      padding: 16px 20px;
+      background: var(--section-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-shadow: var(--shadow-card);
+    }
+
+    nav.doc-toc .toc-title {
+      font-size: 12px;
+      font-weight: 600;
+      margin: 0 0 10px 0;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    nav.doc-toc ol.toc-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 10px;
+      counter-reset: toc-counter;
+    }
+
+    nav.doc-toc ol.toc-list li {
+      counter-increment: toc-counter;
+      margin: 0;
+    }
+
+    nav.doc-toc ol.toc-list a {
+      display: inline-block;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      text-decoration: none;
+      color: var(--fg);
+      background: var(--bg);
+      transition: background 150ms ease, border-color 150ms ease;
+    }
+
+    nav.doc-toc ol.toc-list a::before {
+      content: counter(toc-counter) ". ";
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    nav.doc-toc ol.toc-list a:hover,
+    nav.doc-toc ol.toc-list a:focus-visible {
+      background: var(--code-bg);
+      border-color: var(--border-strong);
     }
 
     h1 {
@@ -341,7 +417,7 @@
       margin: 0;
       padding: 0;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
       gap: 12px;
     }
 
@@ -462,7 +538,7 @@
     /* --- effects: shadows ----------------------------------------------- */
     .shadow-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
       gap: 28px;
       padding: 24px 4px 8px;
     }
@@ -542,7 +618,7 @@
     /* --- contrast -------------------------------------------------------- */
     .contrast-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
       gap: 16px;
     }
 
@@ -604,6 +680,7 @@
       border: 1px solid var(--border);
       border-radius: 6px;
       box-shadow: var(--shadow-card);
+      line-height: 1.55;
     }
 
     section.standards > h2 {
@@ -612,25 +689,31 @@
     }
 
     section.standards h3 {
-      font-size: 17px;
-      margin: 24px 0 8px 0;
+      font-size: 19px;
+      margin: 32px 0 10px 0;
       color: var(--fg);
     }
 
     section.standards h4 {
-      font-size: 14px;
-      margin: 16px 0 6px 0;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
+      font-size: 16px;
+      margin: 24px 0 8px 0;
+      color: var(--fg);
+      font-weight: 600;
+    }
+
+    section.standards p {
+      margin: 0 0 10px 0;
+      max-width: 72ch;
     }
 
     section.standards ul {
       margin: 6px 0 10px 22px;
+      max-width: 72ch;
     }
 
     section.standards li {
-      margin: 2px 0;
+      margin: 6px 0;
+      overflow-wrap: anywhere;
     }
 
     section.standards blockquote {
@@ -639,6 +722,8 @@
       border-left: 3px solid var(--border-strong);
       background: var(--bg);
       color: var(--muted);
+      max-width: 72ch;
+      line-height: 1.6;
     }
 
     section.standards code,
@@ -648,6 +733,8 @@
       padding: 1px 5px;
       border-radius: 3px;
       font-size: 0.92em;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     /* --- components section base scaffold ------------------------------- */
@@ -661,6 +748,71 @@
     }
     section#components .cv-family > h3 + p.cv-note { color: var(--muted); }
 
+    /* --- back-to-top link ----------------------------------------------- */
+    .back-to-top {
+      margin: 24px 0 0 0;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      text-align: right;
+      font-size: 12px;
+    }
+    .back-to-top a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+    .back-to-top a:hover,
+    .back-to-top a:focus-visible {
+      color: var(--fg);
+      text-decoration: underline;
+    }
+
+    /* --- responsive layout ---------------------------------------------- */
+    @media (max-width: 960px) {
+      main { padding: 24px 18px 56px; }
+    }
+
+    @media (max-width: 720px) {
+      main { padding: 20px 14px 48px; }
+
+      h1 { font-size: 24px; }
+
+      section.token-section,
+      section.standards { padding: 18px; margin: 24px 0; }
+
+      .type-specimen,
+      .motion-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        align-items: flex-start;
+      }
+
+      .motion-track { width: 100%; }
+
+      .cv-field { min-width: 0; width: 100%; }
+
+      .cv-row { padding: 12px; gap: 10px; }
+      .cv-state-grid { padding: 12px; }
+
+      /* Wide tables become horizontally scrollable rather than overflowing the page. */
+      section#components .cv-table {
+        display: block;
+        overflow-x: auto;
+        max-width: 100%;
+        white-space: nowrap;
+      }
+    }
+
+    @media (max-width: 480px) {
+      li.swatch-row { flex-direction: column; }
+      .swatch {
+        width: 100%;
+        flex: 0 0 56px;
+        min-height: 56px;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+      }
+    }
+
     {{COMPONENT_STYLES}}
   </style>
 </head>
@@ -673,16 +825,36 @@
 <main>
 
   <header class="doc-header">
-    <h1>Design System — {{DOMAIN}}</h1>
+    <h1 id="top">Design System — {{DOMAIN}}</h1>
     <blockquote class="attribution">{{ATTRIBUTION_PARAGRAPH}}</blockquote>
     <p class="generated-at">Generated: {{GENERATED_AT}}</p>
   </header>
+
+  <nav class="doc-toc" aria-label="Table of contents">
+    <h2 class="toc-title">Contents</h2>
+    <ol class="toc-list">
+      <li><a href="#colours">Colours</a></li>
+      <li><a href="#components">Components</a></li>
+      <li><a href="#typography">Typography</a></li>
+      <li><a href="#effects">Effects</a></li>
+      <li><a href="#contrast">Contrast validation</a></li>
+      <li><a href="#standards">Design System Standards</a></li>
+    </ol>
+  </nav>
 
   <section id="colours" class="token-section">
     <h2>Colours</h2>
     <ul class="swatch-list">
       {{COLOUR_SWATCHES}}
     </ul>
+    <p class="back-to-top"><a href="#top">Back to top ↑</a></p>
+  </section>
+
+  <section id="components" class="token-section">
+    <h2>Components</h2>
+    <p class="components-intro">Common UI patterns rendered with the brand's tokens. The <strong>live demo</strong> for each family reacts to real <code>:hover</code>, <code>:focus</code>, <code>:active</code>, <code>:disabled</code>, and <code>:checked</code> in your browser. The <strong>states matrix</strong> below each demo shows every state side-by-side using forced-state classes — useful for screenshots and PDF export. Tabs use hidden radio buttons + <code>:checked</code>; the modal uses native <code>&lt;details&gt;</code>. No JavaScript. Edit <code>framework/agents/design-system-styler/data/component-catalogue.md</code> to add, remove, or tweak families.</p>
+    {{COMPONENT_SPECIMENS}}
+    <p class="back-to-top"><a href="#top">Back to top ↑</a></p>
   </section>
 
   <section id="typography" class="token-section">
@@ -696,6 +868,7 @@
 
     <h3>Line heights</h3>
     {{TYPE_LH_SPECIMENS}}
+    <p class="back-to-top"><a href="#top">Back to top ↑</a></p>
   </section>
 
   <section id="effects" class="token-section">
@@ -708,6 +881,7 @@
 
     <h3>Motion</h3>
     {{MOTION_SPECIMENS}}
+    <p class="back-to-top"><a href="#top">Back to top ↑</a></p>
   </section>
 
   <section id="contrast" class="token-section">
@@ -717,12 +891,7 @@
       {{CONTRAST_PAIRS}}
     </div>
     <p class="contrast-adjustments"><strong>Adjustments:</strong> {{CONTRAST_ADJUSTMENTS}}</p>
-  </section>
-
-  <section id="components" class="token-section">
-    <h2>Components</h2>
-    <p class="components-intro">Common UI patterns rendered with the brand's tokens. The <strong>live demo</strong> for each family reacts to real <code>:hover</code>, <code>:focus</code>, <code>:active</code>, <code>:disabled</code>, and <code>:checked</code> in your browser. The <strong>states matrix</strong> below each demo shows every state side-by-side using forced-state classes — useful for screenshots and PDF export. Tabs use hidden radio buttons + <code>:checked</code>; the modal uses native <code>&lt;details&gt;</code>. No JavaScript. Edit <code>framework/agents/design-system-styler/data/component-catalogue.md</code> to add, remove, or tweak families.</p>
-    {{COMPONENT_SPECIMENS}}
+    <p class="back-to-top"><a href="#top">Back to top ↑</a></p>
   </section>
 
   {{STANDARDS_BLOCK}}

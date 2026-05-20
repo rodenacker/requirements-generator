@@ -111,7 +111,7 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 
 .cv-state-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
   gap: 12px;
   padding: 16px;
   background: {{colours.background.hex}};
@@ -126,6 +126,13 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   background: {{colours.surface.hex}};
   border-radius: 4px;
   border: 1px solid rgba(0,0,0,0.08);
+  min-width: 0;
+}
+.cv-state-cell .cv-input,
+.cv-state-cell .cv-textarea,
+.cv-state-cell .cv-select {
+  width: 100%;
+  max-width: 100%;
 }
 .cv-state-label {
   font-size: 10px;
@@ -389,6 +396,7 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 }
 .cv-tabs .cv-tab-strip {
   display: flex;
+  flex-wrap: wrap;
   border-bottom: 1px solid rgba(0,0,0,0.12);
 }
 .cv-tabs .cv-tab-label {
@@ -460,6 +468,177 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   gap: 8px;
   justify-content: flex-end;
 }
+.cv-modal .cv-modal-window { position: relative; }
+.cv-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: 0;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  color: {{colours.text_muted.hex}};
+  padding: 4px 8px;
+  border-radius: 3px;
+}
+.cv-modal-close:hover { color: {{colours.text.hex}}; background: rgba(0,0,0,0.04); }
+
+/* --- Icons (inline SVG, inherits currentColor) ------------------------- */
+.cv-icon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+  flex: 0 0 auto;
+}
+.cv-btn .cv-icon { margin-right: 6px; }
+
+/* --- Button loading state --------------------------------------------- */
+.cv-btn-loading { pointer-events: none; }
+.cv-btn-loading::before {
+  content: "";
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  vertical-align: -1px;
+  margin-right: 8px;
+  animation: cv-spin 720ms linear infinite;
+}
+@keyframes cv-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .cv-btn-loading::before { animation: none; }
+}
+
+/* --- Form: required indicator + input-with-icon ----------------------- */
+.cv-required {
+  color: {{colours.error.hex}};
+  margin-left: 2px;
+  font-weight: 600;
+}
+.cv-input-wrap { position: relative; display: block; }
+.cv-input-wrap .cv-input { padding-right: 34px; }
+.cv-input-wrap .cv-input-icon {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  color: {{colours.text_muted.hex}};
+  pointer-events: none;
+}
+.cv-field-error {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* --- Alerts: icon + dismiss ------------------------------------------ */
+.cv-alert { align-items: center; }
+.cv-alert .cv-alert-icon { flex: 0 0 auto; width: 16px; height: 16px; vertical-align: 0; }
+.cv-alert-success .cv-alert-icon { color: {{colours.success.hex}}; }
+.cv-alert-warning .cv-alert-icon { color: {{colours.warning.hex}}; }
+.cv-alert-error .cv-alert-icon { color: {{colours.error.hex}}; }
+.cv-alert-info .cv-alert-icon { color: {{colours.info.hex}}; }
+.cv-alert-body { flex: 1 1 auto; min-width: 0; }
+.cv-alert-dismiss {
+  flex: 0 0 auto;
+  background: transparent;
+  border: 0;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  color: {{colours.text_muted.hex}};
+  padding: 4px 8px;
+  border-radius: 3px;
+}
+.cv-alert-dismiss:hover { color: {{colours.text.hex}}; background: rgba(0,0,0,0.04); }
+
+/* --- Data table: numeric alignment, actions column, pagination, states */
+.cv-table th.cv-cell-num,
+.cv-table td.cv-cell-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.cv-table th.cv-cell-actions,
+.cv-table td.cv-cell-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+.cv-table .cv-cell-actions .cv-btn {
+  padding: 4px 8px;
+  font-size: 12px;
+  margin-left: 4px;
+}
+.cv-table th[aria-sort="ascending"],
+.cv-table th[aria-sort="descending"] {
+  color: {{colours.text.hex}};
+}
+.cv-table th[aria-sort="ascending"] .cv-sort-arrow,
+.cv-table th[aria-sort="descending"] .cv-sort-arrow {
+  color: {{colours.primary.hex}};
+  opacity: 1;
+}
+.cv-sort-arrow.cv-sort-inactive {
+  color: {{colours.text_muted.hex}};
+  opacity: 0.5;
+}
+.cv-table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 12px;
+  background: {{colours.surface.hex}};
+  border: 1px solid rgba(0,0,0,0.08);
+  border-top: 0;
+  border-radius: 0 0 6px 6px;
+  font-family: {{typography.body_family.value}};
+  font-size: 12px;
+  color: {{colours.text_muted.hex}};
+  margin-top: -1px;
+}
+.cv-pagination {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.cv-pagination .cv-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+.cv-pagesize {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.cv-pagesize select {
+  font-family: {{typography.body_family.value}};
+  font-size: 12px;
+  padding: 3px 6px;
+  border: 1px solid rgba(0,0,0,0.20);
+  border-radius: 3px;
+  background: {{colours.surface.hex}};
+  color: {{colours.text.hex}};
+}
+.cv-table-state {
+  padding: 24px 12px;
+  text-align: center;
+  color: {{colours.text_muted.hex}};
+  font-size: 12px;
+  background: {{colours.surface.hex}};
+  border-radius: 6px;
+  width: 100%;
+}
+.cv-table-state strong {
+  color: {{colours.text.hex}};
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
 ```
 
 ---
@@ -472,10 +651,14 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 
 ```html
 <div class="cv-row">
-  <button type="button" class="cv-btn cv-btn-primary">Primary</button>
-  <button type="button" class="cv-btn cv-btn-secondary">Secondary</button>
-  <button type="button" class="cv-btn cv-btn-ghost">Ghost</button>
-  <button type="button" class="cv-btn cv-btn-destructive">Delete</button>
+  <button type="button" class="cv-btn cv-btn-primary">Save changes</button>
+  <button type="button" class="cv-btn cv-btn-secondary">Cancel</button>
+  <button type="button" class="cv-btn cv-btn-ghost">Archive</button>
+  <button type="button" class="cv-btn cv-btn-destructive">
+    <svg class="cv-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M6 2h4v1h3v1H3V3h3V2zm-1 3h6l-.5 8.5a1.5 1.5 0 0 1-1.5 1.4H7a1.5 1.5 0 0 1-1.5-1.4L5 5zm2 1v7h1V6H7zm2 0v7h1V6H9z"/></svg>
+    Delete record
+  </button>
+  <button type="button" class="cv-btn cv-btn-primary cv-btn-loading">Saving…</button>
   <button type="button" class="cv-btn cv-btn-primary" disabled>Disabled</button>
 </div>
 ```
@@ -484,26 +667,27 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 
 ```html
 <div class="cv-state-grid">
-  <div class="cv-state-cell"><span class="cv-state-label">Default</span><button type="button" class="cv-btn cv-btn-primary">Primary</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Hover</span><button type="button" class="cv-btn cv-btn-primary cv-force-hover">Primary</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Active</span><button type="button" class="cv-btn cv-btn-primary cv-force-active">Primary</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Focus</span><button type="button" class="cv-btn cv-btn-primary cv-force-focus">Primary</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Disabled</span><button type="button" class="cv-btn cv-btn-primary cv-force-disabled">Primary</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Default</span><button type="button" class="cv-btn cv-btn-secondary">Secondary</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Hover</span><button type="button" class="cv-btn cv-btn-secondary cv-force-hover">Secondary</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Active</span><button type="button" class="cv-btn cv-btn-secondary cv-force-active">Secondary</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Focus</span><button type="button" class="cv-btn cv-btn-secondary cv-force-focus">Secondary</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Disabled</span><button type="button" class="cv-btn cv-btn-secondary cv-force-disabled">Secondary</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Default</span><button type="button" class="cv-btn cv-btn-ghost">Ghost</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Hover</span><button type="button" class="cv-btn cv-btn-ghost cv-force-hover">Ghost</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Active</span><button type="button" class="cv-btn cv-btn-ghost cv-force-active">Ghost</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Focus</span><button type="button" class="cv-btn cv-btn-ghost cv-force-focus">Ghost</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Disabled</span><button type="button" class="cv-btn cv-btn-ghost cv-force-disabled">Ghost</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Default</span><button type="button" class="cv-btn cv-btn-destructive">Delete</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Hover</span><button type="button" class="cv-btn cv-btn-destructive cv-force-hover">Delete</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Active</span><button type="button" class="cv-btn cv-btn-destructive cv-force-active">Delete</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Focus</span><button type="button" class="cv-btn cv-btn-destructive cv-force-focus">Delete</button></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Disabled</span><button type="button" class="cv-btn cv-btn-destructive cv-force-disabled">Delete</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Default</span><button type="button" class="cv-btn cv-btn-primary">Save</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Hover</span><button type="button" class="cv-btn cv-btn-primary cv-force-hover">Save</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Active</span><button type="button" class="cv-btn cv-btn-primary cv-force-active">Save</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Focus</span><button type="button" class="cv-btn cv-btn-primary cv-force-focus">Save</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Disabled</span><button type="button" class="cv-btn cv-btn-primary cv-force-disabled">Save</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Loading</span><button type="button" class="cv-btn cv-btn-primary cv-btn-loading">Saving…</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Default</span><button type="button" class="cv-btn cv-btn-secondary">Cancel</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Hover</span><button type="button" class="cv-btn cv-btn-secondary cv-force-hover">Cancel</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Active</span><button type="button" class="cv-btn cv-btn-secondary cv-force-active">Cancel</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Focus</span><button type="button" class="cv-btn cv-btn-secondary cv-force-focus">Cancel</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Disabled</span><button type="button" class="cv-btn cv-btn-secondary cv-force-disabled">Cancel</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Default</span><button type="button" class="cv-btn cv-btn-ghost">Archive</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Hover</span><button type="button" class="cv-btn cv-btn-ghost cv-force-hover">Archive</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Active</span><button type="button" class="cv-btn cv-btn-ghost cv-force-active">Archive</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Focus</span><button type="button" class="cv-btn cv-btn-ghost cv-force-focus">Archive</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Disabled</span><button type="button" class="cv-btn cv-btn-ghost cv-force-disabled">Archive</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Default</span><button type="button" class="cv-btn cv-btn-destructive"><svg class="cv-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M6 2h4v1h3v1H3V3h3V2zm-1 3h6l-.5 8.5a1.5 1.5 0 0 1-1.5 1.4H7a1.5 1.5 0 0 1-1.5-1.4L5 5z"/></svg>Delete</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Hover</span><button type="button" class="cv-btn cv-btn-destructive cv-force-hover"><svg class="cv-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M6 2h4v1h3v1H3V3h3V2zm-1 3h6l-.5 8.5a1.5 1.5 0 0 1-1.5 1.4H7a1.5 1.5 0 0 1-1.5-1.4L5 5z"/></svg>Delete</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Active</span><button type="button" class="cv-btn cv-btn-destructive cv-force-active"><svg class="cv-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M6 2h4v1h3v1H3V3h3V2zm-1 3h6l-.5 8.5a1.5 1.5 0 0 1-1.5 1.4H7a1.5 1.5 0 0 1-1.5-1.4L5 5z"/></svg>Delete</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Focus</span><button type="button" class="cv-btn cv-btn-destructive cv-force-focus"><svg class="cv-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M6 2h4v1h3v1H3V3h3V2zm-1 3h6l-.5 8.5a1.5 1.5 0 0 1-1.5 1.4H7a1.5 1.5 0 0 1-1.5-1.4L5 5z"/></svg>Delete</button></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Disabled</span><button type="button" class="cv-btn cv-btn-destructive cv-force-disabled"><svg class="cv-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M6 2h4v1h3v1H3V3h3V2zm-1 3h6l-.5 8.5a1.5 1.5 0 0 1-1.5 1.4H7a1.5 1.5 0 0 1-1.5-1.4L5 5z"/></svg>Delete</button></div>
 </div>
 ```
 
@@ -518,13 +702,25 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 ```html
 <div class="cv-row cv-row-col">
   <div class="cv-field">
-    <label class="cv-field-label" for="cv-demo-text">Full name</label>
-    <input id="cv-demo-text" type="text" class="cv-input" placeholder="Jane Doe">
+    <label class="cv-field-label" for="cv-demo-text">Full name<span class="cv-required" aria-hidden="true">*</span></label>
+    <input id="cv-demo-text" type="text" class="cv-input" placeholder="Jane Doe" required aria-required="true">
     <span class="cv-field-hint">First and last as on your ID.</span>
   </div>
   <div class="cv-field">
+    <label class="cv-field-label" for="cv-demo-email">Work email<span class="cv-required" aria-hidden="true">*</span></label>
+    <input id="cv-demo-email" type="email" class="cv-input" placeholder="name@company.com" required aria-required="true">
+  </div>
+  <div class="cv-field">
+    <label class="cv-field-label" for="cv-demo-date">Start date</label>
+    <div class="cv-input-wrap">
+      <input id="cv-demo-date" type="date" class="cv-input" placeholder="DD/MM/YYYY">
+      <svg class="cv-icon cv-input-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M5 1v2H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1h-2V1h-1v2H6V1H5zm-2 4h10v8H3V5zm2 2v2h2V7H5zm3 0v2h2V7H8zm3 0v2h2V7h-2z"/></svg>
+    </div>
+    <span class="cv-field-hint">Calendar picker — typed dates parsed in DD/MM/YYYY.</span>
+  </div>
+  <div class="cv-field">
     <label class="cv-field-label" for="cv-demo-textarea">Notes</label>
-    <textarea id="cv-demo-textarea" class="cv-textarea" placeholder="Optional context..."></textarea>
+    <textarea id="cv-demo-textarea" class="cv-textarea" placeholder="Optional context…"></textarea>
   </div>
   <div class="cv-field">
     <label class="cv-field-label" for="cv-demo-select">Country</label>
@@ -553,8 +749,17 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 <div class="cv-state-grid">
   <div class="cv-state-cell"><span class="cv-state-label">Default</span><input type="text" class="cv-input" value="Jane Doe"></div>
   <div class="cv-state-cell"><span class="cv-state-label">Focus</span><input type="text" class="cv-input cv-force-focus" value="Jane Doe"></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Error</span><input type="text" class="cv-input cv-force-error" value="Jane Doe"><span class="cv-field-error">Required</span></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Error</span>
+    <input type="text" class="cv-input cv-force-error" value="" aria-invalid="true" aria-describedby="cv-demo-err">
+    <span id="cv-demo-err" class="cv-field-error">
+      <svg class="cv-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm-.9 3.5h1.8L8.7 9.5H7.3l-.2-5zM8 11.2a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
+      Full name is required
+    </span>
+  </div>
   <div class="cv-state-cell"><span class="cv-state-label">Disabled</span><input type="text" class="cv-input cv-force-disabled" value="Jane Doe" disabled></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Date</span>
+    <div class="cv-input-wrap"><input type="date" class="cv-input"><svg class="cv-icon cv-input-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M5 1v2H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1h-2V1h-1v2H6V1H5zm-2 4h10v8H3V5z"/></svg></div>
+  </div>
   <div class="cv-state-cell"><span class="cv-state-label">Switch off</span><label class="cv-switch"><input type="checkbox"><span class="cv-switch-track"></span></label></div>
   <div class="cv-state-cell"><span class="cv-state-label">Switch on</span><span class="cv-switch cv-force-on"><span class="cv-switch-track"></span></span></div>
   <div class="cv-state-cell"><span class="cv-state-label">Switch disabled</span><span class="cv-switch cv-force-disabled"><span class="cv-switch-track"></span></span></div>
@@ -573,10 +778,25 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 
 ```html
 <div class="cv-row cv-row-col">
-  <div class="cv-alert cv-alert-success"><strong>Success.</strong> Your changes were saved.</div>
-  <div class="cv-alert cv-alert-warning"><strong>Heads up.</strong> Your session expires in 5 minutes.</div>
-  <div class="cv-alert cv-alert-error"><strong>Error.</strong> We couldn't reach the server. Try again.</div>
-  <div class="cv-alert cv-alert-info"><strong>FYI.</strong> A new version of the dashboard is available.</div>
+  <div class="cv-alert cv-alert-success" role="status">
+    <svg class="cv-icon cv-alert-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm3.5 4.7-4 5.3a.7.7 0 0 1-1 .1L4 8.5l1-1 1.9 2 3.4-4.5 1.2.7z"/></svg>
+    <div class="cv-alert-body"><strong>Saved.</strong> Your changes were saved.</div>
+    <button type="button" class="cv-alert-dismiss" aria-label="Dismiss">×</button>
+  </div>
+  <div class="cv-alert cv-alert-warning" role="status">
+    <svg class="cv-icon cv-alert-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M7.1 1.7a1 1 0 0 1 1.8 0l6 11A1 1 0 0 1 14 14H2a1 1 0 0 1-.9-1.3l6-11zM8 5v4h1V5H8zm0 5.5a.8.8 0 1 0 0 1.6.8.8 0 0 0 0-1.6z"/></svg>
+    <div class="cv-alert-body"><strong>Heads up.</strong> Your session expires in 5 minutes.</div>
+    <button type="button" class="cv-alert-dismiss" aria-label="Dismiss">×</button>
+  </div>
+  <div class="cv-alert cv-alert-error" role="alert">
+    <svg class="cv-icon cv-alert-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM5.6 5l2.4 2.4L10.4 5l1 1L9 8.4l2.4 2.5-1 1L8 9.4 5.6 12l-1-1 2.4-2.5L4.6 6l1-1z"/></svg>
+    <div class="cv-alert-body"><strong>Couldn't reach the server.</strong> Check your connection and try again.</div>
+  </div>
+  <div class="cv-alert cv-alert-info" role="status">
+    <svg class="cv-icon cv-alert-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM8 4.2a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8zM7.2 7h1.6v4.8h.9V13H6.3v-1.2h.9V8.2h-.9V7h.9z"/></svg>
+    <div class="cv-alert-body"><strong>FYI.</strong> A new version of the dashboard is available.</div>
+    <button type="button" class="cv-alert-dismiss" aria-label="Dismiss">×</button>
+  </div>
 </div>
 ```
 
@@ -584,10 +804,10 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 
 ```html
 <div class="cv-state-grid">
-  <div class="cv-state-cell"><span class="cv-state-label">Success</span><div class="cv-alert cv-alert-success"><strong>Saved.</strong></div></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Warning</span><div class="cv-alert cv-alert-warning"><strong>Heads up.</strong></div></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Error</span><div class="cv-alert cv-alert-error"><strong>Error.</strong></div></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Info</span><div class="cv-alert cv-alert-info"><strong>FYI.</strong></div></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Success</span><div class="cv-alert cv-alert-success"><svg class="cv-icon cv-alert-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm3.5 4.7-4 5.3a.7.7 0 0 1-1 .1L4 8.5l1-1 1.9 2 3.4-4.5 1.2.7z"/></svg><div class="cv-alert-body"><strong>Saved.</strong></div></div></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Warning</span><div class="cv-alert cv-alert-warning"><svg class="cv-icon cv-alert-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M7.1 1.7a1 1 0 0 1 1.8 0l6 11A1 1 0 0 1 14 14H2a1 1 0 0 1-.9-1.3l6-11zM8 5v4h1V5H8zm0 5.5a.8.8 0 1 0 0 1.6.8.8 0 0 0 0-1.6z"/></svg><div class="cv-alert-body"><strong>Heads up.</strong></div></div></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Error</span><div class="cv-alert cv-alert-error"><svg class="cv-icon cv-alert-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM5.6 5l2.4 2.4L10.4 5l1 1L9 8.4l2.4 2.5-1 1L8 9.4 5.6 12l-1-1 2.4-2.5L4.6 6l1-1z"/></svg><div class="cv-alert-body"><strong>Error.</strong></div></div></div>
+  <div class="cv-state-cell"><span class="cv-state-label">Info</span><div class="cv-alert cv-alert-info"><svg class="cv-icon cv-alert-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM8 4.2a.9.9 0 1 1 0 1.8.9.9 0 0 1 0-1.8zM7.2 7h1.6v4.8h.9V13H6.3v-1.2h.9V8.2h-.9V7h.9z"/></svg><div class="cv-alert-body"><strong>FYI.</strong></div></div></div>
 </div>
 ```
 
@@ -678,22 +898,81 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 
 ```html
 <div class="cv-row cv-row-col">
-  <table class="cv-table">
+  <table class="cv-table" aria-label="Customer records">
     <thead>
       <tr>
-        <th>Name <span class="cv-sort-arrow">▲</span></th>
-        <th>Status</th>
-        <th>Updated</th>
-        <th>Owner</th>
+        <th aria-sort="ascending">Name <span class="cv-sort-arrow">▲</span></th>
+        <th aria-sort="none">Status <span class="cv-sort-arrow cv-sort-inactive">⇅</span></th>
+        <th aria-sort="none">Updated <span class="cv-sort-arrow cv-sort-inactive">⇅</span></th>
+        <th aria-sort="none">Owner <span class="cv-sort-arrow cv-sort-inactive">⇅</span></th>
+        <th aria-sort="none" class="cv-cell-num">Value <span class="cv-sort-arrow cv-sort-inactive">⇅</span></th>
+        <th class="cv-cell-actions">Actions</th>
       </tr>
     </thead>
     <tbody>
-      <tr><td>Acme Corp.</td><td><span class="cv-badge cv-badge-success">Active</span></td><td>2 hours ago</td><td>J. Doe</td></tr>
-      <tr class="cv-row-selected"><td>Globex Ltd.</td><td><span class="cv-badge cv-badge-warning">Pending</span></td><td>1 day ago</td><td>A. Smith</td></tr>
-      <tr><td>Initech</td><td><span class="cv-badge cv-badge-error">Failed</span></td><td>3 days ago</td><td>M. Mole</td></tr>
-      <tr><td>Umbrella plc.</td><td><span class="cv-badge cv-badge-info">Beta</span></td><td>5 days ago</td><td>R. Park</td></tr>
+      <tr>
+        <td>Acme Corp.</td>
+        <td><span class="cv-badge cv-badge-success">Active</span></td>
+        <td>2 hours ago</td>
+        <td>J. Doe</td>
+        <td class="cv-cell-num">£12,480</td>
+        <td class="cv-cell-actions">
+          <button type="button" class="cv-btn cv-btn-ghost">View</button>
+          <button type="button" class="cv-btn cv-btn-ghost">Edit</button>
+        </td>
+      </tr>
+      <tr class="cv-row-selected">
+        <td>Globex Ltd.</td>
+        <td><span class="cv-badge cv-badge-warning">Pending</span></td>
+        <td>1 day ago</td>
+        <td>A. Smith</td>
+        <td class="cv-cell-num">£8,120</td>
+        <td class="cv-cell-actions">
+          <button type="button" class="cv-btn cv-btn-ghost">View</button>
+          <button type="button" class="cv-btn cv-btn-ghost">Edit</button>
+        </td>
+      </tr>
+      <tr>
+        <td>Initech</td>
+        <td><span class="cv-badge cv-badge-error">Failed</span></td>
+        <td>3 days ago</td>
+        <td>M. Mole</td>
+        <td class="cv-cell-num">£430</td>
+        <td class="cv-cell-actions">
+          <button type="button" class="cv-btn cv-btn-ghost">View</button>
+          <button type="button" class="cv-btn cv-btn-ghost">Edit</button>
+        </td>
+      </tr>
+      <tr>
+        <td>Umbrella plc.</td>
+        <td><span class="cv-badge cv-badge-info">Beta</span></td>
+        <td>5 days ago</td>
+        <td>R. Park</td>
+        <td class="cv-cell-num">£24,900</td>
+        <td class="cv-cell-actions">
+          <button type="button" class="cv-btn cv-btn-ghost">View</button>
+          <button type="button" class="cv-btn cv-btn-ghost">Edit</button>
+        </td>
+      </tr>
     </tbody>
   </table>
+  <div class="cv-table-footer">
+    <span>Showing 1–4 of 240 records</span>
+    <div class="cv-pagination" role="navigation" aria-label="Pagination">
+      <button type="button" class="cv-btn cv-btn-ghost">‹ Back</button>
+      <span>Page 1 of 12</span>
+      <button type="button" class="cv-btn cv-btn-ghost">Next ›</button>
+    </div>
+    <label class="cv-pagesize">
+      <span>Rows per page</span>
+      <select aria-label="Rows per page">
+        <option>5</option>
+        <option>10</option>
+        <option selected>20</option>
+        <option>50</option>
+      </select>
+    </label>
+  </div>
 </div>
 ```
 
@@ -704,6 +983,9 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   <div class="cv-state-cell"><span class="cv-state-label">Header hover</span>
     <table class="cv-table"><thead><tr><th class="cv-force-hover">Name <span class="cv-sort-arrow">▲</span></th></tr></thead></table>
   </div>
+  <div class="cv-state-cell"><span class="cv-state-label">Sort inactive</span>
+    <table class="cv-table"><thead><tr><th>Owner <span class="cv-sort-arrow cv-sort-inactive">⇅</span></th></tr></thead></table>
+  </div>
   <div class="cv-state-cell"><span class="cv-state-label">Row hover</span>
     <table class="cv-table"><tbody><tr class="cv-force-hover"><td>Hovered row</td></tr></tbody></table>
   </div>
@@ -712,6 +994,15 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   </div>
   <div class="cv-state-cell"><span class="cv-state-label">Zebra row</span>
     <table class="cv-table"><tbody><tr><td>Odd row</td></tr><tr><td>Even row</td></tr></tbody></table>
+  </div>
+  <div class="cv-state-cell"><span class="cv-state-label">Empty</span>
+    <div class="cv-table-state"><strong>No records yet</strong>Add your first customer to get started.</div>
+  </div>
+  <div class="cv-state-cell"><span class="cv-state-label">Loading</span>
+    <div class="cv-table-state"><strong>Loading…</strong>Fetching records.</div>
+  </div>
+  <div class="cv-state-cell"><span class="cv-state-label">Error</span>
+    <div class="cv-table-state"><strong>Couldn't load records</strong>Check your connection and try again.</div>
   </div>
 </div>
 ```
@@ -768,13 +1059,20 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 ```html
 <div class="cv-row cv-row-col">
   <details class="cv-modal">
-    <summary><span class="cv-btn cv-btn-primary">Open dialog</span></summary>
-    <div class="cv-modal-window">
-      <div class="cv-modal-title">Confirm delete</div>
-      <div class="cv-modal-body">You're about to permanently delete this record. This action cannot be undone.</div>
+    <summary><span class="cv-btn cv-btn-destructive">
+      <svg class="cv-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M6 2h4v1h3v1H3V3h3V2zm-1 3h6l-.5 8.5a1.5 1.5 0 0 1-1.5 1.4H7a1.5 1.5 0 0 1-1.5-1.4L5 5zm2 1v7h1V6H7zm2 0v7h1V6H9z"/></svg>
+      Delete invoice
+    </span></summary>
+    <div class="cv-modal-window" role="dialog" aria-modal="true" aria-labelledby="cv-modal-title">
+      <button type="button" class="cv-modal-close" aria-label="Close dialog">×</button>
+      <div class="cv-modal-title" id="cv-modal-title">Delete invoice INV-1042?</div>
+      <div class="cv-modal-body">Invoice <strong>INV-1042</strong> for Acme Corp. (£12,480) will be permanently removed. This action cannot be undone.</div>
       <div class="cv-modal-actions">
         <button type="button" class="cv-btn cv-btn-ghost">Cancel</button>
-        <button type="button" class="cv-btn cv-btn-destructive">Delete</button>
+        <button type="button" class="cv-btn cv-btn-destructive">
+          <svg class="cv-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M6 2h4v1h3v1H3V3h3V2zm-1 3h6l-.5 8.5a1.5 1.5 0 0 1-1.5 1.4H7a1.5 1.5 0 0 1-1.5-1.4L5 5z"/></svg>
+          Delete invoice
+        </button>
       </div>
     </div>
   </details>
@@ -786,15 +1084,16 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
 ```html
 <div class="cv-state-grid">
   <div class="cv-state-cell"><span class="cv-state-label">Closed</span>
-    <span class="cv-btn cv-btn-primary">Open dialog</span>
+    <span class="cv-btn cv-btn-destructive"><svg class="cv-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M6 2h4v1h3v1H3V3h3V2zm-1 3h6l-.5 8.5a1.5 1.5 0 0 1-1.5 1.4H7a1.5 1.5 0 0 1-1.5-1.4L5 5z"/></svg>Delete invoice</span>
   </div>
   <div class="cv-state-cell"><span class="cv-state-label">Open</span>
-    <div class="cv-modal-window">
-      <div class="cv-modal-title">Confirm delete</div>
-      <div class="cv-modal-body">Permanent action.</div>
+    <div class="cv-modal-window" role="dialog" aria-modal="true" aria-labelledby="cv-modal-title-static">
+      <button type="button" class="cv-modal-close" aria-label="Close dialog">×</button>
+      <div class="cv-modal-title" id="cv-modal-title-static">Delete invoice INV-1042?</div>
+      <div class="cv-modal-body">Invoice <strong>INV-1042</strong> for Acme Corp. will be permanently removed.</div>
       <div class="cv-modal-actions">
         <button type="button" class="cv-btn cv-btn-ghost">Cancel</button>
-        <button type="button" class="cv-btn cv-btn-destructive">Delete</button>
+        <button type="button" class="cv-btn cv-btn-destructive"><svg class="cv-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M6 2h4v1h3v1H3V3h3V2zm-1 3h6l-.5 8.5a1.5 1.5 0 0 1-1.5 1.4H7a1.5 1.5 0 0 1-1.5-1.4L5 5z"/></svg>Delete</button>
       </div>
     </div>
   </div>
