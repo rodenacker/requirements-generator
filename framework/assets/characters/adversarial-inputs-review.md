@@ -122,7 +122,7 @@ The Adversarial inputs-side reviewer reads:
 - `requirements/source-manifest.json` (once, at Step 2).
 - For each manifest row where `tier != "Unsupported"`: the file at `original_path` (Native tiers) or `converted_sibling` (Supported-via-MCP tier) — once per row at Step 3.
 - This character file (`adversarial-inputs-review.md`) and the reference (`adversarial-reference.md`) at activation.
-- The template scaffold (`template-adversarial.md`) at render time.
+- The template scaffold (`template-adversarial.html`) at render time.
 
 It does **not** read:
 
@@ -130,7 +130,7 @@ It does **not** read:
 - `analyse-requirements/*` or `analyse-inputs/*` outputs — each lens is independently grounded in the manifest.
 - `design-system/*`, `review-requirements/*` (including the requirement-doc adversarial review), `framework/state/*`, `framework/shared/*` (except as textual references in the reference doc).
 
-The reviewer agent's only outputs are `review-inputs/ADVERSARIAL/adversarial-review.md` and the inline-summary it surfaces to the consultant at handback.
+The reviewer agent's only outputs are `review-inputs/ADVERSARIAL/adversarial-review.html` and the inline-summary it surfaces to the consultant at handback.
 
 ## Failure posture
 
@@ -158,4 +158,4 @@ If a candidate finding cannot satisfy all three, drop it. Exhaustive scanning + 
 
 Each run produces a **fresh** punch-list reflecting the **current** input set. No additive merge, no manifest-fingerprint cursor across runs, no `Run history` section. A finding tied to a removed input disappears on the next run; new findings from added inputs surface clean. This differs from the `/analyse-inputs` analysers (which use additive merge to grow understanding across runs) — adversarial review's purpose is a punch-list that **changes** as the input set changes, not an audit log that **grows** across runs.
 
-The orchestrator's prior-artefact gate (`review-inputs/ADVERSARIAL/adversarial-review.md` exists → Overwrite / Keep / Cancel) honours this: Overwrite checkpoints the prior artefact to git history and then deletes it before the reviewer runs.
+The orchestrator's prior-artefact gate (`review-inputs/ADVERSARIAL/adversarial-review.html` exists → Overwrite / Keep / Cancel) honours this: Overwrite checkpoints the prior artefact to git history and then deletes it before the reviewer runs.

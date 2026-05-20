@@ -151,7 +151,7 @@ The Ambiguity inputs-side reviewer reads:
 It does **not** read:
 
 - `requirements/requirements.md`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — derivative artefacts.
-- `review-inputs/ADVERSARIAL/adversarial-review.md` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading conflates adversarial's defect taxonomy with this reviewer's linguistic taxonomy.
+- `review-inputs/ADVERSARIAL/adversarial-review.html` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading conflates adversarial's defect taxonomy with this reviewer's linguistic taxonomy.
 - `analyse-requirements/*` or `analyse-inputs/*` outputs — each lens is independently grounded.
 - `design-system/*`, `review-requirements/*`, `framework/state/*`, `framework/shared/*` (except as textual references in the reference doc).
 

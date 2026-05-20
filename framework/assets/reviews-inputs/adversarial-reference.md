@@ -8,7 +8,7 @@
 
 - `framework/agents/reviews-inputs/adversarial-reviewer.md` — drives the agent's seven-dimension process plus the quality-gate sweep.
 
-**Output produced by the reviewer:** `review-inputs/ADVERSARIAL/adversarial-review.md` — a markdown punch-list of cited, severity-graded, dispositioned findings using `framework/assets/reviews-inputs/template-adversarial.md` as scaffold.
+**Output produced by the reviewer:** `review-inputs/ADVERSARIAL/adversarial-review.html` — a self-contained HTML punch-list of cited, severity-graded, dispositioned findings using `framework/assets/reviews-inputs/template-adversarial.html` as scaffold. The HTML ships with an inlined `<style>` block, a sticky TOC, severity/disposition colour-coded chips, and back-to-top links after every H2 section; it opens directly via `file://` and prints sensibly via the browser's native Print dialog.
 
 **Sibling lens:** `framework/assets/reviews/adversarial-reference.md` runs the same methodology against the synthesised `requirements/requirements.md` after `/requirements` has produced it. The two references are complementary, not redundant — this one critiques the *source of truth*; the sibling critiques the *derivation*. Fixing input-set defects shifts ground truth; fixing finished-doc defects only re-litigates whatever the inputs already let through. The dimensions, examples, and citation format differ; the BMAD rule, finding schema, disposition rubric, clustering, triage, and verdict mapping are preserved.
 
@@ -42,7 +42,7 @@ The reviewer reads:
 - For each manifest row whose `tier != "Unsupported"`: the file at `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`). Read once by the parent at Step 3.
 - `framework/assets/characters/adversarial-inputs-review.md` (the character — loaded once at activation by the parent).
 - `framework/assets/reviews-inputs/adversarial-reference.md` (this file — loaded once at activation by the parent).
-- `framework/assets/reviews-inputs/template-adversarial.md` (the markdown scaffold — read once at render time by the parent).
+- `framework/assets/reviews-inputs/template-adversarial.html` (the HTML scaffold — read once at render time by the parent).
 
 The reviewer does **not** read:
 
@@ -309,7 +309,7 @@ This rule applies independently to all seven dimensions.
 
 ## Output presentation
 
-The artefact renders as a structured markdown report following `framework/assets/reviews-inputs/template-adversarial.md`. The fixed section ordering is:
+The artefact renders as a self-contained HTML report following `framework/assets/reviews-inputs/template-adversarial.html`. The fixed section ordering is:
 
 1. **Header** — title, generated-at timestamp, manifest fingerprint, reviewer identity.
 2. **Executive Summary** — total findings, severity tally, disposition tally, verdict line.

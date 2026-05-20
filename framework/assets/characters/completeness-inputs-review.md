@@ -203,7 +203,7 @@ The Completeness inputs-side reviewer reads:
 It does **not** read:
 
 - `requirements/requirements.md`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — derivative artefacts.
-- `review-inputs/ADVERSARIAL/adversarial-review.md`, `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading would conflate the methodologies.
+- `review-inputs/ADVERSARIAL/adversarial-review.html`, `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading would conflate the methodologies.
 - `analyse-requirements/*`, `analyse-inputs/*` outputs — derived; each lens reads the manifest independently.
 - `design-system/*`, `review-requirements/*`, `framework/state/*`, `framework/shared/prototype-invariants.md`, `framework/shared/refusal-registry.md` (except as textual references in the reference and the agent file).
 - `framework/skills/completeness-gap-pass.md` — that skill is `/requirements`-private; the conceptual decision tree it embodies is shared inspiration, but the implementations are independent because input artefacts differ.

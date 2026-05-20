@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **a
 
 ## Purpose
 
-Produce `review-inputs/ADVERSARIAL/adversarial-review.md` — a markdown punch-list of cited, severity-graded, dispositioned findings — by applying the seven-dimension adversarial methodology (`framework/assets/reviews-inputs/adversarial-reference.md`) literally and exhaustively to the **raw consultant input set** enumerated by `requirements/source-manifest.json`. Every finding carries a verbatim evidence quote, a manifest filename as Location, and a concrete elicitation-action recommendation. The strict-BMAD halt rule fires on any zero-findings dimension. Every quality gate in the reference is a hard gate.
+Produce `review-inputs/ADVERSARIAL/adversarial-review.html` — a self-contained HTML punch-list of cited, severity-graded, dispositioned findings — by applying the seven-dimension adversarial methodology (`framework/assets/reviews-inputs/adversarial-reference.md`) literally and exhaustively to the **raw consultant input set** enumerated by `requirements/source-manifest.json`. Every finding carries a verbatim evidence quote, a manifest filename as Location, and a concrete elicitation-action recommendation. The strict-BMAD halt rule fires on any zero-findings dimension. Every quality gate in the reference is a hard gate.
 
 The seven dimensions are dispatched in parallel as foreground sub-agents at Step 4 (per `framework/agents/reviews-inputs/adversarial-dimension-worker.md`) and merged deterministically at Step 4b. The parallelisation is an execution detail: per-dimension auditability, the strict-BMAD rule, every schema gate, every quality gate, the verdict mapping, consultant interactivity, and the rendered artefact's structure are identical to a sequential sweep. The change exists to reduce wall-clock latency from O(7) to O(1) passes; the methodology's contract is unchanged.
 
@@ -20,12 +20,12 @@ This agent reads:
 - For each manifest row where `tier != "Unsupported"`: the file at `original_path` (for `Native-text` and `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`). Read once per row at Step 3.
 - `framework/assets/characters/adversarial-inputs-review.md` (the character — loaded at activation).
 - `framework/assets/reviews-inputs/adversarial-reference.md` (the methodology — read at activation).
-- `framework/assets/reviews-inputs/template-adversarial.md` (the markdown scaffold — read once at Step 11).
+- `framework/assets/reviews-inputs/template-adversarial.html` (the HTML scaffold — read once at Step 11).
 - `framework/agents/reviews-inputs/adversarial-dimension-worker.md` (the dimension-worker contract — referenced, not read at runtime; its operational interface is the Step-4 worker prompt template, which inlines every input the worker needs).
 
 The agent reads **nothing else under `requirements/`** — not `requirements/requirements.md`, not `requirements/requirements-draft.md`, not `requirements/consultant-answers.md`, not `requirements/draft-claims*.ndjson`. It does **not** read `framework/state/`. It does **not** read `framework/shared/` (refusal-registry references are textual, not file loads). It does **not** read other lenses' artefacts under `analyse-requirements/`, `analyse-inputs/<METHOD>/`, `review-requirements/`, or `review-inputs/<OTHER-METHOD>/` — each input-pipeline lens is independently grounded in the manifest.
 
-The agent's only outputs are `review-inputs/ADVERSARIAL/adversarial-review.md` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `review-inputs/ADVERSARIAL/adversarial-review.html` and the inline summary it surfaces to the consultant.
 
 The seven Step-4 dimension workers inherit a **stricter** stand-alone constraint than the parent: each worker has **no tools at all** — no `Read`, no `Write`, no `Edit`, no `Bash`, no `AskUserQuestion`, no `Agent`. Workers reason exclusively over the bundle and per-source quote indices inlined into their spawning prompts. This is stricter than the `/review-requirement` adversarial dimension worker (which has `Read` scoped to one file) because the input-side bundle is the canonical snapshot — duplicate reads from 7 workers would mean 7× I/O cost (and 7× duplicate multimodal vision calls if any source is Native-multimodal). The parent owns all I/O; workers own pure dimension reasoning.
 
@@ -209,7 +209,7 @@ After deterministic ID assignment in Step 4b, the reviewer runs one consolidatio
 - `max_severity` — the highest severity in the cluster (`Blocker > Major > Minor`).
 - `member_count` — `len(member_ids)`.
 
-**Triage selection** (also kept in memory for Step 11). Compute the "Top issues to address first" list per the TRIAGE BLOCK SCHEMA in `framework/assets/reviews-inputs/template-adversarial.md`:
+**Triage selection** (also kept in memory for Step 11). Compute the "Top issues to address first" list per the TRIAGE BLOCK SCHEMA in `framework/assets/reviews-inputs/template-adversarial.html`:
 
 1. All findings with `disposition: Reject`, in `ADV-NN` ascending order.
 2. All findings with `severity: Blocker` not already included, in `ADV-NN` ascending order.
@@ -261,9 +261,9 @@ Run all eleven gates from `adversarial-reference.md > Quality gates` in order. E
 
 ### Step 11 — Render
 
-Per `framework/assets/reviews-inputs/template-adversarial.md`:
+Per `framework/assets/reviews-inputs/template-adversarial.html`:
 
-- Read the template once.
+- Read the template once. The template is a self-contained HTML scaffold (DOCTYPE + `<head>` with inlined `<style>` + `<body>` with a fixed section order: header, TOC, Executive Summary, Triage, Clusters, Findings Table, Dimension 1..7, Diagnostics). The TOC and a `<p class="back-to-top">` after every H2 section are baked into the scaffold — the agent does not synthesise navigation.
 - Build the substitution map for the placeholders documented in the template's header comment:
     - `{{TITLE}}` — *"Adversarial Review (inputs-side) — `<domain>`"* if a recognisable domain heading is present in any bundle entry (e.g., `brief.docx` header), else *"Adversarial Review (inputs-side) — `{n_consumable_sources}` sources"*.
     - `{{DOMAIN}}` — best-effort domain string from a bundle entry, else *"(not declared in inputs)"*.
@@ -271,27 +271,33 @@ Per `framework/assets/reviews-inputs/template-adversarial.md`:
     - `{{MANIFEST_FINGERPRINT}}` — the SHA-256 captured in Step 2.
     - `{{REVIEWER_IDENTITY}}` — fixed string *"Adversarial Review (BMAD-style, strict mode, inputs-side)"*.
     - `{{TOTAL_FINDINGS}}`, `{{BLOCKER_COUNT}}`, `{{MAJOR_COUNT}}`, `{{MINOR_COUNT}}`, `{{PATCH_COUNT}}`, `{{DEFER_COUNT}}`, `{{REJECT_COUNT}}` — derived counts.
-    - `{{VERDICT}}` — derived per the reference's disposition-to-verdict mapping.
-    - `{{TRIAGE_BLOCK}}` — pre-rendered "Top issues to address first" callout per the TRIAGE BLOCK SCHEMA. Sourced from the triage selection computed in Step 4c. If the triage selection is empty (zero findings run-wide), substitute the single line *"No findings — strict-BMAD justification blocks below cover all seven dimensions."*
-    - `{{CLUSTERS_BLOCK}}` — pre-rendered cluster summary per the CLUSTERS BLOCK SCHEMA. Sourced from the cluster metadata computed in Step 4c. If Step 4c produced zero clusters, substitute the single line *"No clusters — every finding stands on its own root cause."*
-    - `{{FINDINGS_TABLE}}` — pre-rendered markdown table body (one row per finding) per the FINDINGS TABLE SCHEMA in the template header. Rows are sorted by (Severity descending: Blocker → Major → Minor) then (Dimension ascending: 1..7) then (within bucket: worker emission order = ADV-NN ascending). The `Cluster` column contains the finding's `CL-NN` from Step 4c, or is blank for singletons. Pipe characters inside Problem strings are escaped as `\|`. ADV-NN IDs are **not** renumbered by the sort.
-    - `{{DIMENSION_1_BLOCK}}` … `{{DIMENSION_7_BLOCK}}` — pre-rendered dimension sections per the DIMENSION BLOCK SCHEMA. Each block is either Variant A (findings list) or Variant B (Justification block) — never both, never neither. Per-dimension findings retain their original within-dimension emission order (the severity-driven sort at Step 11 applies **only** to the Findings Table).
-    - `{{DIAGNOSTICS_BLOCK}}` — pre-rendered diagnostics per the DIAGNOSTICS SCHEMA: quality-gate table (11 gates with PASS/FAIL/flagged items), coverage map (one row per dimension), strict-BMAD re-run log (one line per dimension that triggered the rule, or "No dimensions triggered the strict-BMAD re-run rule."), override log (gates and flags if Override invoked, or "All quality gates passed; no override invoked."), **Source roster — Consumed** table (one row per bundle entry: `filename`, `tier`, `sha256[:8]`, count of findings whose Location equals this filename), **Source roster — Skipped** table (one row per `skipped_roster_json` entry, or the italic line *"(no sources skipped this run)"* if the roster is empty).
-- **Escape every substituted value** for markdown before injection:
-    - In table cells, escape `|` as `\|`.
-    - In Evidence blockquotes, preserve markdown by prefixing each line with `> `; do not strip markdown special characters from the quote itself (the quote must be verbatim).
-    - In all other placeholders, leave the consultant's prose as-is — markdown is the output format, and `*`/`_`/backticks in source quotes carry meaning.
-- Compose the full markdown in memory. Compute SHA-256 of the in-memory bytes.
+    - `{{VERDICT}}` — derived per the reference's disposition-to-verdict mapping. The exact string is also injected as the value of a CSS class on the verdict banner element (`.verdict-{{VERDICT}}`), so it must be one of `BLOCKED | NEEDS-REVISION | ACCEPTED-WITH-FIXES`.
+    - `{{TRIAGE_BLOCK}}` — pre-rendered HTML fragment per the TRIAGE BLOCK SCHEMA in the template header (a `<table class="triage-table">` with caption, thead, and tbody, plus optional `<p class="triage-overflow">` if the callout exceeds 10 entries and additional Reject findings exist). Sourced from the triage selection computed in Step 4c. If the triage selection is empty (zero findings run-wide), substitute `<p>No findings — strict-BMAD justification blocks below cover all seven dimensions.</p>`.
+    - `{{CLUSTERS_BLOCK}}` — pre-rendered HTML fragment per the CLUSTERS BLOCK SCHEMA (a `<table class="clusters-table">` plus optional `<p class="clusters-singletons">` listing unclustered findings). Sourced from the cluster metadata computed in Step 4c. If Step 4c produced zero clusters, substitute `<p>No clusters — every finding stands on its own root cause.</p>`.
+    - `{{FINDINGS_TABLE}}` — pre-rendered HTML `<tr>` rows (one row per finding) for the `<tbody>` slot in the template's findings-full table. Each row carries `class="finding-row severity-{Sev} disposition-{Disp}"` so the row-level CSS picks up severity/disposition cues, and the ID cell renders as `<a href="#ADV-NN"><code>ADV-NN</code></a>` so the consultant can click through to the finding's article. Cells are emitted as `<td>...</td>` with HTML-escaped content. **Do not** emit the `<thead>` or `<table>` wrapper — those are in the scaffold. Rows are sorted by (Severity descending: Blocker → Major → Minor) then (Dimension ascending: 1..7) then (within bucket: worker emission order = ADV-NN ascending). The `Cluster` column contains the finding's `CL-NN` from Step 4c, or is empty for singletons. ADV-NN IDs are **not** renumbered by the sort.
+    - `{{DIMENSION_1_BLOCK}}` … `{{DIMENSION_7_BLOCK}}` — pre-rendered HTML fragments per the DIMENSION BLOCK SCHEMA. Each block is either Variant A (`<div class="findings-list">` containing one `<article class="finding severity-{Sev} disposition-{Disp}" id="ADV-NN">` per finding, each with an `<h4>` header, a `<dl class="finding-fields">` containing Location / Evidence / Problem / Recommendation, and a `<blockquote class="evidence"><pre>...</pre></blockquote>` for the verbatim quote) or Variant B (`<div class="justification">` containing an `<h3>` and a `<p>` with the ≥3-sentence justification) — never both, never neither. Per-dimension findings retain their original within-dimension emission order (the severity-driven sort at Step 11 applies **only** to the Findings Table). The `id="ADV-NN"` attribute on each article is the anchor target for cross-links from the Findings Table, Triage callout, and Clusters block.
+    - `{{DIAGNOSTICS_BLOCK}}` — pre-rendered HTML fragment per the DIAGNOSTICS SCHEMA: a single `<details class="diagnostics-toggle" open>` wrapping a `<summary><h3>Diagnostics</h3></summary>` and five subsections (quality-gate table with 11 gates each tagged `class="gate-pass"` or `class="gate-fail"`; coverage map table with 7 dimension rows; strict-BMAD re-run log as `<p>...</p>`; override log as `<p>...</p>`; source-roster-consumed table with one row per bundle entry; source-roster-skipped table OR the line `<p><em>(no sources skipped this run)</em></p>` when the skipped roster is empty).
+- **Escape every substituted value as HTML** before injection. The escape order is fixed (`&` first to avoid double-escaping subsequent entities):
+    1. `&` → `&amp;`
+    2. `<` → `&lt;`
+    3. `>` → `&gt;`
+    4. `"` → `&quot;`
+    5. `'` → `&#x27;`
+  Apply the escape to *every* substituted text value — title, domain, generated-at, manifest fingerprint, counts, verdict, filenames, problem statements, recommendation prose, evidence quote contents, cluster themes, gate notes, source-roster filenames and reasons. The Evidence quote retains its line breaks and whitespace verbatim — the surrounding `<pre>` element preserves them; the HTML escape acts only on the five characters listed.
+- Do **not** apply markdown-style pipe escaping (`|` → `\|`); the output is HTML, and `|` is a literal character with no special meaning inside HTML table cells.
+- Compose the full HTML in memory. Compute SHA-256 of the in-memory bytes.
 
-The template scaffold itself is **not edited**. Only the documented `{{placeholders}}` are substituted.
+The template scaffold itself is **not edited**. Only the documented `{{placeholders}}` are substituted. The CSS in the `<style>` block, the `<nav class="toc">` items, and the `<p class="back-to-top">` links at the foot of every `<section>` are fixed by the scaffold.
+
+**Render-time note on the strict-BMAD evidence-verbatim invariant.** Quality Gate 5 (Step 10) checks that every Evidence field is a verbatim substring of the cited source's quote-index entry. That check runs at Step 10 against the *unescaped* worker payloads — before the Step 11 HTML escape. HTML escaping at render is a serialisation transform: `&` → `&amp;` does not relax the gate, because the gate has already validated the logical content; the escape exists only so the browser parses the rendered HTML correctly. Do not re-validate the gate against the escaped string — that would falsely flag any quote containing `&`, `<`, or `>`.
 
 ### Step 12 — Write
 
 - Ensure the output directory exists. On Windows / PowerShell environments use `Bash New-Item -ItemType Directory -Force review-inputs/ADVERSARIAL`; on POSIX environments use `Bash mkdir -p review-inputs/ADVERSARIAL`. Use whichever the orchestrator's prior steps used.
-- `Write review-inputs/ADVERSARIAL/adversarial-review.md` with the in-memory composed markdown.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = review-inputs/ADVERSARIAL/adversarial-review.md`, `expected_sha256 = <step-11 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with seven dimension blocks, a diagnostics block, and the source-roster tables is comfortably above 1 KB).
+- `Write review-inputs/ADVERSARIAL/adversarial-review.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = review-inputs/ADVERSARIAL/adversarial-review.html`, `expected_sha256 = <step-11 sha>`, `expected_min_bytes = 8192` (tighter than the default `1` — the HTML scaffold alone is ~12 KB and a minimum legal render with seven dimension blocks plus diagnostics is comfortably above 8 KB; sized to catch truncated writes without false-positive RF-04 on rare runs with very few findings).
 - On `pass`: advance to Step 13.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `review-inputs/ADVERSARIAL/adversarial-review.md` after one retry."* and fail the handback. The orchestrator does not declare done.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `review-inputs/ADVERSARIAL/adversarial-review.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 13 — Handback
 
@@ -299,7 +305,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-dimension counts, the verdict, the cluster shape, and the gate result. No marketing language. Template:
 
-> *"Wrote `review-inputs/ADVERSARIAL/adversarial-review.md` — `{{TOTAL_FINDINGS}}` findings across 7 dimensions (Blocker: `{{BLOCKER_COUNT}}`, Major: `{{MAJOR_COUNT}}`, Minor: `{{MINOR_COUNT}}`) over `{n_consumable_sources}` sources, grouped into `{{n_clusters}}` clusters, triage callout lists top `{{n_triage}}` to address first. Disposition: Patch `{{PATCH_COUNT}}` · Defer `{{DEFER_COUNT}}` · Reject `{{REJECT_COUNT}}`. Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/11` pass. Strict-BMAD re-run triggered on `{{n_dimensions_rerun}}` dimensions. Ready, or want changes?"*
+> *"Wrote `review-inputs/ADVERSARIAL/adversarial-review.html` — `{{TOTAL_FINDINGS}}` findings across 7 dimensions (Blocker: `{{BLOCKER_COUNT}}`, Major: `{{MAJOR_COUNT}}`, Minor: `{{MINOR_COUNT}}`) over `{n_consumable_sources}` sources, grouped into `{{n_clusters}}` clusters, triage callout lists top `{{n_triage}}` to address first. Disposition: Patch `{{PATCH_COUNT}}` · Defer `{{DEFER_COUNT}}` · Reject `{{REJECT_COUNT}}`. Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/11` pass. Strict-BMAD re-run triggered on `{{n_dimensions_rerun}}` dimensions. Open the file via `file://` to navigate via the TOC. Ready, or want changes?"*
 
 Variants:
 
@@ -329,7 +335,7 @@ Use `AskUserQuestion`:
     - **Edit Recommendation text:** update the finding's Recommendation field, re-render, re-Write, re-verify, loop back to A. (Step 4c is **not** re-run — cluster keys do not depend on Recommendation prose.)
     - **Expand a Justification block:** update the block, re-run gate 8, re-render, re-Write, re-verify, loop back to A. (Step 4c is **not** re-run — Justification blocks are not findings and do not participate in clustering.)
     - **Strike all findings on a dimension:** treat as zero-finding outcome on that dimension; require the consultant to confirm whether they want the strict-BMAD re-run or a manually-supplied Justification block; either re-dispatch one dimension worker via `Agent` using the Step-4 worker prompt template (single call, dimension `N` only, with the same `bundle_sha256` and inlined inputs) and substitute its payload for that dimension, or substitute a consultant-supplied Justification block (≥3 sentences, citing at least one filename from the bundle) directly into the in-memory state for that dimension; re-tally; re-derive verdict; **re-run Step 4c** (clusters and triage); re-run gate 7 (and gate 8 if a Justification was substituted); re-render; re-Write; re-verify; loop back to A.
-- **Restart** — re-enter Step 4 from a clean state. Reset the ID sequence; re-run all seven dimensions. The bundle from Step 3 is preserved (no re-ingest is needed — the manifest hasn't changed mid-run). The previously-written `review-inputs/ADVERSARIAL/adversarial-review.md` is left in place; the next Step 12 will overwrite it.
+- **Restart** — re-enter Step 4 from a clean state. Reset the ID sequence; re-run all seven dimensions. The bundle from Step 3 is preserved (no re-ingest is needed — the manifest hasn't changed mid-run). The previously-written `review-inputs/ADVERSARIAL/adversarial-review.html` is left in place; the next Step 12 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 12).
 
@@ -345,17 +351,17 @@ Output the final handback line:
 - Each manifest row's `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`) — read once per row at Step 3. The agent does **not** read `original_path` for `Supported-via-MCP` rows (the `.converted.md` sibling is the contract).
 - `framework/assets/characters/adversarial-inputs-review.md` — the reviewer's stance. Loaded once in Step 1; full content held in memory and inlined into every Step-4 worker prompt as `{{CHARACTER_CONTENT}}`.
 - `framework/assets/reviews-inputs/adversarial-reference.md` — the seven-dimension methodology reference. Read once in Step 1; per-dimension sections sliced and inlined into Step-4 worker prompts as `{{DIMENSION_SECTION}}`; the schema, rubric, and strict-BMAD rule sections (with per-dimension anti-confirmation prompts) inlined as `{{SCHEMA_AND_RUBRIC_AND_BMAD_RULE}}`.
-- `framework/assets/reviews-inputs/template-adversarial.md` — the markdown scaffold. Read once in Step 11.
+- `framework/assets/reviews-inputs/template-adversarial.html` — the self-contained HTML scaffold (DOCTYPE + inlined `<style>` + body with fixed section order, baked-in TOC, and `<p class="back-to-top">` after every H2). Read once in Step 11.
 - `framework/agents/reviews-inputs/adversarial-dimension-worker.md` — the dimension-worker contract referenced by Step 4. Not read at runtime by the parent; the worker file is the authority document for what Step 4's seven parallel workers do.
 
 ## Output
 
-- `review-inputs/ADVERSARIAL/adversarial-review.md` — the populated artefact. Always written to the same path; **fully overwritten** on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked). No additive merge.
+- `review-inputs/ADVERSARIAL/adversarial-review.html` — the populated self-contained HTML artefact (opens via `file://`; no external assets). Always written to the same path; **fully overwritten** on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked). No additive merge.
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template scaffold, the manifest, and each manifest-enumerated source file (`original_path` for Native tiers, `converted_sibling` for Supported-via-MCP). **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `analyse-requirements/`; not against `design-system/`; not against `review-requirements/` (other than the agent's own output path for re-render verification); not against `framework/state/`; not against `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `review-inputs/ADVERSARIAL/adversarial-review.md`.
+- `Write` — write `review-inputs/ADVERSARIAL/adversarial-review.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 11's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
 - `Bash` / `PowerShell` — `mkdir -p review-inputs/ADVERSARIAL` (POSIX) or `New-Item -ItemType Directory -Force review-inputs/ADVERSARIAL` (Windows) at Step 12 setup. No other shell usage.
 - `AskUserQuestion` — surface the Step 4b worker-failure prompt (Retry / Abort / Manual Justification) when any of the seven dimension workers returns a malformed payload or an error; surface the Step 10 quality-gate failure prompt (Revise / Override / Restart) when any gate fires; surface the Step 13 Accept / Revise / Restart prompt.
@@ -365,11 +371,12 @@ Output the final handback line:
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `review-inputs/ADVERSARIAL/adversarial-review.md` exists and `verify-artifact-write` returned `pass`.
-- The artefact contains zero literal `{{...}}` placeholders.
-- The artefact begins with `# Adversarial Review (inputs-side)` (or close — the template's `{{TITLE}}` may include the domain string).
-- The Executive Summary's verdict matches the disposition/severity tally per the reference's mapping table.
-- The Findings Table has exactly `{{TOTAL_FINDINGS}}` data rows.
+- `review-inputs/ADVERSARIAL/adversarial-review.html` exists and `verify-artifact-write` returned `pass`.
+- The artefact contains zero literal `{{...}}` placeholders. (Placeholders are template-internal; the substitution loop replaces every one.)
+- The artefact begins with `<!doctype html>` (lowercased is the template's choice) and contains, in order: a `<title>` element, an `<h1 id="top">`, a `<nav class="toc">`, and seven `<section id="dim-1">` … `<section id="dim-7">` blocks.
+- Every section ends with a `<p class="back-to-top"><a href="#top">↑ Back to top</a></p>` element (twelve sections total: Executive Summary, Triage, Clusters, Findings Table, Dim 1..7, Diagnostics — so twelve back-to-top links).
+- The Executive Summary's verdict span (`<span class="verdict verdict-{{VERDICT}}">`) carries one of the three valid verdict classes, and the verdict matches the disposition/severity tally per the reference's mapping table.
+- The Findings Table's `<tbody>` has exactly `{{TOTAL_FINDINGS}}` `<tr class="finding-row">` rows.
 - Each Dimension N section (1..7) is either Variant A (findings list with N findings ≥1) or Variant B (Justification block ≥3 sentences) — never both, never neither.
 - The diagnostics block reports all eleven quality-gate results (either PASS lines or FAIL lines with flagged items).
 - The strict-BMAD re-run log lists every dimension where the rule fired (or states "No dimensions triggered the strict-BMAD re-run rule."). The log was reconstructed from worker payloads' `strict_bmad_rerun` flags and `anti_confirmation_prompts` lists — not re-derived in the main thread.
@@ -390,7 +397,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `review-inputs/ADVERSARIAL/adversarial-review.md` exists, has been verified, and contains a complete seven-dimension review.
+- `review-inputs/ADVERSARIAL/adversarial-review.html` exists, has been verified, and contains a complete seven-dimension review.
 - All seven Step-4 dimension workers returned a parsed payload (originally emitted or Manual-Justification-substituted at Step 4b). Step 4b merged exactly one payload per dimension into the in-memory state.
 - The `ADV-NN` ID sequence is contiguous, assigned by dimension order then within-dimension order.
 - Either all eleven quality gates passed, or the consultant explicitly chose Override and the diagnostics block records every violation.
@@ -418,7 +425,7 @@ Before handing back, verify all of the following against the written artefact an
 - Do not write the artefact incrementally. Render in memory; compute sha256; Write once; verify.
 - Do not loop the accept/revise/restart prompt without a consultant response. The loop terminates on Accept; Revise applies a specific change and re-presents; Restart returns to Step 4.
 - Do not loop the Step 10 fail-Restart-fail cycle more than three times. On the fourth fail, force the Revise path with a one-line note that further iteration is not productive without consultant input.
-- Do not edit the markdown scaffold in `framework/assets/reviews-inputs/template-adversarial.md`. Only the documented `{{placeholders}}` are substituted; section ordering, table column headers, and the diagnostics layout are fixed.
+- Do not edit the HTML scaffold in `framework/assets/reviews-inputs/template-adversarial.html`. Only the documented `{{placeholders}}` are substituted; the `<style>` block, the TOC list items, section ordering, table column headers, the `<p class="back-to-top">` links, and the diagnostics layout are fixed by the scaffold.
 - Do not paste the artefact body into the conversation. The file is on disk and the consultant can open it directly.
 - Do not use any tool not explicitly listed in the Tools section. Do not use the `Agent` / `Task` tool to delegate any step other than (a) the Step 4 Parallel Dimension Sweep, (b) the Step 4b single-dimension Retry on a malformed worker payload, and (c) the Step 13 *"Strike all findings on a dimension"* Revise branch where one dimension is re-run. Every other step runs in the foreground in this thread. Every sub-agent dispatched via `Agent` must be a dimension worker per `framework/agents/reviews-inputs/adversarial-dimension-worker.md` — non-interactive (no `AskUserQuestion`), tool-less (no `Read`/`Write`/`Edit`/`Bash`), owning no handback, and dispatching no nested sub-agents.
 - Do not dispatch Step 4's seven workers sequentially. The fan-out is one message containing seven `Agent` tool calls; if they are dispatched in separate messages the latency benefit is lost and the merge logic at Step 4b is rendered moot.

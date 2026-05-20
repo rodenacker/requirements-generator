@@ -21,9 +21,9 @@ methodologies:
   - name: adversarial
     status: mvp
     description: Choose this to flush out defects in the raw consultant inputs (stakeholder gaps, ambiguity, cross-source conflicts, missing edge cases, sampling bias) before /requirements drafts from them.
-    output_path: review-inputs/ADVERSARIAL/adversarial-review.md
+    output_path: review-inputs/ADVERSARIAL/adversarial-review.html
     reference_asset: framework/assets/reviews-inputs/adversarial-reference.md
-    template_asset: framework/assets/reviews-inputs/template-adversarial.md
+    template_asset: framework/assets/reviews-inputs/template-adversarial.html
     map_skill: null
     reviewer_agent: framework/agents/reviews-inputs/adversarial-reviewer.md
     character: framework/assets/characters/adversarial-inputs-review.md

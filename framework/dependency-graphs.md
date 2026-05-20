@@ -691,7 +691,7 @@ graph TD
     subgraph Assets
       asset_registry_ri[reviews-inputs/registry.md]
       asset_ref_adv_ri[reviews-inputs/adversarial-reference.md]
-      asset_tmpl_adv_ri[reviews-inputs/template-adversarial.md]
+      asset_tmpl_adv_ri[reviews-inputs/template-adversarial.html]
       asset_ref_amb_ri[reviews-inputs/ambiguity-reference.md]
       asset_ref_comp_ri[reviews-inputs/completeness-reference.md]
     end

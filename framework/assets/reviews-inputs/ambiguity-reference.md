@@ -43,7 +43,7 @@ The reviewer reads:
 The reviewer does **not** read:
 
 - `requirements/requirements.md`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — derivative artefacts; the review's contract is to critique the raw inputs themselves.
-- `review-inputs/ADVERSARIAL/adversarial-review.md` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading would conflate adversarial's defect taxonomy with this reviewer's linguistic taxonomy.
+- `review-inputs/ADVERSARIAL/adversarial-review.html` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading would conflate adversarial's defect taxonomy with this reviewer's linguistic taxonomy.
 - `analyse-requirements/*` or `analyse-inputs/*` outputs — derived; each lens reads the manifest independently.
 - `design-system/*`, `review-requirements/*`, `framework/state/*`, `framework/shared/*` (except as textual references in this document) — out of scope.
 
@@ -495,7 +495,7 @@ The artefact is a punch-list + action list, not a narrative. Prose between findi
 - **Citing `Unsupported`-tier filenames.** Those files have no content for the reviewer to ambiguity-check. If a stakeholder mentions an ambiguous term only in a skipped file, the ambiguity is downstream of conversion failure — surface the skip in adversarial-review's Dim 1, not here.
 - **Skipping cross-dimension consolidation.** A sentence tripping dimensions 4 and 6 must emit one finding with `dimensions: [4, 6]`, not two duplicate findings. Step 11 of the agent handles this; bypassing it produces double-counting in gate 9.
 - **Reviewing against the synthesised requirements doc.** Do not consult `requirements/requirements.md` or any other `/requirements`-pipeline derivative. The review's contract is to critique the **raw inputs**.
-- **Reviewing against parallel reviews.** Do not consult `review-inputs/ADVERSARIAL/adversarial-review.md` to triangulate findings. Each input-pipeline lens is independently grounded in the manifest.
+- **Reviewing against parallel reviews.** Do not consult `review-inputs/ADVERSARIAL/adversarial-review.html` to triangulate findings. Each input-pipeline lens is independently grounded in the manifest.
 - **Line numbers in Location.** The Location field is `filename` only.
 - **Skipping the strict-Justification rule.** A dimension with zero findings requires a non-empty Justification block ≥3 sentences. *"Clean"* is not a Justification.
 

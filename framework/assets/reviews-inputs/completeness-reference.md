@@ -57,7 +57,7 @@ The reviewer reads:
 The reviewer does **not** read:
 
 - `requirements/requirements.md`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — derivative artefacts; the review's contract is to critique the raw inputs themselves.
-- `review-inputs/ADVERSARIAL/adversarial-review.md`, `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading would conflate the methodologies and produce correlated noise.
+- `review-inputs/ADVERSARIAL/adversarial-review.html`, `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading would conflate the methodologies and produce correlated noise.
 - `analyse-requirements/*`, `analyse-inputs/*` outputs — derived; each lens reads the manifest independently.
 - `design-system/*`, `review-requirements/*`, `framework/state/*`, `framework/shared/prototype-invariants.md`, `framework/shared/refusal-registry.md` (except as textual references in this document and the agent file) — out of scope.
 - `framework/skills/completeness-gap-pass.md` — **explicitly not loaded.** That skill is `/requirements`-private (it walks a synthesised draft against `topics-requirements.md` bijection invariants); this reviewer walks raw inputs against IEEE/Volere/BABOK dimension checklists. The conceptual decision-tree (Stated → Rule → Scope → Default) is shared inspiration but the implementations are independent.
@@ -838,7 +838,7 @@ The artefact is a gap register + action list, not a narrative. Prose between fin
 - **Using inline `[SRC: <filename>]` markers inside Problem, Authority, Elicitation-question fields.** The Evidence + Location pair is the citation; do not duplicate it in prose.
 - **Skipping cross-dimension consolidation.** A topic tripping dimensions 1 and 3 (no first-hand voice, no key fields) on the same entity must emit one consolidated finding with `Dimensions: [1, 3]`, not two separate findings. Step 14 of the agent handles this; bypassing it produces double-counting in gate 9.
 - **Reviewing against the synthesised requirements doc.** Do not consult `requirements/requirements.md` or any other `/requirements`-pipeline derivative. The review's contract is to critique the **raw inputs**.
-- **Reviewing against parallel reviews.** Do not consult `review-inputs/ADVERSARIAL/adversarial-review.md` or `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` to triangulate findings. Each input-pipeline lens is independently grounded in the manifest.
+- **Reviewing against parallel reviews.** Do not consult `review-inputs/ADVERSARIAL/adversarial-review.html` or `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` to triangulate findings. Each input-pipeline lens is independently grounded in the manifest.
 - **Skipping the strict-Justification rule.** A dimension with zero findings requires a non-empty Justification block ≥3 sentences citing specific evidence and naming at least one filename. *"Clean"* is not a Justification.
 
 ---
