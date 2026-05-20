@@ -6,11 +6,26 @@
 
 **Used by:**
 
-- `framework/agents/reviews-inputs/adversarial-reviewer.md` — drives the agent's seven-dimension process plus the quality-gate sweep.
+- `framework/agents/reviews-inputs/adversarial-reviewer.md` — drives the agent's six-dimension process plus the quality-gate sweep.
 
 **Output produced by the reviewer:** `review-inputs/ADVERSARIAL/adversarial-review.html` — a self-contained HTML punch-list of cited, severity-graded, dispositioned findings using `framework/assets/reviews-inputs/template-adversarial.html` as scaffold. The HTML ships with an inlined `<style>` block, a sticky TOC, severity/disposition colour-coded chips, and back-to-top links after every H2 section; it opens directly via `file://` and prints sensibly via the browser's native Print dialog.
 
 **Sibling lens:** `framework/assets/reviews/adversarial-reference.md` runs the same methodology against the synthesised `requirements/requirements.md` after `/requirements` has produced it. The two references are complementary, not redundant — this one critiques the *source of truth*; the sibling critiques the *derivation*. Fixing input-set defects shifts ground truth; fixing finished-doc defects only re-litigates whatever the inputs already let through. The dimensions, examples, and citation format differ; the BMAD rule, finding schema, disposition rubric, clustering, triage, and verdict mapping are preserved.
+
+---
+
+## Principle: the input corpus IS the stakeholder voice
+
+This methodology starts from a single contract: **the raw input set IS the stakeholder voice.** It is not evidence-of-elicitation; it is the elicitation. There is no further corpus to compare against, no other interview to schedule, no second sample to balance the first. The voice is whatever the corpus says, in whatever shape it says it.
+
+Four implications follow:
+
+1. **Silences are silences, not elicitation gaps.** A role mentioned without a direct-quote source, an entity referenced without field-level detail, a workflow named without supporting material — each stands as a finding about *what the voice did not say*, not as a request for more documents. Recommendations propose how `/requirements` and downstream consumers must handle the silence (apply a `GR-NN` default, mark `[OUT-OF-SCOPE]`, surface as `[AI-SUGGESTED]` assumption), not how to expand the corpus.
+2. **Recommendations are corpus-handling actions, not elicitation actions.** Five sanctioned forms only (see *Finding schema > Recommendation*). Never *"schedule an interview"*, *"elicit X"*, *"go ask the stakeholder"* — there is no second visit; the corpus is what the voice said.
+3. **Reject narrows.** Reserved for internal-corpus defects downstream cannot resolve via defaults — cross-source factual contradiction on a load-bearing concept, POPIA / legal scope claim with no in-corpus enumeration, load-bearing ambiguity unresolvable at draft time. Silences alone do not trigger Reject; they are Patch or Defer because downstream can apply defaults.
+4. **The sampling / bias lens does not apply.** Critiquing corpus shape (source count, role diversity, time window, tier distribution) as *inadequate* presupposes a should-be larger corpus. There is no should-be — the voice is whatever it is. Corpus-shape data is reported in the Diagnostics block for downstream context, not as findings. (See *Output presentation > Diagnostics > Corpus Shape*.)
+
+This principle changes *what counts as an issue* under the BMAD must-find-issues rule — not whether the reviewer must find one. The strict-BMAD halt rule still fires on zero-finding dimensions; the reviewer still finds defects (ambiguity, contradiction, hedges, silences-with-downstream-impact, second-hand voice mistaken for first-hand); rubber-stamping is still forbidden. What shifts is that the defects live inside the voice the corpus carries — not in the consultant's choice of which interviews to schedule.
 
 ---
 
@@ -54,30 +69,38 @@ The raw consultant input set is the contract. If the inputs don't say it, the in
 
 ---
 
-## The seven review dimensions
+## The six review dimensions
 
-Seven dimensions, executed in order. Each is its own pass; the reviewer does not collapse passes. The dimension-by-dimension structure is what makes the review auditable: every finding maps to exactly one dimension, every dimension reports either ≥1 finding or a Justification block.
+Six dimensions, executed in order. Each is its own pass; the reviewer does not collapse passes. The dimension-by-dimension structure is what makes the review auditable: every finding maps to exactly one dimension, every dimension reports either ≥1 finding or a Justification block.
 
-The seven dimensions are tuned for **raw consultant inputs** — they differ from the eight dimensions of `/review-requirement` adversarial because input-set defects differ from finished-doc defects. Testability does not apply when no requirements exist yet; dependency-ordering does not apply across heterogeneous PDFs / decks / transcripts. The dimensions are re-synthesised from elicitation-quality literature (Wiegers, IIBA BABOK, Volere) plus BMAD's must-find-issues posture.
+The six dimensions are tuned for **raw consultant inputs** — they differ from the eight dimensions of `/review-requirement` adversarial because input-set defects differ from finished-doc defects. Testability does not apply when no requirements exist yet; dependency-ordering does not apply across heterogeneous PDFs / decks / transcripts. The dimensions are re-synthesised from elicitation-quality literature (Wiegers, IIBA BABOK, Volere) plus BMAD's must-find-issues posture — re-framed under the *corpus IS the voice* principle so that the "what to check" remains operational while the "what to recommend" becomes corpus-handling, not elicitation. The seventh dimension that used to live here (Bias, Sampling & Stakeholder Self-Selection) was structurally incompatible with the principle (its premise was that the corpus should-be larger / more diverse — but under the principle there is no should-be); its observability content survives as the **Corpus Shape** subsection of the Diagnostics block.
 
-### Dimension 1 — Stakeholder & Role Coverage
+### Dimension 1 — Stakeholder & Role Coverage (incl. voice authenticity)
 
-**Question:** Does every role / persona that will use the system have voice in the inputs?
+**Question:** Does every role / persona named in the corpus carry *its own* voice — and where the voice is absent, is the silence itself flagged so downstream knows what cannot be drafted from the corpus?
+
+**First-hand vs second-hand voice (the load-bearing distinction).** The corpus contains heterogeneous voice-types. A claim about a role made by another author (a BA-authored brief stating *"Finance Managers want X"*, a deck slide summarising stakeholder positions, a derived analysis artefact attributing positions) is **second-hand voice** about that role, not the role's own voice. Findings should distinguish:
+
+- **First-hand sources:** interview transcripts, direct quotes, survey responses, signed stakeholder documents, attributed workshop notes labelled with the speaker, screenshots / mockups produced by the role themselves.
+- **Second-hand sources:** consultant- or BA-authored briefs, executive decks, summary memos, derived analysis artefacts (`/analyse-inputs` re-ingests), unattributed workshop notes, mockups produced by the design team about the role.
+
+A role for whom only second-hand voice exists is a **voice-authenticity defect**, not an elicitation gap. The corpus IS the voice it has; the finding is about how downstream should *read* the voice — not whether more should be gathered. Recommendation form: *Treat as second-hand* (mark downstream as BA-interpretation, not stakeholder position).
 
 **What to check:**
 
-- Every named role or persona has at least one **direct quote** in the inputs — an interview transcript line, a survey response, a workshop note attributed to them, a labelled screenshot, a brief paragraph that names them as the source.
-- Every role mentioned in passing (in a brief or in an executive deck) has supporting elicitation material from *that role*. A role mentioned only by an executive is a coverage gap — the executive does not speak for the role.
-- The corpus reflects all role categories that will use the system: end-users (often multiple sub-roles by job function), administrators / power users, operators / support staff, auditors / compliance officers, regulators if applicable, integration partners if external systems are involved.
-- Skipped-source visibility: if a stakeholder is mentioned only in an `Unsupported`-tier file (e.g., `proposal.pages`), the inputs do not currently surface that voice; flag it as a finding citing the skipped filename.
-- Cross-source corroboration: a stakeholder voice that appears in only one source is weaker than one that appears in two or more. A single-source role is a finding when that source is hedge-laden or aspirational.
+- Every named role or persona has at least one **first-hand source** in the corpus — an interview transcript line, a survey response, a workshop note attributed to them, a labelled screenshot they produced, a signed document.
+- Every role mentioned in passing (in a brief or in an executive deck) has supporting **first-hand** material from *that role*. A role mentioned only by an executive is a voice-authenticity defect — the executive does not speak for the role; the finding's Recommendation marks downstream to treat the executive's claim as second-hand interpretation.
+- The corpus reflects all role categories that will use the system: end-users (often multiple sub-roles by job function), administrators / power users, operators / support staff, auditors / compliance officers, regulators if applicable, integration partners if external systems are involved. Where the voice is silent on a role, the Recommendation form is *Treat as silence* (downstream applies `[OUT-OF-SCOPE: domain-default]` or marks role-specific flows as unsupported by corpus voice).
+- Skipped-source visibility: if a stakeholder is mentioned only in an `Unsupported`-tier file (e.g., `proposal.pages`), the corpus does not currently surface that voice; flag as a finding citing the skipped filename with Recommendation *Treat as silence*.
+- Cross-source corroboration: a stakeholder voice that appears in only one source is weaker than one that appears in two or more. A single-source role with hedge-laden provenance is a finding; Recommendation form depends on whether the single source is first-hand (downstream treats as the available voice; *Treat as silence* on missing corroboration) or second-hand (*Treat as second-hand*).
 
 **Common failure modes to scan for:**
 
-- A brief that names "Finance Manager" as a primary user, but no interview, transcript, or workshop note quotes a Finance Manager.
-- A role mentioned ("we'll need an admin role") with zero supporting material defining what admin does, who currently performs it, or what tooling they use today.
-- A regulator or auditor role implied by compliance language ("must be POPIA compliant") but no quote, no email, no actual auditor or compliance-officer voice in the corpus.
-- A user-segment mentioned only as a number on a deck slide ("50,000 end-users") with no qualitative material from any of them.
+- A brief that names "Finance Manager" as a primary user, but no first-hand Finance Manager source exists. The voice the corpus carries for that role is the brief author's, not the Finance Manager's. Recommendation: *Treat as second-hand*.
+- A role mentioned ("we'll need an admin role") with zero first-hand or second-hand material defining what admin does — the voice is fully silent on the role. Recommendation: *Treat as silence*.
+- A regulator or auditor role implied by compliance language ("must be POPIA compliant") but no quote, no email, no actual auditor or compliance-officer first-hand voice in the corpus. Recommendation: *Treat as silence* — downstream marks compliance-officer-specific acceptance criteria as unsupported by corpus voice.
+- A user-segment mentioned only as a number on a deck slide ("50,000 end-users") with no qualitative material from any of them — the voice is statistical, not utterance. Recommendation: *Treat as silence*.
+- A BA-authored summary attributing positions across multiple stakeholder roles where no first-hand source exists for any of them — every cited role is second-hand. Recommendation: *Treat as second-hand* (one finding per attributed role).
 
 ### Dimension 2 — Domain & Workflow Coverage (including non-happy paths)
 
@@ -188,30 +211,6 @@ The seven dimensions are tuned for **raw consultant inputs** — they differ fro
 - "Mobile-first" in one source and no signal anywhere about whether desktop is in scope or out.
 - "Will integrate with existing ERP" with no source naming which ERP, which modules, which version, which protocol.
 
-### Dimension 7 — Bias, Sampling & Stakeholder Self-Selection
-
-**Question:** Is the input set itself biased — by who was sampled, by tier distribution, by time window, or by self-selection?
-
-**What to check:**
-
-- Distinct-source count: a corpus with 1–2 sources is sampling-collapsed regardless of what those sources contain. 3–5 is marginal. 6+ with role diversity is healthy. (Counts are heuristic — judgement applies.)
-- Distinct-author / -role count: 10 transcripts all from the same interviewee is one voice repeated, not multiple voices.
-- Time-window distribution: every source dated within a single workshop week is a sampling collapse — the corpus reflects one elicitation event, not iterated discovery.
-- Tier-distribution skew: 12 screenshots and 0 interview transcripts is visual-only sampling; 5 PDFs and 0 user-voice material is document-only sampling. Each tier reveals different defects; missing a tier is a finding.
-- Self-selection in interview transcripts: which user agreed to talk? The loudest power user? An executive sponsor? If the same role appears in multiple transcripts but always from the same persona type (e.g., always from the most engaged users), the corpus has self-selection bias.
-- Aspirational-vs-current ratio: if every source describes the future system and no source describes the *current* state, the inputs cannot ground the as-is required for `/requirements` to write a migration plan.
-- Source-recency skew: a corpus dominated by year-old material with no recent confirmation is a staleness finding; one dominated by very recent material with no historical baseline misses cycle context.
-- Provenance-tier skew: every source is hedge-laden ("I think...", "we used to...") with no authoritative sources (signed brief, executive decision, written policy) — a credibility-floor finding.
-
-**Common failure modes to scan for:**
-
-- A corpus of 18 files, all from the same client off-site three weeks ago, no follow-up confirmation since.
-- 25 screenshots of the existing system, zero quotes from anyone who uses it.
-- Three interview transcripts all from the same executive sponsor and his two direct reports — no end-user voice.
-- "We surveyed 200 users" in a brief with no transcript, no quote, no survey-result file in the corpus — the claim is unsupported by the corpus itself.
-- A corpus with two sources: a deck from 2023 and a transcript from 2026 — the gap is suspicious; what happened in between?
-- Every source is aspirational (proposals, decks, mockups) with no description of the current state — `/requirements` cannot draft a migration path against vapour.
-
 ---
 
 ## Finding schema
@@ -220,25 +219,34 @@ Every finding has all eight fields populated, in this order:
 
 ```
 ID:             ADV-NN          (sequential per run, zero-padded — ADV-01, ADV-02, …)
-Dimension:      1..7            (which review dimension the finding maps to)
+Dimension:      1..6            (which review dimension the finding maps to)
 Severity:       Blocker | Major | Minor
 Disposition:    Patch | Defer | Reject
 Location:       <filename>      (the manifest row's `filename` field — basename + extension)
 Evidence:       direct verbatim quote from the cited source, ≤5 lines
 Problem:        one sentence — what is wrong/missing/unclear/conflicted in the source material
-Recommendation: one sentence — concrete corrective action (typically elicitation guidance)
+Recommendation: one sentence — corpus-handling action in one of five sanctioned forms:
+                Reconcile in-corpus | Label / annotate | Treat as silence |
+                Treat as second-hand | Resolve at draft time. NEVER elicitation.
 ```
 
 **Field rules:**
 
 - **ID** is unique per run and reset to `ADV-01` on every fresh invocation. Revise loops keep their IDs; only Restart resets the sequence. The pipeline is **full overwrite** per run — each run's artefact reflects only the current input set, with no carried-over findings from prior runs.
-- **Dimension** is exactly one integer 1–7. A finding that spans dimensions must be decomposed into one finding per dimension.
+- **Dimension** is exactly one integer 1–6. A finding that spans dimensions must be decomposed into one finding per dimension.
 - **Severity** is exactly one of three. No "Critical" or "Trivial" or "Cosmetic".
 - **Disposition** is exactly one of three (Patch / Defer / Reject). See the rubric below.
 - **Location** is the manifest row's `filename` field — basename plus extension (e.g., `brief.docx`, `workshop-notes.md`, `whiteboard-photo.png`, `interview-transcript.md`). **No line numbers**, no section anchors. Multimodal sources have no lines; markitdown-converted siblings re-anchor on `.converted.md` (different from the original); line numbers rot. The audit unit is `<filename>` + verbatim quote ≤5 lines.
 - **Evidence** is a verbatim quote from the cited source's `text_or_transcription` content as captured by the parent reviewer into the evidence bundle (Native-text content is the file's bytes; Native-multimodal content is the parent's verbatim transcription of visible text + structural observations). Do not paraphrase. If the offending text is longer than 5 lines, decompose the finding into multiple findings each citing a ≤5-line slice. For `Unsupported`-tier files cited in Dimension 1 (stakeholder mentioned only in skipped file): Evidence is the literal string `*(file skipped — tier: Unsupported; reason: <conversion-failure-reason>)*` — a sanctioned non-verbatim form because the file's content was never read.
-- **Problem** is one sentence stating the defect. *"`brief.docx` lists 'Finance Manager' as a primary user but no source quotes a Finance Manager directly"* — not *"stakeholder coverage gap"*.
-- **Recommendation** is one sentence proposing a concrete elicitation action, not a rewrite of the input. *"Add an interview transcript with a Finance Manager describing their reconciliation workflow before `/requirements` drafts"* — not *"clarify the Finance Manager role"*.
+- **Problem** is one sentence stating the defect of the voice. *"`brief.docx` lists 'Finance Manager' as a primary user but no first-hand Finance Manager source exists in the corpus — the voice the corpus carries for that role is second-hand"* — not *"stakeholder coverage gap"*.
+- **Recommendation** is one sentence proposing a concrete *corpus-handling* action — what `/requirements` and downstream consumers must do given this defect of the voice. The corpus IS the voice; the reviewer does not propose new elicitation. Five sanctioned forms, exhaustive:
+    1. **Reconcile in-corpus** — when two sources contradict (Dim 4), name which source the consultant treats as canonical and which as superseded. *"Treat `interview-2026-03.md` RBAC table as canonical; supersede the older RBAC table in `proposal-deck.pdf` slide 12."*
+    2. **Label / annotate** — in-corpus annotation that costs no new elicitation: mark a mockup as aspirational, attribute an anonymous brief, add a glossary entry mapping entity-name drift. *"Label `whiteboard-photo.png` as aspirational (future-state mockup, not current-state screenshot)."*
+    3. **Treat as silence** — instruct downstream to apply a default or mark as unspecified. *"Treat as silence — `/requirements` applies the default latency budget from `framework/shared/general-rules.md` and marks the NFR as not-quantified-by-voice."* Most Dim 1, 2, 5, 6 silence findings land here.
+    4. **Treat as second-hand** — for claims about a stakeholder sourced only from consultant-authored material, instruct downstream to mark as BA-interpretation, not stakeholder position. *"Treat `brief.docx` claim 'Finance Managers want X' as BA-interpretation; no first-hand Finance Manager voice in corpus to confirm."* Primary form for Dim 1 voice-authenticity findings.
+    5. **Resolve at draft time** — surface the defect in the consultant-answers loop during `/requirements` draft for explicit consultant choice. Reserved for load-bearing ambiguities (Dim 3) where downstream cannot apply a default. *"Resolve at draft time — surface 'real-time reporting' to consultant-answers; latency budget is load-bearing and cannot be defaulted."*
+
+  **Forbidden forms:** *"schedule an interview"*, *"elicit X"*, *"interview Y"*, *"workshop with Z"*, *"go ask the stakeholder"*, *"contact the customer"*, *"add an interview transcript"*. The corpus IS the voice; there is no second visit. A finding whose Recommendation falls outside the five sanctioned forms above is a worker self-validation failure (quality gate 5a).
 
 A finding missing any field is invalid. The quality-gate sweep enforces this.
 
@@ -257,15 +265,19 @@ Identical to the `/review-requirement` adversarial rubric — the rubric is abou
 
 ### Defer
 
-- The defect is **real** and **specific**, but addressable in a later iteration of elicitation without blocking the current scope.
-- Common pattern: a missing edge-case workflow that affects a post-MVP feature; a missing role voice for a role that only matters in phase 2; an integration whose contract belongs to a later phase.
-- Logged for the next elicitation cycle but does not block `/requirements` from drafting the MVP.
+- The defect is **real** and **specific**, but downstream can handle it without consultant in-corpus reconciliation — typically by applying a `GR-NN` default, marking `[OUT-OF-SCOPE: domain-default]`, surfacing as `[AI-SUGGESTED]`, or treating a role-claim as second-hand.
+- Common pattern: a missing edge-case workflow that affects a post-MVP feature (Recommendation form *Treat as silence*); a missing first-hand role voice for a role that only matters in phase 2 (*Treat as second-hand* or *Treat as silence*); an integration whose contract belongs to a later phase (*Treat as silence*).
+- Logged as a downstream-handling instruction in the artefact; does not block `/requirements` from drafting the MVP.
 
 ### Reject
 
-- **Blocking.** `/requirements` cannot draft from these inputs until this is resolved.
-- Common patterns: a primary user role with zero voice in the inputs; a core workflow named with no supporting material; a POPIA-bearing data flow described only in one hedge-laden transcript line; cross-source factual conflicts on the central data model.
-- Any single Reject finding makes the overall verdict `BLOCKED`.
+- **Blocking — but narrowly.** `/requirements` cannot draft from these inputs because the defect cannot be resolved by applying a default, marking a silence, treating a claim as second-hand, or surfacing at draft time. The voice's defect requires consultant in-corpus reconciliation before any downstream interpretation is possible.
+- Under the *corpus IS the voice* principle, Reject is reserved for three concrete patterns:
+    1. **Cross-source factual contradiction on a load-bearing concept** (Dim 4). Two first-hand sources name different RBAC permissions for the same role, different workflow step counts, different field types for the same entity. No default can pick between them; the consultant must reconcile in-corpus (Recommendation form: *Reconcile in-corpus*).
+    2. **POPIA / legal scope claim with no in-corpus enumeration** (Dim 5). A source claims POPIA / GDPR / PCI-DSS / HIPAA compliance but no source enumerates which fields are personal information, which retention applies, which consent flow exists. Legal frameworks that genuinely require explicit enumeration cannot be defaulted via `GR-NN`.
+    3. **Load-bearing ambiguity unresolvable at draft time** (Dim 3). An ambiguous claim that downstream consultant-answers cannot resolve without external information (which the principle forbids), AND for which no `GR-NN` default can substitute. Rare — most ambiguities resolve via Recommendation form *Resolve at draft time*.
+- **Silences are NOT Reject.** Missing role voice (Dim 1), missing workflow detail (Dim 2), missing latency budget (Dim 5), unbounded scope (Dim 6) — these are **Patch** (in-corpus annotation, label as aspirational, attribute brief) or **Defer** (downstream handles via *Treat as silence* or *Treat as second-hand* Recommendation form). Reject demands consultant in-corpus reconciliation; silence does not — downstream has a default.
+- Any single Reject finding makes the overall verdict `BLOCKED`. This verdict is meaningful precisely because Reject is narrow.
 
 ### Disposition → Verdict mapping
 
@@ -275,7 +287,7 @@ The artefact's Executive Summary states one verdict:
 |---|---|
 | `BLOCKED` | At least one `Reject` disposition exists, **or** at least one Blocker severity finding exists. |
 | `NEEDS-REVISION` | No Rejects/Blockers, but ≥1 finding total. |
-| `ACCEPTED-WITH-FIXES` | Zero findings on all seven dimensions, **and** every dimension carries a non-empty Justification block. (Rare — strict-BMAD rule below makes this expensive.) |
+| `ACCEPTED-WITH-FIXES` | Zero findings on all six dimensions, **and** every dimension carries a non-empty Justification block. (Rare — strict-BMAD rule below makes this expensive.) |
 
 There is no fourth verdict. "Looks good" is not a verdict.
 
@@ -288,14 +300,13 @@ There is no fourth verdict. "Looks good" is not a verdict.
 If a dimension pass produces zero findings, the worker (and on Revise loops, the parent acting as that dimension's surrogate) **must**:
 
 1. State this in-thread (parent surrogate path) or in the worker's `anti_confirmation_prompts` log: *"Dimension N — zero findings on first pass. Strict-BMAD rule fires: re-running with sharper skepticism."*
-2. Re-run that dimension with explicit anti-confirmation prompts. For each consumable source, force-articulate at least one way it could fail the current dimension's check. Add findings if any anti-confirmation produces a real defect. Dimension-specific anti-confirmation prompts:
-    - **Dimension 1:** "Force-articulate at least one role likely to use this system that has zero direct quotes in any consumable source."
-    - **Dimension 2:** "Force-articulate at least one workflow named in the inputs whose non-happy-path behaviour is not described in any source."
-    - **Dimension 3:** "Force-articulate at least one vague verb / noun / quantifier / hedge in a load-bearing position across the corpus."
-    - **Dimension 4:** "Force-articulate at least one factual claim that two sources state differently, or one source that fails the attributable-origin check."
-    - **Dimension 5:** "Force-articulate at least one NFR or KPI signal the inputs imply but never quantify."
-    - **Dimension 6:** "Force-articulate at least one feature mentioned without a scope tag, or one out-of-scope topic the inputs never name."
-    - **Dimension 7:** "Force-articulate at least one sampling-collapse signal: source count, role diversity, time window, tier distribution, or self-selection."
+2. Re-run that dimension with explicit anti-confirmation prompts. For each consumable source, force-articulate at least one way it could fail the current dimension's check. Add findings if any anti-confirmation produces a real defect. The prompts produce silence-with-downstream-impact, voice-authenticity, ambiguity, contradiction, or unquantified-NFR findings — each carrying a Recommendation in one of the five sanctioned forms (never an elicitation step). Dimension-specific anti-confirmation prompts:
+    - **Dimension 1:** "Force-articulate at least one role mentioned in any source that has zero first-hand voice in the corpus (only second-hand brief / deck attribution exists, or no source at all describes the role's perspective)."
+    - **Dimension 2:** "Force-articulate at least one workflow named in the inputs whose non-happy-path behaviour is silent across the corpus, AND state how downstream must treat the silence (default applies / mark as unspecified)."
+    - **Dimension 3:** "Force-articulate at least one vague verb / noun / quantifier / hedge in a load-bearing position across the corpus, AND classify whether downstream can resolve at draft time or whether it is Reject-grade load-bearing."
+    - **Dimension 4:** "Force-articulate at least one factual claim that two sources state differently, or one source that fails the attributable-origin check — both Reject-grade in-corpus defects that no default can resolve."
+    - **Dimension 5:** "Force-articulate at least one NFR or KPI signal the inputs imply but never quantify, AND state whether the silence is Reject-grade legal-enumeration (POPIA / GDPR / PCI / HIPAA) or Patch/Defer-grade silence handled by a `GR-NN` default."
+    - **Dimension 6:** "Force-articulate at least one feature mentioned without a scope tag, AND state whether downstream applies `framework/shared/prototype-scope.md` default or surfaces at draft time."
 3. If the re-run still produces zero findings, **write a `Justification` block** for that dimension in the artefact. The justification:
     - **Must** cite specific evidence (filenames, verbatim quotes, source-roster shape) that rules out each common failure mode listed for that dimension.
     - **Must** be at least 3 sentences. *"Clean"* is not a justification; *"The corpus carries 11 consumable sources spanning 4 distinct authors and 3 tiers (Native-text: 4, Supported-via-MCP: 5, Native-multimodal: 2); every named role (Finance Manager, External Auditor, Compliance Officer) has at least one direct-quote source; no source-count, tier-distribution, or self-selection signal fires"* is.
@@ -303,7 +314,7 @@ If a dimension pass produces zero findings, the worker (and on Revise loops, the
 
 4. **Never silently move on.** A dimension with zero findings and no justification block is a methodology violation; the quality-gate sweep treats it as a gate failure.
 
-This rule applies independently to all seven dimensions.
+This rule applies independently to all six dimensions.
 
 ---
 
@@ -316,8 +327,8 @@ The artefact renders as a self-contained HTML report following `framework/assets
 3. **Triage** — "Top issues to address first" callout (≤10 entries: every Reject and Blocker plus cluster-lead Majors). Lets the consultant chase the highest-impact missing material before scanning the full table.
 4. **Clusters** — findings sharing a root cause grouped under a `CL-NN` cluster ID. Each cluster lists its member ADV-NNs and a one-line theme; the full detail for each finding still appears in the per-dimension sections below.
 5. **Findings Table** — compact tabular view of every finding (ID, Dim, Sev, Disp, Cluster, Location, one-line problem), sorted Blocker → Major → Minor.
-6. **Per-Dimension Sections (1–7)** — full findings for each dimension, or a Justification block if zero findings + strict-BMAD re-run passed.
-7. **Diagnostics** — quality-gate results, coverage map (which sources each dimension touched), strict-BMAD re-run log, override log, **Source roster (Consumed)** and **Source roster (Skipped)** tables.
+6. **Per-Dimension Sections (1–6)** — full findings for each dimension, or a Justification block if zero findings + strict-BMAD re-run passed.
+7. **Diagnostics** — quality-gate results, coverage map (which sources each dimension touched), strict-BMAD re-run log, override log, **Corpus Shape** (source count, distinct-author count, time-window span, tier distribution — the observability data that the dropped Dim 7 used to surface, now reported as descriptive shape, never as findings), **Source roster (Consumed)** and **Source roster (Skipped)** tables.
 
 The artefact is a punch-list, not a narrative. Prose between findings is minimised; the consultant should be able to read the Triage callout in under two minutes, scan the Clusters block to see which findings share a root cause, and jump straight to the per-dimension section for context on any finding. The Source-roster tables in Diagnostics tell the consultant which files were consumed (so findings can be traced back to source) and which files were skipped (so the consultant knows what coverage was unavailable).
 
@@ -325,19 +336,17 @@ The artefact is a punch-list, not a narrative. Prose between findings is minimis
 
 ## Consolidation & Triage
 
-After the seven-dimension sweep merges and IDs are assigned (Step 3b of `adversarial-reviewer.md`), one consolidation pass (Step 3c) annotates findings with **cluster IDs** and computes a **triage list**. The pass is a reader-aid: no finding is dropped, no finding's fields are rewritten, no `ADV-NN` is renumbered.
+After the six-dimension sweep merges and IDs are assigned (Step 3b of `adversarial-reviewer.md`), one consolidation pass (Step 3c) annotates findings with **cluster IDs** and computes a **triage list**. The pass is a reader-aid: no finding is dropped, no finding's fields are rewritten, no `ADV-NN` is renumbered.
 
 **Cluster rule.** Two or more findings cluster when they share a root cause — detected from a combination of cited filename, shared concept keywords in their `problem` field, and shared cross-source membership when applicable. Concept-keyword signals tuned for input-set defects:
 
-- *Stakeholder voice missing* / *role unquoted* (Dim 1).
+- *Stakeholder voice missing* / *role unquoted* / *second-hand voice only* (Dim 1).
 - *Happy-path-only coverage* / *no error-state material* (Dim 2).
 - *Entity X never grounded* / *field-level detail absent* (Dim 2 or 4).
 - *Vague verb 'support' / 'handle' / 'manage'* (Dim 3).
 - *POPIA referenced without scope* / *PII fields not enumerated* (Dim 5).
 - *Cross-source naming drift* / *RBAC table conflict* (Dim 4).
-- *Single-source / hedge-laden provenance* (Dim 4 or 7).
-- *Time-window collapse* / *single-workshop sampling* (Dim 7).
-- *Tier skew: screenshots-only / transcripts-absent* (Dim 7).
+- *Single-source / hedge-laden provenance* (Dim 4).
 
 A cluster has ≥2 members; singletons are never clustered. Each finding belongs to at most one cluster. Cluster IDs are `CL-01`, `CL-02`, … assigned in order of each cluster's lead (lowest-ADV-NN) member.
 
@@ -355,12 +364,12 @@ A cluster has ≥2 members; singletons are never clustered. Each finding belongs
 
 ---
 
-## Quality gates (run after Dimension 7, before write)
+## Quality gates (run after Dimension 6, before write)
 
 Eleven gates. All are hard. If any gate fails, the reviewer does **not** write the artefact — it surfaces a structured error and halts. (See `framework/agents/reviews-inputs/adversarial-reviewer.md > Step 10 — Validate` for the halt contract.)
 
 1. **Every finding has all eight schema fields populated.** Missing-field findings are invalid.
-2. **Every finding's Dimension is exactly one integer 1–7.** Multi-dimension findings must be decomposed.
+2. **Every finding's Dimension is exactly one integer 1–6.** Multi-dimension findings must be decomposed.
 3. **Every finding's Severity is exactly one of `Blocker | Major | Minor`.**
 4. **Every finding's Disposition is exactly one of `Patch | Defer | Reject`.**
 5. **Every finding's Evidence field is verbatim (≤5 lines) and exists in the per-source quote index for the cited filename** — OR the finding cites an `Unsupported`-tier filename and Evidence is the literal `*(file skipped — tier: Unsupported; reason: <reason>)*` placeholder. Paraphrased or fabricated evidence is a gate failure.
@@ -370,6 +379,8 @@ Eleven gates. All are hard. If any gate fails, the reviewer does **not** write t
 9. **The verdict line is consistent with the disposition tally** (any Reject or Blocker → `BLOCKED`; otherwise findings present → `NEEDS-REVISION`; zero findings everywhere → `ACCEPTED-WITH-FIXES`).
 10. **The Findings Table row count equals the sum of per-dimension finding counts.** Drift is a render bug.
 11. **The artefact's `MANIFEST_FINGERPRINT` field matches the SHA-256 of `requirements/source-manifest.json` captured at Step 2, AND every Source-roster (Consumed) `sha256[:8]` column matches its manifest row's `sha256` field.** Mismatch means the artefact analysed one version of the input set and reports against another.
+12. **The Corpus Shape subsection in Diagnostics is populated with non-empty values for source count, distinct-author count, time-window span, and tier distribution.** This preserves the observability that the dropped Dim 7 used to provide; an empty shape block is a render bug.
+13. **Every finding's Recommendation matches one of the five sanctioned forms** (`Reconcile in-corpus`, `Label / annotate`, `Treat as silence`, `Treat as second-hand`, `Resolve at draft time`). Recommendations containing the substrings *"interview"*, *"elicit"*, *"workshop"*, *"schedule"*, *"go ask"*, *"contact the"*, or otherwise proposing new elicitation are a gate failure under the *corpus IS the voice* principle.
 
 ---
 
@@ -377,10 +388,12 @@ Eleven gates. All are hard. If any gate fails, the reviewer does **not** write t
 
 - **Returning "looks good".** The methodology forbids this. Re-run; write a justification; never silently pass.
 - **Fabricating evidence.** Every Evidence field must be a verbatim quote from the cited source's bundle entry (or the sanctioned skipped-placeholder form for `Unsupported`-tier findings). If you cannot find a quote, you do not have a finding — drop it.
-- **Generic findings.** *"The inputs could be clearer"* is not a finding. Cite the specific source, quote the specific sentence (or its absence), state the specific defect, propose the specific elicitation step.
+- **Elicitation-form Recommendations.** Do not write Recommendations of the form *"interview X"*, *"elicit Y"*, *"schedule a workshop with Z"*, *"add an interview transcript"*, *"go ask the stakeholder"*. The corpus IS the voice; there is no second visit. Every Recommendation must match one of the five sanctioned forms (Reconcile in-corpus / Label / Treat as silence / Treat as second-hand / Resolve at draft time). Quality gate 13 enforces this.
+- **Treating second-hand voice as first-hand.** A BA-authored brief stating *"Finance Managers want X"* is the brief author's voice about Finance Managers, not Finance Manager voice. Dim 1 findings should distinguish: a role for whom only second-hand voice exists is a voice-authenticity defect with Recommendation form *Treat as second-hand* (downstream marks as BA-interpretation). Treating the brief's claim as if it were the Finance Manager's own utterance erases the consultant's authorial layer — a real audit signal.
+- **Generic findings.** *"The inputs could be clearer"* is not a finding. Cite the specific source, quote the specific sentence (or its absence), state the specific defect of the voice, propose a specific corpus-handling Recommendation in one of the five sanctioned forms.
 - **Severity inflation.** Calling every finding a Blocker dilutes the signal. Reserve Blocker for findings that genuinely prevent `/requirements` from drafting.
 - **Disposition collapse.** Disposition (Patch / Defer / Reject) is orthogonal to severity. A Minor finding can be a Reject (e.g., a small but blocking POPIA gap); a Major finding can be a Defer (e.g., a significant role-voice gap for a phase-2 persona).
-- **Collapsing dimensions.** Each dimension is its own pass with its own gate. Running them in a single combined sweep hides reasoning and breaks the diagnostics block. The parent reviewer dispatches seven parallel workers; collapsing into a single agent pass defeats per-dimension auditability.
+- **Collapsing dimensions.** Each dimension is its own pass with its own gate. Running them in a single combined sweep hides reasoning and breaks the diagnostics block. The parent reviewer dispatches six parallel workers; collapsing into a single agent pass defeats per-dimension auditability.
 - **Reviewing against the synthesised requirements doc.** Do not consult `requirements/requirements.md` or any other `/requirements`-pipeline derivative. The review's contract is to critique the **raw inputs**; `/requirements` has not run yet (or if it has, that run's correctness is downstream and out of scope here).
 - **Reviewing against parallel analyses.** Do not consult `analyse-inputs/<METHOD>/*` outputs to triangulate findings. Each input-pipeline lens is independently grounded in the manifest; cross-reading creates implicit dependencies and conflates source material with derived structures.
 - **Skipping re-ingested analysis artefacts.** Do not skip manifest rows whose filename suggests they are this framework's own output (e.g., `opportunity-solution-tree.md`, `thematic-analysis.md`). Re-ingested analysis artefacts are part of the input set; `/requirements` will draft from them as it would any other source. Dimension 3 (Ambiguity) and Dimension 4 (Consistency) catch defects they contain — silent skipping based on filename pattern would hide a real audit signal.
@@ -399,9 +412,11 @@ The reviewer's stance is defined in `framework/assets/characters/adversarial-inp
 
 - **BMAD method** — Breakthrough Method for Agile AI-Driven Development. Adversarial review docs at `docs.bmad-method.org/explanation/adversarial-review/`; core tools (including `bmad-review-adversarial-general` and `bmad-review-edge-case-hunter`) at `docs.bmad-method.org/reference/core-tools/`; repo at `github.com/bmad-code-org/BMAD-METHOD`. The "must find issues" rule, the Patch/Defer/Reject disposition bucket, and the false-positive caveat all originate here.
 - **Karl Wiegers — Writing Quality Requirements** (`processimpact.com/articles/qualreqs.pdf`). Six requirements-quality dimensions: completeness, correctness, feasibility, necessity, prioritization, verifiability. Dimensions 1, 2, and 5 of this reference are direct descendants, re-framed for elicitation-stage defects rather than finished-doc defects.
-- **IIBA BABOK v3 — Business Analysis Body of Knowledge.** Elicitation quality and stakeholder analysis chapters underpin Dimensions 1, 4, and 7. The bias / sampling lens of Dimension 7 is BABOK's stakeholder-coverage check applied to the corpus itself.
+- **IIBA BABOK v3 — Business Analysis Body of Knowledge.** Elicitation quality and stakeholder analysis chapters underpin Dimensions 1 and 4 — re-framed under the *corpus IS the voice* principle so that stakeholder-coverage gaps land as voice-authenticity findings (with Recommendation form *Treat as second-hand*) rather than as elicitation triggers.
 - **Volere Requirements Specification Template (Atlantic Systems Guild).** "Rationale" and "Fit Criterion" fields drive Dimension 5 (Quantitative & Measurable Signal); "Customer Satisfaction / Dissatisfaction" pair drives the scope-signal lens in Dimension 6.
 - **IEEE Std 830 — Recommended Practice for Software Requirements Specifications.** Establishes the formal inspection pattern. Dimensions 2 and 4 align with IEEE 830's coverage and consistency categories.
 - **Sibling reference for finished-doc critique:** `framework/assets/reviews/adversarial-reference.md` — applies the same BMAD methodology to `requirements/requirements.md` after `/requirements` has synthesised it. Eight dimensions tuned for finished-doc defects (completeness, ambiguity, testability, scope, dependency, consistency, edge cases, feasibility).
 
-The synthesised seven-dimension structure is this reference's own contribution: it integrates BMAD's adversarial rule, Wiegers's quality categories, BABOK's stakeholder-coverage lens, Volere's measurement and satisfaction lenses, and IEEE 830's inspection scope into one auditable pass-per-dimension methodology applied to the raw consultant input corpus. The sampling / bias lens of Dimension 7 has no `/review-requirement` analogue — it is a defect of the input set itself that cannot exist in a finished doc.
+The synthesised six-dimension structure is this reference's own contribution: it integrates BMAD's adversarial rule, Wiegers's quality categories, BABOK's stakeholder-coverage lens, Volere's measurement and satisfaction lenses, and IEEE 830's inspection scope into one auditable pass-per-dimension methodology applied to the raw consultant input corpus.
+
+**Divergence from the lineage's elicitation framing.** Wiegers and BABOK use stakeholder coverage as an *elicitation driver* — gaps imply more interviews. This reference, under the *corpus IS the voice* principle, replaces that lens with a **voice-handling** lens: gaps imply downstream defaults / second-hand markers / `[OUT-OF-SCOPE]` annotations, never elicitation. The ambiguity / consistency / completeness sub-lenses (Dimensions 2, 3, 4, 5, 6) preserve their lineage operationally — what to scan for is unchanged — but their Recommendation contract follows the five sanctioned corpus-handling forms instead of proposing elicitation actions. A prior seventh dimension (Bias / Sampling / Self-Selection) existed in earlier drafts and was structurally incompatible with the principle (its premise was that the corpus *should be* larger / more diverse — but under the principle there is no should-be); its observability content survives as the Diagnostics block's Corpus Shape subsection.

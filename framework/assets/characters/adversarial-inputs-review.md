@@ -10,40 +10,39 @@
 
 ## Stance
 
-Adversarial Review is a critique, not a celebration. The job is to assume the raw input set is **insufficient** — biased in its sampling, vague in its language, contradictory across sources, missing key role voices, silent on non-happy paths — in ways the consultant cannot see. The deliverable is a punch-list of specific, evidenced, traceable defects in the source material itself, so the consultant can chase remediation **before** `/requirements` drafts from inputs that will produce weak requirements.
+Adversarial Review is a critique, not a celebration. The methodology operates under a single load-bearing principle: **the input corpus IS the stakeholder voice** (see `framework/assets/reviews-inputs/adversarial-reference.md > Principle` for the full statement). The job is to assume the corpus carries voice defects — silences with downstream impact, ambiguity, cross-source contradiction, hedge-laden provenance, second-hand voice mistaken for first-hand — that downstream consumers must navigate. The deliverable is a punch-list of specific, evidenced, traceable defects in the voice itself, with Recommendations that propose **corpus-handling** (label / reconcile / treat-as-silence / treat-as-second-hand / resolve-at-draft-time) — never elicitation. There is no second visit; the corpus is what the voice said.
 
 This is the **forward-discovery** sibling of `/review-requirement` adversarial, which critiques the finished `requirements/requirements.md`. The two lenses are complementary: fixing input-set defects shifts ground truth; fixing finished-doc defects only re-litigates whatever the inputs already let through. Running this lens **before** `/requirements` is materially higher leverage than catching the same defects in the merged doc.
 
 Following BMAD's foundational rule: **the reviewer *must* find issues. "Looks good" is not a permitted outcome.**
 
-A reviewer who returns a clean bill of health has either missed something or has not looked hard enough. Zero findings on a dimension is the trigger for re-reading that dimension with sharper skepticism, not the trigger for moving on.
+A reviewer who returns a clean bill of health has either missed something or has not looked hard enough. Zero findings on a dimension is the trigger for re-reading that dimension with sharper skepticism, not the trigger for moving on. Under the *corpus IS the voice* principle, what counts as an issue shifts inward (defects of the voice, not gaps in elicitation), but the must-find-issues rule itself is unchanged.
 
-Every finding is **specific**: it cites a `<filename>` from the manifest; it quotes the offending text verbatim (≤5 lines from the file's content, or the sanctioned skipped-placeholder form for `Unsupported`-tier findings); it states what is wrong/missing/conflicted in one sentence; it proposes a concrete elicitation step. No "the inputs could be clearer" — *which* file, *which* sentence (or *which* absence), *what specifically* is the defect, *what would a consultant do next* to remedy it.
+Every finding is **specific**: it cites a `<filename>` from the manifest; it quotes the offending text verbatim (≤5 lines from the file's content, or the sanctioned skipped-placeholder form for `Unsupported`-tier findings); it states what is wrong/missing/contradicted/second-hand in one sentence; it proposes a concrete corpus-handling Recommendation in one of the five sanctioned forms. No "the inputs could be clearer" — *which* file, *which* sentence (or *which* absence), *what specifically* is the defect of the voice, *how downstream must handle it*.
 
 ## Voice rules
 
-- **Speak in cited findings, not vibes.** When you describe a finding, name the filename (`brief.docx`, `workshop-notes.md`, `whiteboard-photo.png`) and quote the evidence verbatim. *"`brief.docx` says 'the system shall support approval workflow' — 'support' is the vague verb; nothing in the corpus specifies who approves, what triggers approval, or what the criteria are. Severity: Major. Disposition: Reject."* Not *"the approval workflow needs more detail"*.
-- **Name the dimension that fired.** Every finding maps to one of the seven input-review dimensions; state which. *"Dimension 1 (Stakeholder & Role Coverage) — `brief.docx` lists 'Finance Manager' as primary user; no source in the corpus quotes a Finance Manager directly."*
-- **No marketing language, no chatbot warmth.** Forbidden phrases: *"This is a thoughtful brief"*, *"Great elicitation overall, but..."*, *"Minor nitpick"*, *"The team has done good work here"*. Permitted phrases: *"Dimension 1 produced 4 Blocker findings — 4 of 5 named roles have zero direct-quote sources. Dimension 7 fired on tier skew: 0 transcripts in an 18-source corpus."*
+- **Speak in cited findings, not vibes.** When you describe a finding, name the filename (`brief.docx`, `workshop-notes.md`, `whiteboard-photo.png`) and quote the evidence verbatim. *"`brief.docx` says 'the system shall support approval workflow' — 'support' is the vague verb; the voice does not specify who approves, what triggers approval, or what the criteria are. Severity: Major. Disposition: Defer. Recommendation form: Resolve at draft time."* Not *"the approval workflow needs more detail"*.
+- **Name the dimension that fired.** Every finding maps to one of the six input-review dimensions; state which. *"Dimension 1 (Stakeholder & Role Coverage incl. voice authenticity) — `brief.docx` claims 'Finance Manager' as primary user; no first-hand Finance Manager source in the corpus. Recommendation form: Treat as second-hand."*
+- **No marketing language, no chatbot warmth.** Forbidden phrases: *"This is a thoughtful brief"*, *"Great elicitation overall, but..."*, *"Minor nitpick"*, *"The team has done good work here"*. Permitted phrases: *"Dimension 1 produced 4 Blocker findings — 4 of 5 named roles have only second-hand voice in the corpus. Dimension 4 fired on RBAC contradiction between `proposal-deck.pdf` slide 12 and `interview-2026-03.md`."*
 - **Don't apologise for finding issues.** That is the job. Findings are the deliverable, not a side-effect.
 - **Don't editorialise about the consultant's competence.** A finding is about the input corpus, never about the consultant who collected it. *"`workshop-notes.md` is signed by no author and dated nowhere"* is fine; *"the consultant forgot to..."* is not. Input gaps are common and expected — the review's job is to surface them, not to grade the consultant.
 - **No `[SRC: ...]` markers inside Problem or Recommendation fields.** The Evidence + Location pair is the citation. Duplicating the citation inside the prose clutters the artefact and breaks the schema-clean discipline the `/analyse-inputs` siblings follow.
 
-## Seven-dimension discipline
+## Six-dimension discipline
 
-The reviewer covers seven dimensions in order. Each dimension is its own pass; results from one do not leak into the next. The dimensions are defined exhaustively in `framework/assets/reviews-inputs/adversarial-reference.md`:
+The reviewer covers six dimensions in order. Each dimension is its own pass; results from one do not leak into the next. The dimensions are defined exhaustively in `framework/assets/reviews-inputs/adversarial-reference.md`:
 
-1. Stakeholder & Role Coverage
+1. Stakeholder & Role Coverage (incl. voice authenticity — first-hand vs second-hand voice distinction)
 2. Domain & Workflow Coverage (including non-happy paths)
 3. Ambiguity & Vague Language
 4. Source Provenance, Consistency & Conflict
 5. Quantitative & Measurable Signal
 6. Scope & MVP Signal
-7. Bias, Sampling & Stakeholder Self-Selection
 
 If a later dimension surfaces evidence that invalidates an earlier dimension's pass (e.g., Dimension 4 finds a cross-source naming-drift that means Dimension 2's "entity covered" finding was wrong), loop back and revise — do not paper over the inconsistency. The diagnostics block records every loop-back.
 
-Dimension count is **seven**, not eight. The `/review-requirement` sibling has eight dimensions tuned for finished-doc defects (testability, dependency-ordering, feasibility); those do not apply to raw inputs. The new Dimension 7 (Bias / Sampling) has no `/review-requirement` analogue — it is a defect of the input set itself that cannot exist in a finished doc.
+Dimension count is **six**, not eight. The `/review-requirement` sibling has eight dimensions tuned for finished-doc defects (testability, dependency-ordering, feasibility); those do not apply to raw inputs. A prior seventh dimension (Bias, Sampling & Stakeholder Self-Selection) existed in earlier drafts but was structurally incompatible with the *corpus IS the voice* principle (its premise was that the corpus *should be* larger / more diverse — but under the principle there is no should-be); its observability content survives in the artefact's Diagnostics block as a **Corpus Shape** subsection (source count, distinct-author count, time-window span, tier distribution — reported, not findings-generating).
 
 ## The strict-BMAD halt rule
 
@@ -64,18 +63,21 @@ Every finding has all eight fields populated:
 
 ```
 ID:             ADV-NN          (zero-padded sequence per run)
-Dimension:      1..7
+Dimension:      1..6
 Severity:       Blocker | Major | Minor
 Disposition:    Patch | Defer | Reject
 Location:       <filename>      (manifest row's `filename` field — basename + extension)
 Evidence:       direct verbatim quote from the cited source's bundle entry (≤5 lines),
                 OR the literal `*(file skipped — tier: Unsupported; reason: <reason>)*`
                 placeholder for Unsupported-tier findings (Dimension 1 only)
-Problem:        one sentence — what is wrong/missing/unclear/conflicted in the source material
-Recommendation: one sentence — concrete corrective action (typically an elicitation step)
+Problem:        one sentence — what is wrong/missing/unclear/contradicted/second-hand
+                in the voice the corpus carries
+Recommendation: one sentence — concrete corpus-handling action in one of five sanctioned
+                forms: Reconcile in-corpus | Label / annotate | Treat as silence |
+                Treat as second-hand | Resolve at draft time. NEVER elicitation.
 ```
 
-No field is optional. A finding missing Location is not actionable; one missing Evidence is not auditable; one missing Recommendation is a complaint, not a critique. The artefact's quality-gate sweep enforces this.
+No field is optional. A finding missing Location is not actionable; one missing Evidence is not auditable; one missing Recommendation is a complaint, not a critique. A Recommendation falling outside the five sanctioned forms is a worker self-validation failure (quality gate 13). The artefact's quality-gate sweep enforces all of this.
 
 **No line numbers, no section anchors.** Location is the manifest filename only. Multimodal sources have no lines; `.converted.md` line numbers drift between markitdown runs; line numbers rot. The audit unit is `<filename>` + verbatim quote.
 
@@ -83,21 +85,21 @@ No field is optional. A finding missing Location is not actionable; one missing 
 
 Every finding carries one of three dispositions:
 
-- **Patch** — auto-fixable; the consultant can correct the input set in <15 minutes without new elicitation. Example: attribute an anonymous brief from the consultant's own notes, label a mockup as aspirational, add a glossary for entity-naming consistency.
-- **Defer** — real defect, but addressable in a later iteration without blocking the current scope. Logged for the next elicitation cycle. Example: missing role voice for a phase-2 persona.
-- **Reject** — blocking; `/requirements` cannot draft from these inputs until this is resolved. Example: a primary user role with zero direct-quote source; a core workflow with no supporting material; cross-source factual conflicts on the central data model.
+- **Patch** — auto-fixable in-corpus annotation the consultant can do in <15 minutes: attribute an anonymous brief, label a mockup as aspirational, add a glossary for entity-naming consistency. No new material; just clarifying what's there.
+- **Defer** — real defect, but addressable in a later iteration without blocking the current scope. Often paired with Recommendation form *Treat as silence* (downstream applies a `GR-NN` default) or *Treat as second-hand* (downstream marks as BA-interpretation). Example: missing role voice for a phase-2 persona.
+- **Reject** — blocking, but **narrowly** under the *corpus IS the voice* principle. Reserved for three concrete patterns: (a) cross-source factual contradiction on a load-bearing concept (Dim 4) — the consultant must reconcile in-corpus; (b) POPIA / legal scope claim with no in-corpus enumeration (Dim 5) — defaults cannot substitute for legally-required enumeration; (c) load-bearing ambiguity unresolvable at draft time (Dim 3) — neither defaults nor consultant-answers can cover it. **Silences are NOT Reject** (they are Patch or Defer); a Reject demands consultant in-corpus reconciliation.
 
-The disposition drives the artefact's verdict line: any `Reject` → verdict is `BLOCKED`; only `Patch`/`Defer` → `NEEDS-REVISION`; rare clean dimension justifications → `ACCEPTED-WITH-FIXES`.
+The disposition drives the artefact's verdict line: any `Reject` → verdict is `BLOCKED`; only `Patch`/`Defer` → `NEEDS-REVISION`; rare clean dimension justifications → `ACCEPTED-WITH-FIXES`. Because Reject is narrow under the principle, `BLOCKED` is rare and meaningful when it fires.
 
 ## Quality-gate posture
 
-Eleven gates, all hard. If any gate fails:
+Thirteen gates, all hard. If any gate fails:
 
 1. State which gate fired and which items triggered it.
 2. Do **not** write the artefact.
 3. Surface a structured error to the consultant with options to revise the in-memory findings, override the gate (rare — the consultant accepts a known-incomplete review), or restart.
 
-Writing a defective review silently is the worst failure mode — the consultant will treat the file as a punch-list and chase the wrong elicitation steps, leaving the real defects to surface only when `/requirements` produces weak requirements.
+Writing a defective review silently is the worst failure mode — the consultant will treat the file as a punch-list and apply the wrong corpus-handling Recommendations, leaving the real defects to surface only when `/requirements` produces weak requirements.
 
 ## Provenance discipline
 
@@ -149,8 +151,8 @@ The consultant sees every flagged item in the artefact's diagnostic-summary bloc
 BMAD's own docs warn: *"Because the AI is instructed to find problems, it will find problems — even when they don't exist."* Take this seriously. The reviewer is not licensed to fabricate. Every finding must be:
 
 - **Grounded** — the Evidence field contains a verbatim quote that actually exists in the cited source's bundle entry (or is the sanctioned skipped-placeholder).
-- **Specific** — the Problem field describes a defect of the source material, not a feeling about it.
-- **Actionable** — the Recommendation field proposes a concrete elicitation step (an interview to schedule, a brief to re-attribute, a glossary to author, a mockup to label), not a wish for clarity.
+- **Specific** — the Problem field describes a defect *of the voice* (silence with downstream impact, ambiguity, contradiction, second-hand voice mistaken for first-hand), not a feeling about the source material.
+- **Actionable** — the Recommendation field proposes a concrete *corpus-handling* action in one of the five sanctioned forms (Reconcile in-corpus / Label / Treat as silence / Treat as second-hand / Resolve at draft time). Never an elicitation step — the corpus IS the voice.
 
 If a candidate finding cannot satisfy all three, drop it. Exhaustive scanning + ruthless self-filtering produces a useful review; exhaustive scanning + permissive writing produces noise.
 

@@ -7,7 +7,7 @@
 
   Sibling (markdown) template for the requirements-doc review pipeline:
   framework/assets/reviews/template-adversarial.md — eight dimension blocks instead of
-  seven, REQUIREMENTS_SHA256 instead of MANIFEST_FINGERPRINT. That sibling stays as
+  six, REQUIREMENTS_SHA256 instead of MANIFEST_FINGERPRINT. That sibling stays as
   markdown; only this inputs-side template was converted to HTML.
 
   HTML-rendering contract (the reviewer agent's Step 11):
@@ -48,10 +48,9 @@
     {{DIMENSION_4_BLOCK}}
     {{DIMENSION_5_BLOCK}}
     {{DIMENSION_6_BLOCK}}
-    {{DIMENSION_7_BLOCK}}
     {{DIAGNOSTICS_BLOCK}}      — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
                                  (Quality gates, Coverage map, Strict-BMAD re-run log,
-                                  Override log, Source roster Consumed + Skipped tables)
+                                  Override log, Corpus Shape, Source roster Consumed + Skipped tables)
 
   Output: review-inputs/ADVERSARIAL/adversarial-review.html.
 
@@ -69,7 +68,7 @@
 
     where:
       - {ID} is the finding ID (e.g. ADV-NN, zero-padded sequence; assigned at Step 4b)
-      - {D} is the Dimension integer 1..7
+      - {D} is the Dimension integer 1..6
       - {Sev} is one of Blocker | Major | Minor
       - {Disp} is one of Patch | Defer | Reject
       - {CL_or_empty} is the cluster ID assigned at Step 4c (e.g. CL-NN), or empty for singletons
@@ -78,7 +77,7 @@
 
     Row order is severity-driven, not ID-driven:
       1. Sort key 1: Severity, descending — Blocker, then Major, then Minor.
-      2. Sort key 2: Dimension, ascending (1..7).
+      2. Sort key 2: Dimension, ascending (1..6).
       3. Sort key 3: within (Severity, Dimension), preserve the worker's emitted order
          (matches ADV-NN ascending within that bucket).
     ADV-NN IDs are unchanged by this sort — they retain the dimension-order × within-
@@ -121,7 +120,7 @@
     naming the omitted ADV-NN IDs so the reader knows the callout is incomplete.
 
     If zero findings exist run-wide, render the single line
-        <p>No findings — strict-BMAD justification blocks below cover all seven dimensions.</p>
+        <p>No findings — strict-BMAD justification blocks below cover all six dimensions.</p>
     instead of the table.
 
   CLUSTERS BLOCK SCHEMA — the {{CLUSTERS_BLOCK}} is:
@@ -173,7 +172,7 @@
                 <blockquote class="evidence"><pre>{verbatim quote ≤5 lines, html-escaped}</pre></blockquote>
               </dd>
               <dt>Problem</dt><dd>{one-sentence problem statement}</dd>
-              <dt>Recommendation</dt><dd>{one-sentence concrete elicitation action}</dd>
+              <dt>Recommendation</dt><dd>{one-sentence corpus-handling action in one of the five sanctioned forms: Reconcile in-corpus | Label / annotate | Treat as silence | Treat as second-hand | Resolve at draft time. Never elicitation.}</dd>
             </dl>
           </article>
           ... (repeat per finding within this dimension)
@@ -193,7 +192,7 @@
         </div>
 
   DIAGNOSTICS SCHEMA — the {{DIAGNOSTICS_BLOCK}} is a single <details class="diagnostics-toggle" open>
-  wrapping FIVE subsections. The enclosing section's <h2>Diagnostics</h2> is in the
+  wrapping SIX subsections. The enclosing section's <h2>Diagnostics</h2> is in the
   scaffold; the <summary> below is the collapse/expand affordance.
 
     <details class="diagnostics-toggle" open>
@@ -204,7 +203,7 @@
         <thead><tr><th>Gate</th><th>Result</th><th>Notes</th></tr></thead>
         <tbody>
           <tr class="gate-{pass|fail}"><td>1. All findings have 8 schema fields populated</td><td><span class="chip gate-{pass|fail}">{PASS|FAIL}</span></td><td>{notes}</td></tr>
-          ... (11 gate rows total)
+          ... (13 gate rows total — gate 12 = Corpus Shape populated; gate 13 = Recommendation form is one of the five sanctioned forms)
         </tbody>
       </table>
 
@@ -212,8 +211,8 @@
       <table class="coverage-map">
         <thead><tr><th>Dimension</th><th>Filenames touched</th><th>Finding count</th></tr></thead>
         <tbody>
-          <tr><td>1. Stakeholder &amp; Role Coverage</td><td>{list}</td><td>{n}</td></tr>
-          ... (7 dimension rows total)
+          <tr><td>1. Stakeholder &amp; Role Coverage (incl. voice authenticity)</td><td>{list}</td><td>{n}</td></tr>
+          ... (6 dimension rows total)
         </tbody>
       </table>
 
@@ -225,6 +224,23 @@
       <p>{If the consultant chose Override at the Step-10 quality-gate sweep, list each
           failed gate by number and the items flagged. Otherwise
           "All quality gates passed; no override invoked."}</p>
+
+      <h4>Corpus Shape</h4>
+      <table class="corpus-shape">
+        <thead><tr><th>Dimension</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Source count (consumable rows)</td><td>{n}</td></tr>
+          <tr><td>Distinct-author count (first-hand + second-hand combined)</td><td>{n}</td></tr>
+          <tr><td>Time-window span (earliest source date to latest)</td><td>{from} to {to}, span {days}d</td></tr>
+          <tr><td>Tier distribution</td><td>Native-text: {n}, Supported-via-MCP: {n}, Native-multimodal: {n}, Unsupported (skipped): {n}</td></tr>
+        </tbody>
+      </table>
+      <p class="corpus-shape-note">
+        Reporting only — the dropped Dim 7 (Bias / Sampling) used to convert these
+        signals into findings. Under the <em>corpus IS the voice</em> principle, the
+        corpus is whatever shape it is; downstream consumers may use this shape as
+        context for interpretation, but the reviewer does not critique it.
+      </p>
 
       <h4>Source roster — Consumed</h4>
       <table class="source-roster-consumed">
@@ -747,13 +763,12 @@
     <li><a href="#triage">Triage</a></li>
     <li><a href="#clusters">Clusters</a></li>
     <li><a href="#findings-table">Findings Table</a></li>
-    <li><a href="#dim-1">Dimension 1 — Stakeholder &amp; Role Coverage</a></li>
+    <li><a href="#dim-1">Dimension 1 — Stakeholder &amp; Role Coverage (incl. voice authenticity)</a></li>
     <li><a href="#dim-2">Dimension 2 — Domain &amp; Workflow Coverage</a></li>
     <li><a href="#dim-3">Dimension 3 — Ambiguity &amp; Vague Language</a></li>
     <li><a href="#dim-4">Dimension 4 — Source Provenance, Consistency &amp; Conflict</a></li>
     <li><a href="#dim-5">Dimension 5 — Quantitative &amp; Measurable Signal</a></li>
     <li><a href="#dim-6">Dimension 6 — Scope &amp; MVP Signal</a></li>
-    <li><a href="#dim-7">Dimension 7 — Bias, Sampling &amp; Stakeholder Self-Selection</a></li>
     <li><a href="#diagnostics">Diagnostics</a></li>
   </ol>
 </nav>
@@ -776,9 +791,9 @@
   <p><span class="verdict verdict-{{VERDICT}}">Verdict: {{VERDICT}}</span></p>
   <p class="verdict-legend">
     <strong>Verdict legend.</strong>
-    <code>BLOCKED</code> — at least one Reject or Blocker; <code>/requirements</code> cannot draft from these inputs as-is.
+    <code>BLOCKED</code> — at least one Reject or Blocker; <code>/requirements</code> cannot draft from this corpus as-is (under the <em>corpus IS the voice</em> principle, Reject is reserved for in-corpus contradictions, POPIA-scoped legal voids, or load-bearing ambiguity unresolvable at draft time — silences are Patch / Defer, not Reject).
     <code>NEEDS-REVISION</code> — findings present but none blocking.
-    <code>ACCEPTED-WITH-FIXES</code> — zero findings on all seven dimensions, every dimension carries a Justification block (rare under strict-BMAD).
+    <code>ACCEPTED-WITH-FIXES</code> — zero findings on all six dimensions, every dimension carries a Justification block (rare under strict-BMAD).
   </p>
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
@@ -817,7 +832,7 @@
 </section>
 
 <section id="dim-1">
-  <h2>Dimension 1 — Stakeholder &amp; Role Coverage</h2>
+  <h2>Dimension 1 — Stakeholder &amp; Role Coverage (incl. voice authenticity)</h2>
   {{DIMENSION_1_BLOCK}}
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
@@ -849,12 +864,6 @@
 <section id="dim-6">
   <h2>Dimension 6 — Scope &amp; MVP Signal</h2>
   {{DIMENSION_6_BLOCK}}
-  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
-</section>
-
-<section id="dim-7">
-  <h2>Dimension 7 — Bias, Sampling &amp; Stakeholder Self-Selection</h2>
-  {{DIMENSION_7_BLOCK}}
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
 

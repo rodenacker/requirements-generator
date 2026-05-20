@@ -4,11 +4,14 @@ kind: registry
 methodologies:
   # Methodologies for /review-inputs. Each methodology ships as a separate development,
   # promoting `status: future` to `status: mvp` and filling in the remaining eight fields.
-  # The `adversarial` row is the first MVP — a BMAD-style seven-dimension critique of
-  # the raw consultant input set, paralleling the eight-dimension /review-requirement
-  # adversarial reviewer with dimensions tuned for input-set defects (stakeholder
-  # coverage, workflow coverage, ambiguity, cross-source conflict, quantitative signal,
-  # scope signal, sampling bias). Additional `status: future` rows below become
+  # The `adversarial` row is the first MVP — a BMAD-style six-dimension critique of
+  # the raw consultant input set operating under the *corpus IS the voice* principle
+  # (the corpus is the stakeholder voice, not evidence-of-elicitation; recommendations
+  # propose corpus-handling actions, never new elicitation). Paralleling the eight-
+  # dimension /review-requirement adversarial reviewer with dimensions tuned for input-
+  # set defects (stakeholder coverage incl. first-hand vs second-hand voice authenticity,
+  # workflow coverage, ambiguity, cross-source conflict, quantitative signal, scope
+  # signal). Additional `status: future` rows below become
   # operational only when their reviewer / reference / character / template files are
   # authored and the row's status is flipped to `mvp`. If every MVP row were removed,
   # the selector returns `empty-registry` and the orchestrator surfaces a friendly
@@ -20,7 +23,7 @@ methodologies:
   # differ (`review-inputs/COMPLETENESS/...` vs `review-requirements/COMPLETENESS/...`).
   - name: adversarial
     status: mvp
-    description: Choose this to flush out defects in the raw consultant inputs (stakeholder gaps, ambiguity, cross-source conflicts, missing edge cases, sampling bias) before /requirements drafts from them.
+    description: Choose this to surface defects in the raw consultant input corpus (voice authenticity, ambiguity, cross-source contradiction, silence-with-downstream-impact) so /requirements drafts with explicit handling of every defect. Treats the corpus as the stakeholder voice; recommendations propose corpus-handling, never new elicitation.
     output_path: review-inputs/ADVERSARIAL/adversarial-review.html
     reference_asset: framework/assets/reviews-inputs/adversarial-reference.md
     template_asset: framework/assets/reviews-inputs/template-adversarial.html
