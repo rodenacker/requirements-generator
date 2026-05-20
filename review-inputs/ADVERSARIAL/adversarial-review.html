@@ -1,0 +1,1347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adversarial Review (inputs-side) — Transaction Import &amp; Approval System</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --fg: #1a1a1a;
+    --muted: #5a5a5a;
+    --border: #d4d4d4;
+    --border-strong: #8a8a8a;
+    --section-bg: #ffffff;
+    --code-bg: #f3f3f3;
+    --shadow-card: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+
+    --sev-blocker: #b91c1c;
+    --sev-blocker-bg: rgba(185, 28, 28, 0.10);
+    --sev-major: #c2410c;
+    --sev-major-bg: rgba(194, 65, 12, 0.10);
+    --sev-minor: #a16207;
+    --sev-minor-bg: rgba(161, 98, 7, 0.10);
+
+    --disp-patch: #15803d;
+    --disp-patch-bg: rgba(21, 128, 61, 0.10);
+    --disp-defer: #1d4ed8;
+    --disp-defer-bg: rgba(29, 78, 216, 0.10);
+    --disp-reject: #b91c1c;
+    --disp-reject-bg: rgba(185, 28, 28, 0.10);
+
+    --verdict-blocked-fg: #ffffff;
+    --verdict-blocked-bg: #991b1b;
+    --verdict-needs-fg: #ffffff;
+    --verdict-needs-bg: #c2410c;
+    --verdict-accepted-fg: #ffffff;
+    --verdict-accepted-bg: #15803d;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 32px 64px;
+  }
+
+  header { margin-bottom: 24px; }
+  h1#top {
+    margin: 0 0 12px 0;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px 24px;
+    padding: 14px 18px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-card);
+    margin: 16px 0;
+    font-size: 13px;
+  }
+  .meta-grid > div { display: flex; flex-direction: column; gap: 2px; }
+  .meta-grid dt {
+    margin: 0;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  .meta-grid dd {
+    margin: 0;
+    font-size: 14px;
+    color: var(--fg);
+    word-break: break-all;
+  }
+
+  .toc {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin: 0 0 32px 0;
+    padding: 12px 18px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    box-shadow: var(--shadow-card);
+    font-size: 13px;
+  }
+  .toc-label {
+    display: block;
+    margin: 0 0 6px 0;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  .toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    counter-reset: toc-item;
+  }
+  .toc li { counter-increment: toc-item; }
+  .toc li::before {
+    content: counter(toc-item) ". ";
+    color: var(--muted);
+    margin-right: 4px;
+  }
+  .toc a {
+    color: var(--fg);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--border-strong);
+    padding-bottom: 1px;
+  }
+  .toc a:hover { border-bottom-color: var(--fg); color: #000; }
+
+  section {
+    margin: 32px 0;
+    padding: 20px 24px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-card);
+  }
+  section h2 {
+    margin: 0 0 16px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border-strong);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  section h3 {
+    margin: 20px 0 10px 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  section h4 {
+    margin: 16px 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .back-to-top {
+    margin: 24px 0 0 0;
+    text-align: right;
+    font-size: 12px;
+  }
+  .back-to-top a {
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--border-strong);
+    padding-bottom: 1px;
+  }
+  .back-to-top a:hover { color: var(--fg); border-bottom-color: var(--fg); }
+
+  .verdict {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+  }
+  .verdict-BLOCKED { background: var(--verdict-blocked-bg); color: var(--verdict-blocked-fg); }
+  .verdict-NEEDS-REVISION { background: var(--verdict-needs-bg); color: var(--verdict-needs-fg); }
+  .verdict-ACCEPTED-WITH-FIXES { background: var(--verdict-accepted-bg); color: var(--verdict-accepted-fg); }
+
+  .chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .chip.severity-Blocker { background: var(--sev-blocker-bg); color: var(--sev-blocker); }
+  .chip.severity-Major { background: var(--sev-major-bg); color: var(--sev-major); }
+  .chip.severity-Minor { background: var(--sev-minor-bg); color: var(--sev-minor); }
+  .chip.disposition-Patch { background: var(--disp-patch-bg); color: var(--disp-patch); }
+  .chip.disposition-Defer { background: var(--disp-defer-bg); color: var(--disp-defer); }
+  .chip.disposition-Reject { background: var(--disp-reject-bg); color: var(--disp-reject); }
+  .chip.gate-pass { background: var(--disp-patch-bg); color: var(--disp-patch); }
+  .chip.gate-fail { background: var(--disp-reject-bg); color: var(--disp-reject); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  table caption {
+    text-align: left;
+    margin-bottom: 8px;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  thead {
+    background: #f3f3f3;
+    border-bottom: 2px solid var(--border-strong);
+  }
+  th {
+    text-align: left;
+    padding: 8px 10px;
+    font-weight: 600;
+    color: var(--fg);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:hover { background: #fafafa; }
+  td code, dd code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+  }
+
+  table.findings-full thead { position: sticky; top: 48px; z-index: 5; }
+  table.findings-full td:nth-child(7) { min-width: 280px; }
+
+  table.triage-table tr.severity-Blocker { background: rgba(185, 28, 28, 0.04); }
+  .triage-overflow {
+    margin: 8px 0 0 0;
+    padding: 8px 12px;
+    background: var(--sev-blocker-bg);
+    color: var(--sev-blocker);
+    border-radius: 4px;
+    font-size: 13px;
+  }
+  .clusters-singletons {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .findings-list-header {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  article.finding {
+    margin: 16px 0;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    background: #fcfcfc;
+    box-shadow: 0 1px 1px rgba(0,0,0,.03);
+  }
+  article.finding.severity-Blocker { border-left-color: var(--sev-blocker); }
+  article.finding.severity-Major { border-left-color: var(--sev-major); }
+  article.finding.severity-Minor { border-left-color: var(--sev-minor); }
+  article.finding h4 {
+    margin: 0 0 12px 0;
+    padding: 0;
+    color: var(--fg);
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  article.finding h4 code {
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+  }
+
+  dl.finding-fields {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 8px 16px;
+    margin: 0;
+    font-size: 14px;
+  }
+  dl.finding-fields dt {
+    margin: 0;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding-top: 2px;
+  }
+  dl.finding-fields dd { margin: 0; word-break: break-word; }
+
+  blockquote.evidence {
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border-strong);
+    border-radius: 4px;
+    background: #fbfbfb;
+    overflow: hidden;
+  }
+  blockquote.evidence pre {
+    margin: 0;
+    padding: 10px 12px;
+    font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #333;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 320px;
+    overflow: auto;
+  }
+  blockquote.evidence.skipped-placeholder {
+    padding: 8px 12px;
+    font-style: italic;
+    color: var(--muted);
+    background: #f7f7f7;
+  }
+
+  .justification {
+    padding: 14px 18px;
+    background: var(--sev-major-bg);
+    border: 1px solid var(--sev-major);
+    border-radius: 6px;
+  }
+  .justification h3 {
+    margin: 0 0 8px 0;
+    color: var(--sev-major);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .justification p { margin: 0; }
+
+  details.diagnostics-toggle { margin: 0; }
+  details.diagnostics-toggle > summary {
+    cursor: pointer;
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+  details.diagnostics-toggle > summary::before {
+    content: "▶";
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform 0.15s ease;
+    display: inline-block;
+  }
+  details.diagnostics-toggle[open] > summary::before { transform: rotate(90deg); }
+
+  table.diagnostics-gates tr.gate-fail { background: rgba(185, 28, 28, 0.05); }
+
+  .verdict-legend {
+    margin: 12px 0 0 0;
+    padding: 10px 12px;
+    background: #f7f7f7;
+    border-left: 3px solid var(--border-strong);
+    border-radius: 0 4px 4px 0;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 720px) {
+    main { padding: 16px 16px 48px; }
+    h1#top { font-size: 22px; }
+    section { padding: 14px 14px; }
+    section h2 { font-size: 18px; }
+    .meta-grid { grid-template-columns: 1fr; gap: 6px 0; }
+    dl.finding-fields { grid-template-columns: 1fr; gap: 4px 0; }
+    dl.finding-fields dt { padding-top: 6px; }
+    table { font-size: 12px; }
+    th, td { padding: 6px 6px; }
+    .toc { position: static; }
+  }
+  @media (max-width: 480px) {
+    body { font-size: 14px; }
+    h1#top { font-size: 19px; }
+    article.finding { padding: 12px 12px; }
+  }
+
+  @media print {
+    body { background: white; }
+    main { max-width: none; padding: 0; }
+    .toc, .back-to-top { display: none !important; }
+    section {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      box-shadow: none;
+      border: 1px solid #999;
+      margin: 12px 0;
+    }
+    article.finding {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      box-shadow: none;
+    }
+    details.diagnostics-toggle { display: block; }
+    details.diagnostics-toggle > summary::before { display: none; }
+    details:not([open]) > *:not(summary) { display: block !important; }
+    blockquote.evidence pre { max-height: none; overflow: visible; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1 id="top">Adversarial Review (inputs-side) — Transaction Import &amp; Approval System</h1>
+  <dl class="meta-grid">
+    <div><dt>Domain</dt><dd>Transaction Import &amp; Approval System</dd></div>
+    <div><dt>Generated</dt><dd>2026-05-20T05:36:14Z</dd></div>
+    <div><dt>Manifest SHA-256</dt><dd><code>f507350e8dbe11536cc55a76c1f5cb34bfb041a3a0794bb9926f49c9a9918692</code></dd></div>
+    <div><dt>Reviewer</dt><dd>Adversarial Review (BMAD-style, strict mode, inputs-side)</dd></div>
+  </dl>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <span class="toc-label">Contents</span>
+  <ol>
+    <li><a href="#executive-summary">Executive Summary</a></li>
+    <li><a href="#triage">Triage</a></li>
+    <li><a href="#clusters">Clusters</a></li>
+    <li><a href="#findings-table">Findings Table</a></li>
+    <li><a href="#dim-1">Dimension 1 — Stakeholder &amp; Role Coverage</a></li>
+    <li><a href="#dim-2">Dimension 2 — Domain &amp; Workflow Coverage</a></li>
+    <li><a href="#dim-3">Dimension 3 — Ambiguity &amp; Vague Language</a></li>
+    <li><a href="#dim-4">Dimension 4 — Source Provenance, Consistency &amp; Conflict</a></li>
+    <li><a href="#dim-5">Dimension 5 — Quantitative &amp; Measurable Signal</a></li>
+    <li><a href="#dim-6">Dimension 6 — Scope &amp; MVP Signal</a></li>
+    <li><a href="#dim-7">Dimension 7 — Bias, Sampling &amp; Stakeholder Self-Selection</a></li>
+    <li><a href="#diagnostics">Diagnostics</a></li>
+  </ol>
+</nav>
+
+<section id="executive-summary">
+  <h2>Executive Summary</h2>
+  <p><strong>Total findings:</strong> 48</p>
+  <p>
+    <strong>Severity</strong> —
+    <span class="chip severity-Blocker">Blocker 7</span>
+    <span class="chip severity-Major">Major 31</span>
+    <span class="chip severity-Minor">Minor 10</span>
+  </p>
+  <p>
+    <strong>Disposition</strong> —
+    <span class="chip disposition-Patch">Patch 11</span>
+    <span class="chip disposition-Defer">Defer 14</span>
+    <span class="chip disposition-Reject">Reject 23</span>
+  </p>
+  <p><span class="verdict verdict-BLOCKED">Verdict: BLOCKED</span></p>
+  <p class="verdict-legend">
+    <strong>Verdict legend.</strong>
+    <code>BLOCKED</code> — at least one Reject or Blocker; <code>/requirements</code> cannot draft from these inputs as-is.
+    <code>NEEDS-REVISION</code> — findings present but none blocking.
+    <code>ACCEPTED-WITH-FIXES</code> — zero findings on all seven dimensions, every dimension carries a Justification block (rare under strict-BMAD).
+  </p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="triage">
+  <h2>Triage</h2>
+  <table class="triage-table">
+    <caption>Top issues to address first, ordered by severity. Resolve these before scanning the full Findings Table below.</caption>
+    <thead>
+      <tr><th>Rank</th><th>ID</th><th>Severity</th><th>Cluster</th><th>Location</th><th>Problem</th></tr>
+    </thead>
+    <tbody>
+      <tr class="severity-Blocker"><td>1</td><td><a href="#ADV-01"><code>ADV-01</code></a></td><td><span class="chip severity-Blocker">Blocker</span></td><td>CL-01</td><td><code>PrototypeBrief.md</code></td><td>Primary roles (Importer, Approver) are declared by the brief with zero direct quotes from any actual Importer or Approver in the corpus.</td></tr>
+      <tr class="severity-Blocker"><td>2</td><td><a href="#ADV-07"><code>ADV-07</code></a></td><td><span class="chip severity-Blocker">Blocker</span></td><td>CL-02</td><td><code>PrototypeBrief.md</code></td><td>File Upload flow creates a FileLog but no source describes parsing failure, malformed rows, or the HasBulkErrorFile recovery path.</td></tr>
+      <tr class="severity-Blocker"><td>3</td><td><a href="#ADV-08"><code>ADV-08</code></a></td><td><span class="chip severity-Blocker">Blocker</span></td><td>CL-02</td><td><code>PrototypeBrief.md</code></td><td>File lifecycle states (Uploaded/Processing/Completed/Failed) are explicitly labelled &quot;inferred&quot; with no transition triggers, durations, or Failed-state recovery described.</td></tr>
+      <tr class="severity-Major"><td>4</td><td><a href="#ADV-15"><code>ADV-15</code></a></td><td><span class="chip severity-Major">Major</span></td><td>CL-06</td><td><code>PrototypeBrief.md</code></td><td>&quot;Bulk selection (optional but high value)&quot; — &quot;high value&quot; is vague marketing language and &quot;optional&quot; leaves scope undecided.</td></tr>
+      <tr class="severity-Major"><td>5</td><td><a href="#ADV-16"><code>ADV-16</code></a></td><td><span class="chip severity-Major">Major</span></td><td>CL-02</td><td><code>PrototypeBrief.md</code></td><td>&quot;(inferred)&quot; hedge on the FileLog state list means the lifecycle is not authoritative against <code>CurrentStatus</code>.</td></tr>
+      <tr class="severity-Major"><td>6</td><td><a href="#ADV-17"><code>ADV-17</code></a></td><td><span class="chip severity-Major">Major</span></td><td></td><td><code>PrototypeBrief.md</code></td><td>&quot;Reflect status changes instantly&quot; — &quot;instantly&quot; has no latency budget or refresh mechanism specified.</td></tr>
+      <tr class="severity-Major"><td>7</td><td><a href="#ADV-18"><code>ADV-18</code></a></td><td><span class="chip severity-Major">Major</span></td><td>CL-04</td><td><code>PrototypeBrief.md</code></td><td>Export endpoint says &quot;simulate&quot; with no contract for what simulation means (client-side CSV, stub download, placeholder).</td></tr>
+      <tr class="severity-Blocker"><td>8</td><td><a href="#ADV-29"><code>ADV-29</code></a></td><td><span class="chip severity-Blocker">Blocker</span></td><td>CL-10</td><td><code>PrototypeBrief.md</code></td><td>File upload specifies no throughput, file-size limit, record-count ceiling, or processing-latency budget.</td></tr>
+      <tr class="severity-Blocker"><td>9</td><td><a href="#ADV-30"><code>ADV-30</code></a></td><td><span class="chip severity-Blocker">Blocker</span></td><td>CL-10</td><td><code>PrototypeBrief.md</code></td><td>Transaction table is the primary working surface with no row-count, pagination, p95 latency, or filter-response targets.</td></tr>
+      <tr class="severity-Major"><td>10</td><td><a href="#ADV-31"><code>ADV-31</code></a></td><td><span class="chip severity-Major">Major</span></td><td>CL-10</td><td><code>PrototypeBrief.md</code></td><td>Corpus handles financial PII (AccountNumber, Amount, Reference) with no POPIA/PCI-DSS scope, retention, masking, or consent.</td></tr>
+    </tbody>
+  </table>
+  <p class="triage-overflow">Triage capped at 10; <strong>13 additional Reject findings</strong> are not in the triage callout but remain blocking — scan the Findings Table for
+    <a href="#ADV-32"><code>ADV-32</code></a>,
+    <a href="#ADV-34"><code>ADV-34</code></a>,
+    <a href="#ADV-36"><code>ADV-36</code></a>,
+    <a href="#ADV-37"><code>ADV-37</code></a>,
+    <a href="#ADV-38"><code>ADV-38</code></a>,
+    <a href="#ADV-39"><code>ADV-39</code></a>,
+    <a href="#ADV-40"><code>ADV-40</code></a>,
+    <a href="#ADV-41"><code>ADV-41</code></a>,
+    <a href="#ADV-43"><code>ADV-43</code></a>,
+    <a href="#ADV-44"><code>ADV-44</code></a>,
+    <a href="#ADV-45"><code>ADV-45</code></a>,
+    <a href="#ADV-46"><code>ADV-46</code></a>,
+    <a href="#ADV-48"><code>ADV-48</code></a>.</p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="clusters">
+  <h2>Clusters</h2>
+  <table class="clusters-table">
+    <caption>Findings sharing a root cause are grouped below. Each cluster lists its member finding IDs; the per-dimension sections still contain every finding in full detail.</caption>
+    <thead>
+      <tr><th>Cluster</th><th>Theme</th><th>Findings</th><th>Max severity</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>CL-01</td><td>Missing stakeholder voice — primary user / admin / compliance roles unquoted</td><td><a href="#ADV-01"><code>ADV-01</code></a>, <a href="#ADV-02"><code>ADV-02</code></a>, <a href="#ADV-03"><code>ADV-03</code></a>, <a href="#ADV-44"><code>ADV-44</code></a></td><td><span class="chip severity-Blocker">Blocker</span></td></tr>
+      <tr><td>CL-02</td><td>File-state lifecycle inferred / FileLog status model ambiguous</td><td><a href="#ADV-04"><code>ADV-04</code></a>, <a href="#ADV-07"><code>ADV-07</code></a>, <a href="#ADV-08"><code>ADV-08</code></a>, <a href="#ADV-16"><code>ADV-16</code></a>, <a href="#ADV-24"><code>ADV-24</code></a>, <a href="#ADV-25"><code>ADV-25</code></a>, <a href="#ADV-35"><code>ADV-35</code></a>, <a href="#ADV-40"><code>ADV-40</code></a></td><td><span class="chip severity-Blocker">Blocker</span></td></tr>
+      <tr><td>CL-03</td><td>API artefact / API-owner voice missing</td><td><a href="#ADV-05"><code>ADV-05</code></a>, <a href="#ADV-48"><code>ADV-48</code></a></td><td><span class="chip severity-Major">Major</span></td></tr>
+      <tr><td>CL-04</td><td>Export endpoint and contract undefined (&quot;simulate&quot;)</td><td><a href="#ADV-06"><code>ADV-06</code></a>, <a href="#ADV-12"><code>ADV-12</code></a>, <a href="#ADV-18"><code>ADV-18</code></a>, <a href="#ADV-26"><code>ADV-26</code></a>, <a href="#ADV-34"><code>ADV-34</code></a>, <a href="#ADV-39"><code>ADV-39</code></a></td><td><span class="chip severity-Major">Major</span></td></tr>
+      <tr><td>CL-05</td><td>Rejection note constraints undefined (&quot;mandatory note&quot;)</td><td><a href="#ADV-09"><code>ADV-09</code></a>, <a href="#ADV-19"><code>ADV-19</code></a></td><td><span class="chip severity-Major">Major</span></td></tr>
+      <tr><td>CL-06</td><td>Bulk selection scope / contract (&quot;optional but high value&quot;)</td><td><a href="#ADV-10"><code>ADV-10</code></a>, <a href="#ADV-15"><code>ADV-15</code></a>, <a href="#ADV-28"><code>ADV-28</code></a>, <a href="#ADV-36"><code>ADV-36</code></a></td><td><span class="chip severity-Major">Major</span></td></tr>
+      <tr><td>CL-07</td><td>Authentication failure modes enumerated as &quot;error state&quot; only</td><td><a href="#ADV-11"><code>ADV-11</code></a>, <a href="#ADV-21"><code>ADV-21</code></a></td><td><span class="chip severity-Major">Major</span></td></tr>
+      <tr><td>CL-08</td><td>Search &amp; Filter contract / MVP scope undefined</td><td><a href="#ADV-22"><code>ADV-22</code></a>, <a href="#ADV-42"><code>ADV-42</code></a></td><td><span class="chip severity-Minor">Minor</span></td></tr>
+      <tr><td>CL-09</td><td>Source provenance metadata missing (author, date, version)</td><td><a href="#ADV-23"><code>ADV-23</code></a>, <a href="#ADV-47"><code>ADV-47</code></a></td><td><span class="chip severity-Major">Major</span></td></tr>
+      <tr><td>CL-10</td><td>NFR / PII / compliance signals unquantified across the corpus</td><td><a href="#ADV-29"><code>ADV-29</code></a>, <a href="#ADV-30"><code>ADV-30</code></a>, <a href="#ADV-31"><code>ADV-31</code></a>, <a href="#ADV-32"><code>ADV-32</code></a></td><td><span class="chip severity-Blocker">Blocker</span></td></tr>
+      <tr><td>CL-11</td><td>Engagement constraints missing (KPI, scope boundary, cost, timeline, accessibility)</td><td><a href="#ADV-33"><code>ADV-33</code></a>, <a href="#ADV-37"><code>ADV-37</code></a>, <a href="#ADV-38"><code>ADV-38</code></a>, <a href="#ADV-41"><code>ADV-41</code></a></td><td><span class="chip severity-Major">Major</span></td></tr>
+      <tr><td>CL-12</td><td>Single-source aspirational corpus, no current-state baseline</td><td><a href="#ADV-43"><code>ADV-43</code></a>, <a href="#ADV-45"><code>ADV-45</code></a>, <a href="#ADV-46"><code>ADV-46</code></a></td><td><span class="chip severity-Blocker">Blocker</span></td></tr>
+    </tbody>
+  </table>
+  <p class="clusters-singletons">5 singleton findings remain unclustered:
+    <a href="#ADV-13"><code>ADV-13</code></a> (concurrency model),
+    <a href="#ADV-14"><code>ADV-14</code></a> (volume signals for search),
+    <a href="#ADV-17"><code>ADV-17</code></a> (&quot;instantly&quot; latency budget),
+    <a href="#ADV-20"><code>ADV-20</code></a> (&quot;source&quot; undefined noun),
+    <a href="#ADV-27"><code>ADV-27</code></a> (Dashboard naming drift).</p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="findings-table">
+  <h2>Findings Table</h2>
+  <table class="findings-full">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Dim</th>
+        <th>Severity</th>
+        <th>Disposition</th>
+        <th>Cluster</th>
+        <th>Location</th>
+        <th>Problem</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="finding-row severity-Blocker disposition-Reject"><td><a href="#ADV-01"><code>ADV-01</code></a></td><td>1</td><td><span class="chip severity-Blocker">Blocker</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-01</td><td><code>PrototypeBrief.md</code></td><td>Primary roles (Importer, Approver) declared with zero direct quotes from any actual Importer or Approver in the corpus.</td></tr>
+      <tr class="finding-row severity-Blocker disposition-Reject"><td><a href="#ADV-07"><code>ADV-07</code></a></td><td>2</td><td><span class="chip severity-Blocker">Blocker</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-02</td><td><code>PrototypeBrief.md</code></td><td>File Upload creates a FileLog but no source describes parsing failure, malformed rows, or HasBulkErrorFile recovery.</td></tr>
+      <tr class="finding-row severity-Blocker disposition-Reject"><td><a href="#ADV-08"><code>ADV-08</code></a></td><td>2</td><td><span class="chip severity-Blocker">Blocker</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-02</td><td><code>PrototypeBrief.md</code></td><td>File lifecycle states marked &quot;inferred&quot; with no transition triggers, durations, or Failed-state recovery described.</td></tr>
+      <tr class="finding-row severity-Blocker disposition-Reject"><td><a href="#ADV-29"><code>ADV-29</code></a></td><td>5</td><td><span class="chip severity-Blocker">Blocker</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-10</td><td><code>PrototypeBrief.md</code></td><td>File upload specifies no throughput, file-size limit, record-count ceiling, or processing-latency budget.</td></tr>
+      <tr class="finding-row severity-Blocker disposition-Reject"><td><a href="#ADV-30"><code>ADV-30</code></a></td><td>5</td><td><span class="chip severity-Blocker">Blocker</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-10</td><td><code>PrototypeBrief.md</code></td><td>Primary working surface lists no row-count, pagination, p95 latency, or filter-response targets.</td></tr>
+      <tr class="finding-row severity-Blocker disposition-Reject"><td><a href="#ADV-43"><code>ADV-43</code></a></td><td>7</td><td><span class="chip severity-Blocker">Blocker</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-12</td><td><code>PrototypeBrief.md</code></td><td>Corpus consists of exactly 1 source (PrototypeBrief.md, Native-text) — textbook sampling-collapse case.</td></tr>
+      <tr class="finding-row severity-Blocker disposition-Reject"><td><a href="#ADV-44"><code>ADV-44</code></a></td><td>7</td><td><span class="chip severity-Blocker">Blocker</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-01</td><td><code>PrototypeBrief.md</code></td><td>Two roles declared with sharply divergent permissions and zero role-voice artefacts in the corpus.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-02"><code>ADV-02</code></a></td><td>1</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-01</td><td><code>PrototypeBrief.md</code></td><td>Auth / user provisioning specified with no admin / IAM-owner voice defining role assignment, onboarding, offboarding.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-03"><code>ADV-03</code></a></td><td>1</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-01</td><td><code>PrototypeBrief.md</code></td><td>Approve/reject lifecycle described as UI mechanic with no auditor / compliance / finance-control voice on retention, SoD, audit-trail.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-04"><code>ADV-04</code></a></td><td>1</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-02</td><td><code>PrototypeBrief.md</code></td><td>File ingestion / HasBulkErrorFile path described with no support-operations voice for triage / remediation hand-off.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-05"><code>ADV-05</code></a></td><td>1</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-03</td><td><code>PrototypeBrief.md</code></td><td>API / domain model presented as fact with no integration-partner / backend-engineer attestation of contracts, formats, limits.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-09"><code>ADV-09</code></a></td><td>2</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-05</td><td><code>PrototypeBrief.md</code></td><td>Mandatory rejection note with no validation rules (length, character set, profanity), submission failure path, or reversibility policy.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-10"><code>ADV-10</code></a></td><td>2</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-06</td><td><code>PrototypeBrief.md</code></td><td>Bulk selection flagged &quot;high value&quot; with no partial-failure semantics described for mixed-status selections.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-11"><code>ADV-11</code></a></td><td>2</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-07</td><td><code>PrototypeBrief.md</code></td><td>Auth failure named &quot;error state&quot; only — no enumeration of failure modes, session-expiry handling, or differentiated UX.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-12"><code>ADV-12</code></a></td><td>2</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-04</td><td><code>PrototypeBrief.md</code></td><td>Export explicitly has no backing contract — no volume limits, async/sync, empty-filter behaviour, large-dataset chunking.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-13"><code>ADV-13</code></a></td><td>2</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td></td><td><code>PrototypeBrief.md</code></td><td>No source describes concurrent-edit behaviour when two Approvers act on the same Imported transaction.</td></tr>
+      <tr class="finding-row severity-Major disposition-Reject"><td><a href="#ADV-15"><code>ADV-15</code></a></td><td>3</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-06</td><td><code>PrototypeBrief.md</code></td><td>&quot;Bulk selection (optional but high value)&quot; — vague qualifier and ambiguous scope decision.</td></tr>
+      <tr class="finding-row severity-Major disposition-Reject"><td><a href="#ADV-16"><code>ADV-16</code></a></td><td>3</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-02</td><td><code>PrototypeBrief.md</code></td><td>&quot;(inferred)&quot; hedge on file states leaves FileLog lifecycle ambiguous against <code>CurrentStatus</code>.</td></tr>
+      <tr class="finding-row severity-Major disposition-Reject"><td><a href="#ADV-17"><code>ADV-17</code></a></td><td>3</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Reject">Reject</span></td><td></td><td><code>PrototypeBrief.md</code></td><td>&quot;Reflect status changes instantly&quot; — no latency budget or refresh mechanism (poll / websocket / optimistic UI).</td></tr>
+      <tr class="finding-row severity-Major disposition-Reject"><td><a href="#ADV-18"><code>ADV-18</code></a></td><td>3</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-04</td><td><code>PrototypeBrief.md</code></td><td>&quot;Simulate&quot; undefined — unclear whether client-side CSV from in-memory set, stubbed download, or placeholder button.</td></tr>
+      <tr class="finding-row severity-Major disposition-Patch"><td><a href="#ADV-19"><code>ADV-19</code></a></td><td>3</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-05</td><td><code>PrototypeBrief.md</code></td><td>&quot;Note&quot; undefined in length, format, and validation — min/max characters, allowed characters, whitespace-only policy.</td></tr>
+      <tr class="finding-row severity-Major disposition-Patch"><td><a href="#ADV-23"><code>ADV-23</code></a></td><td>4</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-09</td><td><code>PrototypeBrief.md</code></td><td>Brief has no author, no date, no version identifier — fails the attributable-origin check entirely.</td></tr>
+      <tr class="finding-row severity-Major disposition-Patch"><td><a href="#ADV-24"><code>ADV-24</code></a></td><td>4</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-02</td><td><code>PrototypeBrief.md</code></td><td>File states explicitly labelled <code>(inferred)</code> while Transaction states stated as fact — load-bearing aspirational-vs-current ambiguity.</td></tr>
+      <tr class="finding-row severity-Major disposition-Patch"><td><a href="#ADV-25"><code>ADV-25</code></a></td><td>4</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-02</td><td><code>PrototypeBrief.md</code></td><td><code>FileLog.CurrentStatus</code> field exposed without enumerated values; relationship to the (inferred) File States is undefined.</td></tr>
+      <tr class="finding-row severity-Major disposition-Reject"><td><a href="#ADV-31"><code>ADV-31</code></a></td><td>5</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-10</td><td><code>PrototypeBrief.md</code></td><td>Financial PII (AccountNumber, Amount, Reference) handled with no POPIA/PCI-DSS scope, retention, masking, or consent flow.</td></tr>
+      <tr class="finding-row severity-Major disposition-Reject"><td><a href="#ADV-32"><code>ADV-32</code></a></td><td>5</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-10</td><td><code>PrototypeBrief.md</code></td><td>Approve/reject defined with no audit-trail retention, who-approved-what record, or state-propagation SLA.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-33"><code>ADV-33</code></a></td><td>5</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-11</td><td><code>PrototypeBrief.md</code></td><td>Objective stated with no success KPI, baseline, target, go-live date, team size, or budget signal.</td></tr>
+      <tr class="finding-row severity-Major disposition-Reject"><td><a href="#ADV-34"><code>ADV-34</code></a></td><td>5</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-04</td><td><code>PrototypeBrief.md</code></td><td>Export capability with no row-count ceiling, file-size cap, generation-latency budget, or format-fidelity rule.</td></tr>
+      <tr class="finding-row severity-Major disposition-Reject"><td><a href="#ADV-36"><code>ADV-36</code></a></td><td>6</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-06</td><td><code>PrototypeBrief.md</code></td><td>Bulk selection flagged &quot;optional&quot; with no MVP / post-MVP / out-of-scope tag.</td></tr>
+      <tr class="finding-row severity-Major disposition-Reject"><td><a href="#ADV-37"><code>ADV-37</code></a></td><td>6</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-11</td><td><code>PrototypeBrief.md</code></td><td>Brief names no out-of-scope topics anywhere — drafter cannot distinguish unaddressed from excluded.</td></tr>
+      <tr class="finding-row severity-Major disposition-Reject"><td><a href="#ADV-38"><code>ADV-38</code></a></td><td>6</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-11</td><td><code>PrototypeBrief.md</code></td><td>No browser, device, OS, viewport, or accessibility targets named — prototype scope untestable against environmental constraints.</td></tr>
+      <tr class="finding-row severity-Major disposition-Reject"><td><a href="#ADV-39"><code>ADV-39</code></a></td><td>6</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-04</td><td><code>PrototypeBrief.md</code></td><td>&quot;CSV (default)&quot; implies other formats exist but none are named or scope-tagged.</td></tr>
+      <tr class="finding-row severity-Major disposition-Reject"><td><a href="#ADV-40"><code>ADV-40</code></a></td><td>6</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-02</td><td><code>PrototypeBrief.md</code></td><td>File states labelled &quot;(inferred)&quot; with no scope tag indicating which states the MVP must render.</td></tr>
+      <tr class="finding-row severity-Major disposition-Reject"><td><a href="#ADV-41"><code>ADV-41</code></a></td><td>6</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-11</td><td><code>PrototypeBrief.md</code></td><td>Brief contains no cost, timeline, team-size, or release-sequence signal — phasing decisions unanchored.</td></tr>
+      <tr class="finding-row severity-Major disposition-Reject"><td><a href="#ADV-45"><code>ADV-45</code></a></td><td>7</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-12</td><td><code>PrototypeBrief.md</code></td><td>Tier distribution 100% Native-text — zero screenshots, zero transcripts, zero spreadsheets, zero PDFs.</td></tr>
+      <tr class="finding-row severity-Major disposition-Reject"><td><a href="#ADV-46"><code>ADV-46</code></a></td><td>7</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-12</td><td><code>PrototypeBrief.md</code></td><td>Brief is wholly aspirational — no current-state artefact, no baseline pain points, nothing for an as-is comparison.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-47"><code>ADV-47</code></a></td><td>7</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-09</td><td><code>PrototypeBrief.md</code></td><td>Single source carries no author attribution, no date, no role declaration — authorial self-selection bias unassessable.</td></tr>
+      <tr class="finding-row severity-Major disposition-Reject"><td><a href="#ADV-48"><code>ADV-48</code></a></td><td>7</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-03</td><td><code>PrototypeBrief.md</code></td><td>Brief asserts a domain model &quot;from API&quot; with no API spec, schema export, or engineering source present as a distinct artefact.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-06"><code>ADV-06</code></a></td><td>1</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-04</td><td><code>PrototypeBrief.md</code></td><td>Export assigned to Approver with no downstream consumer voice on CSV columns, encoding, delivery, frequency.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-14"><code>ADV-14</code></a></td><td>2</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td></td><td><code>PrototypeBrief.md</code></td><td>Search &amp; Filtering named without volume signals — transactions/file, total files, concurrent users — for empty/max-state UX.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-20"><code>ADV-20</code></a></td><td>3</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td><code>PrototypeBrief.md</code></td><td>&quot;Source&quot; used as undefined noun — FileLog has <code>FileName</code> but no <code>Source</code> field.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-21"><code>ADV-21</code></a></td><td>3</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-07</td><td><code>PrototypeBrief.md</code></td><td>&quot;Error state&quot; for auth — does not distinguish invalid creds vs unreachable server vs locked account vs MFA.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-22"><code>ADV-22</code></a></td><td>3</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-08</td><td><code>PrototypeBrief.md</code></td><td>&quot;Date range&quot; / &quot;Amount range&quot; unbounded — no inclusive/exclusive bounds, no defaults, no filter-combination semantics.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-26"><code>ADV-26</code></a></td><td>4</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-04</td><td><code>PrototypeBrief.md</code></td><td>Export hedged as &quot;simulate&quot; with no source authorising the simulation decision.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-27"><code>ADV-27</code></a></td><td>4</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td><code>PrototypeBrief.md</code></td><td>Same concept appears as &quot;Dashboard&quot;, &quot;File Log List (Dashboard)&quot;, &quot;File Log Overview&quot; across §5.3 / §7 / §8 — intra-source naming drift.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-28"><code>ADV-28</code></a></td><td>4</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-06</td><td><code>PrototypeBrief.md</code></td><td>Bulk-selection value judgement &quot;high value&quot; carries no attributable source — auditable trade-off impossible.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-35"><code>ADV-35</code></a></td><td>5</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-02</td><td><code>PrototypeBrief.md</code></td><td>File processing states listed without max-time-in-Processing, retry policy, or HasBulkErrorFile availability SLA.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-42"><code>ADV-42</code></a></td><td>6</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-08</td><td><code>PrototypeBrief.md</code></td><td>Six filter types listed without MVP / nice-to-have tagging — scope trimming impossible under tight timebox.</td></tr>
+    </tbody>
+  </table>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-1">
+  <h2>Dimension 1 — Stakeholder &amp; Role Coverage</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+
+    <article class="finding severity-Blocker disposition-Reject" id="ADV-01">
+      <h4><code>ADV-01</code> — <span class="chip severity-Blocker">Blocker</span> · <span class="chip disposition-Reject">Reject</span> · Primary roles declared with zero direct quotes from any actual Importer or Approver</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>- Importers to upload and review transaction files
+- Approvers to review, approve/reject, and export transactions</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The two primary roles (Importer, Approver) are declared by the brief author with zero direct quotes, interview transcripts, workshop notes, or attributed material from any actual Importer or Approver in the corpus.</dd>
+        <dt>Recommendation</dt><dd>Schedule and transcribe at least one elicitation interview per role (one Importer, one Approver) and add the attributed transcripts to the input set before drafting requirements.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Defer" id="ADV-02">
+      <h4><code>ADV-02</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · No admin / IAM-owner voice for role assignment and access lifecycle</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>### 5.1 Authentication
+
+**Endpoint**
+- `POST /v1/users/login`</pre></blockquote></dd>
+        <dt>Problem</dt><dd>Authentication and user provisioning are specified without any voice from an administrator or identity-management owner who would configure roles, onboard Importers/Approvers, or revoke access.</dd>
+        <dt>Recommendation</dt><dd>Elicit an administrator / IAM-owner brief or interview that defines role assignment, onboarding, and offboarding flows before login UX is finalised.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Defer" id="ADV-03">
+      <h4><code>ADV-03</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · No auditor / compliance voice on approval-trail retention and SoD</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>- Status (Imported / Approved / Rejected)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The approve/reject lifecycle is described as a UI mechanic but no auditor, compliance officer, or finance-control voice in the corpus defines retention, segregation-of-duties, or audit-trail expectations for approved/rejected financial transactions.</dd>
+        <dt>Recommendation</dt><dd>Interview a compliance or internal-audit stakeholder (or commission a written control brief) to capture audit-log, SoD, and retention requirements before status transitions are locked in.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Defer" id="ADV-04">
+      <h4><code>ADV-04</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · No support / operations voice for failed-upload triage and bulk-error remediation</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>### File States (inferred)
+- Uploaded
+- Processing
+- Completed
+- Failed</pre></blockquote></dd>
+        <dt>Problem</dt><dd>File ingestion, parsing, and the HasBulkErrorFile path are described without any voice from operations / support staff who would triage failed uploads, interpret bulk error files, or assist Importers when processing stalls.</dd>
+        <dt>Recommendation</dt><dd>Add a support-operations interview or runbook excerpt covering failure triage, bulk-error remediation, and the support hand-off for stuck FileLogs.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Defer" id="ADV-05">
+      <h4><code>ADV-05</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · No integration-partner / backend-engineer voice attesting to API contracts</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>### 2. Transaction
+
+Represents individual records extracted from a file Key attributes:
+
+- `Id`
+- `FileLogId`</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The API and domain model are presented as fact with no voice from an integration partner, upstream system owner, or backend engineer attesting to endpoint contracts, file format constraints, or rate/size limits.</dd>
+        <dt>Recommendation</dt><dd>Secure a written confirmation or interview from the API/backend owner documenting endpoint contracts, payload schemas, and integration constraints before the prototype binds to these shapes.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Minor disposition-Defer" id="ADV-06">
+      <h4><code>ADV-06</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · No downstream CSV consumer voice for Export</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>### 5.8 Export Transactions (Approver)
+
+**Endpoint**
+- Uses filtered dataset (no explicit endpoint provided → simulate)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>Export is assigned to the Approver role without any downstream consumer voice (finance analyst, reconciliation owner, external recipient) describing what the CSV is used for, required columns, or delivery expectations.</dd>
+        <dt>Recommendation</dt><dd>Interview at least one downstream CSV consumer to capture column set, encoding, delivery mechanism, and frequency expectations before export UX is committed.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-2">
+  <h2>Dimension 2 — Domain &amp; Workflow Coverage (including non-happy paths)</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+
+    <article class="finding severity-Blocker disposition-Reject" id="ADV-07">
+      <h4><code>ADV-07</code> — <span class="chip severity-Blocker">Blocker</span> · <span class="chip disposition-Reject">Reject</span> · File Upload error pathway undefined (HasBulkErrorFile mechanism named, not described)</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>4. System creates FileLog</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The File Upload flow names a system step that creates a FileLog but no source describes what happens when file parsing fails, when rows are malformed, or when HasBulkErrorFile is true — yet the brief explicitly references a bulk error file mechanism without defining its contents, surfacing, or recovery path.</dd>
+        <dt>Recommendation</dt><dd>Elicit a written description (or annotated screenshot) of the post-upload error pathway: what triggers HasBulkErrorFile, how partial-failure rows are surfaced to the Importer, and whether the FileLog still produces usable Transactions when some rows fail.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Blocker disposition-Reject" id="ADV-08">
+      <h4><code>ADV-08</code> — <span class="chip severity-Blocker">Blocker</span> · <span class="chip disposition-Reject">Reject</span> · File lifecycle states &quot;inferred&quot; with no transition triggers, durations, or recovery</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>### File States (inferred)
+- Uploaded
+- Processing
+- Completed
+- Failed</pre></blockquote></dd>
+        <dt>Problem</dt><dd>File lifecycle states are explicitly marked as inferred by the author with no supporting source describing transitions, durations, polling behaviour, or what the UI shows during Processing vs Failed — leaving the entire ingestion workflow's non-happy-path undocumented.</dd>
+        <dt>Recommendation</dt><dd>Request a state-transition diagram or process narrative from the API/backend owner confirming the actual FileLog state machine, transition triggers, and Failed-state recovery options (retry? re-upload? manual intervention?).</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Defer" id="ADV-09">
+      <h4><code>ADV-09</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · Mandatory rejection note with no validation rules, failure path, or reversibility policy</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>3. Enter **mandatory note**</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The Reject Transaction flow mandates a note but no source specifies validation rules (min/max length, character set, profanity filter), what happens on submission failure, or whether a rejected transaction can be un-rejected or re-approved.</dd>
+        <dt>Recommendation</dt><dd>Elicit the note field constraints (length bounds, required format) and the reversibility policy for rejection — specifically whether Rejected is a terminal state or can transition back to Imported/Approved.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Defer" id="ADV-10">
+      <h4><code>ADV-10</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · Bulk selection partial-failure behaviour undescribed</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>- Bulk selection (optional but high value)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>Bulk selection is named as a high-value action on the core Transaction Table but no source describes partial-failure behaviour when bulk approve/reject is applied to a mixed selection (e.g. 50 transactions where 5 are already Approved or in a non-Imported state).</dd>
+        <dt>Recommendation</dt><dd>Elicit the bulk-action contract: per-row vs all-or-nothing semantics, how partial failures are reported back to the Approver, and whether the mandatory-note requirement applies per-row or once for the batch on bulk reject.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Defer" id="ADV-11">
+      <h4><code>ADV-11</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · Authentication failure modes named only as generic &quot;error state&quot;</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>2. On success → route to role-specific landing
+3. On failure → error state</pre></blockquote></dd>
+        <dt>Problem</dt><dd>Authentication failure is named as 'error state' with zero supporting material on what failures exist (wrong password, locked account, expired session, MFA, network timeout), how they are differentiated to the user, or how session expiry mid-workflow is handled.</dd>
+        <dt>Recommendation</dt><dd>Request an enumerated list of auth failure modes with corresponding user-facing messages, and a description of session-expiry behaviour when a user is mid-approval or mid-upload.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Defer" id="ADV-12">
+      <h4><code>ADV-12</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · Export endpoint has no backing contract; large-dataset / empty-filter behaviour undefined</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>**Endpoint**
+- Uses filtered dataset (no explicit endpoint provided → simulate)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The Export Transactions workflow is explicitly flagged as having no backing contract and must be simulated, with no source describing volume limits, async vs sync behaviour, what happens when the filtered set is empty, or how very large exports (10k+ rows) are handled.</dd>
+        <dt>Recommendation</dt><dd>Elicit the export contract from the API owner — specifically max row count, sync/async delivery, behaviour on empty filter results, and any rate-limiting or concurrent-export constraints.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Defer" id="ADV-13">
+      <h4><code>ADV-13</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · Concurrent approve/reject by two Approvers on the same transaction unaddressed</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>- Status (Imported / Approved / Rejected)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>No source describes concurrent-edit behaviour when two Approvers act on the same Imported transaction simultaneously, nor what the second Approver sees when their action targets an already-Approved/Rejected record.</dd>
+        <dt>Recommendation</dt><dd>Request the concurrency model from the backend owner: optimistic locking, last-write-wins, or stale-state error, plus the UX for surfacing 'someone else already actioned this' to the second Approver.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Minor disposition-Defer" id="ADV-14">
+      <h4><code>ADV-14</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · Volume / scale signals missing for the search-and-filter surfaces</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>- Text search (Reference, Account)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>Search &amp; Filtering is named across two surfaces (transactions, file logs) but no source provides volume signals — number of transactions per file, total files retained, expected concurrent users — making it impossible to assess empty/max-state UI requirements or pagination needs.</dd>
+        <dt>Recommendation</dt><dd>Elicit scale signals: typical and peak transactions-per-file, total FileLogs retained, and expected list-view sizes so empty-state, loading-state, and pagination behaviour can be specified.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-3">
+  <h2>Dimension 3 — Ambiguity &amp; Vague Language</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+
+    <article class="finding severity-Major disposition-Reject" id="ADV-15">
+      <h4><code>ADV-15</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Reject">Reject</span> · &quot;(optional but high value)&quot; — vague qualifier and ambiguous scope decision</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>- Bulk selection (optional but high value)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The qualifier &quot;high value&quot; is vague marketing-style language with no defined acceptance criterion, and &quot;optional&quot; leaves whether bulk selection is in scope unresolved for the prototype.</dd>
+        <dt>Recommendation</dt><dd>Elicit a binary in-scope/out-of-scope decision for bulk selection and, if in-scope, the specific bulk actions (approve, reject, export) and max selection size.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Reject" id="ADV-16">
+      <h4><code>ADV-16</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Reject">Reject</span> · &quot;(inferred)&quot; hedge on file states leaves FileLog lifecycle non-authoritative</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>### File States (inferred)
+- Uploaded
+- Processing
+- Completed
+- Failed</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The hedge word &quot;inferred&quot; signals these file states are not authoritative, leaving the FileLog lifecycle ambiguous against the API's authoritative <code>CurrentStatus</code> field.</dd>
+        <dt>Recommendation</dt><dd>Elicit the canonical enumerated values of <code>FileLog.CurrentStatus</code> from the API contract and confirm transitions between them, replacing the inferred list.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Reject" id="ADV-17">
+      <h4><code>ADV-17</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Reject">Reject</span> · &quot;Instantly&quot; vague time window with no latency budget or refresh mechanism</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>- Reflect status changes instantly</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;Instantly&quot; is a vague time window with no latency budget or refresh mechanism (poll interval, websocket, optimistic UI) specified.</dd>
+        <dt>Recommendation</dt><dd>Elicit a concrete latency target (e.g., &lt;500ms post-action) and the refresh mechanism (optimistic update vs poll vs push) for status changes in the transaction table.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Reject" id="ADV-18">
+      <h4><code>ADV-18</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Reject">Reject</span> · &quot;Simulate&quot; undefined for Export endpoint</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>**Endpoint**
+- Uses filtered dataset (no explicit endpoint provided → simulate)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;Simulate&quot; is undefined for the prototype — it is unclear whether this means client-side CSV generation from the in-memory filtered set, a stubbed download, or a placeholder button.</dd>
+        <dt>Recommendation</dt><dd>Elicit the exact simulation contract for Export (client-side CSV from current filter state vs stub file download) and the required columns/ordering in the CSV.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Patch" id="ADV-19">
+      <h4><code>ADV-19</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Patch">Patch</span> · &quot;Note&quot; undefined in length, format, and validation</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>3. Enter **mandatory note**</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;Note&quot; is undefined in length, format, and validation — min/max characters, allowed characters, and whether whitespace-only is acceptable are unspecified.</dd>
+        <dt>Recommendation</dt><dd>Elicit minimum/maximum character bounds and trim/non-empty validation for the rejection note, plus whether it maps to <code>Transaction.UserNote</code>.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Minor disposition-Patch" id="ADV-20">
+      <h4><code>ADV-20</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · &quot;Source&quot; used as undefined noun (FileLog has no <code>Source</code> field)</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>- Transactions inherit context from FileLog (file name, source)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;Source&quot; is an undefined noun — the API attribute list for FileLog includes <code>FileName</code> but no <code>Source</code> field, so what 'source' refers to is ambiguous.</dd>
+        <dt>Recommendation</dt><dd>Elicit whether 'source' is a synonym for FileName, a separate FileLog attribute not yet listed, or out-of-scope filler — and remove or define it accordingly.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Minor disposition-Patch" id="ADV-21">
+      <h4><code>ADV-21</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · &quot;Error state&quot; for auth doesn't distinguish failure modes</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>3. On failure → error state</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;Error state&quot; is a vague noun — it does not distinguish between invalid credentials, server unreachable, locked account, or other failure modes that warrant different UI treatment.</dd>
+        <dt>Recommendation</dt><dd>Elicit the enumerated authentication failure modes and the user-facing copy/affordance for each (e.g., invalid credentials inline message vs network error toast).</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Minor disposition-Patch" id="ADV-22">
+      <h4><code>ADV-22</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · &quot;Date range&quot; / &quot;Amount range&quot; unbounded; filter-combination semantics unspecified</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>**Filters**
+- Status (Imported / Approved / Rejected)
+- File (FileLogId)
+- Date range
+- Amount range
+- Text search (Reference, Account)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;Date range&quot; and &quot;Amount range&quot; are unbounded vague quantifiers — neither min/max defaults, nor whether ranges are inclusive/exclusive, nor combinability (AND vs OR across filters) is specified.</dd>
+        <dt>Recommendation</dt><dd>Elicit inclusive/exclusive bounds, default ranges (e.g., last 30 days), and filter-combination semantics (AND across filter categories) for the transaction and file-log filter bars.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-4">
+  <h2>Dimension 4 — Source Provenance, Consistency &amp; Conflict</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+
+    <article class="finding severity-Major disposition-Patch" id="ADV-23">
+      <h4><code>ADV-23</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Patch">Patch</span> · Brief has no author, no date, no version identifier</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre># Prototype Brief: Transaction Import &amp; Approval System
+
+## 1. Objective</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The brief has no author, no date, and no version identifier, so no claim in it can be tied to a named originator or point-in-time, defeating the attributable-origin check.</dd>
+        <dt>Recommendation</dt><dd>Patch by adding a header block with author/role, date, and version (e.g., <code>Author: &lt;name/role&gt; | Date: 2026-05-20 | Version: 0.1</code>) before downstream pipelines consume it.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Patch" id="ADV-24">
+      <h4><code>ADV-24</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Patch">Patch</span> · File states labelled &quot;(inferred)&quot; while Transaction states stated as fact — aspirational-vs-current ambiguity</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>### File States (inferred)
+- Uploaded
+- Processing
+- Completed
+- Failed</pre></blockquote></dd>
+        <dt>Problem</dt><dd>File states are explicitly labelled <code>(inferred)</code> while Transaction states are stated as fact, creating aspirational-vs-current-state ambiguity for a load-bearing lifecycle claim with no source attribution behind the inference.</dd>
+        <dt>Recommendation</dt><dd>Patch by either citing the API/source that defines file states or relabelling the section as a proposed model pending confirmation, so downstream agents can distinguish ground truth from author hypothesis.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Patch" id="ADV-25">
+      <h4><code>ADV-25</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Patch">Patch</span> · <code>FileLog.CurrentStatus</code> has no enumerated values; mapping to &quot;File States (inferred)&quot; is undefined</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>- `CurrentStatus`
+- `ProcessDate`
+- `HasBulkErrorFile`</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The File Log entity exposes a <code>CurrentStatus</code> field but the brief never enumerates its allowed values, while later sections introduce a separate <code>(inferred)</code> set of File States — leaving it ambiguous whether <code>CurrentStatus</code> and the inferred File States are the same vocabulary or two distinct concepts.</dd>
+        <dt>Recommendation</dt><dd>Patch by explicitly mapping <code>FileLog.CurrentStatus</code> to the enumerated File States (Uploaded/Processing/Completed/Failed) or declaring them as separate concepts with their own value sets.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Minor disposition-Patch" id="ADV-26">
+      <h4><code>ADV-26</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · Export &quot;simulate&quot; decision unattributed; mixes aspirational scope with API behaviour</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>**Endpoint**
+- Uses filtered dataset (no explicit endpoint provided → simulate)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>A load-bearing capability (Export Transactions) is hedged as <code>simulate</code> with no source for the underlying contract, yet it is listed as a key user flow and a screen to prototype, mixing aspirational scope with documented API behaviour without attribution.</dd>
+        <dt>Recommendation</dt><dd>Patch by either citing the source authorising the simulation decision or flagging the export flow as out-of-scope until an endpoint or stub contract is confirmed.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Minor disposition-Patch" id="ADV-27">
+      <h4><code>ADV-27</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · Intra-source naming drift: Dashboard / File Log List (Dashboard) / File Log Overview</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>**Top-level navigation**
+- Dashboard (File Logs)
+- Transactions
+- Upload (Importer only)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The same concept is referred to as <code>Dashboard</code>, <code>File Log List (Dashboard)</code>, and <code>File Log Overview</code> across sections 5.3, 7, and 8, creating intra-source naming drift for a top-level navigation anchor with no glossary to reconcile the variants.</dd>
+        <dt>Recommendation</dt><dd>Patch by selecting one canonical name (e.g., <code>File Log Dashboard</code>) and replacing the variants, or adding a glossary entry mapping all aliases to a single concept.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Minor disposition-Patch" id="ADV-28">
+      <h4><code>ADV-28</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · Bulk-selection value judgement &quot;high value&quot; not attributed to a stakeholder</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>- Bulk selection (optional but high value)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The bulk-selection capability is hedged as <code>optional but high value</code> with no attributable source for the value judgement, leaving downstream agents unable to determine whether it is in scope for the prototype.</dd>
+        <dt>Recommendation</dt><dd>Patch by removing the hedge and stating a binary in/out-of-scope decision, or attributing the judgement to a named stakeholder so the trade-off is auditable.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-5">
+  <h2>Dimension 5 — Quantitative &amp; Measurable Signal</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+
+    <article class="finding severity-Blocker disposition-Reject" id="ADV-29">
+      <h4><code>ADV-29</code> — <span class="chip severity-Blocker">Blocker</span> · <span class="chip disposition-Reject">Reject</span> · File upload specifies no throughput, file-size limit, or processing-latency budget</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>### 5.2 File Upload (Importer only)
+
+**Endpoint**
+- `POST /v1/files/upload`</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The brief specifies bulk file ingestion but quantifies no throughput, file-size limit, record-count ceiling, or processing-latency budget — <code>/requirements</code> cannot write a testable NFR for ingestion (peak file size, max rows per file, p95 process time, concurrent uploads).</dd>
+        <dt>Recommendation</dt><dd>Elicit concrete ingestion NFRs: max file size (MB), max records per file, target p95 processing time, expected concurrent uploads, and daily/peak file volume.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Blocker disposition-Reject" id="ADV-30">
+      <h4><code>ADV-30</code> — <span class="chip severity-Blocker">Blocker</span> · <span class="chip disposition-Reject">Reject</span> · Transaction table — primary working surface — lists no row-count or p95 latency targets</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>### 5.4 Transaction Table (Core Screen)
+
+**Endpoint**
+- `GET /v1/transactions`
+
+**This is the primary working surface.**</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The primary working surface lists no row-count expectation, pagination size, p95 query/render latency budget, or filter-response target — making approve/reject and search NFRs untestable for a financial dataset.</dd>
+        <dt>Recommendation</dt><dd>Elicit transaction-table NFRs: typical and peak row counts per file and per query, pagination page size, p95 filter/search latency, and p95 approve/reject round-trip time.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Reject" id="ADV-31">
+      <h4><code>ADV-31</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Reject">Reject</span> · Financial PII handled with no POPIA/PCI-DSS scope, retention, masking, or consent</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>`AccountNumber`
+- `Amount`
+- `Currency`
+- `Status` (Imported / Approved / Rejected)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The corpus handles financial PII (AccountNumber, Amount, Reference) but states no POPIA/PCI-DSS scope, retention window, masking rule, or consent flow — compliance NFRs cannot be drafted.</dd>
+        <dt>Recommendation</dt><dd>Elicit compliance scope: which fields are PII/PCI, retention duration for transactions and rejected items, masking/encryption-at-rest expectations, and applicable regulation (POPIA default, PCI-DSS if card data).</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Reject" id="ADV-32">
+      <h4><code>ADV-32</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Reject">Reject</span> · Approve/Reject defined with no audit-trail retention, no who-approved-what record, no state-propagation SLA</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>### 5.6 Approve Transaction
+
+**Endpoint**
+- `POST /v1/transactions/approve`</pre></blockquote></dd>
+        <dt>Problem</dt><dd>Approve/reject is the system's value-producing action but the brief defines no audit-trail retention, no who-approved-what record, and no SLA for state propagation — required for any financial-approval audit NFR.</dd>
+        <dt>Recommendation</dt><dd>Elicit audit NFRs: audit-log fields (actor, timestamp, prior/new status, note), retention window, immutability requirement, and p95 latency from action to visible status change.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Defer" id="ADV-33">
+      <h4><code>ADV-33</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · No success KPI, baseline, target, go-live date, team size, or budget signal</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>## 1. Objective
+
+Design a prototype for a dual-role system that enables:</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The brief states an objective but specifies no success KPI, baseline, target, go-live date, team size, or budget — leaving <code>/requirements</code> with no business-metric or deadline signal to test acceptance against.</dd>
+        <dt>Recommendation</dt><dd>Elicit at least one quantified success metric (e.g., approval cycle-time reduction from X to Y, throughput target N transactions/day) plus go-live date and engagement scope (team size, sprint count).</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Reject" id="ADV-34">
+      <h4><code>ADV-34</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Reject">Reject</span> · Export with no row-count ceiling, latency budget, file-size cap, or format-fidelity rule</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>### 5.8 Export Transactions (Approver)
+
+**Endpoint**
+- Uses filtered dataset (no explicit endpoint provided → simulate)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>Export is an Approver capability with no row-count ceiling, file-size cap, generation-latency budget, or format-fidelity rule — untestable as an NFR and risky on large datasets.</dd>
+        <dt>Recommendation</dt><dd>Elicit export NFRs: max rows per export, p95 export-generation latency, file-size cap, and behaviour when filtered set exceeds the cap (chunking, async job, refuse).</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Minor disposition-Defer" id="ADV-35">
+      <h4><code>ADV-35</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · File-processing-state SLAs not quantified (max time in Processing, retry policy, HasBulkErrorFile availability)</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>### File States (inferred)
+- Uploaded
+- Processing
+- Completed
+- Failed</pre></blockquote></dd>
+        <dt>Problem</dt><dd>File processing states are listed but the brief never quantifies max time-in-Processing before Failed, retry policy, or how HasBulkErrorFile is surfaced — leaving processing-SLA NFRs unmeasurable.</dd>
+        <dt>Recommendation</dt><dd>Elicit processing-state NFRs: max duration in Processing before timeout, retry count/backoff, and error-file availability SLA after Failed.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-6">
+  <h2>Dimension 6 — Scope &amp; MVP Signal</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+
+    <article class="finding severity-Major disposition-Reject" id="ADV-36">
+      <h4><code>ADV-36</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Reject">Reject</span> · Bulk selection scope tag missing (MVP / post-MVP / out-of-scope)</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>- Bulk selection (optional but high value)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>Bulk selection is flagged as optional but not assigned to MVP or post-MVP, leaving the drafter unable to determine whether to scope it into the prototype.</dd>
+        <dt>Recommendation</dt><dd>Ask the consultant to explicitly tag bulk selection as MVP, post-MVP, or out-of-scope, and state the decision rule for similar 'optional' items.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Reject" id="ADV-37">
+      <h4><code>ADV-37</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Reject">Reject</span> · Brief names no out-of-scope topics anywhere</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>## 7. Information Architecture
+
+**Top-level navigation**
+- Dashboard (File Logs)
+- Transactions
+- Upload (Importer only)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The brief names no out-of-scope topics anywhere — no section titled 'out of scope', no exclusions for adjacent capabilities (reporting, audit log, user management, notifications, multi-currency conversion), so the drafter cannot distinguish unaddressed from excluded.</dd>
+        <dt>Recommendation</dt><dd>Elicit an explicit out-of-scope list naming at least: user/role administration, audit trail, notifications, reporting/analytics, currency conversion, and any integration beyond the listed endpoints.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Reject" id="ADV-38">
+      <h4><code>ADV-38</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Reject">Reject</span> · No browser / device / OS / viewport / accessibility targets named</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>## 1. Objective
+
+Design a prototype for a dual-role system that enables:</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The brief never names browser, device, OS, viewport, or accessibility targets, so 'prototype' scope is untestable against environmental constraints.</dd>
+        <dt>Recommendation</dt><dd>Ask the consultant to specify supported browsers, minimum viewport / device class (desktop-only vs responsive), and whether any accessibility target (e.g. WCAG 2.1 AA) applies to the prototype.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Reject" id="ADV-39">
+      <h4><code>ADV-39</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Reject">Reject</span> · &quot;CSV (default)&quot; implies other formats but none are named or scope-tagged</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>### 5.8 Export Transactions (Approver)
+
+**Endpoint**
+- Uses filtered dataset (no explicit endpoint provided → simulate)
+
+**UI Requirements**
+- Export button
+- Applies current filters
+- Formats:
+    - CSV (default)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The phrase 'CSV (default)' implies other formats exist but none are named or tagged as MVP/post-MVP, leaving the drafter to guess whether non-CSV exports are in scope.</dd>
+        <dt>Recommendation</dt><dd>Ask the consultant to enumerate all export formats and explicitly mark each as MVP, post-MVP, or out-of-scope; if CSV is the only MVP format, state that the 'default' qualifier is redundant.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Reject" id="ADV-40">
+      <h4><code>ADV-40</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Reject">Reject</span> · File states &quot;(inferred)&quot; carry no scope tag for which states the MVP must render</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>### File States (inferred)
+- Uploaded
+- Processing
+- Completed
+- Failed</pre></blockquote></dd>
+        <dt>Problem</dt><dd>File states are labelled 'inferred' rather than confirmed, and no scope tag indicates whether the prototype must visualise all four states or only a subset for MVP.</dd>
+        <dt>Recommendation</dt><dd>Ask the consultant to confirm the authoritative file-state set and tag which states the MVP prototype must render versus which can be deferred.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Reject" id="ADV-41">
+      <h4><code>ADV-41</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Reject">Reject</span> · No cost, timeline, team-size, or release-sequence signal for phasing decisions</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre># Prototype Brief: Transaction Import &amp; Approval System</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The brief contains no cost, timeline, team-size, or release-sequence signal, so the drafter cannot phase MVP versus post-MVP or judge what 'prototype' buildability constraints apply.</dd>
+        <dt>Recommendation</dt><dd>Elicit an explicit timebox, target demo date, or phased release plan (e.g. Phase 1 = login + upload + transaction table; Phase 2 = export + bulk actions) to anchor MVP scoping.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Minor disposition-Patch" id="ADV-42">
+      <h4><code>ADV-42</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · Six filter types listed without MVP / nice-to-have tagging</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>### 5.5 Search &amp; Filtering
+
+**Applied to**
+- Transactions table
+- File logs
+
+**Filters**
+- Status (Imported / Approved / Rejected)
+- File (FileLogId)
+- Date range
+- Amount range
+- Text search (Reference, Account)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>Six filter types are listed without tagging which are MVP versus nice-to-have, so the drafter cannot trim scope if the prototype timebox is tight.</dd>
+        <dt>Recommendation</dt><dd>Ask the consultant to rank the six filters as must-have / nice-to-have for the prototype and confirm whether all apply to both the transactions table and the file-logs table.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-7">
+  <h2>Dimension 7 — Bias, Sampling &amp; Stakeholder Self-Selection</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+
+    <article class="finding severity-Blocker disposition-Reject" id="ADV-43">
+      <h4><code>ADV-43</code> — <span class="chip severity-Blocker">Blocker</span> · <span class="chip disposition-Reject">Reject</span> · Corpus is exactly 1 source — textbook sampling-collapse case</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre># Prototype Brief: Transaction Import &amp; Approval System</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The corpus consists of exactly 1 source (PrototypeBrief.md, Native-text) — the textbook sampling-collapse case where a single document defines the entire system with no triangulation against any other voice, artefact, or perspective.</dd>
+        <dt>Recommendation</dt><dd>Elicit at least 3-5 additional sources from distinct origins (e.g., an Importer user interview transcript, an Approver user interview transcript, current-state screenshots or system documentation, a stakeholder workshop summary) before drafting requirements.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Blocker disposition-Reject" id="ADV-44">
+      <h4><code>ADV-44</code> — <span class="chip severity-Blocker">Blocker</span> · <span class="chip disposition-Reject">Reject</span> · Two roles declared with divergent permissions and zero role-voice artefacts</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>### Importer
+
+- Upload files
+- View transactions
+- Search/filter
+- View file summaries
+- ❌ Cannot approve/reject
+
+### Approver</pre></blockquote></dd>
+        <dt>Problem</dt><dd>Two distinct user roles (Importer, Approver) are named with sharply divergent permissions, yet zero transcripts, quotes, or artefacts from any actual Importer or Approver are present — the corpus contains role labels but no role voice, so the constraints cannot be validated against lived workflow.</dd>
+        <dt>Recommendation</dt><dd>Conduct and transcribe at least one interview per role (one Importer, one Approver) describing their current workflow, pain points, and the rationale for the ❌ permission boundaries before locking the role model.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Reject" id="ADV-45">
+      <h4><code>ADV-45</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Reject">Reject</span> · Tier distribution is 100% Native-text — document-only corpus</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre># Prototype Brief: Transaction Import &amp; Approval System</pre></blockquote></dd>
+        <dt>Problem</dt><dd>Tier distribution is 100% Native-text (1 of 1 source) with zero screenshots, zero transcripts, zero spreadsheets, and zero PDFs — a document-only corpus that cannot ground visual conventions, current-state UI, or end-user voice.</dd>
+        <dt>Recommendation</dt><dd>Elicit at least one screenshot of any existing system the prototype is replacing/augmenting AND at least one user-voice artefact (interview transcript or recorded session) to broaden tier coverage beyond prescriptive prose.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Reject" id="ADV-46">
+      <h4><code>ADV-46</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Reject">Reject</span> · Brief is wholly aspirational; no current-state baseline anywhere in the corpus</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>## 1. Objective
+
+Design a prototype for a dual-role system that enables:
+
+- Importers to upload and review transaction files
+- Approvers to review, approve/reject, and export transactions</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The brief is wholly aspirational — it describes the system to be built with no source describing the current state, baseline pain points, or what users do today, meaning the corpus cannot ground any as-is comparison or justify why the proposed model is correct.</dd>
+        <dt>Recommendation</dt><dd>Elicit at least one current-state artefact (a screenshot of the existing tool, a description of today's manual process, or a transcript of how users currently handle imports/approvals) to balance the aspirational-only sampling.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Defer" id="ADV-47">
+      <h4><code>ADV-47</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · Single source carries no author, no date, no role declaration — authorial self-selection unassessable</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre># Prototype Brief: Transaction Import &amp; Approval System</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The single source carries no author attribution, no date, and no role declaration — it is impossible to determine whether this brief reflects a product manager, an engineer, a consultant's synthesis, or an executive sponsor, so authorial self-selection bias cannot be assessed or corrected.</dd>
+        <dt>Recommendation</dt><dd>Capture provenance metadata (author name, role, date, and elicitation method) for PrototypeBrief.md and request a counter-document from at least one other named stakeholder to triangulate authorial voice.</dd>
+      </dl>
+    </article>
+
+    <article class="finding severity-Major disposition-Reject" id="ADV-48">
+      <h4><code>ADV-48</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Reject">Reject</span> · Domain model &quot;from API&quot; with no actual API spec, schema export, or engineering source as a distinct artefact</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>PrototypeBrief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>## 2. Core Domain Model (from API)
+
+The system revolves around three primary objects:</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The brief asserts a domain model 'from API' but provides no API specification, no schema export, no Postman collection, and no engineering source — the corpus relies on one document's secondhand summary of a system-of-record that is itself unrepresented, creating a single-author funnel for technical truth.</dd>
+        <dt>Recommendation</dt><dd>Elicit the actual API artefact referenced (OpenAPI/Swagger spec, schema export, or endpoint documentation) as a distinct source so the domain model is not single-sourced through one narrative summariser.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="diagnostics">
+  <h2>Diagnostics</h2>
+  <details class="diagnostics-toggle" open>
+    <summary>Show / hide diagnostics</summary>
+
+    <h4>Quality gates</h4>
+    <table class="diagnostics-gates">
+      <thead><tr><th>Gate</th><th>Result</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr class="gate-pass"><td>1. All findings have 8 schema fields populated</td><td><span class="chip gate-pass">PASS</span></td><td>48 / 48</td></tr>
+        <tr class="gate-pass"><td>2. All Dimension fields are 1..7</td><td><span class="chip gate-pass">PASS</span></td><td>48 / 48</td></tr>
+        <tr class="gate-fail"><td>3. All Severity fields are valid</td><td><span class="chip gate-fail">FAIL</span></td><td>ADV-01 worker emitted <code>severity=&quot;Reject&quot;</code> (invalid; Reject is a Disposition value) — coerced to <code>Blocker</code> for the rendered artefact under Override</td></tr>
+        <tr class="gate-pass"><td>4. All Disposition fields are valid</td><td><span class="chip gate-pass">PASS</span></td><td>48 / 48</td></tr>
+        <tr class="gate-fail"><td>5. All Evidence quotes are verbatim &amp; ≤5 lines</td><td><span class="chip gate-fail">FAIL</span></td><td>ADV-22 (6 lines), ADV-39 (11 lines), ADV-42 (13 lines), ADV-44 (9 lines) — workers cited multi-line blocks (filter list, export block, role permission tables) where the defect lives in the block rather than a single line; accepted under Override</td></tr>
+        <tr class="gate-pass"><td>6. All Location anchors match a manifest filename</td><td><span class="chip gate-pass">PASS</span></td><td>All 48 cite <code>PrototypeBrief.md</code> (the only manifest row)</td></tr>
+        <tr class="gate-pass"><td>7. Every dimension has ≥1 finding or Justification</td><td><span class="chip gate-pass">PASS</span></td><td>All 7 dimensions returned ≥1 finding</td></tr>
+        <tr class="gate-pass"><td>8. All Justifications are ≥3 sentences</td><td><span class="chip gate-pass">PASS</span></td><td>(vacuously — no justifications emitted; every dimension was Variant A)</td></tr>
+        <tr class="gate-pass"><td>9. Verdict matches disposition tally</td><td><span class="chip gate-pass">PASS</span></td><td>23 Rejects → <code>BLOCKED</code></td></tr>
+        <tr class="gate-pass"><td>10. Findings Table row count = per-dim sum</td><td><span class="chip gate-pass">PASS</span></td><td>48 rows = 6+8+8+6+7+7+6</td></tr>
+        <tr class="gate-pass"><td>11. MANIFEST_FINGERPRINT + Source-roster sha256 prefixes match manifest</td><td><span class="chip gate-pass">PASS</span></td><td>manifest fingerprint matches Step-2 capture; <code>PrototypeBrief.md</code> sha256 <code>7cb6525c</code> matches the manifest row</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Coverage map</h4>
+    <table class="coverage-map">
+      <thead><tr><th>Dimension</th><th>Filenames touched</th><th>Finding count</th></tr></thead>
+      <tbody>
+        <tr><td>1. Stakeholder &amp; Role Coverage</td><td><code>PrototypeBrief.md</code></td><td>6</td></tr>
+        <tr><td>2. Domain &amp; Workflow Coverage (incl. non-happy paths)</td><td><code>PrototypeBrief.md</code></td><td>8</td></tr>
+        <tr><td>3. Ambiguity &amp; Vague Language</td><td><code>PrototypeBrief.md</code></td><td>8</td></tr>
+        <tr><td>4. Source Provenance, Consistency &amp; Conflict</td><td><code>PrototypeBrief.md</code></td><td>6</td></tr>
+        <tr><td>5. Quantitative &amp; Measurable Signal</td><td><code>PrototypeBrief.md</code></td><td>7</td></tr>
+        <tr><td>6. Scope &amp; MVP Signal</td><td><code>PrototypeBrief.md</code></td><td>7</td></tr>
+        <tr><td>7. Bias, Sampling &amp; Stakeholder Self-Selection</td><td><code>PrototypeBrief.md</code></td><td>6</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Strict-BMAD re-run log</h4>
+    <p>No dimensions triggered the strict-BMAD re-run rule.</p>
+
+    <h4>Override log</h4>
+    <ul>
+      <li><strong>Gate 3 — Severity validity.</strong> ADV-01 worker emitted <code>severity=&quot;Reject&quot;</code> (invalid; severity must be <code>Blocker | Major | Minor</code>). Reasonable coercion to <code>Blocker</code> based on (a) the finding's <code>Disposition=&quot;Reject&quot;</code>, (b) the convention that primary-role-voice gaps in this corpus map to Blocker severity (consistent with ADV-07, ADV-08, ADV-29, ADV-30, ADV-43, ADV-44), and (c) the BMAD verdict-mapping rule. The consultant can re-classify in the Step-13 Revise loop if <code>Major</code> is preferred.</li>
+      <li><strong>Gate 5 — Evidence ≤5 lines.</strong> Four findings exceed the per-evidence line cap: ADV-22 (6 lines), ADV-39 (11 lines), ADV-42 (13 lines), ADV-44 (9 lines). In each case the worker cited a multi-line block (filter list, export-section block, importer/approver permission tables) where the defect lives in the block as a whole rather than in a single line — decomposition into ≤5-line slices would have either fragmented one defect across multiple findings or omitted load-bearing context. Override accepts the multi-line evidence as proportionate to the cited defect.</li>
+    </ul>
+
+    <h4>Source roster — Consumed</h4>
+    <table class="source-roster-consumed">
+      <thead><tr><th>filename</th><th>tier</th><th>sha256</th><th>findings-from-this-source</th></tr></thead>
+      <tbody>
+        <tr><td><code>PrototypeBrief.md</code></td><td>Native-text</td><td><code>7cb6525c</code></td><td>48</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Source roster — Skipped</h4>
+    <p><em>(no sources skipped this run)</em></p>
+  </details>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+</main>
+</body>
+</html>
