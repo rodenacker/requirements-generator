@@ -1,0 +1,964 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses-inputs/ooux-analyser.md.
+
+  Purpose: HTML/CSS skeleton for the inputs-side OOUX object map. Combines the
+  canonical OOUX sticky-note column-board (one column per object) with a
+  Mermaid erDiagram block (the relationship-graph "diagram" deliverable) and
+  an embedded JSON body block (the machine-readable model that survives
+  markitdown HTML→MD conversion for /requirements re-ingestion).
+
+  Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`). No
+  external CSS/JS dependencies; viewable by opening `file://` in a browser;
+  shareable with clients without tooling. Mermaid source is embedded as text
+  inside `<pre class="mermaid-source">`; rendered visual is out-of-band via
+  `mmdc` or mermaid.live — no inline runtime, no CDN.
+
+  The artefact is re-ingestible into `input/` for the /requirements drafter
+  via markitdown conversion:
+  - The Mermaid block (inside <pre>) survives as a fenced code block.
+  - The embedded JSON body block (inside <pre><code class="language-json">)
+    survives as a fenced ```json code block. This is the load-bearing
+    machine-readable contract — the <script type="application/json"> meta
+    block in <head> is stripped by markitdown and is only used by the
+    drift-detection logic on subsequent inputs-side OOUX runs.
+  - Inline [SRC: <filename>] markers in cell / row / node content survive
+    as plain text.
+  - The CSS-grid column-board does not survive layout-wise; its text
+    content survives as enumerated list items.
+
+  Section order (top-to-bottom):
+    1. Overview (id="overview")              — title, subtitle, meta-grid
+                                                (manifest sha + counts).
+    2. TOC (<nav class="toc">)               — static top-level anchors.
+    3. Source roster (id="source-roster")    — {{SOURCE_ROSTER_BLOCK}}:
+                                                Consumed + Skipped tables.
+    4. Object relationship diagram (id="diagram")
+                                              — Mermaid erDiagram in
+                                                {{ER_DIAGRAM_MERMAID}}.
+    5. Diagrams / column-board (id="diagrams") — {{OBJECT_COLUMNS}} inside
+                                                 the sticky-note .object-board.
+    6. Tabular information (id="tables")     — {{REL_MATRIX_BLOCK}}:
+                                                relationship matrix table.
+    7. Object map body (id="object-map-body") — {{OBJECT_MAP_JSON_BLOCK}}:
+                                                <pre><code class="language-json">
+                                                with the full machine-readable
+                                                object model. The load-bearing
+                                                markitdown-survival contract.
+    8. Diagnostics (id="diagnostics")        — <details> wrapper, collapsed
+                                                by default. Synonym-merge log,
+                                                8 gate results, flagged items.
+
+  Placeholders the analyser substitutes (string substitution, all values
+  pre-escaped for HTML; JSON inside <pre><code> escaped as plain text;
+  Mermaid inside <pre class="mermaid-source"> is NOT HTML-escaped beyond
+  the standard `<`, `>`, `&`, `"`, `'` set — Mermaid pipe `|`, bracket `[`,
+  `]`, brace `{`, `}`, and `||--o{` syntax must remain literal):
+
+    {{TITLE}}                  — short title (e.g. "OOUX Object Map (inputs) — Project X").
+    {{DOMAIN}}                 — domain string (from manifest meta if declared, else
+                                 "(not declared in manifest)").
+    {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
+    {{MANIFEST_SHA256}}        — sha256 of requirements/source-manifest.json at read time.
+    {{RUN_COUNT}}              — integer ≥ 1, increments per run.
+    {{TARGET}}                 — "prototype" | "application" | "(not declared in manifest)".
+    {{OBJECT_COUNT}}           — total objects on the map.
+    {{RELATIONSHIP_COUNT}}     — total recorded relationships (matrix-unique).
+    {{CTA_COUNT}}              — total CTAs across all objects.
+    {{ATTRIBUTE_COUNT}}        — total attributes across all objects.
+    {{CCP_COUNT}}              — total CCP-marked attributes.
+    {{CONSUMED_ROW_COUNT}}     — number of manifest rows consumed.
+    {{SKIPPED_ROW_COUNT}}      — number of manifest rows skipped (Unsupported tier).
+    {{SYNONYM_MERGE_COUNT}}    — number of synonym-merge entries in diagnostics.
+    {{IRRELEVANT_ROW_COUNT}}   — number of consumed rows marked irrelevant-to-domain
+                                 (Gate 8 emissions).
+    {{SOURCE_ROSTER_BLOCK}}    — pre-rendered <section id="source-roster"> containing
+                                 Consumed and Skipped tables per SOURCE ROSTER SCHEMA.
+    {{ER_DIAGRAM_MERMAID}}     — pre-rendered <details class="mermaid-block"> containing
+                                 <pre class="mermaid-source"> with the erDiagram source.
+                                 The "MUST contain a diagram" deliverable.
+    {{OBJECT_COLUMNS}}         — pre-rendered <section class="object-column"> blocks
+                                 per the OBJECT COLUMN SCHEMA. One per object.
+    {{REL_MATRIX_BLOCK}}       — pre-rendered <section class="rel-matrix-block"> per
+                                 REL MATRIX SCHEMA.
+    {{OBJECT_MAP_JSON_BLOCK}}  — pre-rendered <section id="object-map-body"> containing
+                                 a single <pre><code class="language-json"
+                                 id="ooux-object-map-body">...</code></pre>. Full
+                                 machine-readable object model per the JSON SCHEMA
+                                 in framework/assets/analyses-inputs/ooux-reference.md.
+    {{DIAGNOSTICS_BLOCK}}      — pre-rendered <section class="diagnostics"> per
+                                 DIAGNOSTICS SCHEMA.
+
+  Output: analyse-inputs/OOUX/ooux-object-map.html.
+
+  OBJECT COLUMN SCHEMA — identical to the requirements-side template's schema
+  (framework/assets/analyses/template-ooux.html). The five-stack column shape
+  is reused verbatim:
+
+      <section id="obj-<slug>" class="object-column" aria-labelledby="obj-<slug>-name">
+
+        <ul class="sticky-stack ctas" aria-label="CTAs">
+          <li class="sticky cta">{{verb-phrase}} <small class="src-inline">[SRC: {{filename}}]</small></li>
+        </ul>
+
+        <header class="sticky object-header">
+          <span class="provenance provenance-<from-source|synonym-merged|inferred>"
+                title="..." aria-hidden="true">●</span>
+          <span id="obj-<slug>-name" class="object-name">{{canonical_name}}</span>
+          <small class="src-inline">[SRC: {{primary_filename}}]</small>
+        </header>
+
+        <ul class="sticky-stack core-content" aria-label="Core content (CCP)">
+          <li class="sticky core ccp-highlight">
+            <span class="attr">{{name}}</span><span class="ccp-marker">CCP</span>
+            <small class="src-inline">[SRC: {{filename}}]</small>
+          </li>
+        </ul>
+
+        <ul class="sticky-stack metadata" aria-label="Metadata">
+          <li class="sticky meta">
+            <span class="attr">{{name}}</span>
+            <small class="src-inline">[SRC: {{filename}}]</small>
+          </li>
+        </ul>
+
+        <ul class="sticky-stack nested-refs" aria-label="Nested object references">
+          <li class="sticky nested-relationship">
+            <span class="rel-label">{{label}}</span>
+            <a href="#obj-{{target-slug}}" class="rel-target">{{target}}</a>
+            <span class="rel-cardinality">{{1:1|1:N|N:M}}</span>
+            <small class="src-inline">[SRC: {{filename}}]</small>
+          </li>
+        </ul>
+
+      </section>
+
+  Within every column the five sticky stacks render in fixed order:
+    CTAs → Object header → Core content (CCP) → Metadata (non-CCP) → Nested refs.
+  Empty stacks render with the `hidden` attribute so the column rhythm is
+  preserved without empty whitespace.
+
+  Provenance dot classes (inputs-side variant):
+    .provenance-from-source       (single source — green)
+    .provenance-synonym-merged    (multi-source merge — orange)
+    .provenance-inferred          (implied, not verbatim — red)
+
+  SOURCE ROSTER SCHEMA — {{SOURCE_ROSTER_BLOCK}} substitutes:
+
+      <section id="source-roster" aria-labelledby="source-roster-title">
+        <h2 id="source-roster-title">Source roster</h2>
+        <p class="caption">Every consumable manifest row, with citation counts and
+          any sources marked irrelevant-to-domain by Gate 8.</p>
+
+        <h3>Consumed</h3>
+        <table class="source-table consumed">
+          <thead>
+            <tr><th>Filename</th><th>Tier</th><th>SHA-256</th><th>Nouns contributed</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>{{filename}}</td><td>{{tier}}</td>
+                <td class="sha">{{sha256_8}}</td>
+                <td class="count">{{nouns_contributed}}</td></tr>
+            ...
+          </tbody>
+        </table>
+
+        <h3>Skipped</h3>
+        <table class="source-table skipped">
+          <thead><tr><th>Filename</th><th>Reason</th></tr></thead>
+          <tbody>
+            <tr><td>{{filename}}</td><td>{{reason}}</td></tr>
+            ...
+            <!-- If empty: <tr><td colspan="2" class="empty">(no skipped rows this run)</td></tr> -->
+          </tbody>
+        </table>
+      </section>
+
+  ER DIAGRAM SCHEMA — {{ER_DIAGRAM_MERMAID}} substitutes:
+
+      <details class="mermaid-block" open>
+        <summary>Object relationship diagram (Mermaid erDiagram)</summary>
+        <p class="mermaid-caption">
+          Copy this block into <a href="https://mermaid.live">mermaid.live</a> or run
+          <code>mmdc -i &lt;source.mmd&gt; -o &lt;diagram.svg&gt;</code> to view rendered.
+          The Mermaid source survives markitdown HTML→MD conversion as a fenced code
+          block, so this diagram is available verbatim to /requirements when the
+          artefact is copied into input/ for re-ingestion.
+        </p>
+        <pre class="mermaid-source">{{mermaid-source}}</pre>
+      </details>
+
+  REL MATRIX SCHEMA — {{REL_MATRIX_BLOCK}} substitutes a single
+  <section class="rel-matrix-block"> containing the relationship matrix:
+
+      <section class="rel-matrix-block">
+        <h2>Relationship matrix</h2>
+        <p>One row per recorded relationship across the object map.</p>
+        <table class="rel-matrix">
+          <thead>
+            <tr><th>Source</th><th>Label</th><th>Target</th><th>Cardinality</th><th>Nested?</th><th>Source</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>...</td><td>...</td><td>...</td><td>1:N</td><td class="nested-yes|nested-no">yes|no</td><td class="src-cell">[SRC: {{filename}}]</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+  OBJECT MAP JSON BLOCK SCHEMA — {{OBJECT_MAP_JSON_BLOCK}} substitutes:
+
+      <section id="object-map-body" aria-labelledby="object-map-body-title">
+        <h2 id="object-map-body-title">Object map (machine-readable)</h2>
+        <p class="caption">
+          The full object model in JSON. This block survives markitdown HTML→MD
+          conversion as a fenced <code>```json</code> code block, so when the
+          artefact is copied into <code>input/</code> for /requirements re-ingestion,
+          the drafter consumes the complete model in one shot.
+        </p>
+        <pre><code class="language-json" id="ooux-object-map-body">{{ooux_object_map_json}}</code></pre>
+      </section>
+
+  JSON SCHEMA — see framework/assets/analyses-inputs/ooux-reference.md
+  > "JSON body schema". The block contains schema_version, generated_at,
+  manifest_sha256, target, run_count, source_roster, objects, relationships,
+  synonym_merges, quality_gates, irrelevant_to_domain_rows.
+
+  DIAGNOSTICS SCHEMA — the analyser's {{DIAGNOSTICS_BLOCK}} substitutes a
+  single <section class="diagnostics">. The template wraps the placeholder in
+  a <details class="diagnostics-toggle"> element (collapsed by default). The
+  inner section contains, in order:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>OOUX inputs-side object map — N objects, M relationships.</p>
+        <p>Provenance: X from-source, Y synonym-merged, Z inferred.</p>
+
+        <h3>Synonym merges ({{SYNONYM_MERGE_COUNT}})</h3>
+        <ul class="synonym-log">
+          <li>
+            <strong>{{canonical}}</strong> ← {{literal terms collapsed, comma-separated}}
+            <em>(heuristic: {{most-sources|longest|alphabetical|unresolved-merge-candidate}})</em>
+            <small class="src-inline">[SRC: {{filename}}, {{filename}}, ...]</small>
+          </li>
+          ...
+          <!-- If empty: <li class="empty">(no synonym merges this run)</li> -->
+        </ul>
+
+        <h3>Quality gates (8)</h3>
+        <ul class="gate-results">
+          <li class="gate-pass|gate-fail">Gate 1 — Every Object has ≥ 1 CTA.</li>
+          ... (all 8 gates listed in order)
+        </ul>
+
+        <h3>Irrelevant-to-domain rows ({{IRRELEVANT_ROW_COUNT}}) (Gate 8 emissions)</h3>
+        <ul class="irrelevant-log">
+          <li><code>{{filename}}</code> — {{reason}}</li>
+          ...
+          <!-- If empty: <li class="empty">(every consumed row contributed at least one candidate)</li> -->
+        </ul>
+
+        <!-- Override-only: flagged-items <ul> per failed gate. -->
+      </section>
+
+  CSS classes used by the analyser:
+    .ccp-highlight                  — applied to any <li> attribute that is a CCP
+                                      (renders on the .sticky.core stack).
+    .nested-relationship            — applied to any <li> in the .nested-refs stack.
+    .rev-marker                     — applied to any cell or item the analyser
+                                      flagged for review on this run.
+    .provenance-from-source         — provenance dot, single source.
+    .provenance-synonym-merged      — provenance dot, multi-source merge.
+    .provenance-inferred            — provenance dot, implied not verbatim.
+
+  Content TBD-able by the analyser:
+    The source roster, the erDiagram source, the column count, the per-column
+    sticky content, the relationship matrix, the JSON body, and the diagnostics
+    block are fully driven by the analyser. The CSS below is fixed scaffolding
+    and should not be edited by the analyser — only the {{placeholders}} above
+    are substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script type="application/json" id="ooux-object-map-meta">
+{
+  "title": "{{TITLE}}",
+  "domain": "{{DOMAIN}}",
+  "generated_at": "{{GENERATED_AT}}",
+  "manifest_sha256": "{{MANIFEST_SHA256}}",
+  "run_count": {{RUN_COUNT}},
+  "target": "{{TARGET}}",
+  "object_count": {{OBJECT_COUNT}},
+  "relationship_count": {{RELATIONSHIP_COUNT}},
+  "cta_count": {{CTA_COUNT}},
+  "attribute_count": {{ATTRIBUTE_COUNT}},
+  "ccp_count": {{CCP_COUNT}},
+  "consumed_row_count": {{CONSUMED_ROW_COUNT}},
+  "skipped_row_count": {{SKIPPED_ROW_COUNT}},
+  "synonym_merge_count": {{SYNONYM_MERGE_COUNT}},
+  "irrelevant_row_count": {{IRRELEVANT_ROW_COUNT}}
+}
+  </script>
+
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --col-bg: #ffffff;
+      --sticky-shadow: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+
+      --cta-bg: #c8e6b2;     --cta-border: #7fb069;   --cta-fg: #1f3d12;
+      --obj-bg: #b9d7f0;     --obj-border: #4f8fbf;   --obj-fg: #0c2a44;
+      --core-bg: #fff3a8;    --core-border: #e0c34a;  --core-fg: #4a3a00;
+      --meta-bg: #f6c6d5;    --meta-border: #c97a92;  --meta-fg: #4a1a2a;
+      --nested-bg: #dbe9f7;  --nested-border: #4f8fbf;--nested-fg: #0c2a44;
+
+      --prov-source: #2a8a2a;
+      --prov-merged: #b86a00;
+      --prov-inferred: #c43a3a;
+      --rev-bg: #ffeaea;     --rev-border: #d44a4a;   --rev-fg: #8a1a1a;
+      --header-bg: #efefef;
+      --code-bg: #f3f4f6;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+    }
+
+    h2 {
+      font-size: 16px;
+      margin: 24px 0 8px 0;
+    }
+
+    h3 {
+      font-size: 13px;
+      margin: 14px 0 6px 0;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 0 24px 0;
+    }
+
+    .caption {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 0 0 12px 0;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px 24px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+    .meta-grid dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+    .meta-grid dd {
+      margin: 0 0 6px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .src-inline {
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+      font-size: 11px;
+      background: var(--code-bg);
+      padding: 0 4px;
+      border-radius: 3px;
+      white-space: nowrap;
+      margin-left: 4px;
+    }
+
+    /* ------- source roster ------- */
+
+    #source-roster {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    #source-roster h2 { margin-top: 0; }
+    table.source-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 4px 0 12px 0;
+      font-size: 12px;
+    }
+    table.source-table th,
+    table.source-table td {
+      padding: 6px 8px;
+      border-top: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    table.source-table thead th {
+      background: var(--header-bg);
+      font-weight: 600;
+      border-top: none;
+      border-bottom: 2px solid var(--border-strong);
+    }
+    table.source-table .sha,
+    table.source-table .count {
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, monospace;
+    }
+    table.source-table .empty {
+      color: var(--muted);
+      font-style: italic;
+      text-align: center;
+    }
+
+    /* ------- mermaid block ------- */
+
+    details.mermaid-block {
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin: 0 0 24px 0;
+      background: #fff;
+    }
+    details.mermaid-block > summary {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.mermaid-block > summary::-webkit-details-marker { display: none; }
+    details.mermaid-block > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.mermaid-block[open] > summary::before { transform: rotate(90deg); }
+    .mermaid-caption {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 8px 0 8px 0;
+    }
+    .mermaid-caption code, .mermaid-caption a {
+      font-family: ui-monospace, monospace;
+      font-size: 0.92em;
+    }
+    pre.mermaid-source {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      overflow-x: auto;
+      white-space: pre;
+      color: #111827;
+      margin: 0;
+    }
+
+    /* ------- relationship matrix (own section) ------- */
+
+    .rel-matrix-block {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    .rel-matrix-block h2 { font-size: 16px; margin: 0 0 8px 0; }
+    .rel-matrix-block > p { margin: 0 0 12px 0; color: var(--muted); font-size: 12px; }
+    table.rel-matrix {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0;
+      font-size: 12px;
+    }
+    table.rel-matrix th,
+    table.rel-matrix td {
+      padding: 6px 8px;
+      border-top: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    table.rel-matrix thead th {
+      background: var(--header-bg);
+      font-weight: 600;
+      border-top: none;
+      border-bottom: 2px solid var(--border-strong);
+    }
+    table.rel-matrix td.nested-yes { color: var(--nested-fg); font-weight: 600; }
+    table.rel-matrix td.nested-no  { color: var(--muted); }
+    table.rel-matrix td.src-cell {
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* ------- object map JSON body ------- */
+
+    #object-map-body {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    #object-map-body h2 { margin-top: 0; }
+    #object-map-body pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-x: auto;
+      white-space: pre;
+      color: #111827;
+      margin: 0;
+      max-height: 480px;
+    }
+
+    /* ------- diagnostics ------- */
+
+    details.diagnostics-toggle { margin-bottom: 24px; }
+    details.diagnostics-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.diagnostics-toggle[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.diagnostics-toggle[open] > summary::before { transform: rotate(90deg); }
+
+    .diagnostics {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > .diagnostics {
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      margin-bottom: 0;
+    }
+    details.diagnostics-toggle > .diagnostics > h2 {
+      display: none;
+    }
+    .diagnostics h2 { font-size: 16px; margin: 0 0 8px 0; }
+    .diagnostics ul.gate-results,
+    .diagnostics ul.synonym-log,
+    .diagnostics ul.irrelevant-log {
+      margin: 0 0 12px 0;
+      padding-left: 20px;
+      font-size: 13px;
+    }
+    .diagnostics ul.gate-results li.gate-pass::before { content: "PASS "; color: var(--prov-source); font-weight: 600; }
+    .diagnostics ul.gate-results li.gate-fail::before { content: "FAIL "; color: var(--rev-fg); font-weight: 600; }
+    .diagnostics ul .empty { color: var(--muted); font-style: italic; list-style: none; margin-left: -16px; }
+    .diagnostics code {
+      font-family: ui-monospace, monospace;
+      font-size: 0.92em;
+      background: var(--code-bg);
+      padding: 0 4px;
+      border-radius: 3px;
+    }
+
+    /* ------- table of contents ------- */
+
+    .toc {
+      margin: 0 0 24px 0;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .toc ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 18px;
+      counter-reset: toc-item;
+    }
+    .toc li { counter-increment: toc-item; }
+    .toc li::before {
+      content: counter(toc-item) ". ";
+      color: var(--muted);
+      margin-right: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .toc a {
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--border-strong);
+    }
+    .toc a:hover { border-bottom-color: var(--fg); }
+
+    /* ------- column-board layout ------- */
+
+    .object-board {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      align-items: start;
+    }
+
+    .object-column {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px;
+      background: var(--col-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .sticky-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .sticky-stack[hidden] { display: none; }
+
+    .sticky {
+      padding: 8px 10px;
+      border-radius: 4px;
+      border-left: 3px solid transparent;
+      box-shadow: var(--sticky-shadow);
+      font-size: 13px;
+      line-height: 1.35;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .sticky.cta {
+      background: var(--cta-bg);
+      border-left-color: var(--cta-border);
+      color: var(--cta-fg);
+      font-weight: 500;
+    }
+
+    header.sticky.object-header {
+      background: var(--obj-bg);
+      border-left-color: var(--obj-border);
+      color: var(--obj-fg);
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .sticky.core {
+      background: var(--core-bg);
+      border-left-color: var(--core-border);
+      color: var(--core-fg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .sticky.meta {
+      background: var(--meta-bg);
+      border-left-color: var(--meta-border);
+      color: var(--meta-fg);
+    }
+
+    .sticky.nested-relationship {
+      background: var(--nested-bg);
+      border: 1px dashed var(--nested-border);
+      border-left: 3px dashed var(--nested-border);
+      color: var(--nested-fg);
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px 6px;
+    }
+
+    .provenance {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      vertical-align: middle;
+      font-size: 0;
+      line-height: 0;
+      flex: 0 0 auto;
+    }
+    .provenance-from-source     { background: var(--prov-source); }
+    .provenance-synonym-merged  { background: var(--prov-merged); }
+    .provenance-inferred        { background: var(--prov-inferred); }
+
+    .rel-label { font-style: italic; color: var(--muted); }
+    .rel-cardinality {
+      display: inline-block;
+      padding: 1px 6px;
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+      color: var(--nested-fg);
+      border: 1px solid var(--nested-border);
+      border-radius: 4px;
+      background: #fff;
+    }
+    .rel-target {
+      color: var(--nested-fg);
+      text-decoration: underline;
+      text-decoration-color: var(--nested-border);
+      font-weight: 600;
+    }
+    .rel-target:hover { text-decoration-color: var(--fg); }
+
+    .ccp-marker {
+      display: inline-block;
+      padding: 0 5px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #fff;
+      background: var(--core-border);
+      border-radius: 3px;
+      flex: 0 0 auto;
+    }
+
+    .rev-marker,
+    .sticky.rev-marker {
+      background: var(--rev-bg);
+      border-color: var(--rev-border);
+      color: var(--rev-fg);
+    }
+
+    /* ------- next-steps banner ------- */
+
+    section.next-steps {
+      margin-top: 24px;
+      padding: 14px 18px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--obj-border);
+      border-radius: 6px;
+    }
+    section.next-steps h2 { margin-top: 0; font-size: 14px; }
+    section.next-steps p { color: var(--muted); margin: 6px 0; font-size: 13px; }
+    section.next-steps code {
+      font-family: ui-monospace, monospace;
+      font-size: 0.92em;
+      background: var(--code-bg);
+      padding: 0 4px;
+      border-radius: 3px;
+    }
+
+    /* ------- footer ------- */
+
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    footer .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+    }
+    footer .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    footer .legend-swatch {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border-left: 3px solid transparent;
+    }
+    footer .legend-swatch.s-cta    { background: var(--cta-bg);    border-left-color: var(--cta-border); }
+    footer .legend-swatch.s-obj    { background: var(--obj-bg);    border-left-color: var(--obj-border); }
+    footer .legend-swatch.s-core   { background: var(--core-bg);   border-left-color: var(--core-border); }
+    footer .legend-swatch.s-meta   { background: var(--meta-bg);   border-left-color: var(--meta-border); }
+    footer .legend-swatch.s-nested { background: var(--nested-bg); border: 1px dashed var(--nested-border); border-left: 3px dashed var(--nested-border); }
+    footer .provenance { vertical-align: -1px; }
+    footer .credit { margin-top: 6px; text-align: right; }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .object-board { gap: 8px; }
+      .object-column { break-inside: avoid; }
+      .sticky { box-shadow: none; }
+      .toc { display: none; }
+      details.diagnostics-toggle { display: none; }
+      .rel-matrix-block { break-inside: avoid; }
+      details.mermaid-block { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section id="overview">
+      <h1>{{TITLE}}</h1>
+      <p class="subtitle">OOUX object map (inputs side) — Mermaid erDiagram + sticky-board (one column per object: CTAs · Object · Core content · Metadata · Nested refs) + machine-readable JSON.</p>
+
+      <dl class="meta-grid">
+        <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+        <div><dt>Target</dt><dd>{{TARGET}}</dd></div>
+        <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+        <div><dt>Manifest SHA-256</dt><dd>{{MANIFEST_SHA256}}</dd></div>
+        <div><dt>Run #</dt><dd>{{RUN_COUNT}}</dd></div>
+        <div><dt>Objects</dt><dd>{{OBJECT_COUNT}}</dd></div>
+        <div><dt>Relationships</dt><dd>{{RELATIONSHIP_COUNT}}</dd></div>
+        <div><dt>CTAs</dt><dd>{{CTA_COUNT}}</dd></div>
+        <div><dt>Attributes</dt><dd>{{ATTRIBUTE_COUNT}}</dd></div>
+        <div><dt>CCPs</dt><dd>{{CCP_COUNT}}</dd></div>
+        <div><dt>Consumed sources</dt><dd>{{CONSUMED_ROW_COUNT}}</dd></div>
+        <div><dt>Skipped sources</dt><dd>{{SKIPPED_ROW_COUNT}}</dd></div>
+        <div><dt>Synonym merges</dt><dd>{{SYNONYM_MERGE_COUNT}}</dd></div>
+        <div><dt>Irrelevant-to-domain rows</dt><dd>{{IRRELEVANT_ROW_COUNT}}</dd></div>
+      </dl>
+    </section>
+
+    <nav class="toc" aria-label="Sections">
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#source-roster">Source roster</a></li>
+        <li><a href="#diagram">Relationship diagram</a></li>
+        <li><a href="#diagrams">Object column-board</a></li>
+        <li><a href="#tables">Relationship matrix</a></li>
+        <li><a href="#object-map-body">Object map (JSON)</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+      </ol>
+    </nav>
+
+    {{SOURCE_ROSTER_BLOCK}}
+
+    <section id="diagram" aria-label="Object relationship diagram">
+      <h2>Object relationship diagram</h2>
+      <p class="caption">Mermaid <code>erDiagram</code> — entities are canonical OOUX objects; PK marks the primary CCP; relationships labelled with verb phrase and cardinality.</p>
+      {{ER_DIAGRAM_MERMAID}}
+    </section>
+
+    <section id="diagrams" class="object-board" aria-label="OOUX object map column-board">
+      {{OBJECT_COLUMNS}}
+    </section>
+
+    <section id="tables" aria-label="Tabular information">
+      {{REL_MATRIX_BLOCK}}
+    </section>
+
+    {{OBJECT_MAP_JSON_BLOCK}}
+
+    <details id="diagnostics" class="diagnostics-toggle">
+      <summary>Diagnostics — synonym merges, 8 quality-gate results, irrelevant-to-domain rows</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    <section class="next-steps">
+      <h2>Next steps</h2>
+      <p>
+        <strong>Audit the synonym-merge log</strong> in Diagnostics before treating the object set as final — every cross-source merge is an interpretive decision the consultant should confirm or correct via the analyser's Revise loop.
+      </p>
+      <p>
+        To re-ingest this artefact into <code>/requirements</code>, copy this file into <code>input/</code> (e.g. <code>input/ooux-object-map.html</code>) and re-run <code>/requirements</code>. The input-handler classifies it as <code>Supported-via-MCP</code>; markitdown converts it to <code>input/ooux-object-map.html.converted.md</code>. The embedded JSON body block (the <code>language-json</code> code block) and the Mermaid <code>erDiagram</code> source survive verbatim as fenced code blocks; <code>[SRC: &lt;filename&gt;]</code> markers survive as plain text. The drafter consumes the converted markdown via the refreshed manifest.
+      </p>
+    </section>
+
+    <footer>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-cta" aria-hidden="true"></span> CTA (verb)</span>
+        <span class="legend-item"><span class="legend-swatch s-obj" aria-hidden="true"></span> Object</span>
+        <span class="legend-item"><span class="legend-swatch s-core" aria-hidden="true"></span> Core content (CCP)</span>
+        <span class="legend-item"><span class="legend-swatch s-meta" aria-hidden="true"></span> Metadata</span>
+        <span class="legend-item"><span class="legend-swatch s-nested" aria-hidden="true"></span> Nested object reference</span>
+        <span class="legend-item"><span class="provenance provenance-from-source" aria-hidden="true"></span> from-source</span>
+        <span class="legend-item"><span class="provenance provenance-synonym-merged" aria-hidden="true"></span> synonym-merged</span>
+        <span class="legend-item"><span class="provenance provenance-inferred" aria-hidden="true"></span> inferred</span>
+      </div>
+      <div class="credit">Generated by `framework/agents/analyses-inputs/ooux-analyser.md`.</div>
+    </footer>
+  </main>
+</body>
+</html>

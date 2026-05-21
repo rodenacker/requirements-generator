@@ -57,6 +57,40 @@ methodologies:
   #     ingestible by /requirements via Native-text classification when
   #     copied into input/, with end-to-end audit trail preserved
   #     through dual-citation chain).
+  #   - `ooux` (Sophia Prater's ORCA process — six rounds Discovery →
+  #     Objects → Relationships → CTAs → Attributes → CCPs — adapted for
+  #     raw consultant inputs as a multi-source, synonym-merge-load-bearing,
+  #     document-only extraction; canonical object list emerges from raw
+  #     prose, ERD diagrams, brief sections, interview notes, and whiteboard
+  #     photos through Round 1 Discovery + Round 2 synonym merge; provenance
+  #     markers `from-source-<filename>` / `synonym-merged-from-[<filenames>]`
+  #     / `inferred-from-<filename>` on every object — never an unmarked
+  #     object, never a fourth marker; every CTA, attribute, CCP, and
+  #     relationship carries `[SRC: <filename>]` matching a manifest row's
+  #     `filename` field exactly; the artefact ships three visual surfaces
+  #     plus a machine-readable body block: Mermaid `erDiagram` (entities +
+  #     relationships + cardinality + PK on primary CCP — the "MUST contain
+  #     a diagram" deliverable; survives markitdown HTML→MD as a fenced code
+  #     block), canonical OOUX sticky-note column-board (CTAs, header, CCPs,
+  #     metadata, nested refs), relationship matrix table, and a
+  #     `<pre><code class="language-json" id="ooux-object-map-body">` block
+  #     carrying the full object model in JSON for `/requirements`
+  #     re-ingestion via markitdown round-trip — the load-bearing
+  #     machine-readable contract for the downstream drafter; eight hard
+  #     quality gates: seven inherited from the requirements-side OOUX
+  #     reference (every Object has ≥1 CTA; every CTA attaches to exactly
+  #     one Object; every nested Relationship declares cardinality; every
+  #     Object has ≥1 CCP; no orphan Attributes; provenance markers
+  #     exhaustive; matrix + nested refs + Mermaid agree) plus Gate 8
+  #     specific to the inputs side: every consumed manifest row contributes
+  #     ≥1 candidate noun in Round 1 OR is marked `irrelevant-to-domain`
+  #     in diagnostics with a one-line reason — surfacing silent skips the
+  #     synthesised `requirements/requirements.md` would have hidden; the
+  #     synonym-merge log in diagnostics is the most-interpretive surface
+  #     and the audit trail consultants use to confirm or revise
+  #     cross-source identity decisions; re-ingestible by `/requirements`
+  #     when copied into `input/` with end-to-end audit trail preserved
+  #     through the markitdown HTML→MD pathway).
   #   - `swim-lane-process-mapping` (Rummler-Brache Cross-Functional
   #     Process Mapping + Disconnect Analysis — Rummler & Brache 1990,
   #     *Improving Performance: How to Manage the White Space on the
@@ -144,6 +178,15 @@ methodologies:
     map_skill: framework/skills/map-jtbd-from-inputs-to-ui.md
     analyser_agent: framework/agents/analyses-inputs/jtbd-analyser.md
     character: framework/assets/characters/jtbd-inputs-analysis.md
+  - name: ooux
+    status: mvp
+    description: Sophia Prater's ORCA process applied to raw consultant inputs — six rounds (Discovery → Objects → Relationships → CTAs → Attributes → CCPs) producing the canonical OOUX sticky-note column-board PLUS a Mermaid `erDiagram` of objects + relationships + cardinality PLUS an embedded `<pre><code class="language-json">` body block carrying the full machine-readable object model. Synonym merge across sources is the load-bearing Round 2 step (`Customer` vs `Client` vs `Account holder` — every collision logged with literal terms collapsed, source filenames, and merge heuristic). Provenance markers `from-source-<filename>` / `synonym-merged-from-[<filenames>]` / `inferred-from-<filename>` on every object — never unmarked. Eight hard quality gates: seven inherited from the requirements-side OOUX reference plus Gate 8 (every consumed manifest row contributes ≥1 candidate noun OR is marked `irrelevant-to-domain` with a reason — surfaces silent skips that the synthesised `requirements/requirements.md` would have hidden). Designed as a `/requirements` re-ingestion input — the embedded JSON body block and the Mermaid erDiagram both survive markitdown HTML→MD conversion as fenced code blocks, so the drafter consumes the full object model in one shot when the consultant copies the artefact into `input/` for a downstream `/requirements` run.
+    output_path: analyse-inputs/OOUX/ooux-object-map.html
+    reference_asset: framework/assets/analyses-inputs/ooux-reference.md
+    template_asset: framework/assets/analyses-inputs/template-ooux.html
+    map_skill: framework/skills/map-ooux-from-inputs-to-ui.md
+    analyser_agent: framework/agents/analyses-inputs/ooux-analyser.md
+    character: framework/assets/characters/ooux-inputs-analysis.md
   - name: swim-lane-process-mapping
     status: mvp
     description: Maps every discrete cross-functional process the raw inputs describe into Rummler-Brache swim-lane flowcharts (Mermaid `flowchart TD` with one `subgraph` per actor lane) and surfaces a Disconnect Register classifying every lane-to-lane handoff — clean / ambiguous-trigger / missing-actor / unstated-exception / conflicting-source — exposing the "white-space" gaps Rummler attributed 80% of process failures to. Designed to be re-fed into /requirements as a secondary input — the embedded YAML structured model becomes a bijection target for the drafter's completeness gap pass (processes → §5 Task flows, handoffs → §6 integration constraints, decision branch guards → §6 acceptance-criteria branches, data-store and external-system steps → §7 data entities and §2 external-system aggregates), and every `consultant_follow_up: yes` disconnect flows into the resolver as an AI-NNN question.
@@ -198,4 +241,4 @@ methodologies:
 - `analyser_agent` — the foreground agent invoked by the orchestrator. Required only when `status: mvp`.
 - `character` — stance the Unicorn adopts while running the analyser. Required only when `status: mvp`.
 
-**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `task-analysis`, `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, `jtbd`, and `swim-lane-process-mapping` now at `status: mvp`, the selector presents six options to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.
+**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `task-analysis`, `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, `jtbd`, `ooux`, and `swim-lane-process-mapping` now at `status: mvp`, the selector presents seven options to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.
