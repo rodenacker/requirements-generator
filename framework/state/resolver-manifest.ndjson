@@ -1,154 +1,36 @@
-{"run_started_at":"2026-05-19T11:15:30Z","blocking_total":11,"non_blocking_total":142}
-{"line":2,"id":"AI-001","classification":"blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":3,"id":"AI-002","classification":"blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":4,"id":"AI-019","classification":"blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":5,"id":"AI-040","classification":"blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":6,"id":"AI-063","classification":"blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":7,"id":"AI-075","classification":"blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":8,"id":"AI-080","classification":"blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":9,"id":"AI-117","classification":"blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":10,"id":"AI-159","classification":"blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":11,"id":"AI-160","classification":"blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":12,"id":"AI-161","classification":"blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":13,"id":"AI-003","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":14,"id":"AI-004","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":15,"id":"AI-005","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":16,"id":"AI-006","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":17,"id":"AI-007","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":18,"id":"AI-008","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":19,"id":"AI-009","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":20,"id":"AI-010","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":21,"id":"AI-011","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":22,"id":"AI-012","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":23,"id":"AI-013","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":24,"id":"AI-014","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":25,"id":"AI-015","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":26,"id":"AI-016","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":27,"id":"AI-017","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":28,"id":"AI-018","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":29,"id":"AI-020","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":30,"id":"AI-021","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":31,"id":"AI-022","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":32,"id":"AI-023","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":33,"id":"AI-024","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":34,"id":"AI-025","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":35,"id":"AI-026","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":36,"id":"AI-027","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":37,"id":"AI-028","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":38,"id":"AI-029","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":39,"id":"AI-030","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":40,"id":"AI-031","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":41,"id":"AI-032","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":42,"id":"AI-033","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":43,"id":"AI-034","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":44,"id":"AI-035","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":45,"id":"AI-036","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":46,"id":"AI-037","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":47,"id":"AI-038","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":48,"id":"AI-039","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":49,"id":"AI-041","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":50,"id":"AI-042","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":51,"id":"AI-043","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":52,"id":"AI-044","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":53,"id":"AI-045","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":54,"id":"AI-046","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":55,"id":"AI-047","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":56,"id":"AI-048","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":57,"id":"AI-049","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":58,"id":"AI-050","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":59,"id":"AI-051","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":60,"id":"AI-052","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":61,"id":"AI-053","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":62,"id":"AI-054","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":63,"id":"AI-055","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":64,"id":"AI-056","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":65,"id":"AI-057","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":66,"id":"AI-058","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":67,"id":"AI-059","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":68,"id":"AI-060","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":69,"id":"AI-061","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":70,"id":"AI-062","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":71,"id":"AI-064","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":72,"id":"AI-065","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":73,"id":"AI-066","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":74,"id":"AI-067","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":75,"id":"AI-068","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":76,"id":"AI-069","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":77,"id":"AI-070","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":78,"id":"AI-071","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":79,"id":"AI-072","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":80,"id":"AI-073","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":81,"id":"AI-074","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":82,"id":"AI-076","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":83,"id":"AI-077","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":84,"id":"AI-078","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":85,"id":"AI-079","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":86,"id":"AI-081","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":87,"id":"AI-082","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":88,"id":"AI-083","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":89,"id":"AI-084","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":90,"id":"AI-085","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":91,"id":"AI-086","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":92,"id":"AI-087","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":93,"id":"AI-088","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":94,"id":"AI-089","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":95,"id":"AI-090","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":96,"id":"AI-091","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":97,"id":"AI-092","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":98,"id":"AI-093","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":99,"id":"AI-094","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":100,"id":"AI-095","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":101,"id":"AI-096","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":102,"id":"AI-097","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":103,"id":"AI-098","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":104,"id":"AI-099","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":105,"id":"AI-100","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":106,"id":"AI-101","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":107,"id":"AI-102","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":108,"id":"AI-103","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":109,"id":"AI-104","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":110,"id":"AI-105","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":111,"id":"AI-106","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":112,"id":"AI-107","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":113,"id":"AI-108","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":114,"id":"AI-109","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":115,"id":"AI-110","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":116,"id":"AI-111","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":117,"id":"AI-112","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":118,"id":"AI-113","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":119,"id":"AI-114","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":120,"id":"AI-115","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":121,"id":"AI-116","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":122,"id":"AI-118","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":123,"id":"AI-119","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":124,"id":"AI-120","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":125,"id":"AI-121","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":126,"id":"AI-122","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":127,"id":"AI-123","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":128,"id":"AI-124","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":129,"id":"AI-125","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":130,"id":"AI-126","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":131,"id":"AI-127","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":132,"id":"AI-128","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":133,"id":"AI-129","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":134,"id":"AI-130","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":135,"id":"AI-131","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":136,"id":"AI-132","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":137,"id":"AI-133","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":138,"id":"AI-134","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":139,"id":"AI-135","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":140,"id":"AI-138","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":141,"id":"AI-139","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":142,"id":"AI-140","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":143,"id":"AI-141","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":144,"id":"AI-142","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":145,"id":"AI-146","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":146,"id":"AI-147","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":147,"id":"AI-148","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":148,"id":"AI-149","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":149,"id":"AI-150","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":150,"id":"AI-151","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":151,"id":"AI-152","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":152,"id":"AI-153","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":153,"id":"AI-154","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
-{"line":154,"id":"AI-158","classification":"non-blocking","section_heading":"§ABBR","source_location":"<see draft>","original_suggestion":"<see draft>","phase2_batch_key":"section"}
+{"run_started_at":"2026-05-20T12:46:00Z","blocking_total":0,"non_blocking_total":35}
+{"line":2,"id":"AI-001","classification":"non-blocking","section_heading":"## 1.6 Assumptions & dependencies","source_location":"§1.6.row[abstract-service:binary-blob]","original_suggestion":"A binary blob storage tier for uploaded files and bulk-error files","draft_context":"§1.6 Assumptions — name an abstract capability category (not a vendor) for the file/blob storage tier."}
+{"line":3,"id":"AI-002","classification":"non-blocking","section_heading":"## 1.7 Architectural implications","source_location":"§1.7.row[client-state]","original_suggestion":"Client-side state management category — no specific recommendation","draft_context":"§1.7 row — recommendation text is optional; confirm 'no recommendation' or supply guidance."}
+{"line":4,"id":"AI-003","classification":"non-blocking","section_heading":"## 1.7 Architectural implications","source_location":"§1.7.row[search-filter]","original_suggestion":"in-memory index acceptable at ≤10⁴ records per file","draft_context":"§1.7 row — confirm or revise the in-memory recommendation."}
+{"line":5,"id":"AI-004","classification":"non-blocking","section_heading":"## 1.7 Architectural implications","source_location":"§1.7.row[file-upload]","original_suggestion":"binary blob storage tier required","draft_context":"§1.7 row — confirm capability-category recommendation."}
+{"line":6,"id":"AI-005","classification":"non-blocking","section_heading":"## 1.7 Architectural implications","source_location":"§1.7.row[export]","original_suggestion":"CSV-only at this stage","draft_context":"§1.7 row — confirm CSV-only export."}
+{"line":7,"id":"AI-006","classification":"non-blocking","section_heading":"## 1.7 Architectural implications","source_location":"§1.7.row[role-conditional]","original_suggestion":"Role-conditional rendering category — no specific recommendation","draft_context":"§1.7 row — recommendation optional."}
+{"line":8,"id":"AI-007","classification":"non-blocking","section_heading":"## 1.7 Architectural implications","source_location":"§1.7.row[audit-viewer]","original_suggestion":"Audit-trail viewer category — no specific recommendation","draft_context":"§1.7 row — recommendation optional."}
+{"line":9,"id":"AI-008","classification":"non-blocking","section_heading":"## 1.7 Architectural implications","source_location":"§1.7.row[notifications]","original_suggestion":"category-level only","draft_context":"§1.7 row — notifications are deferred; recommendation marks category-level only."}
+{"line":10,"id":"AI-009","classification":"non-blocking","section_heading":"### 2.5 State-transition matrix — File Log","source_location":"§2.5.FileLog.Uploaded→Processing.effect","original_suggestion":"status badge advances to \"Processing\"","draft_context":"§2.5 visible effect — confirm the badge transition wording."}
+{"line":11,"id":"AI-010","classification":"non-blocking","section_heading":"### 2.5 State-transition matrix — File Log","source_location":"§2.5.FileLog.Processing→Completed.effect","original_suggestion":"status badge advances to \"Completed\"; transactions become visible","draft_context":"§2.5 visible effect — confirm wording."}
+{"line":12,"id":"AI-011","classification":"non-blocking","section_heading":"### 3 Importer","source_location":"§3.Importer.expertise","original_suggestion":"Intermediate — familiar with file-ingestion workflows","draft_context":"§3 persona — expertise level."}
+{"line":13,"id":"AI-012","classification":"non-blocking","section_heading":"### 3 Importer","source_location":"§3.Importer.frequency","original_suggestion":"Daily — one or more files per business day","draft_context":"§3 persona — usage frequency."}
+{"line":14,"id":"AI-013","classification":"non-blocking","section_heading":"### 3 Importer","source_location":"§3.Importer.negative-drivers","original_suggestion":"Silent ingestion failures; unclear validation errors","draft_context":"§3 persona — negative drivers (fears)."}
+{"line":15,"id":"AI-014","classification":"non-blocking","section_heading":"### 3 Approver","source_location":"§3.Approver.expertise","original_suggestion":"Senior — empowered to apply approve/reject decisions","draft_context":"§3 persona — expertise level."}
+{"line":16,"id":"AI-015","classification":"non-blocking","section_heading":"### 3 Approver","source_location":"§3.Approver.frequency","original_suggestion":"Daily — reviewing the day's ingested transactions","draft_context":"§3 persona — usage frequency."}
+{"line":17,"id":"AI-016","classification":"non-blocking","section_heading":"### 3 Approver","source_location":"§3.Approver.negative-drivers","original_suggestion":"Approving a wrong row; losing the rejection rationale","draft_context":"§3 persona — negative drivers (fears)."}
+{"line":18,"id":"AI-017","classification":"non-blocking","section_heading":"### Flow: Authentication","source_location":"§5.Authentication.role-conditional","original_suggestion":"Landing differs by role assignment","draft_context":"§5 task flow — confirm role-based landing routing."}
+{"line":19,"id":"AI-018","classification":"non-blocking","section_heading":"### 6.1 Functional","source_location":"§6.1.F-04.AC","original_suggestion":"A 200 response returns the user's profile fields (e.g. Username, Email, RolesString)","draft_context":"§6.1 acceptance criterion — confirm profile fields returned."}
+{"line":20,"id":"AI-019","classification":"non-blocking","section_heading":"### 6.1 Functional","source_location":"§6.1.F-21.AC","original_suggestion":"Requests without the cookie return 401","draft_context":"§6.1 acceptance criterion — confirm 401 behavior."}
+{"line":21,"id":"AI-020","classification":"non-blocking","section_heading":"### 6.3 Validation rules","source_location":"§6.3.UserNote.error","original_suggestion":"A reject reason is required","draft_context":"§6.3 error message — confirm or revise wording."}
+{"line":22,"id":"AI-021","classification":"non-blocking","section_heading":"### 6.3 Validation rules","source_location":"§6.3.FileSettingId.error","original_suggestion":"A file-setting id is required","draft_context":"§6.3 error message."}
+{"line":23,"id":"AI-022","classification":"non-blocking","section_heading":"### 6.3 Validation rules","source_location":"§6.3.FileSettingName.error","original_suggestion":"A file-setting name is required","draft_context":"§6.3 error message."}
+{"line":24,"id":"AI-023","classification":"non-blocking","section_heading":"### 6.3 Validation rules","source_location":"§6.3.FileName.error","original_suggestion":"A file name is required","draft_context":"§6.3 error message."}
+{"line":25,"id":"AI-024","classification":"non-blocking","section_heading":"#### 6.4.5 Edge, empty & error states","source_location":"§6.4.5.UI-08-UI-10.partial","original_suggestion":"Show the filter chips and a Clear-all action; copy references the active filter","draft_context":"§6.4.5 partial state behavior."}
+{"line":26,"id":"AI-025","classification":"non-blocking","section_heading":"#### 6.4.5 Edge, empty & error states","source_location":"§6.4.5.UI-09.permission-denied","original_suggestion":"Hide the action; on direct URL access show an in-page permission-denied banner naming the missing permission","draft_context":"§6.4.5 permission-denied behavior."}
+{"line":27,"id":"AI-026","classification":"non-blocking","section_heading":"#### 6.6.1 Session UX","source_location":"§6.6.1.mfa","original_suggestion":"Not required at this stage","draft_context":"§6.6.1 — confirm MFA out of scope."}
+{"line":28,"id":"AI-027","classification":"non-blocking","section_heading":"#### 6.6.2 Frontend performance budgets","source_location":"§6.6.2.tti","original_suggestion":"≤ 2.0 s p95 time-to-interactive","draft_context":"§6.6.2 perf budget — TTI."}
+{"line":29,"id":"AI-028","classification":"non-blocking","section_heading":"#### 6.6.2 Frontend performance budgets","source_location":"§6.6.2.bundle","original_suggestion":"≤ 300 KB gzipped initial bundle","draft_context":"§6.6.2 perf budget — bundle size."}
+{"line":30,"id":"AI-029","classification":"non-blocking","section_heading":"#### 6.6.2 Frontend performance budgets","source_location":"§6.6.2.render","original_suggestion":"≤ 1.0 s p95 render at 10⁴ rows","draft_context":"§6.6.2 perf budget — render budget."}
+{"line":31,"id":"AI-030","classification":"non-blocking","section_heading":"#### 6.6.2 Frontend performance budgets","source_location":"§6.6.2.tmc","original_suggestion":"≤ 1.5 s p95 time-to-meaningful-content","draft_context":"§6.6.2 perf budget — TMC."}
+{"line":32,"id":"AI-031","classification":"non-blocking","section_heading":"#### 6.6.5 Accessibility","source_location":"§6.6.5.keyboard","original_suggestion":"Keyboard-only path through Login → File Log Overview → Transaction Table → Approve/Reject/Export","draft_context":"§6.6.5 accessibility — keyboard path coverage."}
+{"line":33,"id":"AI-032","classification":"non-blocking","section_heading":"### 6.9 Audit-trail UI feature","source_location":"§6.9.FileLog.audited-fields","original_suggestion":"CurrentStatus, LastChangedUser-equivalent (file process logs)","draft_context":"§6.9 — FileLog audited fields."}
+{"line":34,"id":"AI-033","classification":"non-blocking","section_heading":"### Shape: FileSetting","source_location":"§7.FileSetting.Direction","original_suggestion":"Inbound or outbound","draft_context":"§7 FileSetting.Direction — enum hint."}
+{"line":35,"id":"AI-034","classification":"non-blocking","section_heading":"## 10 Volumes","source_location":"§10.data-volume","original_suggestion":"10²–10⁴ transactions per file; 10³–10⁵ transactions retained per active FileLog","draft_context":"§10 volume band — data volume."}
+{"line":36,"id":"AI-035","classification":"non-blocking","section_heading":"## 10 Volumes","source_location":"§10.concurrency","original_suggestion":"10¹–10² concurrent users across Importer and Approver roles","draft_context":"§10 concurrency band."}

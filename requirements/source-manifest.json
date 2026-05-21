@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-05-20T10:39:09.954637Z",
-  "target": "prototype",
+  "generated_at": "2026-05-20T12:20:50Z",
+  "target": "application",
   "rows": [
     {
       "filename": "auth-api.yaml",
@@ -16,18 +16,9 @@
       "filename": "PrototypeBrief.md",
       "tier": "Native-text",
       "kind": "primary",
-      "sha256": "7cb6525cbc6f767dad13896141b1ee7d0b25e4f4ed4afab2cbf5d8f86e350c02",
+      "sha256": "434650cc2e714b8c044d1242d3046456c44d032ead935eb32eaefb3e094d976e",
       "conversions_applied": "none",
       "original_path": "input/PrototypeBrief.md",
-      "converted_sibling": null
-    },
-    {
-      "filename": "transactions_2026-04-15.csv",
-      "tier": "Native-text",
-      "kind": "primary",
-      "sha256": "3e19e126b5348c436889c020a4324a3436e9e92827336eb046dd6c94c376adbf",
-      "conversions_applied": "none",
-      "original_path": "input/transactions_2026-04-15.csv",
       "converted_sibling": null
     },
     {
@@ -37,6 +28,15 @@
       "sha256": "3676ed7f6f077375814d61df8f6c6543ce100b1cc46e59304b3f24d669abdaa8",
       "conversions_applied": "none",
       "original_path": "input/transactions-api.yaml",
+      "converted_sibling": null
+    },
+    {
+      "filename": "transactions_2026-04-15.csv",
+      "tier": "Native-text",
+      "kind": "primary",
+      "sha256": "3e19e126b5348c436889c020a4324a3436e9e92827336eb046dd6c94c376adbf",
+      "conversions_applied": "none",
+      "original_path": "input/transactions_2026-04-15.csv",
       "converted_sibling": null
     }
   ]

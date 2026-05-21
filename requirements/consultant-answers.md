@@ -1,1534 +1,353 @@
-# Consultant answers
+# Consultant Answers
 
-> One entry per AI-SUGGESTED ID in `requirements/requirements-draft.md`. All items in this run were captured via Phase 1 `accept-all-remaining-blocking` (11 items) and Phase 2 `accept-all-remaining-non-blocking` (142 items). The drafter's inferred values are retained; the merger strips the marker tags and the resolver's answers leave the values in place.
+> Captured resolutions for every `[AI-SUGGESTED]` marker in `requirements/requirements-draft.md`. The consultant chose `accept-all-remaining-non-blocking` at the first Phase 2 batch, so every non-blocking item is recorded as `accepted-as-is` with the drafter's inferred value as the resolved value. There were zero blocking items; Phase 1 was skipped by construction.
 
 ### AI-001
-- **Source location:** see `[AI-SUGGESTED: AI-001 | blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** blocking
+- **Source location:** §1.6.row[abstract-service:binary-blob]
+- **Original suggestion:** A binary blob storage tier for uploaded files and bulk-error files
+- **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-blocking
+- **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** A binary blob storage tier for uploaded files and bulk-error files
 
 ### AI-002
-- **Source location:** see `[AI-SUGGESTED: AI-002 | blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** blocking
+- **Source location:** §1.7.row[client-state]
+- **Original suggestion:** Client-side state management category — no specific recommendation
+- **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-blocking
+- **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-019
-- **Source location:** see `[AI-SUGGESTED: AI-019 | blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-040
-- **Source location:** see `[AI-SUGGESTED: AI-040 | blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-063
-- **Source location:** see `[AI-SUGGESTED: AI-063 | blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-075
-- **Source location:** see `[AI-SUGGESTED: AI-075 | blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-080
-- **Source location:** see `[AI-SUGGESTED: AI-080 | blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-117
-- **Source location:** see `[AI-SUGGESTED: AI-117 | blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-159
-- **Source location:** see `[AI-SUGGESTED: AI-159 | blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-160
-- **Source location:** see `[AI-SUGGESTED: AI-160 | blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-161
-- **Source location:** see `[AI-SUGGESTED: AI-161 | blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** Client-side state management category — no specific recommendation
 
 ### AI-003
-- **Source location:** see `[AI-SUGGESTED: AI-003 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §1.7.row[search-filter]
+- **Original suggestion:** in-memory index acceptable at ≤10⁴ records per file
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** in-memory index acceptable at ≤10⁴ records per file
 
 ### AI-004
-- **Source location:** see `[AI-SUGGESTED: AI-004 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §1.7.row[file-upload]
+- **Original suggestion:** binary blob storage tier required
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** binary blob storage tier required
 
 ### AI-005
-- **Source location:** see `[AI-SUGGESTED: AI-005 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §1.7.row[export]
+- **Original suggestion:** CSV-only at this stage
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** CSV-only at this stage
 
 ### AI-006
-- **Source location:** see `[AI-SUGGESTED: AI-006 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §1.7.row[role-conditional]
+- **Original suggestion:** Role-conditional rendering category — no specific recommendation
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** Role-conditional rendering category — no specific recommendation
 
 ### AI-007
-- **Source location:** see `[AI-SUGGESTED: AI-007 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §1.7.row[audit-viewer]
+- **Original suggestion:** Audit-trail viewer category — no specific recommendation
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** Audit-trail viewer category — no specific recommendation
 
 ### AI-008
-- **Source location:** see `[AI-SUGGESTED: AI-008 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §1.7.row[notifications]
+- **Original suggestion:** category-level only
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** category-level only
 
 ### AI-009
-- **Source location:** see `[AI-SUGGESTED: AI-009 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §2.5.FileLog.Uploaded→Processing.effect
+- **Original suggestion:** status badge advances to "Processing"
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** status badge advances to "Processing"
 
 ### AI-010
-- **Source location:** see `[AI-SUGGESTED: AI-010 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §2.5.FileLog.Processing→Completed.effect
+- **Original suggestion:** status badge advances to "Completed"; transactions become visible
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** status badge advances to "Completed"; transactions become visible
 
 ### AI-011
-- **Source location:** see `[AI-SUGGESTED: AI-011 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §3.Importer.expertise
+- **Original suggestion:** Intermediate — familiar with file-ingestion workflows
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** Intermediate — familiar with file-ingestion workflows
 
 ### AI-012
-- **Source location:** see `[AI-SUGGESTED: AI-012 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §3.Importer.frequency
+- **Original suggestion:** Daily — one or more files per business day
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** Daily — one or more files per business day
 
 ### AI-013
-- **Source location:** see `[AI-SUGGESTED: AI-013 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §3.Importer.negative-drivers
+- **Original suggestion:** Silent ingestion failures; unclear validation errors
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** Silent ingestion failures; unclear validation errors
 
 ### AI-014
-- **Source location:** see `[AI-SUGGESTED: AI-014 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §3.Approver.expertise
+- **Original suggestion:** Senior — empowered to apply approve/reject decisions
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** Senior — empowered to apply approve/reject decisions
 
 ### AI-015
-- **Source location:** see `[AI-SUGGESTED: AI-015 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §3.Approver.frequency
+- **Original suggestion:** Daily — reviewing the day's ingested transactions
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** Daily — reviewing the day's ingested transactions
 
 ### AI-016
-- **Source location:** see `[AI-SUGGESTED: AI-016 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §3.Approver.negative-drivers
+- **Original suggestion:** Approving a wrong row; losing the rejection rationale
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** Approving a wrong row; losing the rejection rationale
 
 ### AI-017
-- **Source location:** see `[AI-SUGGESTED: AI-017 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §5.Authentication.role-conditional
+- **Original suggestion:** Landing differs by role assignment
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** Landing differs by role assignment
 
 ### AI-018
-- **Source location:** see `[AI-SUGGESTED: AI-018 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §6.1.F-04.AC
+- **Original suggestion:** A 200 response returns the user's profile fields (e.g. Username, Email, RolesString)
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** A 200 response returns the user's profile fields (e.g. Username, Email, RolesString)
+
+### AI-019
+- **Source location:** §6.1.F-21.AC
+- **Original suggestion:** Requests without the cookie return 401
+- **Initial classification:** non-blocking
+- **Revised classification:** unchanged
+- **Status:** accepted-as-is
+- **Consultant answer:** accept-all-remaining-non-blocking
+- **Follow-ups:** none
+- **Resolved value:** Requests without the cookie return 401
 
 ### AI-020
-- **Source location:** see `[AI-SUGGESTED: AI-020 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §6.3.UserNote.error
+- **Original suggestion:** A reject reason is required
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** A reject reason is required
 
 ### AI-021
-- **Source location:** see `[AI-SUGGESTED: AI-021 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §6.3.FileSettingId.error
+- **Original suggestion:** A file-setting id is required
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** A file-setting id is required
 
 ### AI-022
-- **Source location:** see `[AI-SUGGESTED: AI-022 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §6.3.FileSettingName.error
+- **Original suggestion:** A file-setting name is required
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** A file-setting name is required
 
 ### AI-023
-- **Source location:** see `[AI-SUGGESTED: AI-023 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §6.3.FileName.error
+- **Original suggestion:** A file name is required
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** A file name is required
 
 ### AI-024
-- **Source location:** see `[AI-SUGGESTED: AI-024 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §6.4.5.UI-08-UI-10.partial
+- **Original suggestion:** Show the filter chips and a Clear-all action; copy references the active filter
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** Show the filter chips and a Clear-all action; copy references the active filter
 
 ### AI-025
-- **Source location:** see `[AI-SUGGESTED: AI-025 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §6.4.5.UI-09.permission-denied
+- **Original suggestion:** Hide the action; on direct URL access show an in-page permission-denied banner naming the missing permission
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** Hide the action; on direct URL access show an in-page permission-denied banner naming the missing permission
 
 ### AI-026
-- **Source location:** see `[AI-SUGGESTED: AI-026 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §6.6.1.mfa
+- **Original suggestion:** Not required at this stage
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** Not required at this stage
 
 ### AI-027
-- **Source location:** see `[AI-SUGGESTED: AI-027 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §6.6.2.tti
+- **Original suggestion:** ≤ 2.0 s p95 time-to-interactive
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** ≤ 2.0 s
 
 ### AI-028
-- **Source location:** see `[AI-SUGGESTED: AI-028 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §6.6.2.bundle
+- **Original suggestion:** ≤ 300 KB gzipped initial bundle
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** ≤ 300 KB gzipped
 
 ### AI-029
-- **Source location:** see `[AI-SUGGESTED: AI-029 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §6.6.2.render
+- **Original suggestion:** ≤ 1.0 s p95 render at 10⁴ rows
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** ≤ 1.0 s p95 at 10⁴ rows
 
 ### AI-030
-- **Source location:** see `[AI-SUGGESTED: AI-030 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §6.6.2.tmc
+- **Original suggestion:** ≤ 1.5 s p95 time-to-meaningful-content
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** ≤ 1.5 s p95
 
 ### AI-031
-- **Source location:** see `[AI-SUGGESTED: AI-031 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §6.6.5.keyboard
+- **Original suggestion:** Keyboard-only path through Login → File Log Overview → Transaction Table → Approve/Reject/Export
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** Keyboard-only path through Login → File Log Overview → Transaction Table → Approve/Reject/Export must be available
 
 ### AI-032
-- **Source location:** see `[AI-SUGGESTED: AI-032 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §6.9.FileLog.audited-fields
+- **Original suggestion:** CurrentStatus, LastChangedUser-equivalent (file process logs)
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** CurrentStatus, LastChangedUser-equivalent (file process logs)
 
 ### AI-033
-- **Source location:** see `[AI-SUGGESTED: AI-033 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §7.FileSetting.Direction
+- **Original suggestion:** Inbound or outbound
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** Inbound or outbound
 
 ### AI-034
-- **Source location:** see `[AI-SUGGESTED: AI-034 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §10.data-volume
+- **Original suggestion:** 10²–10⁴ transactions per file; 10³–10⁵ transactions retained per active FileLog
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
+- **Resolved value:** 10²–10⁴ transactions per file; 10³–10⁵ transactions retained per active FileLog
 
 ### AI-035
-- **Source location:** see `[AI-SUGGESTED: AI-035 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
+- **Source location:** §10.concurrency
+- **Original suggestion:** 10¹–10² concurrent users across Importer and Approver roles
 - **Initial classification:** non-blocking
 - **Revised classification:** unchanged
 - **Status:** accepted-as-is
 - **Consultant answer:** accept-all-remaining-non-blocking
 - **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-036
-- **Source location:** see `[AI-SUGGESTED: AI-036 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-037
-- **Source location:** see `[AI-SUGGESTED: AI-037 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-038
-- **Source location:** see `[AI-SUGGESTED: AI-038 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-039
-- **Source location:** see `[AI-SUGGESTED: AI-039 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-041
-- **Source location:** see `[AI-SUGGESTED: AI-041 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-042
-- **Source location:** see `[AI-SUGGESTED: AI-042 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-043
-- **Source location:** see `[AI-SUGGESTED: AI-043 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-044
-- **Source location:** see `[AI-SUGGESTED: AI-044 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-045
-- **Source location:** see `[AI-SUGGESTED: AI-045 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-046
-- **Source location:** see `[AI-SUGGESTED: AI-046 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-047
-- **Source location:** see `[AI-SUGGESTED: AI-047 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-048
-- **Source location:** see `[AI-SUGGESTED: AI-048 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-049
-- **Source location:** see `[AI-SUGGESTED: AI-049 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-050
-- **Source location:** see `[AI-SUGGESTED: AI-050 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-051
-- **Source location:** see `[AI-SUGGESTED: AI-051 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-052
-- **Source location:** see `[AI-SUGGESTED: AI-052 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-053
-- **Source location:** see `[AI-SUGGESTED: AI-053 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-054
-- **Source location:** see `[AI-SUGGESTED: AI-054 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-055
-- **Source location:** see `[AI-SUGGESTED: AI-055 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-056
-- **Source location:** see `[AI-SUGGESTED: AI-056 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-057
-- **Source location:** see `[AI-SUGGESTED: AI-057 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-058
-- **Source location:** see `[AI-SUGGESTED: AI-058 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-059
-- **Source location:** see `[AI-SUGGESTED: AI-059 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-060
-- **Source location:** see `[AI-SUGGESTED: AI-060 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-061
-- **Source location:** see `[AI-SUGGESTED: AI-061 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-062
-- **Source location:** see `[AI-SUGGESTED: AI-062 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-064
-- **Source location:** see `[AI-SUGGESTED: AI-064 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-065
-- **Source location:** see `[AI-SUGGESTED: AI-065 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-066
-- **Source location:** see `[AI-SUGGESTED: AI-066 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-067
-- **Source location:** see `[AI-SUGGESTED: AI-067 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-068
-- **Source location:** see `[AI-SUGGESTED: AI-068 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-069
-- **Source location:** see `[AI-SUGGESTED: AI-069 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-070
-- **Source location:** see `[AI-SUGGESTED: AI-070 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-071
-- **Source location:** see `[AI-SUGGESTED: AI-071 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-072
-- **Source location:** see `[AI-SUGGESTED: AI-072 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-073
-- **Source location:** see `[AI-SUGGESTED: AI-073 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-074
-- **Source location:** see `[AI-SUGGESTED: AI-074 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-076
-- **Source location:** see `[AI-SUGGESTED: AI-076 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-077
-- **Source location:** see `[AI-SUGGESTED: AI-077 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-078
-- **Source location:** see `[AI-SUGGESTED: AI-078 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-079
-- **Source location:** see `[AI-SUGGESTED: AI-079 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-081
-- **Source location:** see `[AI-SUGGESTED: AI-081 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-082
-- **Source location:** see `[AI-SUGGESTED: AI-082 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-083
-- **Source location:** see `[AI-SUGGESTED: AI-083 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-084
-- **Source location:** see `[AI-SUGGESTED: AI-084 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-085
-- **Source location:** see `[AI-SUGGESTED: AI-085 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-086
-- **Source location:** see `[AI-SUGGESTED: AI-086 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-087
-- **Source location:** see `[AI-SUGGESTED: AI-087 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-088
-- **Source location:** see `[AI-SUGGESTED: AI-088 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-089
-- **Source location:** see `[AI-SUGGESTED: AI-089 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-090
-- **Source location:** see `[AI-SUGGESTED: AI-090 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-091
-- **Source location:** see `[AI-SUGGESTED: AI-091 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-092
-- **Source location:** see `[AI-SUGGESTED: AI-092 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-093
-- **Source location:** see `[AI-SUGGESTED: AI-093 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-094
-- **Source location:** see `[AI-SUGGESTED: AI-094 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-095
-- **Source location:** see `[AI-SUGGESTED: AI-095 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-096
-- **Source location:** see `[AI-SUGGESTED: AI-096 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-097
-- **Source location:** see `[AI-SUGGESTED: AI-097 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-098
-- **Source location:** see `[AI-SUGGESTED: AI-098 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-099
-- **Source location:** see `[AI-SUGGESTED: AI-099 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-100
-- **Source location:** see `[AI-SUGGESTED: AI-100 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-101
-- **Source location:** see `[AI-SUGGESTED: AI-101 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-102
-- **Source location:** see `[AI-SUGGESTED: AI-102 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-103
-- **Source location:** see `[AI-SUGGESTED: AI-103 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-104
-- **Source location:** see `[AI-SUGGESTED: AI-104 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-105
-- **Source location:** see `[AI-SUGGESTED: AI-105 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-106
-- **Source location:** see `[AI-SUGGESTED: AI-106 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-107
-- **Source location:** see `[AI-SUGGESTED: AI-107 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-108
-- **Source location:** see `[AI-SUGGESTED: AI-108 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-109
-- **Source location:** see `[AI-SUGGESTED: AI-109 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-110
-- **Source location:** see `[AI-SUGGESTED: AI-110 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-111
-- **Source location:** see `[AI-SUGGESTED: AI-111 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-112
-- **Source location:** see `[AI-SUGGESTED: AI-112 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-113
-- **Source location:** see `[AI-SUGGESTED: AI-113 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-114
-- **Source location:** see `[AI-SUGGESTED: AI-114 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-115
-- **Source location:** see `[AI-SUGGESTED: AI-115 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-116
-- **Source location:** see `[AI-SUGGESTED: AI-116 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-118
-- **Source location:** see `[AI-SUGGESTED: AI-118 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-119
-- **Source location:** see `[AI-SUGGESTED: AI-119 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-120
-- **Source location:** see `[AI-SUGGESTED: AI-120 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-121
-- **Source location:** see `[AI-SUGGESTED: AI-121 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-122
-- **Source location:** see `[AI-SUGGESTED: AI-122 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-123
-- **Source location:** see `[AI-SUGGESTED: AI-123 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-124
-- **Source location:** see `[AI-SUGGESTED: AI-124 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-125
-- **Source location:** see `[AI-SUGGESTED: AI-125 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-126
-- **Source location:** see `[AI-SUGGESTED: AI-126 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-127
-- **Source location:** see `[AI-SUGGESTED: AI-127 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-128
-- **Source location:** see `[AI-SUGGESTED: AI-128 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-129
-- **Source location:** see `[AI-SUGGESTED: AI-129 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-130
-- **Source location:** see `[AI-SUGGESTED: AI-130 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-131
-- **Source location:** see `[AI-SUGGESTED: AI-131 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-132
-- **Source location:** see `[AI-SUGGESTED: AI-132 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-133
-- **Source location:** see `[AI-SUGGESTED: AI-133 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-134
-- **Source location:** see `[AI-SUGGESTED: AI-134 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-135
-- **Source location:** see `[AI-SUGGESTED: AI-135 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-138
-- **Source location:** see `[AI-SUGGESTED: AI-138 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-139
-- **Source location:** see `[AI-SUGGESTED: AI-139 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-140
-- **Source location:** see `[AI-SUGGESTED: AI-140 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-141
-- **Source location:** see `[AI-SUGGESTED: AI-141 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-142
-- **Source location:** see `[AI-SUGGESTED: AI-142 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-146
-- **Source location:** see `[AI-SUGGESTED: AI-146 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-147
-- **Source location:** see `[AI-SUGGESTED: AI-147 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-148
-- **Source location:** see `[AI-SUGGESTED: AI-148 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-149
-- **Source location:** see `[AI-SUGGESTED: AI-149 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-150
-- **Source location:** see `[AI-SUGGESTED: AI-150 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-151
-- **Source location:** see `[AI-SUGGESTED: AI-151 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-152
-- **Source location:** see `[AI-SUGGESTED: AI-152 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-153
-- **Source location:** see `[AI-SUGGESTED: AI-153 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-154
-- **Source location:** see `[AI-SUGGESTED: AI-154 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
-### AI-158
-- **Source location:** see `[AI-SUGGESTED: AI-158 | non-blocking]` in `requirements/requirements-draft.md`
-- **Original suggestion:** retained verbatim from the draft (drafter-inferred value)
-- **Initial classification:** non-blocking
-- **Revised classification:** unchanged
-- **Status:** accepted-as-is
-- **Consultant answer:** accept-all-remaining-non-blocking
-- **Follow-ups:** none
-- **Resolved value:** retain the drafter-inferred value verbatim
-
+- **Resolved value:** 10¹–10² concurrent users across Importer and Approver roles
