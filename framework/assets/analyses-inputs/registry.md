@@ -40,8 +40,24 @@ methodologies:
   #     survives markitdown HTML→MD conversion as fenced code, making
   #     the artefact the primary structural-input-handoff to the
   #     /requirements drafter when copied into input/ for re-ingestion).
+  #   - `jtbd` (Jobs-To-Be-Done — hybrid Christensen-Moesta canonical
+  #     statement form `When <situation>, I want to <motivation>, so I
+  #     can <outcome>` + four forces of progress (push/pull/anxiety/
+  #     habit) + Ulwick importance × satisfaction = opportunity scoring
+  #     `Opp = Imp + max(0, Imp - Sat)` with 1–5 scale; adapted for raw
+  #     consultant inputs as a six-round JTBD-X process whose actors,
+  #     situations, motivations, outcomes, and forces are anchored to
+  #     manifest-row filenames via [SRC: <filename>] markers; outcomes
+  #     without anchorable measures carry `(no-metric-in-inputs)`;
+  #     unsignaled Importance/Satisfaction scores carry
+  #     `consultant-assigned-no-signal`; forces with no input mention
+  #     carry `not-named-in-inputs` (surfacing absence — most raw input
+  #     sets name Push and Pull but rarely Anxiety and Habit); self-
+  #     contained HTML job-card grid + 5×5 opportunity matrix; re-
+  #     ingestible by /requirements via Native-text classification when
+  #     copied into input/, with end-to-end audit trail preserved
+  #     through dual-citation chain).
   - { name: glossary, status: future }
-  - { name: jtbd, status: future }
   - { name: five-whys, status: future }
   - name: task-analysis
     status: mvp
@@ -79,6 +95,15 @@ methodologies:
     map_skill: framework/skills/map-journey-mapping-from-inputs-to-ui.md
     analyser_agent: framework/agents/analyses-inputs/journey-mapping-analyser.md
     character: framework/assets/characters/journey-mapping-inputs-analysis.md
+  - name: jtbd
+    status: mvp
+    description: Surfaces the jobs, outcomes, and forces of progress (push / pull / anxiety / habit) that the consultant's raw inputs describe — hybrid Christensen-Moesta canonical statement form + Ulwick opportunity scoring — so the requirements that follow anchor to user motivation rather than features. Re-ingestible by /requirements when copied into input/ as a Native-text source.
+    output_path: analyse-inputs/JTBD/jtbd-job-map.html
+    reference_asset: framework/assets/analyses-inputs/jtbd-reference.md
+    template_asset: framework/assets/analyses-inputs/template-jtbd.html
+    map_skill: framework/skills/map-jtbd-from-inputs-to-ui.md
+    analyser_agent: framework/agents/analyses-inputs/jtbd-analyser.md
+    character: framework/assets/characters/jtbd-inputs-analysis.md
 ---
 
 # analyses-inputs/registry.md
@@ -124,4 +149,4 @@ methodologies:
 - `analyser_agent` — the foreground agent invoked by the orchestrator. Required only when `status: mvp`.
 - `character` — stance the Unicorn adopts while running the analyser. Required only when `status: mvp`.
 
-**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `thematic-analysis` and `opportunity-solution-trees` now at `status: mvp`, the selector presents two options to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.
+**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `task-analysis`, `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, and `jtbd` now at `status: mvp`, the selector presents five options to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.
