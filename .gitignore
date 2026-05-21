@@ -1,1 +1,17 @@
 .claude/settings.local.json
+
+# ruflo (claude-flow / ruv-swarm) — meta-tool used only to generate the framework.
+# The framework itself must remain ruflo-free; these paths are ignored so the
+# framework can be checked out and used without any ruflo install or runtime.
+.claude-flow/
+.claude/agents/
+.claude/helpers/
+.claude/skills/
+.claude/commands/analysis/
+.claude/commands/automation/
+.claude/commands/github/
+.claude/commands/hooks/
+.claude/commands/monitoring/
+.claude/commands/optimization/
+.claude/commands/sparc/
+.claude/commands/claude-flow-*.md
