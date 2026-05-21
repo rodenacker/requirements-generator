@@ -1,0 +1,694 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses-inputs/swim-lane-process-mapping-analyser.md.
+
+  Purpose: HTML/CSS skeleton for a Rummler-Brache cross-functional process map
+  + Disconnect Analysis (Rummler & Brache 1990) of raw consultant inputs. The
+  artefact renders one or more discrete processes, each as a Mermaid
+  `flowchart TD` source block with one `subgraph` per actor swim-lane,
+  augmented with an actor inventory, a Steps table per process, a global
+  Disconnect Register (the methodology's analytical core — every lane-to-lane
+  handoff classified `clean | ambiguous-trigger | missing-actor |
+  unstated-exception | conflicting-source`), an embedded YAML process model,
+  and a diagnostics block.
+
+  Self-contained: `<!doctype html>` + inline `<style>` + `<body>`. No
+  external CSS / JS / fonts / CDN dependencies. No inline Mermaid runtime —
+  Mermaid source is embedded as `<pre class="mermaid-source">` text; visual
+  rendering is out-of-band (mmdc or https://mermaid.live). The artefact is
+  re-ingestible into `input/` for the /requirements drafter via markitdown
+  conversion — the structured YAML model lives in a <pre><code> block
+  (which survives the HTML→MD round-trip as a fenced code block, unlike
+  <script type="application/json"> which is stripped). Inline
+  [SRC: <filename>] markers are plain text inside cell / row / node
+  content and survive the round-trip cleanly. Mermaid source blocks survive
+  as plain `<pre>` text.
+
+  Section order (top-to-bottom):
+    1. Compact overview (id="overview")           — title, counts caption,
+                                                    jump-links to processes.
+    2. Process gallery (id="processes")           — {{PROCESS_BLOCKS}}.
+                                                    One <article class="process-block">
+                                                    per discrete process:
+                                                    Mermaid source +
+                                                    Steps table + Decisions
+                                                    table.
+    3. Actor inventory (id="actors")              — {{ACTOR_TABLE_BODY}}.
+                                                    Global table: every lane
+                                                    discovered across all
+                                                    processes.
+    4. Disconnect Register (id="disconnects")     — {{DISCONNECT_TABLE_BODY}}
+                                                    + {{DISCONNECT_SUMMARY}}.
+                                                    The analytical core.
+                                                    One row per handoff;
+                                                    five category pills;
+                                                    consultant-follow-up
+                                                    flags + suggested
+                                                    questions.
+    5. Structured model (id="structured-model")   — {{STRUCTURED_YAML_BLOCK}}.
+                                                    The <pre><code class="language-yaml">
+                                                    block carrying the full
+                                                    machine-readable process
+                                                    model (read by the
+                                                    /requirements drafter
+                                                    after re-ingestion).
+    6. Gaps & inferred nodes (id="gaps")          — {{GAPS_BLOCK}}.
+                                                    Every inferred node /
+                                                    lane / payload, classified
+                                                    blocking/non-blocking with
+                                                    the suggested resolver
+                                                    prompt.
+    7. Diagnostics (id="diagnostics")             — <details> wrapper, collapsed
+                                                    by default. Counts summary,
+                                                    9 gate results, source
+                                                    roster, Mermaid validation
+                                                    results, run history.
+    8. Next-steps banner (after diagnostics)      — instructions to copy the
+                                                    artefact into input/ for
+                                                    /requirements re-ingestion;
+                                                    reminder that the
+                                                    Disconnect Register is
+                                                    the primary elicitation
+                                                    surface.
+
+  Placeholders the analyser substitutes (string substitution; all values
+  pre-escaped for HTML; YAML inside <pre><code> is escaped as plain text;
+  Mermaid inside <pre class="mermaid-source"> is NOT HTML-escaped beyond
+  the standard `<`, `>`, `&`, `"`, `'` set — Mermaid pipe / bracket / brace
+  syntax must remain literal):
+
+    {{TITLE}}                  — short title (e.g. "Swim-Lane Process Mapping — Project X").
+    {{DOMAIN}}                 — domain string (from manifest meta if declared, else "(not declared)").
+    {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
+    {{MANIFEST_SHA256}}        — sha256 of requirements/source-manifest.json at read time.
+    {{RUN_COUNT}}              — integer ≥ 1, increments per run.
+    {{TARGET}}                 — "prototype" | "application" | "(not declared in manifest)".
+    {{PROCESS_COUNT}}          — number of discrete processes rendered.
+    {{ACTOR_COUNT}}            — total distinct actors across all processes.
+    {{STEP_COUNT}}             — total steps across all processes.
+    {{HANDOFF_COUNT}}          — total handoffs (lane-crossing edges) across all processes.
+    {{DISCONNECT_COUNT_TOTAL}} — total disconnect entries (== handoff count).
+    {{DC_CLEAN}}               — count of `clean` disconnects.
+    {{DC_AMBIGUOUS_TRIGGER}}   — count of `ambiguous-trigger` disconnects.
+    {{DC_MISSING_ACTOR}}       — count of `missing-actor` disconnects.
+    {{DC_UNSTATED_EXCEPTION}}  — count of `unstated-exception` disconnects.
+    {{DC_CONFLICTING_SOURCE}}  — count of `conflicting-source` disconnects.
+    {{FOLLOW_UP_COUNT}}        — count of disconnects with `consultant_follow_up: yes`.
+    {{INFERRED_COUNT}}         — total inferred nodes + inferred lanes + inferred payloads.
+    {{BLOCKING_GAP_COUNT}}     — total [AI-SUGGESTED: ... | blocking] markers.
+    {{NON_BLOCKING_GAP_COUNT}} — total [AI-SUGGESTED: ... | non-blocking] markers.
+    {{TOC_PROCESSES}}          — inline anchor list <a href="#process-{process-slug}">{process-label}</a>
+                                 (separator " · "); one per process.
+    {{PROCESS_BLOCKS}}         — pre-rendered <article class="process-block"> blocks per
+                                 PROCESS BLOCK SCHEMA below; one per process.
+    {{ACTOR_TABLE_BODY}}       — pre-rendered <tbody> rows for the Actor inventory table.
+    {{DISCONNECT_TABLE_BODY}}  — pre-rendered <tbody> rows for the Disconnect Register table.
+    {{DISCONNECT_SUMMARY}}     — pre-rendered <dl class="dc-summary"> with category counts.
+    {{STRUCTURED_YAML_BLOCK}}  — pre-rendered <section id="structured-model"> containing the
+                                 <pre><code class="language-yaml"> block (full YAML payload
+                                 per STRUCTURED YAML SCHEMA in the reference).
+    {{GAPS_BLOCK}}             — pre-rendered <section id="gaps"> content (blocking + non-blocking
+                                 lists; suggested resolver prompt; source span).
+    {{DIAGNOSTICS_BLOCK}}      — pre-rendered <section class="diagnostics"> per DIAGNOSTICS
+                                 SCHEMA below.
+
+  Output: analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html.
+
+  PROCESS BLOCK SCHEMA — each block the analyser emits has the shape:
+
+      <article class="process-block"
+               id="process-{process-slug}"
+               aria-labelledby="process-{process-slug}-title">
+        <h2 id="process-{process-slug}-title">
+          <span class="node-id">{{process-id}}</span>
+          <span class="node-label">{{process-display-name}}</span>
+          <small class="src-inline">[SRC: {{filename}}]</small>
+        </h2>
+        <p class="process-goal">
+          Goal: {{goal-statement}} [SRC: {{filename}}]
+          <br/>Trigger: {{trigger-event}} [SRC: {{filename}}]
+        </p>
+
+        <details class="mermaid-block" open>
+          <summary>Mermaid source (flowchart TD with swim-lane subgraphs)</summary>
+          <p class="mermaid-caption">
+            Copy this block into <a href="https://mermaid.live">mermaid.live</a> or run
+            <code>mmdc -i &lt;source.mmd&gt; -o &lt;diagram.svg&gt;</code> to view rendered.
+          </p>
+          <pre class="mermaid-source">{{mermaid-source}}</pre>
+        </details>
+
+        <section class="steps-section" aria-labelledby="steps-{process-slug}-title">
+          <h3 id="steps-{process-slug}-title">Steps</h3>
+          <table class="steps-table">
+            <thead>
+              <tr>
+                <th>ID</th><th>Label</th><th>Type</th><th>Lane</th><th>Inferred</th><th>Source</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- one <tr class="step-row step-type-{type}"> per step -->
+              <tr class="step-row step-type-process">
+                <td class="node-id">s1</td>
+                <td class="step-label">{{label}}</td>
+                <td><span class="type-pill type-process">process</span></td>
+                <td class="lane">{{lane-display-name}}</td>
+                <td class="inferred-cell">no</td>
+                <td class="src-cell"><span class="src-chip">[SRC: {{filename}}]</span></td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+
+        <section class="decisions-section" aria-labelledby="dec-{process-slug}-title">
+          <h3 id="dec-{process-slug}-title">Decisions</h3>
+          <table class="decisions-table">
+            <thead>
+              <tr>
+                <th>Decision ID</th><th>Question</th><th>Branches (guard → target)</th><th>Source</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- one <tr class="decision-row"> per decision; branches as inline <ul> -->
+              <tr class="decision-row">
+                <td class="node-id">s3</td>
+                <td class="decision-label">{{question}}</td>
+                <td>
+                  <ul class="branches">
+                    <li><code>{{guard}}</code> → s4</li>
+                    <li><code>{{guard}}</code> → s6</li>
+                  </ul>
+                </td>
+                <td class="src-cell"><span class="src-chip">[SRC: {{filename}}]</span></td>
+              </tr>
+              ...
+            </tbody>
+          </table>
+        </section>
+      </article>
+
+  STRUCTURED YAML SCHEMA — the <pre><code class="language-yaml"> block contains the
+  schema defined in framework/assets/analyses-inputs/swim-lane-process-mapping-reference.md
+  > "Structured-model YAML schema".
+
+  DISCONNECT TABLE ROW SCHEMA — each <tr> in {{DISCONNECT_TABLE_BODY}}:
+
+      <tr class="dc-row dc-{category}">
+        <td class="dc-id">DC-001</td>
+        <td class="dc-process">{{process-id}}</td>
+        <td class="dc-from">{{from-step-id}} ({{from-lane}})</td>
+        <td class="dc-to">{{to-step-id}} ({{to-lane}})</td>
+        <td><span class="dc-pill dc-pill-{category}">{{category}}</span></td>
+        <td class="dc-description">{{description}}</td>
+        <td class="dc-followup">{{yes|no}}</td>
+        <td class="dc-question">{{suggested-question}}</td>
+        <td class="src-cell"><span class="src-chip">[SRC: {{filename}}]</span></td>
+      </tr>
+
+  ACTOR TABLE ROW SCHEMA — each <tr> in {{ACTOR_TABLE_BODY}}:
+
+      <tr class="actor-row actor-kind-{kind}">
+        <td class="actor-id">{{actor-id}}</td>
+        <td class="actor-name">{{display-name}}</td>
+        <td><span class="kind-pill kind-{kind}">{{kind}}</span></td>
+        <td class="actor-processes">{{comma-separated process ids}}</td>
+        <td class="src-cell"><span class="src-chip">[SRC: {{filename}}]</span></td>
+      </tr>
+
+  DIAGNOSTICS SCHEMA — the <section class="diagnostics"> block contains, in order:
+
+      1. <ul class="gate-results"> — 9 hard-gate result lines, each:
+         <li class="gate-{pass|fail}">Gate N: <name> — PASS|FAIL [: flagged item summary]</li>
+      2. <section class="source-roster"> — Consumed and Skipped tables.
+      3. <section class="mermaid-results"> — per-process Mermaid validator outcome.
+      4. <section class="run-history"> — append-only bullet list, one per run:
+         <li>Run N — ISO-date — N processes, N actors, N handoffs, N disconnects
+           (N follow-up); inferred N (N blocking, N non-blocking)
+           [; Override: <gate list> if applicable].</li>
+
+  CSS contract:
+  - .dc-pill-clean              → green
+  - .dc-pill-ambiguous-trigger  → amber
+  - .dc-pill-missing-actor      → red
+  - .dc-pill-unstated-exception → red
+  - .dc-pill-conflicting-source → purple
+  - .type-process               → blue
+  - .type-decision              → amber
+  - .type-start                 → green
+  - .type-end                   → grey
+  - .type-data-store            → teal
+  - .type-external-system       → purple
+  - .kind-role                  → blue
+  - .kind-system                → teal
+  - .kind-external-service      → purple
+  - .inferred                   → red left border on row
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script type="application/json" id="swim-lane-process-mapping-meta">
+{
+  "title": "{{TITLE}}",
+  "domain": "{{DOMAIN}}",
+  "generated_at": "{{GENERATED_AT}}",
+  "manifest_sha256": "{{MANIFEST_SHA256}}",
+  "run_count": {{RUN_COUNT}},
+  "target": "{{TARGET}}",
+  "process_count": {{PROCESS_COUNT}},
+  "actor_count": {{ACTOR_COUNT}},
+  "step_count": {{STEP_COUNT}},
+  "handoff_count": {{HANDOFF_COUNT}},
+  "disconnect_count_total": {{DISCONNECT_COUNT_TOTAL}},
+  "dc_clean": {{DC_CLEAN}},
+  "dc_ambiguous_trigger": {{DC_AMBIGUOUS_TRIGGER}},
+  "dc_missing_actor": {{DC_MISSING_ACTOR}},
+  "dc_unstated_exception": {{DC_UNSTATED_EXCEPTION}},
+  "dc_conflicting_source": {{DC_CONFLICTING_SOURCE}},
+  "follow_up_count": {{FOLLOW_UP_COUNT}},
+  "inferred_count": {{INFERRED_COUNT}},
+  "blocking_gap_count": {{BLOCKING_GAP_COUNT}},
+  "non_blocking_gap_count": {{NON_BLOCKING_GAP_COUNT}}
+}
+  </script>
+
+  <style>
+    :root {
+      --fg: #111827;
+      --fg-muted: #4b5563;
+      --bg: #ffffff;
+      --bg-muted: #f9fafb;
+      --bg-card: #ffffff;
+      --border: #e5e7eb;
+      --border-strong: #d1d5db;
+
+      --color-clean: #16a34a;
+      --color-ambiguous: #d97706;
+      --color-missing: #dc2626;
+      --color-unstated: #dc2626;
+      --color-conflict: #7c3aed;
+
+      --color-process: #2563eb;
+      --color-decision: #d97706;
+      --color-start: #16a34a;
+      --color-end: #6b7280;
+      --color-data: #0d9488;
+      --color-external: #7c3aed;
+
+      --color-role: #2563eb;
+      --color-system: #0d9488;
+      --color-external-svc: #7c3aed;
+
+      --color-inferred: #dc2626;
+
+      --radius: 6px;
+      --pill-radius: 999px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--fg);
+      background: var(--bg);
+      margin: 0;
+      padding: 0;
+      line-height: 1.5;
+      font-size: 15px;
+    }
+
+    main { padding: 2rem 2.5rem 4rem; max-width: 1400px; margin: 0 auto; }
+
+    header#overview {
+      background: var(--bg-muted);
+      padding: 2rem 2.5rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    header#overview h1 { margin: 0 0 0.25rem; font-size: 1.6rem; }
+    header#overview .caption {
+      color: var(--fg-muted);
+      font-size: 0.95rem;
+      margin: 0 0 0.5rem;
+    }
+    header#overview .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.5rem 1rem;
+      font-size: 0.85rem;
+      color: var(--fg-muted);
+      margin-top: 0.5rem;
+    }
+    header#overview .meta-grid > div { display: flex; flex-direction: column; }
+    header#overview .meta-grid > div > span:first-child {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #6b7280;
+    }
+    header#overview .meta-grid > div > span:last-child { color: var(--fg); font-weight: 500; }
+    header#overview nav.toc-processes {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+    header#overview nav.toc-processes a {
+      color: var(--color-process);
+      text-decoration: none;
+    }
+    header#overview nav.toc-processes a:hover { text-decoration: underline; }
+    header#overview nav.toc-processes .sep { color: var(--border-strong); margin: 0 0.4rem; }
+
+    h2 { font-size: 1.3rem; margin: 2rem 0 0.75rem; border-bottom: 1px solid var(--border); padding-bottom: 0.25rem; }
+    h3 { font-size: 1.05rem; margin: 1.25rem 0 0.5rem; color: var(--fg-muted); }
+
+    .src-inline, .src-chip {
+      color: var(--fg-muted);
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+      font-size: 0.78rem;
+      background: var(--bg-muted);
+      padding: 0.05rem 0.4rem;
+      border-radius: var(--pill-radius);
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .src-inline { margin-left: 0.5rem; }
+
+    .ai-chip {
+      color: #fff;
+      background: var(--color-inferred);
+      font-family: ui-monospace, monospace;
+      font-size: 0.72rem;
+      padding: 0.05rem 0.45rem;
+      border-radius: var(--pill-radius);
+      margin-left: 0.4rem;
+      white-space: nowrap;
+    }
+    .ai-chip.non-blocking { background: #d97706; }
+
+    .node-id {
+      font-family: ui-monospace, monospace;
+      font-size: 0.85rem;
+      color: var(--fg-muted);
+      background: var(--bg-muted);
+      padding: 0.05rem 0.4rem;
+      border-radius: var(--radius);
+      margin-right: 0.5rem;
+    }
+    .node-label { font-weight: 500; }
+
+    /* Process gallery */
+    article.process-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin: 1.25rem 0;
+    }
+    article.process-block > h2 {
+      margin-top: 0;
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .process-goal { color: var(--fg-muted); font-size: 0.92rem; margin: 0.25rem 0 1rem; }
+
+    details.mermaid-block {
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 0.5rem 0.75rem;
+      margin: 0.75rem 0 1rem;
+      background: var(--bg-muted);
+    }
+    details.mermaid-block > summary {
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--color-process);
+    }
+    details.mermaid-block > summary::-webkit-details-marker { display: none; }
+    details.mermaid-block > summary::before { content: "▶ "; color: var(--fg-muted); }
+    details.mermaid-block[open] > summary::before { content: "▼ "; }
+    .mermaid-caption {
+      color: var(--fg-muted);
+      font-size: 0.82rem;
+      margin: 0.5rem 0 0.4rem;
+    }
+    .mermaid-caption code, .mermaid-caption a {
+      font-family: ui-monospace, monospace;
+      font-size: 0.85em;
+    }
+    pre.mermaid-source {
+      background: #f3f4f6;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.85rem 1rem;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      overflow-x: auto;
+      white-space: pre;
+      color: #111827;
+      margin: 0.5rem 0 0;
+    }
+
+    /* Tables (steps, decisions, actor inventory, disconnect register) */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.88rem;
+      margin: 0.5rem 0;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.5rem 0.65rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    th {
+      background: var(--bg-muted);
+      font-weight: 600;
+      color: var(--fg-muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    tr.inferred td { border-left: 3px solid var(--color-inferred); }
+    tr.inferred td:first-child { padding-left: 0.5rem; }
+
+    /* Pills */
+    .type-pill, .kind-pill, .dc-pill {
+      display: inline-block;
+      font-family: ui-monospace, monospace;
+      font-size: 0.72rem;
+      padding: 0.1rem 0.5rem;
+      border-radius: var(--pill-radius);
+      color: #fff;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .type-process       { background: var(--color-process); }
+    .type-decision      { background: var(--color-decision); }
+    .type-start         { background: var(--color-start); }
+    .type-end           { background: var(--color-end); }
+    .type-data-store    { background: var(--color-data); }
+    .type-external-system { background: var(--color-external); }
+    .kind-role           { background: var(--color-role); }
+    .kind-system         { background: var(--color-system); }
+    .kind-external-service { background: var(--color-external-svc); }
+    .dc-pill-clean               { background: var(--color-clean); }
+    .dc-pill-ambiguous-trigger   { background: var(--color-ambiguous); }
+    .dc-pill-missing-actor       { background: var(--color-missing); }
+    .dc-pill-unstated-exception  { background: var(--color-unstated); }
+    .dc-pill-conflicting-source  { background: var(--color-conflict); }
+
+    .branches { margin: 0; padding-left: 1.2rem; }
+    .branches li { margin: 0.1rem 0; }
+    .branches code {
+      font-family: ui-monospace, monospace;
+      font-size: 0.82rem;
+      background: var(--bg-muted);
+      padding: 0.05rem 0.3rem;
+      border-radius: var(--radius);
+    }
+
+    /* Disconnect register summary */
+    dl.dc-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.5rem;
+      margin: 0.75rem 0 1.5rem;
+      padding: 0.75rem;
+      background: var(--bg-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    dl.dc-summary > div { display: flex; flex-direction: column; }
+    dl.dc-summary dt {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--fg-muted);
+      letter-spacing: 0.03em;
+    }
+    dl.dc-summary dd { margin: 0; font-weight: 600; font-size: 1.1rem; }
+
+    /* YAML structured-model block */
+    section#structured-model pre {
+      background: #f3f4f6;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      overflow-x: auto;
+      white-space: pre;
+      color: #111827;
+      margin: 0.5rem 0 1rem;
+    }
+
+    /* Gaps section */
+    section#gaps { margin-top: 1.5rem; }
+    section#gaps ul { padding-left: 1.25rem; }
+    section#gaps li { margin: 0.4rem 0; }
+    section#gaps .empty { font-style: italic; color: var(--fg-muted); }
+
+    /* Diagnostics */
+    details#diagnostics {
+      margin-top: 2rem;
+      background: var(--bg-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+    }
+    details#diagnostics > summary { cursor: pointer; font-weight: 500; color: var(--fg-muted); }
+    details#diagnostics > summary::-webkit-details-marker { display: none; }
+    details#diagnostics > summary::before { content: "▶ "; }
+    details#diagnostics[open] > summary::before { content: "▼ "; }
+    ul.gate-results { list-style: none; padding: 0; margin: 0.5rem 0; font-family: ui-monospace, monospace; font-size: 0.85rem; }
+    ul.gate-results li.gate-pass::before { content: "✓ "; color: var(--color-clean); font-weight: 700; }
+    ul.gate-results li.gate-fail::before { content: "✗ "; color: var(--color-missing); font-weight: 700; }
+
+    section.next-steps {
+      margin-top: 2.5rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--bg-muted);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--color-process);
+      border-radius: var(--radius);
+    }
+    section.next-steps h2 { border-bottom: none; margin-top: 0; font-size: 1.05rem; }
+    section.next-steps p { color: var(--fg-muted); margin: 0.4rem 0; }
+
+    @media print {
+      details.mermaid-block { page-break-inside: avoid; }
+      article.process-block { page-break-inside: avoid; }
+      details#diagnostics { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+
+<header id="overview">
+  <h1>{{TITLE}}</h1>
+  <p class="caption">
+    {{PROCESS_COUNT}} processes · {{ACTOR_COUNT}} actors · {{STEP_COUNT}} steps ·
+    {{HANDOFF_COUNT}} handoffs · {{DISCONNECT_COUNT_TOTAL}} disconnects
+    ({{FOLLOW_UP_COUNT}} need follow-up) · target: {{TARGET}} · run #{{RUN_COUNT}} ·
+    generated {{GENERATED_AT}}
+  </p>
+  <div class="meta-grid">
+    <div><span>Domain</span><span>{{DOMAIN}}</span></div>
+    <div><span>Manifest sha256</span><span>{{MANIFEST_SHA256}}</span></div>
+    <div><span>Clean handoffs</span><span>{{DC_CLEAN}}</span></div>
+    <div><span>Ambiguous-trigger</span><span>{{DC_AMBIGUOUS_TRIGGER}}</span></div>
+    <div><span>Missing-actor</span><span>{{DC_MISSING_ACTOR}}</span></div>
+    <div><span>Unstated-exception</span><span>{{DC_UNSTATED_EXCEPTION}}</span></div>
+    <div><span>Conflicting-source</span><span>{{DC_CONFLICTING_SOURCE}}</span></div>
+    <div><span>Inferred nodes</span><span>{{INFERRED_COUNT}} ({{BLOCKING_GAP_COUNT}} blocking)</span></div>
+  </div>
+  <nav class="toc-processes">{{TOC_PROCESSES}}</nav>
+</header>
+
+<main>
+
+<section id="processes">
+  <h2>Processes</h2>
+  {{PROCESS_BLOCKS}}
+</section>
+
+<section id="actors">
+  <h2>Actor inventory</h2>
+  <table class="actor-table">
+    <thead>
+      <tr>
+        <th>Actor ID</th><th>Display name</th><th>Kind</th><th>Appears in</th><th>Source</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ACTOR_TABLE_BODY}}
+    </tbody>
+  </table>
+</section>
+
+<section id="disconnects">
+  <h2>Disconnect Register</h2>
+  <p class="caption">
+    Every lane-to-lane handoff classified per Rummler-Brache (1990).
+    Non-<code>clean</code> rows carry suggested questions for the next consultant conversation —
+    closing these before <code>/requirements</code> runs prevents fabricated integration requirements downstream.
+  </p>
+  {{DISCONNECT_SUMMARY}}
+  <table class="disconnect-table">
+    <thead>
+      <tr>
+        <th>DC ID</th>
+        <th>Process</th>
+        <th>From</th>
+        <th>To</th>
+        <th>Category</th>
+        <th>Description</th>
+        <th>Follow-up</th>
+        <th>Suggested question</th>
+        <th>Source</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{DISCONNECT_TABLE_BODY}}
+    </tbody>
+  </table>
+</section>
+
+{{STRUCTURED_YAML_BLOCK}}
+
+{{GAPS_BLOCK}}
+
+<details id="diagnostics">
+  <summary>Diagnostics — gate results, source roster, Mermaid validation, run history</summary>
+  {{DIAGNOSTICS_BLOCK}}
+</details>
+
+<section class="next-steps">
+  <h2>Next steps</h2>
+  <p>
+    <strong>This artefact's primary value is the Disconnect Register.</strong>
+    Every non-<code>clean</code> row flags a handoff where the inputs leave a question open —
+    bring those to the next consultant conversation, or back to the original source author.
+    Closing disconnects before <code>/requirements</code> runs prevents fabricated integration
+    requirements downstream.
+  </p>
+  <p>
+    To re-ingest this artefact into <code>/requirements</code>, copy this file into
+    <code>input/</code> (e.g. <code>input/swim-lane-process-mapping.html</code>) and re-run
+    <code>/requirements</code>. The input-handler will classify it as
+    <code>Supported-via-MCP</code>; markitdown will convert it to
+    <code>input/swim-lane-process-mapping.html.converted.md</code> (the structured YAML model
+    survives as a fenced code block; the Mermaid source survives as <code>&lt;pre&gt;</code> text);
+    and the drafter will consume the converted markdown via the refreshed manifest.
+  </p>
+</section>
+
+</main>
+
+</body>
+</html>

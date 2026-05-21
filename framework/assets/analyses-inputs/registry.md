@@ -57,6 +57,46 @@ methodologies:
   #     ingestible by /requirements via Native-text classification when
   #     copied into input/, with end-to-end audit trail preserved
   #     through dual-citation chain).
+  #   - `swim-lane-process-mapping` (Rummler-Brache Cross-Functional
+  #     Process Mapping + Disconnect Analysis — Rummler & Brache 1990,
+  #     *Improving Performance: How to Manage the White Space on the
+  #     Organization Chart*; framed under BABOK 10.35 Process
+  #     Modelling; adapted for raw consultant inputs as a multi-actor,
+  #     handoff-shaped, document-only extraction; one or more discrete
+  #     processes per artefact, each rendered as a Mermaid `flowchart
+  #     TD` source block with one `subgraph` swim-lane per actor
+  #     (kind: role / system / external-service); steps typed
+  #     `start` / `end` / `process` / `decision` / `data-store` /
+  #     `external-system`; every lane-to-lane handoff (the lane-
+  #     crossing edges that are the methodology's first-class
+  #     objects) classified in a global Disconnect Register via the
+  #     conjunctive four-element cleanliness rubric — named source
+  #     step AND trigger event AND receiving lane AND payload →
+  #     `clean`; otherwise one of four non-`clean` categories
+  #     (`ambiguous-trigger`, `missing-actor`, `unstated-exception`,
+  #     `conflicting-source`) with the missing element specifically
+  #     flagged and a suggested resolver question for the next
+  #     consultant conversation — Rummler estimated 80% of process
+  #     failures live in the "white space" between lanes, and the
+  #     register is the methodology's analytical lens onto that
+  #     white space; inferred lane assignments, routing steps, and
+  #     handoff payloads carry [AI-SUGGESTED: AI-NNN |
+  #     blocking|non-blocking] markers in the shared namespace;
+  #     inferred disconnect trigger events forbidden — the
+  #     description names the missing element, not the guess;
+  #     self-contained HTML with embedded `<pre class="mermaid-source">`
+  #     blocks (rendered visual is out-of-band via mmdc or
+  #     mermaid.live; no inline Mermaid runtime, no CDN), an
+  #     embedded `<pre><code class="language-yaml">` structured
+  #     process model that survives markitdown HTML→MD conversion
+  #     as a fenced code block (the load-bearing re-ingestion
+  #     contract for the /requirements drafter), an Actor inventory
+  #     table, the Disconnect Register table with five category
+  #     pills, a Gaps section for inferred nodes, and a collapsed
+  #     diagnostics block; re-ingestible by /requirements when
+  #     copied into input/, with the Disconnect Register's
+  #     `consultant_follow_up: yes` rows flowing into the resolver
+  #     pipeline as AI-NNN questions in the existing grammar).
   - { name: glossary, status: future }
   - { name: five-whys, status: future }
   - name: task-analysis
@@ -104,6 +144,15 @@ methodologies:
     map_skill: framework/skills/map-jtbd-from-inputs-to-ui.md
     analyser_agent: framework/agents/analyses-inputs/jtbd-analyser.md
     character: framework/assets/characters/jtbd-inputs-analysis.md
+  - name: swim-lane-process-mapping
+    status: mvp
+    description: Maps every discrete cross-functional process the raw inputs describe into Rummler-Brache swim-lane flowcharts (Mermaid `flowchart TD` with one `subgraph` per actor lane) and surfaces a Disconnect Register classifying every lane-to-lane handoff — clean / ambiguous-trigger / missing-actor / unstated-exception / conflicting-source — exposing the "white-space" gaps Rummler attributed 80% of process failures to. Designed to be re-fed into /requirements as a secondary input — the embedded YAML structured model becomes a bijection target for the drafter's completeness gap pass (processes → §5 Task flows, handoffs → §6 integration constraints, decision branch guards → §6 acceptance-criteria branches, data-store and external-system steps → §7 data entities and §2 external-system aggregates), and every `consultant_follow_up: yes` disconnect flows into the resolver as an AI-NNN question.
+    output_path: analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html
+    reference_asset: framework/assets/analyses-inputs/swim-lane-process-mapping-reference.md
+    template_asset: framework/assets/analyses-inputs/template-swim-lane-process-mapping.html
+    map_skill: framework/skills/map-swim-lane-process-mapping-from-inputs-to-ui.md
+    analyser_agent: framework/agents/analyses-inputs/swim-lane-process-mapping-analyser.md
+    character: framework/assets/characters/swim-lane-process-mapping-inputs-analysis.md
 ---
 
 # analyses-inputs/registry.md
@@ -149,4 +198,4 @@ methodologies:
 - `analyser_agent` — the foreground agent invoked by the orchestrator. Required only when `status: mvp`.
 - `character` — stance the Unicorn adopts while running the analyser. Required only when `status: mvp`.
 
-**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `task-analysis`, `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, and `jtbd` now at `status: mvp`, the selector presents five options to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.
+**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `task-analysis`, `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, `jtbd`, and `swim-lane-process-mapping` now at `status: mvp`, the selector presents six options to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.
