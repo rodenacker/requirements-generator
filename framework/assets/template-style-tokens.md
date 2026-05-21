@@ -1,4 +1,4 @@
-<!-- ROLE: asset. v7a-derived seed (from .claude/skills/wds-7-design-system/templates/design-tokens.template.md). Finalise during phase-2 build-order step 12 per v7b-Brief.md > §template-style-tokens.md. -->
+<!-- ROLE: asset. -->
 
 # Style Tokens
 

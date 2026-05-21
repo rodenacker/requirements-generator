@@ -1,4 +1,4 @@
-<!-- ROLE: asset. v7a-derived seed (metadata + overview + states sections lifted from .claude/skills/wds-4-ux-design/templates/page-specification.template.md). Finalise during phase-1 build-order step 1 per v7b-Brief.md > §template-design-spec.md and §topics-design.md. -->
+<!-- ROLE: asset. -->
 
 # Design specification: {{application_name}}
 

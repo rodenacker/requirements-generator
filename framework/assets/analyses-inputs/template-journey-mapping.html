@@ -1,0 +1,706 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses-inputs/journey-mapping-analyser.md.
+
+  Purpose: HTML/CSS skeleton for a current-state user-journey atlas built
+  from raw consultant inputs (one persona per card). Diagrams-first
+  ordering: the compact overview + first persona's SVG emotion curve and
+  CSS-grid swim-lane table fit above the fold on a 1080p screen, so a
+  reviewer opening the file via `file://` sees visual content immediately,
+  before any prose.
+
+  Self-contained: `<!doctype html>` + inlined `<style>` + `<body>`. No
+  external CSS / JS dependencies; viewable by opening `file://` in a
+  browser; shareable with clients without tooling. Re-ingestible into
+  `input/` for the `/requirements` drafter via markitdown conversion —
+  inline [SRC: <filename>] markers are plain text inside cell content
+  and survive the round-trip cleanly.
+
+  Section order (top-to-bottom):
+    1. Compact overview (id="overview")     — title, one-line caption,
+                                              jump-links to diagrams.
+    2. Diagrams gallery (id="diagrams")     — {{DIAGRAM_BLOCKS}}.
+                                              The primary review surface.
+                                              All personas' SVG emotion
+                                              curves + CSS-grid swim-lane
+                                              tables stacked here.
+    3. Narratives (id="narratives")         — {{NARRATIVE_BLOCKS}}.
+                                              Pain → opportunity bridges
+                                              + moments-of-truth prose,
+                                              one block per persona.
+    4. Diagnostics (id="diagnostics")       — <details> wrapper, collapsed
+                                              by default. Source roster,
+                                              gate results, run history,
+                                              gap notes.
+
+  Layout: per-persona diagram-block and narrative-block use the same
+  --phase-count CSS variable (set inline via style="--phase-count: N") to
+  drive the CSS-grid swim-lane table column layout.
+
+  Placeholders the analyser substitutes (string substitution, all values
+  pre-escaped for HTML; XML-escaped inside <svg><text> nodes):
+
+    {{TITLE}}                  — short title (e.g. "Journey Mapping — Project X").
+    {{DOMAIN}}                 — domain string (from manifest meta if available, or "(not declared)").
+    {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
+    {{MANIFEST_SHA256}}        — sha256 of requirements/source-manifest.json at read time.
+    {{RUN_COUNT}}              — integer ≥ 1, increments per run.
+    {{PERSONA_COUNT}}          — number of journey cards.
+    {{PHASE_COUNT}}            — total phases across all journeys.
+    {{STEP_COUNT}}             — total steps across all journeys.
+    {{PAIN_COUNT}}             — total pain points.
+    {{OPPORTUNITY_COUNT}}      — total opportunities.
+    {{MOMENT_OF_TRUTH_COUNT}}  — total moments of truth flagged.
+    {{TOC_DIAGRAMS}}           — inline anchor list <a href="#diagram-{persona-slug}">{persona}</a>
+                                 (separator " · "); one per persona.
+    {{DIAGRAM_BLOCKS}}         — pre-rendered <article class="diagram-block"> blocks per the
+                                 DIAGRAM BLOCK SCHEMA below; one per persona, in discovery order.
+    {{NARRATIVE_BLOCKS}}       — pre-rendered <article class="narrative-block"> blocks per the
+                                 NARRATIVE BLOCK SCHEMA below; one per persona, in discovery order.
+    {{DIAGNOSTICS_BLOCK}}      — pre-rendered HTML block per DIAGNOSTICS SCHEMA below.
+
+  Output: analyse-inputs/JOURNEY-MAPPING/journey-mapping.html.
+
+  DIAGRAM BLOCK SCHEMA — each block the analyser emits has the shape:
+
+      <article class="diagram-block"
+               id="diagram-{persona-slug}"
+               style="--phase-count: N"
+               aria-labelledby="diagram-{persona-slug}-title">
+
+        <header class="diagram-header">
+          <h2 id="diagram-{persona-slug}-title">
+            <span class="persona-name">{{persona}}</span>
+            <span class="sep" aria-hidden="true">—</span>
+            <span class="scenario-name">{{scenario}}</span>
+            <small class="src-inline">[SRC: {{filename}}]</small>
+          </h2>
+          <dl class="trigger-outcome">
+            <div><dt>Trigger</dt><dd>{{trigger}} [SRC: {{filename}}]</dd></div>
+            <div><dt>Outcome</dt><dd>{{outcome}} [SRC: {{filename}}]</dd></div>
+          </dl>
+        </header>
+
+        <figure class="emotion-curve"
+                aria-labelledby="diagram-{persona-slug}-curve-cap">
+          <svg viewBox="0 0 720 200" role="img"
+               aria-label="Emotion curve for {{persona}} — {{scenario}}">
+            <!-- gridlines at y=20/60/100/140/180; y-axis labels +2/+1/0/-1/-2;
+                 per-phase tick on x-axis with phase label;
+                 polyline (class="curve") connecting (phase_x, score_to_y);
+                 <circle class="point"> per phase, <circle class="point moment"> for moments-of-truth -->
+          </svg>
+          <figcaption id="diagram-{persona-slug}-curve-cap">
+            Sentiment across phases (−2 frustrated … +2 delighted).
+          </figcaption>
+        </figure>
+
+        <figure class="swimlane"
+                aria-labelledby="diagram-{persona-slug}-lane-cap">
+          <figcaption id="diagram-{persona-slug}-lane-cap">
+            Swim-lane: actions, touchpoints, channels, thoughts, pain, backstage, opportunities × phases.
+          </figcaption>
+          <table>
+            <thead>
+              <tr>
+                <th scope="col" class="lane-label">Lane / Phase</th>
+                <th scope="col">{{phase-1}}</th>
+                ...
+                <th scope="col">{{phase-N}}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="lane-actions">
+                <th scope="row">Actions</th>
+                <td>… [SRC: …]</td>
+                ...
+              </tr>
+              <tr class="lane-touchpoints">    <!-- screen / surface / device --> ... </tr>
+              <tr class="lane-channels">       <!-- web / mobile / phone / email / in-person --> ... </tr>
+              <tr class="lane-thoughts">       <!-- verbatim quoted thoughts only --> ... </tr>
+              <tr class="lane-pain">           <!-- explicit pain statements --> ... </tr>
+              <tr class="lane-backstage">      <!-- backstage systems, integrations --> ... </tr>
+              <tr class="lane-opportunities">  <!-- verb-led, solution-agnostic --> ... </tr>
+            </tbody>
+          </table>
+        </figure>
+
+      </article>
+
+  NARRATIVE BLOCK SCHEMA — each block the analyser emits has the shape:
+
+      <article class="narrative-block"
+               id="narrative-{persona-slug}"
+               aria-labelledby="narrative-{persona-slug}-title">
+        <h2 id="narrative-{persona-slug}-title">
+          {{persona}} <span class="sep" aria-hidden="true">—</span> {{scenario}}
+        </h2>
+
+        <section class="bridge">
+          <h3>Pain → Opportunity bridge</h3>
+          <ul>
+            <li>
+              <strong>Pain:</strong> {{pain}} [SRC: {{filename}}]
+              <span class="arrow" aria-hidden="true">→</span>
+              <strong>Opportunity:</strong> {{opportunity}}
+            </li>
+            ...
+          </ul>
+        </section>
+
+        <section class="moments">
+          <h3>Moments of truth</h3>
+          <ul>
+            <li><span class="phase-tag">{{phase}}</span> {{step}} — {{reason}} [SRC: {{filename}}]</li>
+            ...
+          </ul>
+        </section>
+      </article>
+
+  DIAGNOSTICS SCHEMA — the analyser's {{DIAGNOSTICS_BLOCK}} substitutes a
+  single <section class="diagnostics">. The template wraps the placeholder
+  in a <details id="diagnostics" class="diagnostics-toggle"> element
+  (collapsed by default) so the diagnostics section is hidden behind a
+  toggle and only revealed on click. The inner section contains, in order:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>Journey-mapping atlas — N personas, M phases, K steps, P pain points, O opportunities, T moments of truth.</p>
+        <ul class="gate-results">
+          <li class="check-pass|check-fail">Gate 1 — One persona per journey card.</li>
+          ... (all 8 gates listed in order)
+        </ul>
+        <section class="source-roster">
+          <h3>Source roster</h3>
+          <table class="consumed">
+            <thead><tr><th>filename</th><th>tier</th><th>sha256</th><th>citation count</th></tr></thead>
+            <tbody>...</tbody>
+          </table>
+          <table class="skipped">
+            <thead><tr><th>filename</th><th>reason</th></tr></thead>
+            <tbody>...</tbody>
+          </table>
+        </section>
+        <section class="gap-notes">
+          <h3>[GAP-NO-EVIDENCE] cells</h3>
+          <ul>
+            <li>{{persona}} / {{phase}} / {{lane}} — no proxy in any consumed source.</li>
+            ...
+          </ul>
+        </section>
+        <section class="run-history">
+          <h3>Run history</h3>
+          <ul>
+            <li>Run {{n}} — {{ISO-date}} — {{deltas}}.</li>
+            ...
+          </ul>
+        </section>
+      </section>
+
+  CSS classes used by the analyser:
+    .diagram-block         — outer container per persona in #diagrams.
+    .diagram-header        — title + trigger/outcome <dl>.
+    .src-inline            — small inline [SRC: …] marker in a header.
+    .trigger-outcome       — small <dl> for trigger + outcome rows.
+    .emotion-curve         — <figure> wrapping the inline <svg>.
+    .swimlane              — <figure> wrapping the CSS-grid <table>.
+    .lane-actions
+    .lane-touchpoints
+    .lane-channels
+    .lane-thoughts
+    .lane-pain
+    .lane-backstage
+    .lane-opportunities    — applied to <tr> elements (one per lane).
+    .narrative-block       — outer container per persona in #narratives.
+    .bridge                — pain → opportunity section inside a narrative block.
+    .moments               — moments-of-truth section inside a narrative block.
+    .phase-tag             — small inline tag naming the phase for a moment.
+    .diagnostics           — diagnostics section content (wrapped in <details>).
+
+  SVG conventions (the analyser owns this content; the template only
+  provides containment + sizing in CSS):
+    - viewBox "0 0 720 200" — fixed aspect ratio for predictable print.
+    - role="img" + aria-label on every <svg>.
+    - The swim-lane table below the SVG is the screen-reader-accessible
+      equivalent of the SVG; the SVG itself is a glance affordance.
+    - All <text> nodes XML-escape persona / phase strings.
+
+  Content TBD-able by the analyser:
+    The diagnostics block, the per-persona diagram-block and
+    narrative-block content, per-block --phase-count (set inline), and
+    per-block SVG polyline coordinates are fully driven by the analyser.
+    The CSS below is fixed scaffolding and should not be edited by the
+    analyser — only the {{placeholders}} above are substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --card-bg: #ffffff;
+      --header-bg: #efefef;
+
+      --lane-actions-bg:        #e7f0fb;  --lane-actions-fg:        #0c2a44;
+      --lane-touchpoints-bg:    #e6f4ea;  --lane-touchpoints-fg:    #14422a;
+      --lane-channels-bg:       #eef0fb;  --lane-channels-fg:       #1a2660;
+      --lane-thoughts-bg:       #f3eafd;  --lane-thoughts-fg:       #2e1255;
+      --lane-pain-bg:           #fde2e2;  --lane-pain-fg:           #6a1212;
+      --lane-backstage-bg:      #ecebe7;  --lane-backstage-fg:      #2a2820;
+      --lane-opportunities-bg:  #fff5d6;  --lane-opportunities-fg:  #4a3a00;
+
+      --persona-fg:        #6a3aa0;
+      --src-marker-fg:     #7a7a7a;
+
+      --moment-bg: #fff0e6;
+      --moment-border: #d97a1f;
+
+      --rev-bg: #ffeaea; --rev-border: #d44a4a; --rev-fg: #8a1a1a;
+      --pass-fg: #2a8a2a;
+
+      --svg-axis: #8a8a8a;
+      --svg-grid: #e0e0e0;
+      --svg-line: #2a6aa0;
+      --svg-point: #1a1a1a;
+      --svg-moment: #d97a1f;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* ------- compact overview (kept short to keep diagrams above fold) ------- */
+
+    header#overview {
+      margin-bottom: 16px;
+    }
+    header#overview h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+    }
+    header#overview .caption {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 0 0 8px 0;
+      font-variant-numeric: tabular-nums;
+    }
+    nav.toc-diagrams {
+      font-size: 12px;
+      padding: 6px 10px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--border-strong);
+      border-radius: 4px;
+    }
+    nav.toc-diagrams strong {
+      color: var(--muted);
+      font-weight: 600;
+      margin-right: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 11px;
+    }
+    nav.toc-diagrams a {
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--border-strong);
+      margin: 0 4px;
+    }
+    nav.toc-diagrams a:hover { border-bottom-color: var(--fg); }
+    nav.toc-diagrams .sep { color: var(--muted); }
+
+    /* ------- diagrams gallery (the primary review surface) ------- */
+
+    main#diagrams {
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      display: block;
+    }
+
+    .diagram-block {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .diagram-header h2 {
+      font-size: 17px;
+      margin: 0 0 6px 0;
+      font-weight: 600;
+    }
+    .diagram-header h2 .sep {
+      color: var(--muted);
+      margin: 0 6px;
+      font-weight: 400;
+    }
+    .diagram-header h2 .persona-name { color: var(--persona-fg); }
+    .diagram-header h2 .scenario-name { color: var(--fg); }
+    .diagram-header h2 .src-inline {
+      color: var(--src-marker-fg);
+      font-weight: 400;
+      font-size: 12px;
+      margin-left: 8px;
+    }
+
+    .trigger-outcome {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 4px 24px;
+      margin: 0;
+      font-size: 13px;
+    }
+    .trigger-outcome dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+    .trigger-outcome dd {
+      margin: 0 0 4px 0;
+    }
+
+    /* ------- emotion-curve SVG figure ------- */
+
+    .emotion-curve {
+      margin: 0;
+      padding: 8px 0;
+    }
+    .emotion-curve svg {
+      width: 100%;
+      height: auto;
+      max-height: 220px;
+      display: block;
+    }
+    .emotion-curve figcaption {
+      color: var(--muted);
+      font-size: 11px;
+      text-align: center;
+      margin-top: 4px;
+    }
+    .emotion-curve svg .axis      { stroke: var(--svg-axis); stroke-width: 1; fill: none; }
+    .emotion-curve svg .gridline  { stroke: var(--svg-grid); stroke-width: 1; fill: none; }
+    .emotion-curve svg .curve     { stroke: var(--svg-line); stroke-width: 2; fill: none; stroke-linejoin: round; stroke-linecap: round; }
+    .emotion-curve svg .point     { fill: var(--svg-point); }
+    .emotion-curve svg .point.moment { fill: var(--svg-moment); }
+    .emotion-curve svg text       { fill: var(--fg); font-family: inherit; font-size: 11px; }
+    .emotion-curve svg text.axis-label { fill: var(--muted); font-size: 10px; }
+    .emotion-curve svg text.phase-label { font-size: 11px; }
+
+    /* ------- swim-lane CSS-grid table ------- */
+
+    .swimlane {
+      margin: 0;
+    }
+    .swimlane figcaption {
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+    .swimlane table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      table-layout: fixed;
+      font-size: 13px;
+    }
+    .swimlane thead th {
+      background: var(--header-bg);
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      border-bottom: 2px solid var(--border-strong);
+      vertical-align: bottom;
+    }
+    .swimlane thead th.lane-label { width: 140px; }
+    .swimlane tbody th {
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      width: 140px;
+      vertical-align: top;
+      border-top: 1px solid var(--border);
+    }
+    .swimlane tbody td {
+      padding: 8px 10px;
+      border-top: 1px solid var(--border);
+      vertical-align: top;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    .swimlane tbody td ul {
+      margin: 0;
+      padding-left: 16px;
+    }
+    .swimlane tbody td ul li + li { margin-top: 4px; }
+
+    /* Per-lane backgrounds applied to the row-header <th> only — keep cell
+       bodies readable; row colour cues live on the lane label. */
+    .lane-actions        > th { background: var(--lane-actions-bg);        color: var(--lane-actions-fg); }
+    .lane-touchpoints    > th { background: var(--lane-touchpoints-bg);    color: var(--lane-touchpoints-fg); }
+    .lane-channels       > th { background: var(--lane-channels-bg);       color: var(--lane-channels-fg); }
+    .lane-thoughts       > th { background: var(--lane-thoughts-bg);       color: var(--lane-thoughts-fg); }
+    .lane-pain           > th { background: var(--lane-pain-bg);           color: var(--lane-pain-fg); }
+    .lane-backstage      > th { background: var(--lane-backstage-bg);      color: var(--lane-backstage-fg); }
+    .lane-opportunities  > th { background: var(--lane-opportunities-bg);  color: var(--lane-opportunities-fg); }
+
+    /* [SRC: …] markers — dimmed so they don't visually dominate but stay readable */
+    .swimlane td,
+    .bridge li,
+    .moments li,
+    .trigger-outcome dd {
+      /* nothing - markers are inline plain text within content */
+    }
+
+    /* ------- narratives section (secondary, below diagrams) ------- */
+
+    section#narratives {
+      margin-top: 32px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+    section#narratives::before {
+      content: "Narrative details";
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    .narrative-block {
+      padding: 14px 16px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+    .narrative-block h2 {
+      font-size: 15px;
+      margin: 0 0 10px 0;
+      font-weight: 600;
+      color: var(--fg);
+    }
+    .narrative-block h2 .sep { color: var(--muted); margin: 0 6px; font-weight: 400; }
+
+    .narrative-block .bridge,
+    .narrative-block .moments {
+      margin: 10px 0 0 0;
+    }
+    .narrative-block h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin: 0 0 6px 0;
+      font-weight: 600;
+    }
+    .narrative-block ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+    .narrative-block li + li { margin-top: 4px; }
+    .narrative-block .arrow {
+      color: var(--moment-border);
+      margin: 0 6px;
+      font-weight: 600;
+    }
+    .narrative-block .phase-tag {
+      display: inline-block;
+      padding: 1px 6px;
+      margin-right: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #fff;
+      background: var(--moment-border);
+      border-radius: 3px;
+      vertical-align: 1px;
+    }
+
+    /* ------- diagnostics (collapsed, bottom) ------- */
+
+    details.diagnostics-toggle {
+      margin-top: 24px;
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.diagnostics-toggle[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.diagnostics-toggle[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
+    .diagnostics {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 0;
+      font-size: 12px;
+    }
+    details.diagnostics-toggle > .diagnostics {
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+    }
+    details.diagnostics-toggle > .diagnostics > h2 {
+      display: none;
+    }
+    .diagnostics h3 {
+      font-size: 12px;
+      margin: 12px 0 6px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .diagnostics > ul.gate-results {
+      margin: 0 0 12px 0;
+      padding-left: 20px;
+    }
+    .diagnostics .check-pass::before { content: "PASS "; color: var(--pass-fg); font-weight: 600; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--rev-fg); font-weight: 600; }
+    .diagnostics .source-roster table,
+    .diagnostics .run-history table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 6px 0 12px 0;
+      font-size: 11px;
+    }
+    .diagnostics .source-roster th,
+    .diagnostics .source-roster td {
+      padding: 4px 6px;
+      border-top: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    .diagnostics .source-roster thead th {
+      background: var(--header-bg);
+      font-weight: 600;
+      border-top: none;
+      border-bottom: 2px solid var(--border-strong);
+    }
+    .diagnostics .gap-notes ul,
+    .diagnostics .run-history ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+    .diagnostics .gap-notes li + li,
+    .diagnostics .run-history li + li { margin-top: 3px; }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .diagram-block,
+      .narrative-block {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: 12px;
+        border-radius: 0;
+        border-color: #000;
+      }
+      details.diagnostics-toggle { display: none; }
+      nav.toc-diagrams { display: none; }
+      .emotion-curve svg { max-height: 180px; }
+    }
+  </style>
+</head>
+<body>
+  <script type="application/json" id="journey-mapping-meta">
+{
+  "manifest_sha256": "{{MANIFEST_SHA256}}",
+  "generated_at": "{{GENERATED_AT}}",
+  "run_count": {{RUN_COUNT}},
+  "persona_count": {{PERSONA_COUNT}},
+  "phase_total": {{PHASE_COUNT}},
+  "step_total": {{STEP_COUNT}},
+  "pain_count": {{PAIN_COUNT}},
+  "opportunity_count": {{OPPORTUNITY_COUNT}},
+  "moments_of_truth": {{MOMENT_OF_TRUTH_COUNT}}
+}
+  </script>
+
+  <main>
+    <header id="overview">
+      <h1>{{TITLE}}</h1>
+      <p class="caption">{{PERSONA_COUNT}} personas · {{PHASE_COUNT}} phases · {{STEP_COUNT}} steps · {{PAIN_COUNT}} pain points · {{OPPORTUNITY_COUNT}} opportunities · {{MOMENT_OF_TRUTH_COUNT}} moments of truth · run {{RUN_COUNT}} · {{GENERATED_AT}}</p>
+      <nav class="toc-diagrams" aria-label="Jump to diagrams">
+        <strong>Jump to diagram:</strong>
+        {{TOC_DIAGRAMS}}
+      </nav>
+    </header>
+
+    <section id="diagrams" aria-label="Journey diagrams gallery">
+      {{DIAGRAM_BLOCKS}}
+    </section>
+
+    <section id="narratives" aria-label="Narrative details">
+      {{NARRATIVE_BLOCKS}}
+    </section>
+
+    <details id="diagnostics" class="diagnostics-toggle">
+      <summary>Diagnostics, source roster, run history</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+  </main>
+</body>
+</html>

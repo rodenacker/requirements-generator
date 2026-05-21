@@ -1,4 +1,4 @@
-<!-- ROLE: asset (P2 analysis reference). v7a-derived seed (from .claude/skills/wds-3-scenarios/data/scenario-outline-template.md). Heavy rewrite applied: WDS scenario / 8-question dialog framing dropped; Mermaid trigger-map cross-references dropped; "shortest path" + sunshine-path concept retained as the journey's *primary* track but extended with the full journey-map column set; replaced flat-step list with the canonical journey-map columns (stage → touchpoint → action → thoughts → emotions → pain points → opportunities) per v7b-Brief.md > §analyses/user-journeys-reference.md. Output convention aligned with OOUX/JTBD/USE-CASES MVPs — self-contained HTML under `analyse-requirements/<METHOD>/`, not markdown. -->
+<!-- ROLE: asset (P2 analysis reference). Output convention aligned with OOUX/JTBD/USE-CASES MVPs — self-contained HTML under `analyse-requirements/<METHOD>/`, not markdown. -->
 
 # User-Journeys analysis reference
 

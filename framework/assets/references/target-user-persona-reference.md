@@ -1,4 +1,4 @@
-<!-- ROLE: asset (reference). v7a-derived seed (from .claude/skills/wds-2-trigger-mapping/templates/persona-document.template.md). Major rewrite applied: stripped image-generation prompt section; stripped priority-emoji + "PRIMARY/SECONDARY/TERTIARY" framing; removed flywheel / strategic-triangle marketing concepts; aligned fields with v7b-Brief.md > §topics-requirements.md > §Target users (role / expertise / stakes). Used as reference shape only — actual target-user personas live in `artifacts/requirements/requirements.md > §Target users`, never as a standalone asset. -->
+<!-- ROLE: asset (reference). Reference shape only — actual target-user personas live in `requirements/requirements.md > §Target users`, never as a standalone asset. -->
 
 # Target-user persona reference
 

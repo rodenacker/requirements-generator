@@ -1,4 +1,4 @@
-<!-- ROLE: asset (reference). v7a-derived seed (from .claude/skills/wds-2-trigger-mapping/templates/trigger-map.template.md). Heavy rewrite applied: removed Mermaid flow-diagram (visual artifact, not v7b spec content); removed WDS phasing language and feature-impact prioritisation flow; removed flywheel-loop framing. Retained only the conceptual seed: business-goal × target-user-persona × driving-forces (wants + fears) → quality signals → trade-off positions. This is *conceptual scaffolding* for `taxonomy-goals.md` and the §User goals authoring pattern in `topics-requirements.md` — not a v7b deliverable. Trigger-mapping is not a v7b stage; the relevant content surfaces through requirements + the JTBD analysis (P2). -->
+<!-- ROLE: asset (reference). Conceptual scaffolding for `taxonomy-goals.md` and the §User goals authoring pattern in `topics-requirements.md` — not a deliverable. Trigger-mapping is not a discrete stage; the relevant content surfaces through requirements + the JTBD analysis (P2). -->
 
 # User-goal trigger reference
 

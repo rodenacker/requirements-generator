@@ -13,6 +13,16 @@ methodologies:
   #     reverse-discovery sibling under /analyse-requirement; pure markdown +
   #     Mermaid graph TD; carries a `## Candidate requirements` bridge that
   #     `/requirements` consumes when the artefact is re-dropped into `input/`).
+  #   - `journey-mapping` (NN/G Journey Mapping 101 + Kalbach 2020,
+  #     current-state user-journey mapping adapted for raw consultant inputs
+  #     — one persona per journey card, [SRC: <filename>] citations on every
+  #     non-empty cell, emotion proxies rendered inline for transparency,
+  #     self-contained HTML with diagrams-first ordering: compact overview,
+  #     prominent #diagrams gallery with inline SVG emotion curves +
+  #     CSS-grid swim-lane tables, then #narratives, then collapsed
+  #     diagnostics; HTML survives markitdown round-trip for /requirements
+  #     re-ingestion with end-to-end audit trail through preserved
+  #     [SRC: <filename>] markers).
   - { name: glossary, status: future }
   - { name: jtbd, status: future }
   - { name: five-whys, status: future }
@@ -34,6 +44,15 @@ methodologies:
     map_skill: framework/skills/map-opportunity-solution-trees-from-inputs-to-ui.md
     analyser_agent: framework/agents/analyses-inputs/opportunity-solution-trees-analyser.md
     character: framework/assets/characters/opportunity-solution-trees-inputs-analysis.md
+  - name: journey-mapping
+    status: mvp
+    description: Maps the as-is user workflow described in raw inputs into one journey card per persona — phases, steps, touchpoints, channels, thoughts, sentiment curve, pain points, backstage, opportunities, moments of truth — giving the /requirements drafter a concrete backbone for task flows, NFRs, integrations, user stories, and priorities.
+    output_path: analyse-inputs/JOURNEY-MAPPING/journey-mapping.html
+    reference_asset: framework/assets/analyses-inputs/journey-mapping-reference.md
+    template_asset: framework/assets/analyses-inputs/template-journey-mapping.html
+    map_skill: framework/skills/map-journey-mapping-from-inputs-to-ui.md
+    analyser_agent: framework/agents/analyses-inputs/journey-mapping-analyser.md
+    character: framework/assets/characters/journey-mapping-inputs-analysis.md
 ---
 
 # analyses-inputs/registry.md
