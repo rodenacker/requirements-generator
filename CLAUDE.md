@@ -114,6 +114,22 @@ Otherwise inline. Don't pre-extract for hypothetical future reuse. Counter-examp
 
 Cross-pipeline policy (rules, scopes, refusals, invariants) goes in `framework/shared/`. Pipeline-specific procedure goes in `framework/skills/`. Pipeline-specific reference content goes in `framework/assets/`.
 
+### Canonical-source rule (definitions only)
+
+Every field name, NDJSON row schema, vocabulary term, stable-ID (e.g. `GR-NN`, `RF-NN`, `PI-NN`, `C-NNN`, `AI-NNN`, `PC-NNN`, `PAI-NNN`), and registry must have exactly **one** file that *defines* it. Every other file that uses it references the canonical file by name or link — never re-defines it. If two files appear to redefine the same definition, that is a structural bug; pick the canonical owner and replace the other with a reference.
+
+Scope is **definitions only**, not procedures. Procedural extraction continues to follow the "Create abstraction" criteria above (extract only when ≥ 2 callers exist with clean I/O).
+
+**What this rule does *not* forbid.** Mechanically derived embedding — e.g. the merger appending `PI-01..05` verbatim from `framework/shared/prototype-invariants.md` into every `requirements.md`, or `[SRC: C-NNN]` markers being copied from `requirements/draft-claims.ndjson` into `requirements-draft.md` — is *not* a violation, because the embedded copy is produced from the canonical source by a named skill or agent step. Likewise, an agent's *Self-validation* section restating constraints that live canonically in `framework/shared/` is *not* a violation: the restatement is for fail-closed resilience and auditability, and adds no new definitional content.
+
+**Where canonical owners live today (non-exhaustive, for orientation).**
+- Stable-ID registries: `framework/shared/general-rules.md` (`GR-NN`), `framework/shared/refusal-registry.md` (`RF-NN`), `framework/shared/prototype-invariants.md` (`PI-NN`).
+- Methodology registries: `framework/assets/{analyses,analyses-inputs,reviews,reviews-inputs}/registry.md`.
+- Pipeline loading graph: `framework/dependency-graphs.md`.
+- Source manifest: `requirements/source-manifest.json` (owned by `framework/agents/input-handler.md`).
+
+When introducing a new definition, decide its canonical home first, place it there, and reference it from anywhere else that uses it.
+
 ### Naming patterns
 
 - **Commands.** `.claude/commands/<verb>.md`. Single lowercase verb.
