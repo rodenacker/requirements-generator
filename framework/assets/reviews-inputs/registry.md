@@ -32,7 +32,7 @@ methodologies:
     character: framework/assets/characters/adversarial-inputs-review.md
   - name: completeness-review
     status: mvp
-    description: Choose this to catalogue what is absent, partially covered, or explicitly excluded across the raw consultant inputs (stakeholder coverage, scope boundaries, data entities, workflows incl. non-happy paths, NFRs, business rules, acceptance criteria, integrations, constraints & assumptions, glossary — anchored to IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010) — with disposition-classified findings (Needs-Clarification / Standard-Rule-Applies / Out-of-Scope) ready for /requirements drafting.
+    description: Choose this for an RE-literature completeness sweep — catalogues what is absent, partially covered, or explicitly excluded across the raw consultant inputs, anchored to the BA canon (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010) across ten dimensions (stakeholder coverage, scope boundaries, data entities, workflows incl. non-happy paths, NFRs, business rules, acceptance criteria, integrations, constraints & assumptions, glossary). Disposition-classified findings (Needs-Clarification / Standard-Rule-Applies / Out-of-Scope) ready for /requirements drafting. Markdown register + per-source elicitation questions for stakeholder follow-up. Pick this when you need a broad, authority-grounded gap punch-list to drive elicitation. Complementary to gap-analysis (which uses this project's own template as yardstick).
     output_path: review-inputs/COMPLETENESS-REVIEW/completeness-review.md
     reference_asset: framework/assets/reviews-inputs/completeness-reference.md
     template_asset: null
@@ -48,6 +48,15 @@ methodologies:
     map_skill: null
     reviewer_agent: framework/agents/reviews-inputs/ambiguity-reviewer.md
     character: framework/assets/characters/ambiguity-inputs-review.md
+  - name: gap-analysis
+    status: mvp
+    description: Choose this for a template-bijection delta — measures the raw consultant inputs against the /requirements drafter's specific template (framework/assets/topics-requirements.md), surfacing per-section gaps classified by dimension (Stakeholder / Scope / Domain / Functional / Process / Non-functional / Compliance / Integration / Data — read from the per-topic dimension column) and by Impact × Confidence → MoSCoW. Every Must/Should gap ships with a shall-form Candidate Requirement ready for /requirements re-ingestion — drop the produced HTML into input/ and the drafter cites it via the gap-analysis.html source marker. HTML output with inline-SVG coverage heatmap + gap matrix table. Pick this when you want a visual, drafter-aligned gap map with pre-drafted requirements. Complementary to completeness-review (which uses the BA literature canon as yardstick).
+    output_path: review-inputs/GAP-ANALYSIS/gap-analysis.html
+    reference_asset: framework/assets/reviews-inputs/gap-analysis-reference.md
+    template_asset: framework/assets/reviews-inputs/template-gap-analysis.html
+    map_skill: null
+    reviewer_agent: framework/agents/reviews-inputs/gap-analysis-reviewer.md
+    character: framework/assets/characters/gap-analysis-inputs-review.md
 ---
 
 # reviews-inputs/registry.md
@@ -99,4 +108,12 @@ Folding input-reviews into the analyses-inputs registry would muddy the consulta
 - `reviewer_agent` — the foreground agent invoked by the orchestrator. Required only when `status: mvp`.
 - `character` — stance the Unicorn adopts while running the reviewer. Required only when `status: mvp`.
 
-**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input reviews available yet" message and exits cleanly. With the `adversarial` row at `status: mvp`, the selector returns `selected` for that methodology when chosen. If every MVP row is later removed, the empty-registry behaviour resumes — it is not an error.
+**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input reviews available yet" message and exits cleanly. With four rows at `status: mvp` (`adversarial`, `completeness-review`, `ambiguity-review`, `gap-analysis`), the selector presents four options to the consultant. If every MVP row is later removed, the empty-registry behaviour resumes — it is not an error.
+
+**Sibling relationship: `completeness-review` vs `gap-analysis`.** Both lenses produce "what's missing" findings about the raw inputs, but they diverge on three load-bearing axes:
+
+- **Yardstick.** `completeness-review` measures against the BA-canon (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010) — *"is this input set complete by professional BA standards?"*. `gap-analysis` measures against the project's `framework/assets/topics-requirements.md` template — *"is this input set complete by **this drafter's** template?"*.
+- **Downstream verb.** `completeness-review` says *"go elicit"* (every Needs-Clarification finding ships with a stakeholder elicitation question). `gap-analysis` says *"ratify, edit, or reject this candidate"* (every Must/Should gap ships with a shall-form Candidate Requirement ready for `/requirements` re-ingestion).
+- **Output.** `completeness-review` produces markdown (`template_asset: null`). `gap-analysis` produces HTML with inline-SVG coverage heatmap + gap matrix table.
+
+The two methodologies are independent and complementary. Either, both, or neither may run on a given input set; sibling reviewers never cross-read each other's artefacts. Consultants who want a broad authority-grounded punch-list for client follow-up pick `completeness-review`; those who want a visual drafter-aligned gap map with pre-drafted requirements pick `gap-analysis`. Many will run both. The sharpened registry descriptions above lead with the same five-block shape (discriminator phrase → yardstick → output → *"Pick this when…"* → sibling cross-reference) so the consultant can compare them at a glance in the selector list.

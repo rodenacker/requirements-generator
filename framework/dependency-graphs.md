@@ -535,7 +535,7 @@ graph TD
 - Each analyser is itself **stand-alone-ish**: it reads `requirements/requirements.md` plus its own four assets (reference / character / template / map-skill stub) and nothing else under `requirements/`, `framework/state/`, or `framework/shared/`. The reference + template + character edges for `agent_tf` are drawn to illustrate the shape; the same shape applies to all seven other analyser nodes (omitted for readability — see each analyser's own *Inputs* section for the exact paths).
 - `check-context-bloat.md` is shared across all six orchestrators (`requirements-orch.md`, `design-system-orch.md`, `review-requirement-orch.md`, `analyse-requirement-orch.md`, `analyse-inputs-orch.md`, `review-inputs-orch.md`); the analyse-requirement-orch caller passes `requirements/` as `artefact_dir` because prior `/requirements` state on disk is the meaningful proxy for in-conversation bloat against the analyser. The `/analyse-inputs` and `/review-inputs` callers both pass `input/` as `artefact_dir` because the raw input folder is what enters their agents' context.
 - `state/.progress.json` is read (existence + at-least-one-`completed`-event check) by `check-context-bloat.md` from the analyse-requirement orchestrator; the analyse-requirement orchestrator never writes to it, consistent with the no-write-outside-`analyse-requirements/` invariant. This mirrors the design-system-orch surface variant of RF-05 documented in `framework/orchestrators/analyse-requirement-orch.md > RF-05 — analyse-requirement-orch surface variant`.
-- `verify-artifact-write.md` is shared across all six orchestrators; every analyser and reviewer calls it from its write step (Step 11 for `task-flows-analyser.md`, Step 12 for `adversarial-reviewer.md`). For `/review-inputs`, the `adversarial` reviewer (graph 6) is now MVP and calls `verify-artifact-write.md` from its Step 12; future reviewers in that pipeline will call it from their own write steps per the standard pattern.
+- `verify-artifact-write.md` is shared across all six orchestrators; every analyser and reviewer calls it from its write step (Step 11 for `task-flows-analyser.md` and `gap-analysis-reviewer.md`, Step 12 for `adversarial-reviewer.md` and `completeness-reviewer.md`). For `/review-inputs` (graph 6), all four MVP reviewers (`adversarial`, `ambiguity-review`, `completeness-review`, `gap-analysis`) call `verify-artifact-write.md` from their own write step; future reviewers in that pipeline will follow the same standard pattern.
 - `svg-overlap-check.md` is called from the write step of the three SVG-heavy analysers (`task-flows-analyser.md` Step 11, `data-model-analyser.md` Step 10, `state-diagram-analyser.md` Step 10) — only after `verify-artifact-write` passes, and only when the analyser actually emitted ≥1 inline SVG figure (i.e., a non-empty consultant selection at the figure-selection sub-step). Reads the just-written artefact; writes a report under `framework/state/svg-overlap-<pipeline>.ndjson`. Other analysers may adopt by passing their own node/edge class allowlists.
 - Per each analyser's stand-alone constraint, no edges reach `requirements/` (except `requirements/requirements.md` itself, which is the read target — implicit, not drawn), `design-system/`, `review-requirements/`, or `framework/state/` from the analyser subtrees. The orchestrator's narrow read exception for the step-0b preflight (read-only access to `requirements/`, `requirements/source-manifest.json`, `framework/state/.progress.json`) is captured by the `orch_an → skill_bloat_an → state_progress_an` edges and a documented stand-alone-constraint clause in the orchestrator.
 - No cycles.
@@ -709,6 +709,7 @@ graph TD
       agent_adv_ri[adversarial-reviewer.md]
       agent_amb_ri[ambiguity-reviewer.md]
       agent_comp_ri[completeness-reviewer.md]
+      agent_gap_ri[gap-analysis-reviewer.md]
     end
 
     subgraph Workers
@@ -732,12 +733,16 @@ graph TD
       asset_tmpl_adv_ri[reviews-inputs/template-adversarial.html]
       asset_ref_amb_ri[reviews-inputs/ambiguity-reference.md]
       asset_ref_comp_ri[reviews-inputs/completeness-reference.md]
+      asset_ref_gap_ri[reviews-inputs/gap-analysis-reference.md]
+      asset_tmpl_gap_ri[reviews-inputs/template-gap-analysis.html]
+      asset_topics_ri[assets/topics-requirements.md]
     end
 
     subgraph Characters
       char_adv_ri[characters/adversarial-inputs-review.md]
       char_amb_ri[characters/ambiguity-inputs-review.md]
       char_comp_ri[characters/completeness-inputs-review.md]
+      char_gap_ri[characters/gap-analysis-inputs-review.md]
     end
 
     subgraph Shared
@@ -757,6 +762,7 @@ graph TD
     orch_ri --> agent_adv_ri
     orch_ri --> agent_amb_ri
     orch_ri --> agent_comp_ri
+    orch_ri --> agent_gap_ri
     orch_ri --> shared_refusal_ri
 
     skill_ansel_ri --> asset_registry_ri
@@ -789,6 +795,14 @@ graph TD
     agent_comp_ri --> shared_genrules_ri
     agent_comp_ri -.->|Step 15 only when target=prototype| shared_protoscope_ri
 
+    agent_gap_ri --> char_gap_ri
+    agent_gap_ri --> asset_ref_gap_ri
+    agent_gap_ri --> asset_tmpl_gap_ri
+    agent_gap_ri --> skill_verifywrite_ri
+    agent_gap_ri --> asset_topics_ri
+    agent_gap_ri --> shared_genrules_ri
+    agent_gap_ri -.->|Step 3 only when target=prototype| shared_protoscope_ri
+
     skill_classify_ri --> skill_convert_ri
     skill_preflight_ri --> shared_refusal_ri
     skill_convert_ri --> skill_verifywrite_ri
@@ -797,16 +811,16 @@ graph TD
     skill_verifywrite_ri --> shared_refusal_ri
 
     class orch_ri orch
-    class agent_input_ri,agent_adv_ri,agent_amb_ri,agent_comp_ri agent
+    class agent_input_ri,agent_adv_ri,agent_amb_ri,agent_comp_ri,agent_gap_ri agent
     class worker_adv_dim_ri worker
     class skill_ansel_ri,skill_bloat_ri,skill_verifywrite_ri,skill_classify_ri,skill_preflight_ri,skill_convert_ri,skill_buildmanifest_ri,skill_checkfresh_ri skill
-    class asset_registry_ri,asset_ref_adv_ri,asset_tmpl_adv_ri,asset_ref_amb_ri,asset_ref_comp_ri asset
-    class char_adv_ri,char_amb_ri,char_comp_ri char
+    class asset_registry_ri,asset_ref_adv_ri,asset_tmpl_adv_ri,asset_ref_amb_ri,asset_ref_comp_ri,asset_ref_gap_ri,asset_tmpl_gap_ri,asset_topics_ri asset
+    class char_adv_ri,char_amb_ri,char_comp_ri,char_gap_ri char
     class shared_refusal_ri,shared_setup_md_ri,shared_genrules_ri,shared_protoscope_ri shared
     class state_progress_ri state
 ```
 
-**Stats:** 28 nodes / 35 edges / depth 4 (3 MVP reviewers: `adversarial`, `ambiguity-review`, `completeness-review`). Each future methodology PR adds one `orch_ri → agent_<method>` edge plus the standard four-asset fan-out (reviewer + reference + character + template, the last possibly `null`), mirroring graphs 4 and 5. The `adversarial` reviewer also fans out to a parallel dimension worker (drawn with a dashed border) — a pattern shared with the `/review-requirement` adversarial reviewer in graph 3. The `ambiguity-review` and `completeness-review` reviewers are both **sequential / single-threaded** — no dimension workers, no `Agent`/`Task` dispatch; their dimensions sweep one-per-agent-step, then cross-dimension consolidation collapses same-span / same-topic multi-dimension hits. `ambiguity-review` carries `template_asset: null` (pure-markdown renderer; no scaffold); `completeness-review` likewise. Both carry `map_skill: null` (reviews don't translate into UI inventory).
+**Stats:** 33 nodes / 43 edges / depth 4 (4 MVP reviewers: `adversarial`, `ambiguity-review`, `completeness-review`, `gap-analysis`). Each future methodology PR adds one `orch_ri → agent_<method>` edge plus the standard four-asset fan-out (reviewer + reference + character + template, the last possibly `null`), mirroring graphs 4 and 5. The `adversarial` reviewer also fans out to a parallel dimension worker (drawn with a dashed border) — a pattern shared with the `/review-requirement` adversarial reviewer in graph 3. The `ambiguity-review`, `completeness-review`, and `gap-analysis` reviewers are all **sequential / single-threaded** — no dimension workers, no `Agent`/`Task` dispatch; their dimensions / topics sweep one-per-agent-step, then cross-dimension consolidation collapses same-span / same-topic multi-dimension hits. `ambiguity-review` and `completeness-review` carry `template_asset: null` (pure-markdown renderer); `gap-analysis` carries `template-gap-analysis.html` (the visual-output requirement of the methodology). All four reviewers carry `map_skill: null` (reviews don't translate into UI inventory).
 
 **Notes:**
 - The orchestrator is **registry-driven** (same pattern as `analyse-requirement-orch.md` and `analyse-inputs-orch.md`). The `skill_ansel_ri → asset_registry_ri` edge is the discovery mechanism; future `orch_ri → agent_<method>` edges represent the runtime invocation paths once the consultant has selected a methodology. **Adding a new MVP input-reviewer requires zero orchestrator edits** — only a new MVP row in `framework/assets/reviews-inputs/registry.md`, the four-asset shape (reviewer + reference + template + character), and the new edge in this graph.
@@ -820,7 +834,8 @@ graph TD
 - The `ambiguity-review` reviewer is the second MVP under `/review-inputs`. Its seven dimensions are tuned for linguistic ambiguity (Berry & Kamsties 2004 + Femmer requirements-smells): lexical, syntactic, referential, vague predicates, subjective qualifiers, weak verbs, optionality + agentless passive. Its central methodology rule is the **≥2-interpretations test** — every finding must list ≥2 plausible readings (each producing a different downstream requirement) before logging; candidates that fail the test are dropped to adversarial-review territory. Its finding schema is 8 fields (ID, Dimension(s), Severity, Location, Evidence, Interpretations, Problem, Elicitation question) — distinct from adversarial's 8-field schema (which carries a Patch/Defer/Reject Disposition rubric in place of Interpretations + Elicitation question). Its Severity rubric is Blocker/Major/Minor (no Disposition) and the verdict mapping is severity-only. Each finding carries a ready-to-paste stakeholder elicitation question grouped by source filename in a dedicated artefact section — the value-prop that earns the methodology its keep over adversarial's coarser Dimension 3 (Ambiguity & Vague Language).
 - The `completeness-review` reviewer is the third MVP under `/review-inputs`. Its ten dimensions are anchored to the requirements-engineering literature on the *completeness* quality attribute: IEEE 29148:2018 §5.2.4 + §6.4.2.3 (the canonical nine completeness checks), IEEE 830 §4.3, Volere §2–§26 (Drivers, Naming, Assumptions, Data, Business Rules, NFRs, External Interfaces, Open Issues, Waiting Room), BABOK §10.5 / §10.10 / §10.22 / §10.41 / §10.43 / §11.5, INCOSE GtWR R3 / R6 / R29 / R39, and ISO/IEC 25010 (the product quality model anchoring NFR coverage). Its central methodology rule is the **absent-vs-out-of-scope test** — every finding must confirm corpus silence on the topic, the absence of an explicit-exclusion quote, and the absence of a covering `GR-NN` rule, before defaulting to `Needs-Clarification`. Its finding schema is 9 fields (ID, Dimension(s), Severity, **Disposition**, Location, Evidence, **Authority**, Problem, Elicitation question) — the addition of `Disposition` (`Needs-Clarification` / `Standard-Rule-Applies` / `Out-of-Scope`) is the methodology's load-bearing pipeline contribution, pre-classifying every gap into the same three categories the `/requirements` drafter must render markers for (`[AI-SUGGESTED]` / `[STANDARD-RULE: GR-NN]` / `[OUT-OF-SCOPE: domain-default]`). The Verdict mapping inspects both severity and disposition: `BLOCKED` requires ≥1 `Blocker + Needs-Clarification`; `NEEDS-ELICITATION` requires ≥1 `Needs-Clarification` (no Blockers); `ACCEPTED-WITH-GAPS` covers the remaining cases. The reviewer additionally renders a 10-dimension × N-source **Coverage Matrix** between the Executive Summary and the Triage callout — a unique structural addition vs the two sibling reviewers (whose dimensions are not orthogonal enough to support a clean matrix). Twelve quality gates (the ambiguity-review ten plus two completeness-specific gates: gate 11 enforces disposition-shaped Elicitation fields; gate 12 enforces real `GR-NN` ids for `Standard-Rule-Applies` findings).
 - The `completeness-reviewer` agent's two cross-edge shared-policy dependencies — `shared_genrules_ri` (always read at Step 15 disposition assignment) and `shared_protoscope_ri` (dashed edge, read at Step 15 **only when** the manifest's `target == "prototype"`) — are unique to this reviewer in the `/review-inputs` subtree. The adversarial and ambiguity-review reviewers read neither file (their methodologies are taxonomy-driven and do not need to map findings onto rule-resolved or scope-resolved dispositions). The two shared-policy reads honour the stand-alone-ish constraint by being **read-only** and bounded to the disposition step; no write reaches `framework/shared/`. The conditional dashed edge to `prototype-scope.md` follows the convention established in graph 3 (ten-ba-questions reviewer's filter-source edges to `ten-ux-questions-reference.md`) — dashed edges indicate non-default loads governed by a runtime predicate.
-- Framework now carries three MVP reviewers under `/review-inputs` (`adversarial`, `ambiguity-review`, `completeness-review`); the `reviews-inputs/registry.md` carries no remaining `status: future` rows.
+- The `gap-analysis` reviewer is the fourth MVP under `/review-inputs`. It is the **drafter-aligned sibling** of `completeness-review`: where `completeness-review` measures the inputs against the BA-canon (IEEE 29148 / Volere / BABOK / Wiegers / INCOSE / ISO 25010 — ten dimensions), `gap-analysis` measures the inputs against the project's own `framework/assets/topics-requirements.md` template (30+ topics, eight dimensions read from the per-topic `Dimension` column). The two methodologies are independent and complementary; each reads the manifest separately and neither cross-reads the other's artefact. The reviewer ships **three distinctive dependencies** vs the sibling reviewers in this subtree: (1) `asset_topics_ri` — the canonical topic list + per-topic `Dimension` SPoT + Tier A/B/C/D classification, read once at Step 3. **This is the only edge in graph 6 that touches `framework/assets/topics-requirements.md`** — the file is otherwise only consumed by `requirements-drafter.md` (graph 1) and `completeness-gap-pass.md` (graph 1 sub-skill). The `Dimension` column added in the same PR is read verbatim — gap-analysis never invents a dimension. (2) `asset_tmpl_gap_ri` — an HTML scaffold (`template-gap-analysis.html`) populated at Step 11. Unlike `completeness-review` (markdown) and `ambiguity-review` (markdown), `gap-analysis` produces an HTML artefact with an inline-SVG coverage heatmap + gap matrix table; the visual surface is the user-stated requirement of the methodology. (3) `shared_genrules_ri` (always, at Step 3) + `shared_protoscope_ri` (dashed, at Step 3, only when `target == "prototype"`) — same edges `completeness-reviewer` carries, but consumed at Step 3 (during the topic walk's standard-rule / out-of-scope checks) rather than at a post-sweep disposition assignment. The reviewer's finding schema is 10 fields (`id`, `topic_ref`, `dimension`, `coverage`, `impact`, `confidence`, `moscow`, `recommendation`, `candidate_requirement`, `evidence`, `also_see`) — the **Candidate Requirement** column is shall-form / behavioural / drafter-ingestible, ready for `/requirements` re-ingestion via `[SRC: gap-analysis.html]` citations when the consultant drops the produced HTML into `input/`. Eight quality gates (the ambiguity-review ten minus two: gap-analysis has no Disposition / Authority fields, so the corresponding gates 11–12 are absent; gap-analysis-specific gates enforce Dimension fidelity against the SPoT, no-solutioning in the Candidate Requirement column, and Confidence-honesty against Tier A classification).
+- Framework now carries four MVP reviewers under `/review-inputs` (`adversarial`, `ambiguity-review`, `completeness-review`, `gap-analysis`); the `reviews-inputs/registry.md` carries no remaining `status: future` rows.
 - No cycles. No `framework/assets/pattern-catalogue/` "see also" pointers appear in this subtree.
 
 ---

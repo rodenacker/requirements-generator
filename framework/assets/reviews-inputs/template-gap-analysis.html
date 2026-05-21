@@ -1,0 +1,749 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/reviews-inputs/gap-analysis-reviewer.md.
+
+  Purpose: Self-contained HTML skeleton for the Gap Analysis (inputs-side) report.
+  No external CSS / JS / fonts — opens cleanly via file:// for consultant review and
+  prints sensibly to PDF via the browser's native Print dialog. The artefact is
+  re-ingestible by /requirements via the embedded <script type="application/json">
+  block, which survives markitdown HTML→MD as fenced ```json code.
+
+  Sibling templates under /review-inputs:
+    framework/assets/reviews-inputs/template-adversarial.html (HTML, 6 dimensions)
+    framework/assets/reviews-inputs/completeness-review     (no template — markdown)
+    framework/assets/reviews-inputs/ambiguity-review        (no template — markdown)
+
+  HTML-rendering contract (the reviewer agent's Round 7 / Step 11):
+    • Every substituted value is HTML-escaped (5 chars: & < > " ').
+    • Simple text placeholders (counts, timestamps, fingerprints) inject as text content.
+    • Block placeholders ({{COVERAGE_HEATMAP_SVG}}, {{GAP_MATRIX_TABLE_BODY}},
+      {{PER_DIMENSION_NARRATIVE}}, {{ACTION_LIST_BLOCK}}, {{STRUCTURED_JSON_BLOCK}},
+      {{DIAGNOSTICS_BLOCK}}, {{SOURCE_ROSTER_BLOCK}}) are PRE-RENDERED HTML fragments
+      constructed in memory per per-block schemas in the reference; substituted as-is.
+    • The scaffold itself is NEVER edited; section ordering, IDs, ARIA labels, and the
+      TOC list are fixed.
+
+  Placeholders the reviewer substitutes (string substitution, all values pre-escaped):
+
+    {{TITLE}}                  — short title (e.g. "Gap Analysis (inputs-side) — Project X")
+    {{DOMAIN}}                 — domain string (best-effort: from any source carrying a
+                                 recognisable domain heading; otherwise "(not declared in inputs)")
+    {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered
+    {{MANIFEST_FINGERPRINT}}   — sha256 of requirements/source-manifest.json at Step 2 read time
+    {{TOPICS_FINGERPRINT}}     — sha256 of framework/assets/topics-requirements.md at Step 3 read time
+    {{TARGET}}                 — manifest's `target` value ("prototype" | "application" | "(unset)")
+    {{REVIEWER_IDENTITY}}      — fixed string "Gap Analysis (template-bijection delta, inputs-side)"
+    {{SOURCES_CONSUMED_COUNT}} — count of manifest rows with tier != Unsupported
+    {{SOURCES_SKIPPED_COUNT}}  — count of manifest rows with tier == Unsupported
+    {{TOPICS_TOTAL_COUNT}}     — count of topics walked (= rows in topics-requirements.md section list)
+    {{GAP_COUNT_TOTAL}}        — count of gap rows (coverage = Missing or Partial)
+    {{GAP_COUNT_MUST}}         — count of moscow = Must
+    {{GAP_COUNT_SHOULD}}       — count of moscow = Should
+    {{GAP_COUNT_COULD}}        — count of moscow = Could
+    {{GAP_COUNT_WONT}}         — count of moscow = Won't
+    {{COVERAGE_COVERED}}       — count of coverage = Covered
+    {{COVERAGE_PARTIAL}}       — count of coverage = Partial
+    {{COVERAGE_MISSING}}       — count of coverage = Missing
+    {{COVERAGE_STANDARD_RULE}} — count of coverage = Standard-rule
+    {{COVERAGE_OUT_OF_SCOPE}}  — count of coverage = Out-of-scope
+    {{COVERAGE_NA}}            — count of coverage = N/A
+    {{VERDICT}}                — one of BLOCKED | NEEDS-DECISIONS | ACCEPTED-WITH-CANDIDATES
+                                 (also drives the .verdict-{{VERDICT}} class on the banner)
+    {{COVERAGE_HEATMAP_SVG}}   — pre-rendered inline <svg> per HEATMAP SCHEMA below
+    {{GAP_MATRIX_TABLE_BODY}}  — pre-rendered <tr> rows per GAP MATRIX SCHEMA below
+                                 (NB: only <tbody> rows; <thead> is in the scaffold)
+    {{ACTION_LIST_BLOCK}}      — pre-rendered <ol> per ACTION LIST SCHEMA below
+    {{PER_DIMENSION_NARRATIVE}}— pre-rendered <section class="dimension-narrative"> blocks per DIMENSION SCHEMA below
+    {{SOURCE_ROSTER_BLOCK}}    — pre-rendered roster tables per SOURCE ROSTER SCHEMA below
+    {{STRUCTURED_JSON_BLOCK}}  — the <script type="application/json" id="gap-analysis-meta">…</script>
+                                 carrier; full schema in the reference §11
+    {{DIAGNOSTICS_BLOCK}}      — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
+
+  Output: review-inputs/GAP-ANALYSIS/gap-analysis.html.
+
+  HEATMAP SCHEMA — the {{COVERAGE_HEATMAP_SVG}} is a single <svg> element rendered inline:
+
+      <svg viewBox="0 0 1080 640" role="img" aria-label="Coverage heatmap …"
+           xmlns="http://www.w3.org/2000/svg" class="coverage-heatmap">
+        <!-- column headers: Covered / Partial / Missing / Standard-rule / Out-of-scope -->
+        <text x="…" y="…" class="hm-col-header">Covered</text>
+        ... (5 column headers)
+        <!-- row labels: §1 Context, §2 Domain, …, §10 Volumes (10 rows) -->
+        <text x="…" y="…" class="hm-row-label">§1 Context</text>
+        ... (10 row labels)
+        <!-- cells: 10 rows × 5 columns = 50 rects, each with a fill keyed to count + severity weight -->
+        <rect x="…" y="…" width="…" height="…" class="hm-cell hm-{cell-class}" fill="{fill}" />
+        <text x="…" y="…" class="hm-cell-count">{count}</text>
+        ... (50 cells)
+        <!-- legend at bottom -->
+        <g class="hm-legend"> … </g>
+      </svg>
+
+    Cell fill rule:
+      • count == 0 → fill="#f0f0f0" (light grey, signals "no topics in this bucket")
+      • Covered column → green family; saturation scales with count (lower count = lighter)
+      • Partial column → amber family; saturation scales with count
+      • Missing column → red family; saturation scales with count, plus severity weighting
+        (cells whose contributing gaps are mostly Must darken further)
+      • Standard-rule column → blue family (low intensity — these are auto-resolved)
+      • Out-of-scope column → grey family (these are excluded by predicate)
+
+    Cell text:
+      • count is the topic count for that (section, tier) intersection
+      • Cells with count > 0 render text at center; cells with count == 0 omit text
+
+  GAP MATRIX SCHEMA — each row the reviewer emits has the shape:
+
+      <tr class="gap-row moscow-{Must|Should|Could|Wont} coverage-{Partial|Missing}">
+        <td><a href="#{ID}"><code>{ID}</code></a></td>
+        <td><code>{topic_ref}</code></td>
+        <td><span class="chip dim-{Dimension}">{Dimension}</span></td>
+        <td><span class="chip coverage-{Coverage}">{Coverage}</span></td>
+        <td><span class="chip impact-{Impact}">{Impact}</span></td>
+        <td><span class="chip confidence-{Confidence}">{Confidence}</span></td>
+        <td><span class="chip moscow-{MoSCoW}">{MoSCoW}</span></td>
+        <td>{recommendation_html_escaped}</td>
+        <td><em>{candidate_requirement_html_escaped}</em></td>
+        <td class="evidence-cell">{evidence_links_or_sentinel}</td>
+        <td class="also-see-cell">{also_see_links_or_dash}</td>
+      </tr>
+
+    where {ID} = GAP-NN (zero-padded), and Coverage ∈ {Partial, Missing}. (Covered /
+    Standard-rule / Out-of-scope / N/A topics are NOT in the gap matrix; they appear
+    in the coverage heatmap and the {{STRUCTURED_JSON_BLOCK}}'s coverage_rows array.)
+
+    Row order: moscow ascending (Must → Should → Could → Won't), then GAP-NN ascending.
+
+    evidence_links:
+      • For Partial rows: <code>[SRC: filename.ext]</code> per cited source, comma-separated.
+      • For Missing rows: literal italic <em>(no mention in consumed corpus)</em>.
+
+    also_see_links:
+      • Comma-separated list of cross-referenced ids: <a href="#GAP-NM"><code>GAP-NM</code></a>
+      • Empty → render literal <em>—</em>.
+
+  ACTION LIST SCHEMA — the {{ACTION_LIST_BLOCK}} is:
+
+      <ol class="action-list">
+        <li id="action-{ID}">
+          <code>{ID}</code> — <code>{topic_ref}</code> — <span class="chip moscow-{MoSCoW}">{MoSCoW}</span>
+          <p class="action-candidate"><em>{candidate_requirement}</em></p>
+        </li>
+        ...
+      </ol>
+
+    Filter rule (deterministic):
+      1. Include every gap row with moscow ∈ {Must, Should}.
+      2. Exclude Could / Won't rows from this list (they appear in the gap matrix below).
+      3. Sort by moscow ascending (Must first), then GAP-NN ascending.
+      4. If zero Must/Should rows, render the single line
+           <p class="action-empty">No Must/Should gaps — proceed to drafting.</p>
+
+  DIMENSION SCHEMA — each per-dimension <section> in {{PER_DIMENSION_NARRATIVE}}:
+
+      <section class="dimension-narrative" id="dim-{Dimension}">
+        <h3>{Dimension} ({n} gaps)</h3>
+        <article class="finding moscow-{MoSCoW} coverage-{Coverage}" id="{ID}">
+          <h4>
+            <code>{ID}</code> · <code>{topic_ref}</code> · <span class="chip moscow-{MoSCoW}">{MoSCoW}</span>
+            · <span class="chip coverage-{Coverage}">{Coverage}</span>
+          </h4>
+          <dl class="finding-fields">
+            <dt>Recommendation</dt><dd>{recommendation}</dd>
+            <dt>Candidate Requirement</dt><dd><em>{candidate_requirement}</em></dd>
+            <dt>Impact × Confidence</dt><dd>{Impact} × {Confidence}</dd>
+            <dt>Evidence</dt><dd>{evidence_links_or_sentinel}</dd>
+            <dt>Also see</dt><dd>{also_see_links_or_dash}</dd>
+          </dl>
+        </article>
+        ... (repeat per gap row within this dimension)
+      </section>
+
+    Only dimensions that produced ≥1 gap row appear; dimensions with zero gap rows are
+    omitted entirely from {{PER_DIMENSION_NARRATIVE}}. (Their coverage counts still
+    appear in the heatmap and {{STRUCTURED_JSON_BLOCK}}.)
+
+    Order: Stakeholder → Scope → Domain → Functional → Process → Non-functional →
+    Compliance → Integration → Data (closed taxonomy order, mirrors topics-requirements.md).
+
+  SOURCE ROSTER SCHEMA — the {{SOURCE_ROSTER_BLOCK}} is two tables:
+
+      <h3>Consumed</h3>
+      <table class="source-roster-consumed">
+        <thead><tr><th>filename</th><th>tier</th><th>sha256</th>
+                   <th>covered-topics</th><th>partial-topics</th><th>missing-topics</th></tr></thead>
+        <tbody>
+          <tr><td><code>{filename}</code></td><td>{tier}</td><td><code>{sha256[:8]}</code></td>
+              <td>{n_covered}</td><td>{n_partial}</td><td>{n_missing}</td></tr>
+          ...
+        </tbody>
+      </table>
+
+      <h3>Skipped</h3>
+      <table class="source-roster-skipped">
+        <thead><tr><th>filename</th><th>reason</th></tr></thead>
+        <tbody>
+          <tr><td><code>{filename}</code></td><td>{reason}</td></tr>
+          ...
+        </tbody>
+      </table>
+      (OR if empty, omit the Skipped table and substitute <p><em>(no sources skipped this run)</em></p>)
+
+  DIAGNOSTICS SCHEMA — the {{DIAGNOSTICS_BLOCK}} is a single <details class="diagnostics-toggle">
+  wrapping FIVE subsections:
+
+      <details class="diagnostics-toggle">
+        <summary>Show / hide diagnostics</summary>
+
+        <h4>Quality gates</h4>
+        <table class="diagnostics-gates">
+          <thead><tr><th>Gate</th><th>Result</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr class="gate-{pass|fail}"><td>1. Bijection completeness …</td>
+                <td><span class="chip gate-{pass|fail}">{PASS|FAIL}</span></td><td>{notes}</td></tr>
+            ... (8 gate rows)
+          </tbody>
+        </table>
+
+        <h4>Coverage map (per consumed filename)</h4>
+        <table class="coverage-map">
+          <thead><tr><th>filename</th><th>topics-covered</th><th>topics-partial</th>
+                     <th>topics-missing</th><th>topics-touched</th></tr></thead>
+          <tbody>...</tbody>
+        </table>
+
+        <h4>Override log</h4>
+        <p>{If the consultant chose Override at the Round-6 quality-gate sweep, list each
+            failed gate by number and the flagged gap rows. Otherwise
+            "All quality gates passed; no override invoked."}</p>
+
+        <h4>Run history</h4>
+        <p>{Single line: "Full overwrite per run; no carried-over findings."
+            If a prior artefact existed at write time and its manifest_sha256 + topics_requirements_sha256
+            were both unchanged: append " · No drift detected vs prior artefact."
+            If only manifest_sha256 changed: append " · Manifest drift detected (corpus changed)."
+            If only topics_requirements_sha256 changed: append " · Template drift detected (topics-requirements.md changed)."
+            If both changed: append " · Manifest + template drift detected."}</p>
+
+        <h4>Schema-drift detection</h4>
+        <table class="drift-table">
+          <thead><tr><th>Fingerprint</th><th>Prior</th><th>Current</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>manifest_sha256</td><td><code>{prior or n/a}</code></td>
+                <td><code>{current}</code></td><td>{Match | Drifted | New}</td></tr>
+            <tr><td>topics_requirements_sha256</td><td><code>{prior or n/a}</code></td>
+                <td><code>{current}</code></td><td>{Match | Drifted | New}</td></tr>
+          </tbody>
+        </table>
+      </details>
+
+  Style invariants baked into the CSS:
+    • :root drives all colour decisions; MoSCoW (Must/Should/Could/Wont), coverage
+      (Covered/Partial/Missing/Standard-rule/Out-of-scope), and dimensions
+      (Stakeholder/Scope/Domain/Functional/Process/Non-functional/Compliance/
+      Integration/Data) get distinct hues so the gap matrix and per-dimension
+      sections scan at a glance.
+    • Gap matrix table uses position: sticky; top: 0 on <thead> so the header stays
+      visible during scroll.
+    • Each <section> has a trailing <p class="back-to-top"> linking to #top.
+    • Coverage heatmap renders at viewBox 0 0 1080 640; max-width: 100% so it
+      scales on narrower viewports.
+    • @media (max-width: 720px) collapses the meta-grid to a single column and
+      shrinks padding. @media print expands <details> and hides toc / back-to-top.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --fg: #1a1a1a;
+    --muted: #5a5a5a;
+    --border: #d4d4d4;
+    --border-strong: #8a8a8a;
+    --section-bg: #ffffff;
+    --code-bg: #f3f3f3;
+    --shadow-card: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+
+    /* MoSCoW colours */
+    --moscow-must: #b91c1c;
+    --moscow-must-bg: rgba(185, 28, 28, 0.10);
+    --moscow-should: #c2410c;
+    --moscow-should-bg: rgba(194, 65, 12, 0.10);
+    --moscow-could: #1d4ed8;
+    --moscow-could-bg: rgba(29, 78, 216, 0.10);
+    --moscow-wont: #5a5a5a;
+    --moscow-wont-bg: rgba(90, 90, 90, 0.10);
+
+    /* Coverage state colours */
+    --cov-covered: #15803d;
+    --cov-covered-bg: rgba(21, 128, 61, 0.10);
+    --cov-partial: #a16207;
+    --cov-partial-bg: rgba(161, 98, 7, 0.10);
+    --cov-missing: #b91c1c;
+    --cov-missing-bg: rgba(185, 28, 28, 0.10);
+    --cov-standard: #1d4ed8;
+    --cov-standard-bg: rgba(29, 78, 216, 0.10);
+    --cov-oos: #5a5a5a;
+    --cov-oos-bg: rgba(90, 90, 90, 0.10);
+    --cov-na: #a4a4a4;
+    --cov-na-bg: rgba(164, 164, 164, 0.10);
+
+    /* Impact colours */
+    --impact-critical: #7f1d1d;
+    --impact-critical-bg: rgba(127, 29, 29, 0.10);
+    --impact-high: #b91c1c;
+    --impact-high-bg: rgba(185, 28, 28, 0.10);
+    --impact-medium: #c2410c;
+    --impact-medium-bg: rgba(194, 65, 12, 0.10);
+    --impact-low: #a16207;
+    --impact-low-bg: rgba(161, 98, 7, 0.10);
+
+    /* Confidence colours */
+    --conf-confirmed: #15803d;
+    --conf-confirmed-bg: rgba(21, 128, 61, 0.10);
+    --conf-likely: #1d4ed8;
+    --conf-likely-bg: rgba(29, 78, 216, 0.10);
+    --conf-speculative: #5a5a5a;
+    --conf-speculative-bg: rgba(90, 90, 90, 0.10);
+
+    /* Dimension colours (subtle, for chips) */
+    --dim-stakeholder: #1d4ed8;
+    --dim-stakeholder-bg: rgba(29, 78, 216, 0.10);
+    --dim-scope: #6d28d9;
+    --dim-scope-bg: rgba(109, 40, 217, 0.10);
+    --dim-domain: #0e7490;
+    --dim-domain-bg: rgba(14, 116, 144, 0.10);
+    --dim-functional: #15803d;
+    --dim-functional-bg: rgba(21, 128, 61, 0.10);
+    --dim-process: #a16207;
+    --dim-process-bg: rgba(161, 98, 7, 0.10);
+    --dim-non-functional: #c2410c;
+    --dim-non-functional-bg: rgba(194, 65, 12, 0.10);
+    --dim-compliance: #b91c1c;
+    --dim-compliance-bg: rgba(185, 28, 28, 0.10);
+    --dim-integration: #4338ca;
+    --dim-integration-bg: rgba(67, 56, 202, 0.10);
+    --dim-data: #0f766e;
+    --dim-data-bg: rgba(15, 118, 110, 0.10);
+
+    /* Verdict banner colours */
+    --verdict-blocked-fg: #ffffff;
+    --verdict-blocked-bg: #991b1b;
+    --verdict-needs-fg: #ffffff;
+    --verdict-needs-bg: #c2410c;
+    --verdict-accepted-fg: #ffffff;
+    --verdict-accepted-bg: #15803d;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 1180px; margin: 0 auto; padding: 24px 32px 64px; }
+
+  /* Header */
+  header { margin-bottom: 24px; }
+  h1#top { margin: 0 0 12px 0; font-size: 28px; font-weight: 700; letter-spacing: -0.01em; }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px 24px;
+    padding: 14px 18px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-card);
+    margin: 16px 0;
+    font-size: 13px;
+  }
+  .meta-grid > div { display: flex; flex-direction: column; gap: 2px; }
+  .meta-grid dt {
+    margin: 0; color: var(--muted); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;
+  }
+  .meta-grid dd { margin: 0; font-size: 14px; color: var(--fg); word-break: break-all; }
+
+  /* TOC */
+  .toc {
+    position: sticky; top: 0; z-index: 10;
+    margin: 0 0 32px 0; padding: 12px 18px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    box-shadow: var(--shadow-card);
+    font-size: 13px;
+  }
+  .toc-label {
+    display: block; margin: 0 0 6px 0;
+    color: var(--muted); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;
+  }
+  .toc ol {
+    margin: 0; padding: 0; list-style: none;
+    display: flex; flex-wrap: wrap; gap: 4px 18px;
+    counter-reset: toc-item;
+  }
+  .toc li { counter-increment: toc-item; }
+  .toc li::before { content: counter(toc-item) ". "; color: var(--muted); margin-right: 4px; }
+  .toc a {
+    color: var(--fg); text-decoration: none;
+    border-bottom: 1px dotted var(--border-strong); padding-bottom: 1px;
+  }
+  .toc a:hover { border-bottom-color: var(--fg); color: #000; }
+
+  /* Sections */
+  section {
+    margin: 32px 0; padding: 20px 24px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-card);
+  }
+  section h2 {
+    margin: 0 0 16px 0; padding-bottom: 8px;
+    border-bottom: 2px solid var(--border-strong);
+    font-size: 20px; font-weight: 700; letter-spacing: -0.01em;
+  }
+  section h3 { margin: 20px 0 10px 0; font-size: 16px; font-weight: 600; }
+  section h4 {
+    margin: 16px 0 8px 0;
+    font-size: 14px; font-weight: 600;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em;
+  }
+
+  /* Back-to-top */
+  .back-to-top { margin: 24px 0 0 0; text-align: right; font-size: 12px; }
+  .back-to-top a {
+    color: var(--muted); text-decoration: none;
+    border-bottom: 1px dotted var(--border-strong); padding-bottom: 1px;
+  }
+  .back-to-top a:hover { color: var(--fg); border-bottom-color: var(--fg); }
+
+  /* Verdict banner */
+  .verdict {
+    display: inline-block; padding: 8px 14px; border-radius: 6px;
+    font-weight: 700; font-size: 14px; letter-spacing: 0.04em;
+  }
+  .verdict-BLOCKED { background: var(--verdict-blocked-bg); color: var(--verdict-blocked-fg); }
+  .verdict-NEEDS-DECISIONS { background: var(--verdict-needs-bg); color: var(--verdict-needs-fg); }
+  .verdict-ACCEPTED-WITH-CANDIDATES { background: var(--verdict-accepted-bg); color: var(--verdict-accepted-fg); }
+
+  /* Chips */
+  .chip {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.02em;
+  }
+  .chip.moscow-Must { background: var(--moscow-must-bg); color: var(--moscow-must); }
+  .chip.moscow-Should { background: var(--moscow-should-bg); color: var(--moscow-should); }
+  .chip.moscow-Could { background: var(--moscow-could-bg); color: var(--moscow-could); }
+  .chip.moscow-Wont, .chip.moscow-Won\27 t { background: var(--moscow-wont-bg); color: var(--moscow-wont); }
+  .chip.coverage-Covered { background: var(--cov-covered-bg); color: var(--cov-covered); }
+  .chip.coverage-Partial { background: var(--cov-partial-bg); color: var(--cov-partial); }
+  .chip.coverage-Missing { background: var(--cov-missing-bg); color: var(--cov-missing); }
+  .chip.coverage-Standard-rule { background: var(--cov-standard-bg); color: var(--cov-standard); }
+  .chip.coverage-Out-of-scope { background: var(--cov-oos-bg); color: var(--cov-oos); }
+  .chip.coverage-NA { background: var(--cov-na-bg); color: var(--cov-na); }
+  .chip.impact-Critical { background: var(--impact-critical-bg); color: var(--impact-critical); }
+  .chip.impact-High { background: var(--impact-high-bg); color: var(--impact-high); }
+  .chip.impact-Medium { background: var(--impact-medium-bg); color: var(--impact-medium); }
+  .chip.impact-Low { background: var(--impact-low-bg); color: var(--impact-low); }
+  .chip.confidence-Confirmed { background: var(--conf-confirmed-bg); color: var(--conf-confirmed); }
+  .chip.confidence-Likely { background: var(--conf-likely-bg); color: var(--conf-likely); }
+  .chip.confidence-Speculative { background: var(--conf-speculative-bg); color: var(--conf-speculative); }
+  .chip.dim-Stakeholder { background: var(--dim-stakeholder-bg); color: var(--dim-stakeholder); }
+  .chip.dim-Scope { background: var(--dim-scope-bg); color: var(--dim-scope); }
+  .chip.dim-Domain { background: var(--dim-domain-bg); color: var(--dim-domain); }
+  .chip.dim-Functional { background: var(--dim-functional-bg); color: var(--dim-functional); }
+  .chip.dim-Process { background: var(--dim-process-bg); color: var(--dim-process); }
+  .chip.dim-Non-functional { background: var(--dim-non-functional-bg); color: var(--dim-non-functional); }
+  .chip.dim-Compliance { background: var(--dim-compliance-bg); color: var(--dim-compliance); }
+  .chip.dim-Integration { background: var(--dim-integration-bg); color: var(--dim-integration); }
+  .chip.dim-Data { background: var(--dim-data-bg); color: var(--dim-data); }
+  .chip.gate-pass { background: var(--cov-covered-bg); color: var(--cov-covered); }
+  .chip.gate-fail { background: var(--cov-missing-bg); color: var(--cov-missing); }
+
+  /* Coverage heatmap */
+  .coverage-heatmap {
+    display: block; width: 100%; max-width: 100%;
+    height: auto;
+    margin: 12px 0;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  .coverage-heatmap .hm-col-header,
+  .coverage-heatmap .hm-row-label {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px; fill: var(--fg);
+  }
+  .coverage-heatmap .hm-col-header { font-weight: 600; }
+  .coverage-heatmap .hm-cell { stroke: #ffffff; stroke-width: 1; }
+  .coverage-heatmap .hm-cell-count {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 18px; font-weight: 700; text-anchor: middle;
+    dominant-baseline: middle;
+  }
+  .coverage-heatmap .hm-cell-count.text-on-dark { fill: #ffffff; }
+  .coverage-heatmap .hm-cell-count.text-on-light { fill: var(--fg); }
+  .coverage-heatmap .hm-legend text {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 11px; fill: var(--muted);
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  table caption {
+    text-align: left; margin-bottom: 8px;
+    font-style: italic; color: var(--muted); font-size: 13px;
+  }
+  thead { background: #f3f3f3; border-bottom: 2px solid var(--border-strong); }
+  th {
+    text-align: left; padding: 8px 10px;
+    font-weight: 600; color: var(--fg);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody tr:hover { background: #fafafa; }
+  td code, dd code {
+    background: var(--code-bg);
+    padding: 1px 5px; border-radius: 3px;
+    font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+  }
+
+  /* Gap matrix — sticky header for long scroll */
+  table.gap-matrix thead {
+    position: sticky; top: 0; z-index: 5;
+    background: #f3f3f3;
+  }
+  table.gap-matrix td:nth-child(8),
+  table.gap-matrix td:nth-child(9) { min-width: 280px; }
+  table.gap-matrix em { font-style: italic; color: var(--muted); }
+  .evidence-cell code { display: inline-block; margin: 1px 2px; }
+
+  /* Action list */
+  ol.action-list { padding-left: 24px; }
+  ol.action-list li { margin: 12px 0; padding: 8px 12px; background: #fcfcfc; border-left: 3px solid var(--border-strong); border-radius: 4px; }
+  ol.action-list li .action-candidate { margin: 6px 0 0 0; font-size: 13px; }
+  ol.action-list li.moscow-Must { border-left-color: var(--moscow-must); }
+  ol.action-list li.moscow-Should { border-left-color: var(--moscow-should); }
+  p.action-empty { font-style: italic; color: var(--muted); padding: 8px 0; }
+
+  /* Per-dimension narrative */
+  section.dimension-narrative {
+    margin: 24px 0;
+    padding: 16px 20px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  section.dimension-narrative h3 { margin: 0 0 12px 0; font-size: 17px; }
+  article.finding {
+    margin: 12px 0;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    background: #fcfcfc;
+  }
+  article.finding.moscow-Must { border-left-color: var(--moscow-must); }
+  article.finding.moscow-Should { border-left-color: var(--moscow-should); }
+  article.finding.moscow-Could { border-left-color: var(--moscow-could); }
+  article.finding.moscow-Wont { border-left-color: var(--moscow-wont); }
+  article.finding h4 {
+    margin: 0 0 10px 0; padding: 0;
+    color: var(--fg);
+    text-transform: none; letter-spacing: 0;
+    font-size: 14px; font-weight: 600;
+  }
+  article.finding h4 code {
+    background: var(--code-bg);
+    padding: 1px 6px; border-radius: 3px; font-size: 12px;
+  }
+  dl.finding-fields {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 6px 14px;
+    margin: 0; font-size: 13px;
+  }
+  dl.finding-fields dt {
+    color: var(--muted); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600;
+  }
+  dl.finding-fields dd { margin: 0; }
+  dl.finding-fields dd em { color: var(--fg); font-style: italic; }
+
+  /* Diagnostics */
+  details.diagnostics-toggle {
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 14px;
+    margin: 12px 0;
+  }
+  details.diagnostics-toggle summary {
+    cursor: pointer;
+    color: var(--muted);
+    font-size: 13px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    padding: 6px 0;
+  }
+  details.diagnostics-toggle[open] summary { border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+  details.diagnostics-toggle h4 { margin: 14px 0 6px 0; }
+
+  /* Responsive */
+  @media (max-width: 720px) {
+    main { padding: 16px 18px 48px; }
+    .meta-grid { grid-template-columns: 1fr; }
+    dl.finding-fields { grid-template-columns: 1fr; }
+    dl.finding-fields dt { margin-top: 6px; }
+  }
+
+  @media print {
+    body { background: #ffffff; }
+    main { max-width: 100%; padding: 0; }
+    .toc, .back-to-top { display: none; }
+    details.diagnostics-toggle[open], details.diagnostics-toggle { padding: 0; border: none; }
+    details.diagnostics-toggle > * { display: block !important; }
+    details.diagnostics-toggle summary { display: none; }
+    section { box-shadow: none; border: 1px solid #cccccc; page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <header>
+    <h1 id="top">{{TITLE}}</h1>
+    <p class="reviewer-identity"><em>{{REVIEWER_IDENTITY}}</em></p>
+    <div class="meta-grid">
+      <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+      <div><dt>Generated at</dt><dd>{{GENERATED_AT}}</dd></div>
+      <div><dt>Target</dt><dd>{{TARGET}}</dd></div>
+      <div><dt>Sources consumed</dt><dd>{{SOURCES_CONSUMED_COUNT}}</dd></div>
+      <div><dt>Sources skipped</dt><dd>{{SOURCES_SKIPPED_COUNT}}</dd></div>
+      <div><dt>Topics walked</dt><dd>{{TOPICS_TOTAL_COUNT}}</dd></div>
+      <div><dt>Manifest fingerprint</dt><dd><code>{{MANIFEST_FINGERPRINT}}</code></dd></div>
+      <div><dt>Template fingerprint</dt><dd><code>{{TOPICS_FINGERPRINT}}</code></dd></div>
+    </div>
+  </header>
+
+  <nav class="toc" aria-label="Table of contents">
+    <span class="toc-label">On this page</span>
+    <ol>
+      <li><a href="#executive-summary">Executive summary</a></li>
+      <li><a href="#coverage-heatmap">Coverage heatmap</a></li>
+      <li><a href="#gap-matrix">Gap matrix</a></li>
+      <li><a href="#action-list">Action list</a></li>
+      <li><a href="#per-dimension">Per-dimension narrative</a></li>
+      <li><a href="#source-roster">Source roster</a></li>
+      <li><a href="#diagnostics">Diagnostics</a></li>
+    </ol>
+  </nav>
+
+  <section id="executive-summary">
+    <h2>Executive summary</h2>
+    <p><strong>Verdict:</strong> <span class="verdict verdict-{{VERDICT}}">{{VERDICT}}</span></p>
+    <h3>Gap counts (by MoSCoW)</h3>
+    <ul>
+      <li><span class="chip moscow-Must">Must</span> &nbsp; {{GAP_COUNT_MUST}}</li>
+      <li><span class="chip moscow-Should">Should</span> &nbsp; {{GAP_COUNT_SHOULD}}</li>
+      <li><span class="chip moscow-Could">Could</span> &nbsp; {{GAP_COUNT_COULD}}</li>
+      <li><span class="chip moscow-Wont">Won't</span> &nbsp; {{GAP_COUNT_WONT}}</li>
+    </ul>
+    <p><strong>Total gap rows:</strong> {{GAP_COUNT_TOTAL}} (Partial + Missing only)</p>
+    <h3>Coverage counts (by state)</h3>
+    <ul>
+      <li><span class="chip coverage-Covered">Covered</span> &nbsp; {{COVERAGE_COVERED}}</li>
+      <li><span class="chip coverage-Partial">Partial</span> &nbsp; {{COVERAGE_PARTIAL}}</li>
+      <li><span class="chip coverage-Missing">Missing</span> &nbsp; {{COVERAGE_MISSING}}</li>
+      <li><span class="chip coverage-Standard-rule">Standard-rule</span> &nbsp; {{COVERAGE_STANDARD_RULE}}</li>
+      <li><span class="chip coverage-Out-of-scope">Out-of-scope</span> &nbsp; {{COVERAGE_OUT_OF_SCOPE}}</li>
+      <li><span class="chip coverage-NA">N/A</span> &nbsp; {{COVERAGE_NA}}</li>
+    </ul>
+    <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+  </section>
+
+  <section id="coverage-heatmap">
+    <h2>Coverage heatmap</h2>
+    <p>Rows: top-level template sections (<code>§1</code> through <code>§10</code>). Columns: coverage states. Cell value: topic count. Cell intensity: severity-weighted (Missing × high gap count = darkest red).</p>
+    {{COVERAGE_HEATMAP_SVG}}
+    <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+  </section>
+
+  <section id="gap-matrix">
+    <h2>Gap matrix</h2>
+    <p>One row per gap (<code>Partial</code> or <code>Missing</code> coverage only). Rows are ordered by MoSCoW priority ascending (<code>Must</code> first), then <code>GAP-NN</code> ascending. <code>Covered</code> / <code>Standard-rule</code> / <code>Out-of-scope</code> / <code>N/A</code> topics are surfaced in the heatmap and the embedded JSON block, not here.</p>
+    <table class="gap-matrix">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>§ Topic</th>
+          <th>Dimension</th>
+          <th>Coverage</th>
+          <th>Impact</th>
+          <th>Confidence</th>
+          <th>MoSCoW</th>
+          <th>Recommendation</th>
+          <th>Candidate Requirement</th>
+          <th>Evidence</th>
+          <th>Also see</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{GAP_MATRIX_TABLE_BODY}}
+      </tbody>
+    </table>
+    <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+  </section>
+
+  <section id="action-list">
+    <h2>Action list (Must &amp; Should)</h2>
+    <p>The shall-form Candidate Requirement for every <code>Must</code> and <code>Should</code> gap. Copy this list for downstream consumption, or copy the produced HTML into <code>input/</code> for direct <code>/requirements</code> re-ingestion (the embedded JSON block carries the same data).</p>
+    {{ACTION_LIST_BLOCK}}
+    <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+  </section>
+
+  <section id="per-dimension">
+    <h2>Per-dimension narrative</h2>
+    <p>One sub-section per dimension that produced ≥1 gap row. Dimensions with zero gap rows are omitted (their coverage cells still appear in the heatmap and the JSON block).</p>
+    {{PER_DIMENSION_NARRATIVE}}
+    <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+  </section>
+
+  <section id="source-roster">
+    <h2>Source roster</h2>
+    {{SOURCE_ROSTER_BLOCK}}
+    <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+  </section>
+
+  <section id="diagnostics">
+    <h2>Diagnostics</h2>
+    {{DIAGNOSTICS_BLOCK}}
+    <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+  </section>
+
+  {{STRUCTURED_JSON_BLOCK}}
+
+</main>
+</body>
+</html>

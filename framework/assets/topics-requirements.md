@@ -8,46 +8,61 @@
 - `framework/assets/template-requirements.md` — section skeleton mirrors this list one-to-one.
 - `framework/agents/requirements-drafter.md` — drives extraction + categorisation + citation scope.
 - `framework/skills/completeness-gap-pass.md` — per-topic completeness checks (Tier A/B/C/D rules).
+- `framework/agents/reviews-inputs/gap-analysis-reviewer.md` — reads the `Dimension` column verbatim at runtime to classify per-topic gaps emitted against raw inputs (SPoT-owned dimension classification).
 
-**How used:** Loaded by drafter + gap-pass skill. Authoring a new topic requires updating this file, the template, and the gap-pass rules together.
+**How used:** Loaded by drafter + gap-pass skill + gap-analysis reviewer. Authoring a new topic requires updating this file, the template, and the gap-pass rules together; the new topic's row must include a `Dimension` value from the closed taxonomy.
+
+**`Dimension` column (closed taxonomy, eight values).** Each topic is classified into exactly one dimension so consumers (currently the `/review-inputs` `gap-analysis-reviewer`; the `completeness-gap-pass` skill may consume it for AI-SUGGESTED prioritisation in future) can group, rank, and report per-dimension without maintaining a separate per-topic dimension table. The closed values:
+
+- `Stakeholder` — personas, roles, actor identities, RBAC scopes (§3, §4, §6.5).
+- `Scope` — context, boundaries (in/out/deferred), assumptions, architectural implications, source UI references (§0.1, §1, §1.5–§1.7, §8).
+- `Domain` — concepts, relationships, aggregates, lifecycles, state transitions, glossary (§2.*, §9).
+- `Functional` — features, business rules, validation rules, UI feature needs, reporting (§6.1–§6.4, §6.7).
+- `Process` — task flows, edge/empty/error states, notification points (§5, §6.4.5, §6.8).
+- `Non-functional` — session UX, FE performance budgets, accessibility, volumes (§6.6.1, §6.6.2, §6.6.5, §10).
+- `Compliance` — compliance UI behaviour, audit-trail UI feature (§6.6.4, §6.9).
+- `Integration` — consumed backend contracts (§6.10).
+- `Data` — data shapes consumed by the FE, derivations (§7, §7.X).
+
+Adding a new topic ships its `Dimension` value with the row; consumers read the value verbatim and never invent a classification.
 
 ## Section list (mirrors template 1:1)
 
-| § | Topic | Emit predicate |
-| --- | --- | --- |
-| 0.1 | Target-mode applicability reference | always |
-| 1 | Application context | always |
-| 1.5 | Scope (in / out / deferred) | always |
-| 1.6 | Assumptions & dependencies | always |
-| 1.7 | Architectural implications | always (drafter-derived) |
-| 2.1 | Concepts | always |
-| 2.2 | Relationships | always |
-| 2.3 | Aggregates & lifecycles | always |
-| 2.4 | Diagram (Mermaid) | always |
-| 2.5 | State-transition matrix | conditional — ≥1 aggregate has >2 lifecycle states |
-| 3 | Target users (personas) | always |
-| 4.1 | Goals catalogue | always |
-| 4.2 | Stories by persona | always |
-| 5 | Task flows | always |
-| 6.1 | Functional requirements | always |
-| 6.2 | Business rules | always |
-| 6.3 | Validation rules | always (may be empty) |
-| 6.4 | UI feature needs (formerly "User-facing") | always |
-| 6.4.5 | Edge, empty & error states | conditional — ≥1 §5 flow has `exception_paths` OR ≥1 §6.4 row implies state branching |
-| 6.5 | Access control (RBAC) | always |
-| 6.6.1 | Session UX | always |
-| 6.6.2 | FE performance budgets | always |
-| 6.6.4 | Compliance UI behaviour | always (may be `[OUT-OF-SCOPE]` if not applicable) |
-| 6.6.5 | Accessibility | always |
-| 6.7 | Reporting feature needs | conditional — inputs name reports/dashboards/exports, or domain implies them |
-| 6.8 | Notification points | conditional — inputs name notifications/alerts, or domain implies them |
-| 6.9 | Audit-trail UI feature | conditional — §6.6.4 or inputs call for user-visible audit history |
-| 6.10 | Consumed backend contracts | always (sub-block matches `manifest.target`) |
-| 7 | Data shapes consumed by the FE | always |
-| 7.X | Derivations | conditional — ≥1 §2.1 concept marked `Persistence = derived` |
-| 8 | Source UI references | always |
-| 9 | Key terminology | always |
-| 10 | Volumes | always |
+| § | Topic | Emit predicate | Dimension |
+| --- | --- | --- | --- |
+| 0.1 | Target-mode applicability reference | always | Scope |
+| 1 | Application context | always | Scope |
+| 1.5 | Scope (in / out / deferred) | always | Scope |
+| 1.6 | Assumptions & dependencies | always | Scope |
+| 1.7 | Architectural implications | always (drafter-derived) | Scope |
+| 2.1 | Concepts | always | Domain |
+| 2.2 | Relationships | always | Domain |
+| 2.3 | Aggregates & lifecycles | always | Domain |
+| 2.4 | Diagram (Mermaid) | always | Domain |
+| 2.5 | State-transition matrix | conditional — ≥1 aggregate has >2 lifecycle states | Domain |
+| 3 | Target users (personas) | always | Stakeholder |
+| 4.1 | Goals catalogue | always | Stakeholder |
+| 4.2 | Stories by persona | always | Stakeholder |
+| 5 | Task flows | always | Process |
+| 6.1 | Functional requirements | always | Functional |
+| 6.2 | Business rules | always | Functional |
+| 6.3 | Validation rules | always (may be empty) | Functional |
+| 6.4 | UI feature needs (formerly "User-facing") | always | Functional |
+| 6.4.5 | Edge, empty & error states | conditional — ≥1 §5 flow has `exception_paths` OR ≥1 §6.4 row implies state branching | Process |
+| 6.5 | Access control (RBAC) | always | Stakeholder |
+| 6.6.1 | Session UX | always | Non-functional |
+| 6.6.2 | FE performance budgets | always | Non-functional |
+| 6.6.4 | Compliance UI behaviour | always (may be `[OUT-OF-SCOPE]` if not applicable) | Compliance |
+| 6.6.5 | Accessibility | always | Non-functional |
+| 6.7 | Reporting feature needs | conditional — inputs name reports/dashboards/exports, or domain implies them | Functional |
+| 6.8 | Notification points | conditional — inputs name notifications/alerts, or domain implies them | Process |
+| 6.9 | Audit-trail UI feature | conditional — §6.6.4 or inputs call for user-visible audit history | Compliance |
+| 6.10 | Consumed backend contracts | always (sub-block matches `manifest.target`) | Integration |
+| 7 | Data shapes consumed by the FE | always | Data |
+| 7.X | Derivations | conditional — ≥1 §2.1 concept marked `Persistence = derived` | Data |
+| 8 | Source UI references | always | Scope |
+| 9 | Key terminology | always | Domain |
+| 10 | Volumes | always | Non-functional |
 
 Sections retired vs. prior versions: **§6.6.3 Availability** (backend concern; lives in sibling backend doc). The §6.3 slot — previously retired as `Data` (subsumed into §7 + §6.4) — is now **reinstated** as **Validation rules** (visible field-level UI validation; backend invariants remain in §6.2 / sibling backend doc).
 
