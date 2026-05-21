@@ -23,9 +23,35 @@ methodologies:
   #     diagnostics; HTML survives markitdown round-trip for /requirements
   #     re-ingestion with end-to-end audit trail through preserved
   #     [SRC: <filename>] markers).
+  #   - `task-analysis` (Hierarchical Task Analysis — Annett & Duncan 1967,
+  #     Stanton 2006 — augmented with a Sub-Goal Template-derived
+  #     per-terminal information layer (Ormerod & Shepherd 2004); adapted
+  #     for raw consultant inputs as a single-actor, decomposition-first,
+  #     document-only extraction; numbered goal/sub-goal/operation tree
+  #     with mandatory Plans (sequence/selection/iteration/concurrent/
+  #     discretionary) on every non-terminal; per-terminal data nouns
+  #     (read/write directions); [SRC: <filename>] citations on every
+  #     non-inferred node, [AI-SUGGESTED: AI-NNN | blocking|non-blocking]
+  #     on inferred non-terminals + inferred Plans only — inferred
+  #     terminals forbidden (Diaper & Stanton 2004 anti-confabulation
+  #     rule); silent-Plan branches escalate through a three-tier process,
+  #     never silently default to `sequence`; self-contained HTML with
+  #     embedded <pre><code class="language-yaml"> structured tree that
+  #     survives markitdown HTML→MD conversion as fenced code, making
+  #     the artefact the primary structural-input-handoff to the
+  #     /requirements drafter when copied into input/ for re-ingestion).
   - { name: glossary, status: future }
   - { name: jtbd, status: future }
   - { name: five-whys, status: future }
+  - name: task-analysis
+    status: mvp
+    description: Hierarchical Task Analysis (HTA) of raw consultant inputs — decomposes user goals into a numbered sub-goal / operation tree with mandatory Plans (sequence / selection / iteration / concurrent / discretionary) on every non-terminal and per-terminal data-noun annotations (Sub-Goal Template information layer). Designed to be re-fed into /requirements as a secondary input — the embedded YAML structured tree becomes a bijection target for the drafter's completeness gap pass, Plans seed acceptance-criteria branches, and information-requirements hint at §7 Data entities.
+    output_path: analyse-inputs/TASK-ANALYSIS/task-analysis.html
+    reference_asset: framework/assets/analyses-inputs/task-analysis-reference.md
+    template_asset: framework/assets/analyses-inputs/template-task-analysis.html
+    map_skill: framework/skills/map-task-analysis-from-inputs-to-ui.md
+    analyser_agent: framework/agents/analyses-inputs/task-analysis-analyser.md
+    character: framework/assets/characters/task-analysis-inputs-analysis.md
   - name: thematic-analysis
     status: mvp
     description: Surfaces the patterns the consultant's raw inputs already carry as codes, themes, and a theme-map — and bridges each theme to candidate requirements before /requirements drafts them.

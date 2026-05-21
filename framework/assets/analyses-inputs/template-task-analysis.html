@@ -1,0 +1,1065 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses-inputs/task-analysis-analyser.md.
+
+  Purpose: HTML/CSS skeleton for a Hierarchical Task Analysis (HTA) of raw
+  consultant inputs (Annett & Duncan 1967; Stanton 2006), with an embedded
+  Sub-Goal Template-derived information layer (Ormerod & Shepherd 2004).
+  The artefact decomposes one or more user goals into numbered sub-goal /
+  operation hierarchies, attaches a Plan (sequence / selection / iteration /
+  concurrent / discretionary) to every non-terminal, and annotates every
+  terminal operation with the data nouns the actor reads or writes.
+
+  Self-contained: `<!doctype html>` + inline `<style>` + `<body>`. No
+  external CSS / JS / fonts / CDN dependencies. Viewable by opening
+  `file://` in a browser; shareable with clients without tooling.
+  Re-ingestible into `input/` for the /requirements drafter via markitdown
+  conversion — the structured YAML tree lives in a <pre><code> block
+  (which survives the HTML→MD round-trip as a fenced code block, unlike
+  <script type="application/json"> which is stripped). Inline
+  [SRC: <filename>] markers are plain text inside cell / node content
+  and survive the round-trip cleanly.
+
+  Section order (top-to-bottom):
+    1. Compact overview (id="overview")        — title, counts caption,
+                                                 jump-links to goals.
+    2. Goal summary (id="goal-summary")        — {{GOAL_SUMMARY_BLOCKS}}.
+                                                 One block per top-level
+                                                 goal: trigger, preconditions,
+                                                 success outcome, all cited.
+    3. Visual tree (id="visual-tree")          — {{VISUAL_TREE_BLOCKS}}.
+                                                 Nested <ol>/<details> per
+                                                 goal; Plan-type badges on
+                                                 non-terminals; [leaf] chips
+                                                 on terminals; red border +
+                                                 [AI-SUGGESTED] chip on
+                                                 inferred nodes.
+    4. Structured tree (id="structured-tree")  — {{STRUCTURED_YAML_BLOCK}}.
+                                                 The <pre><code class="language-yaml">
+                                                 block carrying the full
+                                                 machine-readable tree (this
+                                                 is what the downstream
+                                                 /requirements drafter
+                                                 reads after the consultant
+                                                 copies the artefact into
+                                                 input/).
+    5. Plans table (id="plans-table")          — {{PLANS_TABLE_BODY}}.
+                                                 Every non-terminal's Plan
+                                                 in tabular form, with
+                                                 plan-type colour pills.
+    6. Information requirements (id="information-table")
+                                               — {{INFORMATION_TABLE_BODY}}.
+                                                 Every terminal's data
+                                                 nouns × direction × sources.
+    7. Gaps & inferred nodes (id="gaps")       — {{GAPS_BLOCK}}.
+                                                 Every inferred sub-goal +
+                                                 every [GAP-PLAN-SILENT]
+                                                 branch, classified
+                                                 blocking/non-blocking with
+                                                 the suggested resolver
+                                                 prompt and source span.
+    8. Diagnostics (id="diagnostics")          — <details> wrapper, collapsed
+                                                 by default. Counts summary,
+                                                 8 gate results, source
+                                                 roster, run history.
+    9. Next-steps banner (after diagnostics)   — instructions to copy the
+                                                 artefact into input/ for
+                                                 /requirements re-ingestion.
+
+  Placeholders the analyser substitutes (string substitution; all values
+  pre-escaped for HTML; YAML inside <pre><code> is escaped as plain text):
+
+    {{TITLE}}                  — short title (e.g. "Task Analysis — Project X").
+    {{DOMAIN}}                 — domain string (from manifest meta if declared, else "(not declared)").
+    {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
+    {{MANIFEST_SHA256}}        — sha256 of requirements/source-manifest.json at read time.
+    {{RUN_COUNT}}              — integer ≥ 1, increments per run.
+    {{TARGET}}                 — "prototype" | "application" | "(not declared in manifest)".
+    {{GOAL_COUNT}}             — number of top-level goals (typically 1; 2+ on multi-goal runs).
+    {{LEVEL1_COUNT}}           — total level-1 sub-goals across all goals.
+    {{TERMINAL_COUNT}}         — total terminal operations.
+    {{NON_TERMINAL_COUNT}}     — total non-terminal nodes (goals + sub-goals).
+    {{PLAN_COUNT}}             — total Plans (= NON_TERMINAL_COUNT).
+    {{INFORMATION_REQ_COUNT}}  — total information-requirement entries across all terminals.
+    {{INFERRED_COUNT}}         — total inferred nodes + inferred Plans.
+    {{BLOCKING_GAP_COUNT}}     — total [AI-SUGGESTED: ... | blocking] markers.
+    {{NON_BLOCKING_GAP_COUNT}} — total [AI-SUGGESTED: ... | non-blocking] markers.
+    {{TOC_GOALS}}              — inline anchor list <a href="#goal-{goal-slug}">{goal-label}</a>
+                                 (separator " · "); one per goal.
+    {{GOAL_SUMMARY_BLOCKS}}    — pre-rendered <article class="goal-summary-block"> blocks per
+                                 GOAL SUMMARY BLOCK SCHEMA below; one per goal.
+    {{VISUAL_TREE_BLOCKS}}     — pre-rendered <article class="visual-tree-block"> blocks per
+                                 VISUAL TREE BLOCK SCHEMA below; one per goal.
+    {{STRUCTURED_YAML_BLOCK}}  — pre-rendered <section id="structured-tree"> containing the
+                                 <pre><code class="language-yaml"> block (full YAML payload
+                                 per STRUCTURED YAML SCHEMA below).
+    {{PLANS_TABLE_BODY}}       — pre-rendered <tbody> rows for the Plans table.
+    {{INFORMATION_TABLE_BODY}} — pre-rendered <tbody> rows for the Information requirements table.
+    {{GAPS_BLOCK}}             — pre-rendered <section id="gaps"> content (blocking-list +
+                                 non-blocking-list + silent-Plan-list, each item with the
+                                 suggested resolver prompt and the source span).
+    {{DIAGNOSTICS_BLOCK}}      — pre-rendered <section class="diagnostics"> per DIAGNOSTICS
+                                 SCHEMA below.
+
+  Output: analyse-inputs/TASK-ANALYSIS/task-analysis.html.
+
+  GOAL SUMMARY BLOCK SCHEMA — each block the analyser emits has the shape:
+
+      <article class="goal-summary-block"
+               id="goal-{goal-slug}"
+               aria-labelledby="goal-{goal-slug}-title">
+        <h2 id="goal-{goal-slug}-title">
+          <span class="node-id">{{goal-id}}</span>
+          <span class="node-label">{{goal-label}}</span>
+          <small class="src-inline">[SRC: {{filename}}]</small>
+        </h2>
+        <dl class="goal-meta">
+          <div><dt>Trigger</dt><dd>{{trigger}} [SRC: {{filename}}]</dd></div>
+          <div><dt>Preconditions</dt><dd>{{precondition-list}}</dd></div>
+          <div><dt>Success outcome</dt><dd>{{completion}} [SRC: {{filename}}]</dd></div>
+        </dl>
+      </article>
+
+  VISUAL TREE BLOCK SCHEMA — each block the analyser emits has the shape:
+
+      <article class="visual-tree-block"
+               id="tree-{goal-slug}"
+               aria-labelledby="tree-{goal-slug}-title">
+        <h2 id="tree-{goal-slug}-title">
+          <span class="node-id">{{goal-id}}</span>
+          {{goal-label}}
+        </h2>
+
+        <ol class="hta-tree">
+          <!-- Level-0 (the root) is rendered as the <h2> above; <ol> starts at level 1.
+               Each <li> carries: node-id, label, source chips, Plan badge (non-terminal)
+               OR [leaf] chip (terminal), [AI-SUGGESTED] chip (inferred nodes only).
+               <details>/<summary> used for non-terminal nodes so the tree is collapsible. -->
+          <li class="hta-node hta-non-terminal plan-sequence">
+            <details open>
+              <summary>
+                <span class="node-id">1</span>
+                <span class="node-label">{{label}}</span>
+                <span class="plan-badge plan-badge-seq" title="Plan: sequence">SEQ</span>
+                <span class="src-chip">[SRC: {{filename}}]</span>
+              </summary>
+              <ol>
+                <li class="hta-node hta-terminal">
+                  <span class="node-id">1.1</span>
+                  <span class="node-label">{{label}}</span>
+                  <span class="leaf-chip">leaf</span>
+                  <span class="src-chip">[SRC: {{filename}}]</span>
+                </li>
+                ...
+              </ol>
+            </details>
+          </li>
+          <li class="hta-node hta-non-terminal plan-selection inferred">
+            <details open>
+              <summary>
+                <span class="node-id">2</span>
+                <span class="node-label">{{label}}</span>
+                <span class="plan-badge plan-badge-sel" title="Plan: selection">SEL</span>
+                <span class="ai-chip">AI-SUGGESTED · blocking · AI-001</span>
+              </summary>
+              <ol>...</ol>
+            </details>
+          </li>
+          ...
+        </ol>
+      </article>
+
+  STRUCTURED YAML SCHEMA — the <pre><code class="language-yaml"> block contains:
+
+      task_analysis:
+        manifest_sha256: <hex>
+        generated_at: <ISO-8601 UTC>
+        run_count: <int>
+        target: prototype | application | (not declared in manifest)
+        goals:
+          - id: "0"
+            parent_id: null
+            label: <verb-phrase, user-side subject>
+            is_operation: false
+            trigger: <event with [SRC: <filename>]>
+            preconditions: [<list with [SRC: <filename>]>]
+            completion: <outcome with [SRC: <filename>]>
+            plan:
+              type: sequence | selection | iteration | concurrent | discretionary
+              expression: <Annett-style English>
+              branches: []                          # populated for selection/iteration
+              sources: ["[SRC: <filename>]", ...]
+              inferred: false
+              confidence: high | medium | low
+            information_required: []                # empty for non-terminals
+            sources: ["[SRC: <filename>]", ...]
+            inferred: false
+            confidence: high | medium | low
+            children: ["1", "2", ...]
+          - id: "1"
+            parent_id: "0"
+            label: ...
+            ...
+          - id: "1.1"
+            parent_id: "1"
+            label: ...
+            is_operation: true
+            plan: null
+            information_required:
+              - noun: <data noun>
+                direction: read | write
+                sources: ["[SRC: <filename>]", ...]
+            sources: ["[SRC: <filename>]", ...]    # ≥ 1 — terminals must cite
+            inferred: false                         # must be false for terminals
+            children: []
+
+  PLANS TABLE ROW SCHEMA — each <tr> in {{PLANS_TABLE_BODY}}:
+
+      <tr class="plan-row plan-{type}">
+        <td class="node-id">{{node-id}}</td>
+        <td class="parent-label">{{parent-label}}</td>
+        <td><span class="plan-type-pill plan-type-{type}">{{TYPE}}</span></td>
+        <td class="plan-expression">{{expression}}</td>
+        <td class="source-citations">{{[SRC: <filename>] | [AI-SUGGESTED: ...]}}</td>
+        <td class="inferred-flag">{{yes | no}}</td>
+      </tr>
+
+  INFORMATION TABLE ROW SCHEMA — each <tr> in {{INFORMATION_TABLE_BODY}}:
+
+      <tr class="info-row direction-{direction}">
+        <td class="node-id">{{terminal-id}}</td>
+        <td class="terminal-label">{{terminal-label}}</td>
+        <td><span class="direction-pill direction-{direction}">{{DIRECTION}}</span></td>
+        <td class="noun">{{noun}}</td>
+        <td class="source-citations">{{[SRC: <filename>] ...}}</td>
+      </tr>
+
+  GAPS BLOCK SCHEMA — {{GAPS_BLOCK}} contains:
+
+      <section id="gaps" aria-labelledby="gaps-title">
+        <h2 id="gaps-title">Gaps and inferred nodes</h2>
+
+        <section class="gaps-blocking">
+          <h3>Blocking gaps ({{n_blocking}})</h3>
+          <ul>
+            <li class="gap-item gap-blocking">
+              <span class="ai-id">AI-001</span>
+              <span class="node-id">2.3</span>
+              <span class="node-label">{{label}}</span>
+              <p class="gap-prompt">{{suggested consultant prompt}}</p>
+              <p class="gap-span">Source span: {{verbatim ≤ 200 chars from source}} [SRC: {{filename}}]</p>
+            </li>
+            ...
+          </ul>
+        </section>
+
+        <section class="gaps-non-blocking">
+          <h3>Non-blocking gaps ({{n_non_blocking}})</h3>
+          <ul>...</ul>
+        </section>
+
+        <section class="gaps-plan-silent">
+          <h3>Silent-Plan branches ({{n_silent}})</h3>
+          <ul>
+            <li class="gap-item gap-plan-silent">
+              <span class="node-id">{{parent-id}}</span>
+              <span class="node-label">{{parent-label}}</span>
+              <p class="gap-prompt">Coordination silent in inputs. Three-tier escalation: {{outcome}}.</p>
+            </li>
+            ...
+          </ul>
+        </section>
+      </section>
+
+  DIAGNOSTICS SCHEMA — {{DIAGNOSTICS_BLOCK}} contains:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>Task analysis — {{goal_count}} goals, {{terminal_count}} terminal operations, {{plan_count}} Plans, {{information_req_count}} information requirements, {{inferred_count}} inferred nodes ({{blocking_gap_count}} blocking).</p>
+        <ul class="gate-results">
+          <li class="check-pass|check-fail">Gate 1 — Citation completeness.</li>
+          <li class="check-pass|check-fail">Gate 2 — No inferred terminals.</li>
+          <li class="check-pass|check-fail">Gate 3 — No UI-noun labels at non-terminals.</li>
+          <li class="check-pass|check-fail">Gate 4 — Every non-terminal has a Plan with provenance.</li>
+          <li class="check-pass|check-fail">Gate 5 — Decomposition discipline (depth ≤ 5, ≥ 2 children per non-terminal).</li>
+          <li class="check-pass|check-fail">Gate 6 — Selection-Plan and iteration-Plan completeness.</li>
+          <li class="check-pass|check-fail">Gate 7 — Minimum-decomposition rule (≥ 2 terminals per goal).</li>
+          <li class="check-pass|check-fail">Gate 8 — Manifest fingerprint + source roster.</li>
+        </ul>
+        <section class="source-roster">
+          <h3>Source roster</h3>
+          <table class="consumed">
+            <thead><tr><th>filename</th><th>tier</th><th>sha256</th><th>citation count</th></tr></thead>
+            <tbody>...</tbody>
+          </table>
+          <table class="skipped">
+            <thead><tr><th>filename</th><th>reason</th></tr></thead>
+            <tbody>...</tbody>
+          </table>
+        </section>
+        <section class="run-history">
+          <h3>Run history</h3>
+          <ul>
+            <li>Run {{n}} — {{ISO-date}} — {{deltas}}.</li>
+            ...
+          </ul>
+        </section>
+      </section>
+
+  CSS classes used by the analyser:
+    .goal-summary-block          — outer container per goal in #goal-summary.
+    .goal-meta                   — <dl> with trigger / preconditions / outcome.
+    .visual-tree-block           — outer container per goal in #visual-tree.
+    .hta-tree                    — root <ol> of the visual tree.
+    .hta-node                    — every <li>.
+    .hta-non-terminal            — non-terminal nodes.
+    .hta-terminal                — terminal nodes.
+    .plan-sequence
+    .plan-selection
+    .plan-iteration
+    .plan-concurrent
+    .plan-discretionary          — applied to <li class="hta-non-terminal"> per Plan type.
+    .inferred                    — applied to any <li> with inferred: true. Adds red border.
+    .node-id                     — small monospace id chip ("1.1.2").
+    .node-label                  — node label text.
+    .src-chip                    — small inline [SRC: filename] chip.
+    .ai-chip                     — [AI-SUGGESTED · blocking · AI-NNN] chip (red).
+    .leaf-chip                   — [leaf] chip on terminals.
+    .plan-badge                  — outer pill for plan-type badges.
+    .plan-badge-seq              — sequence pill (blue).
+    .plan-badge-sel              — selection pill (amber).
+    .plan-badge-iter             — iteration pill (green).
+    .plan-badge-conc             — concurrent pill (purple).
+    .plan-badge-disc             — discretionary pill (grey).
+    .plans-table, .info-table    — Tier-1 tables.
+    .plan-row, .info-row         — table rows.
+    .plan-type-pill              — pill in Plan table cell.
+    .plan-type-sequence
+    .plan-type-selection
+    .plan-type-iteration
+    .plan-type-concurrent
+    .plan-type-discretionary     — colour variants for the pill.
+    .direction-pill              — pill in Information table cell.
+    .direction-read              — read (blue).
+    .direction-write             — write (orange).
+    .gap-blocking                — red highlight on blocking gap item.
+    .gap-non-blocking            — amber highlight on non-blocking gap item.
+    .gap-plan-silent             — grey highlight on silent-Plan gap item.
+    .diagnostics                 — diagnostics section content (wrapped in <details>).
+    .check-pass / .check-fail    — gate result rows.
+    .next-steps                  — final banner after diagnostics with the copy-to-input
+                                   instruction.
+
+  Content TBD-able by the analyser:
+    The visual tree, the YAML structured block, the Plans table body, the
+    Information table body, the Gaps block, the Diagnostics block, and the
+    per-goal summary blocks are fully driven by the analyser. The CSS below
+    is fixed scaffolding and should not be edited by the analyser — only
+    the documented {{placeholders}} are substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --card-bg: #ffffff;
+      --header-bg: #efefef;
+
+      /* Plan-type colours — used for badges, pills, and tree branch left-borders. */
+      --plan-seq-bg:   #e7f0fb;  --plan-seq-fg:   #0c2a44;  --plan-seq-border:   #2a6aa0;
+      --plan-sel-bg:   #fff5d6;  --plan-sel-fg:   #4a3a00;  --plan-sel-border:   #b48a00;
+      --plan-iter-bg:  #e6f4ea;  --plan-iter-fg:  #14422a;  --plan-iter-border:  #2a8a5a;
+      --plan-conc-bg:  #f3eafd;  --plan-conc-fg:  #2e1255;  --plan-conc-border:  #6a3aa0;
+      --plan-disc-bg:  #ececec;  --plan-disc-fg:  #2a2a2a;  --plan-disc-border:  #8a8a8a;
+
+      /* Direction colours for information-requirements table. */
+      --dir-read-bg:   #e7f0fb;  --dir-read-fg:   #0c2a44;
+      --dir-write-bg:  #fde8d6;  --dir-write-fg:  #5a2a00;
+
+      /* Gap / inferred colours. */
+      --inferred-bg:   #fff0f0;  --inferred-fg:   #8a1a1a;  --inferred-border:   #c44a4a;
+      --gap-blocking-bg:        #ffeaea;  --gap-blocking-fg:        #6a1212;  --gap-blocking-border:        #c44a4a;
+      --gap-non-blocking-bg:    #fff5d6;  --gap-non-blocking-fg:    #4a3a00;  --gap-non-blocking-border:    #b48a00;
+      --gap-plan-silent-bg:     #ecebe7;  --gap-plan-silent-fg:     #2a2820;  --gap-plan-silent-border:     #8a8a8a;
+
+      --src-marker-fg: #7a7a7a;
+      --leaf-bg: #ececec; --leaf-fg: #2a2a2a;
+
+      --pass-fg: #2a8a2a;
+      --fail-fg: #8a1a1a;
+
+      --next-steps-bg: #f0f7ff;
+      --next-steps-border: #2a6aa0;
+      --next-steps-fg: #0c2a44;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    code, pre, .node-id {
+      font-family: "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+    }
+
+    /* ------- compact overview ------- */
+
+    header#overview {
+      margin-bottom: 16px;
+    }
+    header#overview h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+    }
+    header#overview .caption {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 0 0 8px 0;
+      font-variant-numeric: tabular-nums;
+    }
+    nav.toc-goals {
+      font-size: 12px;
+      padding: 6px 10px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--border-strong);
+      border-radius: 4px;
+    }
+    nav.toc-goals strong {
+      color: var(--muted);
+      font-weight: 600;
+      margin-right: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 11px;
+    }
+    nav.toc-goals a {
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--border-strong);
+      margin: 0 4px;
+    }
+    nav.toc-goals a:hover { border-bottom-color: var(--fg); }
+    nav.toc-goals .sep { color: var(--muted); }
+
+    /* ------- goal summary (per top-level goal) ------- */
+
+    section#goal-summary {
+      margin-top: 16px;
+    }
+    section#goal-summary::before {
+      content: "Goal summary";
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .goal-summary-block {
+      padding: 14px 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .goal-summary-block h2 {
+      font-size: 16px;
+      margin: 0 0 8px 0;
+      font-weight: 600;
+    }
+    .goal-summary-block h2 .node-id {
+      display: inline-block;
+      padding: 2px 6px;
+      margin-right: 8px;
+      background: var(--header-bg);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .goal-summary-block h2 .src-inline {
+      color: var(--src-marker-fg);
+      font-weight: 400;
+      font-size: 12px;
+      margin-left: 8px;
+    }
+    .goal-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 4px 24px;
+      margin: 0;
+      font-size: 13px;
+    }
+    .goal-meta dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0 0 2px 0;
+    }
+    .goal-meta dd {
+      margin: 0 0 6px 0;
+    }
+
+    /* ------- visual tree (the primary review surface) ------- */
+
+    section#visual-tree {
+      margin-top: 24px;
+    }
+    section#visual-tree::before {
+      content: "Visual tree";
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    .visual-tree-block {
+      padding: 14px 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+    .visual-tree-block h2 {
+      font-size: 16px;
+      margin: 0 0 10px 0;
+      font-weight: 600;
+    }
+    .visual-tree-block h2 .node-id {
+      display: inline-block;
+      padding: 2px 6px;
+      margin-right: 8px;
+      background: var(--header-bg);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    ol.hta-tree, ol.hta-tree ol {
+      list-style: none;
+      margin: 0;
+      padding-left: 20px;
+      border-left: 1px solid var(--border);
+    }
+    ol.hta-tree {
+      padding-left: 8px;
+    }
+    li.hta-node {
+      margin: 6px 0;
+      padding: 4px 8px;
+      border-left: 3px solid transparent;
+      border-radius: 0 4px 4px 0;
+    }
+    li.hta-node.plan-sequence    { border-left-color: var(--plan-seq-border); }
+    li.hta-node.plan-selection   { border-left-color: var(--plan-sel-border); }
+    li.hta-node.plan-iteration   { border-left-color: var(--plan-iter-border); }
+    li.hta-node.plan-concurrent  { border-left-color: var(--plan-conc-border); }
+    li.hta-node.plan-discretionary { border-left-color: var(--plan-disc-border); }
+    li.hta-node.inferred {
+      border-left-color: var(--inferred-border);
+      background: var(--inferred-bg);
+    }
+
+    li.hta-node > details > summary,
+    li.hta-terminal {
+      cursor: default;
+      padding: 2px 0;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      user-select: text;
+    }
+    li.hta-node > details > summary {
+      cursor: pointer;
+    }
+    li.hta-node > details > summary::-webkit-details-marker {
+      color: var(--muted);
+    }
+    li.hta-node .node-id {
+      display: inline-block;
+      padding: 1px 5px;
+      background: var(--header-bg);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      min-width: 28px;
+      text-align: center;
+    }
+    li.hta-node .node-label {
+      font-weight: 500;
+    }
+    li.hta-node .src-chip {
+      color: var(--src-marker-fg);
+      font-size: 11px;
+    }
+    li.hta-node .leaf-chip {
+      display: inline-block;
+      padding: 1px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--leaf-fg);
+      background: var(--leaf-bg);
+      border-radius: 3px;
+    }
+    li.hta-node .ai-chip {
+      display: inline-block;
+      padding: 1px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--inferred-fg);
+      background: var(--inferred-bg);
+      border: 1px solid var(--inferred-border);
+      border-radius: 3px;
+    }
+
+    .plan-badge {
+      display: inline-block;
+      padding: 1px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-radius: 3px;
+      border: 1px solid transparent;
+    }
+    .plan-badge-seq  { background: var(--plan-seq-bg);  color: var(--plan-seq-fg);  border-color: var(--plan-seq-border); }
+    .plan-badge-sel  { background: var(--plan-sel-bg);  color: var(--plan-sel-fg);  border-color: var(--plan-sel-border); }
+    .plan-badge-iter { background: var(--plan-iter-bg); color: var(--plan-iter-fg); border-color: var(--plan-iter-border); }
+    .plan-badge-conc { background: var(--plan-conc-bg); color: var(--plan-conc-fg); border-color: var(--plan-conc-border); }
+    .plan-badge-disc { background: var(--plan-disc-bg); color: var(--plan-disc-fg); border-color: var(--plan-disc-border); }
+
+    /* ------- structured tree (YAML block) ------- */
+
+    section#structured-tree {
+      margin-top: 24px;
+    }
+    section#structured-tree::before {
+      content: "Structured tree (YAML — read by downstream /requirements drafter)";
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    section#structured-tree pre {
+      margin: 0;
+      padding: 14px 16px;
+      background: #1a1a1a;
+      color: #e8e8e8;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-x: auto;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    section#structured-tree pre code {
+      font-family: inherit;
+      color: inherit;
+      background: transparent;
+      padding: 0;
+      white-space: pre;
+    }
+
+    /* ------- Plans and Information tables ------- */
+
+    section#plans-table,
+    section#information-table {
+      margin-top: 24px;
+    }
+    section#plans-table::before {
+      content: "Plans";
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    section#information-table::before {
+      content: "Information requirements (per terminal operation)";
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    table.plans-table,
+    table.info-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    table.plans-table thead th,
+    table.info-table thead th {
+      background: var(--header-bg);
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      border-bottom: 2px solid var(--border-strong);
+    }
+    table.plans-table tbody td,
+    table.info-table tbody td {
+      padding: 8px 10px;
+      border-top: 1px solid var(--border);
+      vertical-align: top;
+    }
+    table.plans-table tbody td.node-id,
+    table.info-table tbody td.node-id {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    table.plans-table tbody td.source-citations,
+    table.info-table tbody td.source-citations {
+      color: var(--src-marker-fg);
+      font-size: 11px;
+    }
+    .plan-type-pill {
+      display: inline-block;
+      padding: 1px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-radius: 3px;
+      border: 1px solid transparent;
+    }
+    .plan-type-sequence       { background: var(--plan-seq-bg);  color: var(--plan-seq-fg);  border-color: var(--plan-seq-border); }
+    .plan-type-selection      { background: var(--plan-sel-bg);  color: var(--plan-sel-fg);  border-color: var(--plan-sel-border); }
+    .plan-type-iteration      { background: var(--plan-iter-bg); color: var(--plan-iter-fg); border-color: var(--plan-iter-border); }
+    .plan-type-concurrent     { background: var(--plan-conc-bg); color: var(--plan-conc-fg); border-color: var(--plan-conc-border); }
+    .plan-type-discretionary  { background: var(--plan-disc-bg); color: var(--plan-disc-fg); border-color: var(--plan-disc-border); }
+    .direction-pill {
+      display: inline-block;
+      padding: 1px 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-radius: 3px;
+    }
+    .direction-pill.direction-read  { background: var(--dir-read-bg);  color: var(--dir-read-fg); }
+    .direction-pill.direction-write { background: var(--dir-write-bg); color: var(--dir-write-fg); }
+
+    /* ------- gaps section ------- */
+
+    section#gaps {
+      margin-top: 24px;
+    }
+    section#gaps h2 {
+      font-size: 14px;
+      margin: 0 0 12px 0;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    section#gaps h3 {
+      font-size: 12px;
+      margin: 12px 0 6px 0;
+      font-weight: 600;
+    }
+    section#gaps ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    .gap-item {
+      padding: 8px 12px;
+      border-left: 3px solid;
+      border-radius: 0 4px 4px 0;
+      margin-bottom: 8px;
+      list-style: none;
+    }
+    .gap-item.gap-blocking      { background: var(--gap-blocking-bg);     border-left-color: var(--gap-blocking-border);     color: var(--gap-blocking-fg); }
+    .gap-item.gap-non-blocking  { background: var(--gap-non-blocking-bg); border-left-color: var(--gap-non-blocking-border); color: var(--gap-non-blocking-fg); }
+    .gap-item.gap-plan-silent   { background: var(--gap-plan-silent-bg);  border-left-color: var(--gap-plan-silent-border);  color: var(--gap-plan-silent-fg); }
+    .gap-item .ai-id {
+      display: inline-block;
+      padding: 1px 6px;
+      margin-right: 6px;
+      background: #fff;
+      border: 1px solid currentColor;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+    }
+    .gap-item .gap-prompt {
+      margin: 4px 0 0 0;
+      font-size: 13px;
+    }
+    .gap-item .gap-span {
+      margin: 4px 0 0 0;
+      font-size: 11px;
+      color: var(--src-marker-fg);
+      font-style: italic;
+    }
+
+    /* ------- diagnostics (collapsed, bottom) ------- */
+
+    details#diagnostics {
+      margin-top: 24px;
+    }
+    details#diagnostics > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details#diagnostics > summary::-webkit-details-marker { display: none; }
+    details#diagnostics > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details#diagnostics[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details#diagnostics[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
+    .diagnostics {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 0 0 6px 6px;
+      border-top: none;
+      background: #fff;
+      font-size: 12px;
+    }
+    .diagnostics > h2 { display: none; }
+    .diagnostics h3 {
+      font-size: 12px;
+      margin: 12px 0 6px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .diagnostics > ul.gate-results {
+      margin: 0 0 12px 0;
+      padding-left: 20px;
+    }
+    .diagnostics .check-pass::before { content: "PASS "; color: var(--pass-fg); font-weight: 600; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--fail-fg); font-weight: 600; }
+    .diagnostics .source-roster table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 6px 0 12px 0;
+      font-size: 11px;
+    }
+    .diagnostics .source-roster th,
+    .diagnostics .source-roster td {
+      padding: 4px 6px;
+      border-top: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    .diagnostics .source-roster thead th {
+      background: var(--header-bg);
+      font-weight: 600;
+      border-top: none;
+      border-bottom: 2px solid var(--border-strong);
+    }
+    .diagnostics .run-history ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+    .diagnostics .run-history li + li { margin-top: 3px; }
+
+    /* ------- next-steps banner ------- */
+
+    .next-steps {
+      margin-top: 24px;
+      padding: 14px 18px;
+      background: var(--next-steps-bg);
+      border: 1px solid var(--next-steps-border);
+      border-left: 4px solid var(--next-steps-border);
+      border-radius: 6px;
+      color: var(--next-steps-fg);
+      font-size: 13px;
+    }
+    .next-steps h2 {
+      font-size: 13px;
+      margin: 0 0 6px 0;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .next-steps p { margin: 0; }
+    .next-steps code {
+      background: rgba(255, 255, 255, 0.6);
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .goal-summary-block,
+      .visual-tree-block {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: 12px;
+        border-radius: 0;
+        border-color: #000;
+      }
+      details#diagnostics { display: none; }
+      nav.toc-goals { display: none; }
+      section#structured-tree pre { max-height: none; overflow: visible; }
+    }
+  </style>
+</head>
+<body>
+  <script type="application/json" id="task-analysis-meta">
+{
+  "manifest_sha256": "{{MANIFEST_SHA256}}",
+  "generated_at": "{{GENERATED_AT}}",
+  "run_count": {{RUN_COUNT}},
+  "target": "{{TARGET}}",
+  "goal_count": {{GOAL_COUNT}},
+  "level1_count": {{LEVEL1_COUNT}},
+  "terminal_count": {{TERMINAL_COUNT}},
+  "non_terminal_count": {{NON_TERMINAL_COUNT}},
+  "plan_count": {{PLAN_COUNT}},
+  "information_req_count": {{INFORMATION_REQ_COUNT}},
+  "inferred_count": {{INFERRED_COUNT}},
+  "blocking_gap_count": {{BLOCKING_GAP_COUNT}},
+  "non_blocking_gap_count": {{NON_BLOCKING_GAP_COUNT}}
+}
+  </script>
+
+  <main>
+    <header id="overview">
+      <h1>{{TITLE}}</h1>
+      <p class="caption">{{GOAL_COUNT}} goals · {{TERMINAL_COUNT}} terminal operations · {{PLAN_COUNT}} Plans · {{INFORMATION_REQ_COUNT}} information requirements · {{INFERRED_COUNT}} inferred ({{BLOCKING_GAP_COUNT}} blocking) · run {{RUN_COUNT}} · target {{TARGET}} · {{GENERATED_AT}}</p>
+      <nav class="toc-goals" aria-label="Jump to goal">
+        <strong>Jump to goal:</strong>
+        {{TOC_GOALS}}
+      </nav>
+    </header>
+
+    <section id="goal-summary" aria-label="Goal summaries">
+      {{GOAL_SUMMARY_BLOCKS}}
+    </section>
+
+    <section id="visual-tree" aria-label="Visual task hierarchies">
+      {{VISUAL_TREE_BLOCKS}}
+    </section>
+
+    {{STRUCTURED_YAML_BLOCK}}
+
+    <section id="plans-table" aria-label="Plans">
+      <table class="plans-table">
+        <thead>
+          <tr>
+            <th scope="col">Node</th>
+            <th scope="col">Parent label</th>
+            <th scope="col">Plan type</th>
+            <th scope="col">Plan expression</th>
+            <th scope="col">Sources</th>
+            <th scope="col">Inferred</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{PLANS_TABLE_BODY}}
+        </tbody>
+      </table>
+    </section>
+
+    <section id="information-table" aria-label="Information requirements">
+      <table class="info-table">
+        <thead>
+          <tr>
+            <th scope="col">Terminal</th>
+            <th scope="col">Label</th>
+            <th scope="col">Direction</th>
+            <th scope="col">Data noun</th>
+            <th scope="col">Sources</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{INFORMATION_TABLE_BODY}}
+        </tbody>
+      </table>
+    </section>
+
+    {{GAPS_BLOCK}}
+
+    <details id="diagnostics">
+      <summary>Diagnostics, gate results, source roster, run history</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    <section class="next-steps" aria-label="Next steps">
+      <h2>Next steps</h2>
+      <p>To use this artefact as additional input for <code>/requirements</code>, copy this file into <code>input/</code> (e.g. <code>input/task-analysis.html</code>) and re-run <code>/requirements</code>. The input-handler will classify it as <code>Supported-via-MCP</code>, markitdown will convert it to <code>input/task-analysis.html.converted.md</code> (preserving the structured YAML block as a fenced code section), and the drafter will consume it via the refreshed manifest. The YAML structured tree becomes a bijection target for <code>/requirements</code>' completeness gap pass; the Plans table seeds acceptance-criteria branches; the information-requirements table hints at <code>§7 Data entities</code>; any <code>[AI-SUGGESTED: AI-NNN | blocking]</code> gaps flow into the resolver as consultant questions.</p>
+    </section>
+  </main>
+</body>
+</html>

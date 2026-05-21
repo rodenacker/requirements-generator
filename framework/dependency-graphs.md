@@ -562,6 +562,7 @@ graph TD
       agent_ta[thematic-analysis-analyser.md]
       agent_ost_ai[opportunity-solution-trees-analyser.md]
       agent_jm[journey-mapping-analyser.md]
+      agent_taa[task-analysis-analyser.md]
     end
 
     subgraph Skills
@@ -588,6 +589,10 @@ graph TD
       asset_jm_char[characters/journey-mapping-inputs-analysis.md]
       asset_jm_tmpl[analyses-inputs/template-journey-mapping.html]
       asset_jm_map[skills/map-journey-mapping-from-inputs-to-ui.md]
+      asset_taa_ref[analyses-inputs/task-analysis-reference.md]
+      asset_taa_char[characters/task-analysis-inputs-analysis.md]
+      asset_taa_tmpl[analyses-inputs/template-task-analysis.html]
+      asset_taa_map[skills/map-task-analysis-from-inputs-to-ui.md]
     end
 
     subgraph Shared
@@ -605,6 +610,7 @@ graph TD
     orch_ai --> agent_ta
     orch_ai --> agent_ost_ai
     orch_ai --> agent_jm
+    orch_ai --> agent_taa
     orch_ai --> shared_refusal_ai
 
     skill_ansel_ai --> asset_registry_ai
@@ -623,6 +629,11 @@ graph TD
     agent_jm --> asset_jm_char
     agent_jm --> asset_jm_tmpl
     agent_jm --> skill_verifywrite_ai
+
+    agent_taa --> asset_taa_ref
+    agent_taa --> asset_taa_char
+    agent_taa --> asset_taa_tmpl
+    agent_taa --> skill_verifywrite_ai
 
     skill_bloat_ai --> shared_refusal_ai
     skill_bloat_ai --> state_progress_ai
@@ -644,14 +655,14 @@ graph TD
     skill_verifywrite_ai --> shared_refusal_ai
 
     class orch_ai orch
-    class agent_input_ai,agent_ta,agent_ost_ai,agent_jm agent
+    class agent_input_ai,agent_ta,agent_ost_ai,agent_jm,agent_taa agent
     class skill_ansel_ai,skill_bloat_ai,skill_verifywrite_ai,skill_classify_ai,skill_preflight_ai,skill_convert_ai,skill_buildmanifest_ai,skill_checkfresh_ai,skill_mermaid_ai skill
-    class asset_registry_ai,asset_ta_ref,asset_ta_char,asset_ta_map,asset_ost_ai_ref,asset_ost_ai_char,asset_ost_ai_map,asset_jm_ref,asset_jm_char,asset_jm_tmpl,asset_jm_map asset
+    class asset_registry_ai,asset_ta_ref,asset_ta_char,asset_ta_map,asset_ost_ai_ref,asset_ost_ai_char,asset_ost_ai_map,asset_jm_ref,asset_jm_char,asset_jm_tmpl,asset_jm_map,asset_taa_ref,asset_taa_char,asset_taa_tmpl,asset_taa_map asset
     class shared_refusal_ai,shared_setup_md_ai shared
     class state_progress_ai state
 ```
 
-**Stats:** 28 nodes / 37 edges / depth 4 (3 MVP analysers: `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`). The remaining `status: future` rows (`glossary`, `jtbd`, `five-whys`) are intentionally omitted from the graph because their agent / reference / character / map-skill files do not exist on disk yet. Each future methodology PR adds one `orch_ai → agent_<method>` edge plus the standard four-asset fan-out (or five-asset for HTML-template methodologies like `journey-mapping`), mirroring graph 4. The shape matches the fan-out structure of `analyse-requirement-orch.md`. Note: none of `agent_ta`, `agent_ost_ai`, or `agent_jm` has an edge to its `asset_*_map` map-skill — map-skills are registry metadata consumed by the future design-spec-drafter, not by the analyser itself, mirroring the precedent in graph 4. `agent_jm` is the first MVP analyser in this pipeline to ship with a non-null `template_asset` (HTML scaffold); its `asset_jm_tmpl` edge is the distinguishing structural difference from the markdown-only `agent_ta` and `agent_ost_ai` analysers.)
+**Stats:** 33 nodes / 42 edges / depth 4 (4 MVP analysers: `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, `task-analysis`). The remaining `status: future` rows (`glossary`, `jtbd`, `five-whys`) are intentionally omitted from the graph because their agent / reference / character / map-skill files do not exist on disk yet. Each future methodology PR adds one `orch_ai → agent_<method>` edge plus the standard four-asset fan-out (or five-asset for HTML-template methodologies like `journey-mapping` and `task-analysis`), mirroring graph 4. The shape matches the fan-out structure of `analyse-requirement-orch.md`. Note: none of `agent_ta`, `agent_ost_ai`, `agent_jm`, or `agent_taa` has an edge to its `asset_*_map` map-skill — map-skills are registry metadata consumed by the future design-spec-drafter, not by the analyser itself, mirroring the precedent in graph 4. `agent_jm` and `agent_taa` are the two MVP analysers in this pipeline that ship with a non-null `template_asset` (HTML scaffold); their `asset_jm_tmpl` and `asset_taa_tmpl` edges are the distinguishing structural difference from the markdown-only `agent_ta` and `agent_ost_ai` analysers.)
 
 **Notes:**
 - The orchestrator is **registry-driven** (same pattern as `analyse-requirement-orch.md`). The `skill_ansel_ai → asset_registry_ai` edge is the discovery mechanism; future `orch_ai → agent_<method>` edges represent the runtime invocation paths once the consultant has selected a methodology. **Adding a new MVP input-analyser requires zero orchestrator edits** — only a new MVP row in `framework/assets/analyses-inputs/registry.md`, the four-asset shape (analyser + reference + template + character), and the new edge in this graph.
@@ -659,8 +670,8 @@ graph TD
 - The shared `input-handler` invocation at step 1 is the **only** edge in this subtree that writes outside `analyse-inputs/<METHOD>/`. The writes it performs (`requirements/source-manifest.json` and `input/*.converted.md` siblings) are bounded to those paths and are documented as a cross-pipeline exception in `framework/orchestrators/analyse-inputs-orch.md > Stand-alone constraint`. Writes happen on the input-handler's `mode = "create"` or `mode = "refresh"` paths only; on `mode = "no-op"` (fresh) and `mode = "proceed-stale"`, no write occurs. No write reaches `requirements/requirements*.md`, `requirements/consultant-answers.md`, `requirements/requirements-draft.md`, `requirements/draft-claims*.ndjson`, `design-system/`, `analyse-requirements/<METHOD>/`, `review-requirements/`, `review-inputs/`, or `framework/state/`.
 - `state/.progress.json` is read (existence + byte-size check) by `check-context-bloat.md` from this orchestrator; the orchestrator never writes to it, consistent with the no-write-outside-`analyse-inputs/` invariant. The shared `input-handler.md` agent **also** never writes to `.progress.json` from this pipeline because the orchestrator invokes it with `progress_path: null` (the agent's RF-01 continue-later write is suppressed in that mode).
 - `check-context-bloat.md` is invoked with `artefact_dir: input/` (not `requirements/`) — the byte volume of the raw input folder is the meaningful proxy for in-conversation bloat against an input-analyser, in contrast to the `/analyse-requirement` caller which passes `requirements/`.
-- The `mermaid-validator.md` skill is invoked inline from `agent_ta` (Step 10 sub-step C) **and** from `agent_ost_ai` (Step 10 sub-step C) to validate the inline Mermaid diagram before write; on `not-installed` each agent halts per the validator's own copy and fails handback. **`agent_jm` does NOT depend on `mermaid-validator.md`** — Journey Mapping renders diagrams as inline SVG (hand-crafted by the analyser, USER-JOURNEYS pattern) and CSS-grid HTML tables, not Mermaid. The `mermaid-validator.md` file on disk is shared across pipelines that do use Mermaid (sequence-diagram, state-diagram, activity-diagram in graph 4; thematic-analysis and opportunity-solution-trees in this graph).
-- `thematic-analysis`, `opportunity-solution-trees`, and `journey-mapping` are the three MVP methodologies of `/analyse-inputs`. The first two carry `template_asset: null` (pure-markdown analyser; the Mermaid diagram embeds as a fenced block within the markdown artefact); `journey-mapping` carries `template_asset: framework/assets/analyses-inputs/template-journey-mapping.html` — the first MVP `/analyse-inputs` methodology to ship with an HTML template, mirroring the `analyse-requirements/USER-JOURNEYS/user-journeys-map.html` precedent. The OST inputs-side analyser is the **forward-discovery** sibling of the reverse-discovery `opportunity-solution-trees` analyser under `/analyse-requirement` (graph 4); similarly `journey-mapping` is the **current-state-of-the-world** sibling of the future-state-of-the-spec `user-journeys` analyser under `/analyse-requirement` (graph 4) — the slug differs (`journey-mapping` vs `user-journeys`) to make the temporal-pose distinction explicit, the input source material differs (raw `input/` via manifest vs synthesised `requirements/requirements.md`), and the citation discipline differs (`[SRC: <filename>]` markers in cell content vs CSS provenance classes on `<td>` elements). The inputs-side `journey-mapping` analyser is **re-ingestible by `/requirements`** via markitdown — the HTML round-trips to Markdown preserving inline `[SRC: <filename>]` markers, so the audit trail from the requirements draft back to the original brief filenames is preserved end-to-end (drafter's `[SRC: C-NNN]` → journey map's `[SRC: <original-filename>]`). The remaining `status: future` rows (`glossary`, `jtbd`, `five-whys`) become operational only when their analyser / reference / character / map-skill files are authored and the row is promoted to `status: mvp` in a follow-up PR.
+- The `mermaid-validator.md` skill is invoked inline from `agent_ta` (Step 10 sub-step C) **and** from `agent_ost_ai` (Step 10 sub-step C) to validate the inline Mermaid diagram before write; on `not-installed` each agent halts per the validator's own copy and fails handback. **`agent_jm` and `agent_taa` do NOT depend on `mermaid-validator.md`** — Journey Mapping renders diagrams as inline SVG (hand-crafted by the analyser, USER-JOURNEYS pattern) and CSS-grid HTML tables; Task Analysis renders the visual tree as nested HTML `<ol>` / `<details>` with Plan-type badges (no Mermaid, no SVG). The `mermaid-validator.md` file on disk is shared across pipelines that do use Mermaid (sequence-diagram, state-diagram, activity-diagram in graph 4; thematic-analysis and opportunity-solution-trees in this graph).
+- `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, and `task-analysis` are the four MVP methodologies of `/analyse-inputs`. The first two carry `template_asset: null` (pure-markdown analyser; the Mermaid diagram embeds as a fenced block within the markdown artefact); `journey-mapping` and `task-analysis` carry HTML templates (`template-journey-mapping.html` and `template-task-analysis.html` respectively). The OST inputs-side analyser is the **forward-discovery** sibling of the reverse-discovery `opportunity-solution-trees` analyser under `/analyse-requirement` (graph 4); `journey-mapping` is the **current-state-of-the-world** sibling of the future-state-of-the-spec `user-journeys` analyser under `/analyse-requirement` (graph 4); `task-analysis` is the **document-only HTA + SGT-information-layer** sibling of the requirements-side `task-flows` analyser under `/analyse-requirement` (graph 4) — the slug differs (`task-analysis` vs `task-flows`) to make the methodological-emphasis distinction explicit (pure HTA + per-terminal information requirements vs HTA + Task-Flow Diagram pairs), the input source material differs (raw `input/` via manifest vs synthesised `requirements/requirements.md`), and the citation discipline differs (`[SRC: <filename>]` markers on each YAML node + tree row vs `[SRC: C-NNN]` claim IDs). The inputs-side `journey-mapping` and `task-analysis` analysers are both **re-ingestible by `/requirements`** via markitdown — the HTML round-trips to Markdown preserving inline `[SRC: <filename>]` markers (and, for `task-analysis`, the structured YAML tree survives as a fenced code block because it lives in `<pre><code class="language-yaml">` not `<script type="application/json">` — that distinction is the load-bearing markitdown-round-trip-preservation contract for the downstream drafter). The remaining `status: future` rows (`glossary`, `jtbd`, `five-whys`) become operational only when their analyser / reference / character / map-skill files are authored and the row is promoted to `status: mvp` in a follow-up PR.
 - No cycles. No `framework/assets/pattern-catalogue/` "see also" pointers appear in this subtree.
 
 ---
