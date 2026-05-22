@@ -15,12 +15,15 @@
   Section order (top-to-bottom):
     1. Overview (id="overview")        — title, subtitle, meta-grid, counts bar.
     2. TOC (<nav class="toc">)         — static top-level anchors.
-    3. Relevance (id="relevance")      — Stage-A table; all considered
+    3. Matrix (id="matrix")            — goal × dimension matrix (the main
+                                          artefact — promoted to the top so
+                                          the most useful result is visible
+                                          immediately).
+    4. Guidance (id="guidance")        — per-goal design-guidance cards (the
+                                          second most useful result).
+    5. Relevance (id="relevance")      — Stage-A audit table; all considered
                                           dimensions, kept (bold) and dropped
                                           (muted), with raw scores + reasons.
-    4. Matrix (id="matrix")            — goal × dimension matrix (the main
-                                          artefact).
-    5. Guidance (id="guidance")        — per-goal design-guidance cards.
     6. Diagnostics (id="diagnostics")  — <details> wrapper, collapsed by
                                           default. Bottom of page.
 
@@ -761,18 +764,12 @@
     <nav class="toc" aria-label="Sections">
       <ol>
         <li><a href="#overview">Overview</a></li>
-        <li><a href="#relevance">Relevance filter (Stage A)</a></li>
         <li><a href="#matrix">Goal × Dimension matrix</a></li>
         <li><a href="#guidance">Design guidance per goal</a></li>
+        <li><a href="#relevance">Relevance filter (Stage A)</a></li>
         <li><a href="#diagnostics">Diagnostics</a></li>
       </ol>
     </nav>
-
-    <section id="relevance" class="relevance-block" aria-label="Relevance filter">
-      <h2>Relevance filter (Stage A)</h2>
-      <p class="subtitle">All considered dimensions. Kept rows feed the matrix below; dropped rows are recorded for audit.</p>
-      {{RELEVANCE_TABLE_BLOCK}}
-    </section>
 
     <section id="matrix" aria-label="Trade-off matrix">
       <h2>Goal × Dimension matrix</h2>
@@ -788,6 +785,12 @@
       <div class="guidance-block">
         {{GUIDANCE_CARDS_BLOCK}}
       </div>
+    </section>
+
+    <section id="relevance" class="relevance-block" aria-label="Relevance filter">
+      <h2>Relevance filter (Stage A)</h2>
+      <p class="subtitle">Audit trail of all considered dimensions. Kept rows feed the matrix above; dropped rows are recorded for traceability.</p>
+      {{RELEVANCE_TABLE_BLOCK}}
     </section>
 
     <details id="diagnostics" class="diagnostics-toggle">
