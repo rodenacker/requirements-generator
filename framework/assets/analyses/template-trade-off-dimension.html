@@ -1,0 +1,813 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses/trade-off-dimension-analyser.md.
+
+  Purpose: HTML/CSS skeleton for the canonical Trade-Off Dimension matrix.
+  Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`). No external
+  CSS/JS dependencies; viewable by opening `file://` in a browser; shareable
+  with clients without tooling.
+
+  Layout: a wide matrix table (rows = user goals, columns = kept trade-off
+  dimensions). Sticky header row and sticky first column let the consultant
+  scan a many-column matrix without losing context. Below the matrix, one
+  design-guidance card per goal translates the dominant non-zero cells into
+  wireframing implications. Diagnostics sit inside a collapsed <details>.
+
+  Section order (top-to-bottom):
+    1. Overview (id="overview")        — title, subtitle, meta-grid, counts bar.
+    2. TOC (<nav class="toc">)         — static top-level anchors.
+    3. Relevance (id="relevance")      — Stage-A table; all considered
+                                          dimensions, kept (bold) and dropped
+                                          (muted), with raw scores + reasons.
+    4. Matrix (id="matrix")            — goal × dimension matrix (the main
+                                          artefact).
+    5. Guidance (id="guidance")        — per-goal design-guidance cards.
+    6. Diagnostics (id="diagnostics")  — <details> wrapper, collapsed by
+                                          default. Bottom of page.
+
+  Placeholders the analyser substitutes (string substitution, all values
+  pre-escaped for HTML except {{*_BLOCK}} which are pre-rendered HTML and
+  {{TRADE_OFF_JSON}} which is pre-serialised JSON inside a <script> tag):
+
+    {{TITLE}}                  — short title (e.g. "Trade-off Dimensions — Project X")
+    {{DOMAIN}}                 — domain string (from requirements §1)
+    {{BUSINESS_GOAL}}          — business-goal string (from requirements §1)
+    {{SCOPE_SUMMARY}}          — one-line summary of §1.5 In bucket
+    {{TARGET}}                 — "application" or "prototype" (from requirements preamble)
+    {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered
+    {{REQUIREMENTS_SHA256}}    — sha256 of requirements/requirements.md at read time
+    {{GOAL_COUNT}}             — number of rows in the matrix (= goals in §4.1)
+    {{DIMENSION_KEPT_COUNT}}   — number of dimensions kept (= columns in matrix)
+    {{DIMENSION_DROPPED_COUNT}}— dropped during Stage A
+    {{DIMENSION_PRUNED_COUNT}} — pruned during post-pass (all-zero columns)
+    {{NONZERO_CELL_COUNT}}     — cells with score ≠ 0
+    {{NOSIGNAL_CELL_COUNT}}    — cells with score = 0 (no-signal)
+    {{BALANCED_CELL_COUNT}}    — cells with score = 0 (balanced)
+    {{RELEVANCE_TABLE_BLOCK}}  — pre-rendered <table class="relevance-table">
+                                  with one row per considered dimension.
+    {{MATRIX_BLOCK}}           — pre-rendered <table class="trade-off-matrix">
+                                  per MATRIX SCHEMA below.
+    {{GUIDANCE_CARDS_BLOCK}}   — pre-rendered <section class="goal-guidance-card">
+                                  blocks per GUIDANCE SCHEMA below.
+    {{DIAGNOSTICS_BLOCK}}      — pre-rendered <section class="diagnostics">
+                                  per DIAGNOSTICS SCHEMA below.
+    {{TRADE_OFF_JSON}}         — pre-serialised JSON payload for downstream
+                                  map skill consumption (no surrounding tags).
+
+  Output: analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html.
+
+  MATRIX SCHEMA — the analyser's {{MATRIX_BLOCK}} substitutes a single
+  <table class="trade-off-matrix"> with the shape:
+
+      <table class="trade-off-matrix">
+        <caption class="sr-only">Trade-off dimension scores per user goal. Negative scores lean toward pole A; positive scores lean toward pole B.</caption>
+        <thead>
+          <tr>
+            <th scope="col" class="corner">Goal</th>
+            <th scope="col" class="dim-header" title="Pole A vs Pole B">
+              <span class="dim-id">TD-NN</span>
+              <span class="dim-name">Pole A vs Pole B</span>
+            </th>
+            ... one <th> per kept dimension ...
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row" class="goal-cell">
+              <span class="goal-id">G-NN</span>
+              <span class="goal-statement">{{goal_statement}}</span>
+            </th>
+            <td class="score-cell score-strong-a"
+                title="Pole A hit: '...' (§...). Pole B hit: '...' (§...).">
+              <span class="score-num">−2</span>
+              <span class="score-pole">Pole A label</span>
+            </td>
+            ...
+          </tr>
+        </tbody>
+      </table>
+
+  Score-cell classes — the analyser sets exactly one of:
+    .score-strong-a   (score = −2)
+    .score-lean-a     (score = −1)
+    .score-no-signal  (score =  0, cell_kind="no-signal")
+    .score-balanced   (score =  0, cell_kind="balanced")
+    .score-lean-b     (score = +1)
+    .score-strong-b   (score = +2)
+
+  GUIDANCE SCHEMA — the analyser's {{GUIDANCE_CARDS_BLOCK}} substitutes
+  one <section class="goal-guidance-card"> per goal. Each card:
+
+      <section class="goal-guidance-card" id="guidance-G-NN">
+        <header class="guidance-header">
+          <span class="guidance-goal-id">G-NN</span>
+          <h3 class="guidance-statement">{{goal_statement}}</h3>
+        </header>
+        <ul class="guidance-bullets">
+          <li class="guidance-bullet">
+            <span class="guidance-dim-id">TD-NN</span>
+            <span class="guidance-lean">strong A (Pole A label)</span>
+            <span class="guidance-implication">{{wireframing implication}}</span>
+          </li>
+          ... 2–4 bullets per card (or the no-signal fallback bullet) ...
+        </ul>
+      </section>
+
+  DIAGNOSTICS SCHEMA — the analyser's {{DIAGNOSTICS_BLOCK}} substitutes a
+  single <section class="diagnostics">. The template wraps the placeholder in
+  a <details class="diagnostics-toggle"> element (collapsed by default) so
+  diagnostics are hidden behind a toggle and only revealed on click. The
+  analyser does not emit the <details>/<summary> wrapper — it is template
+  scaffolding. The inner section contains, in order:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>Trade-off matrix — N goals × M kept dimensions; K non-zero cells.</p>
+        <p>Stage A: kept {{kept}} / dropped {{dropped}} of {{considered}} considered.</p>
+        <ul>
+          <li class="check-pass|check-fail">Check 1 — Every goal in §4.1 is a matrix row.</li>
+          ... (all 7 checks listed in order)
+        </ul>
+        <details class="dropped-detail">
+          <summary>Dropped dimensions ({{dropped}})</summary>
+          <table>
+            <thead><tr><th>ID</th><th>Dimension</th><th>Raw score</th><th>Dropped by</th></tr></thead>
+            <tbody>...</tbody>
+          </table>
+        </details>
+        <details class="pruned-detail">
+          <summary>Pruned dimensions ({{pruned}})</summary>
+          <p>Survived Stage A but engage no goal individually (all-zero column).</p>
+          <ul>...</ul>
+        </details>
+        <details class="floor-or-override">
+          <summary>Floor relaxation / consultant override notes</summary>
+          ... (only if floor relaxation ran or consultant edits were made) ...
+        </details>
+      </section>
+
+  CSS classes used by the analyser:
+    .score-strong-a / .score-lean-a / .score-no-signal / .score-balanced
+    .score-lean-b   / .score-strong-b
+    .goal-cell .goal-id .goal-statement
+    .dim-header .dim-id .dim-name
+    .guidance-goal-id .guidance-statement .guidance-dim-id .guidance-lean
+    .guidance-implication .guidance-bullets .guidance-bullet
+    .relevance-kept .relevance-dropped .relevance-prototype-penalty
+    .relevance-amplified
+
+  Content TBD-able by the analyser:
+    The relevance table, matrix cells, guidance cards, diagnostics, counts,
+    and the embedded JSON are fully driven by the analyser. The CSS below is
+    fixed scaffolding and should not be edited by the analyser — only the
+    {{placeholders}} above are substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --header-bg: #efefef;
+      --row-alt: #fbfbfb;
+      --card-bg: #ffffff;
+
+      /* Score colour ramp — symmetric A (cool) ↔ B (warm) with a neutral middle. */
+      --score-strong-a-bg: #2a5d8a;  --score-strong-a-fg: #ffffff;  --score-strong-a-border: #1c4869;
+      --score-lean-a-bg:   #b9d7f0;  --score-lean-a-fg:   #0c2a44;  --score-lean-a-border:   #4f8fbf;
+      --score-no-signal-bg:#f4f4f4;  --score-no-signal-fg:#9a9a9a;  --score-no-signal-border:#e0e0e0;
+      --score-balanced-bg: #efe7d4;  --score-balanced-fg: #4a3a00;  --score-balanced-border: #c9b67a;
+      --score-lean-b-bg:   #f6c6d5;  --score-lean-b-fg:   #4a1a2a;  --score-lean-b-border:   #c97a92;
+      --score-strong-b-bg: #8a2a4a;  --score-strong-b-fg: #ffffff;  --score-strong-b-border: #69162f;
+
+      --kept-fg: #1a1a1a;
+      --kept-bg: #fff;
+      --dropped-fg: #8a8a8a;
+      --dropped-bg: #f4f4f4;
+      --amplified-bg: #e8f4e0;
+      --prototype-penalty-bg: #fff3a8;
+
+      --pass-fg: #2a8a2a;
+      --fail-fg: #8a1a1a;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+    }
+
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 32px 0 8px 0;
+    }
+
+    h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 0 24px 0;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 8px 24px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+
+    .meta-grid dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+
+    .meta-grid dd {
+      margin: 0 0 6px 0;
+      font-variant-numeric: tabular-nums;
+      word-break: break-word;
+    }
+
+    /* ------- counts bar ------- */
+
+    .counts-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px 28px;
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+    .counts-bar .count-item {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .counts-bar .count-label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .counts-bar .count-value {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+    }
+
+    /* ------- table of contents ------- */
+
+    .toc {
+      margin: 0 0 24px 0;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .toc ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 18px;
+      counter-reset: toc-item;
+    }
+    .toc li { counter-increment: toc-item; }
+    .toc li::before {
+      content: counter(toc-item) ". ";
+      color: var(--muted);
+      margin-right: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .toc a {
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--border-strong);
+    }
+    .toc a:hover { border-bottom-color: var(--fg); }
+
+    /* ------- relevance table (Stage A audit) ------- */
+
+    .relevance-block {
+      margin-bottom: 32px;
+    }
+    .relevance-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .relevance-table th,
+    .relevance-table td {
+      padding: 8px 10px;
+      border-top: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    .relevance-table thead th {
+      background: var(--header-bg);
+      font-weight: 600;
+      border-top: none;
+      border-bottom: 2px solid var(--border-strong);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .relevance-table tr.relevance-kept {
+      background: var(--kept-bg);
+      color: var(--kept-fg);
+    }
+    .relevance-table tr.relevance-kept td.dim-name-cell {
+      font-weight: 600;
+    }
+    .relevance-table tr.relevance-dropped {
+      background: var(--dropped-bg);
+      color: var(--dropped-fg);
+    }
+    .relevance-table tr.relevance-prototype-penalty .reason-cell::before {
+      content: "PROTOTYPE ";
+      color: #b86a00;
+      font-weight: 700;
+      font-size: 10px;
+      margin-right: 4px;
+    }
+    .relevance-table tr.relevance-amplified .reason-cell::after {
+      content: " AMPLIFIED";
+      color: #2a8a2a;
+      font-weight: 700;
+      font-size: 10px;
+      margin-left: 4px;
+    }
+    .relevance-table .score-cell-num {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    /* ------- matrix table (Stage B audit) ------- */
+
+    .matrix-block {
+      margin-bottom: 32px;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+    }
+    table.trade-off-matrix {
+      border-collapse: collapse;
+      font-size: 12px;
+      width: max-content;
+      min-width: 100%;
+    }
+    table.trade-off-matrix caption.sr-only {
+      position: absolute;
+      width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+    }
+    table.trade-off-matrix thead th {
+      background: var(--header-bg);
+      border-bottom: 2px solid var(--border-strong);
+      font-weight: 600;
+      text-align: left;
+      padding: 8px 10px;
+      vertical-align: bottom;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    table.trade-off-matrix th.corner {
+      background: var(--header-bg);
+      border-right: 2px solid var(--border-strong);
+      position: sticky;
+      left: 0;
+      top: 0;
+      z-index: 3;
+      min-width: 240px;
+      max-width: 320px;
+    }
+    table.trade-off-matrix th.dim-header {
+      min-width: 110px;
+      max-width: 160px;
+      font-size: 11px;
+    }
+    table.trade-off-matrix th.dim-header .dim-id {
+      display: block;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
+    }
+    table.trade-off-matrix th.dim-header .dim-name {
+      display: block;
+      font-weight: 600;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
+    }
+    table.trade-off-matrix tbody th.goal-cell {
+      background: #fff;
+      border-right: 2px solid var(--border-strong);
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      padding: 10px 12px;
+      vertical-align: top;
+      font-weight: 500;
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      min-width: 240px;
+      max-width: 320px;
+    }
+    table.trade-off-matrix tbody tr:nth-child(even) th.goal-cell {
+      background: var(--row-alt);
+    }
+    table.trade-off-matrix tbody th.goal-cell .goal-id {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
+    }
+    table.trade-off-matrix tbody th.goal-cell .goal-statement {
+      display: block;
+      font-size: 12px;
+      color: var(--fg);
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    table.trade-off-matrix tbody td.score-cell {
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      text-align: center;
+      vertical-align: middle;
+      padding: 8px 6px;
+      cursor: help;
+      min-width: 110px;
+      max-width: 160px;
+    }
+    table.trade-off-matrix tbody td.score-cell .score-num {
+      display: block;
+      font-size: 16px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+    }
+    table.trade-off-matrix tbody td.score-cell .score-pole {
+      display: block;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      margin-top: 2px;
+      opacity: 0.85;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    td.score-strong-a   { background: var(--score-strong-a-bg);   color: var(--score-strong-a-fg);  }
+    td.score-lean-a     { background: var(--score-lean-a-bg);     color: var(--score-lean-a-fg);    }
+    td.score-no-signal  { background: var(--score-no-signal-bg);  color: var(--score-no-signal-fg); }
+    td.score-no-signal .score-num { opacity: 0.6; }
+    td.score-balanced   { background: var(--score-balanced-bg);   color: var(--score-balanced-fg);  }
+    td.score-lean-b     { background: var(--score-lean-b-bg);     color: var(--score-lean-b-fg);    }
+    td.score-strong-b   { background: var(--score-strong-b-bg);   color: var(--score-strong-b-fg);  }
+
+    /* ------- design guidance cards ------- */
+
+    .guidance-block {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .goal-guidance-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      padding: 12px 16px;
+    }
+    .guidance-header {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .guidance-goal-id {
+      font-size: 11px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.04em;
+      flex: 0 0 auto;
+    }
+    .guidance-statement {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0;
+    }
+    .guidance-bullets {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .guidance-bullet {
+      display: grid;
+      grid-template-columns: auto auto 1fr;
+      gap: 4px 8px;
+      padding: 6px 0;
+      border-top: 1px dashed var(--border);
+      font-size: 12px;
+    }
+    .guidance-bullet:first-child { border-top: none; }
+    .guidance-bullet .guidance-dim-id {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      align-self: start;
+    }
+    .guidance-bullet .guidance-lean {
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.02em;
+      align-self: start;
+    }
+    .guidance-bullet .guidance-implication {
+      grid-column: 1 / -1;
+      color: var(--fg);
+    }
+    .goal-guidance-card.no-signal .guidance-bullet .guidance-implication {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* ------- diagnostics ------- */
+
+    details.diagnostics-toggle {
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.diagnostics-toggle[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.diagnostics-toggle[open] > summary::before {
+      transform: rotate(90deg);
+    }
+    .diagnostics {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > .diagnostics {
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      margin-bottom: 0;
+    }
+    details.diagnostics-toggle > .diagnostics > h2 { display: none; }
+    .diagnostics h2 {
+      font-size: 16px;
+      margin: 0 0 8px 0;
+    }
+    .diagnostics > ul {
+      margin: 0 0 12px 0;
+      padding-left: 20px;
+    }
+    .diagnostics .check-pass::before { content: "PASS "; color: var(--pass-fg); font-weight: 600; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--fail-fg); font-weight: 600; }
+    .diagnostics details {
+      margin-top: 12px;
+      border-top: 1px solid var(--border);
+      padding-top: 8px;
+    }
+    .diagnostics details summary {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--fg);
+    }
+    .diagnostics details table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 11px;
+    }
+    .diagnostics details table th,
+    .diagnostics details table td {
+      padding: 4px 6px;
+      border-top: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    .diagnostics details table thead th {
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--border-strong);
+      font-weight: 600;
+    }
+
+    /* ------- footer / legend ------- */
+
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    footer .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+    }
+    footer .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    footer .legend-swatch {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+    }
+    footer .legend-swatch.s-strong-a  { background: var(--score-strong-a-bg);  }
+    footer .legend-swatch.s-lean-a    { background: var(--score-lean-a-bg);    }
+    footer .legend-swatch.s-no-signal { background: var(--score-no-signal-bg); }
+    footer .legend-swatch.s-balanced  { background: var(--score-balanced-bg);  }
+    footer .legend-swatch.s-lean-b    { background: var(--score-lean-b-bg);    }
+    footer .legend-swatch.s-strong-b  { background: var(--score-strong-b-bg);  }
+    footer .credit {
+      margin-top: 6px;
+      text-align: right;
+    }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; max-width: none; }
+      .toc { display: none; }
+      details.diagnostics-toggle { display: none; }
+      .matrix-block { overflow: visible; }
+      table.trade-off-matrix thead th { position: static; }
+      table.trade-off-matrix tbody th.goal-cell { position: static; }
+      table.trade-off-matrix tbody tr { break-inside: avoid; }
+      .goal-guidance-card { break-inside: avoid; }
+      .relevance-table tr { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section id="overview">
+      <h1>{{TITLE}}</h1>
+      <p class="subtitle">Trade-off dimension matrix — scores per user goal across kept dimensions. Negative scores lean toward pole A; positive toward pole B; zero is no-signal or balanced.</p>
+
+      <dl class="meta-grid">
+        <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+        <div><dt>Business goal</dt><dd>{{BUSINESS_GOAL}}</dd></div>
+        <div><dt>Scope (in)</dt><dd>{{SCOPE_SUMMARY}}</dd></div>
+        <div><dt>Target</dt><dd>{{TARGET}}</dd></div>
+        <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+        <div><dt>Source SHA-256</dt><dd>{{REQUIREMENTS_SHA256}}</dd></div>
+      </dl>
+
+      <div class="counts-bar" aria-label="Counts">
+        <span class="count-item"><span class="count-label">Goals</span><span class="count-value">{{GOAL_COUNT}}</span></span>
+        <span class="count-item"><span class="count-label">Kept dim.</span><span class="count-value">{{DIMENSION_KEPT_COUNT}}</span></span>
+        <span class="count-item"><span class="count-label">Dropped (Stage A)</span><span class="count-value">{{DIMENSION_DROPPED_COUNT}}</span></span>
+        <span class="count-item"><span class="count-label">Pruned (post-pass)</span><span class="count-value">{{DIMENSION_PRUNED_COUNT}}</span></span>
+        <span class="count-item"><span class="count-label">Non-zero cells</span><span class="count-value">{{NONZERO_CELL_COUNT}}</span></span>
+        <span class="count-item"><span class="count-label">No-signal cells</span><span class="count-value">{{NOSIGNAL_CELL_COUNT}}</span></span>
+        <span class="count-item"><span class="count-label">Balanced cells</span><span class="count-value">{{BALANCED_CELL_COUNT}}</span></span>
+      </div>
+    </section>
+
+    <nav class="toc" aria-label="Sections">
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#relevance">Relevance filter (Stage A)</a></li>
+        <li><a href="#matrix">Goal × Dimension matrix</a></li>
+        <li><a href="#guidance">Design guidance per goal</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+      </ol>
+    </nav>
+
+    <section id="relevance" class="relevance-block" aria-label="Relevance filter">
+      <h2>Relevance filter (Stage A)</h2>
+      <p class="subtitle">All considered dimensions. Kept rows feed the matrix below; dropped rows are recorded for audit.</p>
+      {{RELEVANCE_TABLE_BLOCK}}
+    </section>
+
+    <section id="matrix" aria-label="Trade-off matrix">
+      <h2>Goal × Dimension matrix</h2>
+      <p class="subtitle">Each cell scores the goal's lean on that dimension. Hover for evidence quotes.</p>
+      <div class="matrix-block">
+        {{MATRIX_BLOCK}}
+      </div>
+    </section>
+
+    <section id="guidance" aria-label="Design guidance per goal">
+      <h2>Design guidance per goal</h2>
+      <p class="subtitle">Each card translates the goal's dominant non-zero leans into wireframing implications.</p>
+      <div class="guidance-block">
+        {{GUIDANCE_CARDS_BLOCK}}
+      </div>
+    </section>
+
+    <details id="diagnostics" class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    <footer>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-strong-a" aria-hidden="true"></span> −2 strong A</span>
+        <span class="legend-item"><span class="legend-swatch s-lean-a" aria-hidden="true"></span> −1 lean A</span>
+        <span class="legend-item"><span class="legend-swatch s-no-signal" aria-hidden="true"></span> 0 no signal</span>
+        <span class="legend-item"><span class="legend-swatch s-balanced" aria-hidden="true"></span> 0 balanced</span>
+        <span class="legend-item"><span class="legend-swatch s-lean-b" aria-hidden="true"></span> +1 lean B</span>
+        <span class="legend-item"><span class="legend-swatch s-strong-b" aria-hidden="true"></span> +2 strong B</span>
+      </div>
+      <div class="credit">Generated by `framework/agents/analyses/trade-off-dimension-analyser.md`.</div>
+    </footer>
+
+    <script type="application/json" id="trade-off-scores">{{TRADE_OFF_JSON}}</script>
+  </main>
+</body>
+</html>

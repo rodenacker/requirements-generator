@@ -124,6 +124,15 @@ methodologies:
     map_skill: framework/skills/map-task-flows-to-ui.md
     analyser_agent: framework/agents/analyses/task-flows-analyser.md
     character: framework/assets/characters/task-flows-analysis.md
+  - name: trade-off-dimension-analysis
+    status: mvp
+    description: Scores each user goal against a curated set of UX trade-off dimensions (Speed vs Accuracy, Simplicity vs Power, Automation vs Control, ...) to guide wireframing posture per goal.
+    output_path: analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html
+    reference_asset: framework/assets/analyses/trade-off-dimension-reference.md
+    template_asset: framework/assets/analyses/template-trade-off-dimension.html
+    map_skill: framework/skills/map-trade-off-dimension-to-ui.md
+    analyser_agent: framework/agents/analyses/trade-off-dimension-analyser.md
+    character: framework/assets/characters/trade-off-dimension-analysis.md
 ---
 
 # analyses/registry.md
