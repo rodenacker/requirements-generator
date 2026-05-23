@@ -1,0 +1,44 @@
+{
+  "scope_slug": "file-upload-flow",
+  "variant_id": "POWER-DENSITY-EXPERT",
+  "authored_at": "2026-05-23T14:50:00Z",
+  "blueprint_sha256": "9a4e32b42f57a2394f71648883561ae3f363474a3b7ea269faedd7dcd5db43ec",
+  "screens": {
+    "S-01": {
+      "screen_file": "screen-01-file-upload.html",
+      "primary_pattern": "forms/single-form",
+      "primary_pattern_variant": "compact",
+      "secondary_patterns": ["feedback/notification-banner"],
+      "states_rendered": ["default", "file-selected", "uploading", "error-invalid-format"],
+      "data_src_targets": ["F-05", "F-06", "BR-06", "BR-09", "BR-10", "UI-04", "UI-05", "§5 File Upload", "§7 FileSetting", "§7 FileLog"],
+      "notes": "Two-column dense grid layout per D3+2 density; submit-on-Enter per D1+1 speed and D2+1 power. inline-validation rendered inline via wf-validation-error class (DS-conventional, not a separate catalogue pattern). file-upload (T3 stub) is composed inside single-form per pattern-bindings Section 1."
+    },
+    "S-02": {
+      "screen_file": "screen-02-file-log-overview.html",
+      "primary_pattern": "collections/table",
+      "primary_pattern_variant": "compact",
+      "secondary_patterns": ["surfaces/modal-confirmation", "feedback/empty-state", "feedback/notification-banner"],
+      "states_rendered": ["default", "loading", "empty", "bulk-error-flag", "confirming-destructive", "error"],
+      "data_src_targets": ["F-06", "F-07", "F-08", "F-15", "F-16", "F-17", "F-19", "F-20", "UI-06", "UI-07", "UI-15", "UI-16", "UI-17", "UI-18", "UI-19", "§5 File Log Overview", "§7 FileLog"],
+      "notes": "Table.compact composed with inline-edit on the Priority column (D3+2 + D1+1 → editable variant per registry Section 3); 9 visible columns + bulk-select checkbox column (density-+2 raises column budget per pattern-bindings Section 3); modal-confirmation gates destructive Cancel/Retry actions per GR-04 default focus on Cancel."
+    },
+    "S-03": {
+      "screen_file": "screen-03-file-summary.html",
+      "primary_pattern": "collections/dashboard",
+      "primary_pattern_variant": "default",
+      "secondary_patterns": ["feedback/notification-banner"],
+      "states_rendered": ["default", "bulk-error-flag", "partial-error"],
+      "data_src_targets": ["F-14", "F-15", "F-17", "UI-14", "UI-15", "UI-17", "§5 File Summary", "§7 FileLog", "§7 FileProcessLog"],
+      "notes": "8 KPI tiles in a 4-column grid for high information density per D3+2; F-15 audit columns surface as tiles (uploaded-by, uploaded-at, FileSetting) rather than a separate audit panel. Per-tile error isolation rendered as the partial-error state. Small embedded FileProcessLog table is legal inside dashboard per composition-rules (may-contain: table-small)."
+    },
+    "S-04": {
+      "screen_file": "screen-04-validation-errors.html",
+      "primary_pattern": "collections/table",
+      "primary_pattern_variant": "compact",
+      "secondary_patterns": ["surfaces/modal-confirmation", "feedback/empty-state", "feedback/notification-banner"],
+      "states_rendered": ["default", "empty", "retry-validation", "confirming-retry"],
+      "data_src_targets": ["F-18", "F-19", "UI-15", "UI-18", "§7 ValidationErrors", "§7 FileProcessLog"],
+      "notes": "Table.compact at D3+2 with 8 visible columns (row#, field, value, reason code, reason text, BR rule, action, bulk-select); per-row Retry action wrapped in modal-confirmation per GR-04 because retry is destructive at FileProcessLog level (overwrites the prior outcome row). Bulk-retry on selected rows fits D1+1 speed posture."
+    }
+  }
+}

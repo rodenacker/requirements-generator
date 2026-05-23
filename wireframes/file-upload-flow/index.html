@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>file-upload-flow — wireframe set</title>
+  <link rel="stylesheet" href="POWER-DENSITY-EXPERT/wireframe-ds.css" />
+</head>
+<body>
+  <header class="wf-chrome">
+    <strong>Scope · file-upload-flow</strong>
+    <span class="wf-help">selected at <code>2026-05-23T14:00:25Z</code> · mode <code>structural</code></span>
+    <span style="margin-left: auto;">
+      <a href="comparison.html" class="wf-btn primary">Cross-variant comparison</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1100px; margin: 0 auto; padding: 0 16px;">
+    <h1>file-upload-flow</h1>
+
+    <section class="wf-section">
+      <h2>Scope sources</h2>
+      <p>11 functional (F-05, F-06, F-07, F-08, F-14, F-15, F-16, F-17, F-18, F-19, F-20), 3 business rules (BR-06, BR-09, BR-10), 10 UI feature needs (UI-04, UI-05, UI-06, UI-07, UI-14, UI-15, UI-16, UI-17, UI-18, UI-19), 1 goal (G-02), 3 task flows (§5 File Upload, §5 File Log Overview, §5 File Summary), 4 data shapes (§7 FileLog, §7 FileSetting, §7 FileProcessLog, §7 ValidationErrors).</p>
+      <p><a href="../../blueprints/file-upload-flow/blueprint.md">View blueprint (inventory + flow + trace)</a></p>
+    </section>
+
+    <section class="wf-section">
+      <h2>Available personas</h2>
+      <ul>
+        <li>Importer</li>
+        <li>Approver</li>
+      </ul>
+    </section>
+
+    <section class="wf-section">
+      <h2>Screen inventory summary</h2>
+      <p>4 screens: S-01 File upload (file picker + metadata + progress) → S-02 File log overview (table + row actions + drill into transactions) → S-03 File summary (per-FileLog counts + bulk-error indicator) → S-04 Validation errors detail (per-file validation row list).</p>
+    </section>
+
+    <section class="wf-section">
+      <h2>Variants</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+        <div class="wf-card">
+          <h3>POWER-DENSITY-EXPERT</h3>
+          <p><strong>Persona:</strong> Importer</p>
+          <p>Dense compact file-log table optimised for keyboard-first daily Importer; submit-on-Enter upload form; minimal confirmation friction on row actions. Maximises throughput for the daily high-volume operator.</p>
+          <p class="wf-help">Diverging on: speed-accuracy: +1, power-simplicity: +1, density-focus: +2</p>
+          <p><a href="POWER-DENSITY-EXPERT/wireframes.html" class="wf-btn primary">Open variant landing</a></p>
+        </div>
+        <div class="wf-card">
+          <h3>CAREFUL-DEFAULT-IMPORTER</h3>
+          <p><strong>Persona:</strong> Importer</p>
+          <p>Scrollable single-form upload with explicit save bar; default-density file log with per-row confirm on destructive actions; help text on non-obvious fields. Suits the careful daily Importer who values explicit save points and visible recovery paths.</p>
+          <p class="wf-help">Diverging on: speed-accuracy: -1, power-simplicity: 0, density-focus: 0</p>
+          <p><a href="CAREFUL-DEFAULT-IMPORTER/wireframes.html" class="wf-btn primary">Open variant landing</a></p>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!--
+ROLE: asset (cross-pipeline template — DS-agnostic).
+Used by: framework/agents/wireframe-variant-generator.md as the base scaffold for
+        each per-screen file under wireframes/<scope-slug>/<VARIANT>/screen-NN-*.html.
+Future: framework/agents/prototype-variant-generator.md may consume the same
+        scaffold, injecting the consumer DS path instead of wireframe-ds.css.
+
+Slots (filled by the variant-generator at render time):
+  {{DS_PATH}}                — relative href to the per-variant DS (typically "wireframe-ds.css").
+  {{SCOPE_SLUG}}             — kebab-case scope slug (e.g. "file-upload-flow"). Used in chrome.
+  {{VARIANT_ID}}             — kebab-case variant ID (e.g. "POWER-DENSITY-EXPERT"). Used in chrome + role-switcher.
+  {{SCREEN_ID}}              — stable blueprint screen ID (e.g. "S-02").
+  {{SCREEN_SLUG}}            — kebab-case screen slug (e.g. "file-picker").
+  {{SCREEN_INTENT}}          — short intent string from blueprint (e.g. "File picker with inline validation").
+  {{SCREEN_SOURCES}}         — comma-separated requirement IDs traced into this screen (e.g. "F-01,F-02,UI-03").
+  {{PERSONA_BINDING}}        — variant's bound persona name (e.g. "Importer (daily, high-volume)").
+  {{CROSS_SCREEN_NAV}}       — full <nav> markup for prev/next within this variant's flow.
+  {{CROSS_VARIANT_NAV}}      — full <nav> markup for switching to this same screen in other variants.
+  {{PRIMARY_PATTERN_HTML}}   — fully-rendered HTML for this screen's primary slot pattern (composed by the variant-generator from a catalogue entry).
+  {{SECONDARY_PATTERN_HTML}} — concatenated HTML for any secondary patterns (validation messages, tooltips, modals, banners). May be empty.
+  {{STATES_RENDERED}}        — pipe-separated names of states rendered visually on this screen (e.g. "default | file-selected | validating | error-invalid-format").
+  {{COMPARISON_HREF}}        — relative href back to wireframes/<scope-slug>/comparison.html.
+  {{SET_INDEX_HREF}}          — relative href back to wireframes/<scope-slug>/index.html.
+
+Every interactive element rendered into {{PRIMARY_PATTERN_HTML}} or
+{{SECONDARY_PATTERN_HTML}} carries a data-src="<id1>,<id2>,..." attribute
+naming the requirement IDs it satisfies. The variant-generator enforces this
+in its per-screen self-validation (no orphan elements, no fabricated IDs).
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>{{SCREEN_ID}} {{SCREEN_INTENT}} — {{VARIANT_ID}} — {{SCOPE_SLUG}}</title>
+  <link rel="stylesheet" href="{{DS_PATH}}" />
+  <meta name="wf-scope-slug" content="{{SCOPE_SLUG}}" />
+  <meta name="wf-variant-id" content="{{VARIANT_ID}}" />
+  <meta name="wf-screen-id" content="{{SCREEN_ID}}" />
+  <meta name="wf-screen-sources" content="{{SCREEN_SOURCES}}" />
+  <meta name="wf-persona-binding" content="{{PERSONA_BINDING}}" />
+  <meta name="wf-states-rendered" content="{{STATES_RENDERED}}" />
+</head>
+<body>
+  <header class="wf-chrome" data-src="{{SCREEN_SOURCES}}">
+    <strong>{{SCREEN_ID}} · {{SCREEN_INTENT}}</strong>
+    <span class="wf-help">scope: <code>{{SCOPE_SLUG}}</code> · variant: <code>{{VARIANT_ID}}</code> · persona: <em>{{PERSONA_BINDING}}</em></span>
+    <nav aria-label="Within-variant flow">
+      {{CROSS_SCREEN_NAV}}
+    </nav>
+    <nav aria-label="Across variants" class="wf-role-switcher">
+      {{CROSS_VARIANT_NAV}}
+    </nav>
+    <span style="margin-left: auto;">
+      <a href="{{SET_INDEX_HREF}}" class="wf-btn">Set index</a>
+      <a href="{{COMPARISON_HREF}}" class="wf-btn">Comparison</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1100px; margin: 0 auto; padding: 0 16px;">
+    <h1 data-src="{{SCREEN_SOURCES}}">{{SCREEN_INTENT}}</h1>
+
+    <section class="wf-section" aria-labelledby="primary-region-label">
+      <h2 id="primary-region-label" class="visually-hidden" style="position:absolute; left:-9999px;">Primary content</h2>
+      {{PRIMARY_PATTERN_HTML}}
+    </section>
+
+    {{SECONDARY_PATTERN_HTML}}
+  </main>
+
+  <footer class="wf-chrome" style="margin-top: 32px;">
+    <span class="wf-help">
+      States rendered on this screen: <code>{{STATES_RENDERED}}</code>
+    </span>
+  </footer>
+</body>
+</html>

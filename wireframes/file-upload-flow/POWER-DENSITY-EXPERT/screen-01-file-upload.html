@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>S-01 File upload (file picker + metadata + progress) — POWER-DENSITY-EXPERT — file-upload-flow</title>
+  <link rel="stylesheet" href="wireframe-ds.css" />
+  <meta name="wf-scope-slug" content="file-upload-flow" />
+  <meta name="wf-variant-id" content="POWER-DENSITY-EXPERT" />
+  <meta name="wf-screen-id" content="S-01" />
+  <meta name="wf-screen-sources" content="F-05, F-06, BR-06, BR-09, BR-10, UI-04, UI-05, §5 File Upload, §7 FileSetting, §7 FileLog" />
+  <meta name="wf-persona-binding" content="Importer" />
+  <meta name="wf-states-rendered" content="default | file-selected | uploading | error-invalid-format" />
+</head>
+<body>
+  <header class="wf-chrome" data-src="F-05, F-06, BR-06, BR-09, BR-10, UI-04, UI-05, §5 File Upload, §7 FileSetting, §7 FileLog">
+    <strong>S-01 · File upload (file picker + metadata + progress)</strong>
+    <span class="wf-help">scope: <code>file-upload-flow</code> · variant: <code>POWER-DENSITY-EXPERT</code> · persona: <em>Importer</em></span>
+    <nav aria-label="Within-variant flow">
+      <strong>S-01 File upload</strong>
+      <a href="screen-02-file-log-overview.html">S-02 File log overview ›</a>
+    </nav>
+    <nav aria-label="Across variants" class="wf-role-switcher">
+      <button aria-pressed="true">Current: POWER-DENSITY-EXPERT</button>
+      <a href="../CAREFUL-DEFAULT-IMPORTER/screen-01-file-upload.html">View CAREFUL-DEFAULT-IMPORTER</a>
+    </nav>
+    <span style="margin-left: auto;">
+      <a href="../index.html" class="wf-btn">Set index</a>
+      <a href="../comparison.html" class="wf-btn">Comparison</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1100px; margin: 0 auto; padding: 0 16px;">
+    <h1 data-src="F-05, F-06, BR-06, BR-09, BR-10, UI-04, UI-05, §5 File Upload, §7 FileSetting, §7 FileLog">File upload (file picker + metadata + progress)</h1>
+
+    <p class="wf-help">
+      <strong>Position translation:</strong> D1+1 (speed) · D2+1 (power) · D3+2 (density) → <code>single-form.compact</code> with two-column dense layout; submit-on-Enter from any field; help text suppressed except where blocking. Persona: daily Importer (BR-09 / BR-10 — Approver does not see this screen).
+    </p>
+
+    <section class="wf-section" aria-labelledby="primary-region-label">
+      <h2 id="primary-region-label" class="visually-hidden" style="position:absolute; left:-9999px;">Primary content</h2>
+
+      <form class="wf-form" data-src="F-05, F-06, UI-04, UI-05, §5 File Upload, §7 FileSetting, §7 FileLog" onsubmit="event.preventDefault(); return false;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--wf-spacing) * 2);">
+          <div class="wf-field" data-src="F-05, UI-04">
+            <label for="up-file">File <span style="color: var(--wf-state-danger);">*</span></label>
+            <input id="up-file" type="file" accept=".csv,.xlsx,.xml" required />
+            <p class="wf-help">Drop a file or browse. CSV / XLSX / XML accepted per FileSetting.</p>
+          </div>
+
+          <div class="wf-field" data-src="F-05, §7 FileSetting">
+            <label for="up-type">FileSetting type <span style="color: var(--wf-state-danger);">*</span></label>
+            <select id="up-type" required>
+              <option value="">— pick a type —</option>
+              <option value="trx-daily" selected>trx-daily (transactions, daily)</option>
+              <option value="trx-correction">trx-correction (correction batch)</option>
+              <option value="trx-late">trx-late (after-hours batch)</option>
+            </select>
+            <p class="wf-help">Determines validation rules + downstream routing.</p>
+          </div>
+
+          <div class="wf-field" data-src="F-05, §7 FileLog">
+            <label for="up-batch">Batch reference</label>
+            <input id="up-batch" type="text" placeholder="BATCH-2026-05-23-001" value="BATCH-2026-05-23-001" />
+          </div>
+
+          <div class="wf-field" data-src="F-05, §7 FileLog">
+            <label for="up-source">Source system</label>
+            <input id="up-source" type="text" placeholder="upstream-system-id" value="ledger-prod-eu" />
+          </div>
+
+          <div class="wf-field" data-src="F-05, §7 FileLog">
+            <label for="up-priority">Priority</label>
+            <select id="up-priority">
+              <option value="normal" selected>normal</option>
+              <option value="urgent">urgent</option>
+              <option value="low">low</option>
+            </select>
+          </div>
+
+          <div class="wf-field" data-src="F-05, §7 FileLog">
+            <label for="up-note">Note (optional)</label>
+            <input id="up-note" type="text" placeholder="leave blank for the happy path" />
+          </div>
+        </div>
+
+        <!-- File-selected state preview (one of the rendered states). -->
+        <div class="wf-card" style="margin-top: calc(var(--wf-spacing) * 2);" data-src="F-05, UI-04, UI-05">
+          <h3>Selected — preview (state: file-selected)</h3>
+          <table style="width: 100%; font-family: var(--wf-font-mono); font-size: var(--wf-fz-sm);">
+            <tr><td>filename</td><td>2026-05-23-batch.csv</td></tr>
+            <tr><td>size</td><td>184.2 KB</td></tr>
+            <tr><td>row-count (estimated)</td><td>1,247</td></tr>
+            <tr><td>FileSetting</td><td>trx-daily</td></tr>
+          </table>
+        </div>
+
+        <!-- Upload progress (state: uploading) -->
+        <div class="wf-card" style="margin-top: calc(var(--wf-spacing) * 2);" data-src="UI-05, F-06">
+          <h3>Upload progress (state: uploading)</h3>
+          <div style="font-family: var(--wf-font-mono); font-size: var(--wf-fz-sm);">
+            <div>[████████████████░░░░] 78%  ·  1.4 MB / 1.8 MB  ·  ETA 2s</div>
+            <div class="wf-help">progress polls FileLog status per UI-05. submit-on-Enter armed.</div>
+          </div>
+        </div>
+
+        <div style="margin-top: calc(var(--wf-spacing) * 2); display: flex; gap: var(--wf-spacing); align-items: center;">
+          <button type="submit" class="wf-btn primary" data-src="F-05, F-06, §5 File Upload">Upload (Enter)</button>
+          <button type="reset" class="wf-btn">Reset</button>
+          <span class="wf-help" style="margin-left: auto;">Keyboard: <kbd>Enter</kbd> submits · <kbd>Tab</kbd> moves fields · <kbd>Esc</kbd> resets</span>
+        </div>
+      </form>
+    </section>
+
+    <!-- SECONDARY: inline-validation surface (state: error-invalid-format) -->
+    <section class="wf-section" aria-labelledby="validation-region-label" data-src="BR-06, UI-04">
+      <h2 id="validation-region-label">Validation (state: error-invalid-format)</h2>
+      <div class="wf-banner" data-tone="danger" data-src="BR-06, UI-04">
+        <strong>File rejected.</strong> The selected file violates BR-06 (file format must match FileSetting).
+        <ul style="margin: var(--wf-spacing) 0 0 calc(var(--wf-spacing) * 2);">
+          <li><code>file.format</code>: expected CSV (per FileSetting <code>trx-daily</code>), got XLSX.</li>
+          <li>Recovery: convert to CSV upstream or pick a FileSetting that accepts XLSX.</li>
+        </ul>
+      </div>
+      <p class="wf-validation-error" data-src="BR-06">Field <code>file</code>: format mismatch — validate on-blur per GR-05.</p>
+    </section>
+
+    <!-- Persona-gate banner (BR-09 / BR-10 — Approver does not see this screen at all) -->
+    <section class="wf-section">
+      <h2>Persona gate</h2>
+      <div class="wf-banner" data-tone="warning" data-src="BR-09, BR-10">
+        <strong>BR-09 / BR-10:</strong> Importer only. Approver does not see this screen — they enter the flow at S-02 to review the result of an Importer's upload.
+      </div>
+    </section>
+  </main>
+
+  <footer class="wf-chrome" style="margin-top: 32px;">
+    <span class="wf-help">
+      States rendered on this screen: <code>default | file-selected | uploading | error-invalid-format</code>
+    </span>
+  </footer>
+</body>
+</html>

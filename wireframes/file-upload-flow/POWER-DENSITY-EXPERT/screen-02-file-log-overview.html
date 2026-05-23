@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>S-02 File log overview (table + row actions + drill into transactions) — POWER-DENSITY-EXPERT — file-upload-flow</title>
+  <link rel="stylesheet" href="wireframe-ds.css" />
+  <meta name="wf-scope-slug" content="file-upload-flow" />
+  <meta name="wf-variant-id" content="POWER-DENSITY-EXPERT" />
+  <meta name="wf-screen-id" content="S-02" />
+  <meta name="wf-screen-sources" content="F-06, F-07, F-08, F-15, F-16, F-17, F-19, F-20, UI-06, UI-07, UI-15, UI-16, UI-17, UI-18, UI-19, §5 File Log Overview, §7 FileLog" />
+  <meta name="wf-persona-binding" content="Importer" />
+  <meta name="wf-states-rendered" content="default | loading | empty | bulk-error-flag | confirming-destructive | error" />
+</head>
+<body>
+  <header class="wf-chrome" data-src="F-06, F-07, F-08, F-15, F-16, F-17, F-19, F-20, UI-06, UI-07, UI-15, UI-16, UI-17, UI-18, UI-19, §5 File Log Overview, §7 FileLog">
+    <strong>S-02 · File log overview (table + row actions + drill into transactions)</strong>
+    <span class="wf-help">scope: <code>file-upload-flow</code> · variant: <code>POWER-DENSITY-EXPERT</code> · persona: <em>Importer</em></span>
+    <nav aria-label="Within-variant flow">
+      <a href="screen-01-file-upload.html">‹ S-01 File upload</a>
+      <strong>S-02 File log overview</strong>
+      <a href="screen-03-file-summary.html">S-03 File summary ›</a>
+      <a href="screen-04-validation-errors.html">↺ S-04 Validation errors (on HasBulkErrorFile)</a>
+      <a href="screen-01-file-upload.html">↺ S-01 (Upload another, Importer only per BR-09 / BR-10)</a>
+    </nav>
+    <nav aria-label="Across variants" class="wf-role-switcher">
+      <button aria-pressed="true">Current: POWER-DENSITY-EXPERT</button>
+      <a href="../CAREFUL-DEFAULT-IMPORTER/screen-02-file-log-overview.html">View CAREFUL-DEFAULT-IMPORTER</a>
+    </nav>
+    <span style="margin-left: auto;">
+      <a href="../index.html" class="wf-btn">Set index</a>
+      <a href="../comparison.html" class="wf-btn">Comparison</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1100px; margin: 0 auto; padding: 0 16px;">
+    <h1 data-src="F-06, F-07, F-08, F-15, F-16, F-17, F-19, F-20, UI-06, UI-07, UI-15, UI-16, UI-17, UI-18, UI-19, §5 File Log Overview, §7 FileLog">File log overview</h1>
+
+    <p class="wf-help">
+      <strong>Position translation:</strong> D3+2 (density) → <code>table.compact</code> with 9 visible columns + <code>inline-edit</code> variant on the Priority column; D1+1 (speed) → bulk-select + keyboard shortcuts; D2+1 (power) → command-palette entry, no row-level help text. Primary persona: Importer; the table is the daily entry surface.
+    </p>
+
+    <!-- Quick-filter bar (toolbar above the table per pattern-bindings Section 2). -->
+    <section class="wf-section" data-src="F-07, UI-06, §5 File Log Overview">
+      <h2>Filter &amp; quick actions</h2>
+      <div style="display: flex; gap: var(--wf-spacing); flex-wrap: wrap; align-items: center;">
+        <input type="search" placeholder="Search filename / batch ref / source" style="flex: 1 1 280px; padding: var(--wf-spacing); border: var(--wf-border-width) dashed var(--wf-border-subtle); font-family: var(--wf-font-body);" />
+        <select style="padding: var(--wf-spacing); border: var(--wf-border-width) dashed var(--wf-border-subtle); font-family: var(--wf-font-body);">
+          <option>All statuses</option>
+          <option>Uploaded</option>
+          <option>Validating</option>
+          <option>Approved</option>
+          <option>Rejected</option>
+          <option>Cancelled</option>
+        </select>
+        <select style="padding: var(--wf-spacing); border: var(--wf-border-width) dashed var(--wf-border-subtle); font-family: var(--wf-font-body);">
+          <option>Today</option>
+          <option>This week</option>
+          <option>Custom range</option>
+        </select>
+        <button class="wf-btn" data-src="UI-06">Apply (⌘F)</button>
+        <span class="wf-help" style="margin-left: auto;">Keyboard: <kbd>j/k</kbd> row nav · <kbd>Space</kbd> select · <kbd>Enter</kbd> drill · <kbd>⌘P</kbd> palette · <kbd>r</kbd> Retry · <kbd>d</kbd> Download · <kbd>x</kbd> Cancel</span>
+      </div>
+    </section>
+
+    <!-- Bulk-error-flag banner (UI-15 HasBulkErrorFile state) -->
+    <section class="wf-section">
+      <div class="wf-banner" data-tone="danger" data-src="UI-15, F-17">
+        <strong>HasBulkErrorFile detected</strong> on 2 rows in the current view (BATCH-2026-05-23-002, BATCH-2026-05-22-011). Click the row's <em>↳ errors</em> action to drill into S-04.
+      </div>
+    </section>
+
+    <section class="wf-section" aria-labelledby="primary-region-label">
+      <h2 id="primary-region-label" class="visually-hidden" style="position:absolute; left:-9999px;">Primary content</h2>
+
+      <!-- Bulk-action toolbar (collections/table selectable variant per D1+1) -->
+      <div style="display: flex; gap: var(--wf-spacing); align-items: center; margin-bottom: var(--wf-spacing);">
+        <span><strong>2 selected</strong> of 47 visible</span>
+        <button class="wf-btn" data-src="F-16, UI-17">Download (d)</button>
+        <button class="wf-btn destructive" data-src="F-19, UI-18">Retry (r)</button>
+        <button class="wf-btn destructive" data-src="F-20, UI-19">Cancel (x)</button>
+      </div>
+
+      <div class="wf-table" data-src="F-06, F-07, F-15, F-16, F-17, F-19, F-20, UI-06, UI-07, UI-15, UI-16, UI-17, UI-18, UI-19, §5 File Log Overview, §7 FileLog">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 28px;"><input type="checkbox" aria-label="Select all visible" /></th>
+              <th data-src="F-06, §7 FileLog">Filename ▾</th>
+              <th data-src="F-06, §7 FileLog">Batch ref</th>
+              <th data-src="F-06, §7 FileLog">FileSetting</th>
+              <th data-src="F-07, UI-06, §7 FileLog">Status</th>
+              <th data-src="F-15, §7 FileLog">Uploaded by</th>
+              <th data-src="F-15, §7 FileLog">Uploaded at</th>
+              <th data-src="F-15, §7 FileLog">Rows</th>
+              <th data-src="UI-15, F-17">Bulk-error</th>
+              <th data-src="UI-16, F-15">Priority (inline-edit)</th>
+              <th data-src="UI-17, UI-18, UI-19, F-16, F-19, F-20">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" checked /></td>
+              <td><code>2026-05-23-batch.csv</code></td>
+              <td>BATCH-2026-05-23-001</td>
+              <td>trx-daily</td>
+              <td>Approved</td>
+              <td>importer-1</td>
+              <td>08:14:02</td>
+              <td>1,247</td>
+              <td>—</td>
+              <td><input type="text" value="normal" style="width: 96px; padding: 2px 4px; border: 1px dashed var(--wf-border-subtle); font-family: var(--wf-font-mono); font-size: var(--wf-fz-xs);" data-src="UI-16" /></td>
+              <td>
+                <a href="#" class="wf-btn" data-src="F-08, UI-07">Drill ›</a>
+                <button class="wf-btn" data-src="F-16, UI-17">d</button>
+              </td>
+            </tr>
+            <tr class="selected">
+              <td><input type="checkbox" checked /></td>
+              <td><code>2026-05-23-batch-late.csv</code></td>
+              <td>BATCH-2026-05-23-002</td>
+              <td>trx-late</td>
+              <td>Rejected</td>
+              <td>importer-1</td>
+              <td>09:42:11</td>
+              <td>347</td>
+              <td><strong style="color: var(--wf-state-danger);">▲ yes</strong> <a href="screen-04-validation-errors.html" data-src="UI-15, F-17">↳ errors</a></td>
+              <td><input type="text" value="urgent" style="width: 96px; padding: 2px 4px; border: 2px solid var(--wf-text-default); font-family: var(--wf-font-mono); font-size: var(--wf-fz-xs);" data-src="UI-16" /></td>
+              <td>
+                <button class="wf-btn destructive" data-src="F-19, UI-18">r</button>
+                <button class="wf-btn destructive" data-src="F-20, UI-19">x</button>
+              </td>
+            </tr>
+            <tr class="selected">
+              <td><input type="checkbox" checked /></td>
+              <td><code>2026-05-22-batch-011.csv</code></td>
+              <td>BATCH-2026-05-22-011</td>
+              <td>trx-correction</td>
+              <td>Validating</td>
+              <td>importer-2</td>
+              <td>2026-05-22 16:08</td>
+              <td>89</td>
+              <td><strong style="color: var(--wf-state-danger);">▲ yes</strong> <a href="screen-04-validation-errors.html" data-src="UI-15, F-17">↳ errors</a></td>
+              <td><input type="text" value="normal" style="width: 96px; padding: 2px 4px; border: 1px dashed var(--wf-border-subtle); font-family: var(--wf-font-mono); font-size: var(--wf-fz-xs);" data-src="UI-16" /></td>
+              <td>
+                <button class="wf-btn destructive" data-src="F-20, UI-19">x</button>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td><code>2026-05-22-batch.csv</code></td>
+              <td>BATCH-2026-05-22-001</td>
+              <td>trx-daily</td>
+              <td>Approved</td>
+              <td>importer-1</td>
+              <td>2026-05-22 08:09</td>
+              <td>1,198</td>
+              <td>—</td>
+              <td><input type="text" value="normal" style="width: 96px; padding: 2px 4px; border: 1px dashed var(--wf-border-subtle); font-family: var(--wf-font-mono); font-size: var(--wf-fz-xs);" data-src="UI-16" /></td>
+              <td>
+                <a href="#" class="wf-btn" data-src="F-08, UI-07">Drill ›</a>
+                <button class="wf-btn" data-src="F-16, UI-17">d</button>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td><code>2026-05-21-batch.csv</code></td>
+              <td>BATCH-2026-05-21-001</td>
+              <td>trx-daily</td>
+              <td>Approved</td>
+              <td>importer-2</td>
+              <td>2026-05-21 08:02</td>
+              <td>1,015</td>
+              <td>—</td>
+              <td><input type="text" value="low" style="width: 96px; padding: 2px 4px; border: 1px dashed var(--wf-border-subtle); font-family: var(--wf-font-mono); font-size: var(--wf-fz-xs);" data-src="UI-16" /></td>
+              <td>
+                <a href="#" class="wf-btn" data-src="F-08, UI-07">Drill ›</a>
+                <button class="wf-btn" data-src="F-16, UI-17">d</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination per GR-11 -->
+      <div style="display: flex; gap: var(--wf-spacing); align-items: center; margin-top: var(--wf-spacing);">
+        <span class="wf-help">Page 1 of 9 · 47 of 412 rows</span>
+        <button class="wf-btn">‹ Prev</button>
+        <button class="wf-btn">Next ›</button>
+        <select style="padding: 2px 4px; font-family: var(--wf-font-body); border: var(--wf-border-width) dashed var(--wf-border-subtle);">
+          <option>5</option><option>10</option><option selected>20</option><option>50</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- SECONDARY: modal-confirmation, rendered in state: confirming-destructive (per pattern-binding GR-04). -->
+    <section class="wf-section" aria-labelledby="modal-region-label">
+      <h2 id="modal-region-label">Modal confirmation (state: confirming-destructive)</h2>
+      <p class="wf-help">Rendered visually for review — in runtime, this is the surface that appears when the user invokes <kbd>x</kbd> Cancel or <kbd>r</kbd> Retry on a row per GR-04. Default focus on Cancel.</p>
+      <div class="wf-modal" data-src="F-19, F-20, UI-18, UI-19" role="dialog" aria-modal="true" aria-labelledby="modal-h">
+        <h3 id="modal-h">Cancel <code>BATCH-2026-05-23-002</code>?</h3>
+        <p>This stops downstream processing of the 347 rows in this batch. The FileLog status moves to <em>Cancelled</em>. This cannot be undone — to re-process, re-upload the source file.</p>
+        <div style="display: flex; gap: var(--wf-spacing); justify-content: flex-end; margin-top: var(--wf-spacing);">
+          <button class="wf-btn" autofocus data-src="F-20">Cancel (default focus)</button>
+          <button class="wf-btn destructive" data-src="F-20, UI-19">Confirm cancel</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Empty state visualisation (state: empty) — first-run / no-match -->
+    <section class="wf-section" aria-labelledby="empty-region-label">
+      <h2 id="empty-region-label">Empty state (state: empty)</h2>
+      <div class="wf-empty" data-src="F-06, §7 FileLog">
+        <strong>No file logs in the current view.</strong>
+        <p>This Importer has not uploaded any files in the selected date range. Adjust the filter, or <a href="screen-01-file-upload.html">upload a file ›</a>.</p>
+      </div>
+    </section>
+
+    <!-- Error state visualisation (state: error) — table failed to load -->
+    <section class="wf-section" aria-labelledby="error-region-label">
+      <h2 id="error-region-label">Error state (state: error)</h2>
+      <div class="wf-banner" data-tone="danger" data-src="F-07, UI-06">
+        <strong>Table failed to load.</strong> The FileLog query timed out. Retry below; if the failure persists, escalate to ops.
+        <div style="margin-top: var(--wf-spacing);"><button class="wf-btn" data-src="F-07">Retry</button></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wf-chrome" style="margin-top: 32px;">
+    <span class="wf-help">
+      States rendered on this screen: <code>default | loading | empty | bulk-error-flag | confirming-destructive | error</code>
+    </span>
+  </footer>
+</body>
+</html>

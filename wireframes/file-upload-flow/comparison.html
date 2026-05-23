@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Comparison — file-upload-flow</title>
+  <link rel="stylesheet" href="POWER-DENSITY-EXPERT/wireframe-ds.css" />
+  <style>
+    /* Comparison-specific overrides: render a wide matrix table comfortably. */
+    .wf-matrix { width: 100%; border-collapse: collapse; }
+    .wf-matrix th,
+    .wf-matrix td { border: 2px dashed var(--wf-border-subtle); padding: 8px; vertical-align: top; text-align: left; }
+    .wf-matrix th.row-label { background: var(--wf-surface-muted); width: 220px; }
+    .wf-matrix td.position {
+      text-align: center;
+      font-family: var(--wf-font-mono);
+      font-weight: 700;
+      font-size: var(--wf-fz-lg);
+    }
+    .wf-matrix .pos-pos {  /* positive positions */ background: rgba(34,34,34,0.05); }
+    .wf-matrix .pos-neg {  /* negative positions */ background: rgba(102,102,102,0.05); }
+    .wf-matrix ul { margin: 0; padding-left: 16px; }
+    .wf-drift {
+      border: 2px solid var(--wf-state-danger);
+      padding: 16px;
+      background: rgba(0,0,0,0.05);
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <header class="wf-chrome">
+    <strong>Cross-variant comparison · file-upload-flow</strong>
+    <span style="margin-left: auto;">
+      <a href="index.html" class="wf-btn">Set index</a>
+      <a href="../../blueprints/file-upload-flow/blueprint.md" class="wf-btn">Blueprint</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1200px; margin: 0 auto; padding: 0 16px;">
+    <h1>Trade-off matrix</h1>
+    <p class="wf-help">
+      Each cell is sourced from the relevant <code>variant-position.json</code>.
+      Each variant declares its own dimension positions, strengths, weaknesses,
+      and "use-when" rationale. Positions span <code>-2 .. +2</code> on every
+      dimension; positive favours the right-hand pole, negative favours the left.
+    </p>
+
+    <section class="wf-section">
+      <h2>Variants</h2>
+      <div class="wf-table">
+        <table class="wf-matrix">
+          <thead>
+            <tr><th class="row-label">Dimension</th><th>POWER-DENSITY-EXPERT</th><th>CAREFUL-DEFAULT-IMPORTER</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th class="row-label">Persona binding</th>
+              <td>Importer</td><td>Importer</td>
+            </tr>
+            <tr>
+              <th class="row-label">speed-accuracy</th>
+              <td class="position pos-pos">+1</td>
+              <td class="position pos-neg">-1</td>
+            </tr>
+            <tr>
+              <th class="row-label">power-simplicity</th>
+              <td class="position pos-pos">+1</td>
+              <td class="position pos-neutral">0</td>
+            </tr>
+            <tr>
+              <th class="row-label">density-focus</th>
+              <td class="position pos-pos">+2</td>
+              <td class="position pos-neutral">0</td>
+            </tr>
+            <tr>
+              <th class="row-label">control-automation</th>
+              <td class="position pos-neutral">0</td>
+              <td class="position pos-neutral">0</td>
+            </tr>
+            <tr>
+              <th class="row-label">flexibility-consistency</th>
+              <td class="position pos-neutral">0</td>
+              <td class="position pos-neutral">0</td>
+            </tr>
+            <tr>
+              <th class="row-label">Strengths</th>
+              <td><ul><li>S-02 file-log table renders 9 columns in one viewport without horizontal scroll on a 1280px desk-class screen (D3+2 → table.compact + bulk-select column).</li><li>Submit-on-Enter from any field in S-01 lets the Importer drop a file, tab through metadata, and ship without touching the mouse (D1+1 → single-form.compact).</li><li>Keyboard shortcuts on S-02 (j/k row nav, Space select, r retry, d download, x cancel) collapse a 4-click mouse path to one keystroke (D1+1 + D2+1).</li><li>Inline-edit on S-02 Priority column commits-on-blur — no separate edit modal, no second confirmation gate for non-destructive field changes.</li><li>S-03 dashboard exposes F-15 audit columns as 4 KPI tiles, so the Importer never has to drill to find who uploaded what — daily audit-by-glance is free.</li></ul></td>
+              <td><ul><li>Explicit save bar on S-01 makes the commit point unambiguous; reduces accidental-submit risk for the daily Importer reviewing metadata before upload.</li><li>Per-row modal-confirmation on destructive Cancel actions (S-02) honours GR-04 with default focus on Keep; bulk-select stays disabled so a slip cannot cascade.</li><li>Section-grouped form (file / metadata / progress) keeps the cognitive load proportional to the step the Importer is on.</li><li>Help text on non-obvious fields (FileSetting, business date) lowers the cost of an Importer returning after time away from the screen.</li><li>Standard-density table on S-02 stays scannable at 20 rows per page (GR-11) without requiring keyboard-shortcut training.</li></ul></td>
+            </tr>
+            <tr>
+              <th class="row-label">Weaknesses</th>
+              <td><ul><li>S-02 with 9 visible columns is cognitively dense — first-time users will spend their first session orienting against the column meaning rather than transacting.</li><li>Tooltip-on-hover is the only chrome surfacing the keyboard shortcuts; an Importer who never hovers over the help text will not discover j/k/r/d/x — discoverability is poor by design (D2+1).</li><li>S-04 retry-validation requires the user to read 8 reason codes per row and decide whether a retry is appropriate without inline guidance — assumes BR rule familiarity.</li><li>The bulk-retry pattern lets the user select rows that are unfit for retry (e.g. genuinely unknown counterparty) and trigger a sure-to-fail retry batch — the cost of D1+1 + D2+1 is occasional wasted retry cycles.</li><li>S-01's submit-on-Enter posture means a stray Enter mid-edit can ship the upload before the user is fully ready — speed bias trades against accuracy.</li></ul></td>
+              <td><ul><li>Throughput is lower than the POWER-DENSITY-EXPERT variant: explicit Upload click and per-row confirms add seconds per file for a daily operator at high volume.</li><li>Save bar plus separate progress section adds vertical scroll on S-01; small viewports may not see both submit CTA and validation banner at once.</li><li>No bulk actions on S-02 means cancelling several rejected files requires N modal traversals; intentional cost of the careful posture.</li><li>Density-0 table caps the at-a-glance column budget below what a daily Importer could comfortably scan if columns were tighter.</li><li>No keyboard shortcuts surfaced visually; an experienced Importer who later wants speed has no obvious upgrade path inside this variant.</li></ul></td>
+            </tr>
+            <tr>
+              <th class="row-label">Trade-offs</th>
+              <td>Expert-first; low learnability. Maximises throughput for daily Importers who have used a similar product before; punishes occasional users with sparse on-screen guidance.</td>
+              <td>Careful-first; lower throughput. Optimises for explicit save points and reversibility over per-task speed.</td>
+            </tr>
+            <tr>
+              <th class="row-label">Use when</th>
+              <td>Bind to a daily, high-volume Importer who has done ≥1 week of supervised onboarding or has used a comparable file-ingestion product before. Not a good fit for first-time users or for personas who only touch this surface monthly.</td>
+              <td>Daily Importer who values explicit save / undo recovery paths over keystroke efficiency; new-to-product or risk-averse operators; teams where a mis-uploaded batch has high downstream blast radius.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="wf-drift">
+      <h2>Drift between declared positions and rendered pattern picks</h2>
+      <p class="wf-help">A <code>[DRIFT]</code> flag means a variant's declared <code>dimension_positions</code> (from <code>variant-position.json</code>) does not match the rendered pattern variant in its <code>manifest.json</code> per <code>framework/assets/wireframes/tradeoff-dimensions-registry.md > Section 3</code>. Drift is not a generation failure; it is signal for the consultant to decide whether to revise the variant or accept the inconsistency.</p>
+      <ul>
+        <li>[DRIFT: POWER-DENSITY-EXPERT S-03 declared density-focus: +2 but rendered collections/dashboard.default; expected {collections/table.compact (8+ columns, inline-edit)} per registry Section 3 D3+2 Collections row. The variant-generator notes that 8 KPI tiles in a 4-column grid were chosen to honour D3+2 information density at the dashboard category — but the registry's canonical pole-mapping is table-class.]</li>
+        <li>[DRIFT: CAREFUL-DEFAULT-IMPORTER S-02 declared speed-accuracy: -1 but rendered collections/table.default; expected {collections/table.comfortable, per-row confirm on destructive, bulk-select disabled} per registry Section 3 D1-1 Collections row. Catalogue gap: the variant 'comfortable' is not enumerated in <code>collections/table.md</code>'s <code>variants:</code> block; the sub-agent fell back to 'default' and honoured the careful-posture intent via secondary patterns (modal-confirmation on Cancel) and disabled bulk-select.]</li>
+        <li>[DRIFT: CAREFUL-DEFAULT-IMPORTER S-04 declared speed-accuracy: -1 but rendered collections/table.default; expected {collections/table.comfortable} per registry Section 3 D1-1 Collections row. Same catalogue gap as S-02; same compensating composition.]</li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!--
+ROLE: asset (wireframe-private template). Used by
+framework/agents/wireframe-comparator.md to populate
+wireframes/<scope-slug>/comparison.html — the cross-variant trade-off matrix.
+
+The comparator reads ONLY:
+  - blueprints/<scope-slug>/blueprint.md (for scope + screen inventory context)
+  - wireframes/<scope-slug>/variants.json
+  - wireframes/<scope-slug>/<VARIANT>/variant-position.json (one per variant)
+  - wireframes/<scope-slug>/<VARIANT>/manifest.json (one per variant, for drift detection only)
+
+It NEVER re-reads screen HTML.
+
+Slots filled by the comparator:
+  {{SCOPE_SLUG}}                        — kebab-case scope slug.
+  {{SET_INDEX_HREF}}                    — href to wireframes/<scope-slug>/index.html.
+  {{DIMENSION_HEADER_ROW}}              — <tr> with one <th> per variant_id.
+  {{DIMENSION_BODY_ROWS}}               — <tr> per dimension, with one <td> per variant showing its position.
+  {{STRENGTHS_ROW}}                     — <tr> showing each variant's bulleted strengths from variant-position.json.
+  {{WEAKNESSES_ROW}}                    — <tr> showing each variant's bulleted weaknesses.
+  {{TRADEOFFS_ROW}}                     — <tr> showing each variant's "tradeoffs" line.
+  {{USE_WHEN_ROW}}                      — <tr> showing each variant's "use_when" line.
+  {{PERSONA_BINDING_ROW}}               — <tr> showing each variant's bound persona.
+  {{DRIFT_FLAGS_SECTION}}               — section listing any [DRIFT] flags surfaced during comparator's drift detection (empty when no drift).
+  {{BLUEPRINT_HREF}}                    — relative href to blueprints/<scope-slug>/blueprint.md.
+  {{FIRST_VARIANT_DS_PATH}}             — relative href to the first variant's wireframe-ds.css (used for visual styling of this comparison page).
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Comparison — {{SCOPE_SLUG}}</title>
+  <link rel="stylesheet" href="{{FIRST_VARIANT_DS_PATH}}" />
+  <style>
+    /* Comparison-specific overrides: render a wide matrix table comfortably. */
+    .wf-matrix { width: 100%; border-collapse: collapse; }
+    .wf-matrix th,
+    .wf-matrix td { border: 2px dashed var(--wf-border-subtle); padding: 8px; vertical-align: top; text-align: left; }
+    .wf-matrix th.row-label { background: var(--wf-surface-muted); width: 220px; }
+    .wf-matrix td.position {
+      text-align: center;
+      font-family: var(--wf-font-mono);
+      font-weight: 700;
+      font-size: var(--wf-fz-lg);
+    }
+    .wf-matrix .pos-pos {  /* positive positions */ background: rgba(34,34,34,0.05); }
+    .wf-matrix .pos-neg {  /* negative positions */ background: rgba(102,102,102,0.05); }
+    .wf-matrix ul { margin: 0; padding-left: 16px; }
+    .wf-drift {
+      border: 2px solid var(--wf-state-danger);
+      padding: 16px;
+      background: rgba(0,0,0,0.05);
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <header class="wf-chrome">
+    <strong>Cross-variant comparison · {{SCOPE_SLUG}}</strong>
+    <span style="margin-left: auto;">
+      <a href="{{SET_INDEX_HREF}}" class="wf-btn">Set index</a>
+      <a href="{{BLUEPRINT_HREF}}" class="wf-btn">Blueprint</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1200px; margin: 0 auto; padding: 0 16px;">
+    <h1>Trade-off matrix</h1>
+    <p class="wf-help">
+      Each cell is sourced from the relevant <code>variant-position.json</code>.
+      Each variant declares its own dimension positions, strengths, weaknesses,
+      and "use-when" rationale. Positions span <code>-2 .. +2</code> on every
+      dimension; positive favours the right-hand pole, negative favours the left.
+    </p>
+
+    <section class="wf-section">
+      <h2>Variants</h2>
+      <div class="wf-table">
+        <table class="wf-matrix">
+          <thead>
+            {{DIMENSION_HEADER_ROW}}
+          </thead>
+          <tbody>
+            <tr>
+              <th class="row-label">Persona binding</th>
+              {{PERSONA_BINDING_ROW}}
+            </tr>
+            {{DIMENSION_BODY_ROWS}}
+            <tr>
+              <th class="row-label">Strengths</th>
+              {{STRENGTHS_ROW}}
+            </tr>
+            <tr>
+              <th class="row-label">Weaknesses</th>
+              {{WEAKNESSES_ROW}}
+            </tr>
+            <tr>
+              <th class="row-label">Trade-offs</th>
+              {{TRADEOFFS_ROW}}
+            </tr>
+            <tr>
+              <th class="row-label">Use when</th>
+              {{USE_WHEN_ROW}}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {{DRIFT_FLAGS_SECTION}}
+  </main>
+</body>
+</html>

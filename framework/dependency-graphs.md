@@ -997,3 +997,186 @@ graph TD
 - The PRD resolver has **no edges to `framework/shared/general-rules.md` or `framework/shared/prototype-scope.md`** (unlike the requirements resolver in graph 1, which consults both via `flag-gaps-ambiguities.md`). The PRD resolver does not run the `apply-rule` / `defer-out-of-scope` follow-up filter — the PRD pipeline does not apply rule lookups or scope deferrals during Q&A.
 - The PRD pipeline writes to: `prd/*`, `framework/state/.prd-progress.json`, `framework/state/prd-resolver-*.{ndjson,json}`, `framework/state/timing.ndjson` (append-only). The documented cross-pipeline exception (inherited from the shared input-handler) writes `requirements/source-manifest.json` and `input/*.converted.md` siblings. No write reaches `requirements/requirements*.md`, `requirements/consultant-answers.md`, `requirements/requirements-draft.md`, `requirements/draft-claims*.ndjson`, `requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, `framework/state/resolver-*` (those belong to `/requirements`), `design-system/`, `analyse-requirements/<METHOD>/`, `analyse-inputs/<METHOD>/`, `review-requirements/<METHOD>/`, or `review-inputs/<METHOD>/`.
 - No cycles. No `framework/assets/pattern-catalogue/` "see also" pointers appear in this subtree.
+
+---
+
+## wireframe-orch.md
+
+```mermaid
+graph TD
+    classDef orch fill:#1f2937,color:#fff,stroke:#000,stroke-width:2px,font-weight:bold
+    classDef agent fill:#2563eb,color:#fff,stroke:#1e40af
+    classDef parallel fill:#3b82f6,color:#fff,stroke:#1d4ed8,stroke-dasharray:3 3
+    classDef step fill:#0891b2,color:#fff,stroke:#155e75
+    classDef skill fill:#0d9488,color:#fff,stroke:#0f766e
+    classDef asset fill:#d97706,color:#fff,stroke:#92400e
+    classDef ds fill:#ea580c,color:#fff,stroke:#9a3412
+    classDef shared fill:#7c3aed,color:#fff,stroke:#5b21b6
+    classDef char fill:#db2777,color:#fff,stroke:#9d174d
+    classDef state fill:#525252,color:#fff,stroke:#262626
+
+    subgraph Orchestrator
+      orch_wf[wireframe-orch.md]
+    end
+
+    subgraph Agents
+      agent_architect[blueprint-architect.md]
+      agent_comparator[wireframe-comparator.md]
+      agent_variant[wireframe-variant-generator.md]
+    end
+
+    subgraph ArchitectSteps
+      arch_s1[blueprint-architect/steps/step-01-activate.md]
+      arch_s2[blueprint-architect/steps/step-02-read-inputs.md]
+      arch_s3[blueprint-architect/steps/step-03-author-blueprint.md]
+      arch_s4[blueprint-architect/steps/step-04-check-pattern-coverage.md]
+      arch_s5[blueprint-architect/steps/step-05-compose-variants.md]
+      arch_s6[blueprint-architect/steps/step-06-write-artefacts.md]
+      arch_s7[blueprint-architect/steps/step-07-handback.md]
+    end
+
+    subgraph VariantSteps
+      var_s1[wireframe-variant-generator/steps/step-01-activate.md]
+      var_s2[wireframe-variant-generator/steps/step-02-read-inputs.md]
+      var_s3[wireframe-variant-generator/steps/step-03-extract-ds.md]
+      var_s4[wireframe-variant-generator/steps/step-04-compose-screens.md]
+      var_s5[wireframe-variant-generator/steps/step-05-write-landing-and-sidecars.md]
+      var_s6[wireframe-variant-generator/steps/step-06-self-validate-and-handback.md]
+    end
+
+    subgraph Skills
+      skill_scopesel[scope-selector.md]
+      skill_pcov[check-pattern-coverage.md]
+      skill_freshness[check-wireframe-set-freshness.md]
+      skill_bloat_wf[check-context-bloat.md]
+      skill_verifywrite_wf[verify-artifact-write.md]
+    end
+
+    subgraph Templates
+      tmpl_screen[templates/template-screen.html]
+      tmpl_blueprint[templates/template-blueprint.md]
+      tmpl_variantlanding[wireframes/template-variant-landing.html]
+      tmpl_setindex[wireframes/template-set-index.html]
+      tmpl_comparison[wireframes/template-comparison.html]
+    end
+
+    subgraph DesignSystems
+      ds_wireframe[design-systems/wireframe-ds.html]
+    end
+
+    subgraph Assets
+      asset_dimensions[trade-off-dimensions.md]
+      asset_wfregistry[wireframes/tradeoff-dimensions-registry.md]
+      asset_pbindings[wireframes/pattern-bindings.md]
+      asset_pcatalogue[pattern-catalogue/_index.md]
+      asset_personallm[persona-llm.md]
+      asset_tradeoffmatrix[analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html]
+    end
+
+    subgraph Characters
+      char_architect[characters/blueprint-architect.md]
+      char_variant[characters/wireframe-variant.md]
+      char_comparator[characters/wireframe-comparator.md]
+    end
+
+    subgraph Shared
+      shared_refusal_wf[refusal-registry.md]
+    end
+
+    subgraph State
+      state_progress_wf[state/.progress.json]
+    end
+
+    orch_wf --> skill_scopesel
+    orch_wf --> skill_bloat_wf
+    orch_wf --> skill_freshness
+    orch_wf --> agent_architect
+    orch_wf --> agent_variant
+    orch_wf --> agent_comparator
+    orch_wf --> shared_refusal_wf
+
+    skill_bloat_wf --> shared_refusal_wf
+    skill_bloat_wf --> state_progress_wf
+    skill_verifywrite_wf --> shared_refusal_wf
+
+    skill_scopesel --> skill_verifywrite_wf
+
+    agent_architect --> arch_s1
+    agent_architect --> arch_s2
+    agent_architect --> arch_s3
+    agent_architect --> arch_s4
+    agent_architect --> arch_s5
+    agent_architect --> arch_s6
+    agent_architect --> arch_s7
+    agent_architect --> char_architect
+    agent_architect --> asset_personallm
+
+    arch_s1 --> char_architect
+    arch_s2 -.->|optional| asset_tradeoffmatrix
+    arch_s4 --> skill_pcov
+    arch_s4 --> tmpl_blueprint
+    arch_s4 --> skill_verifywrite_wf
+    arch_s5 --> asset_dimensions
+    arch_s5 --> asset_wfregistry
+    arch_s5 --> asset_pbindings
+    arch_s6 --> skill_verifywrite_wf
+
+    skill_pcov --> asset_pcatalogue
+
+    agent_variant --> var_s1
+    agent_variant --> var_s2
+    agent_variant --> var_s3
+    agent_variant --> var_s4
+    agent_variant --> var_s5
+    agent_variant --> var_s6
+    agent_variant --> char_variant
+    agent_variant --> asset_personallm
+
+    var_s1 --> char_variant
+    var_s2 --> tmpl_screen
+    var_s2 --> asset_wfregistry
+    var_s2 --> asset_pbindings
+    var_s2 --> asset_pcatalogue
+    var_s3 --> ds_wireframe
+    var_s3 --> skill_verifywrite_wf
+    var_s4 --> asset_pcatalogue
+    var_s4 --> skill_verifywrite_wf
+    var_s5 --> tmpl_variantlanding
+    var_s5 --> skill_verifywrite_wf
+
+    agent_comparator --> char_comparator
+    agent_comparator --> asset_personallm
+    agent_comparator --> tmpl_comparison
+    agent_comparator --> tmpl_setindex
+    agent_comparator --> asset_wfregistry
+    agent_comparator --> skill_verifywrite_wf
+
+    class orch_wf orch
+    class agent_architect,agent_comparator agent
+    class agent_variant parallel
+    class arch_s1,arch_s2,arch_s3,arch_s4,arch_s5,arch_s6,arch_s7,var_s1,var_s2,var_s3,var_s4,var_s5,var_s6 step
+    class skill_scopesel,skill_pcov,skill_freshness,skill_bloat_wf,skill_verifywrite_wf skill
+    class tmpl_screen,tmpl_blueprint,tmpl_variantlanding,tmpl_setindex,tmpl_comparison asset
+    class ds_wireframe ds
+    class asset_dimensions,asset_wfregistry,asset_pbindings,asset_pcatalogue,asset_personallm,asset_tradeoffmatrix asset
+    class char_architect,char_variant,char_comparator char
+    class shared_refusal_wf shared
+    class state_progress_wf state
+```
+
+**Stats:** 36 nodes / 50 edges / depth 4.
+
+**Notes:**
+- The orchestrator is **four-stage** (Scope → Design-Brief → Parallel Variant Generation → Comparison), not registry-driven like `/analyse-requirement`. Variant cardinality is bounded per-run (default 2, hard cap 3) but variant *configurations* are emergent — composed by the architect from dimension positions × user goals × scope personas, not picked from a closed archetype registry. The `wireframe-variant-generator.md` agent node is drawn with a **dashed border** to indicate it is dispatched as a **parallel sub-agent** at Stage 3 (one Agent-tool call per variant in a single message, hard-capped at 4 parallel). This is the only parallel sub-agent in the pipeline; the scope-selector, architect, and comparator all run in the foreground.
+- `blueprint-architect.md` is **cross-pipeline** — joins the existing convention (`input-handler.md`) per CLAUDE.md §3. It is shared with a future `framework/orchestrators/prototype-orch.md` (not on disk in current ship) which will pass a different `variants_output_path` (or `null` to skip variant composition entirely). The per-call differences are expressed through the five input parameters (`scope_slug`, `scope_path`, `blueprint_output_path`, `variants_output_path`, `mode`); the agent's logic is identical across callers. Likewise `scope-selector.md` is the cross-pipeline skill — parameterised by `output_dir` and `pipeline_name`; default labels assume `/wireframe`-style prompts but a future `/prototype` invocation works unchanged.
+- `check-pattern-coverage.md` is cross-pipeline by design (the catalogue/blueprint matching shape is pipeline-neutral). For now it has exactly one caller (`blueprint-architect.md > step-04`) but the second caller (a future `/prototype` architect using the same skill) is the rationale for keeping the parameter shape clean rather than inlining the logic.
+- `check-wireframe-set-freshness.md` is wireframe-private (the per-scope on-disk shape is wireframe-specific — per-variant subdirs + comparator + index outputs). Single caller (`wireframe-orch.md > step 0d`) but the freshness logic is non-trivial enough to factor out per CLAUDE.md §3's extraction criteria — clean parameter inputs and a single structured return value.
+- The **shared `blueprints/<scope-slug>/` directory** is the architectural contract for cross-pipeline reuse — see CLAUDE.md §2 architecture top-level dirs and the `/wireframe` stand-alone-constraint clause. `blueprint-architect.md`'s write to `blueprints/<scope-slug>/{scope.json, blueprint.md}` is the documented cross-pipeline exception (mirrors `input-handler.md`'s cross-pipeline write to `requirements/source-manifest.json` and `input/*.converted.md`).
+- The **shared `framework/assets/design-systems/` directory** is the home for cross-pipeline design-system assets. `wireframe-ds.html` is the low-fidelity DS shipped today; a future consumer DS for `/prototype` would live alongside it. Likewise `framework/assets/templates/` is the cross-pipeline DS-agnostic template directory; `template-screen.html` and `template-blueprint.md` are DS-agnostic (the DS path is a template slot, filled by the variant-generator with the wireframe-DS path today and the consumer-DS path under a future `/prototype`).
+- `pattern-catalogue/_index.md` is shared with the `/design-system` styler subtree (which loads it transitively via `data/component-catalogue.md`) — but the `/wireframe` consumers (`check-pattern-coverage.md`, `wireframe-variant-generator.md > step-02/04`) read it directly for per-pattern lookups. Per-pattern files under `pattern-catalogue/<category>/<pattern>.md` are read **selectively** by the variant-generator at step 4 (only the patterns picked per screen), not loaded en masse — keeps per-sub-agent context lean.
+- `analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html` is drawn as a **dashed optional edge** from the architect's step 2; the architect reads it only if it exists on disk. Absent → skipped silently. This is the only cross-pipeline-output read in the wireframe pipeline (every other read targets either `requirements/`, the orchestrator's own outputs, or `framework/assets/**`).
+- `state/.progress.json` is read (existence + at-least-one-`completed`-event check) by `check-context-bloat.md` from the wireframe orchestrator; the wireframe orchestrator **never writes to it**, consistent with the no-write-outside-`wireframes/`-and-`blueprints/` invariant. The wireframe-orch surface variant of RF-05 (see `framework/orchestrators/wireframe-orch.md > RF-05 — wireframe-orch surface variant`) deliberately omits the `status: context-bloated` write — same shape as the design-system-orch + analyse-requirement-orch variants. (When `framework/shared/refusal-registry.md` is next revised, append a fourth surface-variant block for `wireframe-orch`.)
+- `verify-artifact-write.md` is shared across all orchestrators; every wireframe pipeline write goes through it: scope.json (scope-selector at step 5), blueprint.md (architect at step 4 — written twice, once with placeholder pattern-coverage summary, once with the actual summary after the skill returns), variants.json (architect at step 6), per-variant wireframe-ds.css + screen-NN-*.html files (variant-generator at steps 3 + 4) + wireframes.html + manifest.json + variant-position.json (variant-generator at step 5), comparison.html + index.html (comparator).
+- The pipeline writes to: `blueprints/<scope-slug>/{scope.json, blueprint.md}` (cross-pipeline shared) + `wireframes/<scope-slug>/**` (wireframe-private). No write reaches `requirements/`, `prd/`, `design-system/`, `analyse-requirements/<METHOD>/`, `analyse-inputs/<METHOD>/`, `review-requirements/<METHOD>/`, `review-inputs/<METHOD>/`, or `framework/state/`.
+- Per each agent's stand-alone constraint, no edges reach `requirements/` (except `requirements/requirements.md` itself, which is the architect's full read at step 2 — implicit, not drawn), `framework/state/`, `framework/shared/` (except `refusal-registry.md` transitively via the skills), or the consumer `design-system/` from the architect / variant-generator / comparator subtrees. The orchestrator's narrow read exception for the step-0b preflight (read-only access to `requirements/`, `requirements/source-manifest.json`, `framework/state/.progress.json`) is captured by the `orch_wf → skill_bloat_wf → state_progress_wf` edges and a documented stand-alone-constraint clause in the orchestrator.
+- No cycles.

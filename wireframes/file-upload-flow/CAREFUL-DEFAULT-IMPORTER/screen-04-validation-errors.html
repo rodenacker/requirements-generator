@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>S-04 Validation errors detail (per-file validation row list) — CAREFUL-DEFAULT-IMPORTER — file-upload-flow</title>
+  <link rel="stylesheet" href="wireframe-ds.css" />
+  <meta name="wf-scope-slug" content="file-upload-flow" />
+  <meta name="wf-variant-id" content="CAREFUL-DEFAULT-IMPORTER" />
+  <meta name="wf-screen-id" content="S-04" />
+  <meta name="wf-screen-sources" content="F-18,F-19,UI-15,UI-18,§7 ValidationErrors,§7 FileProcessLog" />
+  <meta name="wf-persona-binding" content="Importer" />
+  <meta name="wf-states-rendered" content="default | empty" />
+</head>
+<body>
+  <header class="wf-chrome" data-src="F-18,F-19,UI-15,UI-18">
+    <strong>S-04 &middot; Validation errors detail (per-file validation row list)</strong>
+    <span class="wf-help">scope: <code>file-upload-flow</code> &middot; variant: <code>CAREFUL-DEFAULT-IMPORTER</code> &middot; persona: <em>Importer</em></span>
+    <nav aria-label="Within-variant flow">
+      <a href="screen-02-file-log-overview.html">&lsaquo; S-02 File log overview (close)</a>
+      <a href="screen-03-file-summary.html">&lsaquo; S-03 File summary</a>
+      <strong>S-04 Validation errors detail</strong>
+    </nav>
+    <nav aria-label="Across variants" class="wf-role-switcher">
+      <button aria-pressed="true">Current: CAREFUL-DEFAULT-IMPORTER</button>
+      <a href="../POWER-DENSITY-EXPERT/screen-04-validation-errors.html">View POWER-DENSITY-EXPERT</a>
+    </nav>
+    <span style="margin-left: auto;">
+      <a href="../index.html" class="wf-btn">Set index</a>
+      <a href="../comparison.html" class="wf-btn">Comparison</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1100px; margin: 0 auto; padding: 0 16px;">
+    <h1 data-src="F-18,F-19,UI-15,UI-18">Validation errors: 2026-05-23-eft-batch.csv</h1>
+
+    <!-- Secondary pattern: feedback/notification-banner (context + retry-validation) -->
+    <section class="wf-section" aria-label="Context banner">
+      <div class="wf-banner" data-tone="warning" data-src="UI-15,F-19" role="status">
+        <strong>3 validation errors for this file.</strong> Resolve in the source data and retry validation,
+        or download the bulk-error file for offline correction.
+        <div style="margin-top: 8px; display: flex; gap: 8px;">
+          <button type="button" class="wf-btn primary" data-src="F-19,UI-18">Retry validation</button>
+          <button type="button" class="wf-btn" data-src="UI-15">Download bulk-error file</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="wf-section" aria-labelledby="primary-region-label">
+      <h2 id="primary-region-label" class="visually-hidden" style="position:absolute; left:-9999px;">Primary content</h2>
+
+      <!-- collections/table variant: default (D1=-1 careful posture, comfortable not in catalogue; D3=0 standard density). -->
+      <div class="wf-table" data-src="F-18,UI-18">
+        <table>
+          <thead>
+            <tr>
+              <th data-src="F-18">Row #</th>
+              <th data-src="F-18">Field</th>
+              <th data-src="F-18">Submitted value</th>
+              <th data-src="F-18,UI-18">Error</th>
+              <th data-src="UI-18">Suggested fix</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>47</td>
+              <td>txn_amount</td>
+              <td><code>-12.50</code></td>
+              <td>
+                <p class="wf-validation-error" data-src="F-18">Amount must be non-negative.</p>
+              </td>
+              <td>Restate as positive; mark as refund via txn_type.</td>
+            </tr>
+            <tr>
+              <td>112</td>
+              <td>account_ref</td>
+              <td><code>ACCT-99999</code></td>
+              <td>
+                <p class="wf-validation-error" data-src="F-18">Account reference not found in master data.</p>
+              </td>
+              <td>Verify account onboarding; resubmit once active.</td>
+            </tr>
+            <tr>
+              <td>301</td>
+              <td>business_date</td>
+              <td><code>2027-01-01</code></td>
+              <td>
+                <p class="wf-validation-error" data-src="F-18">Business date is in the future.</p>
+              </td>
+              <td>Correct to actual transaction date.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- state: empty (rendered as a sibling, demonstrative; shown when no validation errors remain) -->
+      <div class="wf-empty" data-src="F-18,UI-15" hidden>
+        <strong>No validation errors.</strong>
+        This file passed validation cleanly. Return to <a href="screen-03-file-summary.html">file summary</a> (state: empty).
+      </div>
+    </section>
+
+    <div style="display: flex; gap: 8px; margin-top: 16px;">
+      <a href="screen-02-file-log-overview.html" class="wf-btn" data-src="UI-18">Close (back to file log)</a>
+      <a href="screen-03-file-summary.html" class="wf-btn">Back to file summary</a>
+    </div>
+  </main>
+
+  <footer class="wf-chrome" style="margin-top: 32px;">
+    <span class="wf-help">
+      States rendered on this screen: <code>default | empty</code>
+    </span>
+  </footer>
+</body>
+</html>

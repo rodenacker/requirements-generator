@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Trade-off Dimensions — Financial services — South African retail-banking ledger transaction ingestion and approval (EFT-style transactions; AccountNumber values follow the SA retail-banking format).</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --header-bg: #efefef;
+      --row-alt: #fbfbfb;
+      --card-bg: #ffffff;
+      --score-strong-a-bg: #2a5d8a;  --score-strong-a-fg: #ffffff;  --score-strong-a-border: #1c4869;
+      --score-lean-a-bg:   #b9d7f0;  --score-lean-a-fg:   #0c2a44;  --score-lean-a-border:   #4f8fbf;
+      --score-no-signal-bg:#f4f4f4;  --score-no-signal-fg:#9a9a9a;  --score-no-signal-border:#e0e0e0;
+      --score-balanced-bg: #efe7d4;  --score-balanced-fg: #4a3a00;  --score-balanced-border: #c9b67a;
+      --score-lean-b-bg:   #f6c6d5;  --score-lean-b-fg:   #4a1a2a;  --score-lean-b-border:   #c97a92;
+      --score-strong-b-bg: #8a2a4a;  --score-strong-b-fg: #ffffff;  --score-strong-b-border: #69162f;
+      --kept-fg: #1a1a1a;
+      --kept-bg: #fff;
+      --dropped-fg: #8a8a8a;
+      --dropped-bg: #f4f4f4;
+      --amplified-bg: #e8f4e0;
+      --prototype-penalty-bg: #fff3a8;
+      --pass-fg: #2a8a2a;
+      --fail-fg: #8a1a1a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; line-height: 1.45; }
+    main { max-width: 1600px; margin: 0 auto; padding: 24px; }
+    h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px 0; }
+    h2 { font-size: 18px; font-weight: 600; margin: 32px 0 8px 0; }
+    h3 { font-size: 15px; font-weight: 600; margin: 0; }
+    .subtitle { color: var(--muted); font-size: 13px; margin: 0 0 24px 0; }
+    .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 24px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 6px; background: #fff; margin-bottom: 16px; font-size: 13px; }
+    .meta-grid dt { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; margin: 0; }
+    .meta-grid dd { margin: 0 0 6px 0; font-variant-numeric: tabular-nums; word-break: break-word; }
+    .counts-bar { display: flex; flex-wrap: wrap; gap: 16px 28px; padding: 10px 16px; border: 1px solid var(--border); border-left: 4px solid var(--border-strong); border-radius: 6px; background: #fff; margin-bottom: 24px; font-size: 13px; }
+    .counts-bar .count-item { display: flex; align-items: baseline; gap: 6px; }
+    .counts-bar .count-label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .counts-bar .count-value { font-variant-numeric: tabular-nums; font-weight: 600; }
+    .toc { margin: 0 0 24px 0; padding: 10px 14px; background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--border-strong); border-radius: 6px; font-size: 13px; }
+    .toc ol { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 18px; counter-reset: toc-item; }
+    .toc li { counter-increment: toc-item; }
+    .toc li::before { content: counter(toc-item) ". "; color: var(--muted); margin-right: 4px; font-variant-numeric: tabular-nums; }
+    .toc a { color: var(--fg); text-decoration: none; border-bottom: 1px dotted var(--border-strong); }
+    .toc a:hover { border-bottom-color: var(--fg); }
+    .relevance-block { margin-bottom: 32px; }
+    .relevance-table { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .relevance-table th, .relevance-table td { padding: 8px 10px; border-top: 1px solid var(--border); text-align: left; vertical-align: top; }
+    .relevance-table thead th { background: var(--header-bg); font-weight: 600; border-top: none; border-bottom: 2px solid var(--border-strong); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .relevance-table tr.relevance-kept { background: var(--kept-bg); color: var(--kept-fg); }
+    .relevance-table tr.relevance-kept td.dim-name-cell { font-weight: 600; }
+    .relevance-table tr.relevance-dropped { background: var(--dropped-bg); color: var(--dropped-fg); }
+    .relevance-table tr.relevance-prototype-penalty .reason-cell::before { content: "PROTOTYPE "; color: #b86a00; font-weight: 700; font-size: 10px; margin-right: 4px; }
+    .relevance-table tr.relevance-amplified .reason-cell::after { content: " AMPLIFIED"; color: #2a8a2a; font-weight: 700; font-size: 10px; margin-left: 4px; }
+    .relevance-table .score-cell-num { font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; white-space: nowrap; }
+    .matrix-block { margin-bottom: 32px; overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; background: #fff; }
+    table.trade-off-matrix { border-collapse: collapse; font-size: 12px; width: max-content; min-width: 100%; }
+    table.trade-off-matrix caption.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    table.trade-off-matrix thead th { background: var(--header-bg); border-bottom: 2px solid var(--border-strong); font-weight: 600; text-align: left; padding: 8px 10px; vertical-align: bottom; position: sticky; top: 0; z-index: 2; }
+    table.trade-off-matrix th.corner { background: var(--header-bg); border-right: 2px solid var(--border-strong); position: sticky; left: 0; top: 0; z-index: 3; min-width: 240px; max-width: 320px; }
+    table.trade-off-matrix th.dim-header { min-width: 110px; max-width: 160px; font-size: 11px; }
+    table.trade-off-matrix th.dim-header .dim-id { display: block; color: var(--muted); font-variant-numeric: tabular-nums; font-size: 10px; letter-spacing: 0.04em; margin-bottom: 2px; }
+    table.trade-off-matrix th.dim-header .dim-name { display: block; font-weight: 600; word-wrap: break-word; overflow-wrap: break-word; hyphens: auto; }
+    table.trade-off-matrix tbody th.goal-cell { background: #fff; border-right: 2px solid var(--border-strong); border-bottom: 1px solid var(--border); text-align: left; padding: 10px 12px; vertical-align: top; font-weight: 500; position: sticky; left: 0; z-index: 1; min-width: 240px; max-width: 320px; }
+    table.trade-off-matrix tbody tr:nth-child(even) th.goal-cell { background: var(--row-alt); }
+    table.trade-off-matrix tbody th.goal-cell .goal-id { display: block; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: 0.04em; margin-bottom: 2px; }
+    table.trade-off-matrix tbody th.goal-cell .goal-statement { display: block; font-size: 12px; color: var(--fg); word-wrap: break-word; overflow-wrap: break-word; }
+    table.trade-off-matrix tbody td.score-cell { border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); text-align: center; vertical-align: middle; padding: 8px 6px; cursor: help; min-width: 110px; max-width: 160px; }
+    table.trade-off-matrix tbody td.score-cell .score-num { display: block; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+    table.trade-off-matrix tbody td.score-cell .score-pole { display: block; font-size: 10px; letter-spacing: 0.04em; margin-top: 2px; opacity: 0.85; word-wrap: break-word; overflow-wrap: break-word; }
+    td.score-strong-a { background: var(--score-strong-a-bg); color: var(--score-strong-a-fg); }
+    td.score-lean-a { background: var(--score-lean-a-bg); color: var(--score-lean-a-fg); }
+    td.score-no-signal { background: var(--score-no-signal-bg); color: var(--score-no-signal-fg); }
+    td.score-no-signal .score-num { opacity: 0.6; }
+    td.score-balanced { background: var(--score-balanced-bg); color: var(--score-balanced-fg); }
+    td.score-lean-b { background: var(--score-lean-b-bg); color: var(--score-lean-b-fg); }
+    td.score-strong-b { background: var(--score-strong-b-bg); color: var(--score-strong-b-fg); }
+    .guidance-block { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 12px; margin-bottom: 32px; }
+    .goal-guidance-card { background: var(--card-bg); border: 1px solid var(--border); border-left: 4px solid var(--border-strong); border-radius: 6px; padding: 12px 16px; }
+    .guidance-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+    .guidance-goal-id { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: 0.04em; flex: 0 0 auto; }
+    .guidance-statement { font-size: 14px; font-weight: 600; margin: 0; }
+    .guidance-bullets { list-style: none; margin: 0; padding: 0; }
+    .guidance-bullet { display: grid; grid-template-columns: auto auto 1fr; gap: 4px 8px; padding: 6px 0; border-top: 1px dashed var(--border); font-size: 12px; }
+    .guidance-bullet:first-child { border-top: none; }
+    .guidance-bullet .guidance-dim-id { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 11px; letter-spacing: 0.04em; align-self: start; }
+    .guidance-bullet .guidance-lean { font-weight: 600; font-size: 11px; letter-spacing: 0.02em; align-self: start; }
+    .guidance-bullet .guidance-implication { grid-column: 1 / -1; color: var(--fg); }
+    .goal-guidance-card.no-signal .guidance-bullet .guidance-implication { color: var(--muted); font-style: italic; }
+    details.diagnostics-toggle { margin-bottom: 24px; }
+    details.diagnostics-toggle > summary { cursor: pointer; padding: 10px 14px; background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--border-strong); border-radius: 6px; font-weight: 600; font-size: 14px; color: var(--fg); list-style: none; display: flex; align-items: center; gap: 8px; user-select: none; }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before { content: "\25B6"; font-size: 10px; color: var(--muted); transition: transform 0.15s ease; display: inline-block; }
+    details.diagnostics-toggle[open] > summary { border-radius: 6px 6px 0 0; border-bottom: none; }
+    details.diagnostics-toggle[open] > summary::before { transform: rotate(90deg); }
+    .diagnostics { padding: 16px; border: 1px solid var(--border); border-left: 4px solid var(--border-strong); border-radius: 6px; background: #fff; margin-bottom: 24px; }
+    details.diagnostics-toggle > .diagnostics { border-top: none; border-radius: 0 0 6px 6px; margin-bottom: 0; }
+    details.diagnostics-toggle > .diagnostics > h2 { display: none; }
+    .diagnostics h2 { font-size: 16px; margin: 0 0 8px 0; }
+    .diagnostics > ul { margin: 0 0 12px 0; padding-left: 20px; }
+    .diagnostics .check-pass::before { content: "PASS "; color: var(--pass-fg); font-weight: 600; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--fail-fg); font-weight: 600; }
+    .diagnostics details { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 8px; }
+    .diagnostics details summary { cursor: pointer; font-weight: 600; font-size: 12px; color: var(--fg); }
+    .diagnostics details table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11px; }
+    .diagnostics details table th, .diagnostics details table td { padding: 4px 6px; border-top: 1px solid var(--border); text-align: left; vertical-align: top; }
+    .diagnostics details table thead th { background: var(--header-bg); border-bottom: 1px solid var(--border-strong); font-weight: 600; }
+    footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 11px; }
+    footer .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+    footer .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    footer .legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--border); }
+    footer .legend-swatch.s-strong-a { background: var(--score-strong-a-bg); }
+    footer .legend-swatch.s-lean-a { background: var(--score-lean-a-bg); }
+    footer .legend-swatch.s-no-signal { background: var(--score-no-signal-bg); }
+    footer .legend-swatch.s-balanced { background: var(--score-balanced-bg); }
+    footer .legend-swatch.s-lean-b { background: var(--score-lean-b-bg); }
+    footer .legend-swatch.s-strong-b { background: var(--score-strong-b-bg); }
+    footer .credit { margin-top: 6px; text-align: right; }
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; max-width: none; }
+      .toc { display: none; }
+      details.diagnostics-toggle { display: none; }
+      .matrix-block { overflow: visible; }
+      table.trade-off-matrix thead th { position: static; }
+      table.trade-off-matrix tbody th.goal-cell { position: static; }
+      table.trade-off-matrix tbody tr { break-inside: avoid; }
+      .goal-guidance-card { break-inside: avoid; }
+      .relevance-table tr { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section id="overview">
+      <h1>Trade-off Dimensions &mdash; Financial services &mdash; South African retail-banking ledger transaction ingestion and approval</h1>
+      <p class="subtitle">Trade-off dimension matrix &mdash; scores per user goal across kept dimensions. Negative scores lean toward pole A; positive toward pole B; zero is no-signal or balanced.</p>
+      <dl class="meta-grid">
+        <div><dt>Domain</dt><dd>Financial services &mdash; South African retail-banking ledger transaction ingestion and approval (EFT-style transactions; AccountNumber values follow the SA retail-banking format).</dd></div>
+        <div><dt>Business goal</dt><dd>Operate file-driven ingestion, enforce a transaction lifecycle, and apply role-based interaction constraints across Importer and Approver personas.</dd></div>
+        <div><dt>Scope (in)</dt><dd>File-driven transaction ingestion via browser upload; transaction review surface; approve/reject workflow with mandatory reject-note; role-based access control across Importer and Approver; search and filter across Status, File, Date range, Amount range, Reference, Account; &hellip;</dd></div>
+        <div><dt>Target</dt><dd>application</dd></div>
+        <div><dt>Generated</dt><dd>2026-05-22T12:00:00Z</dd></div>
+        <div><dt>Source SHA-256</dt><dd>8139af430390f934ea05d2691660fdbce12ceb7f7a86c0e4b05be2134f27b8c7</dd></div>
+      </dl>
+      <div class="counts-bar" aria-label="Counts">
+        <span class="count-item"><span class="count-label">Goals</span><span class="count-value">6</span></span>
+        <span class="count-item"><span class="count-label">Kept dim.</span><span class="count-value">12</span></span>
+        <span class="count-item"><span class="count-label">Dropped (Stage A)</span><span class="count-value">49</span></span>
+        <span class="count-item"><span class="count-label">Pruned (post-pass)</span><span class="count-value">1</span></span>
+        <span class="count-item"><span class="count-label">Non-zero cells</span><span class="count-value">31</span></span>
+        <span class="count-item"><span class="count-label">No-signal cells</span><span class="count-value">41</span></span>
+        <span class="count-item"><span class="count-label">Balanced cells</span><span class="count-value">0</span></span>
+      </div>
+    </section>
+
+    <nav class="toc" aria-label="Sections">
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#matrix">Goal &times; Dimension matrix</a></li>
+        <li><a href="#guidance">Design guidance per goal</a></li>
+        <li><a href="#relevance">Relevance filter (Stage A)</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+      </ol>
+    </nav>
+
+    <section id="matrix" aria-label="Trade-off matrix">
+      <h2>Goal &times; Dimension matrix</h2>
+      <p class="subtitle">Each cell scores the goal&#39;s lean on that dimension. Hover for evidence quotes.</p>
+      <div class="matrix-block">
+        <table class="trade-off-matrix">
+          <caption class="sr-only">Trade-off dimension scores per user goal. Negative scores lean toward pole A; positive scores lean toward pole B.</caption>
+          <thead>
+            <tr>
+              <th scope="col" class="corner">Goal</th>
+              <th scope="col" class="dim-header" title="Security vs Convenience"><span class="dim-id">TD-09</span><span class="dim-name">Security vs Convenience</span></th>
+              <th scope="col" class="dim-header" title="Speed vs Accuracy"><span class="dim-id">TD-01</span><span class="dim-name">Speed vs Accuracy</span></th>
+              <th scope="col" class="dim-header" title="Data Density vs Readability"><span class="dim-id">TD-33</span><span class="dim-name">Data Density vs Readability</span></th>
+              <th scope="col" class="dim-header" title="Visualization Richness vs Interpretability"><span class="dim-id">TD-34</span><span class="dim-name">Visualization vs Interpretability</span></th>
+              <th scope="col" class="dim-header" title="Confirmation Dialogs vs Interaction Flow"><span class="dim-id">TD-26</span><span class="dim-name">Confirmation vs Flow</span></th>
+              <th scope="col" class="dim-header" title="Aggregation vs Detail Visibility"><span class="dim-id">TD-37</span><span class="dim-name">Aggregation vs Detail</span></th>
+              <th scope="col" class="dim-header" title="Role Separation vs Workflow Fluidity"><span class="dim-id">TD-42</span><span class="dim-name">Role Separation vs Fluidity</span></th>
+              <th scope="col" class="dim-header" title="Discoverability vs Minimalism"><span class="dim-id">TD-08</span><span class="dim-name">Discoverability vs Minimalism</span></th>
+              <th scope="col" class="dim-header" title="Feedback Richness vs Interaction Speed"><span class="dim-id">TD-12</span><span class="dim-name">Feedback vs Speed</span></th>
+              <th scope="col" class="dim-header" title="Precision vs Ease of Use"><span class="dim-id">TD-15</span><span class="dim-name">Precision vs Ease</span></th>
+              <th scope="col" class="dim-header" title="Auditability vs Workflow Simplicity"><span class="dim-id">TD-41</span><span class="dim-name">Auditability vs Simplicity</span></th>
+              <th scope="col" class="dim-header" title="Compliance vs Productivity"><span class="dim-id">TD-47</span><span class="dim-name">Compliance vs Productivity</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row" class="goal-cell"><span class="goal-id">G-01</span><span class="goal-statement">Ingest transaction files into the system reliably.</span></th>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Role Separation) hits: 9 (A_sum=9). Pole B (Workflow Fluidity) hits: 0. Top: &quot;As an Importer, I want to upload a transaction file&quot; (&sect;4.2 Story)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Role Separation)</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Discoverability) hits: 4 (A_sum=4). Pole B (Minimalism) hits: 0. Top: &quot;FileLog visible after upload&quot; (&sect;4.1 G-01 quality_signals)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Discoverability)</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Feedback Richness) hits: 3 (A_sum=5). Pole B (Interaction Speed) hits: 0. Top: &quot;explicit success/failure feedback&quot; (&sect;4.1 G-01 quality_signals)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Feedback Richness)</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+            </tr>
+            <tr>
+              <th scope="row" class="goal-cell"><span class="goal-id">G-02</span><span class="goal-statement">Review uploaded transactions efficiently.</span></th>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Speed) hits: 2 (A_sum=4). Pole B (Accuracy) hits: 0. Top: &quot;loads within performance budget&quot; (&sect;4.1 G-02 quality_signals)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Speed)</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Data Density) hits: 5 (A_sum=7). Pole B (Readability) hits: 0. Top: &quot;Transactions table loads within performance budget&quot; (&sect;4.1 G-02 quality_signals)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Data Density)</span></td>
+              <td class="score-cell score-strong-b" title="Pole A (Visualization Richness) hits: 0. Pole B (Interpretability) hits: 3 (B_sum=4). Top: &quot;Transactions table loads&quot; (&sect;4.1 G-02 quality_signals)."><span class="score-num">+2</span><span class="score-pole">strong B (Interpretability)</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Role Separation) hits: 8 (A_sum=8). Pole B (Workflow Fluidity) hits: 0. Top: &quot;Approver sees Approve/Reject row actions&quot; (&sect;5 Transaction Table)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Role Separation)</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Discoverability) hits: 4 (A_sum=4). Pole B (Minimalism) hits: 0. Top: &quot;The visible set reflects the active filter combination&quot; (&sect;6.1 F-12)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Discoverability)</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-lean-a" title="Pole A (Precision) hits: 1 (A_sum=1). Pole B (Ease of Use) hits: 0. Top: &quot;scoped to a specific FileLog&quot; (&sect;4.2 Story: drill from a file row)."><span class="score-num">&minus;1</span><span class="score-pole">lean A (Precision)</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+            </tr>
+            <tr>
+              <th scope="row" class="goal-cell"><span class="goal-id">G-03</span><span class="goal-statement">Apply auditable approve/reject decisions on transactions.</span></th>
+              <td class="score-cell score-lean-a" title="Pole A (Security) hits: 2 (A_sum=2). Pole B (Convenience) hits: 0. Top: &quot;auditable approve/reject decisions&quot; (&sect;4.1 G-03 statement)."><span class="score-num">&minus;1</span><span class="score-pole">lean A (Security)</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Confirmation Dialogs) hits: 7 (A_sum=10). Pole B (Interaction Flow) hits: 0. Top: &quot;Approve/Reject confirms an action&quot; (&sect;4.1 G-03 quality_signals)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Confirmation Dialogs)</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Role Separation) hits: 18 (A_sum=18). Pole B (Workflow Fluidity) hits: 0. Top: &quot;Available to Approver only&quot; (&sect;5 Approve Transaction)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Role Separation)</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Discoverability) hits: 10 (A_sum=10). Pole B (Minimalism) hits: 0. Top: &quot;visible result: confirmation prompt&quot; (&sect;5 Approve Transaction)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Discoverability)</span></td>
+              <td class="score-cell score-lean-a" title="Pole A (Feedback Richness) hits: 1 (A_sum=2). Pole B (Interaction Speed) hits: 0. Top: &quot;Approve/Reject confirms an action&quot; (&sect;4.1 G-03 quality_signals)."><span class="score-num">&minus;1</span><span class="score-pole">lean A (Feedback Richness)</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Auditability) hits: 16 (A_sum=16). Pole B (Workflow Simplicity) hits: 0. Top: &quot;LastChangedUser and LastChangedDate on every entity mutation&quot; (&sect;6.1 F-15)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Auditability)</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+            </tr>
+            <tr>
+              <th scope="row" class="goal-cell"><span class="goal-id">G-04</span><span class="goal-statement">Export filtered transaction data for downstream reporting.</span></th>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-strong-b" title="Pole A (Speed) hits: 0. Pole B (Accuracy) hits: 2 (B_sum=3). Top: &quot;CSV export contains exactly the filtered set&quot; (&sect;4.1 G-04 quality_signals)."><span class="score-num">+2</span><span class="score-pole">strong B (Accuracy)</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Role Separation) hits: 9 (A_sum=9). Pole B (Workflow Fluidity) hits: 0. Top: &quot;Available to Approver only&quot; (&sect;5 Export Transactions)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Role Separation)</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Discoverability) hits: 3 (A_sum=3). Pole B (Minimalism) hits: 0. Top: &quot;visible result: filtered row set&quot; (&sect;5 Export Transactions)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Discoverability)</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Precision) hits: 2 (A_sum=3). Pole B (Ease of Use) hits: 0. Top: &quot;CSV export contains exactly the filtered set&quot; (&sect;4.1 G-04 quality_signals)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Precision)</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+            </tr>
+            <tr>
+              <th scope="row" class="goal-cell"><span class="goal-id">G-05</span><span class="goal-statement">Maintain visibility into file-level processing state.</span></th>
+              <td class="score-cell score-lean-a" title="Pole A (Security) hits: 1 (A_sum=1). Pole B (Convenience) hits: 0. Top: &quot;7 years per the financial-records audit-trail rule&quot; (&sect;6.9 FileLog row)."><span class="score-num">&minus;1</span><span class="score-pole">lean A (Security)</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Data Density) hits: 3 (A_sum=3). Pole B (Readability) hits: 0. Top: &quot;View a table of uploaded files with File Name, Process Date, Record Count, and Status columns&quot; (&sect;4.2 Story)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Data Density)</span></td>
+              <td class="score-cell score-lean-b" title="Pole A (Visualization Richness) hits: 0. Pole B (Interpretability) hits: 2 (B_sum=2). Top: &quot;View a table of uploaded files&quot; (&sect;4.2 Story: view the file log overview)."><span class="score-num">+1</span><span class="score-pole">lean B (Interpretability)</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Aggregation) hits: 17 (A_sum=28). Pole B (Detail Visibility) hits: 1 (B_sum=1, tension). Top: &quot;File summary shows totals and counts by status&quot; (&sect;4.1 G-05 quality_signals)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Aggregation)</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Role Separation) hits: 7 (A_sum=7). Pole B (Workflow Fluidity) hits: 0. Top: &quot;Both Importer and Approver may view file logs&quot; (&sect;5 File Log Overview)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Role Separation)</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Discoverability) hits: 5 (A_sum=5). Pole B (Minimalism) hits: 0. Top: &quot;Error indicator is visible when HasBulkErrorFile is true&quot; (&sect;6.4 UI-15)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Discoverability)</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-lean-a" title="Pole A (Auditability) hits: 2 (A_sum=2). Pole B (Workflow Simplicity) hits: 0. Top: &quot;7 years per the financial-records audit-trail rule&quot; (&sect;6.9 FileLog row)."><span class="score-num">&minus;1</span><span class="score-pole">lean A (Auditability)</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+            </tr>
+            <tr>
+              <th scope="row" class="goal-cell"><span class="goal-id">G-06</span><span class="goal-statement">Authenticate securely and maintain a valid session.</span></th>
+              <td class="score-cell score-strong-a" title="Pole A (Security) hits: 16 (A_sum=23). Pole B (Convenience) hits: 0. Top: &quot;Login establishes session cookie&quot; (&sect;4.1 G-06 quality_signals)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Security)</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Role Separation) hits: 3 (A_sum=3). Pole B (Workflow Fluidity) hits: 0. Top: &quot;Actor: Importer / Approver&quot; (&sect;5 Authentication)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Role Separation)</span></td>
+              <td class="score-cell score-lean-a" title="Pole A (Discoverability) hits: 2 (A_sum=2). Pole B (Minimalism) hits: 0. Top: &quot;visible result: role-specific dashboard&quot; (&sect;5 Authentication)."><span class="score-num">&minus;1</span><span class="score-pole">lean A (Discoverability)</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-lean-a" title="Pole A (Precision) hits: 1 (A_sum=1). Pole B (Ease of Use) hits: 0. Top: &quot;no field-specific failure information&quot; (&sect;6.6.1 Account lockout messaging) [context-inversion noted]."><span class="score-num">&minus;1</span><span class="score-pole">lean A (Precision)</span></td>
+              <td class="score-cell score-no-signal" title=""><span class="score-num">0</span><span class="score-pole">no signal</span></td>
+              <td class="score-cell score-strong-a" title="Pole A (Compliance) hits: 3 (A_sum=3). Pole B (Productivity) hits: 0. Top: &quot;system displays a compliance acknowledgement on the login screen&quot; (&sect;6.1 F-25)."><span class="score-num">&minus;2</span><span class="score-pole">strong A (Compliance)</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="guidance" aria-label="Design guidance per goal">
+      <h2>Design guidance per goal</h2>
+      <p class="subtitle">Each card translates the goal&#39;s dominant non-zero leans into wireframing implications.</p>
+      <div class="guidance-block">
+        <section class="goal-guidance-card" id="guidance-G-01">
+          <header class="guidance-header">
+            <span class="guidance-goal-id">G-01</span>
+            <h3 class="guidance-statement">Ingest transaction files into the system reliably.</h3>
+          </header>
+          <ul class="guidance-bullets">
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-42</span>
+              <span class="guidance-lean">strong A (Role Separation)</span>
+              <span class="guidance-implication">Role-conditional surfaces; Importer-only vs Approver-only affordances; segregation of duties enforced in UI.</span>
+            </li>
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-08</span>
+              <span class="guidance-lean">strong A (Discoverability)</span>
+              <span class="guidance-implication">All actions visible as buttons/icons with labels; no hidden menus.</span>
+            </li>
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-12</span>
+              <span class="guidance-lean">strong A (Feedback Richness)</span>
+              <span class="guidance-implication">Visible status pills; toast confirmations on action; tooltips on metadata fields.</span>
+            </li>
+          </ul>
+        </section>
+        <section class="goal-guidance-card" id="guidance-G-02">
+          <header class="guidance-header">
+            <span class="guidance-goal-id">G-02</span>
+            <h3 class="guidance-statement">Review uploaded transactions efficiently.</h3>
+          </header>
+          <ul class="guidance-bullets">
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-01</span>
+              <span class="guidance-lean">strong A (Speed)</span>
+              <span class="guidance-implication">Optimistic UI; inline async actions; minimal pre-action validation; keyboard-first for frequent actions.</span>
+            </li>
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-33</span>
+              <span class="guidance-lean">strong A (Data Density)</span>
+              <span class="guidance-implication">Spreadsheet-style grids; dense column count.</span>
+            </li>
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-34</span>
+              <span class="guidance-lean">strong B (Interpretability)</span>
+              <span class="guidance-implication">Plain numeric summaries; counts and totals only.</span>
+            </li>
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-42</span>
+              <span class="guidance-lean">strong A (Role Separation)</span>
+              <span class="guidance-implication">Role-conditional surfaces; Importer-only vs Approver-only affordances; segregation of duties enforced in UI.</span>
+            </li>
+          </ul>
+        </section>
+        <section class="goal-guidance-card" id="guidance-G-03">
+          <header class="guidance-header">
+            <span class="guidance-goal-id">G-03</span>
+            <h3 class="guidance-statement">Apply auditable approve/reject decisions on transactions.</h3>
+          </header>
+          <ul class="guidance-bullets">
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-26</span>
+              <span class="guidance-lean">strong A (Confirmation Dialogs)</span>
+              <span class="guidance-implication">Modal confirmation on destructive/financial actions; &quot;Are you sure?&quot; pattern.</span>
+            </li>
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-42</span>
+              <span class="guidance-lean">strong A (Role Separation)</span>
+              <span class="guidance-implication">Role-conditional surfaces; Importer-only vs Approver-only affordances; segregation of duties enforced in UI.</span>
+            </li>
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-08</span>
+              <span class="guidance-lean">strong A (Discoverability)</span>
+              <span class="guidance-implication">All actions visible as buttons/icons with labels; no hidden menus.</span>
+            </li>
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-41</span>
+              <span class="guidance-lean">strong A (Auditability)</span>
+              <span class="guidance-implication">Audit-trail panels; LastChangedUser/Date columns visible; history view per record.</span>
+            </li>
+          </ul>
+        </section>
+        <section class="goal-guidance-card" id="guidance-G-04">
+          <header class="guidance-header">
+            <span class="guidance-goal-id">G-04</span>
+            <h3 class="guidance-statement">Export filtered transaction data for downstream reporting.</h3>
+          </header>
+          <ul class="guidance-bullets">
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-01</span>
+              <span class="guidance-lean">strong B (Accuracy)</span>
+              <span class="guidance-implication">Synchronous validation; confirmation step on high-cost actions; show outcome only after backend confirms; visible status of in-flight operations.</span>
+            </li>
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-42</span>
+              <span class="guidance-lean">strong A (Role Separation)</span>
+              <span class="guidance-implication">Role-conditional surfaces; Importer-only vs Approver-only affordances; segregation of duties enforced in UI.</span>
+            </li>
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-08</span>
+              <span class="guidance-lean">strong A (Discoverability)</span>
+              <span class="guidance-implication">All actions visible as buttons/icons with labels; no hidden menus.</span>
+            </li>
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-15</span>
+              <span class="guidance-lean">strong A (Precision)</span>
+              <span class="guidance-implication">Numeric inputs with decimal precision; explicit unit pickers; fine-grained filters.</span>
+            </li>
+          </ul>
+        </section>
+        <section class="goal-guidance-card" id="guidance-G-05">
+          <header class="guidance-header">
+            <span class="guidance-goal-id">G-05</span>
+            <h3 class="guidance-statement">Maintain visibility into file-level processing state.</h3>
+          </header>
+          <ul class="guidance-bullets">
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-33</span>
+              <span class="guidance-lean">strong A (Data Density)</span>
+              <span class="guidance-implication">Spreadsheet-style grids; dense column count.</span>
+            </li>
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-37</span>
+              <span class="guidance-lean">strong A (Aggregation)</span>
+              <span class="guidance-implication">Summary tiles; counts by status; rolled-up totals first.</span>
+            </li>
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-42</span>
+              <span class="guidance-lean">strong A (Role Separation)</span>
+              <span class="guidance-implication">Role-conditional surfaces; Importer-only vs Approver-only affordances; segregation of duties enforced in UI.</span>
+            </li>
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-08</span>
+              <span class="guidance-lean">strong A (Discoverability)</span>
+              <span class="guidance-implication">All actions visible as buttons/icons with labels; no hidden menus.</span>
+            </li>
+          </ul>
+        </section>
+        <section class="goal-guidance-card" id="guidance-G-06">
+          <header class="guidance-header">
+            <span class="guidance-goal-id">G-06</span>
+            <h3 class="guidance-statement">Authenticate securely and maintain a valid session.</h3>
+          </header>
+          <ul class="guidance-bullets">
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-09</span>
+              <span class="guidance-lean">strong A (Security)</span>
+              <span class="guidance-implication">Visible session state; logout affordance; re-authentication on sensitive actions; CSRF/SameSite-Strict cookies.</span>
+            </li>
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-42</span>
+              <span class="guidance-lean">strong A (Role Separation)</span>
+              <span class="guidance-implication">Role-conditional surfaces; Importer-only vs Approver-only affordances; segregation of duties enforced in UI.</span>
+            </li>
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-47</span>
+              <span class="guidance-lean">strong A (Compliance)</span>
+              <span class="guidance-implication">Consent gates; retention notices; data-subject-rights affordances; POPIA notices.</span>
+            </li>
+            <li class="guidance-bullet">
+              <span class="guidance-dim-id">TD-08</span>
+              <span class="guidance-lean">lean A (Discoverability)</span>
+              <span class="guidance-implication">All actions visible as buttons/icons with labels; no hidden menus.</span>
+            </li>
+          </ul>
+        </section>
+      </div>
+    </section>
+
+    <section id="relevance" class="relevance-block" aria-label="Relevance filter">
+      <h2>Relevance filter (Stage A)</h2>
+      <p class="subtitle">Audit trail. Kept rows feed the matrix above; dropped rows are recorded for traceability. TD-10 was kept in Stage A but pruned post-pass (all-zero column).</p>
+      <table class="relevance-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Dimension (A vs B)</th>
+            <th class="score-cell-num">Raw</th>
+            <th>Kept / Dropped by</th>
+            <th class="score-cell-num">Signals</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="relevance-kept relevance-amplified"><td>TD-09</td><td class="dim-name-cell">Security vs Convenience</td><td class="score-cell-num">+7</td><td>threshold</td><td class="score-cell-num">7</td><td class="reason-cell">QS &quot;session cookie&quot; (+2); &sect;6.6.4 &quot;POPIA&quot; (+2); &sect;1.5 In rows 8 &amp; 9 (audit-trail, POPIA) (+2); financial domain amplifier (+1).</td></tr>
+          <tr class="relevance-kept relevance-amplified"><td>TD-01</td><td class="dim-name-cell">Speed vs Accuracy</td><td class="score-cell-num">+5</td><td>threshold</td><td class="score-cell-num">5</td><td class="reason-cell">QS &quot;performance budget&quot;, &quot;quickly&quot;, &quot;exact&quot; (+2); &sect;6.6.2 heading &quot;performance budgets&quot; (+2); financial domain amplifier (+1).</td></tr>
+          <tr class="relevance-kept"><td>TD-33</td><td class="dim-name-cell">Data Density vs Readability</td><td class="score-cell-num">+4</td><td>threshold</td><td class="score-cell-num">4</td><td class="reason-cell">QS &quot;table&quot; (+2); &sect;6.6.2 cell &quot;list/table&quot; (+2).</td></tr>
+          <tr class="relevance-kept"><td>TD-34</td><td class="dim-name-cell">Visualization Richness vs Interpretability</td><td class="score-cell-num">+4</td><td>threshold</td><td class="score-cell-num">4</td><td class="reason-cell">QS pole-B &quot;table&quot; (+2); &sect;6.6.2 cell &quot;list/table&quot; (+2).</td></tr>
+          <tr class="relevance-kept relevance-amplified"><td>TD-26</td><td class="dim-name-cell">Confirmation Dialogs vs Interaction Flow</td><td class="score-cell-num">+3</td><td>threshold</td><td class="score-cell-num">3</td><td class="reason-cell">QS &quot;confirms&quot; (+2); financial domain amplifier (+1).</td></tr>
+          <tr class="relevance-kept"><td>TD-37</td><td class="dim-name-cell">Aggregation vs Detail Visibility</td><td class="score-cell-num">+3</td><td>threshold</td><td class="score-cell-num">3</td><td class="reason-cell">QS &quot;file summary&quot;, &quot;totals&quot;, &quot;counts by status&quot; (+2); &sect;1.5 In row 7 (+1).</td></tr>
+          <tr class="relevance-kept relevance-amplified"><td>TD-42</td><td class="dim-name-cell">Role Separation vs Workflow Fluidity</td><td class="score-cell-num">+3</td><td>threshold</td><td class="score-cell-num">3</td><td class="reason-cell">&sect;1 prose &quot;role-based/Importer/Approver&quot; (+1); &sect;1.5 In row 4 (+1); financial domain amplifier (+1).</td></tr>
+          <tr class="relevance-kept"><td>TD-08</td><td class="dim-name-cell">Discoverability vs Minimalism</td><td class="score-cell-num">+2</td><td>threshold</td><td class="score-cell-num">2</td><td class="reason-cell">QS &quot;visible&quot; in G-01 (+2).</td></tr>
+          <tr class="relevance-kept relevance-prototype-penalty"><td>TD-10</td><td class="dim-name-cell">Accessibility vs Visual Density</td><td class="score-cell-num">+2</td><td>threshold (then pruned post-pass)</td><td class="score-cell-num">2</td><td class="reason-cell">&sect;6.6.5 &quot;WCAG&quot;, &quot;accessibility&quot; (+2). Pruned post-pass &mdash; no goal-statement keyword overlap places &sect;6.6.5 inside any goal&#39;s evidence bundle.</td></tr>
+          <tr class="relevance-kept"><td>TD-12</td><td class="dim-name-cell">Feedback Richness vs Interaction Speed</td><td class="score-cell-num">+2</td><td>threshold</td><td class="score-cell-num">2</td><td class="reason-cell">QS &quot;feedback&quot;, &quot;success/failure&quot;, &quot;confirms&quot; (+2).</td></tr>
+          <tr class="relevance-kept"><td>TD-15</td><td class="dim-name-cell">Precision vs Ease of Use</td><td class="score-cell-num">+2</td><td>threshold</td><td class="score-cell-num">2</td><td class="reason-cell">QS &quot;exact&quot; (substring of &quot;exactly&quot;) (+2).</td></tr>
+          <tr class="relevance-kept relevance-amplified"><td>TD-41</td><td class="dim-name-cell">Auditability vs Workflow Simplicity</td><td class="score-cell-num">+2</td><td>threshold</td><td class="score-cell-num">2</td><td class="reason-cell">&sect;1.5 In row 8 (audit-trail/LastChangedUser/LastChangedDate) (+1); financial domain amplifier (+1).</td></tr>
+          <tr class="relevance-kept relevance-amplified"><td>TD-47</td><td class="dim-name-cell">Compliance vs Productivity</td><td class="score-cell-num">+2</td><td>threshold</td><td class="score-cell-num">2</td><td class="reason-cell">&sect;6.6.4 heading &quot;Compliance UI behaviour&quot; (+2); &sect;1.5 In row 9 POPIA (+1); &sect;1.5 Out row 2 PCI (-1); &sect;1.5 Deferred row 3 POPIA/consent (-1); financial domain amplifier (+1).</td></tr>
+          <tr class="relevance-dropped relevance-amplified"><td>TD-13</td><td class="dim-name-cell">Error Prevention vs Workflow Speed</td><td class="score-cell-num">+1</td><td>below-threshold</td><td class="score-cell-num">1</td><td class="reason-cell">Financial domain amplifier (+1) only. Note: &quot;mandatory reject-note&quot; misses the bigram trigger &quot;mandatory note&quot; by a hyphen.</td></tr>
+          <tr class="relevance-dropped"><td>TD-14</td><td class="dim-name-cell">Transparency vs Cognitive Simplicity</td><td class="score-cell-num">+1</td><td>below-threshold</td><td class="score-cell-num">1</td><td class="reason-cell">&sect;1.5 In row 8 &quot;audit&quot; (+1).</td></tr>
+          <tr class="relevance-dropped"><td>TD-18</td><td class="dim-name-cell">Search-Based Access vs Browsing</td><td class="score-cell-num">+1</td><td>below-threshold</td><td class="score-cell-num">1</td><td class="reason-cell">&sect;1.5 In row 5 &quot;search&quot; (+1).</td></tr>
+          <tr class="relevance-dropped"><td>TD-24</td><td class="dim-name-cell">Workflow Rigidity vs Flexibility</td><td class="score-cell-num">+1</td><td>below-threshold</td><td class="score-cell-num">1</td><td class="reason-cell">&sect;1 Business goal &quot;lifecycle&quot; (+1).</td></tr>
+          <tr class="relevance-dropped relevance-amplified"><td>TD-29</td><td class="dim-name-cell">Undo Support vs Prevention Mechanisms</td><td class="score-cell-num">+1</td><td>below-threshold</td><td class="score-cell-num">1</td><td class="reason-cell">Financial domain amplifier (+1) only.</td></tr>
+          <tr class="relevance-dropped relevance-amplified"><td>TD-44</td><td class="dim-name-cell">Validation Strictness vs Data Entry Speed</td><td class="score-cell-num">+1</td><td>below-threshold</td><td class="score-cell-num">1</td><td class="reason-cell">Financial domain amplifier (+1) only.</td></tr>
+          <tr class="relevance-dropped"><td>TD-03</td><td class="dim-name-cell">Learnability vs Efficiency for Experts</td><td class="score-cell-num">&minus;1</td><td>below-threshold</td><td class="score-cell-num">1</td><td class="reason-cell">&sect;1.5 Out row 6 &quot;bulk&quot; (-1).</td></tr>
+          <tr class="relevance-dropped"><td>TD-25</td><td class="dim-name-cell">Batch Operations vs Granular Control</td><td class="score-cell-num">&minus;1</td><td>below-threshold</td><td class="score-cell-num">1</td><td class="reason-cell">&sect;1.5 Out row 6 &quot;bulk&quot; (-1).</td></tr>
+          <tr class="relevance-dropped"><td>TD-55</td><td class="dim-name-cell">Notification Frequency vs Focus</td><td class="score-cell-num">&minus;1</td><td>below-threshold</td><td class="score-cell-num">1</td><td class="reason-cell">&sect;1.5 Deferred row 1 &quot;Notification&quot; (-1).</td></tr>
+          <tr class="relevance-dropped"><td>TD-48</td><td class="dim-name-cell">Cross-System Integration vs Reliability</td><td class="score-cell-num">&minus;2</td><td>below-threshold</td><td class="score-cell-num">2</td><td class="reason-cell">&sect;1.5 Out rows 1 &amp; 4 (SSO, SFTP, API) (-2).</td></tr>
+          <tr class="relevance-dropped"><td>TD-02</td><td class="dim-name-cell">Simplicity vs Power/Flexibility</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-04</td><td class="dim-name-cell">Information Density vs Cognitive Load</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-05</td><td class="dim-name-cell">Automation vs User Control</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-06</td><td class="dim-name-cell">Consistency vs Contextual Optimization</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-07</td><td class="dim-name-cell">Guidance vs Freedom</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-11</td><td class="dim-name-cell">Personalization vs Predictability</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-16</td><td class="dim-name-cell">Flat Navigation vs Deep Navigation</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-17</td><td class="dim-name-cell">Broad Menus vs Focused Menus</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-19</td><td class="dim-name-cell">Contextual Navigation vs Global Predictability</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-20</td><td class="dim-name-cell">Progressive Disclosure vs Immediate Visibility</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-21</td><td class="dim-name-cell">Single Screen Workflows vs Multi-Step Wizards</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-22</td><td class="dim-name-cell">Persistent Navigation vs Workspace Focus</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-23</td><td class="dim-name-cell">Modular Screens vs Workflow Continuity</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-27</td><td class="dim-name-cell">Inline Editing vs Validation Robustness</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-28</td><td class="dim-name-cell">Real-Time Validation vs Typing Freedom</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-30</td><td class="dim-name-cell">Keyboard Efficiency vs Visual Clarity</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired (bigram &quot;keyboard navigation&quot; missed by &quot;Keyboard-only path&quot;).</td></tr>
+          <tr class="relevance-dropped"><td>TD-31</td><td class="dim-name-cell">Multi-Tasking Support vs Focus</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-32</td><td class="dim-name-cell">Stateful Workflows vs Simplicity</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-35</td><td class="dim-name-cell">Real-Time Updates vs Stability</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-36</td><td class="dim-name-cell">Drill-Down Depth vs Navigation Complexity</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-38</td><td class="dim-name-cell">Customizability vs Shared Understanding</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-39</td><td class="dim-name-cell">Contextual Information vs Visual Noise</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-40</td><td class="dim-name-cell">Governance vs User Autonomy</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired (bigram &quot;approval workflow&quot; missed by &quot;approve/reject workflow&quot; and &quot;approval flows&quot;).</td></tr>
+          <tr class="relevance-dropped"><td>TD-43</td><td class="dim-name-cell">Standard Processes vs Local Optimization</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-45</td><td class="dim-name-cell">Configurability vs System Complexity</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-46</td><td class="dim-name-cell">Traceability vs UI Simplicity</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-49</td><td class="dim-name-cell">Minimalism vs Affordance Visibility</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-50</td><td class="dim-name-cell">Brand Expression vs Usability Clarity</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-51</td><td class="dim-name-cell">Animation Richness vs Performance</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-52</td><td class="dim-name-cell">White Space vs Information Capacity</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-53</td><td class="dim-name-cell">Visual Hierarchy vs Information Equality</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-54</td><td class="dim-name-cell">Collaboration vs Ownership Clarity</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-56</td><td class="dim-name-cell">Real-Time Collaboration vs System Complexity</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-57</td><td class="dim-name-cell">User Confidence vs Productive Friction</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-58</td><td class="dim-name-cell">Familiarity vs Innovation</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-59</td><td class="dim-name-cell">Trust Through Simplicity vs Trust Through Transparency</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-60</td><td class="dim-name-cell">Frontend Richness vs Maintainability</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-61</td><td class="dim-name-cell">Client-Side Processing vs Security</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+          <tr class="relevance-dropped"><td>TD-62</td><td class="dim-name-cell">Immediate Rendering vs Data Accuracy</td><td class="score-cell-num">0</td><td>below-threshold</td><td class="score-cell-num">0</td><td class="reason-cell">No triggers fired.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <details id="diagnostics" class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>Trade-off matrix &mdash; 6 goals &times; 12 kept dimensions; 31 non-zero cells (41 no-signal, 0 balanced).</p>
+        <p>Stage A: kept 13 / dropped 49 of 62 considered. Post-pass: pruned 1 (TD-10 all-zero column). Final kept 12.</p>
+        <p><strong>Methodology-interpretation notes:</strong> (1) The requirements document&#39;s &sect;6.5 is RBAC; the NFR section is &sect;6.6. Treated &sect;6.6 bullets and cells as &quot;NFR rows&quot; for the +2 NFR contribution. (2) Treated &sect;6.6.x sub-headings as additional &quot;rows&quot; for trigger-matching (heading-inclusive interpretation). This contributed +2 to TD-01 (heading &quot;Frontend performance budgets&quot;) and TD-47 (heading &quot;Compliance UI behaviour&quot;). (3) For G-06 &times; TD-15, the &sect;6.6.1 match &quot;no field-specific failure information&quot; triggers pole-A &quot;specific&quot; via substring but the context inverts (security-by-obscurity); recorded honestly with context-inversion flag in rationale.</p>
+        <ul>
+          <li class="check-pass">Check 1 (V1) &mdash; Every goal in &sect;4.1 (G-01..G-06) appears as a matrix row.</li>
+          <li class="check-pass">Check 2 (V2) &mdash; Every final kept dimension carries pole-A and pole-B labels matching the reference exactly.</li>
+          <li class="check-pass">Check 3 (V3) &mdash; Every non-zero cell has at least one pole_*_hits entry with quote and anchor.</li>
+          <li class="check-pass">Check 4 (V4) &mdash; Every quote in pole_*_hits is verbatim (case-insensitive substring) present in requirements.md.</li>
+          <li class="check-pass">Check 5 (V5) &mdash; All scores in [-2, +2]; no fractional scores.</li>
+          <li class="check-pass">Check 6 (V6) &mdash; Final kept dimension count is 12 (within [5, 15]).</li>
+          <li class="check-pass">Check 7 (V7) &mdash; Every goal G-01..G-06 has a design-guidance card with 3&ndash;4 bullets.</li>
+        </ul>
+        <details class="dropped-detail">
+          <summary>Dropped dimensions (49)</summary>
+          <p>See the Stage-A relevance table above &mdash; all rows with class <code>relevance-dropped</code>. Dimensions at +1 (just below threshold) are the most likely consultant-edit candidates: TD-13 Error Prevention, TD-14 Transparency, TD-18 Search, TD-24 Workflow Rigidity, TD-29 Undo, TD-44 Validation Strictness. TD-13&#39;s drop is particularly notable: the bigram trigger &quot;mandatory note&quot; is missed by the hyphenated phrase &quot;mandatory reject-note&quot;.</p>
+        </details>
+        <details class="pruned-detail">
+          <summary>Pruned dimensions (1)</summary>
+          <p>Survived Stage A but engaged no goal individually (all-zero column):</p>
+          <ul>
+            <li><strong>TD-10 Accessibility vs Visual Density</strong> &mdash; &sect;6.6.5 contains &quot;WCAG&quot; and &quot;accessibility&quot; triggers (Stage A raw +2), but no goal statement keyword-overlaps with accessibility under strict bundle assembly, so &sect;6.6.5 enters no goal&#39;s evidence bundle. Reason: <code>post-pass-all-zero</code>.</li>
+          </ul>
+        </details>
+      </section>
+    </details>
+
+    <footer>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-strong-a" aria-hidden="true"></span> &minus;2 strong A</span>
+        <span class="legend-item"><span class="legend-swatch s-lean-a" aria-hidden="true"></span> &minus;1 lean A</span>
+        <span class="legend-item"><span class="legend-swatch s-no-signal" aria-hidden="true"></span> 0 no signal</span>
+        <span class="legend-item"><span class="legend-swatch s-balanced" aria-hidden="true"></span> 0 balanced</span>
+        <span class="legend-item"><span class="legend-swatch s-lean-b" aria-hidden="true"></span> +1 lean B</span>
+        <span class="legend-item"><span class="legend-swatch s-strong-b" aria-hidden="true"></span> +2 strong B</span>
+      </div>
+      <div class="credit">Generated by <code>framework/agents/analyses/trade-off-dimension-analyser.md</code>.</div>
+    </footer>
+
+    <script type="application/json" id="trade-off-scores">{"schema_version":1,"generated_at":"2026-05-22T12:00:00Z","requirements_sha256":"8139af430390f934ea05d2691660fdbce12ceb7f7a86c0e4b05be2134f27b8c7","context":{"domain":"Financial services — South African retail-banking ledger transaction ingestion and approval (EFT-style transactions; AccountNumber values follow the SA retail-banking format).","business_goal":"Operate file-driven ingestion, enforce a transaction lifecycle, and apply role-based interaction constraints across Importer and Approver personas.","target":"application","scope_in_count":9,"scope_out_count":8,"scope_deferred_count":3},"kept_dimensions":[{"id":"TD-09","name":"Security vs Convenience","pole_a":"Security","pole_b":"Convenience","raw_score":7,"kept_by":"threshold"},{"id":"TD-01","name":"Speed vs Accuracy","pole_a":"Speed","pole_b":"Accuracy","raw_score":5,"kept_by":"threshold"},{"id":"TD-33","name":"Data Density vs Readability","pole_a":"Data Density","pole_b":"Readability","raw_score":4,"kept_by":"threshold"},{"id":"TD-34","name":"Visualization Richness vs Interpretability","pole_a":"Visualization Richness","pole_b":"Interpretability","raw_score":4,"kept_by":"threshold"},{"id":"TD-26","name":"Confirmation Dialogs vs Interaction Flow","pole_a":"Confirmation Dialogs","pole_b":"Interaction Flow","raw_score":3,"kept_by":"threshold"},{"id":"TD-37","name":"Aggregation vs Detail Visibility","pole_a":"Aggregation","pole_b":"Detail Visibility","raw_score":3,"kept_by":"threshold"},{"id":"TD-42","name":"Role Separation vs Workflow Fluidity","pole_a":"Role Separation","pole_b":"Workflow Fluidity","raw_score":3,"kept_by":"threshold"},{"id":"TD-08","name":"Discoverability vs Minimalism","pole_a":"Discoverability","pole_b":"Minimalism","raw_score":2,"kept_by":"threshold"},{"id":"TD-12","name":"Feedback Richness vs Interaction Speed","pole_a":"Feedback Richness","pole_b":"Interaction Speed","raw_score":2,"kept_by":"threshold"},{"id":"TD-15","name":"Precision vs Ease of Use","pole_a":"Precision","pole_b":"Ease of Use","raw_score":2,"kept_by":"threshold"},{"id":"TD-41","name":"Auditability vs Workflow Simplicity","pole_a":"Auditability","pole_b":"Workflow Simplicity","raw_score":2,"kept_by":"threshold"},{"id":"TD-47","name":"Compliance vs Productivity","pole_a":"Compliance","pole_b":"Productivity","raw_score":2,"kept_by":"threshold"}],"pruned_dimensions":[{"id":"TD-10","name":"Accessibility vs Visual Density","raw_score":2,"reason":"post-pass-all-zero","note":"§6.6.5 NFR cells fail strict keyword-overlap with any goal statement, so the dimension enters no goal's evidence bundle."}],"goals":[{"id":"G-01","statement":"Ingest transaction files into the system reliably.","quality_signals":"Upload completes with explicit success/failure feedback; FileLog visible after upload.","kind":"top-level"},{"id":"G-02","statement":"Review uploaded transactions efficiently.","quality_signals":"Transactions table loads within performance budget; filters apply quickly.","kind":"top-level"},{"id":"G-03","statement":"Apply auditable approve/reject decisions on transactions.","quality_signals":"Approve/Reject confirms an action; UserNote captured on reject.","kind":"top-level"},{"id":"G-04","statement":"Export filtered transaction data for downstream reporting.","quality_signals":"CSV export contains exactly the filtered set.","kind":"top-level"},{"id":"G-05","statement":"Maintain visibility into file-level processing state.","quality_signals":"File summary shows totals and counts by status; HasBulkErrorFile surfaces errors.","kind":"top-level"},{"id":"G-06","statement":"Authenticate securely and maintain a valid session.","quality_signals":"Login establishes session cookie; logout invalidates it.","kind":"sub-level"}],"cells":[{"goal_id":"G-01","dimension_id":"TD-09","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-01","dimension_id":"TD-01","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-01","dimension_id":"TD-33","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-01","dimension_id":"TD-34","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-01","dimension_id":"TD-26","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-01","dimension_id":"TD-37","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-01","dimension_id":"TD-42","score":-2,"lean_label":"strong A (Role Separation)","pole_a_hits":[{"quote":"As an Importer, I want to upload a transaction file","anchor":"§4.2 Story (Importer)","weight":1},{"quote":"Actor: → §3 Importer","anchor":"§5 File Upload","weight":1},{"quote":"Role-conditional behaviour: Approver cannot upload","anchor":"§5 File Upload","weight":1},{"quote":"The Importer can upload a transaction file","anchor":"§6.1 F-05","weight":1},{"quote":"When the Importer is the active role, then the Upload screen is accessible","anchor":"§6.2 BR-09","weight":1},{"quote":"Importer can upload a file via drag-and-drop","anchor":"§6.4 UI-04","weight":1}],"pole_b_hits":[],"rationale":"Multiple Role Separation hits across the upload story, File Upload flow, and F-05/BR-09/UI-04."},{"goal_id":"G-01","dimension_id":"TD-08","score":-2,"lean_label":"strong A (Discoverability)","pole_a_hits":[{"quote":"FileLog visible after upload","anchor":"§4.1 G-01 quality_signals","weight":2},{"quote":"visible result: a new FileLog row is visible","anchor":"§5 File Upload","weight":1},{"quote":"FileLog row is visible in the file log overview after upload","anchor":"§6.1 F-06","weight":1}],"pole_b_hits":[],"rationale":"Three pole-A hits on visibility triggers across QS, the File Upload flow, and F-06."},{"goal_id":"G-01","dimension_id":"TD-12","score":-2,"lean_label":"strong A (Feedback Richness)","pole_a_hits":[{"quote":"explicit success/failure feedback","anchor":"§4.1 G-01 quality_signals","weight":2},{"quote":"User can see upload progress and success / failure feedback","anchor":"§6.4 UI-05","weight":1}],"pole_b_hits":[],"rationale":"QS hits on 'feedback' and 'success/failure' (+4) plus UI-05 feedback mention; no opposing pole-B hits."},{"goal_id":"G-01","dimension_id":"TD-15","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-01","dimension_id":"TD-41","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-01","dimension_id":"TD-47","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-02","dimension_id":"TD-09","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-02","dimension_id":"TD-01","score":-2,"lean_label":"strong A (Speed)","pole_a_hits":[{"quote":"loads within performance budget","anchor":"§4.1 G-02 quality_signals","weight":2},{"quote":"filters apply quickly","anchor":"§4.1 G-02 quality_signals","weight":2}],"pole_b_hits":[],"rationale":"Two QS hits on speed triggers (performance budget, quickly) with no opposing pole-B hits."},{"goal_id":"G-02","dimension_id":"TD-33","score":-2,"lean_label":"strong A (Data Density)","pole_a_hits":[{"quote":"Transactions table loads within performance budget","anchor":"§4.1 G-02 quality_signals","weight":2},{"quote":"Review the transactions list with Reference, Date, Account, Amount, Currency, and Status columns","anchor":"§4.2 Story (Approver view all transactions)","weight":1},{"quote":"Data table renders with Reference, Date, Account, Amount, Currency, Status columns","anchor":"§5 Transaction Table","weight":1},{"quote":"User can view a paginated transactions table","anchor":"§6.4 UI-08","weight":1}],"pole_b_hits":[],"rationale":"QS and downstream evidence consistently invoke table/columns; no opposing readability hits."},{"goal_id":"G-02","dimension_id":"TD-34","score":2,"lean_label":"strong B (Interpretability)","pole_a_hits":[],"pole_b_hits":[{"quote":"Transactions table loads","anchor":"§4.1 G-02 quality_signals","weight":2},{"quote":"Data table renders","anchor":"§5 Transaction Table","weight":1},{"quote":"User can view a paginated transactions table","anchor":"§6.4 UI-08","weight":1}],"rationale":"Pole B 'table' triggers across QS, flow, and UI-08 with no opposing visualization-richness hits."},{"goal_id":"G-02","dimension_id":"TD-26","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-02","dimension_id":"TD-37","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-02","dimension_id":"TD-42","score":-2,"lean_label":"strong A (Role Separation)","pole_a_hits":[{"quote":"As an Importer, I want to drill from a file row into its transactions","anchor":"§4.2 Story (Importer)","weight":1},{"quote":"Actor: → §3 Importer / → §3 Approver","anchor":"§5 File Log Overview","weight":1},{"quote":"Approver sees row-level Approve / Reject actions","anchor":"§5 Transaction Table","weight":1},{"quote":"Row-level Approve/Reject actions are visible to Approver only","anchor":"§5 Transaction Table","weight":1},{"quote":"Approver sees per-transaction Approve and Reject actions","anchor":"§6.4 UI-09","weight":1}],"pole_b_hits":[],"rationale":"Multiple Importer/Approver mentions across stories, flows, and UI-09."},{"goal_id":"G-02","dimension_id":"TD-08","score":-2,"lean_label":"strong A (Discoverability)","pole_a_hits":[{"quote":"the visible set reflects the filter combination","anchor":"§4.2 Story (search and filter)","weight":1},{"quote":"visible result: per-row action buttons for Approvers only","anchor":"§5 Transaction Table","weight":1},{"quote":"The visible set reflects the active filter combination","anchor":"§6.1 F-12","weight":1},{"quote":"Per-transaction Approve/Reject affordances are visible on Imported transactions for Approvers only","anchor":"§6.4 UI-09","weight":1}],"pole_b_hits":[],"rationale":"Pole-A 'visible' substring matches across stories, flow, F-12, and UI-09."},{"goal_id":"G-02","dimension_id":"TD-12","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-02","dimension_id":"TD-15","score":-1,"lean_label":"lean A (Precision)","pole_a_hits":[{"quote":"scoped to a specific FileLog","anchor":"§4.2 Story (drill from a file row)","weight":1}],"pole_b_hits":[],"rationale":"Single pole-A hit on 'specific' in the drill-into-transactions story; weak directional signal."},{"goal_id":"G-02","dimension_id":"TD-41","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-02","dimension_id":"TD-47","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-03","dimension_id":"TD-09","score":-1,"lean_label":"lean A (Security)","pole_a_hits":[{"quote":"Apply auditable approve/reject decisions","anchor":"§4.1 G-03 statement","weight":1},{"quote":"7 years per the financial-records audit-trail rule","anchor":"§6.9 Transaction row","weight":1}],"pole_b_hits":[],"rationale":"Pole-A 'audit' substring matches in the goal statement ('auditable') and the §6.9 audit-trail Transaction row."},{"goal_id":"G-03","dimension_id":"TD-01","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-03","dimension_id":"TD-33","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-03","dimension_id":"TD-34","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-03","dimension_id":"TD-26","score":-2,"lean_label":"strong A (Confirmation Dialogs)","pole_a_hits":[{"quote":"Approve/Reject confirms an action","anchor":"§4.1 G-03 quality_signals","weight":2},{"quote":"Confirm an approve action on an Imported transaction","anchor":"§4.2 Story (approve)","weight":1},{"quote":"visible result: confirmation prompt","anchor":"§5 Approve Transaction","weight":1},{"quote":"Decision points: Confirmation gate (Cancel vs Confirm)","anchor":"§5 Approve Transaction","weight":1},{"quote":"Confirm action; visible result: action is committed","anchor":"§5 Approve Transaction","weight":1},{"quote":"Approver confirms an Approve action via a confirmation prompt","anchor":"§6.4 UI-11","weight":1},{"quote":"The confirmation prompt names the affected transaction reference","anchor":"§6.4 UI-11","weight":1}],"pole_b_hits":[],"rationale":"Heavy pole-A 'confirm' substring matches across QS, the approve story, Approve flow, and UI-11."},{"goal_id":"G-03","dimension_id":"TD-37","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-03","dimension_id":"TD-42","score":-2,"lean_label":"strong A (Role Separation)","pole_a_hits":[{"quote":"As an Approver, I want to approve a transaction","anchor":"§4.2 Story (approve)","weight":1},{"quote":"As an Approver, I want to reject a transaction with a mandatory note","anchor":"§4.2 Story (reject)","weight":1},{"quote":"Actor: → §3 Approver","anchor":"§5 Approve Transaction","weight":1},{"quote":"Available to Approver only","anchor":"§5 Approve Transaction","weight":1},{"quote":"Actor: → §3 Approver","anchor":"§5 Reject Transaction","weight":1},{"quote":"Available to Approver only","anchor":"§5 Reject Transaction","weight":1},{"quote":"The Approver can approve a transaction","anchor":"§6.1 F-10","weight":1},{"quote":"The Approver can reject a transaction by Id with a UserNote","anchor":"§6.1 F-11","weight":1},{"quote":"When the Approver submits a reject, then a UserNote is required","anchor":"§6.2 BR-01","weight":1},{"quote":"When the Approver is the active role, then Approve, Reject, and Export are accessible","anchor":"§6.2 BR-10","weight":1}],"pole_b_hits":[],"rationale":"Pervasive Approver-only role gating across stories, flows, and §6 reqs."},{"goal_id":"G-03","dimension_id":"TD-08","score":-2,"lean_label":"strong A (Discoverability)","pole_a_hits":[{"quote":"visible result: selected row is highlighted","anchor":"§5 Approve Transaction","weight":1},{"quote":"visible result: confirmation prompt","anchor":"§5 Approve Transaction","weight":1},{"quote":"visible result: action is committed","anchor":"§5 Approve Transaction","weight":1},{"quote":"visible result: row status badge changes to 'Approved'","anchor":"§5 Approve Transaction","weight":1},{"quote":"visible result: reject form appears","anchor":"§5 Reject Transaction","weight":1},{"quote":"visible result: note field is populated and submit becomes enabled","anchor":"§5 Reject Transaction","weight":1},{"quote":"visible result: row status badge changes to 'Rejected'","anchor":"§5 Reject Transaction","weight":1},{"quote":"Per-transaction Approve/Reject affordances are visible on Imported transactions for Approvers only","anchor":"§6.4 UI-09","weight":1}],"pole_b_hits":[],"rationale":"Dominated by the 'visible result:' flow-step convention; substring 'visible' matches throughout Approve/Reject flows plus UI-09."},{"goal_id":"G-03","dimension_id":"TD-12","score":-1,"lean_label":"lean A (Feedback Richness)","pole_a_hits":[{"quote":"Approve/Reject confirms an action","anchor":"§4.1 G-03 quality_signals","weight":2}],"pole_b_hits":[],"rationale":"QS 'confirms' triggers pole-A; no other TD-12 triggers in bundle (note pole-A uses 'confirms' exact, not 'confirm', so §5 'Confirm action' does not match this dimension)."},{"goal_id":"G-03","dimension_id":"TD-15","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-03","dimension_id":"TD-41","score":-2,"lean_label":"strong A (Auditability)","pole_a_hits":[{"quote":"Apply auditable approve/reject decisions on transactions","anchor":"§4.1 G-03 statement","weight":1},{"quote":"records LastChangedUser and LastChangedDate on every entity mutation","anchor":"§6.1 F-15","weight":1},{"quote":"Each write endpoint receives a LastChangedUser header and the entity's audit fields are updated","anchor":"§6.1 F-15 AC","weight":1},{"quote":"LastChangedUser is recorded","anchor":"§6.2 BR-07","weight":1},{"quote":"LastChangedUser and LastChangedDate are updated","anchor":"§6.2 BR-11","weight":1},{"quote":"When audit-trail rows are produced, then they are append-only and retained for 7 years","anchor":"§6.2 BR-15","weight":1},{"quote":"Status, LastChangedUser, LastChangedDate, UserNote","anchor":"§6.9 Transaction audit-trail row","weight":1}],"pole_b_hits":[],"rationale":"Extensive audit-trail evidence across F-15, BR-07/11/15, and the §6.9 Transaction audit-trail row."},{"goal_id":"G-03","dimension_id":"TD-47","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence (BR-13 POPIA evidence does not satisfy strict goal-statement keyword overlap with G-03)."},{"goal_id":"G-04","dimension_id":"TD-09","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-04","dimension_id":"TD-01","score":2,"lean_label":"strong B (Accuracy)","pole_a_hits":[],"pole_b_hits":[{"quote":"CSV export contains exactly the filtered set","anchor":"§4.1 G-04 quality_signals","weight":2},{"quote":"a CSV containing exactly the filtered set is produced","anchor":"§4.2 Story (export)","weight":1}],"rationale":"Pole B 'exact' substring matches via 'exactly' in QS and the export story; no opposing speed hits."},{"goal_id":"G-04","dimension_id":"TD-33","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-04","dimension_id":"TD-34","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-04","dimension_id":"TD-26","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-04","dimension_id":"TD-37","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-04","dimension_id":"TD-42","score":-2,"lean_label":"strong A (Role Separation)","pole_a_hits":[{"quote":"As an Approver, I want to export the filtered transaction dataset","anchor":"§4.2 Story (export)","weight":1},{"quote":"Actor: → §3 Approver","anchor":"§5 Export Transactions","weight":1},{"quote":"Available to Approver only","anchor":"§5 Export Transactions","weight":1},{"quote":"The Approver can export the filtered transaction dataset as CSV","anchor":"§6.1 F-13","weight":1},{"quote":"Approver can export the filtered transactions as CSV","anchor":"§6.4 UI-13","weight":1},{"quote":"When the Approver is the active role, then ... Export are accessible","anchor":"§6.2 BR-10","weight":1},{"quote":"Audience (→ §3): Approver, Importer","anchor":"§6.7 RPT-02","weight":1}],"pole_b_hits":[],"rationale":"Approver-only export gating across story, flow, F-13, UI-13, BR-10, and RPT-02 audience."},{"goal_id":"G-04","dimension_id":"TD-08","score":-2,"lean_label":"strong A (Discoverability)","pole_a_hits":[{"quote":"visible result: filtered row set","anchor":"§5 Export Transactions","weight":1},{"quote":"visible result: CSV generation indicator","anchor":"§5 Export Transactions","weight":1},{"quote":"visible result: file saved to the user's device","anchor":"§5 Export Transactions","weight":1}],"pole_b_hits":[],"rationale":"Three 'visible result:' flow-step occurrences in the Export Transactions flow."},{"goal_id":"G-04","dimension_id":"TD-12","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-04","dimension_id":"TD-15","score":-2,"lean_label":"strong A (Precision)","pole_a_hits":[{"quote":"CSV export contains exactly the filtered set","anchor":"§4.1 G-04 quality_signals","weight":2},{"quote":"a CSV containing exactly the filtered set is produced","anchor":"§4.2 Story (export)","weight":1}],"pole_b_hits":[],"rationale":"Pole A 'exact' triggers via 'exactly' in QS and the export story."},{"goal_id":"G-04","dimension_id":"TD-41","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-04","dimension_id":"TD-47","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-05","dimension_id":"TD-09","score":-1,"lean_label":"lean A (Security)","pole_a_hits":[{"quote":"7 years per the financial-records audit-trail rule","anchor":"§6.9 FileLog audit-trail row","weight":1}],"pole_b_hits":[],"rationale":"Single pole-A 'audit' substring match in §6.9 FileLog audit-trail row, included via 'file-level' keyword overlap with G-05 statement."},{"goal_id":"G-05","dimension_id":"TD-01","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-05","dimension_id":"TD-33","score":-2,"lean_label":"strong A (Data Density)","pole_a_hits":[{"quote":"View a table of uploaded files with File Name, Process Date, Record Count, and Status columns","anchor":"§4.2 Story (view the file log overview)","weight":1},{"quote":"User views the table of uploaded files","anchor":"§5 File Log Overview","weight":1}],"pole_b_hits":[],"rationale":"Pole-A 'table' and 'columns' hits in the file-log-overview story and flow."},{"goal_id":"G-05","dimension_id":"TD-34","score":1,"lean_label":"lean B (Interpretability)","pole_a_hits":[],"pole_b_hits":[{"quote":"View a table of uploaded files","anchor":"§4.2 Story (view the file log overview)","weight":1},{"quote":"User views the table of uploaded files","anchor":"§5 File Log Overview","weight":1}],"rationale":"Two pole-B 'table' hits with no opposing visualization-richness hits; lean B."},{"goal_id":"G-05","dimension_id":"TD-26","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-05","dimension_id":"TD-37","score":-2,"lean_label":"strong A (Aggregation)","pole_a_hits":[{"quote":"File summary shows totals and counts by status","anchor":"§4.1 G-05 quality_signals","weight":2},{"quote":"HasBulkErrorFile surfaces errors","anchor":"§4.1 G-05 quality_signals","weight":2},{"quote":"view a file summary","anchor":"§4.2 Story (view a file summary header)","weight":1},{"quote":"View total records and counts by status (Imported / Approved / Rejected)","anchor":"§4.2 Story (view a file summary)","weight":1},{"quote":"Open summary; visible result: total records and counts per status","anchor":"§5 File Summary","weight":1},{"quote":"system surfaces a file summary with total records and counts by status","anchor":"§6.1 F-14","weight":1},{"quote":"User can view a file summary with total records and counts by status","anchor":"§6.4 UI-14","weight":1},{"quote":"File summary view","anchor":"§6.7 RPT-03","weight":1},{"quote":"Total records, Imported count, Approved count, Rejected count, HasBulkErrorFile indicator","anchor":"§6.7 RPT-03 measures","weight":1}],"pole_b_hits":[{"quote":"File summary view","anchor":"§6.7 RPT-03","weight":1}],"rationale":"Pervasive pole-A summary/total/counts-by-status triggers; minor pole-B 'summary view' tension from RPT-03 title (clamped to strong A)."},{"goal_id":"G-05","dimension_id":"TD-42","score":-2,"lean_label":"strong A (Role Separation)","pole_a_hits":[{"quote":"As an Importer, I want to view the file log overview","anchor":"§4.2 Story (Importer)","weight":1},{"quote":"As an Approver, I want to view a file summary","anchor":"§4.2 Story (Approver)","weight":1},{"quote":"Actor: → §3 Importer / → §3 Approver","anchor":"§5 File Log Overview","weight":1},{"quote":"Both Importer and Approver may view file logs","anchor":"§5 File Log Overview","weight":1},{"quote":"Both roles may view file summary","anchor":"§5 File Summary","weight":1},{"quote":"Show 'No files uploaded yet' with an Upload CTA for Importers; for Approvers, show the same empty copy","anchor":"§6.4.5 UI-06 edge state","weight":1},{"quote":"Importer clicks Upload; Approver waits","anchor":"§6.4.5 UI-06 edge state","weight":1}],"pole_b_hits":[],"rationale":"Pervasive Importer/Approver mentions across stories, flows, and UI-06 edge-state rows."},{"goal_id":"G-05","dimension_id":"TD-08","score":-2,"lean_label":"strong A (Discoverability)","pole_a_hits":[{"quote":"Maintain visibility into file-level processing state","anchor":"§4.1 G-05 statement","weight":1},{"quote":"visible result: rows with File Name, Process Date, Record Count, and Status","anchor":"§5 File Log Overview","weight":1},{"quote":"visible result: transactions list scoped to the FileLog","anchor":"§5 File Log Overview","weight":1},{"quote":"visible result: total records and counts per status","anchor":"§5 File Summary","weight":1},{"quote":"visible result: an error icon is shown when HasBulkErrorFile is true","anchor":"§5 File Summary","weight":1},{"quote":"Error indicator is visible when HasBulkErrorFile is true","anchor":"§6.4 UI-15","weight":1}],"pole_b_hits":[],"rationale":"Multiple 'visible' substring matches across statement, flows, and UI-15 (note: G-05 statement 'visibility' does not contain substring 'visible' per strict matching, but the flow steps do)."},{"goal_id":"G-05","dimension_id":"TD-12","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-05","dimension_id":"TD-15","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-05","dimension_id":"TD-41","score":-1,"lean_label":"lean A (Auditability)","pole_a_hits":[{"quote":"LastChangedUser-equivalent (file process logs)","anchor":"§6.9 FileLog audit-trail row","weight":1},{"quote":"7 years per the financial-records audit-trail rule","anchor":"§6.9 FileLog audit-trail row","weight":1}],"pole_b_hits":[],"rationale":"§6.9 FileLog audit-trail row contributes pole-A 'LastChangedUser' and 'audit' triggers."},{"goal_id":"G-05","dimension_id":"TD-47","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-06","dimension_id":"TD-09","score":-2,"lean_label":"strong A (Security)","pole_a_hits":[{"quote":"Authenticate securely","anchor":"§4.1 G-06 statement","weight":1},{"quote":"Login establishes session cookie","anchor":"§4.1 G-06 quality_signals","weight":2},{"quote":"HttpOnly, Secure, SameSite=Strict session cookie is set","anchor":"§4.2 Story (authenticate) AC","weight":1},{"quote":"Submit username and password to establish an authenticated session","anchor":"§4.2 Story (authenticate) Objective","weight":1},{"quote":"the system validates credentials and either sets a session cookie","anchor":"§5 Authentication","weight":1},{"quote":"Authentication outcome (200 vs 401)","anchor":"§5 Authentication","weight":1},{"quote":"authenticates a user via username and password","anchor":"§6.1 F-01","weight":1},{"quote":"session state exclusively via an HttpOnly, Secure, SameSite=Strict cookie","anchor":"§6.1 F-02","weight":1},{"quote":"invalidating the session cookie","anchor":"§6.1 F-03","weight":1},{"quote":"system displays a compliance acknowledgement","anchor":"§6.1 F-25","weight":1},{"quote":"When a protected endpoint is called without the session cookie, then return 401","anchor":"§6.2 BR-03","weight":1},{"quote":"the session cookie is invalidated","anchor":"§6.2 BR-04","weight":1},{"quote":"When credentials are invalid, then return a deliberately generic 401","anchor":"§6.2 BR-05","weight":1},{"quote":"only the POPIA-listed PI fields may be collected","anchor":"§6.2 BR-13","weight":1},{"quote":"User can authenticate via a credentials form","anchor":"§6.4 UI-01","weight":1},{"quote":"User sees the compliance acknowledgement on the login screen","anchor":"§6.4 UI-21","weight":1}],"pole_b_hits":[],"rationale":"Heavy security evidence across QS, the authenticate story, Authentication flow, and §6 functional/business-rule reqs."},{"goal_id":"G-06","dimension_id":"TD-01","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-06","dimension_id":"TD-33","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-06","dimension_id":"TD-34","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-06","dimension_id":"TD-26","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-06","dimension_id":"TD-37","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-06","dimension_id":"TD-42","score":-2,"lean_label":"strong A (Role Separation)","pole_a_hits":[{"quote":"As an Approver, I want to authenticate","anchor":"§4.2 Story (authenticate)","weight":1},{"quote":"Actor: → §3 Importer / → §3 Approver","anchor":"§5 Authentication","weight":1},{"quote":"role-specific dashboard","anchor":"§5 Authentication","weight":1}],"pole_b_hits":[],"rationale":"Importer/Approver references in the authenticate story and flow."},{"goal_id":"G-06","dimension_id":"TD-08","score":-1,"lean_label":"lean A (Discoverability)","pole_a_hits":[{"quote":"visible result: role-specific dashboard","anchor":"§5 Authentication","weight":1},{"quote":"visible result: deliberately generic error message","anchor":"§5 Authentication","weight":1}],"pole_b_hits":[],"rationale":"Two 'visible result:' flow-step matches in the Authentication flow; lean A."},{"goal_id":"G-06","dimension_id":"TD-12","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence."},{"goal_id":"G-06","dimension_id":"TD-15","score":-1,"lean_label":"lean A (Precision)","pole_a_hits":[{"quote":"no field-specific failure information","anchor":"§6.6.1 Account lockout messaging","weight":1}],"pole_b_hits":[],"rationale":"Pole-A 'specific' substring matches in §6.6.1 'no field-specific failure information'. Context inverts meaning (security-by-obscurity intentionally suppresses field-level specificity); reader is invited to weigh accordingly."},{"goal_id":"G-06","dimension_id":"TD-41","score":0,"lean_label":"no signal","cell_kind":"no-signal","rationale":"No trigger from either pole appeared in the goal's evidence (§6.9 User audit-trail row does not satisfy strict goal-statement keyword overlap with G-06)."},{"goal_id":"G-06","dimension_id":"TD-47","score":-2,"lean_label":"strong A (Compliance)","pole_a_hits":[{"quote":"system displays a compliance acknowledgement on the login screen","anchor":"§6.1 F-25","weight":1},{"quote":"User sees the compliance acknowledgement on the login screen","anchor":"§6.4 UI-21","weight":1},{"quote":"Compliance UI behaviour","anchor":"§6.6.4 heading","weight":1}],"pole_b_hits":[],"rationale":"Compliance-acknowledgement evidence on the login screen via F-25, UI-21, and the §6.6.4 heading."}],"guidance":{"G-01":[{"dimension_id":"TD-42","lean_label":"strong A (Role Separation)","implication":"Role-conditional surfaces; Importer-only vs Approver-only affordances; segregation of duties enforced in UI."},{"dimension_id":"TD-08","lean_label":"strong A (Discoverability)","implication":"All actions visible as buttons/icons with labels; no hidden menus."},{"dimension_id":"TD-12","lean_label":"strong A (Feedback Richness)","implication":"Visible status pills; toast confirmations on action; tooltips on metadata fields."}],"G-02":[{"dimension_id":"TD-01","lean_label":"strong A (Speed)","implication":"Optimistic UI; inline async actions; minimal pre-action validation; keyboard-first for frequent actions."},{"dimension_id":"TD-33","lean_label":"strong A (Data Density)","implication":"Spreadsheet-style grids; dense column count."},{"dimension_id":"TD-34","lean_label":"strong B (Interpretability)","implication":"Plain numeric summaries; counts and totals only."},{"dimension_id":"TD-42","lean_label":"strong A (Role Separation)","implication":"Role-conditional surfaces; Importer-only vs Approver-only affordances; segregation of duties enforced in UI."}],"G-03":[{"dimension_id":"TD-26","lean_label":"strong A (Confirmation Dialogs)","implication":"Modal confirmation on destructive/financial actions; \"Are you sure?\" pattern."},{"dimension_id":"TD-42","lean_label":"strong A (Role Separation)","implication":"Role-conditional surfaces; Importer-only vs Approver-only affordances; segregation of duties enforced in UI."},{"dimension_id":"TD-08","lean_label":"strong A (Discoverability)","implication":"All actions visible as buttons/icons with labels; no hidden menus."},{"dimension_id":"TD-41","lean_label":"strong A (Auditability)","implication":"Audit-trail panels; LastChangedUser/Date columns visible; history view per record."}],"G-04":[{"dimension_id":"TD-01","lean_label":"strong B (Accuracy)","implication":"Synchronous validation; confirmation step on high-cost actions; show outcome only after backend confirms; visible status of in-flight operations."},{"dimension_id":"TD-42","lean_label":"strong A (Role Separation)","implication":"Role-conditional surfaces; Importer-only vs Approver-only affordances; segregation of duties enforced in UI."},{"dimension_id":"TD-08","lean_label":"strong A (Discoverability)","implication":"All actions visible as buttons/icons with labels; no hidden menus."},{"dimension_id":"TD-15","lean_label":"strong A (Precision)","implication":"Numeric inputs with decimal precision; explicit unit pickers; fine-grained filters."}],"G-05":[{"dimension_id":"TD-33","lean_label":"strong A (Data Density)","implication":"Spreadsheet-style grids; dense column count."},{"dimension_id":"TD-37","lean_label":"strong A (Aggregation)","implication":"Summary tiles; counts by status; rolled-up totals first."},{"dimension_id":"TD-42","lean_label":"strong A (Role Separation)","implication":"Role-conditional surfaces; Importer-only vs Approver-only affordances; segregation of duties enforced in UI."},{"dimension_id":"TD-08","lean_label":"strong A (Discoverability)","implication":"All actions visible as buttons/icons with labels; no hidden menus."}],"G-06":[{"dimension_id":"TD-09","lean_label":"strong A (Security)","implication":"Visible session state; logout affordance; re-authentication on sensitive actions; CSRF/SameSite-Strict cookies."},{"dimension_id":"TD-42","lean_label":"strong A (Role Separation)","implication":"Role-conditional surfaces; Importer-only vs Approver-only affordances; segregation of duties enforced in UI."},{"dimension_id":"TD-47","lean_label":"strong A (Compliance)","implication":"Consent gates; retention notices; data-subject-rights affordances; POPIA notices."},{"dimension_id":"TD-08","lean_label":"lean A (Discoverability)","implication":"All actions visible as buttons/icons with labels; no hidden menus."}]}}</script>
+  </main>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Variant CAREFUL-DEFAULT-IMPORTER — file-upload-flow</title>
+  <link rel="stylesheet" href="wireframe-ds.css" />
+</head>
+<body>
+  <header class="wf-chrome">
+    <strong>Variant CAREFUL-DEFAULT-IMPORTER &middot; scope file-upload-flow</strong>
+    <span class="wf-help">persona: <em>Importer</em></span>
+    <span style="margin-left: auto;">
+      <a href="../index.html" class="wf-btn">Set index</a>
+      <a href="../comparison.html" class="wf-btn">Comparison</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1100px; margin: 0 auto; padding: 0 16px;">
+    <h1>CAREFUL-DEFAULT-IMPORTER</h1>
+    <p class="wf-help"><em>Scrollable single-form upload with explicit save bar; default-density file log with per-row confirm on destructive actions; help text on non-obvious fields. Suits the careful daily Importer who values explicit save points and visible recovery paths.</em></p>
+
+    <section class="wf-section">
+      <h2>Dimension positions</h2>
+      <div class="wf-table">
+        <table>
+          <thead><tr><th>Dimension</th><th>Position (-2 .. +2)</th></tr></thead>
+          <tbody>
+            <tr><td>speed-accuracy</td><td>-1</td></tr>
+            <tr><td>power-simplicity</td><td>0</td></tr>
+            <tr><td>density-focus</td><td>0</td></tr>
+            <tr><td>control-automation</td><td>0</td></tr>
+            <tr><td>flexibility-consistency</td><td>0</td></tr>
+            <tr><td>memorability-discoverability</td><td>0</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="wf-section">
+      <h2>Screens</h2>
+      <div class="wf-list">
+        <ul>
+          <li><a href="screen-01-file-upload.html">S-01 &mdash; File upload (file picker + metadata + progress)</a></li>
+          <li><a href="screen-02-file-log-overview.html">S-02 &mdash; File log overview (table + row actions + drill into transactions)</a></li>
+          <li><a href="screen-03-file-summary.html">S-03 &mdash; File summary (per-FileLog counts + bulk-error indicator)</a></li>
+          <li><a href="screen-04-validation-errors.html">S-04 &mdash; Validation errors detail (per-file validation row list)</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="wf-section">
+      <h2>States rendered per screen</h2>
+      <div class="wf-table">
+        <table>
+          <thead><tr><th>Screen</th><th>States visualised</th></tr></thead>
+          <tbody>
+            <tr><td>S-01</td><td>default | submitting | error | success</td></tr>
+            <tr><td>S-02</td><td>default | loading | error | confirming</td></tr>
+            <tr><td>S-03</td><td>default | error</td></tr>
+            <tr><td>S-04</td><td>default | empty</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="wf-section">
+      <h2>Other variants of this scope</h2>
+      <nav class="wf-role-switcher">
+        <button aria-pressed="true">Current: CAREFUL-DEFAULT-IMPORTER</button>
+        <a href="../POWER-DENSITY-EXPERT/wireframes.html">POWER-DENSITY-EXPERT</a>
+      </nav>
+    </section>
+  </main>
+</body>
+</html>

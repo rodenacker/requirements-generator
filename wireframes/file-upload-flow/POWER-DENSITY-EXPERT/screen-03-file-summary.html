@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>S-03 File summary (per-FileLog counts + bulk-error indicator) — POWER-DENSITY-EXPERT — file-upload-flow</title>
+  <link rel="stylesheet" href="wireframe-ds.css" />
+  <meta name="wf-scope-slug" content="file-upload-flow" />
+  <meta name="wf-variant-id" content="POWER-DENSITY-EXPERT" />
+  <meta name="wf-screen-id" content="S-03" />
+  <meta name="wf-screen-sources" content="F-14, F-15, F-17, UI-14, UI-15, UI-17, §5 File Summary, §7 FileLog, §7 FileProcessLog" />
+  <meta name="wf-persona-binding" content="Importer" />
+  <meta name="wf-states-rendered" content="default | bulk-error-flag | partial-error" />
+</head>
+<body>
+  <header class="wf-chrome" data-src="F-14, F-15, F-17, UI-14, UI-15, UI-17, §5 File Summary, §7 FileLog, §7 FileProcessLog">
+    <strong>S-03 · File summary (per-FileLog counts + bulk-error indicator)</strong>
+    <span class="wf-help">scope: <code>file-upload-flow</code> · variant: <code>POWER-DENSITY-EXPERT</code> · persona: <em>Importer</em></span>
+    <nav aria-label="Within-variant flow">
+      <a href="screen-02-file-log-overview.html">‹ S-02 File log overview</a>
+      <strong>S-03 File summary</strong>
+      <a href="screen-04-validation-errors.html">↺ S-04 Validation errors (on HasBulkErrorFile)</a>
+    </nav>
+    <nav aria-label="Across variants" class="wf-role-switcher">
+      <button aria-pressed="true">Current: POWER-DENSITY-EXPERT</button>
+      <a href="../CAREFUL-DEFAULT-IMPORTER/screen-03-file-summary.html">View CAREFUL-DEFAULT-IMPORTER</a>
+    </nav>
+    <span style="margin-left: auto;">
+      <a href="../index.html" class="wf-btn">Set index</a>
+      <a href="../comparison.html" class="wf-btn">Comparison</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1100px; margin: 0 auto; padding: 0 16px;">
+    <h1 data-src="F-14, F-15, F-17, UI-14, UI-15, UI-17, §5 File Summary, §7 FileLog, §7 FileProcessLog">File summary — <code>BATCH-2026-05-23-002</code></h1>
+
+    <p class="wf-help">
+      <strong>Position translation:</strong> D3+2 (density) → <code>dashboard.default</code> with KPI tiles at high information-density per viewport; D1+1 (speed) → drill-down via single-key shortcuts on each tile; D2+1 (power) → no onboarding chrome. F-15 audit columns surface as tiles, not a separate table.
+    </p>
+
+    <!-- Bulk-error banner (UI-15 + F-17 HasBulkErrorFile state) - state: bulk-error-flag -->
+    <section class="wf-section">
+      <div class="wf-banner" data-tone="danger" data-src="UI-15, F-17">
+        <strong>HasBulkErrorFile = true</strong> for this batch. 89 rows failed validation per <code>FileProcessLog</code>. Drill into <a href="screen-04-validation-errors.html" data-src="UI-15, F-17">S-04 Validation errors ›</a> (or press <kbd>v</kbd>) to inspect. A bulk-error CSV is available below.
+      </div>
+    </section>
+
+    <!-- Dashboard tiles per pattern catalogue (collections/dashboard variant: default) -->
+    <section class="wf-section" aria-labelledby="primary-region-label" data-src="F-14, F-15, F-17, UI-14, §5 File Summary, §7 FileLog, §7 FileProcessLog">
+      <h2 id="primary-region-label">KPI tiles</h2>
+
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(var(--wf-spacing) * 2);">
+
+        <div class="wf-card" data-src="F-14, UI-14, §7 FileProcessLog">
+          <h3>Total rows</h3>
+          <p style="font-family: var(--wf-font-mono); font-size: var(--wf-fz-2xl); margin: 0;">347</p>
+          <p class="wf-help">from FileProcessLog · in-scope of BR rules</p>
+        </div>
+
+        <div class="wf-card" data-src="F-14, UI-14, §7 FileProcessLog">
+          <h3>Validated OK</h3>
+          <p style="font-family: var(--wf-font-mono); font-size: var(--wf-fz-2xl); margin: 0;">258</p>
+          <p class="wf-help">74.4% · awaiting Approver</p>
+        </div>
+
+        <div class="wf-card" data-src="F-14, F-17, UI-14, UI-15, §7 FileProcessLog">
+          <h3>Validation errors</h3>
+          <p style="font-family: var(--wf-font-mono); font-size: var(--wf-fz-2xl); margin: 0; color: var(--wf-state-danger);">89</p>
+          <p class="wf-help">25.6% · <a href="screen-04-validation-errors.html" data-src="UI-15">drill (v) ›</a></p>
+        </div>
+
+        <div class="wf-card" data-src="F-14, UI-14, §7 FileProcessLog">
+          <h3>Duplicates skipped</h3>
+          <p style="font-family: var(--wf-font-mono); font-size: var(--wf-fz-2xl); margin: 0;">12</p>
+          <p class="wf-help">already in a previous FileLog</p>
+        </div>
+
+        <div class="wf-card" data-src="F-15, §7 FileLog">
+          <h3>Uploaded by</h3>
+          <p style="font-family: var(--wf-font-mono); margin: 0;"><code>importer-1</code></p>
+          <p class="wf-help">audit row · §7 FileLog.uploadedBy</p>
+        </div>
+
+        <div class="wf-card" data-src="F-15, §7 FileLog">
+          <h3>Uploaded at</h3>
+          <p style="font-family: var(--wf-font-mono); margin: 0;"><code>2026-05-23 09:42:11</code></p>
+          <p class="wf-help">audit row · §7 FileLog.uploadedAt</p>
+        </div>
+
+        <div class="wf-card" data-src="F-15, §7 FileLog">
+          <h3>FileSetting</h3>
+          <p style="font-family: var(--wf-font-mono); margin: 0;"><code>trx-late</code></p>
+          <p class="wf-help">determined validation profile</p>
+        </div>
+
+        <div class="wf-card" data-src="F-17, UI-15">
+          <h3>Bulk-error file</h3>
+          <p><a href="#" class="wf-btn" data-src="F-17, UI-17">Download bulk-errors.csv</a></p>
+          <p class="wf-help">89 rejected rows + reason codes</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- FileProcessLog detail table (small) — dashboard may contain table-small per composition-rules -->
+    <section class="wf-section" aria-labelledby="process-log-label">
+      <h2 id="process-log-label">FileProcessLog (recent steps)</h2>
+      <div class="wf-table" data-src="F-14, §7 FileProcessLog">
+        <table>
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Stage</th>
+              <th>Started</th>
+              <th>Finished</th>
+              <th>Outcome</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>upload</td><td>09:42:11</td><td>09:42:14</td><td>ok</td></tr>
+            <tr><td>2</td><td>parse</td><td>09:42:14</td><td>09:42:18</td><td>ok</td></tr>
+            <tr><td>3</td><td>validate-row</td><td>09:42:18</td><td>09:43:02</td><td>partial (89 errors)</td></tr>
+            <tr><td>4</td><td>persist-valid</td><td>09:43:02</td><td>09:43:07</td><td>ok (258 rows)</td></tr>
+            <tr><td>5</td><td>emit-bulk-error-file</td><td>09:43:07</td><td>09:43:08</td><td>ok</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Partial-error state: per-tile resilience (some tiles error, dashboard does not page-level fail) -->
+    <section class="wf-section" aria-labelledby="partial-error-label">
+      <h2 id="partial-error-label">Partial-error state (per-tile resilience)</h2>
+      <p class="wf-help">If one tile's data source errors (e.g. FileProcessLog query timeout), other tiles still render — the dashboard pattern handles failure per-tile, not page-level.</p>
+      <div class="wf-card" style="border-color: var(--wf-state-danger);" data-src="F-14, UI-14">
+        <h3>Total rows</h3>
+        <p style="color: var(--wf-state-danger);">⚠ Could not load. <button class="wf-btn">Retry</button></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wf-chrome" style="margin-top: 32px;">
+    <span class="wf-help">
+      States rendered on this screen: <code>default | bulk-error-flag | partial-error</code>
+    </span>
+  </footer>
+</body>
+</html>

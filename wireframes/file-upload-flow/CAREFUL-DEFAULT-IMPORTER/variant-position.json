@@ -1,0 +1,31 @@
+{
+  "scope_slug": "file-upload-flow",
+  "variant_id": "CAREFUL-DEFAULT-IMPORTER",
+  "authored_at": "2026-05-23T00:00:00Z",
+  "persona_binding": "Importer",
+  "design_philosophy": "Scrollable single-form upload with explicit save bar; default-density file log with per-row confirm on destructive actions; help text on non-obvious fields. Suits the careful daily Importer who values explicit save points and visible recovery paths.",
+  "dimension_positions": {
+    "speed-accuracy": -1,
+    "power-simplicity": 0,
+    "density-focus": 0,
+    "control-automation": 0,
+    "flexibility-consistency": 0,
+    "memorability-discoverability": 0
+  },
+  "strengths": [
+    "Explicit save bar on S-01 makes the commit point unambiguous; reduces accidental-submit risk for the daily Importer reviewing metadata before upload.",
+    "Per-row modal-confirmation on destructive Cancel actions (S-02) honours GR-04 with default focus on Keep; bulk-select stays disabled so a slip cannot cascade.",
+    "Section-grouped form (file / metadata / progress) keeps the cognitive load proportional to the step the Importer is on.",
+    "Help text on non-obvious fields (FileSetting, business date) lowers the cost of an Importer returning after time away from the screen.",
+    "Standard-density table on S-02 stays scannable at 20 rows per page (GR-11) without requiring keyboard-shortcut training."
+  ],
+  "weaknesses": [
+    "Throughput is lower than the POWER-DENSITY-EXPERT variant: explicit Upload click and per-row confirms add seconds per file for a daily operator at high volume.",
+    "Save bar plus separate progress section adds vertical scroll on S-01; small viewports may not see both submit CTA and validation banner at once.",
+    "No bulk actions on S-02 means cancelling several rejected files requires N modal traversals; intentional cost of the careful posture.",
+    "Density-0 table caps the at-a-glance column budget below what a daily Importer could comfortably scan if columns were tighter.",
+    "No keyboard shortcuts surfaced visually; an experienced Importer who later wants speed has no obvious upgrade path inside this variant."
+  ],
+  "tradeoffs": "Careful-first; lower throughput. Optimises for explicit save points and reversibility over per-task speed.",
+  "use_when": "Daily Importer who values explicit save / undo recovery paths over keystroke efficiency; new-to-product or risk-averse operators; teams where a mis-uploaded batch has high downstream blast radius."
+}

@@ -1,0 +1,70 @@
+<!--
+ROLE: asset (wireframe-private template). Used by
+framework/agents/wireframe-comparator.md to populate
+wireframes/<scope-slug>/index.html — the per-scope landing page that lists
+every variant + a scope summary + links to comparison.html and each variant.
+
+Slots filled by the comparator:
+  {{SCOPE_SLUG}}              — kebab-case scope slug.
+  {{SCOPE_MODE}}              — "structural" or "free-form".
+  {{SCOPE_SOURCES_SUMMARY}}   — comma-separated requirement IDs from scope.json (with counts).
+  {{FREEFORM_DESCRIPTION}}    — verbatim free-form prose (omit the block if scope_mode == structural).
+  {{PERSONAS_AVAILABLE_LIST}} — bulleted list of §3 persona names.
+  {{BLUEPRINT_SUMMARY}}       — short prose summary of the screen inventory (e.g. "5 screens: Login → File picker → Validation → Confirmation → Upload log").
+  {{VARIANT_CARDS}}           — concatenated HTML for one card per variant (variant_id, persona, design_philosophy, dimension snapshot, link to wireframes.html).
+  {{COMPARISON_HREF}}         — href to wireframes/<scope-slug>/comparison.html.
+  {{BLUEPRINT_HREF}}          — relative href to blueprints/<scope-slug>/blueprint.md.
+  {{SELECTED_AT}}             — ISO-8601 timestamp from scope.json.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>{{SCOPE_SLUG}} — wireframe set</title>
+  <link rel="stylesheet" href="{{VARIANT_CARDS_REL_DS_PATH_NOTE}}" />
+  <!--
+    NOTE: index.html and comparison.html live one directory above any variant
+    subdir, so we link to the wireframe-ds.css inside the FIRST variant subdir.
+    The comparator substitutes a real "<first_variant_id>/wireframe-ds.css"
+    relative path into the slot above (the slot name is a literal reminder for
+    the comparator's renderer, not a public token).
+  -->
+</head>
+<body>
+  <header class="wf-chrome">
+    <strong>Scope · {{SCOPE_SLUG}}</strong>
+    <span class="wf-help">selected at <code>{{SELECTED_AT}}</code> · mode <code>{{SCOPE_MODE}}</code></span>
+    <span style="margin-left: auto;">
+      <a href="{{COMPARISON_HREF}}" class="wf-btn primary">Cross-variant comparison</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1100px; margin: 0 auto; padding: 0 16px;">
+    <h1>{{SCOPE_SLUG}}</h1>
+
+    <section class="wf-section">
+      <h2>Scope sources</h2>
+      <p>{{SCOPE_SOURCES_SUMMARY}}</p>
+      {{FREEFORM_DESCRIPTION}}
+      <p><a href="{{BLUEPRINT_HREF}}">View blueprint (inventory + flow + trace)</a></p>
+    </section>
+
+    <section class="wf-section">
+      <h2>Available personas</h2>
+      {{PERSONAS_AVAILABLE_LIST}}
+    </section>
+
+    <section class="wf-section">
+      <h2>Screen inventory summary</h2>
+      <p>{{BLUEPRINT_SUMMARY}}</p>
+    </section>
+
+    <section class="wf-section">
+      <h2>Variants</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+        {{VARIANT_CARDS}}
+      </div>
+    </section>
+  </main>
+</body>
+</html>

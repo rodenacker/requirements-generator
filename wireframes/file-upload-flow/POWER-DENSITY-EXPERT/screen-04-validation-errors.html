@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>S-04 Validation errors detail (per-file validation row list) — POWER-DENSITY-EXPERT — file-upload-flow</title>
+  <link rel="stylesheet" href="wireframe-ds.css" />
+  <meta name="wf-scope-slug" content="file-upload-flow" />
+  <meta name="wf-variant-id" content="POWER-DENSITY-EXPERT" />
+  <meta name="wf-screen-id" content="S-04" />
+  <meta name="wf-screen-sources" content="F-18, F-19, UI-15, UI-18, §7 ValidationErrors, §7 FileProcessLog" />
+  <meta name="wf-persona-binding" content="Importer" />
+  <meta name="wf-states-rendered" content="default | empty | retry-validation | confirming-retry" />
+</head>
+<body>
+  <header class="wf-chrome" data-src="F-18, F-19, UI-15, UI-18, §7 ValidationErrors, §7 FileProcessLog">
+    <strong>S-04 · Validation errors detail (per-file validation row list)</strong>
+    <span class="wf-help">scope: <code>file-upload-flow</code> · variant: <code>POWER-DENSITY-EXPERT</code> · persona: <em>Importer</em></span>
+    <nav aria-label="Within-variant flow">
+      <a href="screen-02-file-log-overview.html">‹ S-02 File log overview (close)</a>
+      <a href="screen-03-file-summary.html">‹ S-03 File summary</a>
+      <strong>S-04 Validation errors</strong>
+    </nav>
+    <nav aria-label="Across variants" class="wf-role-switcher">
+      <button aria-pressed="true">Current: POWER-DENSITY-EXPERT</button>
+      <a href="../CAREFUL-DEFAULT-IMPORTER/screen-04-validation-errors.html">View CAREFUL-DEFAULT-IMPORTER</a>
+    </nav>
+    <span style="margin-left: auto;">
+      <a href="../index.html" class="wf-btn">Set index</a>
+      <a href="../comparison.html" class="wf-btn">Comparison</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1100px; margin: 0 auto; padding: 0 16px;">
+    <h1 data-src="F-18, F-19, UI-15, UI-18, §7 ValidationErrors, §7 FileProcessLog">Validation errors — <code>BATCH-2026-05-23-002</code></h1>
+
+    <p class="wf-help">
+      <strong>Position translation:</strong> D3+2 (density) → <code>table.compact</code> with 8 columns + per-row inline-edit on the corrected-value column; D1+1 (speed) → bulk-retry on selected rows + keyboard nav; D2+1 (power) → no per-row help; assume Importer reads reason codes directly.
+    </p>
+
+    <!-- Per-file context banner -->
+    <section class="wf-section">
+      <div class="wf-banner" data-tone="warning" data-src="UI-15, §7 FileProcessLog">
+        <strong>89 rows failed validation</strong> for <code>BATCH-2026-05-23-002</code> (FileSetting <code>trx-late</code>). Select rows + press <kbd>r</kbd> to retry validation after editing the source upstream, or download the bulk-error CSV from <a href="screen-03-file-summary.html" data-src="UI-15">S-03 ›</a>.
+      </div>
+    </section>
+
+    <section class="wf-section" aria-labelledby="primary-region-label">
+      <h2 id="primary-region-label" class="visually-hidden" style="position:absolute; left:-9999px;">Primary content</h2>
+
+      <!-- Bulk-action toolbar (collections/table selectable variant per D1+1) -->
+      <div style="display: flex; gap: var(--wf-spacing); align-items: center; margin-bottom: var(--wf-spacing);">
+        <span><strong>3 selected</strong> of 89 errors</span>
+        <button class="wf-btn destructive" data-src="F-19, UI-18">Retry validation (r)</button>
+        <button class="wf-btn" data-src="F-18">Copy reason codes</button>
+        <span class="wf-help" style="margin-left: auto;">Keyboard: <kbd>j/k</kbd> row nav · <kbd>Space</kbd> select · <kbd>r</kbd> retry · <kbd>Esc</kbd> back to S-02</span>
+      </div>
+
+      <div class="wf-table" data-src="F-18, F-19, UI-15, UI-18, §7 ValidationErrors, §7 FileProcessLog">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 28px;"><input type="checkbox" aria-label="Select all visible" /></th>
+              <th data-src="F-18, §7 ValidationErrors">Row #</th>
+              <th data-src="F-18, §7 ValidationErrors">Field</th>
+              <th data-src="F-18, §7 ValidationErrors">Original value</th>
+              <th data-src="F-18, §7 ValidationErrors">Reason code</th>
+              <th data-src="F-18, §7 ValidationErrors">Reason text</th>
+              <th data-src="F-18, §7 ValidationErrors">Rule (BR-NN)</th>
+              <th data-src="F-19, UI-18, §7 FileProcessLog">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="selected">
+              <td><input type="checkbox" checked /></td>
+              <td><code>14</code></td>
+              <td><code>amount</code></td>
+              <td><code>-1,250.00</code></td>
+              <td><code>NEG_AMT</code></td>
+              <td>Negative amount not permitted</td>
+              <td>BR-04</td>
+              <td><button class="wf-btn destructive" data-src="F-19, UI-18">Retry (r)</button></td>
+            </tr>
+            <tr class="selected">
+              <td><input type="checkbox" checked /></td>
+              <td><code>27</code></td>
+              <td><code>account</code></td>
+              <td><code>(empty)</code></td>
+              <td><code>REQ_MISS</code></td>
+              <td>Required field missing</td>
+              <td>BR-01</td>
+              <td><button class="wf-btn destructive" data-src="F-19, UI-18">Retry (r)</button></td>
+            </tr>
+            <tr class="selected">
+              <td><input type="checkbox" checked /></td>
+              <td><code>33</code></td>
+              <td><code>txn_date</code></td>
+              <td><code>2026-13-45</code></td>
+              <td><code>BAD_DATE</code></td>
+              <td>Date format invalid</td>
+              <td>BR-02</td>
+              <td><button class="wf-btn destructive" data-src="F-19, UI-18">Retry (r)</button></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td><code>41</code></td>
+              <td><code>currency</code></td>
+              <td><code>EURO</code></td>
+              <td><code>BAD_CCY</code></td>
+              <td>Currency code must be 3-letter ISO-4217</td>
+              <td>BR-03</td>
+              <td><button class="wf-btn destructive" data-src="F-19, UI-18">Retry (r)</button></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td><code>58</code></td>
+              <td><code>amount</code></td>
+              <td><code>1,250.0001</code></td>
+              <td><code>PREC_EXC</code></td>
+              <td>Amount precision exceeds 2 decimal places</td>
+              <td>BR-05</td>
+              <td><button class="wf-btn destructive" data-src="F-19, UI-18">Retry (r)</button></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td><code>72</code></td>
+              <td><code>counterparty</code></td>
+              <td><code>UNKNOWN</code></td>
+              <td><code>UNK_CP</code></td>
+              <td>Counterparty not in master data</td>
+              <td>BR-07</td>
+              <td><button class="wf-btn destructive" data-src="F-19, UI-18">Retry (r)</button></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" /></td>
+              <td><code>89</code></td>
+              <td><code>account</code></td>
+              <td><code>ACC-XXX-999</code></td>
+              <td><code>UNK_ACC</code></td>
+              <td>Account number unknown</td>
+              <td>BR-08</td>
+              <td><button class="wf-btn destructive" data-src="F-19, UI-18">Retry (r)</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination per GR-11 -->
+      <div style="display: flex; gap: var(--wf-spacing); align-items: center; margin-top: var(--wf-spacing);">
+        <span class="wf-help">Page 1 of 5 · 20 of 89 errors</span>
+        <button class="wf-btn">‹ Prev</button>
+        <button class="wf-btn">Next ›</button>
+        <select style="padding: 2px 4px; font-family: var(--wf-font-body); border: var(--wf-border-width) dashed var(--wf-border-subtle);">
+          <option>5</option><option>10</option><option selected>20</option><option>50</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Empty state visualisation (state: empty) — all errors cleared -->
+    <section class="wf-section" aria-labelledby="empty-region-label">
+      <h2 id="empty-region-label">Empty state (state: empty)</h2>
+      <div class="wf-empty" data-src="F-18, §7 ValidationErrors">
+        <strong>No validation errors remaining on this batch.</strong>
+        <p>All 89 rows have been retried and passed, or moved to a follow-up batch. Close to return to <a href="screen-02-file-log-overview.html">S-02 File log overview ›</a>.</p>
+      </div>
+    </section>
+
+    <!-- Retry-validation state — confirming the destructive retry action per GR-04 -->
+    <section class="wf-section" aria-labelledby="retry-region-label">
+      <h2 id="retry-region-label">Retry validation (state: confirming-retry)</h2>
+      <p class="wf-help">Rendered visually — at runtime, the Retry action surfaces this confirmation per GR-04 (retry is destructive at the FileProcessLog level — it re-runs validation and overwrites the prior outcome row).</p>
+      <div class="wf-modal" data-src="F-19, UI-18" role="dialog" aria-modal="true" aria-labelledby="retry-modal-h">
+        <h3 id="retry-modal-h">Retry validation on 3 selected rows?</h3>
+        <p>This re-runs validation against the current FileSetting profile. Prior <code>FileProcessLog</code> outcome rows for these rows are superseded — they remain in the audit log but the latest outcome is what counts downstream.</p>
+        <div style="display: flex; gap: var(--wf-spacing); justify-content: flex-end; margin-top: var(--wf-spacing);">
+          <button class="wf-btn" autofocus data-src="F-19">Cancel (default focus)</button>
+          <button class="wf-btn destructive" data-src="F-19, UI-18">Confirm retry</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wf-chrome" style="margin-top: 32px;">
+    <span class="wf-help">
+      States rendered on this screen: <code>default | empty | retry-validation | confirming-retry</code>
+    </span>
+  </footer>
+</body>
+</html>

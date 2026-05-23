@@ -1,0 +1,427 @@
+<!--
+ROLE: asset (cross-pipeline low-fidelity design system).
+Used by: framework/agents/wireframe-variant-generator.md (read at activation,
+        extracted to wireframes/<scope-slug>/<VARIANT>/wireframe-ds.css per variant
+        directory; each screen file links the per-variant copy via
+        <link rel="stylesheet" href="wireframe-ds.css">.
+Future: framework/agents/prototype-variant-generator.md may consume this DS as a
+        "before-brand" regression preview before swapping to the consumer DS.
+
+This document is intentionally low-fidelity:
+- Greyscale palette (deliberately monochrome — variants compare on UX position,
+  not aesthetic choice).
+- Dashed-border treatment (signals "sketch / not final" to stakeholder reviewers).
+- Sketch-typography (Caveat for display if locally installed, otherwise rounded
+  system fonts; system-ui for body; system mono for code — communicates "draft"
+  without requiring a remote font load and without any comic-style fallback).
+- No brand: no logo, no accent colour, no marketing voice.
+
+The token set is intentionally a near-complete mirror of the consumer
+design-system shape (per framework/assets/template-design-system.html) so a
+future /prototype pipeline can swap one DS for another without changing
+template-screen.html's link slot.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Wireframe Design System — Low Fidelity</title>
+  <script type="application/json" id="design-tokens">
+  {
+    "meta": {
+      "name": "wireframe-ds",
+      "purpose": "low-fidelity, monochrome, dashed-border sketch DS for cross-pipeline use",
+      "version": "1.0.0",
+      "extracted_from_url": null,
+      "domain": "wireframe-private",
+      "stylistic_intent": "draft / not-final",
+      "audience": ["LLM (JSON block)", "consultant (visual sections via file://)", "stakeholder review (low-fi)"]
+    },
+    "colours": {
+      "surface-default":  { "hex": "#ffffff", "role": "page background",       "prov": "wireframe-ds" },
+      "surface-elevated": { "hex": "#fafafa", "role": "raised panels / cards", "prov": "wireframe-ds" },
+      "surface-muted":    { "hex": "#f5f5f5", "role": "table stripes / muted regions", "prov": "wireframe-ds" },
+      "text-default":     { "hex": "#222222", "role": "body / headings",       "prov": "wireframe-ds" },
+      "text-muted":       { "hex": "#666666", "role": "help / placeholders",   "prov": "wireframe-ds" },
+      "text-inverse":     { "hex": "#ffffff", "role": "text on dark surface",  "prov": "wireframe-ds" },
+      "border-subtle":    { "hex": "#cccccc", "role": "default borders (dashed)", "prov": "wireframe-ds" },
+      "border-emphasis":  { "hex": "#666666", "role": "focused / primary borders", "prov": "wireframe-ds" },
+      "state-success":    { "hex": "#444444", "role": "validation success (greyed)", "prov": "wireframe-ds" },
+      "state-warning":    { "hex": "#888888", "role": "warning (greyed)",       "prov": "wireframe-ds" },
+      "state-danger":     { "hex": "#222222", "role": "error (text-default emphasis)", "prov": "wireframe-ds" },
+      "focus-ring":       { "hex": "#000000", "role": "focus outline",          "prov": "wireframe-ds" }
+    },
+    "typography": {
+      "font-family-display": { "value": "'Caveat', ui-rounded, system-ui, -apple-system, 'Segoe UI', sans-serif", "role": "headings / hero", "prov": "wireframe-ds" },
+      "font-family-body":    { "value": "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif", "role": "body / forms / table", "prov": "wireframe-ds" },
+      "font-family-mono":    { "value": "ui-monospace, SFMono-Regular, Menlo, monospace", "role": "code / sample data", "prov": "wireframe-ds" },
+      "font-size-xs":        { "value": "0.75rem",  "role": "captions",       "prov": "wireframe-ds" },
+      "font-size-sm":        { "value": "0.875rem", "role": "secondary text", "prov": "wireframe-ds" },
+      "font-size-base":      { "value": "1rem",     "role": "body",           "prov": "wireframe-ds" },
+      "font-size-lg":        { "value": "1.25rem",  "role": "lead text",      "prov": "wireframe-ds" },
+      "font-size-xl":        { "value": "1.5rem",   "role": "section heads",  "prov": "wireframe-ds" },
+      "font-size-2xl":       { "value": "2rem",     "role": "page heads",     "prov": "wireframe-ds" },
+      "font-weight-regular": { "value": "400", "role": "body",   "prov": "wireframe-ds" },
+      "font-weight-bold":    { "value": "700", "role": "emphasis", "prov": "wireframe-ds" },
+      "line-height-tight":   { "value": "1.25", "role": "heads",  "prov": "wireframe-ds" },
+      "line-height-base":    { "value": "1.5",  "role": "body",   "prov": "wireframe-ds" }
+    },
+    "effects": {
+      "border-radius":     { "value": "4px",  "role": "subtle rounding",      "prov": "wireframe-ds" },
+      "border-width":      { "value": "2px",  "role": "dashed visibility",    "prov": "wireframe-ds" },
+      "border-style":      { "value": "dashed", "role": "sketch signal",      "prov": "wireframe-ds" },
+      "spacing-unit":      { "value": "8px",  "role": "base spacing rhythm",  "prov": "wireframe-ds" },
+      "shadow-card":       { "value": "none", "role": "no elevation (low-fi)", "prov": "wireframe-ds" },
+      "shadow-modal":      { "value": "0 0 0 2px #222", "role": "modal flat-outline", "prov": "wireframe-ds" },
+      "motion-base":       { "value": "0ms (no transitions in low-fi)", "role": "deliberate stillness", "prov": "wireframe-ds" }
+    },
+    "contrast": {
+      "text-default-on-surface-default":  { "ratio": "AAA", "prov": "wireframe-ds" },
+      "text-muted-on-surface-default":    { "ratio": "AA",  "prov": "wireframe-ds" }
+    }
+  }
+  </script>
+
+  <style id="wireframe-ds-css">
+    /* ============================================================
+       wireframe-ds.css — extracted verbatim by every
+       wireframe-variant-generator sub-agent into
+       wireframes/<scope-slug>/<VARIANT>/wireframe-ds.css.
+       Each screen-NN-*.html links this stylesheet via
+       <link rel="stylesheet" href="wireframe-ds.css">.
+       Tokens above are the source of truth — this CSS is the
+       hand-authored realisation. Keep them in sync.
+       ============================================================ */
+
+    :root {
+      --wf-surface-default: #ffffff;
+      --wf-surface-elevated: #fafafa;
+      --wf-surface-muted: #f5f5f5;
+      --wf-text-default: #222222;
+      --wf-text-muted: #666666;
+      --wf-text-inverse: #ffffff;
+      --wf-border-subtle: #cccccc;
+      --wf-border-emphasis: #666666;
+      --wf-state-success: #444444;
+      --wf-state-warning: #888888;
+      --wf-state-danger: #222222;
+      --wf-focus-ring: #000000;
+
+      --wf-font-display: 'Caveat', ui-rounded, system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --wf-font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --wf-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+      --wf-fz-xs: 0.75rem;
+      --wf-fz-sm: 0.875rem;
+      --wf-fz-base: 1rem;
+      --wf-fz-lg: 1.25rem;
+      --wf-fz-xl: 1.5rem;
+      --wf-fz-2xl: 2rem;
+
+      --wf-radius: 4px;
+      --wf-border-width: 2px;
+      --wf-spacing: 8px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--wf-surface-default);
+      color: var(--wf-text-default);
+      font-family: var(--wf-font-body);
+      font-size: var(--wf-fz-base);
+      line-height: 1.5;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--wf-font-display);
+      font-weight: 700;
+      line-height: 1.25;
+      margin: calc(var(--wf-spacing) * 2) 0 var(--wf-spacing);
+    }
+    h1 { font-size: var(--wf-fz-2xl); }
+    h2 { font-size: var(--wf-fz-xl); }
+    h3 { font-size: var(--wf-fz-lg); }
+
+    /* Sketch-shell: every primary container is dashed. */
+    .wf-shell,
+    .wf-section,
+    .wf-card,
+    .wf-modal,
+    .wf-drawer,
+    .wf-panel,
+    .wf-form,
+    .wf-table,
+    .wf-list,
+    .wf-banner,
+    .wf-toast {
+      border: var(--wf-border-width) dashed var(--wf-border-subtle);
+      border-radius: var(--wf-radius);
+      background: var(--wf-surface-default);
+      padding: calc(var(--wf-spacing) * 2);
+      margin-bottom: calc(var(--wf-spacing) * 2);
+    }
+
+    .wf-card,
+    .wf-panel { background: var(--wf-surface-elevated); }
+
+    .wf-section > h2,
+    .wf-card > h3 { margin-top: 0; }
+
+    /* Chrome: dark meta strip — deliberately distinct from the white wireframe
+       canvas below, so the page-description bar reads as "out-of-frame metadata
+       about this screen" rather than as part of the wireframe itself. */
+    .wf-chrome {
+      border-top: 4px solid var(--wf-text-default);
+      border-bottom: 4px solid var(--wf-text-default);
+      padding: calc(var(--wf-spacing) * 1.5) calc(var(--wf-spacing) * 2);
+      display: flex;
+      align-items: center;
+      gap: calc(var(--wf-spacing) * 2);
+      background: var(--wf-text-default);
+      color: var(--wf-text-inverse);
+      margin-bottom: calc(var(--wf-spacing) * 4);
+      font-family: var(--wf-font-body);
+      font-size: var(--wf-fz-sm);
+    }
+    .wf-chrome strong { font-family: var(--wf-font-display); font-size: var(--wf-fz-lg); color: var(--wf-text-inverse); }
+    .wf-chrome em { color: var(--wf-text-inverse); font-style: italic; }
+    .wf-chrome nav { display: flex; gap: var(--wf-spacing); flex-wrap: wrap; }
+    .wf-chrome a { color: var(--wf-text-inverse); text-decoration: underline dotted; padding: 2px 4px; }
+    .wf-chrome a[aria-current="page"] { background: var(--wf-text-inverse); color: var(--wf-text-default); text-decoration: none; }
+    .wf-chrome .wf-help { color: var(--wf-border-subtle); margin-top: 0; }
+    .wf-chrome code { background: rgba(255, 255, 255, 0.15); color: var(--wf-text-inverse); padding: 1px 5px; border-radius: 2px; }
+    .wf-chrome .wf-btn { background: transparent; color: var(--wf-text-inverse); border-color: var(--wf-text-inverse); border-style: solid; }
+    .wf-chrome .wf-btn:hover { background: var(--wf-text-inverse); color: var(--wf-text-default); }
+
+    /* Forms */
+    .wf-field { display: flex; flex-direction: column; margin-bottom: calc(var(--wf-spacing) * 2); }
+    .wf-field label { font-weight: 700; margin-bottom: 4px; }
+    .wf-field input,
+    .wf-field select,
+    .wf-field textarea {
+      border: var(--wf-border-width) dashed var(--wf-border-subtle);
+      border-radius: var(--wf-radius);
+      background: var(--wf-surface-default);
+      padding: var(--wf-spacing);
+      font-family: var(--wf-font-body);
+      font-size: var(--wf-fz-base);
+      color: var(--wf-text-default);
+    }
+    .wf-field input:focus,
+    .wf-field select:focus,
+    .wf-field textarea:focus {
+      outline: 2px solid var(--wf-focus-ring);
+      outline-offset: 2px;
+    }
+
+    .wf-help { color: var(--wf-text-muted); font-size: var(--wf-fz-sm); margin-top: 4px; }
+    .wf-validation-error { color: var(--wf-state-danger); font-weight: 700; font-size: var(--wf-fz-sm); margin-top: 4px; }
+
+    /* Buttons (sketch primary / secondary / destructive) */
+    .wf-btn {
+      display: inline-block;
+      border: var(--wf-border-width) dashed var(--wf-border-emphasis);
+      border-radius: var(--wf-radius);
+      background: var(--wf-surface-default);
+      color: var(--wf-text-default);
+      font-family: var(--wf-font-body);
+      font-size: var(--wf-fz-base);
+      padding: var(--wf-spacing) calc(var(--wf-spacing) * 2);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .wf-btn.primary {
+      background: var(--wf-text-default);
+      color: var(--wf-text-inverse);
+      border-style: solid;
+    }
+    .wf-btn.destructive {
+      border-color: var(--wf-state-danger);
+      color: var(--wf-state-danger);
+    }
+    .wf-btn:focus { outline: 2px solid var(--wf-focus-ring); outline-offset: 2px; }
+
+    /* Tables */
+    .wf-table { padding: 0; border-collapse: collapse; width: 100%; }
+    .wf-table table { width: 100%; border-collapse: collapse; }
+    .wf-table th,
+    .wf-table td {
+      border-bottom: var(--wf-border-width) dashed var(--wf-border-subtle);
+      padding: var(--wf-spacing);
+      text-align: left;
+      vertical-align: top;
+    }
+    .wf-table th { background: var(--wf-surface-muted); font-weight: 700; }
+    .wf-table tr.selected { background: var(--wf-surface-muted); }
+
+    /* Lists */
+    .wf-list ul { list-style: none; margin: 0; padding: 0; }
+    .wf-list li {
+      border-bottom: var(--wf-border-width) dashed var(--wf-border-subtle);
+      padding: var(--wf-spacing);
+    }
+    .wf-list li:last-child { border-bottom: none; }
+
+    /* Feedback */
+    .wf-banner { background: var(--wf-surface-muted); }
+    .wf-banner[data-tone="warning"] { border-color: var(--wf-state-warning); }
+    .wf-banner[data-tone="danger"] { border-color: var(--wf-state-danger); }
+    .wf-banner[data-tone="success"] { border-color: var(--wf-state-success); }
+
+    .wf-toast {
+      position: fixed;
+      top: var(--wf-spacing);
+      right: var(--wf-spacing);
+      max-width: 320px;
+      background: var(--wf-surface-elevated);
+      border-color: var(--wf-border-emphasis);
+    }
+
+    .wf-empty,
+    .wf-skeleton {
+      padding: calc(var(--wf-spacing) * 4);
+      text-align: center;
+      color: var(--wf-text-muted);
+      border: var(--wf-border-width) dashed var(--wf-border-subtle);
+      border-radius: var(--wf-radius);
+    }
+
+    /* Modal / drawer (overlay-style, low-fi outlined) */
+    .wf-modal,
+    .wf-drawer {
+      max-width: 600px;
+      background: var(--wf-surface-default);
+      box-shadow: 0 0 0 2px var(--wf-text-default);
+    }
+    .wf-modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.1);
+    }
+
+    /* Persona / role-switcher chrome (per PI invariants) */
+    .wf-role-switcher {
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px;
+      border: var(--wf-border-width) dashed var(--wf-border-emphasis);
+      border-radius: var(--wf-radius);
+      background: var(--wf-surface-muted);
+      font-size: var(--wf-fz-sm);
+      font-family: var(--wf-font-body);
+    }
+    .wf-role-switcher button {
+      border: none; background: transparent; padding: 2px 8px; cursor: pointer; font-family: inherit;
+    }
+    .wf-role-switcher button[aria-pressed="true"] {
+      background: var(--wf-text-default); color: var(--wf-text-inverse); border-radius: 2px;
+    }
+
+    /* Data-src provenance — visible on hover for consultant audit. */
+    [data-src] { position: relative; }
+    [data-src]:hover::after {
+      content: attr(data-src);
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      background: var(--wf-text-default);
+      color: var(--wf-text-inverse);
+      font-family: var(--wf-font-mono);
+      font-size: var(--wf-fz-xs);
+      padding: 2px 6px;
+      border-radius: 2px;
+      white-space: nowrap;
+      z-index: 100;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <header class="wf-chrome">
+    <strong>Wireframe DS — low fidelity (greyscale, dashed-border, sketch type)</strong>
+  </header>
+
+  <main class="wf-shell" style="max-width: 960px; margin: 0 auto;">
+    <h1>Wireframe Design System (cross-pipeline)</h1>
+    <p>
+      This document is a stable system asset. Variant generators read it once
+      per run and extract <code>#wireframe-ds-css</code> into a per-variant
+      <code>wireframe-ds.css</code>. The token JSON above is the source of truth;
+      the CSS below is the hand-authored realisation.
+    </p>
+
+    <section class="wf-section">
+      <h2>Colour swatches</h2>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+        <div class="wf-card"><div style="height: 40px; background: #ffffff; border: 1px solid #ddd;"></div><p>surface-default<br><code>#ffffff</code></p></div>
+        <div class="wf-card"><div style="height: 40px; background: #fafafa;"></div><p>surface-elevated<br><code>#fafafa</code></p></div>
+        <div class="wf-card"><div style="height: 40px; background: #f5f5f5;"></div><p>surface-muted<br><code>#f5f5f5</code></p></div>
+        <div class="wf-card"><div style="height: 40px; background: #222; color: #fff;"></div><p>text-default<br><code>#222222</code></p></div>
+        <div class="wf-card"><div style="height: 40px; background: #666; color: #fff;"></div><p>text-muted<br><code>#666666</code></p></div>
+        <div class="wf-card"><div style="height: 40px; background: #ccc;"></div><p>border-subtle<br><code>#cccccc</code></p></div>
+        <div class="wf-card"><div style="height: 40px; background: #000; color: #fff;"></div><p>focus-ring<br><code>#000000</code></p></div>
+      </div>
+    </section>
+
+    <section class="wf-section">
+      <h2>Typography specimens</h2>
+      <h1>Heading 1 — Caveat / sketch display</h1>
+      <h2>Heading 2 — section</h2>
+      <h3>Heading 3 — card</h3>
+      <p>Body — system sans / sketch body. The quick brown fox jumps over the lazy dog.</p>
+      <p class="wf-help">Help text — muted. The quick brown fox jumps over the lazy dog.</p>
+      <pre><code style="font-family: var(--wf-font-mono);">monospace — sample data 12345</code></pre>
+    </section>
+
+    <section class="wf-section">
+      <h2>Form sample</h2>
+      <form class="wf-form">
+        <div class="wf-field">
+          <label for="demo-file">File</label>
+          <input id="demo-file" type="file" />
+          <p class="wf-help">Drop a file or click to browse.</p>
+        </div>
+        <div class="wf-field">
+          <label for="demo-note">Note</label>
+          <textarea id="demo-note" rows="3" placeholder="Optional…"></textarea>
+          <p class="wf-validation-error">Required when an exception is flagged.</p>
+        </div>
+        <button type="submit" class="wf-btn primary">Submit</button>
+        <button type="button" class="wf-btn">Cancel</button>
+      </form>
+    </section>
+
+    <section class="wf-section">
+      <h2>Table sample</h2>
+      <div class="wf-table">
+        <table>
+          <thead><tr><th>File</th><th>Status</th><th>Rows</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>2026-05-22-batch.csv</td><td>Approved</td><td>1,200</td><td><button class="wf-btn">View</button></td></tr>
+            <tr class="selected"><td>2026-05-23-batch.csv</td><td>Pending</td><td>347</td><td><button class="wf-btn primary">Review</button></td></tr>
+            <tr><td>2026-05-23-late.csv</td><td>Rejected</td><td>89</td><td><button class="wf-btn destructive">Retry</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="wf-section">
+      <h2>Feedback samples</h2>
+      <div class="wf-banner" data-tone="warning">Warning banner — non-blocking note.</div>
+      <div class="wf-banner" data-tone="danger">Error banner — action needed before proceeding.</div>
+      <div class="wf-banner" data-tone="success">Success banner — operation completed.</div>
+      <div class="wf-empty">No items yet — create one to get started.</div>
+    </section>
+
+    <section class="wf-section">
+      <h2>Role switcher chrome (PI-04 prototype invariant)</h2>
+      <div class="wf-role-switcher">
+        <button aria-pressed="true">Importer</button>
+        <button aria-pressed="false">Approver</button>
+        <button aria-pressed="false">Admin</button>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
