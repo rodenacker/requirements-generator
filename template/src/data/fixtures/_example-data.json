@@ -1,0 +1,37 @@
+{
+  "items": [
+    {
+      "id": "itm-001",
+      "title": "Q4 Portfolio Rebalancing Review",
+      "category": "portfolio_management",
+      "status": "in_progress",
+      "priority": "high",
+      "assignee": "Sarah Mitchell",
+      "createdDate": "2024-11-03",
+      "dueDate": "2024-12-15",
+      "estimatedValue": 847250.00
+    },
+    {
+      "id": "itm-002",
+      "title": "Client Onboarding — Meridian Capital",
+      "category": "client_services",
+      "status": "pending_review",
+      "priority": "medium",
+      "assignee": "David Park",
+      "createdDate": "2024-10-28",
+      "dueDate": "2024-11-30",
+      "estimatedValue": 1250000.00
+    },
+    {
+      "id": "itm-003",
+      "title": "Regulatory Compliance Audit Prep",
+      "category": "compliance",
+      "status": "completed",
+      "priority": "critical",
+      "assignee": "Elena Rodriguez",
+      "createdDate": "2024-09-15",
+      "dueDate": "2024-10-31",
+      "estimatedValue": 0
+    }
+  ]
+}
