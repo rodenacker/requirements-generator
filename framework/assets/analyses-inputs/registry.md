@@ -196,6 +196,15 @@ methodologies:
     map_skill: framework/skills/map-swim-lane-process-mapping-from-inputs-to-ui.md
     analyser_agent: framework/agents/analyses-inputs/swim-lane-process-mapping-analyser.md
     character: framework/assets/characters/swim-lane-process-mapping-inputs-analysis.md
+  - name: affinity-mapping
+    status: mvp
+    description: Bottom-up affinity diagram (Kawakita 1967 KJ method; Beyer & Holtzblatt 1997 Contextual Design) applied to raw consultant inputs — atomic notes extracted per-claim from briefs / decks / interviews / screenshots, clustered by conceptual similarity through a sub-agent-isolated two-pass re-cluster (Pass-1 in main context; Pass-2 in a fresh sub-agent context that sees only the note list — the only realistic anti-anchoring mechanism for an autonomous LLM run; Jaccard-similarity drift detection on cluster memberships, no semantic-equivalence judgement required), labelled in insight-statement form (Beyer/Holtzblatt rule — labels after clustering, never before), grouped into 4–8 L3 super-themes; orphans preserved in an explicit parking-lot; cross-cluster tensions surfaced as a secondary diagram when present. Self-contained HTML with diagram-first ordering: compact overview, primary Mermaid `mindmap` near top (root → super-themes → L2 clusters only — full notes live in cluster cards below to preserve mindmap legibility at ≤34 nodes), conditional secondary Mermaid `flowchart TD` tension graph, cluster cards listing every note with `[SRC: <filename>]` citations and stable/drifted confidence chip with Jaccard value, orphans table, embedded `<pre><code class="language-json" id="affinity-map-body">` re-ingestion block carrying the full hierarchy, collapsed diagnostics with Pass-1/Pass-2 Jaccard drift log. Re-ingestible by /requirements via markitdown HTML→MD when copied into input/ — the JSON body block and mindmap source survive as fenced code blocks; super-theme insight statements feed §1 vision anchors, clusters feed §5 task-flow groupings and §3 acceptance-criteria threads, orphans feed §10 out-of-scope candidates, tensions feed §6 trade-off-aware acceptance-criteria branches.
+    output_path: analyse-inputs/AFFINITY-MAPPING/affinity-map.html
+    reference_asset: framework/assets/analyses-inputs/affinity-mapping-reference.md
+    template_asset: framework/assets/analyses-inputs/template-affinity-mapping.html
+    map_skill: framework/skills/map-affinity-mapping-from-inputs-to-ui.md
+    analyser_agent: framework/agents/analyses-inputs/affinity-mapping-analyser.md
+    character: framework/assets/characters/affinity-mapping-inputs-analysis.md
 ---
 
 # analyses-inputs/registry.md
@@ -241,4 +250,4 @@ methodologies:
 - `analyser_agent` — the foreground agent invoked by the orchestrator. Required only when `status: mvp`.
 - `character` — stance the Unicorn adopts while running the analyser. Required only when `status: mvp`.
 
-**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `task-analysis`, `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, `jtbd`, `ooux`, and `swim-lane-process-mapping` now at `status: mvp`, the selector presents seven options to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.
+**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `task-analysis`, `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, `jtbd`, `ooux`, `swim-lane-process-mapping`, and `affinity-mapping` now at `status: mvp`, the selector presents eight options to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.

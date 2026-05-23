@@ -94,6 +94,22 @@ Add new predicates by appending; never renumber.
 
 **Refusal-registry schema field:** `setup_instructions_path` — same field as RF-01, pointing here at `framework/shared/setup-instructions/playwright.md`.
 
+## RF-07 — mermaid_render_dependency_missing
+
+**Severity:** pause.
+
+**Trigger:** Gate 9 of an MVP analyser whose methodology emits Mermaid source (initially `framework/agents/analyses-inputs/affinity-mapping-analyser.md` Step 10 Gate 9; future analysers may register here when they also surface this predicate) requires `mmdc` (Mermaid CLI) on PATH to validate the emitted Mermaid `mindmap` or `flowchart TD` source via `framework/skills/mermaid-validator.md`. `mmdc` not found on PATH. Distinct from `RF-01` because the methodology-level rendering dependency is independent of the input-handler's markitdown MCP dependency, and distinct from the validator skill's own internal `not-installed` halt because the analyser exposes a three-way choice rather than a hard halt.
+
+**Surface:** `AskUserQuestion` with the choice set `{ install-and-retry, skip-mermaid-validation-with-warning, abort }` plus an "Other" override. The question text must include the install instructions path (`advice_path`) and the verbatim warning for the skip option.
+
+- `install-and-retry` — the agent halts Gate 9, surfaces the install advice path in the handback message, and exits cleanly so the consultant installs `mmdc` per `framework/shared/setup-instructions/mmdc.md` and re-invokes the pipeline. The analyser does **not** write `framework/state/.progress.json` — the `/analyse-inputs` pipeline is bound by a no-write-outside-`analyse-inputs/` invariant (with the input-handler's documented manifest exception), and Step 10 has not yet written the artefact. Highest-fidelity outcome.
+- `skip-mermaid-validation-with-warning` — the agent proceeds without running Gate 9's mermaid-validator invocation. The artefact still writes with the Mermaid source verbatim inside `<pre class="mermaid-source">` (consultants render out-of-band via [mermaid.live](https://mermaid.live)). The diagnostics block records a warning entry naming the skipped validation; Gate 9's status in the quality-gates list is `warn` with the explanation *"`mmdc` not on PATH; pre-write validation skipped per consultant choice — render out-of-band to confirm syntax"*. Lower-fidelity outcome; Mermaid syntax errors are caught only by the consultant's out-of-band render.
+- `abort` — the agent halts Step 10 and fails its handback. The orchestrator does not write a `completed` event. No artefact write.
+
+**Recovery:** `install-and-retry` exits cleanly so the consultant installs `mmdc` per `framework/shared/setup-instructions/mmdc.md` and re-invokes the pipeline. `skip-mermaid-validation-with-warning` continues the run with the diagnostics warning. `abort` exits cleanly with a failed handback.
+
+**Refusal-registry schema field:** `setup_instructions_path` — same field as RF-01 and RF-06, pointing here at `framework/shared/setup-instructions/mmdc.md`.
+
 ## Anti-Patterns
 
 - Do not invent a predicate ID. If no `RF-NN` covers the condition, append a new entry rather than overload an existing one.

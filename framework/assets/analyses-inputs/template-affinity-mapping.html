@@ -1,0 +1,1219 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses-inputs/affinity-mapping-analyser.md.
+
+  Purpose: HTML/CSS skeleton for the inputs-side affinity-mapping artefact.
+  KJ-method bottom-up clusters + Beyer/Holtzblatt insight-statement labels +
+  Pass-1/Pass-2 anti-anchoring discipline via sub-agent isolation +
+  Jaccard-similarity drift detection.
+
+  Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`). No
+  external CSS/JS dependencies; viewable by opening `file://` in a browser;
+  shareable with clients without tooling. Mermaid source is embedded as
+  text inside `<pre class="mermaid-source">`; rendered visual is out-of-band
+  via `mmdc` or mermaid.live — no inline runtime, no CDN.
+
+  The artefact is re-ingestible into `input/` for the /requirements drafter
+  via markitdown conversion:
+  - The Mermaid `mindmap` and conditional `flowchart TD` blocks (inside
+    `<pre class="mermaid-source">`) survive as fenced code blocks.
+  - The embedded JSON body block (inside `<pre><code class="language-json">`)
+    survives as a fenced ```json code block. This is the load-bearing
+    machine-readable contract — the `<script type="application/json">` meta
+    block in `<head>` is stripped by markitdown and is only used by the
+    drift-detection logic on subsequent affinity-mapping runs.
+  - Inline `[SRC: <filename>]` markers in cell / row / node content survive
+    as plain text.
+  - The cluster-card CSS grid layout does not survive layout-wise; its
+    text content survives as enumerated list items.
+
+  Section order (top-to-bottom — diagram-first ordering is the user's
+  hard requirement):
+    1. Overview (id="overview")              — title, one-line caption,
+                                                meta-grid (manifest sha +
+                                                counts), jump-links to the
+                                                diagrams and downstream
+                                                sections.
+    2. Primary mindmap (id="diagram-primary") — `<pre class="mermaid-source">`
+                                                with the Mermaid mindmap
+                                                source. The diagram-first
+                                                deliverable. Out-of-band
+                                                render via mmdc or
+                                                mermaid.live.
+    3. Tensions diagram (id="diagram-tensions") — conditional secondary
+                                                Mermaid `flowchart TD`
+                                                rendered only when
+                                                tensions.length >= 1;
+                                                otherwise emits a
+                                                deterministic "no tensions"
+                                                copy so the section header
+                                                is always present.
+    4. Source roster (id="source-roster")    — {{SOURCE_ROSTER_BLOCK}}:
+                                                Consumed + Skipped tables.
+    5. Cluster cards (id="clusters")         — {{CLUSTER_CARDS}}: one
+                                                <section class="super-theme">
+                                                per L3 super-theme,
+                                                containing one
+                                                <article class="cluster-card">
+                                                per L2 cluster. Each card
+                                                lists every member note
+                                                verbatim with [SRC:] and a
+                                                stable/drifted chip.
+    6. Orphans (id="orphans")                — {{ORPHANS_BLOCK}}:
+                                                parking-lot table.
+    7. Affinity-map body (id="affinity-map-body")
+                                              — {{AFFINITY_MAP_JSON_BLOCK}}:
+                                                <pre><code
+                                                class="language-json"
+                                                id="affinity-map-body">
+                                                carrying the full
+                                                machine-readable hierarchy.
+                                                The load-bearing
+                                                markitdown-survival contract.
+    8. Diagnostics (id="diagnostics")        — <details> wrapper, collapsed
+                                                by default. Manifest sha256,
+                                                run history, Pass-1/Pass-2
+                                                Jaccard drift log, 10 gate
+                                                results, cluster-size
+                                                distribution, thin-cluster
+                                                flags, recommended
+                                                consultant follow-up
+                                                questions.
+
+  Placeholders the analyser substitutes (string substitution, all values
+  pre-escaped for HTML; JSON inside `<pre><code>` escaped as plain text;
+  Mermaid inside `<pre class="mermaid-source">` is NOT HTML-escaped beyond
+  the standard `<`, `>`, `&`, `"`, `'` set — Mermaid pipe `|`, bracket
+  `[`, `]`, paren `(`, `)`, brace `{`, `}` syntax must remain literal):
+
+    {{TITLE}}                       — short title (e.g. "Affinity Map (inputs) — Project X").
+    {{DOMAIN}}                      — domain string (from manifest meta if declared, else
+                                      "(not declared in manifest)").
+    {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered.
+    {{MANIFEST_SHA256}}             — sha256 of requirements/source-manifest.json at read time.
+    {{RUN_COUNT}}                   — integer ≥ 1, increments per run.
+    {{TARGET}}                      — "prototype" | "application" | "(not declared in manifest)".
+    {{NOTE_COUNT}}                  — total notes extracted in Round 1.
+    {{CLUSTER_COUNT}}               — total L2 clusters.
+    {{SUPER_THEME_COUNT}}           — total L3 super-themes (4–8 per Gate 4).
+    {{ORPHAN_COUNT}}                — total notes in the parking-lot.
+    {{TENSION_COUNT}}               — total cross-cluster tensions surfaced.
+    {{DRIFTED_NOTE_COUNT}}          — count of notes with confidence: drifted.
+    {{CONSUMED_ROW_COUNT}}          — manifest rows consumed.
+    {{SKIPPED_ROW_COUNT}}           — manifest rows skipped (Unsupported tier).
+    {{IRRELEVANT_ROW_COUNT}}        — consumed rows marked irrelevant-to-domain (Gate 8).
+    {{PRIMARY_MERMAID}}             — Mermaid `mindmap` source (raw text inside
+                                      `<pre class="mermaid-source">`; literal pipes,
+                                      brackets, parens preserved).
+    {{TENSIONS_MERMAID_BLOCK}}      — pre-rendered block. When tension_count >= 1,
+                                      a `<details class="mermaid-block">` with the
+                                      secondary `flowchart TD` source. When 0,
+                                      `<p class="no-tensions">No cross-cluster
+                                      tensions surfaced in the corpus.</p>`.
+    {{SOURCE_ROSTER_BLOCK}}         — pre-rendered <section id="source-roster">
+                                      containing Consumed + Skipped tables per
+                                      SOURCE ROSTER SCHEMA.
+    {{CLUSTER_CARDS}}               — pre-rendered concatenation of one
+                                      <section class="super-theme"> per L3
+                                      super-theme, each containing one
+                                      <article class="cluster-card"> per L2
+                                      cluster per CLUSTER CARD SCHEMA below.
+    {{ORPHANS_BLOCK}}               — pre-rendered <section id="orphans">
+                                      containing the parking-lot <table> per
+                                      ORPHANS SCHEMA below.
+    {{AFFINITY_MAP_JSON_BLOCK}}     — pre-rendered <section id="affinity-map-body">
+                                      containing a single
+                                      <pre><code class="language-json"
+                                      id="affinity-map-body">…</code></pre>.
+                                      Full machine-readable hierarchy per the
+                                      JSON SCHEMA in
+                                      framework/assets/analyses-inputs/affinity-mapping-reference.md.
+    {{DIAGNOSTICS_BLOCK}}           — pre-rendered <section class="diagnostics">
+                                      per DIAGNOSTICS SCHEMA.
+
+  Output: analyse-inputs/AFFINITY-MAPPING/affinity-map.html.
+
+  CLUSTER CARD SCHEMA — {{CLUSTER_CARDS}} substitutes a concatenation of
+  L3 super-theme sections; each super-theme contains one cluster card per
+  member L2 cluster:
+
+      <section class="super-theme" id="super-theme-{slug}"
+               aria-labelledby="super-theme-{slug}-title">
+        <header class="super-theme-header">
+          <h2 id="super-theme-{slug}-title">
+            <span class="st-id">{{st_id}}</span>
+            <span class="st-label">{{insight_statement_label}}</span>
+          </h2>
+          <p class="caption">{{n_clusters}} clusters · {{n_notes}} notes total.</p>
+        </header>
+
+        <article class="cluster-card" id="cluster-{slug}"
+                 aria-labelledby="cluster-{slug}-title">
+          <header class="cluster-header">
+            <h3 id="cluster-{slug}-title">
+              <span class="th-id">{{th_id}}</span>
+              <span class="th-label">{{insight_statement_label}}</span>
+            </h3>
+            <ul class="cluster-meta">
+              <li class="note-count">{{note_count}} notes</li>
+              <li class="confidence-summary">
+                <span class="conf-stable">stable: {{n_stable}}</span> ·
+                <span class="conf-drifted">drifted: {{n_drifted}}</span>
+              </li>
+              <!-- Optional thin flag if note_count < 3 and consultant accepted -->
+              <li class="thin-flag" hidden>thin: needs-more-input</li>
+            </ul>
+          </header>
+
+          <blockquote class="representative-quote">
+            <p>{{representative_quote_text}}</p>
+            <footer>
+              <small class="src-inline">[SRC: {{representative_quote_source}}]</small>
+            </footer>
+          </blockquote>
+
+          <ol class="cluster-notes">
+            <li class="note" data-confidence="{{stable|drifted}}">
+              <span class="note-id">{{n_id}}</span>
+              <span class="note-text">{{verbatim_note_text}}</span>
+              <small class="src-inline">[SRC: {{filename}}]</small>
+              <span class="conf-chip conf-{{stable|drifted}}">
+                {{stable|drifted}}
+                <span class="jaccard">J={{jaccard_value}}</span>
+              </span>
+              <!-- When drifted, append Pass-2's competing cluster label -->
+              <span class="drift-target" hidden>
+                Pass-2 placed with: {{pass2_label_truncated}}
+              </span>
+            </li>
+            ...
+          </ol>
+        </article>
+        ...
+      </section>
+
+  ORPHANS SCHEMA — {{ORPHANS_BLOCK}} substitutes:
+
+      <section id="orphans" aria-labelledby="orphans-title">
+        <h2 id="orphans-title">Orphans (parking-lot)</h2>
+        <p class="caption">
+          Notes that fit no cluster on either Pass-1 or Pass-2.
+          Preserved as signal — edge cases, unstated assumptions,
+          future-scope hints, single-stakeholder concerns.
+          Each carries [SRC: <filename>] and a one-line "why no cluster" reason.
+        </p>
+        <table class="orphans-table">
+          <thead>
+            <tr><th>ID</th><th>Note text</th><th>Source</th><th>Reason</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="orphan-id">{{n_id}}</td>
+              <td class="orphan-text">{{verbatim_text}}</td>
+              <td class="orphan-source"><small class="src-inline">[SRC: {{filename}}]</small></td>
+              <td class="orphan-reason">{{reason}}</td>
+            </tr>
+            ...
+            <!-- When orphans.length == 0: -->
+            <tr class="empty">
+              <td colspan="4" class="empty">
+                (no orphans this run — see Diagnostics for the explicit
+                "no orphans" justification per Gate 5)
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+  SOURCE ROSTER SCHEMA — {{SOURCE_ROSTER_BLOCK}} substitutes:
+
+      <section id="source-roster" aria-labelledby="source-roster-title">
+        <h2 id="source-roster-title">Source roster</h2>
+        <p class="caption">Every consumable manifest row, with note counts
+          contributed and any sources marked irrelevant-to-domain by Gate 8.</p>
+
+        <h3>Consumed</h3>
+        <table class="source-table consumed">
+          <thead>
+            <tr><th>Filename</th><th>Tier</th><th>SHA-256</th><th>Notes contributed</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>{{filename}}</td><td>{{tier}}</td>
+                <td class="sha">{{sha256_8}}</td>
+                <td class="count">{{note_count}}</td></tr>
+            ...
+          </tbody>
+        </table>
+
+        <h3>Skipped</h3>
+        <table class="source-table skipped">
+          <thead><tr><th>Filename</th><th>Reason</th></tr></thead>
+          <tbody>
+            <tr><td>{{filename}}</td><td>{{reason}}</td></tr>
+            ...
+            <!-- If empty: <tr><td colspan="2" class="empty">(no skipped rows this run)</td></tr> -->
+          </tbody>
+        </table>
+      </section>
+
+  AFFINITY MAP JSON BLOCK SCHEMA — {{AFFINITY_MAP_JSON_BLOCK}} substitutes:
+
+      <section id="affinity-map-body" aria-labelledby="affinity-map-body-title">
+        <h2 id="affinity-map-body-title">Affinity map (machine-readable)</h2>
+        <p class="caption">
+          The full hierarchy in JSON. This block survives markitdown HTML→MD
+          conversion as a fenced <code>```json</code> code block, so when the
+          artefact is copied into <code>input/</code> for /requirements
+          re-ingestion, the drafter consumes the complete model in one shot:
+          super-themes feed §1 vision anchors, clusters feed §5 task-flow
+          groupings and §3 acceptance-criteria threads, orphans feed §10
+          out-of-scope candidates, tensions feed §6 trade-off-aware
+          acceptance-criteria branches.
+        </p>
+        <pre><code class="language-json" id="affinity-map-body">{{affinity_map_json}}</code></pre>
+      </section>
+
+  JSON SCHEMA — see framework/assets/analyses-inputs/affinity-mapping-reference.md
+  > "JSON body schema". The block contains schema_version, manifest_sha256,
+  generated_at, run_count, domain, target, source_roster, super_themes,
+  clusters, notes, orphans, tensions, quality_gates.
+
+  DIAGNOSTICS SCHEMA — the analyser's {{DIAGNOSTICS_BLOCK}} substitutes a
+  single <section class="diagnostics">. The template wraps the placeholder
+  in a <details id="diagnostics" class="diagnostics-toggle"> element
+  (collapsed by default). The inner section contains, in order:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>Affinity map (inputs) — {{NOTE_COUNT}} notes, {{CLUSTER_COUNT}}
+           clusters, {{SUPER_THEME_COUNT}} super-themes.</p>
+        <p>Anti-anchoring: Pass-2 sub-agent re-cluster placed
+           {{DRIFTED_NOTE_COUNT}} notes outside their Pass-1 cluster
+           (Jaccard &lt; 0.5).</p>
+
+        <h3>Pass-1 vs Pass-2 Jaccard drift log ({{DRIFTED_NOTE_COUNT}})</h3>
+        <table class="drift-log">
+          <thead>
+            <tr>
+              <th>Note ID</th>
+              <th>Note (truncated)</th>
+              <th>Pass-1 cluster</th>
+              <th>Pass-2 cluster</th>
+              <th>Jaccard</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{n_id}}</td>
+              <td>{{note_text_truncated}}</td>
+              <td>{{th_id}} {{pass1_label_truncated}}</td>
+              <td>{{pass2_label_truncated}}</td>
+              <td class="jaccard">{{jaccard_value}}</td>
+            </tr>
+            ...
+            <!-- If empty: <tr><td colspan="5" class="empty">(no drifted notes — Pass-2 corroborated Pass-1 placements for every note)</td></tr> -->
+          </tbody>
+        </table>
+
+        <h3>Quality gates (10)</h3>
+        <ul class="gate-results">
+          <li class="gate-pass|gate-fail|gate-warn">Gate 1 — Citation completeness.</li>
+          ... (all 10 gates listed in order)
+        </ul>
+
+        <h3>Cluster-size distribution</h3>
+        <table class="cluster-size-distribution">
+          <thead>
+            <tr><th>Cluster</th><th>Notes</th><th>% of total</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{th_id}} {{th_label_truncated}}</td>
+              <td>{{note_count}}</td>
+              <td>{{pct_of_total}}%</td>
+              <td>{{ok|thin|inflated}}</td>
+            </tr>
+            ...
+          </tbody>
+        </table>
+
+        <h3>Irrelevant-to-domain rows ({{IRRELEVANT_ROW_COUNT}}) (Gate 8 emissions)</h3>
+        <ul class="irrelevant-log">
+          <li><code>{{filename}}</code> — {{reason}}</li>
+          ...
+          <!-- If empty: <li class="empty">(every consumed row contributed at least one note)</li> -->
+        </ul>
+
+        <h3>Recommended consultant follow-up questions</h3>
+        <ul class="follow-ups">
+          <li>{{question}} <small>(prompted by: {{trigger — e.g. "Gate 5 no-orphans justification"}})</small></li>
+          ...
+          <!-- If empty: <li class="empty">(no follow-up questions surfaced by this run)</li> -->
+        </ul>
+
+        <h3>Mermaid validation</h3>
+        <p class="mermaid-status">
+          Primary mindmap: {{pass|pass-with-drops|fail}}.
+          Tensions flowchart: {{n/a|pass|pass-with-drops|fail}}.
+        </p>
+
+        <h3>Run history</h3>
+        <ul class="run-history">
+          <!-- One bullet per run; prior bullets preserved verbatim from
+               prior artefact; new bullet appended at top of list. -->
+          <li>Run {{run_count}} — {{ISO-8601-date}} — {{n_notes}} notes,
+              {{n_clusters}} clusters, {{n_super_themes}} super-themes,
+              {{n_orphans}} orphans, {{n_tensions}} tensions,
+              {{n_drifted}} drifted; mode: {{full|append-new-notes-only}}
+              {{; Override: <gate list> if applicable}}.</li>
+          ...
+        </ul>
+
+        <!-- Override-only: flagged-items <ul> per failed gate. -->
+      </section>
+
+  CSS classes used by the analyser:
+    .super-theme                       — wrapper for an L3 group of clusters.
+    .cluster-card                      — wrapper for a single L2 cluster.
+    .cluster-notes                     — ordered list of member notes.
+    .conf-chip.conf-stable             — green stable-confidence chip.
+    .conf-chip.conf-drifted            — orange drifted-confidence chip.
+    .conf-summary .conf-stable         — small summary chip in cluster header.
+    .conf-summary .conf-drifted        — small summary chip in cluster header.
+    .thin-flag                         — sand-coloured chip for thin clusters.
+    .representative-quote              — pull-quote callout in cluster card.
+    .orphans-table                     — parking-lot table.
+    .drift-log                         — Pass-1 vs Pass-2 Jaccard drift log table.
+    .cluster-size-distribution         — diagnostics table of cluster sizes.
+
+  Content TBD-able by the analyser:
+    The Mermaid mindmap source, the tensions diagram source (or "no tensions"
+    deterministic copy), the source roster, the cluster card content, the
+    orphans table, the JSON body, and the diagnostics block are fully driven
+    by the analyser. The CSS below is fixed scaffolding and should not be
+    edited by the analyser — only the {{placeholders}} above are substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script type="application/json" id="affinity-map-meta">
+{
+  "title": "{{TITLE}}",
+  "domain": "{{DOMAIN}}",
+  "generated_at": "{{GENERATED_AT}}",
+  "manifest_sha256": "{{MANIFEST_SHA256}}",
+  "run_count": {{RUN_COUNT}},
+  "target": "{{TARGET}}",
+  "note_count": {{NOTE_COUNT}},
+  "cluster_count": {{CLUSTER_COUNT}},
+  "super_theme_count": {{SUPER_THEME_COUNT}},
+  "orphan_count": {{ORPHAN_COUNT}},
+  "tension_count": {{TENSION_COUNT}},
+  "drifted_note_count": {{DRIFTED_NOTE_COUNT}},
+  "consumed_row_count": {{CONSUMED_ROW_COUNT}},
+  "skipped_row_count": {{SKIPPED_ROW_COUNT}},
+  "irrelevant_row_count": {{IRRELEVANT_ROW_COUNT}}
+}
+  </script>
+
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --card-bg: #ffffff;
+      --header-bg: #efefef;
+      --code-bg: #f3f4f6;
+
+      --super-theme-bg: #eef2ff;
+      --super-theme-border: #6366f1;
+      --super-theme-fg: #312e81;
+
+      --cluster-bg: #ffffff;
+      --cluster-border: #c4b5fd;
+      --cluster-fg: #1e1b4b;
+
+      --note-bg: #fafafa;
+      --note-border: #e5e7eb;
+
+      --stable-bg: #dcfce7;
+      --stable-border: #16a34a;
+      --stable-fg: #14532d;
+
+      --drifted-bg: #fef3c7;
+      --drifted-border: #d97706;
+      --drifted-fg: #78350f;
+
+      --orphan-bg: #fff7ed;
+      --orphan-border: #fb923c;
+      --orphan-fg: #7c2d12;
+
+      --tension-bg: #fee2e2;
+      --tension-border: #dc2626;
+      --tension-fg: #7f1d1d;
+
+      --thin-bg: #fef9c3;
+      --thin-border: #ca8a04;
+      --thin-fg: #713f12;
+
+      --inflated-bg: #fee2e2;
+      --inflated-border: #dc2626;
+      --inflated-fg: #7f1d1d;
+
+      --gate-pass: #16a34a;
+      --gate-fail: #dc2626;
+      --gate-warn: #d97706;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px 0; }
+    h2 { font-size: 16px; margin: 24px 0 8px 0; }
+    h3 {
+      font-size: 13px;
+      margin: 14px 0 6px 0;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0 0 16px 0;
+    }
+
+    .caption {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 0 0 12px 0;
+    }
+
+    /* ------- overview / meta-grid / jump-links ------- */
+
+    #overview {
+      margin-bottom: 24px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px 24px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+    .meta-grid dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+    .meta-grid dd {
+      margin: 0 0 6px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .jump-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 18px;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-size: 13px;
+      margin: 0 0 24px 0;
+    }
+    .jump-links a {
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--border-strong);
+    }
+    .jump-links a:hover { border-bottom-color: var(--fg); }
+
+    /* ------- src-inline ------- */
+
+    .src-inline {
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+      font-size: 11px;
+      background: var(--code-bg);
+      padding: 0 4px;
+      border-radius: 3px;
+      white-space: nowrap;
+      margin-left: 4px;
+    }
+
+    /* ------- mermaid block (primary + tensions) ------- */
+
+    details.mermaid-block,
+    section#diagram-primary,
+    section#diagram-tensions {
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin: 0 0 24px 0;
+      background: #fff;
+    }
+    section#diagram-primary > h2,
+    section#diagram-tensions > h2 {
+      margin-top: 0;
+    }
+    details.mermaid-block > summary {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.mermaid-block > summary::-webkit-details-marker { display: none; }
+    details.mermaid-block > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.mermaid-block[open] > summary::before { transform: rotate(90deg); }
+    .mermaid-caption {
+      color: var(--muted);
+      font-size: 12px;
+      margin: 8px 0 8px 0;
+    }
+    .mermaid-caption code, .mermaid-caption a {
+      font-family: ui-monospace, monospace;
+      font-size: 0.92em;
+    }
+    pre.mermaid-source {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-x: auto;
+      white-space: pre;
+      color: #111827;
+      margin: 0;
+    }
+    .no-tensions {
+      color: var(--muted);
+      font-style: italic;
+      margin: 4px 0;
+    }
+
+    /* ------- source roster ------- */
+
+    #source-roster {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    #source-roster h2 { margin-top: 0; }
+    table.source-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 4px 0 12px 0;
+      font-size: 12px;
+    }
+    table.source-table th,
+    table.source-table td {
+      padding: 6px 8px;
+      border-top: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    table.source-table thead th {
+      background: var(--header-bg);
+      font-weight: 600;
+      border-top: none;
+      border-bottom: 2px solid var(--border-strong);
+    }
+    table.source-table .sha,
+    table.source-table .count {
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, monospace;
+    }
+    table.source-table .empty {
+      color: var(--muted);
+      font-style: italic;
+      text-align: center;
+    }
+
+    /* ------- super-theme + cluster cards ------- */
+
+    section.super-theme {
+      margin: 0 0 24px 0;
+      padding: 12px 14px;
+      background: var(--super-theme-bg);
+      border: 1px solid var(--super-theme-border);
+      border-radius: 8px;
+    }
+    .super-theme-header h2 {
+      margin: 0;
+      color: var(--super-theme-fg);
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .super-theme-header .st-id {
+      font-family: ui-monospace, monospace;
+      font-size: 13px;
+      background: #fff;
+      color: var(--super-theme-fg);
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--super-theme-border);
+    }
+    .super-theme-header .caption {
+      margin: 4px 0 0 0;
+    }
+
+    article.cluster-card {
+      margin: 12px 0;
+      padding: 12px 14px;
+      background: var(--cluster-bg);
+      border: 1px solid var(--cluster-border);
+      border-left: 4px solid var(--cluster-border);
+      border-radius: 6px;
+    }
+    .cluster-header h3 {
+      margin: 0 0 6px 0;
+      color: var(--cluster-fg);
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: 0;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .cluster-header .th-id {
+      font-family: ui-monospace, monospace;
+      font-size: 12px;
+      background: var(--code-bg);
+      color: var(--cluster-fg);
+      padding: 1px 5px;
+      border-radius: 3px;
+      border: 1px solid var(--cluster-border);
+    }
+    .cluster-meta {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 8px 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 16px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .cluster-meta .conf-stable {
+      color: var(--stable-fg);
+      font-weight: 600;
+    }
+    .cluster-meta .conf-drifted {
+      color: var(--drifted-fg);
+      font-weight: 600;
+    }
+    .cluster-meta .thin-flag {
+      background: var(--thin-bg);
+      color: var(--thin-fg);
+      border: 1px solid var(--thin-border);
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    blockquote.representative-quote {
+      margin: 8px 0;
+      padding: 8px 12px;
+      background: var(--code-bg);
+      border-left: 3px solid var(--super-theme-border);
+      border-radius: 0 4px 4px 0;
+      font-style: italic;
+      color: var(--fg);
+    }
+    blockquote.representative-quote p { margin: 0; }
+    blockquote.representative-quote footer {
+      margin-top: 4px;
+      font-style: normal;
+      font-size: 11px;
+    }
+
+    ol.cluster-notes {
+      margin: 8px 0 0 0;
+      padding-left: 20px;
+      font-size: 13px;
+    }
+    ol.cluster-notes li.note {
+      padding: 4px 0;
+      border-top: 1px dashed var(--note-border);
+      line-height: 1.5;
+    }
+    ol.cluster-notes li.note:first-child { border-top: none; }
+    .note-id {
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      color: var(--muted);
+      margin-right: 6px;
+    }
+    .conf-chip {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 3px;
+      vertical-align: baseline;
+    }
+    .conf-chip.conf-stable {
+      background: var(--stable-bg);
+      color: var(--stable-fg);
+      border: 1px solid var(--stable-border);
+    }
+    .conf-chip.conf-drifted {
+      background: var(--drifted-bg);
+      color: var(--drifted-fg);
+      border: 1px solid var(--drifted-border);
+    }
+    .conf-chip .jaccard {
+      font-family: ui-monospace, monospace;
+      font-size: 10px;
+      margin-left: 4px;
+      opacity: 0.85;
+    }
+    .drift-target {
+      display: inline-block;
+      margin-left: 6px;
+      font-size: 11px;
+      color: var(--drifted-fg);
+      font-style: italic;
+    }
+    li.note[data-confidence="drifted"] .drift-target { display: inline; }
+
+    /* ------- orphans ------- */
+
+    #orphans {
+      margin-bottom: 24px;
+      padding: 16px;
+      background: var(--orphan-bg);
+      border: 1px solid var(--orphan-border);
+      border-left: 4px solid var(--orphan-border);
+      border-radius: 6px;
+    }
+    #orphans h2 {
+      margin-top: 0;
+      color: var(--orphan-fg);
+    }
+    table.orphans-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0;
+      font-size: 13px;
+    }
+    table.orphans-table th,
+    table.orphans-table td {
+      padding: 6px 8px;
+      border-top: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    table.orphans-table thead th {
+      background: #fff;
+      font-weight: 600;
+      border-top: none;
+      border-bottom: 2px solid var(--orphan-border);
+      color: var(--orphan-fg);
+    }
+    table.orphans-table .orphan-id {
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    table.orphans-table .orphan-reason {
+      font-style: italic;
+      color: var(--orphan-fg);
+    }
+    table.orphans-table .empty {
+      color: var(--muted);
+      font-style: italic;
+      text-align: center;
+    }
+
+    /* ------- affinity-map JSON body ------- */
+
+    #affinity-map-body {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    #affinity-map-body h2 { margin-top: 0; }
+    #affinity-map-body pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-x: auto;
+      white-space: pre;
+      color: #111827;
+      margin: 0;
+      max-height: 520px;
+    }
+
+    /* ------- diagnostics ------- */
+
+    details.diagnostics-toggle { margin-bottom: 24px; }
+    details.diagnostics-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.diagnostics-toggle[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.diagnostics-toggle[open] > summary::before { transform: rotate(90deg); }
+
+    .diagnostics {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > .diagnostics {
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      margin-bottom: 0;
+    }
+    details.diagnostics-toggle > .diagnostics > h2 { display: none; }
+    .diagnostics h2 { font-size: 16px; margin: 0 0 8px 0; }
+    .diagnostics ul.gate-results,
+    .diagnostics ul.irrelevant-log,
+    .diagnostics ul.follow-ups,
+    .diagnostics ul.run-history {
+      margin: 0 0 12px 0;
+      padding-left: 20px;
+      font-size: 13px;
+    }
+    .diagnostics ul.gate-results li.gate-pass::before {
+      content: "PASS ";
+      color: var(--gate-pass);
+      font-weight: 600;
+    }
+    .diagnostics ul.gate-results li.gate-fail::before {
+      content: "FAIL ";
+      color: var(--gate-fail);
+      font-weight: 600;
+    }
+    .diagnostics ul.gate-results li.gate-warn::before {
+      content: "WARN ";
+      color: var(--gate-warn);
+      font-weight: 600;
+    }
+    .diagnostics ul .empty {
+      color: var(--muted);
+      font-style: italic;
+      list-style: none;
+      margin-left: -16px;
+    }
+    .diagnostics code {
+      font-family: ui-monospace, monospace;
+      font-size: 0.92em;
+      background: var(--code-bg);
+      padding: 0 4px;
+      border-radius: 3px;
+    }
+    table.drift-log,
+    table.cluster-size-distribution {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 4px 0 12px 0;
+      font-size: 12px;
+    }
+    table.drift-log th,
+    table.drift-log td,
+    table.cluster-size-distribution th,
+    table.cluster-size-distribution td {
+      padding: 6px 8px;
+      border-top: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    table.drift-log thead th,
+    table.cluster-size-distribution thead th {
+      background: var(--header-bg);
+      font-weight: 600;
+      border-top: none;
+      border-bottom: 2px solid var(--border-strong);
+    }
+    table.drift-log .jaccard,
+    table.cluster-size-distribution td:nth-child(2),
+    table.cluster-size-distribution td:nth-child(3) {
+      font-family: ui-monospace, monospace;
+      font-variant-numeric: tabular-nums;
+    }
+    .mermaid-status { font-size: 13px; margin: 0 0 12px 0; }
+
+    /* ------- next-steps + footer ------- */
+
+    section.next-steps {
+      margin-top: 24px;
+      padding: 14px 18px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--super-theme-border);
+      border-radius: 6px;
+    }
+    section.next-steps h2 { margin-top: 0; font-size: 14px; }
+    section.next-steps p { color: var(--muted); margin: 6px 0; font-size: 13px; }
+    section.next-steps code {
+      font-family: ui-monospace, monospace;
+      font-size: 0.92em;
+      background: var(--code-bg);
+      padding: 0 4px;
+      border-radius: 3px;
+    }
+
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    footer .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+    }
+    footer .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    footer .legend-swatch {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border-left: 3px solid transparent;
+    }
+    footer .legend-swatch.s-super-theme {
+      background: var(--super-theme-bg);
+      border-left-color: var(--super-theme-border);
+    }
+    footer .legend-swatch.s-cluster {
+      background: var(--cluster-bg);
+      border-left-color: var(--cluster-border);
+    }
+    footer .legend-swatch.s-stable {
+      background: var(--stable-bg);
+      border-left-color: var(--stable-border);
+    }
+    footer .legend-swatch.s-drifted {
+      background: var(--drifted-bg);
+      border-left-color: var(--drifted-border);
+    }
+    footer .legend-swatch.s-orphan {
+      background: var(--orphan-bg);
+      border-left-color: var(--orphan-border);
+    }
+    footer .credit { margin-top: 6px; text-align: right; }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      section.super-theme { break-inside: avoid; }
+      article.cluster-card { break-inside: avoid; }
+      details.diagnostics-toggle { display: none; }
+      .jump-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header id="overview">
+      <h1>{{TITLE}}</h1>
+      <p class="subtitle">Affinity map (inputs side) — KJ-method bottom-up clusters with Beyer/Holtzblatt insight-statement labels; sub-agent-isolated Pass-2 anti-anchoring control; Jaccard-similarity drift detection.</p>
+
+      <dl class="meta-grid">
+        <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+        <div><dt>Target</dt><dd>{{TARGET}}</dd></div>
+        <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+        <div><dt>Manifest SHA-256</dt><dd>{{MANIFEST_SHA256}}</dd></div>
+        <div><dt>Run #</dt><dd>{{RUN_COUNT}}</dd></div>
+        <div><dt>Notes</dt><dd>{{NOTE_COUNT}}</dd></div>
+        <div><dt>Clusters (L2)</dt><dd>{{CLUSTER_COUNT}}</dd></div>
+        <div><dt>Super-themes (L3)</dt><dd>{{SUPER_THEME_COUNT}}</dd></div>
+        <div><dt>Orphans</dt><dd>{{ORPHAN_COUNT}}</dd></div>
+        <div><dt>Tensions</dt><dd>{{TENSION_COUNT}}</dd></div>
+        <div><dt>Drifted notes</dt><dd>{{DRIFTED_NOTE_COUNT}}</dd></div>
+        <div><dt>Consumed sources</dt><dd>{{CONSUMED_ROW_COUNT}}</dd></div>
+        <div><dt>Skipped sources</dt><dd>{{SKIPPED_ROW_COUNT}}</dd></div>
+        <div><dt>Irrelevant-to-domain</dt><dd>{{IRRELEVANT_ROW_COUNT}}</dd></div>
+      </dl>
+
+      <nav class="jump-links" aria-label="Sections">
+        <a href="#diagram-primary">Mindmap</a>
+        <a href="#diagram-tensions">Tensions</a>
+        <a href="#source-roster">Source roster</a>
+        <a href="#clusters">Cluster cards</a>
+        <a href="#orphans">Orphans</a>
+        <a href="#affinity-map-body">Machine-readable JSON</a>
+        <a href="#diagnostics">Diagnostics</a>
+      </nav>
+    </header>
+
+    <section id="diagram-primary" aria-labelledby="diagram-primary-title">
+      <h2 id="diagram-primary-title">Affinity mindmap</h2>
+      <p class="caption">
+        Mermaid <code>mindmap</code> — root → super-themes (L3) → clusters (L2).
+        Note-level leaves excluded to keep the diagram legible (≤ 34 nodes).
+        Full notes live in the cluster cards below. Out-of-band render via
+        <a href="https://mermaid.live">mermaid.live</a> or <code>mmdc -i source.mmd -o map.svg</code>.
+      </p>
+      <pre class="mermaid-source">{{PRIMARY_MERMAID}}</pre>
+    </section>
+
+    <section id="diagram-tensions" aria-labelledby="diagram-tensions-title">
+      <h2 id="diagram-tensions-title">Cross-cluster tensions</h2>
+      <p class="caption">
+        Conditional secondary Mermaid <code>flowchart TD</code>. Rendered only
+        when at least one cross-cluster tension was surfaced; otherwise emits
+        a deterministic "no tensions" note so the section header is always
+        structurally present.
+      </p>
+      {{TENSIONS_MERMAID_BLOCK}}
+    </section>
+
+    {{SOURCE_ROSTER_BLOCK}}
+
+    <section id="clusters" aria-labelledby="clusters-title">
+      <h2 id="clusters-title">Cluster cards</h2>
+      <p class="caption">
+        One <code>&lt;article class="cluster-card"&gt;</code> per L2 cluster,
+        grouped under <code>&lt;section class="super-theme"&gt;</code> headings
+        for L3. Each card lists every member note verbatim with
+        <code>[SRC: &lt;filename&gt;]</code> and a stable/drifted confidence
+        chip carrying the Jaccard value. Drifted notes show the Pass-2
+        cluster label that out-corroborated them.
+      </p>
+      {{CLUSTER_CARDS}}
+    </section>
+
+    {{ORPHANS_BLOCK}}
+
+    {{AFFINITY_MAP_JSON_BLOCK}}
+
+    <details id="diagnostics" class="diagnostics-toggle">
+      <summary>Diagnostics — Pass-1/Pass-2 drift log, 10 quality-gate results, cluster-size distribution, irrelevant-to-domain rows, follow-up questions, run history</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    <section class="next-steps">
+      <h2>Next steps</h2>
+      <p>
+        <strong>Audit the Pass-1 vs Pass-2 Jaccard drift log</strong> in Diagnostics
+        before treating cluster placements as final — every drifted note is one
+        the sub-agent re-cluster placed elsewhere, and the consultant's review
+        is the canonical conflict-resolution surface (use the analyser's Revise
+        loop to re-evaluate specific clusters in-place).
+      </p>
+      <p>
+        To re-ingest this artefact into <code>/requirements</code>, copy this
+        file into <code>input/</code> (e.g. <code>input/affinity-map.html</code>)
+        and re-run <code>/requirements</code>. The input-handler classifies it
+        as <code>Supported-via-MCP</code>; markitdown converts it to
+        <code>input/affinity-map.html.converted.md</code>. The embedded JSON
+        body block (the <code>language-json</code> code block) and the Mermaid
+        <code>mindmap</code> + optional <code>flowchart TD</code> sources
+        survive verbatim as fenced code blocks; <code>[SRC: &lt;filename&gt;]</code>
+        markers survive as plain text. The drafter consumes the converted
+        markdown via the refreshed manifest — super-themes feed §1 vision
+        anchors, clusters feed §5 task-flow groupings and §3 acceptance-criteria
+        threads, orphans feed §10 out-of-scope candidates, tensions feed §6
+        trade-off-aware acceptance-criteria branches.
+      </p>
+    </section>
+
+    <footer>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-super-theme" aria-hidden="true"></span> Super-theme (L3)</span>
+        <span class="legend-item"><span class="legend-swatch s-cluster" aria-hidden="true"></span> Cluster (L2)</span>
+        <span class="legend-item"><span class="legend-swatch s-stable" aria-hidden="true"></span> Stable note (Jaccard ≥ 0.5)</span>
+        <span class="legend-item"><span class="legend-swatch s-drifted" aria-hidden="true"></span> Drifted note (Jaccard &lt; 0.5)</span>
+        <span class="legend-item"><span class="legend-swatch s-orphan" aria-hidden="true"></span> Orphan (parking-lot)</span>
+      </div>
+      <div class="credit">Generated by `framework/agents/analyses-inputs/affinity-mapping-analyser.md`.</div>
+    </footer>
+  </main>
+</body>
+</html>
