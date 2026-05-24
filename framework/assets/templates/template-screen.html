@@ -8,19 +8,28 @@ Future: framework/agents/prototype-variant-generator.md may consume the same
 Slots (filled by the variant-generator at render time):
   {{DS_PATH}}                — relative href to the per-variant DS (typically "wireframe-ds.css").
   {{SCOPE_SLUG}}             — kebab-case scope slug (e.g. "file-upload-flow"). Used in chrome.
-  {{VARIANT_ID}}             — kebab-case variant ID (e.g. "POWER-DENSITY-EXPERT"). Used in chrome + role-switcher.
+  {{VARIANT_ID}}             — kebab-case variant ID (e.g. "POWER-DENSE"). Used in chrome + role-switcher.
   {{SCREEN_ID}}              — stable blueprint screen ID (e.g. "S-02").
   {{SCREEN_SLUG}}            — kebab-case screen slug (e.g. "file-picker").
   {{SCREEN_INTENT}}          — short intent string from blueprint (e.g. "File picker with inline validation").
   {{SCREEN_SOURCES}}         — comma-separated requirement IDs traced into this screen (e.g. "F-01,F-02,UI-03").
-  {{PERSONA_BINDING}}        — variant's bound persona name (e.g. "Importer (daily, high-volume)").
+  {{PERSONA_BINDING}}        — variant's bound persona name (e.g. "Importer").
+  {{POSITION_TAGLINE}}       — plain-English position labels joined with " · " (e.g. "Dense · Speed-leaning").
+                               Composed by the variant-generator from variant-position.json's non-neutral
+                               dimension_positions using framework/assets/wireframes/position-vocabulary.md.
+                               **MUST NOT contain dimension notation (D1+1, density-focus: +2) or
+                               pattern-catalogue IDs (table.compact). Plain English only.**
   {{CROSS_SCREEN_NAV}}       — full <nav> markup for prev/next within this variant's flow.
+                               All links carry target="_blank" rel="noopener" so the consultant can
+                               open them in adjacent tabs without losing the current view.
   {{CROSS_VARIANT_NAV}}      — full <nav> markup for switching to this same screen in other variants.
+                               Links to ../<OTHER_VARIANT_ID>/screen-NN-*.html with target="_blank"
+                               rel="noopener". This is the on-screen path to side-by-side compare.
   {{PRIMARY_PATTERN_HTML}}   — fully-rendered HTML for this screen's primary slot pattern (composed by the variant-generator from a catalogue entry).
   {{SECONDARY_PATTERN_HTML}} — concatenated HTML for any secondary patterns (validation messages, tooltips, modals, banners). May be empty.
   {{STATES_RENDERED}}        — pipe-separated names of states rendered visually on this screen (e.g. "default | file-selected | validating | error-invalid-format").
-  {{COMPARISON_HREF}}        — relative href back to wireframes/<scope-slug>/comparison.html.
-  {{SET_INDEX_HREF}}          — relative href back to wireframes/<scope-slug>/index.html.
+  {{COMPARISON_HREF}}        — relative href back to wireframes/<scope-slug>/comparison.html (rendered with target="_blank" so opening doesn't lose the screen).
+  {{SET_INDEX_HREF}}         — relative href back to wireframes/<scope-slug>/index.html (the scope landing; no target="_blank" since this is back-navigation, opening in same tab is the natural behaviour).
 
 Every interactive element rendered into {{PRIMARY_PATTERN_HTML}} or
 {{SECONDARY_PATTERN_HTML}} carries a data-src="<id1>,<id2>,..." attribute
@@ -43,7 +52,7 @@ in its per-screen self-validation (no orphan elements, no fabricated IDs).
 <body>
   <header class="wf-chrome" data-src="{{SCREEN_SOURCES}}">
     <strong>{{SCREEN_ID}} · {{SCREEN_INTENT}}</strong>
-    <span class="wf-help">scope: <code>{{SCOPE_SLUG}}</code> · variant: <code>{{VARIANT_ID}}</code> · persona: <em>{{PERSONA_BINDING}}</em></span>
+    <span class="wf-help">{{VARIANT_ID}} · {{POSITION_TAGLINE}} · for {{PERSONA_BINDING}}</span>
     <nav aria-label="Within-variant flow">
       {{CROSS_SCREEN_NAV}}
     </nav>
@@ -51,8 +60,8 @@ in its per-screen self-validation (no orphan elements, no fabricated IDs).
       {{CROSS_VARIANT_NAV}}
     </nav>
     <span style="margin-left: auto;">
-      <a href="{{SET_INDEX_HREF}}" class="wf-btn">Set index</a>
-      <a href="{{COMPARISON_HREF}}" class="wf-btn">Comparison</a>
+      <a href="{{SET_INDEX_HREF}}" class="wf-btn">Back to index</a>
+      <a href="{{COMPARISON_HREF}}" class="wf-btn" target="_blank" rel="noopener">Trade-off matrix</a>
     </span>
   </header>
 

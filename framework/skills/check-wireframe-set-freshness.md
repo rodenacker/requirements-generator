@@ -47,17 +47,18 @@ Verdicts:
 
 2. **Detect blueprint-side files.** Test for existence of `blueprints/<scope_slug>/scope.json` and `blueprints/<scope_slug>/blueprint.md`. Record in `detected_paths`.
 
-3. **Detect wireframe-side top-level files.** Test for existence of `wireframes/<scope_slug>/variants.json`, `wireframes/<scope_slug>/comparison.html`, `wireframes/<scope_slug>/index.html`. Record in `detected_paths`.
+3. **Detect wireframe-side top-level files.** Test for existence of `wireframes/<scope_slug>/variants.json`, `wireframes/<scope_slug>/comparison.html`, `wireframes/<scope_slug>/index.html`, `wireframes/<scope_slug>/_drift.json`. Record in `detected_paths`.
 
 4. **Enumerate variant subdirs.** Every direct child directory under `wireframes/<scope_slug>/` is a variant subdir (its directory name is the `variant_id`). Glob `wireframes/<scope_slug>/*/` and capture each as a row in `variant_state`.
 
 5. **Per-variant completeness check.** For each variant subdir, test for the **required-by-shape** file set (per `framework/agents/wireframe-variant-generator.md > Output`):
 
-    - `wireframes.html` (variant landing)
     - `wireframe-ds.css` (linked DS, one per variant dir)
     - `manifest.json` (per-screen pattern bindings)
     - `variant-position.json` (self-scored sidecar)
     - at least one `screen-NN-*.html` file
+
+    Note: `wireframes.html` (per-variant landing) is **no longer authored** by the variant-generator. If found in a variant subdir, treat it as **stale state** from a prior pipeline version — record it in `detected_paths` under a `stale_files` array (the orchestrator's full Overwrite reset will clean it).
 
     Compute `completeness`:
 

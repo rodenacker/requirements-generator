@@ -57,21 +57,31 @@ Unlike `requirements-orch.md`, this orchestrator does **not** maintain a `.progr
 
 0d. **Detect prior wireframe set for the chosen scope-slug** — Glob `blueprints/<chosen.scope_slug>/` and `wireframes/<chosen.scope_slug>/`.
     - **Neither directory exists** (clean run on a new scope) — proceed to step 1.
-    - **One or both directories exist** — surface a single `AskUserQuestion`:
-        - Question: *"A wireframe set already exists for scope-slug `{{chosen.scope_slug}}` (`blueprints/{{chosen.scope_slug}}/` and/or `wireframes/{{chosen.scope_slug}}/`). What would you like to do?"*
+    - **One or both directories exist** — surface a single primary `AskUserQuestion`:
+        - Question: *"A wireframe set already exists for scope-slug `{{chosen.scope_slug}}`. What would you like to do?"*
         - Header: `Prior set`
         - Options:
-            1. `Overwrite — checkpoint and re-run the full pipeline`
-            2. `Regenerate variants only — keep blueprint, re-run Stages 3 + 4`
-            3. `Add a variant — keep blueprint + existing variants, generate one more (subject to cardinality cap of 3)`
-            4. `Keep — exit without changes (Recommended)`
-            5. `Cancel — exit without changes`
-        - Branch:
+            1. `Overwrite — checkpoint and re-run the full pipeline (Recommended)`
+            2. `Keep — exit without changes`
+            3. `Advanced — regenerate variants only, or add a variant`
+            4. `Cancel — exit without changes`
+        - Branch on the primary response:
             - **Overwrite** — perform the per-scope **Reset procedure (full)** below, then proceed to step 1.
-            - **Regenerate variants only** — perform the per-scope **Reset procedure (variants only)** below; set in-memory flag `mode = "regenerate-variants"`; skip the scope-selector re-invocation at step 1 (the existing `blueprints/<chosen.scope_slug>/scope.json` is reused as-is). Proceed to step 2 (the architect detects existing `blueprint.md` and reuses it; variants.json is regenerated with the architect's existing self-validation flow).
-            - **Add a variant** — do **not** perform any deletion. Set `mode = "add-variant"`. Skip step 1. Skip step 2 (the existing `blueprints/<chosen.scope_slug>/blueprint.md` and `wireframes/<chosen.scope_slug>/variants.json` are read by the architect, which prompts the consultant for one additional variant configuration subject to the cardinality cap of 3 and the persona-position compatibility check). Proceed to step 2 in `add-variant` mode.
             - **Keep** — output: *"Keeping existing wireframe set for `{{chosen.scope_slug}}`. No changes made."* and exit cleanly.
             - **Cancel** — output: *"Cancelled. No changes made."* and exit cleanly.
+            - **Advanced** — surface a single secondary `AskUserQuestion`:
+                - Question: *"Advanced options for `{{chosen.scope_slug}}`. Pick one."*
+                - Header: `Advanced`
+                - Options:
+                    1. `Regenerate variants only — keep blueprint, re-run Stages 3 + 4`
+                    2. `Add a variant — keep blueprint + existing variants, generate one more (subject to cardinality cap of 3)`
+                    3. `Back — return to the prior-set prompt`
+                    4. `Cancel — exit without changes`
+                - Branch on the secondary response:
+                    - **Regenerate variants only** — perform the per-scope **Reset procedure (variants only)** below; set in-memory flag `mode = "regenerate-variants"`; skip the scope-selector re-invocation at step 1 (the existing `blueprints/<chosen.scope_slug>/scope.json` is reused as-is). Proceed to step 2 (the architect detects existing `blueprint.md` and reuses it; variants.json is regenerated deterministically per the architect's flow).
+                    - **Add a variant** — do **not** perform any deletion. Set `mode = "add-variant"`. Skip step 1. Skip step 2 setup (the existing `blueprints/<chosen.scope_slug>/blueprint.md` and `wireframes/<chosen.scope_slug>/variants.json` are read by the architect, which surfaces its two-prompt single-variant flow per `step-05-compose-variants.md > Section 5.4`). Proceed to step 2 in `add-variant` mode.
+                    - **Back** — re-surface the primary prior-set prompt.
+                    - **Cancel** — output: *"Cancelled. No changes made."* and exit cleanly.
 
 1. **Stage 1 — Scope selection** — only on a clean run or after a full `Overwrite` reset (skipped on `mode = "regenerate-variants"` and `mode = "add-variant"`). The scope-slug has already been captured at step 0c and `blueprints/<chosen.scope_slug>/scope.json` already exists if step 0c returned `selected`. Verify it via `Read` (existence + non-empty). On absence, the orchestrator surfaces a structured error *"scope-selector returned `selected` but `blueprints/<chosen.scope_slug>/scope.json` is missing — likely an internal contract violation. Re-invoke `/wireframe`."* and exits cleanly.
 
@@ -91,9 +101,23 @@ Unlike `requirements-orch.md`, this orchestrator does **not** maintain a `.progr
             - **Skip** — drop the failed variant from the in-memory variant list passed to step 4. Proceed to step 4.
             - **Cancel** — exit cleanly. No comparator artefacts are written. The partial `wireframes/<chosen.scope_slug>/<successful-variant>/` directories remain on disk for forensic inspection.
 
-4. **Stage 4 — Comparator** — invoke `framework/agents/wireframe-comparator.md` in the foreground with the in-memory variables: `scope_slug = <chosen.scope_slug>`, `blueprint_path = blueprints/<chosen.scope_slug>/blueprint.md`, `variants_path = wireframes/<chosen.scope_slug>/variants.json`, `successful_variants = <the post-Stage-3 in-memory list>`, `set_output_dir = wireframes/<chosen.scope_slug>/`. The comparator reads only the JSON sidecars + `blueprint.md` (never the screen HTML), runs drift detection per `framework/assets/wireframes/tradeoff-dimensions-registry.md`, and writes `wireframes/<chosen.scope_slug>/comparison.html` and `wireframes/<chosen.scope_slug>/index.html`. The orchestrator waits until the comparator reports both artefacts written and consultant-accepted (per its handback gate).
+4. **Stage 4 — Comparator** — invoke `framework/agents/wireframe-comparator.md` in the foreground with the in-memory variables: `scope_slug = <chosen.scope_slug>`, `blueprint_path = blueprints/<chosen.scope_slug>/blueprint.md`, `variants_path = wireframes/<chosen.scope_slug>/variants.json`, `successful_variants = <the post-Stage-3 in-memory list>`, `set_output_dir = wireframes/<chosen.scope_slug>/`. The comparator reads only the JSON sidecars + `blueprint.md` + `framework/assets/wireframes/position-vocabulary.md` (never the screen HTML), runs drift detection per `framework/assets/wireframes/tradeoff-dimensions-registry.md`, and writes three artefacts: `wireframes/<chosen.scope_slug>/index.html` (the single landing — variant columns side-by-side with screen lists as new-tab links + collapsible right-rail meta), `wireframes/<chosen.scope_slug>/comparison.html` (humanised trade-off matrix with plain-English position labels), and `wireframes/<chosen.scope_slug>/_drift.json` (system file containing full drift detail; HTML pages surface only a one-line summary). The comparator does **not** surface its own accept loop; it hands back `ok` once writes verify. The orchestrator then surfaces the final accept gate (step 4b).
 
-After the comparator's handback gate is met, the orchestrator declares done.
+4b. **Stage 4b — Final accept gate** (orchestrator-owned). After the comparator hands back `ok`, surface a single `AskUserQuestion`:
+
+- Question: *"Wireframe set for `{{chosen.scope_slug}}` is ready. Open `wireframes/{{chosen.scope_slug}}/index.html` in your browser (file://) to view. Click any screen link to open in a new tab; arrange tabs side-by-side via your browser's tab-drag. Accept?"*
+- Header: `Wireframe set`
+- `multiSelect: false`
+- Options:
+    1. `Accept — declare done (Recommended)`
+    2. `Cancel — leave current set on disk; re-invoke /wireframe with Overwrite or Regenerate variants only to redo`
+
+Branch:
+
+- **Accept** — declare done.
+- **Cancel** — output: *"Wireframe set for `{{chosen.scope_slug}}` left as-is. Re-invoke `/wireframe` with Overwrite or the Advanced → Regenerate variants only path to redo."* and exit (the Stage-4 handback gate is not met by the orchestrator's Definition of Done, but the artefacts remain on disk for forensic inspection).
+
+After 4b's Accept response, the orchestrator declares done.
 
 ## Per-scope Reset procedures (overwrite or regenerate-variants)
 
@@ -141,18 +165,24 @@ After the variants-only reset completes, proceed to step 2 with `mode = "regener
 
 **Stage 3 handback** — every parallel variant-generator sub-agent has handed control back when:
 
-- Its per-variant `wireframes/<chosen.scope_slug>/<variant_id>/wireframes.html` exists.
 - Its per-variant `wireframes/<chosen.scope_slug>/<variant_id>/wireframe-ds.css` exists.
 - Its per-variant screen files (`screen-NN-*.html`) exist for every screen ID in the blueprint's inventory.
 - Its per-variant `manifest.json` exists, parses, was verify-artifact-write'd, lists per-screen pattern bindings + states rendered.
 - Its per-variant `variant-position.json` exists, parses, was verify-artifact-write'd, declares dimension positions identical to the architect's `variants.json` entry for the same `variant_id` (immutable mirror — drift here is a `RF-04`-class hard halt at the sub-agent).
+- Its per-variant directory does **not** contain a `wireframes.html` file (the per-variant landing has been removed from the pipeline; presence indicates stale state from a prior version, which should be cleaned via Overwrite).
 - The sub-agent returned `ok` (not `failed`).
 
 **Stage 4 handback** — the wireframe-comparator has handed control back when:
 
-- `wireframes/<chosen.scope_slug>/comparison.html` exists, was verify-artifact-write'd.
 - `wireframes/<chosen.scope_slug>/index.html` exists, was verify-artifact-write'd.
-- The consultant has chosen `Accept` in the comparator's accept/revise/restart loop.
+- `wireframes/<chosen.scope_slug>/comparison.html` exists, was verify-artifact-write'd.
+- `wireframes/<chosen.scope_slug>/_drift.json` exists, was verify-artifact-write'd, parses as JSON.
+- The comparator returned `ok` (not failed).
+
+**Stage 4b handback** — the orchestrator-owned final accept gate has been resolved when:
+
+- The consultant chose `Accept` at the step-4b prompt (in which case the orchestrator declares done), or
+- The consultant chose `Cancel` (in which case the orchestrator exits cleanly with the artefacts left on disk).
 
 If any of the above is not satisfied at its stage, do not advance to the next stage. Surface the offending skill / agent / sub-agent's report to the consultant and let it continue or be re-invoked.
 
@@ -174,8 +204,8 @@ This orchestrator produces no artefacts of its own. Each Stage produces its own 
 
 - Stage 1 → `blueprints/<chosen.scope_slug>/scope.json` (via scope-selector).
 - Stage 2 → `blueprints/<chosen.scope_slug>/blueprint.md` + `wireframes/<chosen.scope_slug>/variants.json` (via blueprint-architect).
-- Stage 3 → `wireframes/<chosen.scope_slug>/<variant_id>/{wireframes.html, screen-NN-*.html, wireframe-ds.css, manifest.json, variant-position.json}` (per variant, via wireframe-variant-generator sub-agents).
-- Stage 4 → `wireframes/<chosen.scope_slug>/comparison.html` + `wireframes/<chosen.scope_slug>/index.html` (via wireframe-comparator).
+- Stage 3 → `wireframes/<chosen.scope_slug>/<variant_id>/{screen-NN-*.html, wireframe-ds.css, manifest.json, variant-position.json}` (per variant, via wireframe-variant-generator sub-agents). **No per-variant `wireframes.html`** — that artefact was removed; meta lives in Stage 4's `index.html` right rail.
+- Stage 4 → `wireframes/<chosen.scope_slug>/{index.html, comparison.html, _drift.json}` (via wireframe-comparator). Stage 4b is the orchestrator-owned accept gate (no artefact write).
 
 ## Tools
 
@@ -183,7 +213,7 @@ This orchestrator produces no artefacts of its own. Each Stage produces its own 
 - `Glob` — at step 0d, check for prior-set existence under `blueprints/<chosen.scope_slug>/` and `wireframes/<chosen.scope_slug>/`. No other Glob usage.
 - `Bash` — git checkpoint commit + `rm -rf` / `rm -f` of scoped per-scope directories during the Reset procedures only. No other Bash usage. Never use destructive operations beyond the explicitly named paths. Never push or skip hooks.
 - `Agent` — dispatch the parallel `wireframe-variant-generator` sub-agents at Stage 3, in a single message with N tool calls (N ≤ 4 hard cap). The Agent tool is **not** used for any other stage.
-- `AskUserQuestion` — surface the step-0d `{ Overwrite, Regenerate variants only, Add a variant, Keep, Cancel }` prompt when a prior set exists; surface the `RF-05 { proceed-without-clear, continue-later }` prompt when the step-0b preflight returns `RF-05 trigger`; surface the Stage-3 `{ Retry, Skip, Cancel }` prompt on a failed sub-agent. The scope-naming prompt, the structural/free-form picker, the architect's conditional gate, and the comparator's accept loop belong to the respective skills / agents — the orchestrator does not surface them directly.
+- `AskUserQuestion` — surface (1) the step-0d primary `{ Overwrite, Keep, Advanced, Cancel }` prompt when a prior set exists; (2) the step-0d secondary `{ Regenerate variants only, Add a variant, Back, Cancel }` Advanced prompt when the consultant picked Advanced; (3) the `RF-05 { proceed-without-clear, continue-later }` prompt when the step-0b preflight returns `RF-05 trigger`; (4) the Stage-3 `{ Retry, Skip, Cancel }` prompt on a failed sub-agent; (5) the Stage-4b `{ Accept, Cancel }` final accept prompt after the comparator hands back `ok`. The intent prompt, the confirmation gate, the structural/free-form pickers (now opt-in branches), and the architect's conditional gate belong to the respective skills / agents — the orchestrator does not surface them directly.
 
 The orchestrator's tools are limited to the operations above. Every other read or write of wireframe / blueprint content belongs to the invoked skill or agent; each uses the tools listed in its own file.
 
@@ -202,22 +232,24 @@ When the registry file is next revised, append a fourth surface-variant block fo
 - Step 0 ran. `requirements/requirements.md` exists and is non-empty. If it did not, the orchestrator exited cleanly with the prerequisite message and no skill / agent was invoked.
 - Step 0b ran on every path that did not exit at step 0, and the consultant's `RF-05` choice (if surfaced) was honoured: `proceed-without-clear` advanced; `continue-later` exited cleanly without writing `framework/state/.progress.json` and without modifying `wireframes/` or `blueprints/`.
 - Step 0c ran. The scope-selector returned exactly one of `selected | cancelled`, and the orchestrator branched accordingly.
-- Step 0d ran. The consultant's choice was honoured per the five-option branch (`Overwrite`, `Regenerate variants only`, `Add a variant`, `Keep`, `Cancel`).
-- If the consultant chose `Overwrite` or `Regenerate variants only` at step 0d, the git checkpoint commit ran without `--no-verify`, without amend, and without push, and only the explicitly named paths were deleted before the architect was invoked.
-- If the consultant chose `Keep` or `Cancel` at step 0d, no `Bash` was run, the architect was not invoked, and no sub-agents were dispatched.
-- Stage 2 (architect) ran on every non-exiting path; its handback gate was met (artefacts written, verify pass, conditional gate either not fired or resolved).
-- Stage 3 (variant generators) ran via `Agent` tool with ≤4 parallel calls in a single message. Every sub-agent's handback gate was met OR the consultant explicitly accepted a `Skip` or `Cancel` at the per-failure prompt.
-- Stage 4 (comparator) ran on every non-cancelled path; its handback gate was met (artefacts written, verify pass, consultant accepted).
+- Step 0d ran. The consultant's choice was honoured: the primary 4-option prompt (`Overwrite`, `Keep`, `Advanced`, `Cancel`) advanced to the secondary 4-option Advanced prompt (`Regenerate variants only`, `Add a variant`, `Back`, `Cancel`) only when `Advanced` was picked; the consultant's terminal choice on the primary or secondary prompt was honoured.
+- If the consultant chose `Overwrite` or (via Advanced) `Regenerate variants only` at step 0d, the git checkpoint commit ran without `--no-verify`, without amend, and without push, and only the explicitly named paths were deleted before the architect was invoked.
+- If the consultant chose `Keep` or `Cancel` at step 0d (or `Cancel` at the secondary Advanced prompt), no `Bash` was run, the architect was not invoked, and no sub-agents were dispatched.
+- Stage 2 (architect) ran on every non-exiting path; its handback gate was met (artefacts written, verify pass, conditional gate either not fired or resolved). The architect surfaced no routine variant-composition prompts (those were removed; composition is deterministic from `scope.json` + `domain-defaults.md`).
+- Stage 3 (variant generators) ran via `Agent` tool with ≤4 parallel calls in a single message. Every sub-agent's handback gate was met (no per-variant `wireframes.html` was authored; per-variant directory contains only screen files + DS + two JSON sidecars) OR the consultant explicitly accepted a `Skip` or `Cancel` at the per-failure prompt.
+- Stage 4 (comparator) ran on every non-cancelled path; its handback gate was met (three artefacts written: index.html, comparison.html, _drift.json; verify pass; comparator returned `ok`). The comparator surfaced no accept loop.
+- Stage 4b (orchestrator accept) ran on every non-cancelled path; the consultant chose `Accept` or `Cancel` at the orchestrator-owned final prompt.
 - No file was written outside `wireframes/<chosen.scope_slug>/` and `blueprints/<chosen.scope_slug>/` (excluding the step-0d git checkpoint commits, which are git-history writes, not filesystem artefacts under a state directory).
 - The scope-selector, blueprint-architect, and wireframe-comparator were run in the foreground, never via the Agent / Task / fork / sub-agent mechanism. The wireframe-variant-generator was the **only** agent dispatched via the Agent tool, and only at Stage 3.
 
 ## Definition of Done
 
-- Either the consultant chose `Keep` or `Cancel` at step 0d (and the orchestrator exited cleanly), or
+- Either the consultant chose `Keep` or `Cancel` at step 0d (primary or secondary Advanced prompt) (and the orchestrator exited cleanly), or
 - The consultant chose `cancelled` at the scope-selector at step 0c (and the orchestrator exited cleanly), or
 - The consultant chose `continue-later` at the step-0b RF-05 prompt (and the orchestrator exited cleanly with no state write), or
+- The consultant chose `Cancel` at the Stage-4b final accept prompt (and the orchestrator exited cleanly with artefacts left on disk for forensic inspection), or
 - The prerequisite gate at step 0 fired (and the orchestrator exited cleanly with the `requirements.md is required` message), or
-- All four stages ran to handback (with consultant accepts at Stages 1, 2, and 4; sub-agent successes or explicitly accepted skips at Stage 3), and the comparator's accept-loop returned `Accept`, leaving `wireframes/<chosen.scope_slug>/{index.html, comparison.html}` and per-variant subdirectories on disk, all verify-artifact-write'd.
+- All four stages ran to handback (with consultant accepts at Stages 1 and 2; sub-agent successes or explicitly accepted skips at Stage 3; comparator returned `ok`), and the Stage-4b accept gate returned `Accept`, leaving `wireframes/<chosen.scope_slug>/{index.html, comparison.html, _drift.json}` and per-variant subdirectories (each containing `screen-NN-*.html`, `wireframe-ds.css`, `manifest.json`, `variant-position.json` — **no `wireframes.html`**) on disk, all verify-artifact-write'd.
 
 ## Anti-Patterns
 
@@ -234,8 +266,9 @@ When the registry file is next revised, append a fourth surface-variant block fo
 - Do not skip step 0b on a path that did not exit at step 0. The preflight is the only place where prior-conversation bloat is detected before any wireframe work runs.
 - Do not write `framework/state/.progress.json` on the `RF-05 continue-later` branch. The wireframe pipeline is bound by the no-write-outside-`wireframes/`-and-`blueprints/` invariant.
 - Do not read `framework/state/` or `framework/shared/` outside the narrow exceptions documented in **Stand-alone constraint** (the step-0b preflight inputs and the refusal-registry references that downstream agents transitively load).
-- Do not surface the step-0c scope-naming, structural-picker, or free-form-resolution prompts from within this orchestrator. Those belong to the scope-selector skill; surfacing them inline duplicates the skill's logic and breaks the cross-pipeline reuse contract (`/prototype` must be able to invoke the same skill with a different `pipeline_name` without orchestrator-level edits leaking).
-- Do not surface the Stage 2 conditional gate or the Stage 4 accept loop from within this orchestrator. Those prompts belong to their respective agent's handback step.
+- Do not surface the step-0c intent prompt, confirmation gate, or any Edit-scope / Edit-dimensions sub-prompts from within this orchestrator. Those belong to the scope-selector skill; surfacing them inline duplicates the skill's logic and breaks the cross-pipeline reuse contract (`/prototype` must be able to invoke the same skill with a different `pipeline_name` without orchestrator-level edits leaking).
+- Do not surface the Stage 2 conditional gate from within this orchestrator. It belongs to the architect's handback step.
+- Do not surface a comparator accept/revise/restart loop. That loop has been removed; the orchestrator owns the Stage-4b accept gate (a single Accept / Cancel prompt) and the comparator hands back `ok` after its three writes without any AskUserQuestion of its own.
 - Do not hardcode any scope-slug or variant ID in this orchestrator's control flow. Every scope-specific value is captured from the scope-selector's return at step 0c, and every variant-specific value is captured from `wireframes/<chosen.scope_slug>/variants.json` at Stage 3. The orchestrator must work unchanged for any new scope-slug or any new variant configuration the architect produces.
 - Do not invoke the blueprint-architect with a freshly-written `scope.json` when `mode = "regenerate-variants"` or `mode = "add-variant"`. On those two modes, the existing `blueprints/<chosen.scope_slug>/scope.json` is reused as-is; re-collecting scope on a regenerate-only flow would undermine the consultant's deliberate choice to keep the scope intact.
 - Do not invoke Stage 4 (comparator) when Stage 3 returned zero successful sub-agents. A comparison matrix with zero variants is degenerate; exit cleanly with a structured error instead.

@@ -63,25 +63,48 @@ Every `data-src` ID **must** be present in `S.sources` (the blueprint's source l
 
 ## 4.5 Compose cross-screen + cross-variant nav
 
+Every cross-screen and cross-variant link carries `target="_blank" rel="noopener"` so a click opens the destination in a new tab — the consultant arranges tabs as side-by-side windows using the browser's native tab-drag, without losing the current screen. The "back to index" link in the page chrome (filled by `{{SET_INDEX_HREF}}` in the template) is the **only** link without `target="_blank"`; it is back-navigation to the scope landing and naturally replaces the current tab.
+
 Cross-screen nav (`{{CROSS_SCREEN_NAV}}`): a `<nav>` block with prev / current / next links derived from the blueprint's flow notation. Example for S-02 of a 5-screen flow:
 
 ```html
-<a href="screen-01-login.html">‹ S-01 Login</a>
+<a href="screen-01-login.html" target="_blank" rel="noopener">‹ S-01 Login</a>
 <strong>S-02 File picker</strong>
-<a href="screen-03-validation.html">S-03 Validation ›</a>
+<a href="screen-03-validation.html" target="_blank" rel="noopener">S-03 Validation ›</a>
 ```
 
-For the entry screen (S-01) the prev link is absent; for the terminal screen the next link is absent. Error-loop flows (`S-03 → S-02 on validation failure`) are rendered as an additional `<a>` with a clarifying suffix: `<a href="screen-02-file-picker.html">↺ on validation failure</a>`.
+For the entry screen (S-01) the prev link is absent; for the terminal screen the next link is absent. Error-loop flows (`S-03 → S-02 on validation failure`) are rendered as an additional `<a>` with a clarifying suffix: `<a href="screen-02-file-picker.html" target="_blank" rel="noopener">↺ on validation failure</a>`.
 
 Cross-variant nav (`{{CROSS_VARIANT_NAV}}`): derived from `variants_path` — the sub-agent does NOT re-read variants.json (it already has own.variant_id from step 2.2), but it knows the variant directory structure. The nav links each other variant's matching screen at the same `S-NN` slot:
 
 ```html
-<a href="../<VARIANT-B>/screen-02-file-picker.html">View V-B</a>
+<a href="../<VARIANT-B>/screen-02-file-picker.html" target="_blank" rel="noopener">Open in V-B</a>
 <button aria-pressed="true">Current: V-A</button>
-<a href="../<VARIANT-C>/screen-02-file-picker.html">View V-C</a>
+<a href="../<VARIANT-C>/screen-02-file-picker.html" target="_blank" rel="noopener">Open in V-C</a>
 ```
 
 The sub-agent enumerates other variant IDs from the variants.json read at step 2.2 (own-entry skip applied) — this is the **only** other-variant data the sub-agent reads, and it is metadata-only (IDs and inferred screen filenames), not content.
+
+## 4.5b Compose `{{POSITION_TAGLINE}}` (plain-English)
+
+The chrome header surfaces a plain-English summary of the variant's non-neutral positions, used to substitute the template's `{{POSITION_TAGLINE}}` slot.
+
+Read `framework/assets/wireframes/position-vocabulary.md` once at step 2 (already in memory by step 4). For each dimension in `own.dimension_positions`, look up the **short label** for the dimension's position. **Omit dimensions where the position is `0`** (neutral) — neutral positions add no signal to the tagline. Join the remaining short labels with ` · ` (space-bullet-space) in canonical dimension order (`speed-accuracy`, `power-simplicity`, `density-focus`, `control-automation`, `flexibility-consistency`).
+
+Examples:
+
+- `density-focus: +2, speed-accuracy: +1, others: 0` → `"Speed-leaning · Maximally dense"`.
+- `density-focus: -1, speed-accuracy: -1, others: 0` → `"Accuracy-leaning · Spacious"`.
+- All positions `0` → empty string (the template renders the chrome line with an empty tagline; downstream check at step 6 flags this as an authoring bug since at least one position should be non-neutral for a meaningful variant).
+
+**No-jargon enforcement.** The composed string MUST NOT contain:
+
+- Dimension notation: `D1`, `D2`, …, `D6`, `D1+`, `D1-`, `+1`, `-1`, `+2`, `-2`, `density-focus`, `speed-accuracy`, etc.
+- Pattern-catalogue IDs: `table.compact`, `single-form.compact`, etc.
+- General-rule references: `GR-01`, …, `GR-NN`.
+- Bracketed annotations: `[STANDARD-RULE: …]`, `[DRIFT: …]`, `[AI-SUGGESTED: …]`.
+
+The whole point of the tagline is plain-English skimmability. If a generated tagline contains any banned substring, re-compose by re-reading the short labels from position-vocabulary.md (the labels are pre-vetted to be plain-English; the violation will be in a hand-crafted addition by the sub-agent).
 
 ## 4.6 Fill the template slots
 
@@ -99,6 +122,7 @@ Token-substitute every slot in `template_screen` from in-memory state:
 - `{{CROSS_VARIANT_NAV}}` → from 4.5.
 - `{{PRIMARY_PATTERN_HTML}}` → from 4.2 + 4.4 (data-src embedded).
 - `{{SECONDARY_PATTERN_HTML}}` → from 4.3 + 4.4.
+- `{{POSITION_TAGLINE}}` → from 4.5b (plain-English position labels joined with ` · `).
 - `{{STATES_RENDERED}}` → pipe-separated names from `S.states_rendered`.
 - `{{COMPARISON_HREF}}` → `"../comparison.html"`.
 - `{{SET_INDEX_HREF}}` → `"../index.html"`.
