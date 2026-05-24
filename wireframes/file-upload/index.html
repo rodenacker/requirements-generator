@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>file-upload — wireframes</title>
+  <link rel="stylesheet" href="CAREFUL-DEFAULT/wireframe-ds.css" />
+  <style>
+    /* Index-specific layout overrides. The wireframe-ds CSS gives us the
+       dashed-sketch shell; the grid + rail layout is index-private. */
+
+    .wf-page-layout {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 24px;
+    }
+
+    @media (max-width: 960px) {
+      .wf-page-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .wf-variant-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .wf-variant-col {
+      border: var(--wf-border-width) dashed var(--wf-border-subtle);
+      border-radius: var(--wf-radius);
+      padding: calc(var(--wf-spacing) * 2);
+      background: var(--wf-surface-default);
+      display: flex;
+      flex-direction: column;
+      gap: var(--wf-spacing);
+    }
+
+    .wf-variant-col h2 {
+      margin: 0;
+      font-size: var(--wf-fz-lg);
+    }
+
+    .wf-tagline {
+      font-size: var(--wf-fz-sm);
+      color: var(--wf-text-muted);
+      margin: 0;
+    }
+
+    .wf-pitch {
+      margin: 0;
+      font-size: var(--wf-fz-base);
+    }
+
+    .wf-thumb {
+      width: 100%;
+      height: 220px;
+      border: var(--wf-border-width) dashed var(--wf-border-subtle);
+      background: var(--wf-surface-muted);
+      margin: var(--wf-spacing) 0;
+    }
+
+    .wf-screen-list {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .wf-screen-list li a {
+      display: block;
+      padding: 6px 8px;
+      border: 1px dashed var(--wf-border-subtle);
+      text-decoration: none;
+      color: var(--wf-text-default);
+    }
+
+    .wf-screen-list li a:hover,
+    .wf-screen-list li a:focus {
+      outline: 2px solid var(--wf-focus-ring);
+      background: var(--wf-surface-elevated);
+    }
+
+    .wf-meta-rail {
+      display: flex;
+      flex-direction: column;
+      gap: var(--wf-spacing);
+    }
+
+    .wf-meta {
+      border: var(--wf-border-width) dashed var(--wf-border-subtle);
+      border-radius: var(--wf-radius);
+      padding: var(--wf-spacing);
+      background: var(--wf-surface-elevated);
+    }
+
+    .wf-meta summary {
+      cursor: pointer;
+      font-weight: 700;
+      font-family: var(--wf-font-display);
+    }
+
+    .wf-meta h3 {
+      font-size: var(--wf-fz-base);
+      margin: var(--wf-spacing) 0 4px;
+    }
+
+    .wf-meta ul,
+    .wf-meta p,
+    .wf-meta dl {
+      margin: 0 0 var(--wf-spacing);
+      font-size: var(--wf-fz-sm);
+    }
+
+    .wf-meta ul {
+      padding-left: 18px;
+    }
+
+    .wf-scope-details {
+      border: var(--wf-border-width) dashed var(--wf-border-subtle);
+      border-radius: var(--wf-radius);
+      padding: calc(var(--wf-spacing) * 2);
+      background: var(--wf-surface-muted);
+      margin-top: 24px;
+    }
+
+    .wf-scope-details summary {
+      cursor: pointer;
+      font-weight: 700;
+      font-family: var(--wf-font-display);
+      font-size: var(--wf-fz-lg);
+    }
+
+    .wf-foot {
+      font-size: var(--wf-fz-xs);
+      color: var(--wf-text-muted);
+      text-align: right;
+      padding: var(--wf-spacing) 0;
+    }
+  </style>
+</head>
+<body>
+  <header class="wf-chrome">
+    <strong>file-upload</strong>
+    <span class="wf-help">selected at <code>2026-05-24T11:31:32Z</code></span>
+    <span style="margin-left: auto;">
+      <a href="comparison.html" class="wf-btn">Trade-off matrix</a>
+      <a href="../../blueprints/file-upload/blueprint.md" class="wf-btn">Blueprint</a>
+    </span>
+  </header>
+
+  <div class="wf-page-layout">
+    <main>
+      <p class="wf-help" style="margin-top: 16px;">
+        Each column is a variant. Click any screen link to open that wireframe in a new tab.
+        To compare side-by-side, open the same screen in two variants and arrange the tabs as
+        adjacent windows using your browser's native tab-drag.
+      </p>
+
+      <div class="wf-variant-grid">
+        <section class="wf-variant-col">
+          <h2>CAREFUL-DEFAULT</h2>
+          <p class="wf-tagline">Accuracy-leaning</p>
+          <p class="wf-pitch">Standard-density single-column upload with accuracy-leaning confirmation gates and a feedback-rich error inspection list.</p>
+          <iframe src="CAREFUL-DEFAULT/screen-01-upload-form.html" loading="lazy" class="wf-thumb" title="CAREFUL-DEFAULT first screen preview" aria-label="CAREFUL-DEFAULT first screen preview"></iframe>
+          <ul class="wf-screen-list">
+            <li><a href="CAREFUL-DEFAULT/screen-01-upload-form.html" target="_blank" rel="noopener">S-01 &mdash; Upload form</a></li>
+            <li><a href="CAREFUL-DEFAULT/screen-02-upload-accepted.html" target="_blank" rel="noopener">S-02 &mdash; Upload accepted</a></li>
+            <li><a href="CAREFUL-DEFAULT/screen-03-upload-failed.html" target="_blank" rel="noopener">S-03 &mdash; Upload failed &mdash; validation errors</a></li>
+          </ul>
+        </section>
+        <section class="wf-variant-col">
+          <h2>POWER-DENSE</h2>
+          <p class="wf-tagline">Speed-leaning &middot; Maximally dense</p>
+          <p class="wf-pitch">Dense multi-column upload with keyboard-first inline-edit on the validation-error grid; built for the daily high-volume Importer.</p>
+          <iframe src="POWER-DENSE/screen-01-upload-form.html" loading="lazy" class="wf-thumb" title="POWER-DENSE first screen preview" aria-label="POWER-DENSE first screen preview"></iframe>
+          <ul class="wf-screen-list">
+            <li><a href="POWER-DENSE/screen-01-upload-form.html" target="_blank" rel="noopener">S-01 &mdash; Upload form</a></li>
+            <li><a href="POWER-DENSE/screen-02-upload-accepted.html" target="_blank" rel="noopener">S-02 &mdash; Upload accepted</a></li>
+            <li><a href="POWER-DENSE/screen-03-upload-failed.html" target="_blank" rel="noopener">S-03 &mdash; Upload failed &mdash; validation errors</a></li>
+          </ul>
+        </section>
+      </div>
+
+      <section class="wf-scope-details">
+        <details>
+          <summary>Scope details</summary>
+          <p class="wf-help" style="margin-top: var(--wf-spacing);">
+            file-upload
+          </p>
+          <h3>Requirement sources</h3>
+          <p>5 functional, 2 business rules, 5 UI needs, 1 goal, 1 task flow, 2 data shapes</p>
+          <h3>Personas available</h3>
+          <ul><li>Importer</li></ul>
+          <h3>Screen inventory</h3>
+          <p>3 screens: S-01 Upload form, S-02 Upload accepted, S-03 Upload failed &mdash; validation errors</p>
+          <p><a href="../../blueprints/file-upload/blueprint.md">View full blueprint (inventory + flow + trace)</a></p>
+        </details>
+      </section>
+
+      <p class="wf-foot">Drift report: 1 flag &mdash; see _drift.json for detail.</p>
+    </main>
+
+    <aside class="wf-meta-rail" aria-label="Variant details">
+      <details class="wf-meta">
+        <summary>CAREFUL-DEFAULT</summary>
+        <h3>Built for</h3><p>Importer</p>
+        <h3>Strengths</h3>
+        <ul>
+          <li>Validation status is visible at every step of the upload</li>
+          <li>Explicit save bar prevents accidental submission</li>
+          <li>Error list shows row, column, rule, and offending value</li>
+        </ul>
+        <h3>Weaknesses</h3>
+        <ul>
+          <li>Single-column form takes more vertical scroll for many fields</li>
+          <li>Per-row confirm slows experienced operators on retry</li>
+          <li>Verbose banners add height that experts may want to suppress</li>
+        </ul>
+        <h3>Trade-off</h3><p>Slower per upload but harder to commit a bad file; suits importers who would rather catch errors than rush.</p>
+        <h3>Use when</h3><p>First-time or low-frequency importers who care more about getting it right than about throughput.</p>
+        <h3>States per screen</h3>
+        <dl>
+          <dt>S-01 &mdash; Upload form</dt><dd>default | file-selected | validating | error</dd>
+          <dt>S-02 &mdash; Upload accepted</dt><dd>default | success</dd>
+          <dt>S-03 &mdash; Upload failed &mdash; validation errors</dt><dd>default | error</dd>
+        </dl>
+      </details>
+      <details class="wf-meta">
+        <summary>POWER-DENSE</summary>
+        <h3>Built for</h3><p>Importer</p>
+        <h3>Strengths</h3>
+        <ul>
+          <li>All 14 validation errors visible on one screen, no scrolling</li>
+          <li>Fix errors inline without leaving the table</li>
+          <li>Keyboard shortcuts cover every action</li>
+        </ul>
+        <h3>Weaknesses</h3>
+        <ul>
+          <li>Eight-column error grid is intimidating for first-time users</li>
+          <li>Hidden shortcuts must be learned before they pay off</li>
+          <li>Dense form layout leaves little room for help text</li>
+        </ul>
+        <h3>Trade-off</h3><p>Faster for daily importers; harder to absorb on first contact.</p>
+        <h3>Use when</h3><p>Daily importers who handle many batches and want to fix errors inline at speed.</p>
+        <h3>States per screen</h3>
+        <dl>
+          <dt>S-01 &mdash; Upload form</dt><dd>default | file-selected | validating | uploading | error</dd>
+          <dt>S-02 &mdash; Upload accepted</dt><dd>default | filelog-ready</dd>
+          <dt>S-03 &mdash; Upload failed &mdash; validation errors</dt><dd>default | error-row | editing | saved | empty-after-fix</dd>
+        </dl>
+      </details>
+    </aside>
+  </div>
+</body>
+</html>

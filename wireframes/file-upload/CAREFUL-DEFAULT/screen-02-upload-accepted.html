@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>S-02 Upload accepted — CAREFUL-DEFAULT — file-upload</title>
+  <link rel="stylesheet" href="wireframe-ds.css" />
+  <meta name="wf-scope-slug" content="file-upload" />
+  <meta name="wf-variant-id" content="CAREFUL-DEFAULT" />
+  <meta name="wf-screen-id" content="S-02" />
+  <meta name="wf-screen-sources" content="F-06, BR-06, §5 File Upload, §7 FileLog" />
+  <meta name="wf-persona-binding" content="Importer" />
+  <meta name="wf-states-rendered" content="default | success" />
+</head>
+<body>
+  <header class="wf-chrome" data-src="F-06, BR-06, §5 File Upload, §7 FileLog">
+    <strong>S-02 · Upload accepted</strong>
+    <span class="wf-help">CAREFUL-DEFAULT · Accuracy-leaning · for Importer</span>
+    <nav aria-label="Within-variant flow">
+      <a href="screen-01-upload-form.html" target="_blank" rel="noopener">&lsaquo; S-01 Upload form</a>
+      <strong>S-02 Upload accepted</strong>
+    </nav>
+    <nav aria-label="Across variants" class="wf-role-switcher">
+      <button aria-pressed="true">Current: CAREFUL-DEFAULT</button>
+      <a href="../POWER-DENSE/screen-02-upload-accepted.html" target="_blank" rel="noopener">Open in POWER-DENSE</a>
+    </nav>
+    <span style="margin-left: auto;">
+      <a href="../index.html" class="wf-btn">Back to index</a>
+      <a href="../comparison.html" class="wf-btn" target="_blank" rel="noopener">Trade-off matrix</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1100px; margin: 0 auto; padding: 0 16px;">
+    <h1 data-src="F-06, BR-06, §5 File Upload, §7 FileLog">Upload accepted</h1>
+
+    <section class="wf-section" aria-labelledby="primary-region-label">
+      <h2 id="primary-region-label" class="visually-hidden" style="position:absolute; left:-9999px;">Primary content</h2>
+
+      <div class="wf-banner" data-tone="success" data-src="F-06, BR-06" role="status">
+        <strong>&#10003; All 347 rows passed validation and were committed.</strong>
+        <p style="margin: 4px 0 0;">
+          File <code>2026-05-23-batch.csv</code> was accepted at <code>2026-05-24 14:02 UTC</code>.
+          A new FileLog entry has been created and is now available for downstream approval.
+          <em>(state: success)</em>
+        </p>
+      </div>
+
+      <div class="wf-card" data-src="F-06, §7 FileLog">
+        <h3>FileLog row created</h3>
+        <p class="wf-help" data-src="§7 FileLog">
+          The record below has just been written to the FileLog. You can return to this
+          entry at any time via the Files index; nothing on this page is editable.
+        </p>
+        <dl style="display: grid; grid-template-columns: 200px 1fr; gap: 4px 16px; margin: 0;">
+          <dt><strong>File ID</strong></dt>
+          <dd data-src="§7 FileLog"><code>FL-2026-0517</code></dd>
+
+          <dt><strong>Filename</strong></dt>
+          <dd data-src="§7 FileLog"><code>2026-05-23-batch.csv</code></dd>
+
+          <dt><strong>Uploaded by</strong></dt>
+          <dd data-src="§7 FileLog">f.rodenacker@example.com (Importer)</dd>
+
+          <dt><strong>Uploaded at</strong></dt>
+          <dd data-src="§7 FileLog">2026-05-24 14:02 UTC</dd>
+
+          <dt><strong>Accounting period</strong></dt>
+          <dd data-src="§7 FileLog">2026-04 (April 2026)</dd>
+
+          <dt><strong>Source system</strong></dt>
+          <dd data-src="§7 FileLog">General ledger export</dd>
+
+          <dt><strong>Row count</strong></dt>
+          <dd data-src="§7 FileLog, BR-06">347 rows committed; 0 rejected.</dd>
+
+          <dt><strong>Total amount</strong></dt>
+          <dd data-src="§7 FileLog"><code>1,248,302.47 USD</code></dd>
+
+          <dt><strong>Status</strong></dt>
+          <dd data-src="§7 FileLog, F-06">Awaiting approval</dd>
+
+          <dt><strong>Note</strong></dt>
+          <dd data-src="§7 FileLog"><em>(none)</em></dd>
+        </dl>
+      </div>
+
+      <div class="wf-section" style="display: flex; gap: 12px; align-items: center;">
+        <a href="screen-01-upload-form.html" class="wf-btn primary" target="_blank" rel="noopener" data-src="§5 File Upload">Upload another file</a>
+        <a href="#" class="wf-btn" data-src="F-06">Go to Files index</a>
+        <a href="#" class="wf-btn" data-src="F-06">View this entry's audit trail</a>
+        <span class="wf-help" style="margin-left: auto;">
+          Reference: <code>FL-2026-0517</code> &mdash; quote this when contacting support.
+        </span>
+      </div>
+    </section>
+
+    <aside class="wf-banner" data-tone="success" data-src="BR-06" role="note">
+      <strong>What happens next</strong>
+      <p style="margin: 4px 0 0;">
+        The new FileLog entry is now visible to approvers. Once an approver signs it off,
+        the transactions will be posted to the general ledger. You'll receive a notification
+        when that happens, or you can check the entry's status from the Files index.
+      </p>
+    </aside>
+  </main>
+
+  <footer class="wf-chrome" style="margin-top: 32px;">
+    <span class="wf-help">
+      States rendered on this screen: <code>default | success</code>
+    </span>
+  </footer>
+</body>
+</html>

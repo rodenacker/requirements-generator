@@ -1,0 +1,35 @@
+{
+  "scope_slug": "file-upload",
+  "authored_at": "2026-05-24T11:38:05Z",
+  "blueprint_sha256": "3030a8bbbaacc495fd2e74ba818d009598a886936cf7158c5edb5f984991b2e2",
+  "dimensions_diverging_on": ["density-focus", "speed-accuracy"],
+  "cardinality_cap": 3,
+  "variants": [
+    {
+      "variant_id": "CAREFUL-DEFAULT",
+      "persona_binding": "Importer",
+      "design_philosophy": "Standard-density single-column upload with accuracy-leaning confirmation gates and a feedback-rich error inspection list.",
+      "dimension_positions": {
+        "density-focus": 0,
+        "speed-accuracy": -1,
+        "power-simplicity": 0,
+        "control-automation": 0,
+        "flexibility-consistency": 0,
+        "memorability-discoverability": 0
+      }
+    },
+    {
+      "variant_id": "POWER-DENSE",
+      "persona_binding": "Importer",
+      "design_philosophy": "Dense multi-column upload with keyboard-first inline-edit on the validation-error grid; built for the daily high-volume Importer.",
+      "dimension_positions": {
+        "density-focus": 2,
+        "speed-accuracy": 1,
+        "power-simplicity": 0,
+        "control-automation": 0,
+        "flexibility-consistency": 0,
+        "memorability-discoverability": 0
+      }
+    }
+  ]
+}

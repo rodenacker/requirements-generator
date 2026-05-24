@@ -1,0 +1,27 @@
+{
+  "scope_slug": "file-upload",
+  "variant_id": "CAREFUL-DEFAULT",
+  "authored_at": "2026-05-24T14:05:00Z",
+  "persona_binding": "Importer",
+  "design_philosophy": "Standard-density single-column upload with accuracy-leaning confirmation gates and a feedback-rich error inspection list.",
+  "dimension_positions": {
+    "density-focus": 0,
+    "speed-accuracy": -1,
+    "power-simplicity": 0,
+    "control-automation": 0,
+    "flexibility-consistency": 0,
+    "memorability-discoverability": 0
+  },
+  "strengths": [
+    "Validation status is visible at every step of the upload",
+    "Explicit save bar prevents accidental submission",
+    "Error list shows row, column, rule, and offending value"
+  ],
+  "weaknesses": [
+    "Single-column form takes more vertical scroll for many fields",
+    "Per-row confirm slows experienced operators on retry",
+    "Verbose banners add height that experts may want to suppress"
+  ],
+  "tradeoffs": "Slower per upload but harder to commit a bad file; suits importers who would rather catch errors than rush.",
+  "use_when": "First-time or low-frequency importers who care more about getting it right than about throughput."
+}

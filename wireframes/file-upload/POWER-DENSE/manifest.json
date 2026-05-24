@@ -1,0 +1,35 @@
+{
+  "scope_slug": "file-upload",
+  "variant_id": "POWER-DENSE",
+  "authored_at": "2026-05-24T11:42:00Z",
+  "blueprint_sha256": "3030a8bbbaacc495fd2e74ba818d009598a886936cf7158c5edb5f984991b2e2",
+  "screens": {
+    "S-01": {
+      "screen_file": "screen-01-upload-form.html",
+      "primary_pattern": "single-form",
+      "primary_pattern_variant": "compact",
+      "secondary_patterns": ["notification-banner"],
+      "states_rendered": ["default", "file-selected", "validating", "uploading", "error"],
+      "data_src_targets": ["F-05", "BR-09", "UI-04", "UI-05", "G-01", "§5 File Upload"],
+      "notes": "Two-column dense field layout via inline grid; submit-on-Enter wired on primary CTA; keyboard shortcuts panel surfaced; help-aside suppressed per dense+speed-leaning composition."
+    },
+    "S-02": {
+      "screen_file": "screen-02-upload-accepted.html",
+      "primary_pattern": "confirmation-receipt",
+      "primary_pattern_variant": "receipt-style",
+      "secondary_patterns": ["notification-banner"],
+      "states_rendered": ["default", "filelog-ready"],
+      "data_src_targets": ["F-06", "BR-06", "§5 File Upload", "§7 FileLog"],
+      "notes": "Receipt-style with a dense 4-column attribute grid mirroring §7 FileLog shape (attribute-list slot, per receipt composition-rules) plus a first-5 line-item table (line-items slot); deep-linkable reference; print-friendly chrome; persistent success banner per GR-14 (acknowledgement, not toast). The architect's 'confirmation-receipt over detail-page' note describes the conceptual layering of FileLog inspection beneath the receipt headline, not a nested detail-page composition."
+    },
+    "S-03": {
+      "screen_file": "screen-03-upload-failed.html",
+      "primary_pattern": "table",
+      "primary_pattern_variant": "compact",
+      "secondary_patterns": ["notification-banner", "inline-edit"],
+      "states_rendered": ["default", "error-row", "editing", "saved", "empty-after-fix"],
+      "data_src_targets": ["F-17", "F-18", "F-19", "UI-15", "UI-17", "UI-18", "§5 File Upload", "§7 ValidationErrors"],
+      "notes": "Compact table with bulk-select column and inline-edit cells (effectively editable variant via inline-edit composition); 10 columns visible to honour D3=+2; keyboard shortcuts panel + Ctrl+Enter retry + Ctrl+D download; filter chrome collapsed by default to keep error grid above the fold."
+    }
+  }
+}

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>S-01 Upload form — CAREFUL-DEFAULT — file-upload</title>
+  <link rel="stylesheet" href="wireframe-ds.css" />
+  <meta name="wf-scope-slug" content="file-upload" />
+  <meta name="wf-variant-id" content="CAREFUL-DEFAULT" />
+  <meta name="wf-screen-id" content="S-01" />
+  <meta name="wf-screen-sources" content="F-05, BR-09, UI-04, UI-05, G-01, §5 File Upload" />
+  <meta name="wf-persona-binding" content="Importer" />
+  <meta name="wf-states-rendered" content="default | file-selected | validating | error" />
+</head>
+<body>
+  <header class="wf-chrome" data-src="F-05, BR-09, UI-04, UI-05, G-01, §5 File Upload">
+    <strong>S-01 · Upload form</strong>
+    <span class="wf-help">CAREFUL-DEFAULT · Accuracy-leaning · for Importer</span>
+    <nav aria-label="Within-variant flow">
+      <strong>S-01 Upload form</strong>
+      <a href="screen-02-upload-accepted.html" target="_blank" rel="noopener">S-02 Upload accepted (on success) &rsaquo;</a>
+      <a href="screen-03-upload-failed.html" target="_blank" rel="noopener">S-03 Upload failed (on validation failure) &rsaquo;</a>
+    </nav>
+    <nav aria-label="Across variants" class="wf-role-switcher">
+      <button aria-pressed="true">Current: CAREFUL-DEFAULT</button>
+      <a href="../POWER-DENSE/screen-01-upload-form.html" target="_blank" rel="noopener">Open in POWER-DENSE</a>
+    </nav>
+    <span style="margin-left: auto;">
+      <a href="../index.html" class="wf-btn">Back to index</a>
+      <a href="../comparison.html" class="wf-btn" target="_blank" rel="noopener">Trade-off matrix</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1100px; margin: 0 auto; padding: 0 16px;">
+    <h1 data-src="F-05, BR-09, UI-04, UI-05, G-01, §5 File Upload">Upload transaction file</h1>
+
+    <section class="wf-section" aria-labelledby="primary-region-label">
+      <h2 id="primary-region-label" class="visually-hidden" style="position:absolute; left:-9999px;">Primary content</h2>
+      <p class="wf-help">
+        Drop a transaction file below, set its accounting period, and submit. The file
+        will be validated row-by-row before being committed; you'll be taken to a
+        confirmation screen on success, or to a validation-error list on failure.
+      </p>
+
+      <form class="wf-form" aria-describedby="upload-help" data-src="F-05, BR-09, UI-04, UI-05, §5 File Upload">
+        <div class="wf-field">
+          <label for="upload-file">Transaction file</label>
+          <div class="wf-empty" id="upload-dropzone" data-src="F-05, UI-04" style="text-align: center; padding: 24px;">
+            <p style="margin: 0 0 8px;"><strong>Drop a file here</strong> &mdash; or use the picker below.</p>
+            <input id="upload-file" type="file" name="file" accept=".csv,.xlsx,.xls,.txt" required aria-required="true" />
+            <p class="wf-help" id="upload-help">Accepted formats: CSV, XLSX, XLS, TXT. One file per submission.</p>
+          </div>
+          <p class="wf-help" data-src="F-05">
+            Selected file: <code>2026-05-23-batch.csv</code> &mdash; 347 rows, 142 KB.
+            <em>(state: file-selected)</em>
+          </p>
+        </div>
+
+        <div class="wf-field">
+          <label for="upload-period">Accounting period</label>
+          <select id="upload-period" name="period" required aria-required="true" data-src="F-05, §5 File Upload">
+            <option value="">&mdash; Select a period &mdash;</option>
+            <option>2026-05 (May 2026)</option>
+            <option selected>2026-04 (April 2026)</option>
+            <option>2026-03 (March 2026)</option>
+            <option>2026-02 (February 2026)</option>
+          </select>
+          <p class="wf-help">The period to which all rows in this file will be assigned.</p>
+        </div>
+
+        <div class="wf-field">
+          <label for="upload-source">Source system</label>
+          <select id="upload-source" name="source" required aria-required="true" data-src="F-05">
+            <option value="">&mdash; Select a source &mdash;</option>
+            <option selected>General ledger export</option>
+            <option>Bank statement</option>
+            <option>Manual reconciliation</option>
+          </select>
+          <p class="wf-help">Where this transaction file originated.</p>
+        </div>
+
+        <div class="wf-field">
+          <label for="upload-note">Note for reviewer (optional)</label>
+          <textarea id="upload-note" name="note" rows="3" placeholder="Anything the reviewer should know about this batch&hellip;"></textarea>
+          <p class="wf-help">Visible to anyone who later inspects this FileLog row.</p>
+        </div>
+
+        <div class="wf-banner" data-tone="warning" data-src="UI-05" role="status" aria-live="polite">
+          <strong>Validating&hellip;</strong>
+          <span> Row-by-row checks are in progress. This usually takes 5&ndash;30 seconds for a file this size. <em>(state: validating &mdash; indeterminate progress)</em></span>
+        </div>
+
+        <p class="wf-validation-error" data-src="BR-09" role="alert">
+          <em>(state: error)</em> Period field is required &mdash; please select an accounting period before submitting.
+        </p>
+
+        <footer class="wf-section" style="position: sticky; bottom: 0; background: var(--wf-surface-elevated); padding: 12px 16px; display: flex; gap: 12px; align-items: center; margin-top: 16px;">
+          <button type="submit" class="wf-btn primary" data-src="F-05, §5 File Upload">Validate and submit</button>
+          <button type="button" class="wf-btn">Discard</button>
+          <span class="wf-help" style="margin-left: auto;">
+            Unsaved changes will be lost if you navigate away.
+          </span>
+        </footer>
+      </form>
+    </section>
+
+    <aside class="wf-banner" data-tone="warning" data-src="BR-09" role="note">
+      <strong>How validation works</strong>
+      <p style="margin: 4px 0 0;">
+        Every row is checked against your column rules (required fields, formats, totals)
+        before the file is accepted. If any row fails, the whole submission is rolled back
+        and you are taken to a validation-error list where you can review each issue and
+        retry. Nothing is committed until every row passes.
+      </p>
+    </aside>
+  </main>
+
+  <footer class="wf-chrome" style="margin-top: 32px;">
+    <span class="wf-help">
+      States rendered on this screen: <code>default | file-selected | validating | error</code>
+    </span>
+  </footer>
+</body>
+</html>

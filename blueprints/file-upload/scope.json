@@ -1,0 +1,18 @@
+{
+  "scope_slug": "file-upload",
+  "pipeline_origin": "wireframe",
+  "scope_mode": "intent",
+  "selected_at": "2026-05-24T11:31:32Z",
+  "requirements_sha256": "8139af430390f934ea05d2691660fdbce12ceb7f7a86c0e4b05be2134f27b8c7",
+  "intent_description": "file-upload",
+  "sources": {
+    "functional": ["F-05", "F-06", "F-17", "F-18", "F-19"],
+    "business_rules": ["BR-06", "BR-09"],
+    "ui_needs": ["UI-04", "UI-05", "UI-15", "UI-17", "UI-18"],
+    "goals": ["G-01"],
+    "task_flows": ["§5 File Upload"],
+    "data_shapes": ["§7 FileLog", "§7 ValidationErrors"]
+  },
+  "personas_available": ["Importer"],
+  "dimension_override": null
+}
