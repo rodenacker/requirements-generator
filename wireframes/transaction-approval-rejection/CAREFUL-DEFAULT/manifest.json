@@ -1,0 +1,132 @@
+{
+  "scope_slug": "transaction-approval-rejection",
+  "variant_id": "CAREFUL-DEFAULT",
+  "authored_at": "2026-05-24T16:20:00Z",
+  "blueprint_sha256": "30a15815d3b5e4870b8fb682f8c332ab2c5ef4048d5a80cb8d1e19318dda3baa",
+  "screens": {
+    "S-01": {
+      "screen_file": "screen-01-transactions-table.html",
+      "primary_pattern": "collections/table",
+      "primary_pattern_variant": "default",
+      "notes": "Registry Section 3 names variant 'table.comfortable' for D1=-1 Collections; catalogue table variants are {default, compact, selectable, expandable-row, editable, virtualised, sticky-header} and do not include 'comfortable'. Fell back to default per step-04 4.1; composition retains careful pace via explicit per-row confirm gates on destructive actions and bulk-select disabled.",
+      "secondary_patterns": [
+        "forms/search-and-filter",
+        "navigation/pagination",
+        "feedback/empty-state",
+        "feedback/notification-banner"
+      ],
+      "states_rendered": [
+        "default",
+        "loading",
+        "empty",
+        "error",
+        "filtering"
+      ],
+      "data_src_targets": [
+        "F-08",
+        "F-09",
+        "F-12",
+        "UI-08",
+        "UI-09",
+        "UI-10",
+        "BR-02",
+        "BR-10",
+        "G-02"
+      ],
+      "properties_declared": [
+        "Transaction.Reference",
+        "Transaction.TransactionDate",
+        "Transaction.AccountNumber",
+        "Transaction.Amount",
+        "Transaction.TransactionType",
+        "Transaction.Currency",
+        "Transaction.Status"
+      ],
+      "properties_rendered": [
+        "Transaction.Reference",
+        "Transaction.TransactionDate",
+        "Transaction.AccountNumber",
+        "Transaction.Amount",
+        "Transaction.TransactionType",
+        "Transaction.Currency",
+        "Transaction.Status"
+      ]
+    },
+    "S-02": {
+      "screen_file": "screen-02-approve-confirmation.html",
+      "primary_pattern": "surfaces/modal-confirmation",
+      "primary_pattern_variant": "default",
+      "secondary_patterns": [
+        "feedback/notification-banner"
+      ],
+      "states_rendered": [
+        "default",
+        "loading",
+        "error",
+        "success"
+      ],
+      "data_src_targets": [
+        "F-10",
+        "F-15",
+        "BR-07",
+        "BR-11",
+        "UI-11",
+        "G-03"
+      ],
+      "properties_declared": [
+        "Transaction.Reference",
+        "Transaction.AccountNumber",
+        "Transaction.Amount",
+        "Transaction.Currency",
+        "Transaction.Status"
+      ],
+      "properties_rendered": [
+        "Transaction.Reference",
+        "Transaction.AccountNumber",
+        "Transaction.Amount",
+        "Transaction.Currency",
+        "Transaction.Status"
+      ]
+    },
+    "S-03": {
+      "screen_file": "screen-03-reject-form.html",
+      "primary_pattern": "surfaces/modal-form",
+      "primary_pattern_variant": "default",
+      "secondary_patterns": [
+        "feedback/notification-banner"
+      ],
+      "states_rendered": [
+        "default",
+        "submit-disabled",
+        "error",
+        "loading",
+        "success"
+      ],
+      "data_src_targets": [
+        "F-11",
+        "F-15",
+        "BR-01",
+        "BR-08",
+        "BR-11",
+        "UI-12",
+        "G-03"
+      ],
+      "properties_declared": [
+        "Transaction.Reference",
+        "Transaction.AccountNumber",
+        "Transaction.Amount",
+        "Transaction.Currency",
+        "Transaction.Status",
+        "TransactionRejectWrite.UserNote"
+      ],
+      "properties_rendered": [
+        "Transaction.Reference",
+        "Transaction.AccountNumber",
+        "Transaction.Amount",
+        "Transaction.Currency",
+        "Transaction.Status",
+        "TransactionRejectWrite.UserNote"
+      ]
+    }
+  }
+}

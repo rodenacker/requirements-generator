@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>S-01 Transactions table — CAREFUL-DEFAULT — transaction-approval-rejection</title>
+  <link rel="stylesheet" href="wireframe-ds.css" />
+  <meta name="wf-scope-slug" content="transaction-approval-rejection" />
+  <meta name="wf-variant-id" content="CAREFUL-DEFAULT" />
+  <meta name="wf-screen-id" content="S-01" />
+  <meta name="wf-screen-sources" content="F-08,F-09,F-12,UI-08,UI-09,UI-10,BR-02,BR-10,G-02" />
+  <meta name="wf-persona-binding" content="Approver" />
+  <meta name="wf-states-rendered" content="default | loading | empty | error | filtering" />
+</head>
+<body>
+  <header class="wf-chrome" data-src="F-08,F-09,F-12,UI-08,UI-09,UI-10,BR-02,BR-10,G-02">
+    <strong>S-01 · Transactions table</strong>
+    <span class="wf-help">CAREFUL-DEFAULT · Accuracy-leaning · for Approver</span>
+    <nav aria-label="Within-variant flow">
+      <strong>S-01 Transactions table</strong>
+      <a href="screen-02-approve-confirmation.html" target="_blank" rel="noopener">S-02 Approve confirmation &rsaquo;</a>
+      <a href="screen-03-reject-form.html" target="_blank" rel="noopener">S-03 Reject form &rsaquo;</a>
+    </nav>
+    <nav aria-label="Across variants" class="wf-role-switcher">
+      <button aria-pressed="true">Current: CAREFUL-DEFAULT</button>
+      <a href="../POWER-DENSE/screen-01-transactions-table.html" target="_blank" rel="noopener">Open in POWER-DENSE</a>
+    </nav>
+    <span style="margin-left: auto;">
+      <a href="../index.html" class="wf-btn">Back to index</a>
+      <a href="../index.html#trade-off-matrix" class="wf-btn" target="_blank" rel="noopener">Trade-off matrix</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1100px; margin: 0 auto; padding: 0 16px;">
+    <h1 data-src="F-08,F-09,F-12,UI-08,UI-09,UI-10,BR-02,BR-10,G-02">Transactions</h1>
+
+    <section class="wf-section" aria-labelledby="primary-region-label">
+      <h2 id="primary-region-label" class="visually-hidden" style="position:absolute; left:-9999px;">Primary content</h2>
+
+      <!-- Secondary slot: search-and-filter (UI-only chrome; no data-prop) -->
+      <div class="wf-panel" role="search" data-src="F-09,UI-09" aria-label="Search and filter transactions">
+        <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
+          <div class="wf-field" style="flex: 1; min-width: 220px;">
+            <label for="t-search">Search</label>
+            <input id="t-search" type="search" placeholder="Reference or account number&hellip;" />
+          </div>
+          <div class="wf-field" style="min-width: 160px;">
+            <label for="t-status">Status</label>
+            <select id="t-status" aria-label="Filter by status">
+              <option>All</option>
+              <option>Imported</option>
+              <option>Approved</option>
+              <option>Rejected</option>
+            </select>
+          </div>
+          <div class="wf-field" style="min-width: 160px;">
+            <label for="t-type">Transaction type</label>
+            <select id="t-type" aria-label="Filter by transaction type">
+              <option>All</option>
+              <option>Debit</option>
+              <option>Credit</option>
+            </select>
+          </div>
+          <div>
+            <button type="button" class="wf-btn">Clear filters</button>
+          </div>
+        </div>
+        <p class="wf-help" style="margin-top: 8px;">Showing 24 of 312 transactions.</p>
+      </div>
+
+      <!-- Primary pattern: collections/table variant comfortable -->
+      <div class="wf-table" data-src="F-08,F-12,UI-08,UI-10">
+        <table aria-label="Transactions awaiting review">
+          <thead>
+            <tr>
+              <th scope="col" data-prop="Transaction.Reference">Reference</th>
+              <th scope="col" data-prop="Transaction.TransactionDate">Transaction date</th>
+              <th scope="col" data-prop="Transaction.AccountNumber">Account number</th>
+              <th scope="col" data-prop="Transaction.Amount">Amount</th>
+              <th scope="col" data-prop="Transaction.Currency">Currency</th>
+              <th scope="col" data-prop="Transaction.TransactionType">Type</th>
+              <th scope="col" data-prop="Transaction.Status">Status</th>
+              <th scope="col" aria-label="Row actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td data-prop="Transaction.Reference"><code>TX-2026-05-0001</code></td>
+              <td data-prop="Transaction.TransactionDate">2026-05-22</td>
+              <td data-prop="Transaction.AccountNumber">5012-77-8841</td>
+              <td data-prop="Transaction.Amount" style="text-align: right;">1,250.00</td>
+              <td data-prop="Transaction.Currency">USD</td>
+              <td data-prop="Transaction.TransactionType">Debit</td>
+              <td data-prop="Transaction.Status"><span aria-label="Imported status">Imported</span></td>
+              <td>
+                <a href="screen-02-approve-confirmation.html" class="wf-btn primary" data-src="UI-10,BR-10" target="_blank" rel="noopener">Approve&hellip;</a>
+                <a href="screen-03-reject-form.html" class="wf-btn destructive" data-src="UI-10,BR-10" target="_blank" rel="noopener">Reject&hellip;</a>
+              </td>
+            </tr>
+            <tr>
+              <td data-prop="Transaction.Reference"><code>TX-2026-05-0002</code></td>
+              <td data-prop="Transaction.TransactionDate">2026-05-22</td>
+              <td data-prop="Transaction.AccountNumber">5012-77-8842</td>
+              <td data-prop="Transaction.Amount" style="text-align: right;">847.50</td>
+              <td data-prop="Transaction.Currency">USD</td>
+              <td data-prop="Transaction.TransactionType">Credit</td>
+              <td data-prop="Transaction.Status"><span aria-label="Imported status">Imported</span></td>
+              <td>
+                <a href="screen-02-approve-confirmation.html" class="wf-btn primary" data-src="UI-10,BR-10" target="_blank" rel="noopener">Approve&hellip;</a>
+                <a href="screen-03-reject-form.html" class="wf-btn destructive" data-src="UI-10,BR-10" target="_blank" rel="noopener">Reject&hellip;</a>
+              </td>
+            </tr>
+            <tr>
+              <td data-prop="Transaction.Reference"><code>TX-2026-05-0003</code></td>
+              <td data-prop="Transaction.TransactionDate">2026-05-23</td>
+              <td data-prop="Transaction.AccountNumber">5012-77-8843</td>
+              <td data-prop="Transaction.Amount" style="text-align: right;">12,400.00</td>
+              <td data-prop="Transaction.Currency">EUR</td>
+              <td data-prop="Transaction.TransactionType">Debit</td>
+              <td data-prop="Transaction.Status"><span aria-label="Imported status">Imported</span></td>
+              <td>
+                <a href="screen-02-approve-confirmation.html" class="wf-btn primary" data-src="UI-10,BR-10" target="_blank" rel="noopener">Approve&hellip;</a>
+                <a href="screen-03-reject-form.html" class="wf-btn destructive" data-src="UI-10,BR-10" target="_blank" rel="noopener">Reject&hellip;</a>
+              </td>
+            </tr>
+            <tr>
+              <td data-prop="Transaction.Reference"><code>TX-2026-05-0004</code></td>
+              <td data-prop="Transaction.TransactionDate">2026-05-23</td>
+              <td data-prop="Transaction.AccountNumber">5012-77-8844</td>
+              <td data-prop="Transaction.Amount" style="text-align: right;">320.00</td>
+              <td data-prop="Transaction.Currency">USD</td>
+              <td data-prop="Transaction.TransactionType">Credit</td>
+              <td data-prop="Transaction.Status"><span aria-label="Approved status">Approved</span></td>
+              <td>
+                <span class="wf-help">Decision recorded</span>
+              </td>
+            </tr>
+            <tr>
+              <td data-prop="Transaction.Reference"><code>TX-2026-05-0005</code></td>
+              <td data-prop="Transaction.TransactionDate">2026-05-23</td>
+              <td data-prop="Transaction.AccountNumber">5012-77-8845</td>
+              <td data-prop="Transaction.Amount" style="text-align: right;">9,750.00</td>
+              <td data-prop="Transaction.Currency">GBP</td>
+              <td data-prop="Transaction.TransactionType">Debit</td>
+              <td data-prop="Transaction.Status"><span aria-label="Rejected status">Rejected</span></td>
+              <td>
+                <span class="wf-help">Decision recorded</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Secondary slot: pagination chrome (UI-only) -->
+      <nav aria-label="Pagination" style="display: flex; gap: 8px; align-items: center; margin-top: 8px;">
+        <button type="button" class="wf-btn" disabled>&lsaquo; Prev</button>
+        <span class="wf-help">Page 1 of 13</span>
+        <button type="button" class="wf-btn">Next &rsaquo;</button>
+        <span style="margin-left: 16px;" class="wf-help">Page size:
+          <select aria-label="Page size">
+            <option>5</option>
+            <option>10</option>
+            <option selected>20</option>
+            <option>50</option>
+          </select>
+        </span>
+      </nav>
+    </section>
+
+    <!-- Secondary patterns: alternative states rendered as side-by-side previews so consultants see them visually -->
+
+    <section class="wf-section" aria-labelledby="states-region-label">
+      <h2 id="states-region-label">Alternative states rendered</h2>
+      <p class="wf-help">Side-by-side previews of the table's non-default states so the consultant can compare without navigating.</p>
+
+      <h3>Loading state</h3>
+      <div class="wf-table" aria-busy="true" data-src="F-08">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col" data-prop="Transaction.Reference">Reference</th>
+              <th scope="col" data-prop="Transaction.TransactionDate">Transaction date</th>
+              <th scope="col" data-prop="Transaction.AccountNumber">Account number</th>
+              <th scope="col" data-prop="Transaction.Amount">Amount</th>
+              <th scope="col" data-prop="Transaction.Currency">Currency</th>
+              <th scope="col" data-prop="Transaction.TransactionType">Type</th>
+              <th scope="col" data-prop="Transaction.Status">Status</th>
+              <th scope="col" aria-label="Row actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="8" class="wf-skeleton" role="progressbar" aria-label="Loading transactions">Loading transactions&hellip;</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Empty state (no transactions)</h3>
+      <div class="wf-empty" data-src="F-08,G-02">
+        No transactions yet. New transactions appear here after an Importer uploads a transaction file.
+      </div>
+
+      <h3>Filtering state (no results)</h3>
+      <div class="wf-empty" data-src="F-09,UI-09">
+        No transactions match the current filters. <button type="button" class="wf-btn">Clear filters</button>
+      </div>
+
+      <h3>Error state</h3>
+      <div class="wf-banner" data-tone="danger" data-src="F-08,BR-02">
+        <strong>Could not load transactions.</strong> The list will refresh automatically. <button type="button" class="wf-btn">Retry now</button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="wf-chrome" style="margin-top: 32px;">
+    <span class="wf-help">
+      States rendered on this screen: <code>default | loading | empty | error | filtering</code>
+    </span>
+  </footer>
+</body>
+</html>

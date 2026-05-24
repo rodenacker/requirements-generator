@@ -1,0 +1,41 @@
+{
+  "scope_slug": "transaction-approval-rejection",
+  "variant_id": "POWER-DENSE",
+  "authored_at": "2026-05-24T14:14:00Z",
+  "blueprint_sha256": "30a15815d3b5e4870b8fb682f8c332ab2c5ef4048d5a80cb8d1e19318dda3baa",
+  "screens": {
+    "S-01": {
+      "screen_file": "screen-01-transactions-table.html",
+      "primary_pattern": "collections/table",
+      "primary_pattern_variant": "compact",
+      "secondary_patterns": ["forms/search-and-filter", "navigation/pagination", "feedback/empty-state"],
+      "states_rendered": ["default", "loading", "empty", "error"],
+      "data_src_targets": ["F-08", "F-09", "F-12", "UI-08", "UI-09", "UI-10", "BR-02", "BR-10", "G-02", "§5 Transaction Table", "§7 Transaction"],
+      "properties_declared": ["Transaction.Reference", "Transaction.TransactionDate", "Transaction.AccountNumber", "Transaction.Amount", "Transaction.TransactionType", "Transaction.Currency", "Transaction.Status"],
+      "properties_rendered": ["Transaction.Reference", "Transaction.TransactionDate", "Transaction.AccountNumber", "Transaction.Amount", "Transaction.TransactionType", "Transaction.Currency", "Transaction.Status"],
+      "notes": "Dense compact table with 7 visible data columns + leading bulk-select column + trailing row-action column. Keyboard shortcuts surfaced inline (j/k row nav, x select, a approve, r reject, shift+a bulk approve). search-and-filter rendered as filter chips for status + search input."
+    },
+    "S-02": {
+      "screen_file": "screen-02-approve-confirmation.html",
+      "primary_pattern": "surfaces/modal-confirmation",
+      "primary_pattern_variant": "default",
+      "secondary_patterns": ["feedback/notification-banner"],
+      "states_rendered": ["default", "loading", "error"],
+      "data_src_targets": ["F-10", "F-15", "BR-07", "BR-11", "UI-11", "G-03", "§5 Approve Transaction", "§7 Transaction"],
+      "properties_declared": ["Transaction.Reference", "Transaction.AccountNumber", "Transaction.Amount", "Transaction.Currency", "Transaction.Status"],
+      "properties_rendered": ["Transaction.Reference", "Transaction.AccountNumber", "Transaction.Amount", "Transaction.Currency", "Transaction.Status"],
+      "notes": "Single-keystroke confirm (Enter on primary CTA which carries autofocus); Cancel preserved per BR-11/UI-11. Receipt-style attribute list shows the closed 5-property context of the transaction being approved."
+    },
+    "S-03": {
+      "screen_file": "screen-03-reject-form.html",
+      "primary_pattern": "surfaces/modal-form",
+      "primary_pattern_variant": "default",
+      "secondary_patterns": ["forms/single-form", "feedback/notification-banner"],
+      "states_rendered": ["default", "error-note-required", "loading", "error-submit-failed"],
+      "data_src_targets": ["F-11", "F-15", "BR-01", "BR-08", "BR-11", "UI-12", "G-03", "§5 Reject Transaction", "§7 Transaction", "§7 TransactionRejectWrite"],
+      "properties_declared": ["Transaction.Reference", "Transaction.AccountNumber", "Transaction.Amount", "Transaction.Currency", "Transaction.Status", "TransactionRejectWrite.UserNote"],
+      "properties_rendered": ["Transaction.Reference", "Transaction.AccountNumber", "Transaction.Amount", "Transaction.Currency", "Transaction.Status", "TransactionRejectWrite.UserNote"],
+      "notes": "Dense two-column read-only context block + required-note textarea with submit-disabled-until-non-empty per BR-01/UI-12. Ctrl+Enter submits when valid."
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "scope_slug": "transaction-approval-rejection",
+  "variant_id": "POWER-DENSE",
+  "authored_at": "2026-05-24T14:14:00Z",
+  "persona_binding": "Approver",
+  "design_philosophy": "Dense table with keyboard-first inline review; built for high-throughput approval cycles by the Approver.",
+  "dimension_positions": {
+    "speed-accuracy": 1,
+    "power-simplicity": 0,
+    "density-focus": 2,
+    "control-automation": 0,
+    "flexibility-consistency": 0,
+    "memorability-discoverability": 0
+  },
+  "strengths": [
+    "Many transactions visible at once without scrolling",
+    "Keyboard shortcuts on every common action",
+    "Bulk approve and reject for high-throughput days"
+  ],
+  "weaknesses": [
+    "Steeper learning curve for the keyboard shortcuts",
+    "Cramped on narrow screens or short windows",
+    "Single-keystroke approve risks a misclick on the wrong row"
+  ],
+  "tradeoffs": "Faster for daily approvers handling hundreds of rows; harder to learn for occasional reviewers who handle a few.",
+  "use_when": "Daily approvers handling high transaction volume who are already familiar with the workflow."
+}

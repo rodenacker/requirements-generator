@@ -1,0 +1,27 @@
+{
+  "scope_slug": "transaction-approval-rejection",
+  "variant_id": "CAREFUL-DEFAULT",
+  "authored_at": "2026-05-24T16:20:00Z",
+  "persona_binding": "Approver",
+  "design_philosophy": "Comfortable density with explicit confirmation gates; careful pace over throughput for the Approver.",
+  "dimension_positions": {
+    "speed-accuracy": -1,
+    "power-simplicity": 0,
+    "density-focus": 0,
+    "control-automation": 0,
+    "flexibility-consistency": 0,
+    "memorability-discoverability": 0
+  },
+  "strengths": [
+    "Per-row confirm before approve or reject; harder to act by mistake",
+    "Reason captured on every rejection so the audit trail explains the decision",
+    "Comfortable row spacing keeps each transaction easy to read"
+  ],
+  "weaknesses": [
+    "Slower for high-volume Approvers who handle dozens of rows per session",
+    "No bulk approve or reject; one transaction at a time",
+    "More clicks per decision than a keyboard-first dense layout"
+  ],
+  "tradeoffs": "Fewer mistakes per decision at the cost of throughput; suits sessions where each approval matters more than total volume processed.",
+  "use_when": "Approvers handling high-stakes decisions where one wrong approval costs more than slower pace."
+}

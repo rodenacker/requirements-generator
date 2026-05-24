@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>S-01 Transactions table — POWER-DENSE — transaction-approval-rejection</title>
+  <link rel="stylesheet" href="wireframe-ds.css" />
+  <meta name="wf-scope-slug" content="transaction-approval-rejection" />
+  <meta name="wf-variant-id" content="POWER-DENSE" />
+  <meta name="wf-screen-id" content="S-01" />
+  <meta name="wf-screen-sources" content="F-08, F-09, F-12, UI-08, UI-09, UI-10, BR-02, BR-10, G-02, §5 Transaction Table, §7 Transaction" />
+  <meta name="wf-persona-binding" content="Approver" />
+  <meta name="wf-states-rendered" content="default | loading | empty | error" />
+</head>
+<body>
+  <header class="wf-chrome" data-src="F-08,F-09,F-12,UI-08,UI-09,UI-10,BR-02,BR-10,G-02">
+    <strong>S-01 · Transactions table</strong>
+    <span class="wf-help">POWER-DENSE · Speed-leaning · Maximally dense · for Approver</span>
+    <nav aria-label="Within-variant flow">
+      <strong>S-01 Transactions table</strong>
+      <a href="screen-02-approve-confirmation.html" target="_blank" rel="noopener">S-02 Approve confirmation ›</a>
+      <a href="screen-03-reject-form.html" target="_blank" rel="noopener">S-03 Reject form ›</a>
+    </nav>
+    <nav aria-label="Across variants" class="wf-role-switcher">
+      <a href="../CAREFUL-DEFAULT/screen-01-transactions-table.html" target="_blank" rel="noopener">Open in CAREFUL-DEFAULT</a>
+      <button aria-pressed="true">Current: POWER-DENSE</button>
+    </nav>
+    <span style="margin-left: auto;">
+      <a href="../index.html" class="wf-btn">Back to index</a>
+      <a href="../index.html#trade-off-matrix" class="wf-btn" target="_blank" rel="noopener">Trade-off matrix</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1100px; margin: 0 auto; padding: 0 16px;">
+    <h1 data-src="F-08,F-09,F-12,UI-08,UI-09,UI-10,BR-02,BR-10,G-02">Transactions table</h1>
+
+    <section class="wf-section" aria-labelledby="primary-region-label">
+      <h2 id="primary-region-label" class="visually-hidden" style="position:absolute; left:-9999px;">Primary content</h2>
+
+      <!-- forms/search-and-filter (secondary slot above table per pattern-bindings § browse/list/filter) -->
+      <div class="wf-panel" role="search" aria-label="Search and filter transactions" data-src="F-09,UI-08,UI-10">
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          <label for="txn-search" class="visually-hidden" style="position:absolute; left:-9999px;">Search transactions</label>
+          <input id="txn-search" type="search" placeholder="Search by reference, account, amount…  ( / to focus )" style="flex: 1; min-width: 260px;" />
+          <span class="wf-help" aria-label="Filter by status">Status:</span>
+          <button class="wf-btn" aria-pressed="true">All</button>
+          <button class="wf-btn">Imported</button>
+          <button class="wf-btn">Approved</button>
+          <button class="wf-btn">Rejected</button>
+          <button class="wf-btn">Clear filters</button>
+        </div>
+        <p class="wf-help">Shortcuts: <code>/</code> focus search · <code>j</code>/<code>k</code> row down/up · <code>x</code> toggle select · <code>a</code> approve · <code>r</code> reject · <code>shift+a</code> bulk approve</p>
+      </div>
+
+      <!-- collections/table variant: compact (D1=+1 keyboard shortcuts; D3=+2 bulk-select on, 7 columns dense) -->
+      <div class="wf-table" data-src="F-08,F-09,F-12,UI-08,UI-09,UI-10,BR-02,BR-10">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col" aria-label="Select all"><input type="checkbox" aria-label="Bulk-select all visible rows" /></th>
+              <th scope="col" data-src="F-08" data-prop="Transaction.Reference">Reference ▾</th>
+              <th scope="col" data-src="F-08" data-prop="Transaction.TransactionDate">Date</th>
+              <th scope="col" data-src="F-08" data-prop="Transaction.AccountNumber">Account</th>
+              <th scope="col" data-src="F-08" data-prop="Transaction.Amount" style="text-align:right;">Amount</th>
+              <th scope="col" data-src="F-08" data-prop="Transaction.TransactionType">Type</th>
+              <th scope="col" data-src="F-08" data-prop="Transaction.Currency">Ccy</th>
+              <th scope="col" data-src="F-08,BR-02" data-prop="Transaction.Status">Status</th>
+              <th scope="col" aria-label="Row actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" aria-label="Select row TXN-001847" /></td>
+              <td data-prop="Transaction.Reference"><code>TXN-001847</code></td>
+              <td data-prop="Transaction.TransactionDate">2026-05-23</td>
+              <td data-prop="Transaction.AccountNumber"><code>40-12-83-12345678</code></td>
+              <td data-prop="Transaction.Amount" style="text-align:right;">12,450.00</td>
+              <td data-prop="Transaction.TransactionType">Credit</td>
+              <td data-prop="Transaction.Currency">GBP</td>
+              <td data-prop="Transaction.Status">Imported</td>
+              <td>
+                <button class="wf-btn primary" data-src="UI-09,BR-10" aria-label="Approve TXN-001847">Approve <code>a</code></button>
+                <button class="wf-btn destructive" data-src="UI-09,BR-10" aria-label="Reject TXN-001847">Reject <code>r</code></button>
+              </td>
+            </tr>
+            <tr class="selected">
+              <td><input type="checkbox" aria-label="Select row TXN-001848" checked /></td>
+              <td data-prop="Transaction.Reference"><code>TXN-001848</code></td>
+              <td data-prop="Transaction.TransactionDate">2026-05-23</td>
+              <td data-prop="Transaction.AccountNumber"><code>40-12-83-99887766</code></td>
+              <td data-prop="Transaction.Amount" style="text-align:right;">347.92</td>
+              <td data-prop="Transaction.TransactionType">Debit</td>
+              <td data-prop="Transaction.Currency">GBP</td>
+              <td data-prop="Transaction.Status">Imported</td>
+              <td>
+                <button class="wf-btn primary" data-src="UI-09,BR-10" aria-label="Approve TXN-001848">Approve <code>a</code></button>
+                <button class="wf-btn destructive" data-src="UI-09,BR-10" aria-label="Reject TXN-001848">Reject <code>r</code></button>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" aria-label="Select row TXN-001849" /></td>
+              <td data-prop="Transaction.Reference"><code>TXN-001849</code></td>
+              <td data-prop="Transaction.TransactionDate">2026-05-22</td>
+              <td data-prop="Transaction.AccountNumber"><code>40-12-83-55443322</code></td>
+              <td data-prop="Transaction.Amount" style="text-align:right;">8,900.50</td>
+              <td data-prop="Transaction.TransactionType">Credit</td>
+              <td data-prop="Transaction.Currency">EUR</td>
+              <td data-prop="Transaction.Status">Approved</td>
+              <td><span class="wf-help">— locked —</span></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" aria-label="Select row TXN-001850" /></td>
+              <td data-prop="Transaction.Reference"><code>TXN-001850</code></td>
+              <td data-prop="Transaction.TransactionDate">2026-05-22</td>
+              <td data-prop="Transaction.AccountNumber"><code>40-12-83-11223344</code></td>
+              <td data-prop="Transaction.Amount" style="text-align:right;">22.10</td>
+              <td data-prop="Transaction.TransactionType">Debit</td>
+              <td data-prop="Transaction.Currency">USD</td>
+              <td data-prop="Transaction.Status">Rejected</td>
+              <td><span class="wf-help">— locked —</span></td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" aria-label="Select row TXN-001851" /></td>
+              <td data-prop="Transaction.Reference"><code>TXN-001851</code></td>
+              <td data-prop="Transaction.TransactionDate">2026-05-22</td>
+              <td data-prop="Transaction.AccountNumber"><code>40-12-83-77665544</code></td>
+              <td data-prop="Transaction.Amount" style="text-align:right;">1,005.00</td>
+              <td data-prop="Transaction.TransactionType">Credit</td>
+              <td data-prop="Transaction.Currency">GBP</td>
+              <td data-prop="Transaction.Status">Imported</td>
+              <td>
+                <button class="wf-btn primary" data-src="UI-09,BR-10" aria-label="Approve TXN-001851">Approve <code>a</code></button>
+                <button class="wf-btn destructive" data-src="UI-09,BR-10" aria-label="Reject TXN-001851">Reject <code>r</code></button>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" aria-label="Select row TXN-001852" /></td>
+              <td data-prop="Transaction.Reference"><code>TXN-001852</code></td>
+              <td data-prop="Transaction.TransactionDate">2026-05-21</td>
+              <td data-prop="Transaction.AccountNumber"><code>40-12-83-22334455</code></td>
+              <td data-prop="Transaction.Amount" style="text-align:right;">540.75</td>
+              <td data-prop="Transaction.TransactionType">Debit</td>
+              <td data-prop="Transaction.Currency">GBP</td>
+              <td data-prop="Transaction.Status">Imported</td>
+              <td>
+                <button class="wf-btn primary" data-src="UI-09,BR-10" aria-label="Approve TXN-001852">Approve <code>a</code></button>
+                <button class="wf-btn destructive" data-src="UI-09,BR-10" aria-label="Reject TXN-001852">Reject <code>r</code></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Bulk-action toolbar (D3=+2 bulk-select on) — UI-only chrome, exempt from data-prop -->
+      <div class="wf-panel" aria-label="Bulk actions" style="display:flex; align-items:center; gap:8px;">
+        <span class="wf-help">1 selected of 6 visible</span>
+        <button class="wf-btn primary" data-src="UI-09,BR-10" aria-label="Approve selected transactions">Bulk approve <code>shift+a</code></button>
+        <button class="wf-btn destructive" data-src="UI-09,BR-10" aria-label="Reject selected transactions">Bulk reject <code>shift+r</code></button>
+        <span style="margin-left:auto;" class="wf-help">Showing 6 of 347 Imported · keyboard <code>j</code>/<code>k</code> navigates rows</span>
+      </div>
+
+      <!-- Pagination chrome — UI-only, exempt from data-prop -->
+      <nav aria-label="Pagination" style="display:flex; gap:8px; align-items:center; margin-top: 8px;">
+        <button class="wf-btn">‹ Prev</button>
+        <button class="wf-btn" aria-current="page">1</button>
+        <button class="wf-btn">2</button>
+        <button class="wf-btn">3</button>
+        <span class="wf-help">…</span>
+        <button class="wf-btn">18</button>
+        <button class="wf-btn">Next ›</button>
+        <label class="wf-help" style="margin-left:auto;">Rows
+          <select aria-label="Rows per page">
+            <option>20</option>
+            <option selected>50</option>
+            <option>100</option>
+          </select>
+        </label>
+      </nav>
+    </section>
+
+    <!-- Secondary state visualisations (loading / empty / error rendered as adjacent cards for the dense at-a-glance review) -->
+    <section class="wf-section" aria-labelledby="states-label">
+      <h2 id="states-label">State previews</h2>
+      <p class="wf-help">The states this screen renders, visualised compactly side-by-side for the dense reviewer.</p>
+      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+        <div>
+          <h3>Loading</h3>
+          <div class="wf-skeleton" aria-live="polite" aria-busy="true" data-src="UI-08">
+            <p class="wf-help">Loading rows…</p>
+            <div style="height: 12px; background: #eee; margin: 6px 0; width: 100%;"></div>
+            <div style="height: 12px; background: #eee; margin: 6px 0; width: 90%;"></div>
+            <div style="height: 12px; background: #eee; margin: 6px 0; width: 95%;"></div>
+            <div style="height: 12px; background: #eee; margin: 6px 0; width: 80%;"></div>
+          </div>
+        </div>
+        <div>
+          <h3>Empty</h3>
+          <div class="wf-empty" data-src="UI-08,F-08">
+            <p><strong>No transactions to review.</strong></p>
+            <p class="wf-help">All caught up. Imported transactions appear here when ingested.</p>
+          </div>
+        </div>
+        <div>
+          <h3>Error</h3>
+          <div class="wf-banner" data-tone="danger" data-src="UI-08,F-08">
+            <strong>Could not load transactions.</strong>
+            <p class="wf-help">Network error fetching the page. Press <code>r</code> to retry or refresh the browser tab.</p>
+            <button class="wf-btn">Retry</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wf-chrome" style="margin-top: 32px;">
+    <span class="wf-help">
+      States rendered on this screen: <code>default | loading | empty | error</code>
+    </span>
+  </footer>
+</body>
+</html>

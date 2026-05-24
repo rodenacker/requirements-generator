@@ -1,0 +1,18 @@
+{
+  "scope_slug": "transaction-approval-rejection",
+  "pipeline_origin": "wireframe",
+  "scope_mode": "intent",
+  "selected_at": "2026-05-24T14:02:21Z",
+  "requirements_sha256": "8139af430390f934ea05d2691660fdbce12ceb7f7a86c0e4b05be2134f27b8c7",
+  "intent_description": "transactions approval / rejection workflow",
+  "sources": {
+    "functional": ["F-08", "F-09", "F-10", "F-11", "F-12", "F-15"],
+    "business_rules": ["BR-01", "BR-02", "BR-07", "BR-08", "BR-10", "BR-11"],
+    "ui_needs": ["UI-08", "UI-09", "UI-10", "UI-11", "UI-12"],
+    "goals": ["G-02", "G-03"],
+    "task_flows": ["§5 Transaction Table", "§5 Approve Transaction", "§5 Reject Transaction"],
+    "data_shapes": ["§7 Transaction", "§7 TransactionRejectWrite"]
+  },
+  "personas_available": ["Importer", "Approver"],
+  "dimension_override": null
+}
