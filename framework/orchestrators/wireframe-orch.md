@@ -37,7 +37,7 @@ The blueprint-architect itself reads `requirements/requirements.md` (in full) pl
 
 The variant-generator sub-agents read the blueprint, their own variant configuration, the wireframe DS at `framework/assets/design-systems/wireframe-ds.html`, the templates under `framework/assets/templates/` and `framework/assets/wireframes/`, and selectively from `framework/assets/pattern-catalogue/` (only the patterns they bind). They never read `requirements/`, `framework/state/`, or `framework/shared/`.
 
-The comparator reads `wireframes/<scope-slug>/variants.json`, `blueprints/<scope-slug>/blueprint.md`, and per-variant `manifest.json` + `variant-position.json`. It does **not** re-read screen HTML.
+The comparator reads `wireframes/<scope-slug>/variants.json`, `blueprints/<scope-slug>/blueprint.md`, `blueprints/<scope-slug>/scope.json`, `framework/assets/wireframes/{template-set-index.html, position-vocabulary.md, tradeoff-dimensions-registry.md}`, and per-variant `manifest.json` + `variant-position.json`. It does **not** re-read screen HTML. It writes only `wireframes/<scope-slug>/{index.html, _drift.json}` — the standalone `comparison.html` is no longer authored (the trade-off matrix lives in `index.html` §4).
 
 ## No progress file
 
@@ -101,11 +101,11 @@ Unlike `requirements-orch.md`, this orchestrator does **not** maintain a `.progr
             - **Skip** — drop the failed variant from the in-memory variant list passed to step 4. Proceed to step 4.
             - **Cancel** — exit cleanly. No comparator artefacts are written. The partial `wireframes/<chosen.scope_slug>/<successful-variant>/` directories remain on disk for forensic inspection.
 
-4. **Stage 4 — Comparator** — invoke `framework/agents/wireframe-comparator.md` in the foreground with the in-memory variables: `scope_slug = <chosen.scope_slug>`, `blueprint_path = blueprints/<chosen.scope_slug>/blueprint.md`, `variants_path = wireframes/<chosen.scope_slug>/variants.json`, `successful_variants = <the post-Stage-3 in-memory list>`, `set_output_dir = wireframes/<chosen.scope_slug>/`. The comparator reads only the JSON sidecars + `blueprint.md` + `framework/assets/wireframes/position-vocabulary.md` (never the screen HTML), runs drift detection per `framework/assets/wireframes/tradeoff-dimensions-registry.md`, and writes three artefacts: `wireframes/<chosen.scope_slug>/index.html` (the single landing — variant columns side-by-side with screen lists as new-tab links + collapsible right-rail meta), `wireframes/<chosen.scope_slug>/comparison.html` (humanised trade-off matrix with plain-English position labels), and `wireframes/<chosen.scope_slug>/_drift.json` (system file containing full drift detail; HTML pages surface only a one-line summary). The comparator does **not** surface its own accept loop; it hands back `ok` once writes verify. The orchestrator then surfaces the final accept gate (step 4b).
+4. **Stage 4 — Comparator** — invoke `framework/agents/wireframe-comparator.md` in the foreground with the in-memory variables: `scope_slug = <chosen.scope_slug>`, `blueprint_path = blueprints/<chosen.scope_slug>/blueprint.md`, `variants_path = wireframes/<chosen.scope_slug>/variants.json`, `successful_variants = <the post-Stage-3 in-memory list>`, `set_output_dir = wireframes/<chosen.scope_slug>/`. The comparator reads only the JSON sidecars + `blueprint.md` + `scope.json` + `framework/assets/wireframes/{template-set-index.html, position-vocabulary.md, tradeoff-dimensions-registry.md}` (never the screen HTML), runs drift detection per the registry, and writes two artefacts: `wireframes/<chosen.scope_slug>/index.html` (the **single** metadata-only landing — TOC + four sections: §1 Scope details, §2 Wireframes (side-by-side screen-link columns, no embedded wireframes), §3 Variant metadata (side-by-side prose cards), §4 Trade-off matrix (dimension positions, plain-English labels)) and `wireframes/<chosen.scope_slug>/_drift.json` (system file containing full drift detail; the HTML page surfaces only a one-line summary). The comparator also cleans up any legacy `wireframes/<chosen.scope_slug>/comparison.html` left over from a prior pipeline version (the standalone matrix page was folded into `index.html` §4). The comparator does **not** surface its own accept loop; it hands back `ok` once writes verify. The orchestrator then surfaces the final accept gate (step 4b).
 
 4b. **Stage 4b — Final accept gate** (orchestrator-owned). After the comparator hands back `ok`, surface a single `AskUserQuestion`:
 
-- Question: *"Wireframe set for `{{chosen.scope_slug}}` is ready. Open `wireframes/{{chosen.scope_slug}}/index.html` in your browser (file://) to view. Click any screen link to open in a new tab; arrange tabs side-by-side via your browser's tab-drag. Accept?"*
+- Question: *"Wireframe set for `{{chosen.scope_slug}}` is ready. Open `wireframes/{{chosen.scope_slug}}/index.html` in your browser (file://) to view — the page is metadata-only (scope details, screen links, side-by-side comparison cards, trade-off matrix). Click any screen link to open the actual wireframe in a new tab; arrange tabs side-by-side via your browser's tab-drag. Accept?"*
 - Header: `Wireframe set`
 - `multiSelect: false`
 - Options:
@@ -146,7 +146,7 @@ Runs **only** when the consultant chose `Regenerate variants only` at step 0d. P
     - `Bash git commit -m "checkpoint: prior variants for <chosen.scope_slug> before regeneration"` (use `--allow-empty` only if nothing was staged).
 2. **Delete the prior variant subdirectories + comparator outputs.** Do **not** touch `blueprints/<chosen.scope_slug>/`.
     - `Bash rm -rf wireframes/<chosen.scope_slug>/*/` (per-variant subdirectories — pattern-glob deletes only directories, leaving top-level files for the next bullet).
-    - `Bash rm -f wireframes/<chosen.scope_slug>/variants.json wireframes/<chosen.scope_slug>/comparison.html wireframes/<chosen.scope_slug>/index.html` (the three top-level artefacts the architect + comparator produce).
+    - `Bash rm -f wireframes/<chosen.scope_slug>/variants.json wireframes/<chosen.scope_slug>/index.html wireframes/<chosen.scope_slug>/_drift.json wireframes/<chosen.scope_slug>/comparison.html` (the architect + comparator top-level outputs; `comparison.html` is no longer authored but the `-f` ensures legacy copies left over from a prior pipeline version are cleaned).
 
 After the variants-only reset completes, proceed to step 2 with `mode = "regenerate-variants"`. The existing `blueprints/<chosen.scope_slug>/blueprint.md` and `blueprints/<chosen.scope_slug>/scope.json` are preserved.
 
@@ -174,9 +174,9 @@ After the variants-only reset completes, proceed to step 2 with `mode = "regener
 
 **Stage 4 handback** — the wireframe-comparator has handed control back when:
 
-- `wireframes/<chosen.scope_slug>/index.html` exists, was verify-artifact-write'd.
-- `wireframes/<chosen.scope_slug>/comparison.html` exists, was verify-artifact-write'd.
+- `wireframes/<chosen.scope_slug>/index.html` exists, was verify-artifact-write'd, contains the four section anchors (`#scope-details`, `#wireframes`, `#variant-metadata`, `#trade-off-matrix`), and has zero `<iframe>` elements in the variant-link section.
 - `wireframes/<chosen.scope_slug>/_drift.json` exists, was verify-artifact-write'd, parses as JSON.
+- `wireframes/<chosen.scope_slug>/comparison.html` does **not** exist (legacy artefact — the comparator's step 5 actively cleans it up).
 - The comparator returned `ok` (not failed).
 
 **Stage 4b handback** — the orchestrator-owned final accept gate has been resolved when:
@@ -205,7 +205,7 @@ This orchestrator produces no artefacts of its own. Each Stage produces its own 
 - Stage 1 → `blueprints/<chosen.scope_slug>/scope.json` (via scope-selector).
 - Stage 2 → `blueprints/<chosen.scope_slug>/blueprint.md` + `wireframes/<chosen.scope_slug>/variants.json` (via blueprint-architect).
 - Stage 3 → `wireframes/<chosen.scope_slug>/<variant_id>/{screen-NN-*.html, wireframe-ds.css, manifest.json, variant-position.json}` (per variant, via wireframe-variant-generator sub-agents). **No per-variant `wireframes.html`** — that artefact was removed; meta lives in Stage 4's `index.html` right rail.
-- Stage 4 → `wireframes/<chosen.scope_slug>/{index.html, comparison.html, _drift.json}` (via wireframe-comparator). Stage 4b is the orchestrator-owned accept gate (no artefact write).
+- Stage 4 → `wireframes/<chosen.scope_slug>/{index.html, _drift.json}` (via wireframe-comparator; `index.html` is the metadata-only landing with TOC + four sections including the inlined trade-off matrix in §4). Stage 4b is the orchestrator-owned accept gate (no artefact write).
 
 ## Tools
 
@@ -237,7 +237,7 @@ When the registry file is next revised, append a fourth surface-variant block fo
 - If the consultant chose `Keep` or `Cancel` at step 0d (or `Cancel` at the secondary Advanced prompt), no `Bash` was run, the architect was not invoked, and no sub-agents were dispatched.
 - Stage 2 (architect) ran on every non-exiting path; its handback gate was met (artefacts written, verify pass, conditional gate either not fired or resolved). The architect surfaced no routine variant-composition prompts (those were removed; composition is deterministic from `scope.json` + `domain-defaults.md`).
 - Stage 3 (variant generators) ran via `Agent` tool with ≤4 parallel calls in a single message. Every sub-agent's handback gate was met (no per-variant `wireframes.html` was authored; per-variant directory contains only screen files + DS + two JSON sidecars) OR the consultant explicitly accepted a `Skip` or `Cancel` at the per-failure prompt.
-- Stage 4 (comparator) ran on every non-cancelled path; its handback gate was met (three artefacts written: index.html, comparison.html, _drift.json; verify pass; comparator returned `ok`). The comparator surfaced no accept loop.
+- Stage 4 (comparator) ran on every non-cancelled path; its handback gate was met (two artefacts written: index.html, _drift.json — both verify pass; comparator returned `ok`; legacy `comparison.html` was cleaned if present). The comparator surfaced no accept loop.
 - Stage 4b (orchestrator accept) ran on every non-cancelled path; the consultant chose `Accept` or `Cancel` at the orchestrator-owned final prompt.
 - No file was written outside `wireframes/<chosen.scope_slug>/` and `blueprints/<chosen.scope_slug>/` (excluding the step-0d git checkpoint commits, which are git-history writes, not filesystem artefacts under a state directory).
 - The scope-selector, blueprint-architect, and wireframe-comparator were run in the foreground, never via the Agent / Task / fork / sub-agent mechanism. The wireframe-variant-generator was the **only** agent dispatched via the Agent tool, and only at Stage 3.
@@ -249,7 +249,7 @@ When the registry file is next revised, append a fourth surface-variant block fo
 - The consultant chose `continue-later` at the step-0b RF-05 prompt (and the orchestrator exited cleanly with no state write), or
 - The consultant chose `Cancel` at the Stage-4b final accept prompt (and the orchestrator exited cleanly with artefacts left on disk for forensic inspection), or
 - The prerequisite gate at step 0 fired (and the orchestrator exited cleanly with the `requirements.md is required` message), or
-- All four stages ran to handback (with consultant accepts at Stages 1 and 2; sub-agent successes or explicitly accepted skips at Stage 3; comparator returned `ok`), and the Stage-4b accept gate returned `Accept`, leaving `wireframes/<chosen.scope_slug>/{index.html, comparison.html, _drift.json}` and per-variant subdirectories (each containing `screen-NN-*.html`, `wireframe-ds.css`, `manifest.json`, `variant-position.json` — **no `wireframes.html`**) on disk, all verify-artifact-write'd.
+- All four stages ran to handback (with consultant accepts at Stages 1 and 2; sub-agent successes or explicitly accepted skips at Stage 3; comparator returned `ok`), and the Stage-4b accept gate returned `Accept`, leaving `wireframes/<chosen.scope_slug>/{index.html, _drift.json}` (no `comparison.html` — the trade-off matrix lives inside `index.html` §4) and per-variant subdirectories (each containing `screen-NN-*.html`, `wireframe-ds.css`, `manifest.json`, `variant-position.json` — **no `wireframes.html`**) on disk, all verify-artifact-write'd.
 
 ## Anti-Patterns
 

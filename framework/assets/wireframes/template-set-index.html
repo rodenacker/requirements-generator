@@ -2,51 +2,98 @@
 ROLE: asset (wireframe-private template). Used by
 framework/agents/wireframe-comparator.md to populate
 wireframes/<scope-slug>/index.html — the **only** consultant-facing landing
-for the scope. Lists variant columns side-by-side; every screen link opens in
-a new tab so the consultant can arrange wireframes side-by-side natively.
-There is no per-variant landing page — index.html is the single entry point
-to all wireframes for this scope.
+for the scope. Contains ONLY metadata; no wireframes are embedded.
 
-The per-variant `wireframes.html` has been removed from the pipeline. Every
-piece of meta that used to live there now sits in this page's right-rail
-collapsible `<details>` blocks, and every screen link sits directly in its
-variant's column.
+Four ordered sections after the TOC:
+
+  1. Scope details — what applies to BOTH variants (intent, sources, personas,
+     screen inventory, blueprint link). Shared context.
+  2. Wireframes — side-by-side variant columns with the screen links only.
+     Every screen link opens in a new tab (target="_blank" rel="noopener") so
+     the consultant arranges adjacent wireframes via native browser tab-drag.
+     No iframes, no thumbnails — the user is one click from the actual screen.
+  3. Variant metadata — side-by-side prose cards: design philosophy, persona,
+     strengths, weaknesses, trade-off, use when, states per screen. This is
+     the "skim two variants at a glance" comparison surface.
+  4. Trade-off matrix — the dimension-positioning table. Plain-English labels
+     from position-vocabulary.md. Strengths / weaknesses / trade-off / use-when
+     are not duplicated here (they live in section 3); the matrix is focused on
+     the dimensional comparison and persona binding.
+
+The per-variant `wireframes.html` and the standalone `comparison.html` have
+both been removed from the pipeline. The trade-off matrix lives in this page's
+section 4; screen-chrome "Trade-off matrix" buttons deep-link here via
+`index.html#trade-off-matrix`.
 
 The comparator reads ONLY:
-  - blueprints/<scope-slug>/blueprint.md (for scope + screen inventory context)
-  - blueprints/<scope-slug>/scope.json (for sources summary, personas, intent)
-  - wireframes/<scope-slug>/variants.json (variant configurations + screen-id order)
-  - wireframes/<scope-slug>/<VARIANT>/variant-position.json (one per variant; strengths/weaknesses/use-when/positions)
-  - wireframes/<scope-slug>/<VARIANT>/manifest.json (one per variant; screen-NN filenames + states_rendered)
+  - blueprints/<scope-slug>/blueprint.md
+  - blueprints/<scope-slug>/scope.json
+  - wireframes/<scope-slug>/variants.json
+  - wireframes/<scope-slug>/<VARIANT>/variant-position.json
+  - wireframes/<scope-slug>/<VARIANT>/manifest.json
+  - framework/assets/wireframes/position-vocabulary.md
+  - framework/assets/wireframes/tradeoff-dimensions-registry.md
 
 It NEVER re-reads screen HTML.
 
 Slots filled by the comparator:
   {{SCOPE_SLUG}}                — kebab-case scope slug.
-  {{SCOPE_MODE}}                — "intent" | "structural" | "free-form".
-  {{INTENT_DESCRIPTION}}        — verbatim consultant prose from scope.json (always present in the new flow; render empty paragraph if absent).
-  {{SCOPE_SOURCES_SUMMARY}}     — counts per category, e.g. "3 functional, 2 business rules, 4 UI needs".
-  {{PERSONAS_AVAILABLE_LIST}}   — bulleted <ul><li>…</li></ul> of §3 persona names.
-  {{BLUEPRINT_SUMMARY}}         — short prose summary of the screen inventory.
-  {{BLUEPRINT_HREF}}             — relative href to blueprints/<scope-slug>/blueprint.md.
-  {{COMPARISON_HREF}}           — href to wireframes/<scope-slug>/comparison.html.
   {{SELECTED_AT}}               — ISO-8601 timestamp from scope.json.
-  {{FIRST_VARIANT_DS_PATH}}     — relative href to the first variant's wireframe-ds.css (for the page's own styling).
-  {{VARIANT_COLUMNS}}           — concatenated HTML, one <section class="wf-variant-col"> per variant. Each contains:
-                                    <h2> variant_id
-                                    <p class="wf-tagline"> plain-English position tagline from position-vocabulary.md (e.g. "Dense · Speed-leaning")
-                                    <p class="wf-pitch"> design_philosophy (≤ 100 chars, plain English)
-                                    <iframe loading="lazy" class="wf-thumb"> first-screen preview (optional; one per variant)
-                                    <ul class="wf-screen-list"> per-screen new-tab links, every <a target="_blank" rel="noopener">
-  {{VARIANT_META_BLOCKS}}       — concatenated HTML, one <details class="wf-meta"> per variant, in right rail. Each contains:
-                                    <summary> variant_id
-                                    <h3>Strengths</h3><ul>…</ul>
-                                    <h3>Weaknesses</h3><ul>…</ul>
-                                    <h3>Trade-off</h3><p>tradeoffs</p>
-                                    <h3>Use when</h3><p>use_when</p>
-                                    <h3>States per screen</h3><dl>…</dl>
-                                    <h3>Persona</h3><p>persona_binding</p>
-  {{DRIFT_FOOT}}                — single-line drift summary. Empty when no drift. Example: "Drift report: 2 minor flags — see _drift.json".
+  {{INTENT_DESCRIPTION}}        — verbatim consultant prose from scope.json
+                                  (empty paragraph if absent).
+  {{SCOPE_SOURCES_SUMMARY}}     — counts per category, e.g.
+                                  "3 functional, 2 business rules, 4 UI needs".
+  {{PERSONAS_AVAILABLE_LIST}}   — <ul><li>…</li></ul> of §3 persona names.
+  {{BLUEPRINT_SUMMARY}}         — short prose summary of the screen inventory.
+  {{BLUEPRINT_HREF}}            — relative href to
+                                  blueprints/<scope-slug>/blueprint.md.
+  {{FIRST_VARIANT_DS_PATH}}     — relative href to the first variant's
+                                  wireframe-ds.css (for this page's styling).
+
+  {{VARIANT_LINK_COLUMNS}}      — concatenated HTML, one
+                                  <section class="wf-variant-col"> per variant.
+                                  Each contains:
+                                    <h3> variant_id
+                                    <p class="wf-tagline"> plain-English
+                                      position tagline (from position-
+                                      vocabulary.md).
+                                    <ul class="wf-screen-list"> per-screen
+                                      new-tab links, every
+                                      <a target="_blank" rel="noopener">.
+
+  {{VARIANT_META_COLUMNS}}      — concatenated HTML, one
+                                  <section class="wf-meta-col"> per variant.
+                                  Each contains:
+                                    <h3> variant_id
+                                    <h4>Built for</h4><p>persona</p>
+                                    <h4>Design philosophy</h4><p>…</p>
+                                    <h4>Strengths</h4><ul>…</ul>
+                                    <h4>Weaknesses</h4><ul>…</ul>
+                                    <h4>Trade-off</h4><p>…</p>
+                                    <h4>Use when</h4><p>…</p>
+                                    <h4>States per screen</h4><dl>…</dl>
+
+  {{MATRIX_HEADER_ROW}}         — <tr> with <th class="row-label">Dimension</th>
+                                  and one <th class="col-header"> per variant_id.
+
+  {{MATRIX_PERSONA_ROW}}        — <tr><th class="row-label">Built for</th>
+                                  then one <td>persona_binding</td> per variant.
+
+  {{MATRIX_DIMENSION_ROWS}}     — one <tr> per dimension diverging on, with one
+                                  <td class="position{neutral?}"> per variant.
+                                  Each non-neutral cell renders the **plain-
+                                  English short label** from position-
+                                  vocabulary.md (e.g. "Maximally dense") with
+                                  the position number as a small subtle
+                                  annotation (e.g. <small>+2</small>).
+                                  Neutral positions (0) render as a muted "—".
+                                  **No dimension notation (D3+2), pattern-
+                                  catalogue IDs (table.compact), or GR-NN refs
+                                  in any cell content.**
+
+  {{DRIFT_FOOT}}                — single-line drift summary. Empty when no
+                                  drift. Example: "Drift report: 2 minor flags
+                                  — see _drift.json".
 -->
 <!doctype html>
 <html lang="en">
@@ -56,31 +103,80 @@ Slots filled by the comparator:
   <link rel="stylesheet" href="{{FIRST_VARIANT_DS_PATH}}" />
   <style>
     /* Index-specific layout overrides. The wireframe-ds CSS gives us the
-       dashed-sketch shell; the grid + rail layout is index-private. */
+       dashed-sketch shell; section grids + matrix table layout is index-private. */
 
-    .wf-page-layout {
+    .wf-index-main {
       max-width: 1400px;
       margin: 0 auto;
       padding: 0 16px;
-      display: grid;
-      grid-template-columns: 1fr 280px;
-      gap: 24px;
     }
 
-    @media (max-width: 960px) {
-      .wf-page-layout {
-        grid-template-columns: 1fr;
-      }
+    .wf-toc {
+      border: var(--wf-border-width) dashed var(--wf-border-emphasis);
+      border-radius: var(--wf-radius);
+      padding: calc(var(--wf-spacing) * 2);
+      background: var(--wf-surface-muted);
+      margin: calc(var(--wf-spacing) * 2) 0;
+    }
+
+    .wf-toc h2 {
+      margin: 0 0 var(--wf-spacing);
+      font-size: var(--wf-fz-lg);
+    }
+
+    .wf-toc ol {
+      margin: 0;
+      padding-left: 20px;
+      font-size: var(--wf-fz-base);
+    }
+
+    .wf-toc li {
+      margin-bottom: 4px;
+    }
+
+    .wf-toc a {
+      color: var(--wf-text-default);
+    }
+
+    .wf-section-block {
+      margin: calc(var(--wf-spacing) * 4) 0;
+    }
+
+    .wf-section-block > h2 {
+      margin-top: 0;
+      padding-top: calc(var(--wf-spacing) * 2);
+      border-top: var(--wf-border-width) dashed var(--wf-border-subtle);
+    }
+
+    .wf-scope-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: calc(var(--wf-spacing) * 2);
+    }
+
+    @media (max-width: 720px) {
+      .wf-scope-grid { grid-template-columns: 1fr; }
+    }
+
+    .wf-scope-grid h3 {
+      font-size: var(--wf-fz-base);
+      margin: 0 0 4px;
+    }
+
+    .wf-scope-grid p,
+    .wf-scope-grid ul {
+      margin: 0 0 var(--wf-spacing);
+      font-size: var(--wf-fz-sm);
     }
 
     .wf-variant-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: calc(var(--wf-spacing) * 2);
     }
 
-    .wf-variant-col {
+    .wf-variant-col,
+    .wf-meta-col {
       border: var(--wf-border-width) dashed var(--wf-border-subtle);
       border-radius: var(--wf-radius);
       padding: calc(var(--wf-spacing) * 2);
@@ -90,7 +186,8 @@ Slots filled by the comparator:
       gap: var(--wf-spacing);
     }
 
-    .wf-variant-col h2 {
+    .wf-variant-col h3,
+    .wf-meta-col h3 {
       margin: 0;
       font-size: var(--wf-fz-lg);
     }
@@ -99,19 +196,6 @@ Slots filled by the comparator:
       font-size: var(--wf-fz-sm);
       color: var(--wf-text-muted);
       margin: 0;
-    }
-
-    .wf-pitch {
-      margin: 0;
-      font-size: var(--wf-fz-base);
-    }
-
-    .wf-thumb {
-      width: 100%;
-      height: 220px;
-      border: var(--wf-border-width) dashed var(--wf-border-subtle);
-      background: var(--wf-surface-muted);
-      margin: var(--wf-spacing) 0;
     }
 
     .wf-screen-list {
@@ -137,54 +221,63 @@ Slots filled by the comparator:
       background: var(--wf-surface-elevated);
     }
 
-    .wf-meta-rail {
-      display: flex;
-      flex-direction: column;
-      gap: var(--wf-spacing);
-    }
-
-    .wf-meta {
-      border: var(--wf-border-width) dashed var(--wf-border-subtle);
-      border-radius: var(--wf-radius);
-      padding: var(--wf-spacing);
-      background: var(--wf-surface-elevated);
-    }
-
-    .wf-meta summary {
-      cursor: pointer;
-      font-weight: 700;
-      font-family: var(--wf-font-display);
-    }
-
-    .wf-meta h3 {
+    .wf-meta-col h4 {
       font-size: var(--wf-fz-base);
       margin: var(--wf-spacing) 0 4px;
     }
 
-    .wf-meta ul,
-    .wf-meta p,
-    .wf-meta dl {
-      margin: 0 0 var(--wf-spacing);
+    .wf-meta-col ul,
+    .wf-meta-col p,
+    .wf-meta-col dl {
+      margin: 0;
       font-size: var(--wf-fz-sm);
     }
 
-    .wf-meta ul {
+    .wf-meta-col ul {
       padding-left: 18px;
     }
 
-    .wf-scope-details {
-      border: var(--wf-border-width) dashed var(--wf-border-subtle);
-      border-radius: var(--wf-radius);
-      padding: calc(var(--wf-spacing) * 2);
-      background: var(--wf-surface-muted);
-      margin-top: 24px;
+    .wf-meta-col dl dt {
+      font-weight: 700;
+      margin-top: 4px;
     }
 
-    .wf-scope-details summary {
-      cursor: pointer;
-      font-weight: 700;
+    .wf-meta-col dl dd {
+      margin-left: 0;
+      color: var(--wf-text-muted);
+    }
+
+    .wf-matrix { width: 100%; border-collapse: collapse; }
+    .wf-matrix th,
+    .wf-matrix td {
+      border: var(--wf-border-width) dashed var(--wf-border-subtle);
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: left;
+    }
+    .wf-matrix th.row-label {
+      background: var(--wf-surface-muted);
+      width: 200px;
       font-family: var(--wf-font-display);
-      font-size: var(--wf-fz-lg);
+    }
+    .wf-matrix th.col-header {
+      background: var(--wf-surface-elevated);
+      font-family: var(--wf-font-display);
+      text-align: center;
+    }
+    .wf-matrix td.position { text-align: center; }
+    .wf-matrix td.position .wf-pos-label {
+      display: block;
+      font-weight: 700;
+    }
+    .wf-matrix td.position .wf-pos-num {
+      display: block;
+      font-size: var(--wf-fz-xs);
+      color: var(--wf-text-muted);
+      margin-top: 2px;
+    }
+    .wf-matrix td.position.neutral {
+      color: var(--wf-text-muted);
     }
 
     .wf-foot {
@@ -200,45 +293,85 @@ Slots filled by the comparator:
     <strong>{{SCOPE_SLUG}}</strong>
     <span class="wf-help">selected at <code>{{SELECTED_AT}}</code></span>
     <span style="margin-left: auto;">
-      <a href="{{COMPARISON_HREF}}" class="wf-btn">Trade-off matrix</a>
       <a href="{{BLUEPRINT_HREF}}" class="wf-btn">Blueprint</a>
     </span>
   </header>
 
-  <div class="wf-page-layout">
-    <main>
-      <p class="wf-help" style="margin-top: 16px;">
-        Each column is a variant. Click any screen link to open that wireframe in a new tab.
-        To compare side-by-side, open the same screen in two variants and arrange the tabs as
-        adjacent windows using your browser's native tab-drag.
-      </p>
+  <main class="wf-index-main">
+    <p class="wf-help" style="margin-top: 16px;">
+      This page is metadata only. Click any screen link in section 2 to open the
+      wireframe in a new tab; arrange tabs side-by-side via your browser's
+      native tab-drag to compare variants visually.
+    </p>
 
-      <div class="wf-variant-grid">
-        {{VARIANT_COLUMNS}}
-      </div>
+    <nav class="wf-toc" aria-label="Contents">
+      <h2>Contents</h2>
+      <ol>
+        <li><a href="#scope-details">Scope details</a> — shared context across all variants</li>
+        <li><a href="#wireframes">Wireframes</a> — links to each variant's screens, side-by-side</li>
+        <li><a href="#variant-metadata">Variant metadata</a> — side-by-side comparison cards</li>
+        <li><a href="#trade-off-matrix">Trade-off matrix</a> — dimension positions</li>
+      </ol>
+    </nav>
 
-      <section class="wf-scope-details">
-        <details>
-          <summary>Scope details</summary>
-          <p class="wf-help" style="margin-top: var(--wf-spacing);">
-            {{INTENT_DESCRIPTION}}
-          </p>
+    <section id="scope-details" class="wf-section-block">
+      <h2>1. Scope details</h2>
+      <p class="wf-help">{{INTENT_DESCRIPTION}}</p>
+      <div class="wf-scope-grid">
+        <div>
           <h3>Requirement sources</h3>
           <p>{{SCOPE_SOURCES_SUMMARY}}</p>
           <h3>Personas available</h3>
           {{PERSONAS_AVAILABLE_LIST}}
+        </div>
+        <div>
           <h3>Screen inventory</h3>
           <p>{{BLUEPRINT_SUMMARY}}</p>
           <p><a href="{{BLUEPRINT_HREF}}">View full blueprint (inventory + flow + trace)</a></p>
-        </details>
-      </section>
+        </div>
+      </div>
+    </section>
 
-      <p class="wf-foot">{{DRIFT_FOOT}}</p>
-    </main>
+    <section id="wireframes" class="wf-section-block">
+      <h2>2. Wireframes</h2>
+      <p class="wf-help">
+        One column per variant. Every screen link opens in a new tab.
+      </p>
+      <div class="wf-variant-grid">
+        {{VARIANT_LINK_COLUMNS}}
+      </div>
+    </section>
 
-    <aside class="wf-meta-rail" aria-label="Variant details">
-      {{VARIANT_META_BLOCKS}}
-    </aside>
-  </div>
+    <section id="variant-metadata" class="wf-section-block">
+      <h2>3. Variant metadata</h2>
+      <p class="wf-help">
+        Side-by-side prose comparison — what each variant is built for, what it
+        does well, what it gives up, and when to pick it.
+      </p>
+      <div class="wf-variant-grid">
+        {{VARIANT_META_COLUMNS}}
+      </div>
+    </section>
+
+    <section id="trade-off-matrix" class="wf-section-block">
+      <h2>4. Trade-off matrix</h2>
+      <p class="wf-help">
+        Each column is a variant; each row is a dimension the variants diverge
+        on. Plain-English position labels with the dimension's signed position
+        number as a small annotation.
+      </p>
+      <table class="wf-matrix">
+        <thead>
+          {{MATRIX_HEADER_ROW}}
+        </thead>
+        <tbody>
+          {{MATRIX_PERSONA_ROW}}
+          {{MATRIX_DIMENSION_ROWS}}
+        </tbody>
+      </table>
+    </section>
+
+    <p class="wf-foot">{{DRIFT_FOOT}}</p>
+  </main>
 </body>
 </html>

@@ -45,8 +45,11 @@ Compose the artefact per the schema in `framework/agents/wireframe-variant-gener
 ### 5.2.1 Concision contract (consultant-facing)
 
 The strengths/weaknesses/tradeoffs/use-when fields are surfaced verbatim on
-consultant-facing pages (the scope `index.html` right rail and
-`comparison.html` cells). Consultants skim, not read. Enforce hard limits:
+the consultant-facing scope `index.html` page — both in §3's side-by-side
+prose comparison cards and (for tradeoffs / use-when only) elsewhere. The
+standalone `comparison.html` is no longer authored; its trade-off matrix lives
+in `index.html` §4 but renders only dimension positions and persona binding,
+not these prose fields. Consultants skim, not read. Enforce hard limits:
 
 | Field | Limit |
 |---|---|
@@ -114,7 +117,7 @@ For each of: strengths[*], weaknesses[*], tradeoffs, use_when:
 
 If any check fails, treat as `failed` per step 6's handback semantics. Do not
 return `ok` with jargon-bearing variant-position content; the consultant-facing
-surfaces (`index.html`, `comparison.html`) depend on this contract.
+surface (`index.html` §3 prose cards) depends on this contract.
 
 ---
 

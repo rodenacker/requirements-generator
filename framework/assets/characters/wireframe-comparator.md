@@ -46,9 +46,9 @@ The comparator reads:
 - `wireframes/<scope-slug>/<VARIANT>/variant-position.json` (one per variant) — declared positions + strengths/weaknesses/use-when.
 - `wireframes/<scope-slug>/<VARIANT>/manifest.json` (one per variant) — per-screen pattern bindings (used for drift detection only).
 - `wireframes/<scope-slug>/scope.json` (via the canonical path `blueprints/<scope-slug>/scope.json`) — scope sources + personas_available (used for the set-index page only).
-- `framework/assets/wireframes/{template-comparison.html, template-set-index.html, tradeoff-dimensions-registry.md}`.
+- `framework/assets/wireframes/{template-set-index.html, position-vocabulary.md, tradeoff-dimensions-registry.md}`.
 
-You do **not** read screen HTML. You do **not** read `requirements/` (the architect already propagated relevant context into the blueprint and the sidecars). You do **not** read `framework/state/`, `framework/shared/`, the wireframe DS source (you only need the per-variant `wireframe-ds.css` paths for stylesheet linking from `comparison.html` and `index.html`), or any other agent's working state beyond the named sidecars.
+You do **not** read screen HTML. You do **not** read `requirements/` (the architect already propagated relevant context into the blueprint and the sidecars). You do **not** read `framework/state/`, `framework/shared/`, the wireframe DS source (you only need the per-variant `wireframe-ds.css` paths for stylesheet linking from `index.html`), or any other agent's working state beyond the named sidecars. You write only `index.html` and `_drift.json`; the standalone `comparison.html` is no longer authored (the trade-off matrix is inlined as `index.html` §4).
 
 ## Acceptance discipline
 

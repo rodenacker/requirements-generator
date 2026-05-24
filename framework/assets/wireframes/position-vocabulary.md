@@ -20,16 +20,21 @@ resolves; downstream readers expecting D6 must treat it as `position: 0`
 (neutral) and skip rendering its label.
 
 **Used by:**
-- `framework/assets/wireframes/template-set-index.html` — variant column headers
-  render position tags using the *short label* below.
-- `framework/assets/wireframes/template-comparison.html` — matrix cells render
-  the *short label* + the *tooltip* (e.g. `<abbr title="...">…</abbr>`).
+- `framework/assets/wireframes/template-set-index.html` — §2 variant column
+  headers render position taglines using the *short label* below; §4 matrix
+  cells render the *short label* only (the tooltip is **not** surfaced — agent-
+  facing audit metadata, not consultant-facing copy).
 - `framework/assets/templates/template-screen.html` — header chrome's
   position-translation tagline uses the *short label* joined with ` · `.
 - `framework/agents/wireframe-variant-generator.md` — when authoring the
   position-translation tagline in screen HTML headers.
-- `framework/agents/wireframe-comparator.md` — when authoring the matrix and
-  the per-variant right-rail copy on `index.html`.
+- `framework/agents/wireframe-comparator.md` — when authoring the §4 matrix
+  cells and the §2 / §3 per-variant copy on `index.html`.
+
+The *tooltip* column below is a reference for authors who need a
+longer-form gloss when extending the vocabulary; it is **not** rendered into
+consultant-facing artefacts as a `title=` attribute or any other hover
+mechanism. Plain-English labels do the work.
 
 ---
 
@@ -118,10 +123,11 @@ multiple dimensions, join short labels with ` · ` in dimension-ID order
 Neutral (0) positions are omitted from the joined tagline — they add no
 signal to the comparison.
 
-**Matrix cells.** In `comparison.html`, each dimension row's per-variant cell
-renders the short label plus the tooltip. Position numbers (e.g. `-1`, `+2`)
-are kept as a small subtle annotation for readers who want the underlying
-scale, but the short label is the primary content of the cell.
+**Matrix cells.** In `index.html` §4, each dimension row's per-variant cell
+renders the short label as a single line of plain English (no `title=` hover
+tooltip). Position numbers (e.g. `-1`, `+2`) are kept as a small subtle
+annotation for readers who want the underlying scale, but the short label is
+the primary content of the cell.
 
 ---
 

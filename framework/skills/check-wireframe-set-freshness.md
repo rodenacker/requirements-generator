@@ -21,8 +21,9 @@ detected_paths:
   blueprint_md: blueprints/<scope_slug>/blueprint.md (present|absent)
   variants_json: wireframes/<scope_slug>/variants.json (present|absent)
   variant_dirs: [<list of variant subdir names>]
-  comparison_html: wireframes/<scope_slug>/comparison.html (present|absent)
   index_html: wireframes/<scope_slug>/index.html (present|absent)
+  drift_json: wireframes/<scope_slug>/_drift.json (present|absent)
+  legacy_comparison_html: wireframes/<scope_slug>/comparison.html (present|absent)  # legacy artefact; comparator cleans on next run
 variant_state:
   - variant_id: POWER-DENSITY-EXPERT
     completeness: complete | partial | empty
@@ -35,7 +36,7 @@ Verdicts:
 - **`clean`** — neither `blueprints/<scope_slug>/` nor `wireframes/<scope_slug>/` exists. The orchestrator skips the prior-set gate and proceeds to a fresh pipeline run.
 - **`partial-blueprint`** — `blueprints/<scope_slug>/scope.json` exists but `blueprints/<scope_slug>/blueprint.md` does not. A prior run was interrupted before the architect completed Stage 2. The orchestrator surfaces the prior-set gate; `Overwrite` is the natural choice (resume by full restart). The plan does not currently expose a "resume-from-architect" branch — interruption recovery is the consultant's responsibility on the overwrite path.
 - **`partial-variants`** — `blueprint.md` and `variants.json` exist; at least one variant subdir is `partial` or `empty` (a Stage-3 sub-agent did not complete its full file set). The orchestrator surfaces the prior-set gate; `Regenerate variants only` is the natural choice.
-- **`complete`** — `blueprint.md`, `variants.json`, every variant subdir's required file set, plus `comparison.html` and `index.html` all present and parseable. The orchestrator surfaces the full prior-set gate; the consultant may choose any of the five options.
+- **`complete`** — `blueprint.md`, `variants.json`, every variant subdir's required file set, plus `index.html` and `_drift.json` all present and parseable. The orchestrator surfaces the full prior-set gate; the consultant may choose any of the five options. A legacy `comparison.html` may or may not be present — its presence does not change the verdict (it's harmless residue from an older pipeline version and will be cleaned on the next comparator run).
 
 ## Used by
 
@@ -47,7 +48,7 @@ Verdicts:
 
 2. **Detect blueprint-side files.** Test for existence of `blueprints/<scope_slug>/scope.json` and `blueprints/<scope_slug>/blueprint.md`. Record in `detected_paths`.
 
-3. **Detect wireframe-side top-level files.** Test for existence of `wireframes/<scope_slug>/variants.json`, `wireframes/<scope_slug>/comparison.html`, `wireframes/<scope_slug>/index.html`, `wireframes/<scope_slug>/_drift.json`. Record in `detected_paths`.
+3. **Detect wireframe-side top-level files.** Test for existence of `wireframes/<scope_slug>/variants.json`, `wireframes/<scope_slug>/index.html`, `wireframes/<scope_slug>/_drift.json`, and (for legacy detection only) `wireframes/<scope_slug>/comparison.html`. Record in `detected_paths`. The standalone `comparison.html` is no longer authored — its presence indicates residue from an older pipeline version, surfaced as `legacy_comparison_html: present` purely for the orchestrator's information.
 
 4. **Enumerate variant subdirs.** Every direct child directory under `wireframes/<scope_slug>/` is a variant subdir (its directory name is the `variant_id`). Glob `wireframes/<scope_slug>/*/` and capture each as a row in `variant_state`.
 
@@ -72,7 +73,7 @@ Verdicts:
 
     - If neither `blueprints/<scope_slug>/scope.json` nor any `wireframes/<scope_slug>/` content exists → `clean`.
     - Else if `blueprint.md` is absent → `partial-blueprint`.
-    - Else if any variant row has `completeness ∈ { partial, empty }`, **or** `variants.json` is absent, **or** `comparison.html`/`index.html` is absent → `partial-variants`.
+    - Else if any variant row has `completeness ∈ { partial, empty }`, **or** `variants.json` is absent, **or** `index.html`/`_drift.json` is absent → `partial-variants`. (`comparison.html` is no longer authored, so its absence is not a partial-state signal; its presence is logged but does not change the verdict.)
     - Else → `complete`.
 
 7. **Compose `notes`.** One short line summarising the state (used by the orchestrator's prior-set gate prompt for clarity). Examples:
@@ -80,7 +81,7 @@ Verdicts:
     - `clean` — *"No prior wireframe set for `{{scope_slug}}`."*
     - `partial-blueprint` — *"Prior scope-selection exists but blueprint was not produced — likely interrupted."*
     - `partial-variants` — *"Prior blueprint + 1 of 2 variants complete; `WIZARD-NOVICE` is missing `manifest.json` and `variant-position.json`."*
-    - `complete` — *"Full wireframe set on disk: 2 variants, comparison + index produced."*
+    - `complete` — *"Full wireframe set on disk: 2 variants and the metadata-only index page produced."*
 
 8. **Return** the structured payload.
 

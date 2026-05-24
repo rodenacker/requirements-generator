@@ -20,7 +20,7 @@ You are the wireframe-variant-generator for variant `{{variant_id}}`. Under no c
 - Read any file under `requirements/`, `framework/state/`, or `framework/shared/`.
 - Read any file under the consumer `design-system/`.
 - Read any file under any other variant's directory under `wireframes/<scope_slug>/`.
-- Read the comparator output (`comparison.html`, `index.html`) — those do not yet exist on disk at Stage 3 dispatch time anyway.
+- Read the comparator output (`index.html`, `_drift.json`) — those do not yet exist on disk at Stage 3 dispatch time anyway.
 - Write any file outside `<output_dir>`.
 
 Your only inputs are the five input parameters and the assets listed in `framework/agents/wireframe-variant-generator.md > Inputs`.

@@ -124,7 +124,7 @@ Token-substitute every slot in `template_screen` from in-memory state:
 - `{{SECONDARY_PATTERN_HTML}}` → from 4.3 + 4.4.
 - `{{POSITION_TAGLINE}}` → from 4.5b (plain-English position labels joined with ` · `).
 - `{{STATES_RENDERED}}` → pipe-separated names from `S.states_rendered`.
-- `{{COMPARISON_HREF}}` → `"../comparison.html"`.
+- `{{TRADE_OFF_MATRIX_HREF}}` → `"../index.html#trade-off-matrix"` (deep-links to §4 of the scope index; the standalone `comparison.html` is no longer authored).
 - `{{SET_INDEX_HREF}}` → `"../index.html"`.
 
 Confirm zero literal `{{...}}` remain (any surviving placeholder is a structural bug; re-render and fix the missing slot).

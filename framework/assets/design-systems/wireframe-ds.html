@@ -10,6 +10,12 @@ Future: framework/agents/prototype-variant-generator.md may consume this DS as a
 This document is intentionally low-fidelity:
 - Greyscale palette (deliberately monochrome — variants compare on UX position,
   not aesthetic choice).
+- **Pure black (`#000000`, `#000`, `rgb(0,0,0)`) is deliberately excluded from
+  the entire palette.** The darkest tone in the system is `text-default`
+  (`#222222`); the focus ring sits at `#1a1a1a` for slightly higher contrast
+  against `#222` body text. Translucent overlays use `rgba(26,26,26,…)`. If a
+  future contributor needs to add a near-black role, derive it from `#1a1a1a`
+  or `#222222`; do not introduce pure black.
 - Dashed-border treatment (signals "sketch / not final" to stakeholder reviewers).
 - Sketch-typography (Caveat for display if locally installed, otherwise rounded
   system fonts; system-ui for body; system mono for code — communicates "draft"
@@ -49,7 +55,7 @@ template-screen.html's link slot.
       "state-success":    { "hex": "#444444", "role": "validation success (greyed)", "prov": "wireframe-ds" },
       "state-warning":    { "hex": "#888888", "role": "warning (greyed)",       "prov": "wireframe-ds" },
       "state-danger":     { "hex": "#222222", "role": "error (text-default emphasis)", "prov": "wireframe-ds" },
-      "focus-ring":       { "hex": "#000000", "role": "focus outline",          "prov": "wireframe-ds" }
+      "focus-ring":       { "hex": "#1a1a1a", "role": "focus outline (off-black; pure black is deliberately excluded across the palette)", "prov": "wireframe-ds" }
     },
     "typography": {
       "font-family-display": { "value": "'Caveat', ui-rounded, system-ui, -apple-system, 'Segoe UI', sans-serif", "role": "headings / hero", "prov": "wireframe-ds" },
@@ -105,7 +111,7 @@ template-screen.html's link slot.
       --wf-state-success: #444444;
       --wf-state-warning: #888888;
       --wf-state-danger: #222222;
-      --wf-focus-ring: #000000;
+      --wf-focus-ring: #1a1a1a;  /* off-black; pure black is deliberately excluded across the palette */
 
       --wf-font-display: 'Caveat', ui-rounded, system-ui, -apple-system, 'Segoe UI', sans-serif;
       --wf-font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -297,7 +303,7 @@ template-screen.html's link slot.
       box-shadow: 0 0 0 2px var(--wf-text-default);
     }
     .wf-modal-backdrop {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.1);
+      position: fixed; inset: 0; background: rgba(26,26,26,0.1);  /* off-black tint; pure black excluded */
     }
 
     /* Persona / role-switcher chrome (per PI invariants) */
@@ -318,23 +324,12 @@ template-screen.html's link slot.
       background: var(--wf-text-default); color: var(--wf-text-inverse); border-radius: 2px;
     }
 
-    /* Data-src provenance — visible on hover for consultant audit. */
-    [data-src] { position: relative; }
-    [data-src]:hover::after {
-      content: attr(data-src);
-      position: absolute;
-      bottom: 100%;
-      left: 0;
-      background: var(--wf-text-default);
-      color: var(--wf-text-inverse);
-      font-family: var(--wf-font-mono);
-      font-size: var(--wf-fz-xs);
-      padding: 2px 6px;
-      border-radius: 2px;
-      white-space: nowrap;
-      z-index: 100;
-      pointer-events: none;
-    }
+    /* data-src attributes carry agent-only audit metadata (requirement IDs) on
+       interactive elements. They are NOT surfaced visually — consultants
+       inspect the rendered wireframe, not the provenance chain. The attributes
+       remain in the DOM for forensic inspection via dev-tools or downstream
+       drift analysis; rendering them as hover tooltips clutters the UI with
+       jargon that does not belong in a consultant-facing artefact. */
   </style>
 </head>
 <body>
@@ -360,7 +355,7 @@ template-screen.html's link slot.
         <div class="wf-card"><div style="height: 40px; background: #222; color: #fff;"></div><p>text-default<br><code>#222222</code></p></div>
         <div class="wf-card"><div style="height: 40px; background: #666; color: #fff;"></div><p>text-muted<br><code>#666666</code></p></div>
         <div class="wf-card"><div style="height: 40px; background: #ccc;"></div><p>border-subtle<br><code>#cccccc</code></p></div>
-        <div class="wf-card"><div style="height: 40px; background: #000; color: #fff;"></div><p>focus-ring<br><code>#000000</code></p></div>
+        <div class="wf-card"><div style="height: 40px; background: #1a1a1a; color: #fff;"></div><p>focus-ring<br><code>#1a1a1a</code> (off-black — pure black deliberately excluded)</p></div>
       </div>
     </section>
 

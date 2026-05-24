@@ -8,11 +8,16 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **w
 
 Produce the artefacts that close the wireframe pipeline:
 
-1. **`wireframes/<scope_slug>/index.html`** — the single consultant-facing landing page for the scope. Lists variant columns side-by-side, each with a screen list of `target="_blank"` links plus an iframe thumbnail of the first screen. A right rail surfaces per-variant meta (strengths, weaknesses, trade-off, use-when, states per screen) in collapsible `<details>` blocks. A bottom collapsible block holds scope-level meta (sources, personas, blueprint summary). No per-variant landing page is authored; this page is the only landing.
-2. **`wireframes/<scope_slug>/comparison.html`** — the cross-variant trade-off matrix in plain-English. Dimension rows show plain-English position labels (from `position-vocabulary.md`) rather than `D1+1` notation. Strengths / weaknesses / trade-off / use-when rows are quoted verbatim from each variant's `variant-position.json` (concision contract already enforced by the variant-generator).
-3. **`wireframes/<scope_slug>/_drift.json`** — system file (underscore-prefixed; not rendered to consultants) containing any `[DRIFT]` flags between a variant's declared positions and its rendered pattern picks. The HTML pages surface only a one-line drift summary via `{{DRIFT_FOOT}}`; the full detail lives here for forensic inspection.
+1. **`wireframes/<scope_slug>/index.html`** — the **single** consultant-facing landing page for the scope. Metadata-only; no wireframes are embedded. Four ordered sections after a Table of Contents:
+    - **§1 Scope details** — what applies to BOTH variants: intent description, sources summary, personas available, screen-inventory summary, blueprint link.
+    - **§2 Wireframes** — side-by-side variant columns each containing only a heading, plain-English position tagline, and the per-variant screen-link list. Every screen link carries `target="_blank" rel="noopener"`.
+    - **§3 Variant metadata** — side-by-side prose cards: persona binding, design philosophy, strengths, weaknesses, trade-off, use when, states per screen. Quoted verbatim from each variant's `variant-position.json` + `manifest.json`.
+    - **§4 Trade-off matrix** — dimension-positioning table. Plain-English position labels from `position-vocabulary.md`. Strengths / weaknesses / trade-off / use-when are **not** duplicated here (those live in §3); the matrix is focused on the dimensional comparison plus the persona-binding row.
+2. **`wireframes/<scope_slug>/_drift.json`** — system file (underscore-prefixed; not rendered to consultants) containing any `[DRIFT]` flags between a variant's declared positions and its rendered pattern picks. `index.html` surfaces only a one-line drift summary via `{{DRIFT_FOOT}}`; the full detail lives here for forensic inspection.
 
-The comparator runs in the foreground after all Stage-3 sub-agents have handed back. It does **not** surface an accept/revise/restart loop — the orchestrator owns the final accept at Stage 4. The comparator writes its three artefacts, emits a summary line, and hands back.
+The standalone `comparison.html` artefact and its `framework/assets/wireframes/template-comparison.html` template have been **removed** from the pipeline. The trade-off matrix now lives in `index.html` §4. Screen-chrome "Trade-off matrix" buttons in per-variant screens deep-link to `index.html#trade-off-matrix`.
+
+The comparator runs in the foreground after all Stage-3 sub-agents have handed back. It does **not** surface an accept/revise/restart loop — the orchestrator owns the final accept at Stage 4. The comparator writes its two artefacts, emits a summary line, and hands back.
 
 ## Stand-alone constraint
 
@@ -22,15 +27,15 @@ The agent reads only:
 - `blueprints/<scope_slug>/blueprint.md` — for the scope summary and inventory overview on the index page.
 - `blueprints/<scope_slug>/scope.json` — for `intent_description`, `sources` summary, and `personas_available` on the index page.
 - `wireframes/<scope_slug>/<VARIANT_ID>/variant-position.json` — one per variant (the immutable self-declared sidecar).
-- `wireframes/<scope_slug>/<VARIANT_ID>/manifest.json` — one per variant (per-screen pattern bindings, used **only** for drift detection AND to enumerate screen filenames for the index page's per-variant screen lists).
-- `framework/assets/wireframes/template-comparison.html`, `template-set-index.html`.
+- `wireframes/<scope_slug>/<VARIANT_ID>/manifest.json` — one per variant (per-screen pattern bindings, used **only** for drift detection AND to enumerate screen filenames + states for the index page's per-variant screen lists and §3 states-per-screen rows).
+- `framework/assets/wireframes/template-set-index.html`.
 - `framework/assets/wireframes/tradeoff-dimensions-registry.md` — for drift detection lookup (per-dimension HTML effects per pattern category).
-- `framework/assets/wireframes/position-vocabulary.md` — for plain-English position labels in matrix cells and right-rail tags.
+- `framework/assets/wireframes/position-vocabulary.md` — for plain-English position labels in matrix cells and the per-variant taglines.
 - `framework/assets/characters/wireframe-comparator.md`, `framework/assets/persona-llm.md`.
 
 The agent **never reads** any screen HTML (`screen-NN-*.html`), `requirements/`, `framework/state/`, `framework/shared/`, or any other agent's working state.
 
-The agent writes only `wireframes/<scope_slug>/{index.html, comparison.html, _drift.json}` and nothing else.
+The agent writes only `wireframes/<scope_slug>/{index.html, _drift.json}` and nothing else.
 
 This invariant is enforced by the agent's `Tools` list.
 
@@ -42,7 +47,7 @@ The calling orchestrator (Stage 4) supplies these at invocation.
 - `blueprint_path` — repo-relative path. Required. Always `blueprints/<scope_slug>/blueprint.md` in wireframe-orch dispatch.
 - `variants_path` — repo-relative path. Required. Always `wireframes/<scope_slug>/variants.json`.
 - `successful_variants` — in-memory list of `variant_id` strings for variants that completed Stage 3 successfully (excludes any variant the consultant chose `Skip` for at the Stage-3 failure prompt). Required.
-- `set_output_dir` — repo-relative directory. Required. Always `wireframes/<scope_slug>/`. The comparator writes its three artefacts directly under this directory.
+- `set_output_dir` — repo-relative directory. Required. Always `wireframes/<scope_slug>/`. The comparator writes its two artefacts directly under this directory.
 
 ## Workflow
 
@@ -66,7 +71,6 @@ Output one short readiness line: *"Comparator ready. Comparing {{N}} variants fo
 Read tool: <variants_path>
 Read tool: <blueprint_path>
 Read tool: blueprints/<scope_slug>/scope.json
-Read tool: framework/assets/wireframes/template-comparison.html
 Read tool: framework/assets/wireframes/template-set-index.html
 Read tool: framework/assets/wireframes/tradeoff-dimensions-registry.md
 Read tool: framework/assets/wireframes/position-vocabulary.md
@@ -115,41 +119,12 @@ Always write the drift sidecar (even when empty — its presence is the audit tr
 
 Compute sha256. Write to `<set_output_dir>/_drift.json` with two-space indentation. Verify via `framework/skills/verify-artifact-write.md` with `expected_min_bytes = 128`.
 
-### Step 4 — Render `comparison.html`
-
-Token-substitute `template-comparison.html`:
-
-- `{{SCOPE_SLUG}}` → `<scope_slug>`.
-- `{{SET_INDEX_HREF}}` → `"index.html"` (sibling).
-- `{{BLUEPRINT_HREF}}` → `"../../blueprints/<scope_slug>/blueprint.md"`.
-- `{{FIRST_VARIANT_DS_PATH}}` → `"<first variant_id>/wireframe-ds.css"` (relative from `wireframes/<scope_slug>/comparison.html`).
-- `{{DIMENSION_HEADER_ROW}}` → `<tr><th class="row-label">Dimension</th>` followed by one `<th class="col-header">{variant_id}</th>` per `successful_variants[i]`, then `</tr>`.
-- `{{PERSONA_BINDING_ROW}}` → one `<td>{persona_binding}</td>` per variant.
-- `{{DIMENSION_BODY_ROWS}}` → for each dimension in `variants.json > dimensions_diverging_on` (the dimensions the architect chose to diverge on; rows for neutral-across-all dimensions are omitted to keep the matrix tidy):
-    - `<tr><th class="row-label">{dimension}</th>`
-    - For each variant: `<td class="position{neutral?}">` containing
-        - `<span class="wf-pos-label">{plain-English short label from position-vocabulary.md}</span>` — e.g. *"Maximally dense"*, *"Speed-leaning"*, *"Accuracy-leaning"*.
-        - `<span class="wf-pos-num">{signed position number}</span>` — e.g. `+2`, `-1`. Small subtle annotation.
-        - If position is `0`: render `<span class="wf-pos-label" style="color: var(--wf-text-muted)">—</span>` (em-dash; neutral position omitted from label).
-    - `</tr>`.
-- `{{STRENGTHS_ROW}}` → one `<td><ul>{verbatim strengths bullets from variant-position.json}</ul></td>` per variant. Each `<li>` is one strength string. Do **not** truncate, paraphrase, or annotate — the variant-generator's concision contract already enforced ≤ 80 chars per bullet.
-- `{{WEAKNESSES_ROW}}` → same pattern for weaknesses.
-- `{{TRADEOFFS_ROW}}` → one `<td>{tradeoffs string}</td>` per variant (single sentence per variant).
-- `{{USE_WHEN_ROW}}` → one `<td>{use_when string}</td>` per variant.
-- `{{DRIFT_FOOT}}` →
-    - If `drift_flags.length == 0`: `"Drift report: clean — every variant's rendered pattern picks match its declared positions."`
-    - Otherwise: `"Drift report: {drift_flags.length} flag(s) — see _drift.json for detail."`
-
-Compute sha256. Write to `<set_output_dir>/comparison.html`. Verify via `verify-artifact-write` with `expected_min_bytes = 1024`.
-
-### Step 5 — Render `index.html`
+### Step 4 — Render `index.html`
 
 Token-substitute `template-set-index.html`:
 
 - `{{SCOPE_SLUG}}` → `<scope_slug>`.
-- `{{SCOPE_MODE}}` → from `scope.json > scope_mode`.
 - `{{SELECTED_AT}}` → from `scope.json > selected_at`.
-- `{{COMPARISON_HREF}}` → `"comparison.html"` (sibling).
 - `{{BLUEPRINT_HREF}}` → `"../../blueprints/<scope_slug>/blueprint.md"`.
 - `{{FIRST_VARIANT_DS_PATH}}` → `"<first variant_id>/wireframe-ds.css"`.
 - `{{INTENT_DESCRIPTION}}` → verbatim from `scope.json > intent_description`. If absent (legacy `structural` scope.json without intent), render `""` (empty paragraph).
@@ -157,45 +132,82 @@ Token-substitute `template-set-index.html`:
 - `{{PERSONAS_AVAILABLE_LIST}}` → `<ul><li>{persona_name}</li></ul>` per `scope.json > personas_available`.
 - `{{BLUEPRINT_SUMMARY}}` → derived from blueprint inventory: *"{N} screens: {comma-separated S-NN Intent labels}"*.
 
-#### 5a `{{VARIANT_COLUMNS}}` — one column per variant
+#### 4a `{{VARIANT_LINK_COLUMNS}}` — §2 side-by-side screen links
 
 For each `successful_variants[i]`, compose a `<section class="wf-variant-col">` containing:
 
-- `<h2>{variant_id}</h2>`
+- `<h3>{variant_id}</h3>`
 - `<p class="wf-tagline">{plain-English position tagline}</p>` — derived from the variant's non-neutral `dimension_positions` joined with ` · `, using `position-vocabulary.md` short labels. Same composition rule as the screen header chrome's `{{POSITION_TAGLINE}}`. Example: *"Maximally dense · Speed-leaning"*.
-- `<p class="wf-pitch">{design_philosophy}</p>` — verbatim from `variant-position.json > design_philosophy`.
-- `<iframe src="{variant_id}/{first screen file from manifest.screens}" loading="lazy" class="wf-thumb" title="{variant_id} first screen preview" aria-label="{variant_id} first screen preview"></iframe>` — preview of the variant's `S-01` (or the first screen in inventory order, by `S-NN` ascending). Read the screen file name from `manifest.screens[<first S-NN>].screen_file`.
 - `<ul class="wf-screen-list">` containing one `<li>` per screen in blueprint inventory order (sorted by `S-NN`):
     - `<li><a href="{variant_id}/{screen_file}" target="_blank" rel="noopener">{S-NN} — {screen intent from blueprint}</a></li>`
     - Read `{screen_file}` from `manifest.screens[<S-NN>].screen_file`.
     - Read `{screen intent}` from the blueprint's inventory row for that `S-NN`.
 
-#### 5b `{{VARIANT_META_BLOCKS}}` — right-rail collapsible details
+**No iframe thumbnails. No design philosophy here** — design philosophy is part of §3.
 
-For each `successful_variants[i]`, compose a `<details class="wf-meta">` containing:
+#### 4b `{{VARIANT_META_COLUMNS}}` — §3 side-by-side prose comparison cards
 
-- `<summary>{variant_id}</summary>`
-- `<h3>Built for</h3><p>{persona_binding}</p>`
-- `<h3>Strengths</h3><ul>{<li>strength</li> per entry in variant-position.json > strengths}</ul>`
-- `<h3>Weaknesses</h3><ul>{<li>weakness</li> per entry in variant-position.json > weaknesses}</ul>`
-- `<h3>Trade-off</h3><p>{tradeoffs}</p>`
-- `<h3>Use when</h3><p>{use_when}</p>`
-- `<h3>States per screen</h3><dl>{<dt>S-NN — intent</dt><dd>{states_rendered pipe-separated}</dd> per screen}</dl>`
+For each `successful_variants[i]`, compose a `<section class="wf-meta-col">` containing:
 
-The blocks are `<details>` (collapsed by default; consultant clicks to expand the one they want without seeing all variants' meta at once).
+- `<h3>{variant_id}</h3>`
+- `<h4>Built for</h4><p>{persona_binding}</p>`
+- `<h4>Design philosophy</h4><p>{design_philosophy}</p>` — verbatim from `variant-position.json > design_philosophy`.
+- `<h4>Strengths</h4><ul>{<li>strength</li> per entry}</ul>` — verbatim from `variant-position.json > strengths`. Do **not** truncate, paraphrase, or annotate.
+- `<h4>Weaknesses</h4><ul>{<li>weakness</li> per entry}</ul>` — verbatim from `variant-position.json > weaknesses`.
+- `<h4>Trade-off</h4><p>{tradeoffs}</p>` — verbatim from `variant-position.json > tradeoffs`.
+- `<h4>Use when</h4><p>{use_when}</p>` — verbatim from `variant-position.json > use_when`.
+- `<h4>States per screen</h4><dl>{<dt>S-NN — intent</dt><dd>{states_rendered pipe-separated}</dd> per screen}</dl>` — derived from `manifest.screens` + blueprint inventory intent strings.
 
-#### 5c `{{DRIFT_FOOT}}` — same as comparison.html
+These cards display open (not collapsed) so consultants compare variants at a glance without clicking.
 
-Same string as the `{{DRIFT_FOOT}}` value in step 4 (clean / N flag(s) — see _drift.json).
+#### 4c `{{MATRIX_HEADER_ROW}}` — §4 trade-off matrix header
 
-Compute sha256. Write to `<set_output_dir>/index.html`. Verify via `verify-artifact-write` with `expected_min_bytes = 1024`.
+Render:
+
+```html
+<tr><th class="row-label">Dimension</th>{<th class="col-header">{variant_id}</th> per variant}</tr>
+```
+
+#### 4d `{{MATRIX_PERSONA_ROW}}` — §4 persona-binding row
+
+Render:
+
+```html
+<tr><th class="row-label">Built for</th>{<td>{persona_binding}</td> per variant}</tr>
+```
+
+#### 4e `{{MATRIX_DIMENSION_ROWS}}` — §4 dimension comparison rows
+
+For each dimension in `variants.json > dimensions_diverging_on` (rows for neutral-across-all dimensions are omitted to keep the matrix tidy):
+
+- `<tr><th class="row-label">{dimension}</th>`
+- For each variant: `<td class="position{neutral?}">` containing
+    - `<span class="wf-pos-label">{plain-English short label from position-vocabulary.md}</span>` — e.g. *"Maximally dense"*, *"Speed-leaning"*, *"Accuracy-leaning"*.
+    - `<span class="wf-pos-num">{signed position number}</span>` — e.g. `+2`, `-1`. Small subtle annotation.
+    - If position is `0`: render `<span class="wf-pos-label" style="color: var(--wf-text-muted)">—</span>` (em-dash; neutral position omitted from label) and add `neutral` to the td class.
+- `</tr>`
+
+**No `D1+1`-style notation, no pattern-catalogue IDs, no `GR-NN` references, no bracketed annotations in any cell content.** The position number annotation is the only numeric notation permitted in matrix cells.
+
+**No `title=` attribute hover-tooltips on `.wf-pos-label` spans** — every consultant-facing description belongs in the plain-text label itself, not in agent-only audit-trail tooltips.
+
+#### 4f `{{DRIFT_FOOT}}` — drift summary line
+
+- If `drift_flags.length == 0`: `"Drift report: clean — every variant's rendered pattern picks match its declared positions."`
+- Otherwise: `"Drift report: {drift_flags.length} flag(s) — see _drift.json for detail."`
+
+Compute sha256. Write to `<set_output_dir>/index.html`. Verify via `verify-artifact-write` with `expected_min_bytes = 2048` (the page is larger than its old form because it now embeds the matrix).
+
+### Step 5 — Clean up legacy artefacts
+
+If `<set_output_dir>/comparison.html` exists on disk (left over from a prior pipeline version), delete it via `Bash rm -f <set_output_dir>/comparison.html`. The standalone comparison page is no longer authored; its content is in `index.html` §4. Leaving stale copies on disk would mislead consultants who land on them via stale bookmarks.
 
 ### Step 6 — Summary + handback
 
 Output a short in-thread summary:
 
 ```
-Comparison + index written for `<scope_slug>`.
+Index written for `<scope_slug>`.
 - {N} variants compared (listed).
 - Drift flags: {count} (see _drift.json for detail).
 - Open wireframes/<scope_slug>/index.html in a browser (file://) to view.
@@ -210,47 +222,53 @@ Listed in **Stand-alone constraint** above. The five required input parameters a
 
 ## Output
 
-- `wireframes/<scope_slug>/index.html` — the scope landing (the single consultant-facing landing page).
-- `wireframes/<scope_slug>/comparison.html` — the cross-variant trade-off matrix.
-- `wireframes/<scope_slug>/_drift.json` — system file with the full drift detail (consultant-facing pages surface only a one-line summary).
+- `wireframes/<scope_slug>/index.html` — the scope landing (the single consultant-facing landing page; contains all four metadata sections including the trade-off matrix).
+- `wireframes/<scope_slug>/_drift.json` — system file with the full drift detail (consultant-facing page surfaces only a one-line summary).
 
 ## Tools
 
 - `Read` — every file listed in **Inputs** + the per-variant sidecars. Not authorised against screen HTML, `requirements/`, `framework/state/`, `framework/shared/`, the consumer `design-system/`, or any agent's working state.
-- `Write` — write `<set_output_dir>/index.html`, `<set_output_dir>/comparison.html`, and `<set_output_dir>/_drift.json`.
-- `Bash` — `mkdir -p <set_output_dir>` only when needed. No other Bash.
+- `Write` — write `<set_output_dir>/index.html` and `<set_output_dir>/_drift.json`.
+- `Bash` — `mkdir -p <set_output_dir>` only when needed; `rm -f <set_output_dir>/comparison.html` at step 5 only (legacy cleanup). No other Bash.
 - (No `AskUserQuestion`. The orchestrator owns the Stage-4 accept gate.)
 
 ## Self-validation (run before declaring done)
 
-- `index.html`, `comparison.html`, and `_drift.json` all exist; all three verify-artifact-write'd `pass`.
-- `index.html` and `comparison.html` contain zero literal `{{...}}` placeholders.
-- `comparison.html`'s matrix has exactly `successful_variants.length` columns and at least one dimension row.
-- `comparison.html`'s strengths / weaknesses / tradeoffs / use_when rows are quoted **verbatim** from each variant's `variant-position.json` (no paraphrasing, no truncation).
-- `comparison.html`'s dimension cells render plain-English short labels from `position-vocabulary.md` — no `D1+1`-style notation, no pattern-catalogue IDs, no `GR-NN` references, no bracketed annotations in any cell.
-- `index.html`'s `{{VARIANT_COLUMNS}}` lists every `successful_variants[i]` exactly once, in `successful_variants` order. Each column lists every screen in blueprint inventory order with `target="_blank" rel="noopener"` on every screen link.
-- `index.html`'s `{{VARIANT_META_BLOCKS}}` has one `<details>` per `successful_variants[i]`; each contains strengths, weaknesses, tradeoffs, use_when, persona binding, and states-per-screen sourced verbatim from the corresponding `variant-position.json` + `manifest.json`.
+- `index.html` and `_drift.json` both exist; both verify-artifact-write'd `pass`.
+- `index.html` contains zero literal `{{...}}` placeholders.
+- `index.html` contains the four section anchors (`#scope-details`, `#wireframes`, `#variant-metadata`, `#trade-off-matrix`) referenced by the in-page TOC, and the TOC itself with four list items.
+- `index.html` has zero `<iframe>` elements in the variant-link section (no embedded wireframe previews).
+- `index.html`'s §2 grid lists every `successful_variants[i]` exactly once, in `successful_variants` order. Each column lists every screen in blueprint inventory order with `target="_blank" rel="noopener"` on every screen link.
+- `index.html`'s §3 grid has one `<section class="wf-meta-col">` per `successful_variants[i]`; each contains persona binding, design philosophy, strengths, weaknesses, tradeoffs, use_when, and states-per-screen sourced **verbatim** from the corresponding `variant-position.json` + `manifest.json` (no paraphrasing, no truncation).
+- `index.html`'s §4 matrix has exactly `successful_variants.length` columns and at least one dimension row plus the persona-binding row.
+- `index.html`'s §4 matrix cells render plain-English short labels from `position-vocabulary.md` — no `D1+1`-style notation, no pattern-catalogue IDs (`table.compact`), no `GR-NN` references, no bracketed annotations, no `title=` attribute hover-tooltips on any matrix cell content.
 - `_drift.json` parses as JSON and contains `scope_slug`, `compared_variants`, and a (possibly empty) `drift_flags` array.
-- The `{{DRIFT_FOOT}}` value in both HTML files is consistent: clean ↔ empty `drift_flags`; flagged ↔ non-empty `drift_flags` with matching count.
+- The `{{DRIFT_FOOT}}` value in `index.html` is consistent: clean ↔ empty `drift_flags`; flagged ↔ non-empty `drift_flags` with matching count.
 - The comparator did not read any screen HTML file (`Read` tool calls on `*screen-*.html` paths are forbidden — confirmable by the agent's tool-call log against this constraint).
-- No `wireframes.html` artefact exists under any `wireframes/<scope_slug>/<variant_id>/` directory (the per-variant landing has been removed from the pipeline; finding one indicates stale state from a prior pipeline version, which should be cleaned via the orchestrator's full Overwrite reset).
+- `<set_output_dir>/comparison.html` does **not** exist after the step-5 cleanup ran (the standalone comparison page is no longer authored).
+- No `wireframes.html` artefact exists under any `wireframes/<scope_slug>/<variant_id>/` directory (the per-variant landing was removed in a prior pipeline iteration; finding one indicates stale state from an even older pipeline version, which should be cleaned via the orchestrator's full Overwrite reset).
 
 ## Definition of Done
 
-- `index.html`, `comparison.html`, and `_drift.json` exist, have been verified, and contain the populated artefacts.
+- `index.html` and `_drift.json` exist, have been verified, and contain the populated artefacts.
+- `<set_output_dir>/comparison.html` has been removed if present (legacy cleanup).
 - The comparator emitted the summary line and returned `ok` to the orchestrator.
 - The orchestrator surfaces its own Stage-4 accept gate to the consultant; the comparator does not.
 
 ## Anti-Patterns
 
 - Do not read any screen HTML file. The comparator's I/O contract is JSON sidecars + blueprint + scope.json + position-vocabulary — reading screen HTML would substitute the comparator's judgement for the variant's declared position, defeating the matrix's purpose.
+- Do not embed any wireframe content (iframes, screen previews, copies of screen markup) into `index.html`. The index is metadata-only — the four sections are scope details, screen links, prose metadata cards, and the dimension matrix. Embedding a wireframe puts agent-built UI into a consultant-skimmable summary page and breaks the "one click from index to actual screen" depth contract.
+- Do not author a `comparison.html` file. The standalone matrix page was folded into `index.html` §4; re-authoring it would create a duplicate of the same content under two URLs and re-introduce a navigation surface the simplified pipeline eliminates. The agent's step 5 actively cleans up stale copies on disk; do not skip that step.
+- Do not author or read `framework/assets/wireframes/template-comparison.html`. That template has been deleted; any reference to it is a stale-doc bug.
 - Do not edit any per-variant sidecar. `variant-position.json` and `manifest.json` are immutable per the variant-generator's write contract.
-- Do not paraphrase or truncate strengths / weaknesses / tradeoffs / use_when. These come verbatim from `variant-position.json`; the variant-generator's concision contract already enforced the limits. The comparator's job is to render them, not to smooth or shorten them.
-- Do not embed `D1+1`-style notation, pattern-catalogue IDs (`table.compact`, `single-form.compact`), `GR-NN` references, or bracketed annotations (`[STANDARD-RULE: …]`, `[DRIFT: …]`) in any consultant-facing cell. Plain-English short labels from `position-vocabulary.md` only. The position number annotation is the **only** numeric notation permitted in matrix cells, and only as a small subtle suffix to the plain-English label.
-- Do not render the full drift detail in `comparison.html` or `index.html`. The detail lives in `_drift.json` (system file). The HTML pages surface only the single-line `{{DRIFT_FOOT}}` summary.
+- Do not paraphrase or truncate persona binding, design philosophy, strengths, weaknesses, tradeoffs, or use_when. These come verbatim from `variant-position.json`; the variant-generator's concision contract already enforced the limits. The comparator's job is to render them, not to smooth or shorten them.
+- Do not embed `D1+1`-style notation, pattern-catalogue IDs (`table.compact`, `single-form.compact`), `GR-NN` references, bracketed annotations (`[STANDARD-RULE: …]`, `[DRIFT: …]`), or `title=` attribute hover-tooltips in any consultant-facing cell. Plain-English short labels from `position-vocabulary.md` only. The position number annotation (e.g. `+2`) is the **only** numeric notation permitted in matrix cells, and only as a small subtle suffix to the plain-English label.
+- Do not duplicate the §3 prose content (strengths/weaknesses/tradeoff/use-when) into §4 matrix rows. The matrix is focused on dimension positions and persona binding; prose comparison lives in §3. Duplicating both surfaces clutters the page and breaks the "matrix = dimensions, cards = prose" division.
+- Do not render the full drift detail in `index.html`. The detail lives in `_drift.json` (system file). The HTML page surfaces only the single-line `{{DRIFT_FOOT}}` summary.
 - Do not skip drift detection. Even one drift entry is worth surfacing — both as the `{{DRIFT_FOOT}}` count and as a `_drift.json` row for forensic inspection.
 - Do not silently fail on a sidecar parse error. `RF-04`-equivalent halt is the registry-correct response.
-- Do not surface an accept / revise / restart loop. That loop has been folded into the orchestrator's Stage-4 accept gate (a single Accept / Revise / Cancel prompt). The comparator hands back `ok` after its three writes; the orchestrator decides whether the consultant is satisfied.
-- Do not author a per-variant `wireframes.html` landing. That artefact is intentionally removed — its content lives in `index.html`'s right-rail `<details>` blocks and per-variant columns.
+- Do not surface an accept / revise / restart loop. That loop has been folded into the orchestrator's Stage-4 accept gate (a single Accept / Revise / Cancel prompt). The comparator hands back `ok` after its two writes (plus the cleanup step's optional `rm`); the orchestrator decides whether the consultant is satisfied.
+- Do not author a per-variant `wireframes.html` landing. That artefact is intentionally removed — its content lives in `index.html`'s §2 and §3.
 - Do not write any file outside `<set_output_dir>`. The agent's write isolation is strict.
 - Do not invoke this agent as a background / sub / async agent. Even without the accept loop, the comparator runs foreground to keep the in-thread summary visible to the consultant.

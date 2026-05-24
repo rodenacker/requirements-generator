@@ -20,7 +20,7 @@
       --wf-state-success: #444444;
       --wf-state-warning: #888888;
       --wf-state-danger: #222222;
-      --wf-focus-ring: #000000;
+      --wf-focus-ring: #1a1a1a;  /* off-black; pure black deliberately excluded */
 
       --wf-font-display: 'Caveat', ui-rounded, system-ui, -apple-system, 'Segoe UI', sans-serif;
       --wf-font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -212,7 +212,7 @@
       box-shadow: 0 0 0 2px var(--wf-text-default);
     }
     .wf-modal-backdrop {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.1);
+      position: fixed; inset: 0; background: rgba(26,26,26,0.1);  /* off-black tint; pure black excluded */
     }
 
     /* Persona / role-switcher chrome (per PI invariants) */
@@ -233,20 +233,4 @@
       background: var(--wf-text-default); color: var(--wf-text-inverse); border-radius: 2px;
     }
 
-    /* Data-src provenance — visible on hover for consultant audit. */
-    [data-src] { position: relative; }
-    [data-src]:hover::after {
-      content: attr(data-src);
-      position: absolute;
-      bottom: 100%;
-      left: 0;
-      background: var(--wf-text-default);
-      color: var(--wf-text-inverse);
-      font-family: var(--wf-font-mono);
-      font-size: var(--wf-fz-xs);
-      padding: 2px 6px;
-      border-radius: 2px;
-      white-space: nowrap;
-      z-index: 100;
-      pointer-events: none;
-    }
+    /* data-src attributes carry agent-only audit metadata; not surfaced visually. */
