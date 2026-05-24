@@ -6,30 +6,65 @@
   "screens": {
     "S-01": {
       "screen_file": "screen-01-upload-form.html",
-      "primary_pattern": "single-form",
+      "primary_pattern": "forms/single-form",
       "primary_pattern_variant": "compact",
-      "secondary_patterns": ["notification-banner"],
+      "secondary_patterns": ["feedback/notification-banner"],
       "states_rendered": ["default", "file-selected", "validating", "uploading", "error"],
       "data_src_targets": ["F-05", "BR-09", "UI-04", "UI-05", "G-01", "§5 File Upload"],
-      "notes": "Two-column dense field layout via inline grid; submit-on-Enter wired on primary CTA; keyboard shortcuts panel surfaced; help-aside suppressed per dense+speed-leaning composition."
+      "properties_declared": ["F-05:FileSettingId", "F-05:FileSettingName", "F-05:FileName"],
+      "properties_rendered": ["F-05:FileSettingId", "F-05:FileSettingName", "F-05:FileName"],
+      "notes": "Two-column compact form per D3+2 density and D1+1 speed; submit-on-Enter wired on primary CTA; keyboard shortcuts panel surfaced. Property closed set is the same as CAREFUL-DEFAULT (F-05's three enumerated query parameters); the speed/density differences are in the form layout and chrome, not in the field set — the requirements give only three uploadable parameters and the variant honours that."
     },
     "S-02": {
       "screen_file": "screen-02-upload-accepted.html",
-      "primary_pattern": "confirmation-receipt",
+      "primary_pattern": "feedback/confirmation-receipt",
       "primary_pattern_variant": "receipt-style",
       "secondary_patterns": ["notification-banner"],
       "states_rendered": ["default", "filelog-ready"],
       "data_src_targets": ["F-06", "BR-06", "§5 File Upload", "§7 FileLog"],
-      "notes": "Receipt-style with a dense 4-column attribute grid mirroring §7 FileLog shape (attribute-list slot, per receipt composition-rules) plus a first-5 line-item table (line-items slot); deep-linkable reference; print-friendly chrome; persistent success banner per GR-14 (acknowledgement, not toast). The architect's 'confirmation-receipt over detail-page' note describes the conceptual layering of FileLog inspection beneath the receipt headline, not a nested detail-page composition."
+      "properties_declared": [
+        "FileLog.Id",
+        "FileLog.ProcessDate",
+        "FileLog.SettingName",
+        "FileLog.CurrentFileName",
+        "FileLog.RecordCount",
+        "FileLog.CurrentStatus",
+        "FileLog.HasBulkErrorFile"
+      ],
+      "properties_rendered": [
+        "FileLog.Id",
+        "FileLog.ProcessDate",
+        "FileLog.SettingName",
+        "FileLog.CurrentFileName",
+        "FileLog.RecordCount",
+        "FileLog.CurrentStatus",
+        "FileLog.HasBulkErrorFile"
+      ],
+      "notes": "Dense 4-column receipt grid mirroring §7 FileLog visible fields. Hidden fields (BulkErrorFile path, IsActive) are not surfaced. The prior version's invented Reference/Submitter/Period/Source/Currency/Priority/Net-total/Cost-centre fields and the prior line-item Transaction sample table were removed as fabrications — those properties are not in §7 FileLog and §7 Transaction is not a source for this screen."
     },
     "S-03": {
       "screen_file": "screen-03-upload-failed.html",
-      "primary_pattern": "table",
+      "primary_pattern": "collections/table",
       "primary_pattern_variant": "compact",
-      "secondary_patterns": ["notification-banner", "inline-edit"],
+      "secondary_patterns": ["notification-banner"],
       "states_rendered": ["default", "error-row", "editing", "saved", "empty-after-fix"],
       "data_src_targets": ["F-17", "F-18", "F-19", "UI-15", "UI-17", "UI-18", "§5 File Upload", "§7 ValidationErrors"],
-      "notes": "Compact table with bulk-select column and inline-edit cells (effectively editable variant via inline-edit composition); 10 columns visible to honour D3=+2; keyboard shortcuts panel + Ctrl+Enter retry + Ctrl+D download; filter chrome collapsed by default to keep error grid above the fold."
+      "properties_declared": [
+        "ValidationErrors.JsonArray [OPAQUE-PAYLOAD]",
+        "F-17:FileLogId",
+        "FileLog.HasBulkErrorFile"
+      ],
+      "properties_rendered": [
+        "ValidationErrors.JsonArray[Row]",
+        "ValidationErrors.JsonArray[Column]",
+        "ValidationErrors.JsonArray[Rule]",
+        "ValidationErrors.JsonArray[Message]",
+        "ValidationErrors.JsonArray[OffendingValue]",
+        "ValidationErrors.JsonArray[Severity]",
+        "F-17:FileLogId",
+        "FileLog.HasBulkErrorFile"
+      ],
+      "notes": "Per-row column names (Row/Column/Rule/Message/OffendingValue/Severity) are inferred from F-18's prose 'JSON array of per-row error objects' and flagged [OPAQUE-PAYLOAD] in the blueprint. The prior version's invented Suggested-fix / Inline-fix / Action / Reference columns and the filter chips referencing fabricated rules (Date format, Amount > threshold, etc.) were removed — those properties don't exist in the requirements."
     }
   }
 }

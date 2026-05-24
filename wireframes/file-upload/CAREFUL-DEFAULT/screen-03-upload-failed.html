@@ -8,6 +8,7 @@
   <meta name="wf-variant-id" content="CAREFUL-DEFAULT" />
   <meta name="wf-screen-id" content="S-03" />
   <meta name="wf-screen-sources" content="F-17, F-18, F-19, UI-15, UI-17, UI-18, §5 File Upload, §7 ValidationErrors" />
+  <meta name="wf-screen-properties" content="ValidationErrors.JsonArray [OPAQUE-PAYLOAD], F-17:FileLogId, FileLog.HasBulkErrorFile" />
   <meta name="wf-persona-binding" content="Importer" />
   <meta name="wf-states-rendered" content="default | error" />
 </head>
@@ -31,14 +32,18 @@
   </header>
 
   <main class="wf-shell" style="max-width: 1100px; margin: 0 auto; padding: 0 16px;">
-    <h1 data-src="F-17, F-18, F-19, UI-15, UI-17, UI-18, §5 File Upload, §7 ValidationErrors">Upload failed &mdash; 12 validation errors</h1>
+    <h1 data-src="F-17, F-18, F-19, UI-15, UI-17, UI-18, §5 File Upload, §7 ValidationErrors">Upload failed &mdash; validation errors</h1>
 
     <div class="wf-banner" data-tone="danger" data-src="F-17, UI-15" role="alert">
-      <strong>&#9888; The file <code>2026-05-23-batch.csv</code> was rejected.</strong>
+      <strong>&#9888; The file was rejected because validation failed.</strong>
       <p style="margin: 4px 0 0;">
-        Validation found <strong>12 errors</strong> across <strong>347 rows</strong>.
-        Nothing has been committed to the ledger. Review the issues below, fix the file,
-        and submit again. <em>(state: error)</em>
+        The owning FileLog row has its bulk-error flag set; the per-row error payload was
+        retrieved via <code>GET /v1/files/validation-errors</code> (F-18). Nothing has been
+        committed downstream. Review the issues below, fix the source, and retry validation.
+        <em>(state: error)</em>
+      </p>
+      <p class="wf-help" style="margin: 8px 0 0;" data-src="§7 FileLog">
+        Bulk-error flag: <strong data-prop="FileLog.HasBulkErrorFile">Yes</strong>
       </p>
     </div>
 
@@ -46,100 +51,92 @@
       <h2 id="primary-region-label" class="visually-hidden" style="position:absolute; left:-9999px;">Primary content</h2>
 
       <p class="wf-help" data-src="UI-17">
-        Each row below is one validation error from the upload attempt. Sort by row number
-        or by error type to group similar issues. Use the bulk-error download to take the
-        full error list back to your source system.
+        Each row below is one entry from the F-18 <code>ValidationErrors.JsonArray</code> payload.
+        The per-row columns are surfaced for inspection; the underlying shape is the opaque
+        JSON array per requirements §7 — the column names below are inferred and flagged as
+        <code>[OPAQUE-PAYLOAD]</code> in the blueprint.
       </p>
 
-      <div class="wf-table" data-src="F-17, F-18, F-19, §7 ValidationErrors" role="region" aria-label="Validation errors list">
+      <div class="wf-table" data-src="F-18, §7 ValidationErrors" role="region" aria-label="Validation errors list">
         <table>
           <thead>
             <tr>
-              <th data-src="§7 ValidationErrors">Row</th>
-              <th data-src="§7 ValidationErrors">Column</th>
-              <th data-src="§7 ValidationErrors">Rule</th>
-              <th data-src="F-18">Error message</th>
-              <th data-src="§7 ValidationErrors">Offending value</th>
-              <th data-src="§7 ValidationErrors">Severity</th>
-              <th data-src="F-19, UI-18">Action</th>
+              <th data-src="§7 ValidationErrors" data-prop="ValidationErrors.JsonArray[Row]">Row</th>
+              <th data-src="§7 ValidationErrors" data-prop="ValidationErrors.JsonArray[Column]">Column</th>
+              <th data-src="§7 ValidationErrors" data-prop="ValidationErrors.JsonArray[Rule]">Rule</th>
+              <th data-src="F-18" data-prop="ValidationErrors.JsonArray[Message]">Message</th>
+              <th data-src="§7 ValidationErrors" data-prop="ValidationErrors.JsonArray[OffendingValue]">Offending value</th>
+              <th data-src="§7 ValidationErrors" data-prop="ValidationErrors.JsonArray[Severity]">Severity</th>
             </tr>
           </thead>
           <tbody>
             <tr data-src="F-18, §7 ValidationErrors">
               <td><code>7</code></td>
-              <td>amount</td>
+              <td>Amount</td>
               <td>numeric</td>
-              <td>Amount must be a number (got non-numeric value).</td>
+              <td>Amount must be numeric.</td>
               <td><code>"twelve hundred"</code></td>
               <td>error</td>
-              <td><button class="wf-btn" data-src="F-19">Download row context</button></td>
             </tr>
             <tr data-src="F-18, §7 ValidationErrors">
               <td><code>12</code></td>
-              <td>date</td>
+              <td>TransactionDate</td>
               <td>format</td>
-              <td>Date must be ISO-8601 (YYYY-MM-DD).</td>
+              <td>TransactionDate must be ISO-8601 (YYYY-MM-DD).</td>
               <td><code>"23/05/26"</code></td>
               <td>error</td>
-              <td><button class="wf-btn" data-src="F-19">Download row context</button></td>
             </tr>
             <tr data-src="F-18, §7 ValidationErrors">
               <td><code>15</code></td>
-              <td>account_code</td>
+              <td>AccountNumber</td>
               <td>required</td>
-              <td>Account code is required.</td>
+              <td>AccountNumber is required.</td>
               <td><em>(empty)</em></td>
               <td>error</td>
-              <td><button class="wf-btn" data-src="F-19">Download row context</button></td>
             </tr>
             <tr data-src="F-18, §7 ValidationErrors">
               <td><code>28</code></td>
-              <td>account_code</td>
+              <td>AccountNumber</td>
               <td>lookup</td>
-              <td>Account code does not match any known GL account.</td>
+              <td>AccountNumber does not match any known account.</td>
               <td><code>"9999-INVALID"</code></td>
               <td>error</td>
-              <td><button class="wf-btn" data-src="F-19">Download row context</button></td>
             </tr>
             <tr data-src="F-18, §7 ValidationErrors">
               <td><code>34</code></td>
-              <td>currency</td>
+              <td>Currency</td>
               <td>allowlist</td>
-              <td>Currency must be one of: USD, EUR, GBP, JPY.</td>
+              <td>Currency must be ZAR per §7 Transaction enum.</td>
               <td><code>"XYZ"</code></td>
               <td>error</td>
-              <td><button class="wf-btn" data-src="F-19">Download row context</button></td>
             </tr>
             <tr data-src="F-18, §7 ValidationErrors">
               <td><code>57</code></td>
-              <td>amount</td>
+              <td>Amount</td>
               <td>range</td>
-              <td>Amount exceeds per-row limit of 1,000,000.</td>
+              <td>Amount exceeds per-row limit.</td>
               <td><code>"2,400,000.00"</code></td>
               <td>error</td>
-              <td><button class="wf-btn" data-src="F-19">Download row context</button></td>
             </tr>
             <tr data-src="F-18, §7 ValidationErrors">
               <td><code>89</code></td>
-              <td>reference</td>
+              <td>Reference</td>
               <td>uniqueness</td>
               <td>Reference must be unique within the file (duplicate of row 12).</td>
               <td><code>"REF-0042"</code></td>
               <td>error</td>
-              <td><button class="wf-btn" data-src="F-19">Download row context</button></td>
             </tr>
             <tr data-src="F-18, §7 ValidationErrors">
               <td><code>114</code></td>
-              <td>amount</td>
-              <td>sign</td>
-              <td>Debit row's amount must be positive.</td>
-              <td><code>"-500.00"</code></td>
+              <td>TransactionType</td>
+              <td>enum</td>
+              <td>TransactionType must be Debit or Credit per §7 Transaction enum.</td>
+              <td><code>"Reversal"</code></td>
               <td>error</td>
-              <td><button class="wf-btn" data-src="F-19">Download row context</button></td>
             </tr>
             <tr data-src="F-18, §7 ValidationErrors">
-              <td colspan="7" style="text-align: center; font-style: italic;">
-                &mdash; 4 more errors hidden &mdash; click "Show all 12" below to expand.
+              <td colspan="6" style="text-align: center; font-style: italic;">
+                &mdash; 4 more errors hidden &mdash; click "Show all" below to expand.
               </td>
             </tr>
           </tbody>
@@ -149,7 +146,7 @@
       <div class="wf-section" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
         <button type="button" class="wf-btn" data-src="UI-17">Show all 12 errors</button>
         <button type="button" class="wf-btn" data-src="UI-17">Sort by row</button>
-        <button type="button" class="wf-btn" data-src="UI-17">Sort by error type</button>
+        <button type="button" class="wf-btn" data-src="UI-17">Sort by rule</button>
         <span class="wf-help" style="margin-left: auto;">
           Showing 8 of 12 errors. Single-column sort, ascending.
         </span>
@@ -164,14 +161,11 @@
       </p>
       <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
         <a href="screen-01-upload-form.html" class="wf-btn primary" target="_blank" rel="noopener" data-src="F-19, UI-18, §5 File Upload">
-          Fix the file and retry &rsaquo;
+          Fix the file and retry validation &rsaquo;
         </a>
-        <button type="button" class="wf-btn" data-src="F-19, UI-18">
-          Download all 12 errors as CSV
-        </button>
-        <button type="button" class="wf-btn" data-src="F-19">
-          Download the original file with error annotations
-        </button>
+        <a href="#" class="wf-btn" data-src="F-17, UI-18" data-prop="F-17:FileLogId">
+          Download bulk-error report
+        </a>
         <a href="#" class="wf-btn">Cancel and discard this attempt</a>
       </div>
 

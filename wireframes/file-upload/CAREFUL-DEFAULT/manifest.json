@@ -10,7 +10,9 @@
       "primary_pattern_variant": "scrollable-with-save-bar",
       "secondary_patterns": ["feedback/inline-validation", "feedback/notification-banner"],
       "states_rendered": ["default", "file-selected", "validating", "error"],
-      "data_src_targets": ["F-05", "BR-09", "UI-04", "UI-05", "G-01", "§5 File Upload"]
+      "data_src_targets": ["F-05", "BR-09", "UI-04", "UI-05", "G-01", "§5 File Upload"],
+      "properties_declared": ["F-05:FileSettingId", "F-05:FileSettingName", "F-05:FileName"],
+      "properties_rendered": ["F-05:FileSettingId", "F-05:FileSettingName", "F-05:FileName"]
     },
     "S-02": {
       "screen_file": "screen-02-upload-accepted.html",
@@ -18,7 +20,25 @@
       "primary_pattern_variant": "receipt-style",
       "secondary_patterns": ["collections/detail-page", "feedback/notification-banner"],
       "states_rendered": ["default", "success"],
-      "data_src_targets": ["F-06", "BR-06", "§5 File Upload", "§7 FileLog"]
+      "data_src_targets": ["F-06", "BR-06", "§5 File Upload", "§7 FileLog"],
+      "properties_declared": [
+        "FileLog.Id",
+        "FileLog.ProcessDate",
+        "FileLog.SettingName",
+        "FileLog.CurrentFileName",
+        "FileLog.RecordCount",
+        "FileLog.CurrentStatus",
+        "FileLog.HasBulkErrorFile"
+      ],
+      "properties_rendered": [
+        "FileLog.Id",
+        "FileLog.ProcessDate",
+        "FileLog.SettingName",
+        "FileLog.CurrentFileName",
+        "FileLog.RecordCount",
+        "FileLog.CurrentStatus",
+        "FileLog.HasBulkErrorFile"
+      ]
     },
     "S-03": {
       "screen_file": "screen-03-upload-failed.html",
@@ -26,7 +46,23 @@
       "primary_pattern_variant": "default",
       "secondary_patterns": ["feedback/notification-banner"],
       "states_rendered": ["default", "error"],
-      "data_src_targets": ["F-17", "F-18", "F-19", "UI-15", "UI-17", "UI-18", "§5 File Upload", "§7 ValidationErrors"]
+      "data_src_targets": ["F-17", "F-18", "F-19", "UI-15", "UI-17", "UI-18", "§5 File Upload", "§7 ValidationErrors"],
+      "properties_declared": [
+        "ValidationErrors.JsonArray [OPAQUE-PAYLOAD]",
+        "F-17:FileLogId",
+        "FileLog.HasBulkErrorFile"
+      ],
+      "properties_rendered": [
+        "ValidationErrors.JsonArray[Row]",
+        "ValidationErrors.JsonArray[Column]",
+        "ValidationErrors.JsonArray[Rule]",
+        "ValidationErrors.JsonArray[Message]",
+        "ValidationErrors.JsonArray[OffendingValue]",
+        "ValidationErrors.JsonArray[Severity]",
+        "F-17:FileLogId",
+        "FileLog.HasBulkErrorFile"
+      ],
+      "notes": "Per-row column names (Row/Column/Rule/Message/OffendingValue/Severity) are inferred from F-18's prose 'JSON array of per-row error objects' and flagged [OPAQUE-PAYLOAD] in the blueprint; a future requirements pass should promote the per-row shape into a proper §7 entity to retire this opaque-payload exception."
     }
   }
 }

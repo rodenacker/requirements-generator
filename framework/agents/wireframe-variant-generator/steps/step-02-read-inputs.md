@@ -15,7 +15,7 @@ Compute the sha256 of the bytes read; capture into in-memory `blueprint.sha256` 
 
 - The `## Sources` section's comma-separated source list (for cross-reference at self-validation).
 - The `## Available personas` bulleted list.
-- The `## Screen inventory` table — for every row, capture `{ screen_id: "S-NN", intent: "<text>", sources: ["<id1>", ...], secondary_intent: "<text or null>" }` into in-memory `screens[]` (preserving inventory order).
+- The `## Screen inventory` table — for every row, capture `{ screen_id: "S-NN", intent: "<text>", sources: ["<id1>", ...], properties: ["<Shape.Field|F-NN:ParamName>", ...], secondary_intent: "<text or null>" }` into in-memory `screens[]` (preserving inventory order). The `properties` array is the comma-split, trimmed Properties cell; if the cell value is the literal `none`, `properties` is the empty array `[]` (pure UI screen, no entity bindings). The variant-generator treats `properties` as the **closed set** of object-properties allowed in `data-prop` attributes on this screen.
 - The `## Flow` section's flow notation (for composing cross-screen prev/next nav).
 
 Set `N = screens.length`. Output one short line: *"Variant {{variant_id}} ready. Composing {{N}} screens for scope `{{scope_slug}}`."* (matches the placeholder from step 1's announcement.)

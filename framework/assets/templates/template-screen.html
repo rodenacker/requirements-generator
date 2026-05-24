@@ -35,6 +35,18 @@ Every interactive element rendered into {{PRIMARY_PATTERN_HTML}} or
 {{SECONDARY_PATTERN_HTML}} carries a data-src="<id1>,<id2>,..." attribute
 naming the requirement IDs it satisfies. The variant-generator enforces this
 in its per-screen self-validation (no orphan elements, no fabricated IDs).
+
+Additionally, every **data-bound element** (form input/select/textarea, table
+column header rendering an entity field, detail-list term/value pair, status
+chip showing an entity value) carries a data-prop="<Shape>.<Field>" or
+data-prop="F-NN:ParamName" attribute naming the object-property it renders.
+Every data-prop value must resolve to an entry in the blueprint's per-screen
+Properties closed set; fabricated property references are a self-validation
+FAIL at step 6 (e.g. data-prop="FileSetting.AccountingPeriod" when the
+blueprint declares only `F-05:FileSettingId, F-05:FileSettingName,
+F-05:FileName`). UI-only controls (search inputs, sort toggles, pagination
+chrome, filter chips, expand/collapse toggles, save/cancel buttons, progress
+indicators, drag-and-drop dropzones) are exempt from the data-prop contract.
 -->
 <!doctype html>
 <html lang="en">

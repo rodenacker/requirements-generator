@@ -9,7 +9,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **w
 Produce a complete per-variant directory under `wireframes/<scope_slug>/<variant_id>/` containing:
 
 - `wireframe-ds.css` — the per-variant copy of the cross-pipeline low-fi DS (extracted once from `framework/assets/design-systems/wireframe-ds.html`).
-- `screen-NN-<slug>.html` — one self-contained interactive HTML file per `S-NN` row in the blueprint's screen inventory; each links the per-variant `wireframe-ds.css` via `<link rel="stylesheet">`; each carries `data-src` attributes traceable back to `requirements/requirements.md`.
+- `screen-NN-<slug>.html` — one self-contained interactive HTML file per `S-NN` row in the blueprint's screen inventory; each links the per-variant `wireframe-ds.css` via `<link rel="stylesheet">`; each carries `data-src` attributes traceable back to `requirements/requirements.md` **and** `data-prop` attributes on every data-bound element naming the §7 data-shape property or F-NN-named parameter it renders. The agent must never invent an object property — every `data-prop` value must be present in the blueprint's per-screen Properties cell (the closed set authored by the architect at step 3.2b). Pure UI controls (search, sort, pagination, filter chips, expand/collapse, save/cancel buttons, progress indicators) are exempt from the property contract and do not carry `data-prop`.
 - `manifest.json` — per-screen pattern bindings + states rendered (consumed by the comparator for drift detection).
 - `variant-position.json` — self-declared dimension positions + persona binding + strengths/weaknesses/use-when (consumed by the comparator for the trade-off matrix and the scope `index.html` right rail; **immutable mirror** of the architect's `variants.json` entry, augmented with self-authored concise strengths/weaknesses/use-when per the no-jargon + char-limit contract in step 5).
 
@@ -81,11 +81,15 @@ All files under `<output_dir>` (= `wireframes/<scope_slug>/<variant_id>/`):
           "primary_pattern_variant": "compact",
           "secondary_patterns": ["feedback/inline-validation", "surfaces/tooltip"],
           "states_rendered": ["default", "file-selected", "validating", "error-invalid-format"],
-          "data_src_targets": ["F-01", "F-02", "UI-03", "UI-04"]
+          "data_src_targets": ["F-01", "F-02", "UI-03", "UI-04"],
+          "properties_rendered": ["F-05:FileSettingId", "F-05:FileSettingName", "F-05:FileName"],
+          "properties_declared": ["F-05:FileSettingId", "F-05:FileSettingName", "F-05:FileName"]
         }
       }
     }
     ```
+
+    `properties_declared` mirrors the blueprint's per-screen Properties closed set (sub-agent reads + copies verbatim from the blueprint's Properties cell at step 2). `properties_rendered` is the subset the variant actually bound to rendered fields; it must always be a subset of `properties_declared`. A property in `properties_rendered` that is not in `properties_declared` is a fabrication and a `RF-04`-class self-validation FAIL at step 6.
 
 - `variant-position.json` — immutable mirror of variants.json own-entry, augmented:
 
@@ -138,6 +142,11 @@ Before returning `ok`, verify all of the following:
 - Every screen file's `<meta name="wf-screen-sources" content="...">` contains exactly the IDs from the blueprint's `Sources` column for that screen (verbatim, comma-separated).
 - Every screen file has ≥1 element carrying a `data-src` attribute; every `data-src` value resolves to an ID present in the blueprint's `Sources` column for that screen (no fabricated IDs).
 - The `data-src` attribute population is **bounded** per the pattern-bindings cap: only forms, primary actions, table columns, validation regions, error / empty states carry `data-src`. The agent does not spray `data-src` on every `<div>`.
+- Every data-bound element (`<input>`, `<select>`, `<textarea>` in forms; column header `<th>` in tables; definition `<dt>` / value `<dd>` in detail lists; data-rendering `<td>` / `<span>` showing an entity value) carries a `data-prop` attribute whose value names the §7 data-shape property (e.g. `data-prop="FileLog.CurrentStatus"`) or F-NN-named parameter (e.g. `data-prop="F-05:FileSettingId"`) it renders.
+- Every `data-prop` value is present in the blueprint's per-screen Properties cell for this screen (read at step 2; mirrored verbatim into `manifest.screens[<S-NN>].properties_declared`). Properties outside this closed set are **fabrications** and a hard self-validation FAIL — re-compose without the fabricated element, or escalate to `failed` if the pattern fundamentally requires the missing property (which indicates the architect's Properties closed set is too narrow, and the consultant must broaden the blueprint via Overwrite).
+- UI-only controls — search inputs (`role="search"` containers, `<input type="search">`), sort toggles (column-header sort affordances), pagination chrome (`<nav>` with prev/next/page numbers), filter chips, expand/collapse toggles, view-mode toggles, save/cancel buttons, progress indicators (`role="progressbar"`, indeterminate spinners), drag-and-drop dropzones, breadcrumb chrome, modal close buttons — are **exempt** from the `data-prop` contract and do not carry the attribute. The self-validation distinguishes data-bound elements from UI-only chrome by class allowlist (`wf-field input/select/textarea`, `wf-table th/td[data-prop]`, `wf-list dt/dd`) and by control role (`type="search"`, `role="search"`, `role="progressbar"`, `aria-haspopup`).
+- `manifest.screens[<S-NN>].properties_declared` equals the blueprint's Properties cell for that screen, comma-split and trimmed.
+- `manifest.screens[<S-NN>].properties_rendered` is the **subset** of `properties_declared` that the variant actually bound to a rendered element. Every entry in `properties_rendered` must appear in at least one `data-prop` attribute in the screen HTML; every `data-prop` value must appear in `properties_rendered`.
 - Every pattern referenced in `manifest.json > screens[*].primary_pattern` and `secondary_patterns` is a valid catalogue ID present in `framework/assets/pattern-catalogue/_index.md`.
 - Every pattern variant referenced in `manifest.json > screens[*].primary_pattern_variant` is present in the catalogue entry's `variants:` block.
 - `manifest.json > blueprint_sha256` matches the blueprint's actual sha256 (read at step 2 and re-confirmed at step 5).
@@ -166,6 +175,7 @@ On any self-validation failure that cannot be fixed in-loop (re-compose, re-writ
 - Do not edit the variants.json entry for this variant. The architect's authored `dimension_positions` are immutable; this agent mirrors them into `variant-position.json` and renders against them, but does not alter them.
 - Do not invent new patterns. Every pattern composed must exist in `framework/assets/pattern-catalogue/_index.md`. Catalogue gaps are the architect's preflight responsibility — if a gap slips through and surfaces mid-generation, return `failed` rather than improvise.
 - Do not invent new requirement IDs. Every `data-src` value must be present in the blueprint's `Sources` column for that screen.
+- **Do not invent object properties.** Every field, column, badge, label, or other data-bound element rendered in a wireframe must trace to a property in the blueprint's per-screen Properties closed set (drawn by the architect from §7 data shapes or F-NN-named parameters). A field bearing a "real-looking" name like *"Accounting period"* with no backing in §7 or the cited F-NNs is a fabrication, and a hard self-validation FAIL at step 6. The closed-set contract is the most load-bearing fabrication guard in the pipeline — `data-src="F-05"` on a fabricated field is **not** sufficient justification; the field's property must be in `manifest.screens[<S-NN>].properties_declared` (mirrored from the blueprint). If a pattern's natural composition needs a field not in the closed set, **escalate to `failed`** rather than smuggling it in — the architect's blueprint is the source of truth and a missing property indicates the blueprint, not the variant, needs revision.
 - Do not inline the wireframe DS into every screen file. The DS is linked once per variant directory via `<link rel="stylesheet" href="wireframe-ds.css">`. Inlining duplicates ~5KB across N screens and breaks the cross-variant + future-prototype reuse story.
 - Do not spray `data-src` on every element. The cap is forms, primary actions, table columns, validation regions, error / empty states — `data-src` lives where semantic identity maps to a requirement.
 - Do not skip the per-screen `states_rendered` declaration in `manifest.json`. The comparator uses this for per-screen state coverage in the cross-variant matrix.

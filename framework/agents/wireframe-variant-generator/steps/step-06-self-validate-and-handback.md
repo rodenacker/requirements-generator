@@ -13,6 +13,8 @@ Walk through the **Self-validation** list in `framework/agents/wireframe-variant
 - If `fail`, attempt one in-loop fix:
     - Missing screen file → re-run step 4's compose+write for the missing `S-NN`.
     - Fabricated `data-src` → re-render the offending screen with the cleaned attribute set; re-write; re-verify.
+    - **Fabricated `data-prop` (property not in `S.properties`)** → re-render the offending screen with the fabricated field removed (or its `data-prop` retargeted to a real property in `S.properties` if the field is semantically the same); re-write; re-verify. If the pattern's required slots cannot be filled from `S.properties` alone after the fabricated field is removed, halt with `checks[<id>] = "fail (unrecoverable)"` and surface as a `failed` handback at step 6.2 — the blueprint's Properties closed set is too narrow and the architect (not this sub-agent) must broaden it.
+    - **Missing `data-prop` on a data-bound element** → re-render the offending element with the correct `data-prop` attribute. If the element binds to a property not in `S.properties`, treat it as a fabricated-`data-prop` case (above): drop the field or escalate.
     - Wrong DS link → re-render the offending screen with corrected `{{DS_PATH}}` slot; re-write; re-verify.
     - Drift in `variant-position.json > dimension_positions` vs `variants.json own-entry` → re-render `variant-position.json`; re-write; re-verify.
     - Invalid catalogue pattern ID in `manifest.json` → halt (this is a step-4 composition bug; the agent does not have safe automatic remediation since the pattern was already rendered into the screen HTML). Record `checks[<id>] = "fail (unrecoverable)"`.
@@ -38,6 +40,7 @@ On any fail (unrecoverable):
 The structured reason names the failing check ID and the affected file. Examples:
 
 - *"Variant POWER-DENSITY-EXPERT failed: data-src fabrication on S-04 (`screen-04-approval.html`) — `data-src='F-99'` is not in blueprint sources for this screen."*
+- *"Variant CAREFUL-DEFAULT failed: data-prop fabrication on S-01 (`screen-01-upload-form.html`) — `data-prop='FileSetting.AccountingPeriod'` is not in blueprint properties for this screen (closed set: `F-05:FileSettingId, F-05:FileSettingName, F-05:FileName`). Drop the fabricated field, or escalate to the architect to broaden the closed set."*
 - *"Variant FOCUS-NOVICE failed: dimension-position mirror drift — variant-position.json declares density-focus: -1 but variants.json own-entry declares density-focus: -2."*
 - *"Variant AUDIT-FIRST failed: pattern-coverage gap surfaced at compose time — S-04 (Three-way disposition) has no catalogue pattern available; architect's preflight missed this."*
 

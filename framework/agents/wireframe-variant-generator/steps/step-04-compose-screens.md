@@ -48,7 +48,7 @@ For each secondary pattern, render its HTML and decide where it slots:
 
 Each secondary's HTML is appended into the `{{SECONDARY_PATTERN_HTML}}` slot of the screen template — concatenated in semantic order.
 
-## 4.4 Embed `data-src` attributes
+## 4.4 Embed `data-src` and `data-prop` attributes
 
 For every interactive element in the composed HTML (primary + secondary), add a `data-src` attribute naming the requirement IDs it satisfies. Boundaries per the variant character file:
 
@@ -60,6 +60,44 @@ For every interactive element in the composed HTML (primary + secondary), add a 
 - Heading (`<h1>`) → `data-src="<screen's full sources list>"` (already in the template).
 
 Every `data-src` ID **must** be present in `S.sources` (the blueprint's source list for this screen). Fabricated IDs are a self-validation failure at step 6 and a structural bug; halt and re-compose.
+
+### 4.4b `data-prop` — the no-fabricated-property contract
+
+For every **data-bound** element (binding to or rendering an entity-property value), additionally embed a `data-prop` attribute naming the property the element renders. The attribute is **required** on:
+
+- Form inputs (`<input>`, `<select>`, `<textarea>`) inside a `wf-field` that captures or displays an entity-property value.
+- Table column headers (`<th>`) whose column renders an entity field.
+- Detail-page definition terms (`<dt>`) whose value (`<dd>`) shows an entity field.
+- Receipt-style attribute-list spans that name an entity field.
+- Status badges / chips whose displayed value is an entity field.
+
+Attribute syntax:
+
+- §7 data-shape property: `data-prop="<Shape>.<Field>"` (e.g. `data-prop="FileLog.CurrentStatus"`, `data-prop="Transaction.AccountNumber"`).
+- F-NN-named parameter: `data-prop="F-NN:<ParamName>"` (e.g. `data-prop="F-05:FileSettingId"`).
+- Opaque-payload column (per blueprint's `[OPAQUE-PAYLOAD]` annotation): `data-prop="<Shape>.<OpaqueField>[<ColumnName>]"` (e.g. `data-prop="ValidationErrors.JsonArray[RowNumber]"`). The `<ColumnName>` portion must appear verbatim in the cited F-NN's prose.
+
+**The closed-set check.** Every `data-prop` value must be present in `S.properties` (the comma-split property list from the blueprint's Properties cell for this screen, captured at step 2 into `S.properties`). A `data-prop` value outside `S.properties` is a **fabrication** — the cardinal sin of this contract. When this happens:
+
+1. **Re-compose the screen** by dropping the fabricated element. If the pattern still validates per its `composition-rules`, write the corrected HTML and continue.
+2. **If the pattern's required slots cannot be filled** from `S.properties` alone, escalate to `failed` at step 6 with a structured payload naming the missing property and the pattern that needed it. Do **not** smuggle the field in with a "best-guess" `data-prop` — the blueprint is the source of truth, and a missing property means the architect's closed set is too narrow and the consultant must broaden the blueprint via `/wireframe` Overwrite.
+
+**UI-only controls** are **exempt** from the `data-prop` contract:
+
+- Search inputs (`<input type="search">`, `role="search"` containers).
+- Sort toggles on column headers (the `<th>` carries `data-prop` for the entity field; the sort affordance itself is exempt).
+- Pagination chrome (`<nav>` with prev/next/page-number links).
+- Filter chip toolbars.
+- Expand/collapse toggles, view-mode toggles.
+- Save / Cancel / Discard buttons, primary CTAs, secondary CTAs.
+- Progress indicators (`role="progressbar"`, indeterminate spinners).
+- Drag-and-drop dropzones (the file-picker `<input type="file">` carries `data-prop` for the FileName property; the dropzone container around it is exempt).
+- Breadcrumb chrome, modal close buttons, dismiss-X buttons.
+- Help text (`.wf-help`), legends, section headers, page titles.
+
+Self-validation at step 6 distinguishes data-bound elements from UI-only chrome by class + control type; the variant-generator should compose with that boundary in mind and not stamp `data-prop` on chrome elements.
+
+Record the in-memory union of every `data-prop` value used on this screen into `screen_properties_rendered[<S-NN>] = [...]`. Step 5 mirrors this into `manifest.screens[<S-NN>].properties_rendered`.
 
 ## 4.5 Compose cross-screen + cross-variant nav
 

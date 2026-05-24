@@ -169,6 +169,7 @@ After the variants-only reset completes, proceed to step 2 with `mode = "regener
 - Its per-variant screen files (`screen-NN-*.html`) exist for every screen ID in the blueprint's inventory.
 - Its per-variant `manifest.json` exists, parses, was verify-artifact-write'd, lists per-screen pattern bindings + states rendered.
 - Its per-variant `variant-position.json` exists, parses, was verify-artifact-write'd, declares dimension positions identical to the architect's `variants.json` entry for the same `variant_id` (immutable mirror — drift here is a `RF-04`-class hard halt at the sub-agent).
+- Its per-variant `manifest.json` declares per-screen `properties_declared` matching the blueprint's per-screen Properties cell verbatim (closed set the variant rendered against). `properties_rendered` is a subset of `properties_declared`. Any `data-prop` attribute in a screen HTML file resolves to an entry in `properties_declared` — fabricated `data-prop` is a `RF-04`-class hard halt at the sub-agent.
 - Its per-variant directory does **not** contain a `wireframes.html` file (the per-variant landing has been removed from the pipeline; presence indicates stale state from a prior version, which should be cleaned via Overwrite).
 - The sub-agent returned `ok` (not `failed`).
 

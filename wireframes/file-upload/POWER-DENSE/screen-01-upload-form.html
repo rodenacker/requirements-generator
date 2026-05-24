@@ -7,18 +7,19 @@
   <meta name="wf-scope-slug" content="file-upload" />
   <meta name="wf-variant-id" content="POWER-DENSE" />
   <meta name="wf-screen-id" content="S-01" />
-  <meta name="wf-screen-sources" content="F-05,BR-09,UI-04,UI-05,G-01,§5 File Upload" />
+  <meta name="wf-screen-sources" content="F-05, BR-09, UI-04, UI-05, G-01, §5 File Upload" />
+  <meta name="wf-screen-properties" content="F-05:FileSettingId, F-05:FileSettingName, F-05:FileName" />
   <meta name="wf-persona-binding" content="Importer" />
   <meta name="wf-states-rendered" content="default | file-selected | validating | uploading | error" />
 </head>
 <body>
-  <header class="wf-chrome" data-src="F-05,BR-09,UI-04,UI-05,G-01,§5 File Upload">
+  <header class="wf-chrome" data-src="F-05, BR-09, UI-04, UI-05, G-01, §5 File Upload">
     <strong>S-01 · Upload form</strong>
     <span class="wf-help">POWER-DENSE · Speed-leaning · Maximally dense · for Importer</span>
     <nav aria-label="Within-variant flow">
       <strong>S-01 Upload form</strong>
-      <a href="screen-02-upload-accepted.html" target="_blank" rel="noopener">S-02 Upload accepted ›</a>
-      <a href="screen-03-upload-failed.html" target="_blank" rel="noopener">S-03 Validation errors ›</a>
+      <a href="screen-02-upload-accepted.html" target="_blank" rel="noopener">S-02 Upload accepted &rsaquo;</a>
+      <a href="screen-03-upload-failed.html" target="_blank" rel="noopener">S-03 Validation errors &rsaquo;</a>
     </nav>
     <nav aria-label="Across variants" class="wf-role-switcher">
       <button aria-pressed="true">Current: POWER-DENSE</button>
@@ -31,102 +32,58 @@
   </header>
 
   <main class="wf-shell" style="max-width: 1100px; margin: 0 auto; padding: 0 16px;">
-    <h1 data-src="F-05,BR-09,UI-04,UI-05,G-01,§5 File Upload">Upload transaction file</h1>
+    <h1 data-src="F-05, BR-09, UI-04, UI-05, G-01, §5 File Upload">Upload transaction file</h1>
 
     <section class="wf-section" aria-labelledby="primary-region-label">
       <h2 id="primary-region-label" class="visually-hidden" style="position:absolute; left:-9999px;">Primary content</h2>
 
-      <div class="wf-banner" data-tone="warning" data-src="UI-05" role="status" aria-live="polite" style="margin-bottom: 16px;">
-        <strong>Uploading…</strong> 2026-05-24-batch.csv · validating contents (indeterminate). Press Esc to cancel.
+      <div class="wf-banner" data-tone="warning" data-src="UI-05" role="status" aria-live="polite" style="margin-bottom: 12px;">
+        <strong>Uploading&hellip;</strong> validating contents (indeterminate). Press <kbd>Esc</kbd> to cancel.
       </div>
 
-      <form class="wf-form" data-src="F-05,BR-09,UI-04,UI-05,§5 File Upload" aria-label="Upload form (compact, two-column, submit-on-Enter)">
+      <form class="wf-form" data-src="F-05, BR-09, UI-04, UI-05, §5 File Upload" aria-label="Upload form (compact, two-column, submit-on-Enter)">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-
-          <div class="wf-field" data-src="F-05,UI-04">
+          <div class="wf-field" data-src="F-05, UI-04">
             <label for="up-file">File <span style="color:var(--wf-state-danger)">*</span></label>
-            <input id="up-file" name="file" type="file" accept=".csv,.xlsx" autofocus />
-            <p class="wf-help">Drop file or click to browse. CSV or XLSX, ≤ 50 MB.</p>
+            <input id="up-file" name="FileName" type="file" accept=".csv,.xlsx,.xls,.txt" autofocus required aria-required="true" data-prop="F-05:FileName" />
+            <p class="wf-help">Drop file or click to browse. CSV / XLSX / XLS / TXT. <kbd>Ctrl</kbd>+<kbd>O</kbd> opens picker.</p>
           </div>
 
           <div class="wf-field" data-src="F-05">
-            <label for="up-period">Period <span style="color:var(--wf-state-danger)">*</span></label>
-            <input id="up-period" name="period" type="month" value="2026-05" />
-            <p class="wf-help">Reporting period for downstream approval routing.</p>
-          </div>
-
-          <div class="wf-field" data-src="F-05">
-            <label for="up-source">Source system <span style="color:var(--wf-state-danger)">*</span></label>
-            <select id="up-source" name="source">
-              <option value="">— choose —</option>
-              <option value="erp-finance" selected>ERP / Finance</option>
-              <option value="payroll">Payroll</option>
-              <option value="treasury">Treasury</option>
-              <option value="manual-adj">Manual adjustments</option>
+            <label for="up-file-setting">File setting <span style="color:var(--wf-state-danger)">*</span></label>
+            <select id="up-file-setting" name="FileSettingId" required aria-required="true" data-prop="F-05:FileSettingId, F-05:FileSettingName">
+              <option value="">&mdash; pick &mdash;</option>
+              <option value="42" selected>General ledger import &mdash; daily</option>
+              <option value="43">Bank statement import &mdash; daily</option>
+              <option value="44">Manual reconciliation &mdash; ad-hoc</option>
+              <option value="45">Payroll export &mdash; monthly</option>
             </select>
-          </div>
-
-          <div class="wf-field" data-src="F-05">
-            <label for="up-currency">Currency</label>
-            <select id="up-currency" name="currency">
-              <option value="ZAR" selected>ZAR</option>
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="GBP">GBP</option>
-            </select>
-          </div>
-
-          <div class="wf-field" data-src="F-05">
-            <label for="up-batch-ref">Batch reference</label>
-            <input id="up-batch-ref" name="batch_ref" type="text" placeholder="e.g. 2026-05-MAY-001" value="2026-05-MAY-024" />
-          </div>
-
-          <div class="wf-field" data-src="BR-09">
-            <label for="up-priority">Priority (BR-09 — overrides routing)</label>
-            <select id="up-priority" name="priority">
-              <option value="normal" selected>Normal</option>
-              <option value="high">High</option>
-              <option value="urgent">Urgent</option>
-            </select>
-          </div>
-
-          <div class="wf-field" data-src="F-05">
-            <label for="up-cost-centre">Cost centre</label>
-            <input id="up-cost-centre" name="cost_centre" type="text" value="CC-4711" />
-          </div>
-
-          <div class="wf-field" data-src="F-05">
-            <label for="up-submitter">Submitter</label>
-            <input id="up-submitter" name="submitter" type="text" value="a.dlamini@acme.co.za" readonly />
-            <p class="wf-help">Captured from your session.</p>
-          </div>
-
-          <div class="wf-field" style="grid-column: 1 / -1;" data-src="F-05">
-            <label for="up-note">Notes</label>
-            <textarea id="up-note" name="note" rows="2" placeholder="Optional handover note for the approver…"></textarea>
-            <p class="wf-validation-error" data-src="BR-09" hidden>BR-09 requires a note when priority is Urgent.</p>
+            <p class="wf-help">Captures both <code>FileSettingId</code> + <code>FileSettingName</code> per F-05.</p>
           </div>
 
         </div>
 
-        <div style="display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap;">
-          <button type="submit" class="wf-btn primary" data-src="F-05,§5 File Upload" aria-keyshortcuts="Enter">Upload (Enter)</button>
-          <button type="button" class="wf-btn" data-src="F-05" aria-keyshortcuts="Escape">Cancel (Esc)</button>
+        <p class="wf-validation-error" data-src="BR-09" role="alert" style="margin-top: 8px;" hidden>
+          BR-09: file setting required before submit.
+        </p>
+
+        <div style="display: flex; gap: 8px; align-items: center; margin-top: 12px; flex-wrap: wrap;">
+          <button type="submit" class="wf-btn primary" data-src="F-05, §5 File Upload" aria-keyshortcuts="Enter">Upload (<kbd>Enter</kbd>)</button>
+          <button type="button" class="wf-btn" aria-keyshortcuts="Escape">Cancel (<kbd>Esc</kbd>)</button>
           <span class="wf-help" style="margin-left: auto;">Submit-on-Enter from any field. Shift+Tab returns. Drag-drop active in file zone.</span>
         </div>
-
       </form>
 
       <details style="margin-top: 16px;">
         <summary><strong>Keyboard shortcuts</strong> (speed-leaning chrome)</summary>
         <div class="wf-card" style="margin-top: 8px;">
           <ul style="margin: 0; padding-left: 18px;">
-            <li><code>Enter</code> — submit from any field</li>
-            <li><code>Esc</code> — cancel upload / discard changes</li>
-            <li><code>Ctrl + O</code> — open file browse dialog</li>
-            <li><code>Tab</code> / <code>Shift + Tab</code> — next / previous field</li>
-            <li><code>Ctrl + ↵</code> — submit and queue next batch</li>
+            <li><code>Enter</code> &mdash; submit from any field</li>
+            <li><code>Esc</code> &mdash; cancel upload / discard changes</li>
+            <li><code>Ctrl + O</code> &mdash; open file browse dialog</li>
+            <li><code>Tab</code> / <code>Shift + Tab</code> &mdash; next / previous field</li>
+            <li><code>Ctrl + ↵</code> &mdash; submit and queue next batch</li>
           </ul>
         </div>
       </details>
@@ -134,7 +91,7 @@
     </section>
 
     <aside class="wf-banner" data-tone="danger" data-src="UI-05" hidden>
-      <strong>Upload failed.</strong> See <a href="screen-03-upload-failed.html" target="_blank" rel="noopener">S-03 Validation errors</a> for details.
+      <strong>Upload failed.</strong> See <a href="screen-03-upload-failed.html" target="_blank" rel="noopener">S-03 Validation errors</a> for the per-row report.
     </aside>
 
   </main>
