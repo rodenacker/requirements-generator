@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>S-04 Validation Errors (per FileLog) — CAREFUL-DEFAULT — file-upload-log</title>
+  <link rel="stylesheet" href="wireframe-ds.css" />
+  <meta name="wf-scope-slug" content="file-upload-log" />
+  <meta name="wf-variant-id" content="CAREFUL-DEFAULT" />
+  <meta name="wf-screen-id" content="S-04" />
+  <meta name="wf-screen-sources" content="F-18, §7 ValidationErrors" />
+  <meta name="wf-persona-binding" content="Importer" />
+  <meta name="wf-states-rendered" content="default | loading | empty | error" />
+</head>
+<body>
+  <header class="wf-chrome" data-src="F-18, §7 ValidationErrors">
+    <strong>S-04 · Validation Errors (per FileLog)</strong>
+    <span class="wf-help">CAREFUL-DEFAULT · Accuracy-leaning · Spacious · for Importer</span>
+    <nav aria-label="Within-variant flow">
+      <a href="screen-02-file-log-overview.html" target="_blank" rel="noopener">‹ S-02 File Log Overview</a>
+      <a href="screen-03-file-summary.html" target="_blank" rel="noopener">‹ S-03 File Summary</a>
+      <strong>S-04 Validation Errors</strong>
+    </nav>
+    <nav aria-label="Across variants" class="wf-role-switcher">
+      <button aria-pressed="true">Current: CAREFUL-DEFAULT</button>
+      <a href="../POWER-DENSE/screen-04-validation-errors.html" target="_blank" rel="noopener">Open in POWER-DENSE</a>
+    </nav>
+    <span style="margin-left: auto;">
+      <a href="../index.html" class="wf-btn">Back to index</a>
+      <a href="../index.html#trade-off-matrix" class="wf-btn" target="_blank" rel="noopener">Trade-off matrix</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1100px; margin: 0 auto; padding: 0 16px;">
+    <h1 data-src="F-18, §7 ValidationErrors">Validation Errors</h1>
+
+    <section class="wf-section" data-src="F-18">
+      <h2>For file: 2026-05-25-batch.csv</h2>
+      <p>40 rows did not pass validation. Each entry below is one error from the file's validation log. Take your time — review each, then decide what to do.</p>
+    </section>
+
+    <section class="wf-section" aria-labelledby="primary-region-label" data-src="F-18, §7 ValidationErrors">
+      <h2 id="primary-region-label">Validation errors (40)</h2>
+
+      <div role="search" style="display: flex; gap: var(--wf-spacing); margin-bottom: calc(var(--wf-spacing) * 2);">
+        <input type="search" placeholder="Search errors…" aria-label="Search validation errors" style="flex: 1; padding: var(--wf-spacing); border: 2px dashed var(--wf-border-subtle); border-radius: 4px;" />
+        <button type="button" class="wf-btn">All severities</button>
+        <button type="button" class="wf-btn">Download error file</button>
+      </div>
+
+      <div class="wf-list">
+        <ul>
+
+          <li data-src="F-18">
+            <article style="display: grid; grid-template-columns: 80px 1fr; gap: var(--wf-spacing);">
+              <div>
+                <strong>Row 47</strong>
+                <br /><span class="wf-help">Severity: high</span>
+              </div>
+              <div data-prop="ValidationErrors.JsonArray">
+                <p><strong>AccountNumber is missing or malformed.</strong></p>
+                <pre class="wf-help" style="white-space: pre-wrap; font-family: var(--wf-font-mono); font-size: var(--wf-fz-sm); background: var(--wf-surface-muted); padding: var(--wf-spacing); border-radius: 4px;">{ "row": 47, "field": "AccountNumber", "value": "", "message": "Required field is empty" }</pre>
+              </div>
+            </article>
+          </li>
+
+          <li data-src="F-18">
+            <article style="display: grid; grid-template-columns: 80px 1fr; gap: var(--wf-spacing);">
+              <div>
+                <strong>Row 112</strong>
+                <br /><span class="wf-help">Severity: high</span>
+              </div>
+              <div data-prop="ValidationErrors.JsonArray">
+                <p><strong>Amount must be a positive number.</strong></p>
+                <pre class="wf-help" style="white-space: pre-wrap; font-family: var(--wf-font-mono); font-size: var(--wf-fz-sm); background: var(--wf-surface-muted); padding: var(--wf-spacing); border-radius: 4px;">{ "row": 112, "field": "Amount", "value": "-50.00", "message": "Negative amounts are not allowed in this setting" }</pre>
+              </div>
+            </article>
+          </li>
+
+          <li data-src="F-18">
+            <article style="display: grid; grid-template-columns: 80px 1fr; gap: var(--wf-spacing);">
+              <div>
+                <strong>Row 219</strong>
+                <br /><span class="wf-help">Severity: medium</span>
+              </div>
+              <div data-prop="ValidationErrors.JsonArray">
+                <p><strong>TransactionDate is outside the configured window.</strong></p>
+                <pre class="wf-help" style="white-space: pre-wrap; font-family: var(--wf-font-mono); font-size: var(--wf-fz-sm); background: var(--wf-surface-muted); padding: var(--wf-spacing); border-radius: 4px;">{ "row": 219, "field": "TransactionDate", "value": "2024-12-01", "message": "Date is older than 90 days" }</pre>
+              </div>
+            </article>
+          </li>
+
+          <li data-src="F-18">
+            <article style="display: grid; grid-template-columns: 80px 1fr; gap: var(--wf-spacing);">
+              <div>
+                <strong>Row 380</strong>
+                <br /><span class="wf-help">Severity: medium</span>
+              </div>
+              <div data-prop="ValidationErrors.JsonArray">
+                <p><strong>Reference must follow the configured pattern.</strong></p>
+                <pre class="wf-help" style="white-space: pre-wrap; font-family: var(--wf-font-mono); font-size: var(--wf-fz-sm); background: var(--wf-surface-muted); padding: var(--wf-spacing); border-radius: 4px;">{ "row": 380, "field": "Reference", "value": "INV/2026/0042", "message": "Expected format: REF-NNNNNN" }</pre>
+              </div>
+            </article>
+          </li>
+
+        </ul>
+      </div>
+
+      <nav aria-label="Pagination" style="margin-top: var(--wf-spacing); display: flex; gap: 4px; justify-content: flex-end;">
+        <button type="button" class="wf-btn">‹ Prev</button>
+        <button type="button" class="wf-btn" aria-current="page">1</button>
+        <button type="button" class="wf-btn">2</button>
+        <button type="button" class="wf-btn">Next ›</button>
+      </nav>
+
+      <div class="wf-empty" data-src="F-18" style="margin-top: calc(var(--wf-spacing) * 3);">
+        <strong>No validation errors for this file.</strong>
+        <p>Every row passed validation. There is nothing to fix here.</p>
+        <a href="screen-03-file-summary.html" class="wf-btn primary" target="_blank" rel="noopener">Back to file summary</a>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="wf-chrome" style="margin-top: 32px;">
+    <span class="wf-help">
+      States rendered on this screen: <code>default | loading | empty | error</code>
+    </span>
+  </footer>
+</body>
+</html>

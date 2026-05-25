@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>S-03 File Summary (per FileLog) — CAREFUL-DEFAULT — file-upload-log</title>
+  <link rel="stylesheet" href="wireframe-ds.css" />
+  <meta name="wf-scope-slug" content="file-upload-log" />
+  <meta name="wf-variant-id" content="CAREFUL-DEFAULT" />
+  <meta name="wf-screen-id" content="S-03" />
+  <meta name="wf-screen-sources" content="F-14, UI-14, UI-15, G-05, §5 File Summary, §7 FileLog, §7 FileProcessLog" />
+  <meta name="wf-persona-binding" content="Importer" />
+  <meta name="wf-states-rendered" content="default | loading | partial-error | stale" />
+</head>
+<body>
+  <header class="wf-chrome" data-src="F-14, UI-14, UI-15, G-05, §5 File Summary, §7 FileLog, §7 FileProcessLog">
+    <strong>S-03 · File Summary (per FileLog)</strong>
+    <span class="wf-help">CAREFUL-DEFAULT · Accuracy-leaning · Spacious · for Importer</span>
+    <nav aria-label="Within-variant flow">
+      <a href="screen-02-file-log-overview.html" target="_blank" rel="noopener">‹ S-02 File Log Overview</a>
+      <strong>S-03 File Summary</strong>
+      <a href="screen-04-validation-errors.html" target="_blank" rel="noopener">S-04 Validation Errors ›</a>
+    </nav>
+    <nav aria-label="Across variants" class="wf-role-switcher">
+      <button aria-pressed="true">Current: CAREFUL-DEFAULT</button>
+      <a href="../POWER-DENSE/screen-03-file-summary.html" target="_blank" rel="noopener">Open in POWER-DENSE</a>
+    </nav>
+    <span style="margin-left: auto;">
+      <a href="../index.html" class="wf-btn">Back to index</a>
+      <a href="../index.html#trade-off-matrix" class="wf-btn" target="_blank" rel="noopener">Trade-off matrix</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1100px; margin: 0 auto; padding: 0 16px;">
+    <h1 data-src="F-14, UI-14, UI-15, G-05, §5 File Summary, §7 FileLog, §7 FileProcessLog">File Summary</h1>
+
+    <section class="wf-section" aria-labelledby="primary-region-label" data-src="F-14, G-05">
+      <h2 id="primary-region-label">At a glance</h2>
+
+      <dl style="display: grid; grid-template-columns: 200px 1fr; gap: var(--wf-spacing); max-width: 600px; margin: 0 0 calc(var(--wf-spacing) * 3) 0;">
+        <dt data-prop="FileLog.CurrentFileName">Filename</dt>
+        <dd data-prop="FileLog.CurrentFileName">2026-05-25-batch.csv</dd>
+
+        <dt data-prop="FileLog.ProcessDate">Process date</dt>
+        <dd data-prop="FileLog.ProcessDate">2026-05-25 09:42</dd>
+
+        <dt data-prop="FileLog.CurrentStatus">Status</dt>
+        <dd>
+          <span data-prop="FileLog.CurrentStatus" style="border: 2px dashed var(--wf-state-warning); padding: 2px 8px; border-radius: 12px;">Complete · with errors</span>
+        </dd>
+
+        <dt data-prop="FileLog.HasBulkErrorFile">Validation issues</dt>
+        <dd>
+          <a href="screen-04-validation-errors.html" target="_blank" rel="noopener" data-src="UI-15">
+            <span data-prop="FileLog.HasBulkErrorFile" style="border: 2px dashed var(--wf-state-danger); padding: 2px 8px; border-radius: 12px;">
+              Errors present — view validation errors
+            </span>
+          </a>
+        </dd>
+      </dl>
+
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(var(--wf-spacing) * 2);">
+
+        <div class="wf-card" data-src="F-14, UI-14">
+          <h3>Records in file</h3>
+          <p style="font-size: var(--wf-fz-2xl); font-weight: 700; margin: 0;" data-prop="FileLog.RecordCount">1,240</p>
+          <p class="wf-help">Total rows detected during parse.</p>
+        </div>
+
+        <div class="wf-card" data-src="F-14, UI-14">
+          <h3>Imported</h3>
+          <p style="font-size: var(--wf-fz-2xl); font-weight: 700; margin: 0;" data-prop="FileSummary.ImportedCount">1,200</p>
+          <p class="wf-help">Rows successfully imported into the ledger.</p>
+        </div>
+
+        <div class="wf-card" data-src="F-14, UI-14">
+          <h3>Approved</h3>
+          <p style="font-size: var(--wf-fz-2xl); font-weight: 700; margin: 0; color: var(--wf-state-success);" data-prop="FileSummary.ApprovedCount">1,150</p>
+          <p class="wf-help">Rows confirmed by an Approver.</p>
+        </div>
+
+        <div class="wf-card" data-src="F-14, UI-14">
+          <h3>Rejected</h3>
+          <p style="font-size: var(--wf-fz-2xl); font-weight: 700; margin: 0; color: var(--wf-state-danger);" data-prop="FileSummary.RejectedCount">50</p>
+          <p class="wf-help">Rows declined by an Approver.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="wf-section" aria-labelledby="timeline-label" data-src="§7 FileProcessLog, UI-14, UI-15">
+      <h2 id="timeline-label">Processing timeline</h2>
+      <p class="wf-help">Each step of how this file was processed, in order.</p>
+
+      <ol class="wf-list">
+        <li data-src="§7 FileProcessLog" style="display: grid; grid-template-columns: 200px 1fr; gap: var(--wf-spacing);">
+          <div>
+            <strong data-prop="FileProcessLog.ActivityName">Parse and validate</strong><br />
+            <span class="wf-help" data-prop="FileProcessLog.StartDate">2026-05-25 09:42:11</span> →
+            <span class="wf-help" data-prop="FileProcessLog.EndDate">2026-05-25 09:43:08</span>
+          </div>
+          <div>
+            <span data-prop="FileProcessLog.DecisionResult" style="border: 2px dashed var(--wf-state-success); padding: 2px 8px; border-radius: 12px;">Passed</span>
+            <p class="wf-help">All 1,240 rows parsed; header and structure verified.</p>
+          </div>
+        </li>
+
+        <li data-src="§7 FileProcessLog" style="display: grid; grid-template-columns: 200px 1fr; gap: var(--wf-spacing);">
+          <div>
+            <strong data-prop="FileProcessLog.ActivityName">Import to ledger</strong><br />
+            <span class="wf-help" data-prop="FileProcessLog.StartDate">2026-05-25 09:43:09</span> →
+            <span class="wf-help" data-prop="FileProcessLog.EndDate">2026-05-25 09:47:54</span>
+          </div>
+          <div>
+            <span data-prop="FileProcessLog.DecisionResult" style="border: 2px dashed var(--wf-state-warning); padding: 2px 8px; border-radius: 12px;">Partial</span>
+            <p class="wf-help">1,200 of 1,240 rows imported. 40 rows held for review — see validation errors.</p>
+          </div>
+        </li>
+
+        <li data-src="§7 FileProcessLog" style="display: grid; grid-template-columns: 200px 1fr; gap: var(--wf-spacing);">
+          <div>
+            <strong data-prop="FileProcessLog.ActivityName">Approver review</strong><br />
+            <span class="wf-help" data-prop="FileProcessLog.StartDate">2026-05-25 10:12:00</span> →
+            <span class="wf-help" data-prop="FileProcessLog.EndDate">2026-05-25 10:48:31</span>
+          </div>
+          <div>
+            <span data-prop="FileProcessLog.DecisionResult" style="border: 2px dashed var(--wf-state-success); padding: 2px 8px; border-radius: 12px;">Reviewed</span>
+            <p class="wf-help">1,150 approved · 50 rejected. Decisions recorded in audit log.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section class="wf-section" data-src="UI-15">
+      <div class="wf-banner" data-tone="danger">
+        <strong>This file has validation errors.</strong>
+        <p>40 rows did not pass validation. Open the error list to review them row by row.</p>
+        <a href="screen-04-validation-errors.html" class="wf-btn primary" target="_blank" rel="noopener" data-src="UI-15">View validation errors</a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="wf-chrome" style="margin-top: 32px;">
+    <span class="wf-help">
+      States rendered on this screen: <code>default | loading | partial-error | stale</code>
+    </span>
+  </footer>
+</body>
+</html>

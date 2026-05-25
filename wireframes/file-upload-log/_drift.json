@@ -1,0 +1,7 @@
+{
+  "scope_slug": "file-upload-log",
+  "authored_at": "2026-05-25T14:35:00Z",
+  "blueprint_sha256": "a8979de04c2d173a5fc0082d4a02bfff39bb93bc0881659349fa84ae98c07362",
+  "compared_variants": ["CAREFUL-DEFAULT", "POWER-DENSE"],
+  "drift_flags": []
+}

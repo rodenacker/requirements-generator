@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>S-02 File Log Overview — POWER-DENSE — file-upload-log</title>
+  <link rel="stylesheet" href="wireframe-ds.css" />
+  <meta name="wf-scope-slug" content="file-upload-log" />
+  <meta name="wf-variant-id" content="POWER-DENSE" />
+  <meta name="wf-screen-id" content="S-02" />
+  <meta name="wf-screen-sources" content="F-07,F-08,F-16,F-17,F-19,F-20,UI-06,UI-07,UI-15,UI-16,UI-17,UI-18,UI-19,§5 File Log Overview,§7 FileLog" />
+  <meta name="wf-persona-binding" content="Importer" />
+  <meta name="wf-states-rendered" content="default | loading | empty" />
+</head>
+<body>
+  <header class="wf-chrome" data-src="F-07,F-08,F-16,F-17,F-19,F-20,UI-06,UI-07,UI-15,UI-16,UI-17,UI-18,UI-19,§5 File Log Overview,§7 FileLog">
+    <strong>S-02 · File Log Overview</strong>
+    <span class="wf-help">POWER-DENSE · Speed-leaning · Maximally dense · for Importer</span>
+    <nav aria-label="Within-variant flow">
+      <a href="screen-01-file-upload.html" target="_blank" rel="noopener">‹ S-01 File Upload</a>
+      <strong>S-02 File Log Overview</strong>
+      <a href="screen-03-file-summary.html" target="_blank" rel="noopener">S-03 File Summary ›</a>
+      <a href="screen-04-validation-errors.html" target="_blank" rel="noopener">S-04 Validation Errors ›</a>
+    </nav>
+    <nav aria-label="Across variants" class="wf-role-switcher">
+      <a href="../CAREFUL-DEFAULT/screen-02-file-log-overview.html" target="_blank" rel="noopener">Open in CAREFUL-DEFAULT</a>
+      <button aria-pressed="true">Current: POWER-DENSE</button>
+    </nav>
+    <span style="margin-left: auto;">
+      <a href="../index.html" class="wf-btn">Back to index</a>
+      <a href="../index.html#trade-off-matrix" class="wf-btn" target="_blank" rel="noopener">Trade-off matrix</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1280px; margin: 0 auto; padding: 0 16px;">
+    <h1 data-src="F-07,F-08,F-16,F-17,F-19,F-20,UI-06,UI-07,UI-15,UI-16,UI-17,UI-18,UI-19,§5 File Log Overview,§7 FileLog">File Log Overview</h1>
+
+    <!-- Search + filter chips (UI-only chrome — exempt from data-prop). Default-sort: Process Date DESC. -->
+    <div role="search" style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
+      <input type="search" placeholder="Search file name…" style="flex: 0 0 240px; padding: 6px 8px; border: 2px dashed var(--wf-border-subtle); border-radius: 4px;" />
+      <span class="wf-help">Filter:</span>
+      <button class="wf-btn" aria-pressed="false">All</button>
+      <button class="wf-btn" aria-pressed="true">Failed only</button>
+      <button class="wf-btn" aria-pressed="false">Processing</button>
+      <button class="wf-btn" aria-pressed="false">Completed</button>
+      <span style="margin-left: auto;" class="wf-help">Sorted: Process Date DESC · 20 per page</span>
+    </div>
+
+    <section class="wf-section" aria-labelledby="primary-region-label">
+      <h2 id="primary-region-label" class="visually-hidden" style="position:absolute; left:-9999px;">Primary content</h2>
+
+      <div class="wf-table" data-src="F-07,§5 File Log Overview,§7 FileLog">
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" aria-label="Select all rows" /></th>
+              <th data-src="F-07,§7 FileLog" data-prop="FileLog.CurrentFileName">File name</th>
+              <th data-src="F-07,§7 FileLog" data-prop="FileLog.ProcessDate">Process date ▼</th>
+              <th data-src="F-07,§7 FileLog" data-prop="FileLog.RecordCount">Rows</th>
+              <th data-src="F-07,§7 FileLog" data-prop="FileLog.CurrentStatus">Status</th>
+              <th data-src="F-07,§7 FileLog" data-prop="FileLog.HasBulkErrorFile">Errors?</th>
+              <th>Row actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" aria-label="Select row" /></td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.CurrentFileName">2026-05-25-invoices.csv</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.ProcessDate">2026-05-25 09:14</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.RecordCount">1,247</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.CurrentStatus">Processing</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.HasBulkErrorFile">No</td>
+              <td>
+                <a href="screen-03-file-summary.html" target="_blank" rel="noopener" class="wf-btn" data-src="F-08,UI-07">Summary</a>
+                <button class="wf-btn destructive" data-src="F-20,UI-19">Cancel</button>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" aria-label="Select row" /></td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.CurrentFileName">2026-05-25-payments.xml</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.ProcessDate">2026-05-25 08:52</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.RecordCount">892</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.CurrentStatus">Failed</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.HasBulkErrorFile">Yes (47)</td>
+              <td>
+                <a href="screen-03-file-summary.html" target="_blank" rel="noopener" class="wf-btn" data-src="F-08,UI-07">Summary</a>
+                <a href="screen-04-validation-errors.html" target="_blank" rel="noopener" class="wf-btn" data-src="F-16,UI-15,UI-16">Errors</a>
+                <button class="wf-btn" data-src="F-19,UI-18">Retry</button>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" aria-label="Select row" /></td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.CurrentFileName">2026-05-24-invoices.csv</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.ProcessDate">2026-05-24 17:31</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.RecordCount">2,103</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.CurrentStatus">Completed</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.HasBulkErrorFile">No</td>
+              <td>
+                <a href="screen-03-file-summary.html" target="_blank" rel="noopener" class="wf-btn" data-src="F-08,UI-07">Summary</a>
+                <button class="wf-btn" data-src="F-17,UI-17">Download</button>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" aria-label="Select row" /></td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.CurrentFileName">2026-05-24-payments.xml</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.ProcessDate">2026-05-24 16:08</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.RecordCount">541</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.CurrentStatus">Completed</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.HasBulkErrorFile">No</td>
+              <td>
+                <a href="screen-03-file-summary.html" target="_blank" rel="noopener" class="wf-btn" data-src="F-08,UI-07">Summary</a>
+                <button class="wf-btn" data-src="F-17,UI-17">Download</button>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" aria-label="Select row" /></td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.CurrentFileName">2026-05-23-late.csv</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.ProcessDate">2026-05-23 22:47</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.RecordCount">89</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.CurrentStatus">Failed</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.HasBulkErrorFile">Yes (89)</td>
+              <td>
+                <a href="screen-03-file-summary.html" target="_blank" rel="noopener" class="wf-btn" data-src="F-08,UI-07">Summary</a>
+                <a href="screen-04-validation-errors.html" target="_blank" rel="noopener" class="wf-btn" data-src="F-16,UI-15,UI-16">Errors</a>
+                <button class="wf-btn" data-src="F-19,UI-18">Retry</button>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" aria-label="Select row" /></td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.CurrentFileName">2026-05-23-invoices.csv</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.ProcessDate">2026-05-23 09:02</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.RecordCount">1,852</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.CurrentStatus">Completed</td>
+              <td data-src="F-07,§7 FileLog" data-prop="FileLog.HasBulkErrorFile">No</td>
+              <td>
+                <a href="screen-03-file-summary.html" target="_blank" rel="noopener" class="wf-btn" data-src="F-08,UI-07">Summary</a>
+                <button class="wf-btn" data-src="F-17,UI-17">Download</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination chrome (UI-only, exempt from data-prop) -->
+      <nav aria-label="Pagination" style="display: flex; gap: 8px; align-items: center; margin-top: 8px;">
+        <button class="wf-btn">‹ Prev</button>
+        <button class="wf-btn" aria-current="page">1</button>
+        <button class="wf-btn">2</button>
+        <button class="wf-btn">3</button>
+        <button class="wf-btn">Next ›</button>
+        <span class="wf-help" style="margin-left: auto;">20 of 247 rows</span>
+      </nav>
+    </section>
+
+    <!-- State: empty (zero results) — feedback/empty-state pattern -->
+    <div class="wf-empty" data-src="F-07,§5 File Log Overview" hidden>
+      <h3>No file logs match these filters</h3>
+      <p>Clear the filter chips or search term to see all file logs.</p>
+      <button class="wf-btn primary">Clear filters</button>
+    </div>
+
+    <!-- State: loading skeleton row count = page size -->
+    <div class="wf-skeleton" data-src="F-07" hidden>
+      Loading 20 file logs…
+    </div>
+
+  </main>
+
+  <footer class="wf-chrome" style="margin-top: 32px;">
+    <span class="wf-help">
+      States rendered on this screen: <code>default | loading | empty</code>
+    </span>
+  </footer>
+</body>
+</html>

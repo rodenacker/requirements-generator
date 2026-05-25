@@ -7,6 +7,10 @@ description: 'Invoke check-pattern-coverage as preflight. Capture verdict and AI
 
 Runs **only** on `mode = "create"`. On `regenerate-variants` and `add-variant`, the blueprint did not change so the prior preflight result is no longer needed for gate decisions; skip this step.
 
+## 4.0 Drop step-3-only legacy fallback cache
+
+For each entry in `cached_legacy_full_reads[<source-name>]` (populated by `step-02-read-inputs.md > 2.6.2` only on the legacy-fallback branch), check whether the originating selection's `architect_roles` contain any **step-5** role (per the closed-enum partition in `step-02-read-inputs.md > 2.6.1`). If the selection had only step-3 roles, **drop the entry** from `cached_legacy_full_reads` here — step 3 has consumed it; keeping it in memory would bloat steps 4 → 5 for no purpose. If the selection has both step-3 and step-5 roles, keep the entry; step-05's consumers will read it again from the same slot. This eviction is the load-bearing context-cost optimisation for the legacy branch (the sidecar branch incurs no such cost because `cached_projections[<role>][<name>]` is already small).
+
 ## 4.1 Call the skill
 
 The blueprint at `<blueprint_output_path>` does not yet exist on disk — step 6 will write it. The pattern-coverage skill, however, reads the **rendered** blueprint to evaluate per-screen viability. To avoid a "skill needs the file before the file is written" deadlock, write the blueprint to disk **before** running the skill:

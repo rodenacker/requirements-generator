@@ -1,6 +1,6 @@
 {
   "scope_slug": "file-upload-log",
-  "selected_at": "2026-05-25T11:00:45Z",
+  "selected_at": "2026-05-25T13:34:13Z",
   "registry_path": "framework/assets/analyses/registry.md",
   "selections": [
     {
@@ -8,49 +8,63 @@
       "output_path": "analyse-requirements/DATA-MODEL/data-model.html",
       "format": "html",
       "registry_description": "Surfaces the entities, attributes, and relationships implied by the requirements so forms, lists, and detail views can be designed against an explicit schema.",
-      "architect_roles": ["screen-properties-cross-check", "screen-inventory-entity-bijection"]
+      "architect_roles": ["screen-properties-cross-check", "screen-inventory-entity-bijection"],
+      "sidecar_path": "analyse-requirements/DATA-MODEL/data-model.sidecar.json",
+      "sidecar_present": false
     },
     {
       "name": "jtbd",
       "output_path": "analyse-requirements/JTBD/jtbd-job-map.html",
       "format": "html",
       "registry_description": "Surfaces the jobs and outcomes users hire the product for so design decisions anchor to user motivation rather than features.",
-      "architect_roles": ["variant-philosophy"]
+      "architect_roles": ["variant-philosophy"],
+      "sidecar_path": "analyse-requirements/JTBD/jtbd.sidecar.json",
+      "sidecar_present": false
     },
     {
       "name": "ooux",
       "output_path": "analyse-requirements/OOUX/ooux-object-map.html",
       "format": "html",
       "registry_description": "Identifies the core objects, attributes, and CTAs implied by the requirements so screens and navigation can be structured around them.",
-      "architect_roles": ["screen-inventory-entity-bijection"]
+      "architect_roles": ["screen-inventory-entity-bijection"],
+      "sidecar_path": "analyse-requirements/OOUX/ooux.sidecar.json",
+      "sidecar_present": false
     },
     {
       "name": "use-cases",
       "output_path": "analyse-requirements/USE-CASES/use-cases-map.html",
       "format": "html",
       "registry_description": "Surfaces actor goals, preconditions, and main/extension flows implied by the requirements so screens and APIs are designed against explicit usage paths.",
-      "architect_roles": ["screen-inventory", "screen-flow", "per-screen-cta-set"]
+      "architect_roles": ["screen-inventory", "screen-flow", "per-screen-cta-set"],
+      "sidecar_path": "analyse-requirements/USE-CASES/use-cases.sidecar.json",
+      "sidecar_present": false
     },
     {
       "name": "user-journeys",
       "output_path": "analyse-requirements/USER-JOURNEYS/user-journeys-map.html",
       "format": "html",
       "registry_description": "Maps the experience phases, pain-points, and opportunities the requirements describe so feature prioritisation targets the moments that matter most.",
-      "architect_roles": ["screen-inventory", "variant-philosophy"]
+      "architect_roles": ["screen-inventory", "variant-philosophy"],
+      "sidecar_path": "analyse-requirements/USER-JOURNEYS/user-journeys.sidecar.json",
+      "sidecar_present": false
     },
     {
       "name": "task-flows",
       "output_path": "analyse-requirements/TASK-FLOWS/task-flows.html",
       "format": "html",
       "registry_description": "Surfaces the goal-decomposition structure and step-by-step user paths implicit in the requirements before screens, wizards, or form sequences are designed.",
-      "architect_roles": ["screen-inventory", "screen-flow", "per-screen-cta-set"]
+      "architect_roles": ["screen-inventory", "screen-flow", "per-screen-cta-set"],
+      "sidecar_path": "analyse-requirements/TASK-FLOWS/task-flows.sidecar.json",
+      "sidecar_present": false
     },
     {
       "name": "trade-off-dimension-analysis",
       "output_path": "analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html",
       "format": "html",
       "registry_description": "Scores each user goal against a curated set of UX trade-off dimensions (Speed vs Accuracy, Simplicity vs Power, Automation vs Control, ...) to guide wireframing posture per goal.",
-      "architect_roles": ["variant-dimension-applicability"]
+      "architect_roles": ["variant-dimension-applicability"],
+      "sidecar_path": "analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-dimension-analysis.sidecar.json",
+      "sidecar_present": false
     }
   ]
 }

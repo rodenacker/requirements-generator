@@ -1046,6 +1046,7 @@ graph TD
 
     subgraph Skills
       skill_scopesel[scope-selector.md]
+      skill_selectanalyses[select-supporting-analyses.md]
       skill_pcov[check-pattern-coverage.md]
       skill_freshness[check-wireframe-set-freshness.md]
       skill_bloat_wf[check-context-bloat.md]
@@ -1070,7 +1071,12 @@ graph TD
       asset_posvocab[wireframes/position-vocabulary.md]
       asset_pcatalogue[pattern-catalogue/_index.md]
       asset_personallm[persona-llm.md]
-      asset_tradeoffmatrix[analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html]
+      asset_analyses_registry[analyses/registry.md]
+      asset_sidecar_schema[analyses/sidecar-schema.md]
+      asset_analyses_inputs[wireframes/&lt;slug&gt;/analyses-inputs.json]
+      asset_selected_sidecars[analyse-requirements/&lt;METHOD&gt;/&lt;name&gt;.sidecar.json selected]
+      asset_selected_analyses[analyse-requirements/&lt;METHOD&gt;/* selected legacy-fallback]
+      asset_tradeoffmatrix[analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html legacy-fallback]
     end
 
     subgraph Characters
@@ -1088,6 +1094,7 @@ graph TD
     end
 
     orch_wf --> skill_scopesel
+    orch_wf --> skill_selectanalyses
     orch_wf --> skill_bloat_wf
     orch_wf --> skill_freshness
     orch_wf --> agent_architect
@@ -1101,6 +1108,12 @@ graph TD
 
     skill_scopesel --> skill_verifywrite_wf
 
+    skill_selectanalyses --> asset_analyses_registry
+    skill_selectanalyses --> asset_sidecar_schema
+    skill_selectanalyses --> skill_verifywrite_wf
+    skill_selectanalyses --> skill_bloat_wf
+    skill_selectanalyses -.->|writes per-scope| asset_analyses_inputs
+
     agent_architect --> arch_s1
     agent_architect --> arch_s2
     agent_architect --> arch_s3
@@ -1112,7 +1125,13 @@ graph TD
     agent_architect --> asset_personallm
 
     arch_s1 --> char_architect
-    arch_s2 -.->|optional| asset_tradeoffmatrix
+    arch_s2 -.->|when present| asset_analyses_inputs
+    arch_s2 --> asset_sidecar_schema
+    arch_s2 -.->|sidecar branch per selection| asset_selected_sidecars
+    arch_s2 -.->|legacy fallback per selection ≤60KB| asset_selected_analyses
+    arch_s2 -.->|legacy fallback only| asset_tradeoffmatrix
+    arch_s5 -.->|step-5-only deferred sidecar branch| asset_selected_sidecars
+    arch_s5 -.->|step-5-only deferred legacy fallback| asset_selected_analyses
     arch_s4 --> skill_pcov
     arch_s4 --> tmpl_blueprint
     arch_s4 --> skill_verifywrite_wf
@@ -1158,16 +1177,16 @@ graph TD
     class agent_architect,agent_comparator agent
     class agent_variant parallel
     class arch_s1,arch_s2,arch_s3,arch_s4,arch_s5,arch_s6,arch_s7,var_s1,var_s2,var_s3,var_s4,var_s5,var_s6 step
-    class skill_scopesel,skill_pcov,skill_freshness,skill_bloat_wf,skill_verifywrite_wf skill
+    class skill_scopesel,skill_selectanalyses,skill_pcov,skill_freshness,skill_bloat_wf,skill_verifywrite_wf skill
     class tmpl_screen,tmpl_blueprint,tmpl_setindex asset
     class ds_wireframe ds
-    class asset_dimensions,asset_wfregistry,asset_pbindings,asset_domaindefaults,asset_posvocab,asset_pcatalogue,asset_personallm,asset_tradeoffmatrix asset
+    class asset_dimensions,asset_wfregistry,asset_pbindings,asset_domaindefaults,asset_posvocab,asset_pcatalogue,asset_personallm,asset_analyses_registry,asset_sidecar_schema,asset_analyses_inputs,asset_selected_sidecars,asset_selected_analyses,asset_tradeoffmatrix asset
     class char_architect,char_variant,char_comparator char
     class shared_refusal_wf shared
     class state_progress_wf state
 ```
 
-**Stats:** 35 nodes / 49 edges / depth 4.
+**Stats:** 41 nodes / 61 edges / depth 4.
 
 **Notes:**
 - The orchestrator is **four-stage** (Scope → Design-Brief → Parallel Variant Generation → Comparison), not registry-driven like `/analyse-requirement`. Variant cardinality is bounded per-run (default 2, hard cap 3) but variant *configurations* are emergent — composed by the architect from dimension positions × user goals × scope personas, not picked from a closed archetype registry. The `wireframe-variant-generator.md` agent node is drawn with a **dashed border** to indicate it is dispatched as a **parallel sub-agent** at Stage 3 (one Agent-tool call per variant in a single message, hard-capped at 4 parallel). This is the only parallel sub-agent in the pipeline; the scope-selector, architect, and comparator all run in the foreground.
@@ -1177,7 +1196,9 @@ graph TD
 - The **shared `blueprints/<scope-slug>/` directory** is the architectural contract for cross-pipeline reuse — see CLAUDE.md §2 architecture top-level dirs and the `/wireframe` stand-alone-constraint clause. `blueprint-architect.md`'s write to `blueprints/<scope-slug>/{scope.json, blueprint.md}` is the documented cross-pipeline exception (mirrors `input-handler.md`'s cross-pipeline write to `requirements/source-manifest.json` and `input/*.converted.md`).
 - The **shared `framework/assets/design-systems/` directory** is the home for cross-pipeline design-system assets. `wireframe-ds.html` is the low-fidelity DS shipped today; a future consumer DS for `/prototype` would live alongside it. Likewise `framework/assets/templates/` is the cross-pipeline DS-agnostic template directory; `template-screen.html` and `template-blueprint.md` are DS-agnostic (the DS path is a template slot, filled by the variant-generator with the wireframe-DS path today and the consumer-DS path under a future `/prototype`).
 - `pattern-catalogue/_index.md` is shared with the `/design-system` styler subtree (which loads it transitively via `data/component-catalogue.md`) — but the `/wireframe` consumers (`check-pattern-coverage.md`, `wireframe-variant-generator.md > step-02/04`) read it directly for per-pattern lookups. Per-pattern files under `pattern-catalogue/<category>/<pattern>.md` are read **selectively** by the variant-generator at step 4 (only the patterns picked per screen), not loaded en masse — keeps per-sub-agent context lean.
-- `analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html` is drawn as a **dashed optional edge** from the architect's step 2; the architect reads it only if it exists on disk. Absent → skipped silently. This is the only cross-pipeline-output read in the wireframe pipeline (every other read targets either `requirements/`, the orchestrator's own outputs, or `framework/assets/**`).
+- `select-supporting-analyses.md` is the **Stage 1b** skill invoked between the existing step 0d (prior-set detection) and step 1 (scope-selector verification). It reads `framework/assets/analyses/registry.md`, filters MVP rows to the **completed-on-disk subset** (i.e. analyses the consultant has actually produced under `analyse-requirements/<METHOD>/`), surfaces the subset as a terminal-style print-and-parse numbered list for comma-separated multi-select, and writes `wireframes/<scope-slug>/analyses-inputs.json`. The skill is wireframe-private; a future `/prototype` will author its own variant with a different per-method-to-role mapping. The dashed `skill_selectanalyses -.->|writes per-scope| asset_analyses_inputs` edge reflects the per-scope-slug output path (the artefact is dynamic per run).
+- `wireframes/<scope-slug>/analyses-inputs.json` is drawn as a **dashed conditional edge** from the architect's step 2 (`arch_s2 -.->|when present| asset_analyses_inputs`); the architect reads it only when `analyses_inputs_path` is non-null and the file exists on disk. The per-selection follow-on read uses a **sidecar-first protocol** (per `framework/assets/analyses/sidecar-schema.md`): when `selections[i].sidecar_present == true` the architect reads `selections[i].sidecar_path` (a ≤ 20 KB structured JSON projection — the `asset_selected_sidecars` node); when absent on disk it falls back to a bounded full-Read of the prose `selections[i].output_path` capped at 60 KB by `RF-09` (the `asset_selected_analyses` node, now relabeled `legacy-fallback`). The two dashed edges from `arch_s2` reflect this either/or branching per selection. The matching pair of dashed edges from `arch_s5` reflects the step-05 preamble that opens deferred step-5-only selections (those whose `architect_roles` carry no step-3 role) — the same sidecar-first / bounded-fallback protocol applies. The solid edge `arch_s2 --> asset_sidecar_schema` is the canonical-shape dependency: the step file transitively constrains its read protocol by the schema's envelope + per-role payload definitions. The new `asset_sidecar_schema` node is also depended on by `skill_selectanalyses` (used to compute the `sidecar_path` per selection via the canonical convention).
+- `analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html` is now a **legacy fallback only** (relabeled `legacy-fallback` in the graph): the architect's step 2.7 reads it only when `analyses_inputs_path` is null/absent AND the consultant did not select `trade-off-dimension-analysis` at Stage 1b. When the consultant explicitly selected trade-off-dimensions, the step-2.6 cached content takes precedence and step 2.7 is skipped entirely. Absent → skipped silently (same as before).
 - `state/.progress.json` is read (existence + at-least-one-`completed`-event check) by `check-context-bloat.md` from the wireframe orchestrator; the wireframe orchestrator **never writes to it**, consistent with the no-write-outside-`wireframes/`-and-`blueprints/` invariant. The wireframe-orch surface variant of RF-05 (see `framework/orchestrators/wireframe-orch.md > RF-05 — wireframe-orch surface variant`) deliberately omits the `status: context-bloated` write — same shape as the design-system-orch + analyse-requirement-orch variants. (When `framework/shared/refusal-registry.md` is next revised, append a fourth surface-variant block for `wireframe-orch`.)
 - `verify-artifact-write.md` is shared across all orchestrators; every wireframe pipeline write goes through it: scope.json (scope-selector at step 7), blueprint.md (architect at step 4 — written twice, once with placeholder pattern-coverage summary, once with the actual summary after the skill returns), variants.json (architect at step 6), per-variant wireframe-ds.css + screen-NN-*.html files (variant-generator at steps 3 + 4) + manifest.json + variant-position.json (variant-generator at step 5), index.html + _drift.json (comparator). The standalone `comparison.html` artefact and its `template-comparison.html` template have been removed; the trade-off matrix lives in `index.html` §4. The per-variant `wireframes.html` was also previously removed; the scope `index.html` is the single metadata-only landing page surfacing scope details, side-by-side screen links, side-by-side prose comparison cards, and the trade-off matrix in four ordered sections plus a TOC. The comparator's per-screen `data-src` audit attributes remain in screen HTML for DOM inspection but no longer render as visible hover tooltips — the `[data-src]:hover::after` CSS rule was removed from `framework/assets/design-systems/wireframe-ds.html` because the raw requirement-ID dump is agent-only audit metadata, not consultant-facing copy.
 - The pipeline writes to: `blueprints/<scope-slug>/{scope.json, blueprint.md}` (cross-pipeline shared) + `wireframes/<scope-slug>/**` (wireframe-private). No write reaches `requirements/`, `prd/`, `design-system/`, `analyse-requirements/<METHOD>/`, `analyse-inputs/<METHOD>/`, `review-requirements/<METHOD>/`, `review-inputs/<METHOD>/`, or `framework/state/`.

@@ -1,0 +1,27 @@
+{
+  "scope_slug": "file-upload-log",
+  "variant_id": "POWER-DENSE",
+  "authored_at": "2026-05-25T14:25:00Z",
+  "persona_binding": "Importer",
+  "design_philosophy": "Dense scannable file log with default-sort by recent; built for daily submit-and-leave operators.",
+  "dimension_positions": {
+    "density-focus": 2,
+    "speed-accuracy": 1,
+    "power-simplicity": 0,
+    "control-automation": 0,
+    "flexibility-consistency": 0,
+    "memorability-discoverability": 0
+  },
+  "strengths": [
+    "Many file logs visible without scrolling",
+    "Default-sort by recent matches daily submit-and-leave flow",
+    "Submit-on-Enter from any field; minimal confirmation friction"
+  ],
+  "weaknesses": [
+    "Steep first-time learning curve",
+    "Dense table can overwhelm during high error counts",
+    "Sparse help text; assumes prior knowledge of the workflow"
+  ],
+  "tradeoffs": "Faster for daily importers; less guidance for occasional or first-time users.",
+  "use_when": "Daily importers who submit one or more files per business day."
+}

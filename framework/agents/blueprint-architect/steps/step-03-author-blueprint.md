@@ -7,6 +7,8 @@ description: 'Compose the screen inventory + flow + scope→screen trace; run bi
 
 Runs **only** on `mode = "create"`. On `regenerate-variants` and `add-variant`, the blueprint is reused from disk (see step 2.5) and this step is skipped entirely.
 
+**Supporting analyses consumed at this step.** When step 2.6 cached one or more analyses, this step consumes those whose `architect_roles` include `screen-inventory`, `screen-inventory-entity-bijection`, `screen-flow`, or `screen-properties-cross-check` — accessed via the role-keyed in-memory map `cached_projections[<role>][<source-name>]` (per the sidecar schema at `framework/assets/analyses/sidecar-schema.md`), falling through to `cached_legacy_full_reads[<source-name>].content` for the bounded prose branch when a sidecar is absent on disk (see `step-02-read-inputs.md > 2.6.2`). The analyses **augment `requirements.md`** with refining detail (entity attributes, goal decomposition, entity lifecycles, multi-actor flow) and additional instructions about screen breakdown; they do **not widen** the feature scope of `requirements.md` (a screen for a feature absent from `requirements.md` is a flagged requirements gap, never an inventory entry) and they do **not widen** the per-screen Properties closed set (DATA-MODEL discrepancies are flagged in blueprint prose; the closed set remains §7 + F-NN).
+
 ## 3.1 Derive candidate screens from scope sources
 
 Walk `scope.sources` category-by-category:
@@ -55,6 +57,27 @@ Special cases:
 - **Derived shapes (§7.X Derivations)** — when a screen renders a §7.X derived concept (e.g. `File Summary`), list the derivation's named outputs explicitly, e.g. `FileSummary.ImportedCount, FileSummary.ApprovedCount, FileSummary.RejectedCount, FileLog.HasBulkErrorFile` per the derivation rule's output names. If the derivation rule does not name its outputs precisely, surface a conflict in step 3.5 and let the conditional gate fire.
 
 **UI-only controls are NOT listed in Properties.** Search inputs, sort toggles, pagination, filter chips, expand/collapse, view toggles, save/cancel buttons, progress indicators, drag-and-drop affordances, breadcrumb chrome, modal close buttons — these are pattern chrome that does not bind to entity values. The variant-generator renders them per its pattern-catalogue selections without a `data-prop` attribute and they are exempt from the property contract.
+
+**DATA-MODEL cross-check (role `screen-properties-cross-check`).** When `cached_projections["screen-properties-cross-check"]["data-model"]` is populated (sidecar branch — preferred) **or** `cached_legacy_full_reads["data-model"]` is populated (legacy bounded-prose branch — fallback), run this cross-check once per screen after composing the Properties cell from §7 + F-NN: for each entity bound on the screen, walk the projection's `entities[].attributes[]` payload (per `framework/assets/analyses/sidecar-schema.md > 2.4`) — or, on the legacy branch, best-effort-extract the equivalent attribute list from the prose `<Entities|Attributes|Relationships>` tables — and identify any attribute the analysis lists that is **absent** from the §7 shape's row set. Do not add the attribute to the Properties cell. Instead, record a `data-model-discrepancy` flag in `validation.data_model_discrepancies = [{screen_id, entity, analysis_attribute, expected_in_§7, source: "sidecar" | "legacy-prose"}]` and surface it in 3.6's architect notes as plain English: *"Note: DATA-MODEL lists `<Entity>.<attribute>` not in `requirements.md` §7 — likely a requirements gap; not bound on this screen."*. The closed set on the Properties cell remains exclusively §7 + F-NN per `CLAUDE.md > Constraints > Wireframe pipeline never invents object properties`.
+
+## 3.2c Cross-check inventory against cached analyses (screen-inventory roles)
+
+Read role-keyed projections from `cached_projections["screen-inventory"]`, `cached_projections["screen-inventory-entity-bijection"]`, and `cached_projections["screen-flow"]` (each a `{ <source-name>: <payload> }` map per `framework/assets/analyses/sidecar-schema.md > Sections 2.1, 2.2, 2.3`). For source-names whose entry is missing in the role-keyed projection but present in `cached_legacy_full_reads`, fall through to that slot's `content` field and best-effort-extract role-relevant portions from the prose (the projection shape in the sidecar schema names what to extract per role; on the legacy branch the architect locates the same shapes by re-reading the prose's tables / lists in-place).
+
+For each source whose projection or legacy content is available, re-walk the consolidated inventory from 3.2 and cross-reference:
+
+- **`task-flows` / `use-cases`** — the projection's `screens[]` entries (or, on legacy fallback, the prose's goal-decomposition tree / main+extension flows) name sequences of operations the consultant identified as in-scope. For each `screen[]` entry whose `intent` maps to a screen seed you missed at 3.1, consult its `covered_in_requirements` field (sidecar) or re-walk `requirements.md` (legacy) to confirm coverage by an `F-NN` / `BR-NN` / `UI-NN` in `scope.sources`. If covered, add the missed screen seed with citation `augmented by: task-flows:<source_anchor>` or `augmented by: use-cases:<source_anchor>` (verbatim from the projection's `source_anchor` field, or a best-effort anchor on the legacy branch) in the `Architect notes` for that row. If not covered, record a requirements-gap flag in 3.6's architect notes — do **not** add the screen.
+- **`state-diagram`** — the projection's `screens[]` (intent-by-state entries) implies state-driven screens. For each entity state that a screen in your inventory should render but you missed (no screen surfaces it), apply the same `requirements.md`-coverage check as above before adding the screen.
+- **`user-journeys`** — the projection's `screens[]` (journey-phase touchpoints) surface screen prioritisation but rarely a missed screen; primarily inform 3.6's architect notes and step 5's `variant-philosophy` consumer.
+- **`ooux`** — the projection's `entities[]` under role `screen-inventory-entity-bijection` (per sidecar schema §2.2) lists every core object's expected list + detail surfaces. For each entry whose `name` has zero corresponding screen in your inventory, apply the coverage check.
+- **`sequence-diagram`** — the projection's `flow_steps[]` under role `screen-flow` (per sidecar schema §2.3) names external-service handoffs. For each step whose `condition` implies an async / polling screen (a "submitting…" surface, a "queued for processing" surface) absent from your inventory, apply the coverage check.
+- **`activity-diagram`** — same as `sequence-diagram` plus multi-actor swim lanes imply role-bound screens (e.g. an "approver dashboard" distinct from a "submitter dashboard"). Apply the coverage check.
+
+For each screen added during this pass, record in the row's `Architect notes` (or 3.6's notes section) the source name and projection anchor (`augmented by: <source-name>:<source_anchor>`). Do not silently absorb analyses-driven additions — the citation is the audit trail.
+
+For analyses with role `screen-properties-cross-check` (today: `data-model`), the cross-check happens inside 3.2b on the Properties closed-set — handled there, not here.
+
+**Fall-through note on missing role payloads.** If a selection's sidecar exists but `architect_projection[<role>]` is absent in it (the analyser PR for that method has not yet projected that role per `framework/assets/analyses/sidecar-schema.md > Section 1 — absence is signal-by-omission`), skip that source-role pair silently and proceed; do not halt. The selection is still consumed for any other roles it does expose.
 
 ## 3.3 Author the flow
 
@@ -113,6 +136,9 @@ Compose a one-paragraph optional note for the blueprint's `{{ARCHITECT_NOTES}}` 
 
 - *"5 screens, 11 functional sources, 3 personas available. Goal G-02 (`upload accepted`) drives the flow; G-03 (`audit trail`) shapes secondary intent on S-05."*
 - *"4 screens consolidated from 7 candidates. Two §5 flows merge at S-03 (Validation)."*
+- *"6 screens; 2 added during 3.2c cross-check against task-flows and state-diagram (augmented by: task-flows:T-2.3, state-diagram:Approval-States). DATA-MODEL flagged 1 discrepancy: lists `Order.shippedAt` not in §7 — likely a requirements gap; not bound."*
+
+Always include in this section (when populated) every analysis-driven screen addition from 3.2c and every DATA-MODEL discrepancy from 3.2b's cross-check. The notes are the consultant's audit trail for analyses augmentation.
 
 Omit the section entirely if there is nothing structurally noteworthy to record.
 

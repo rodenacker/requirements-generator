@@ -142,15 +142,21 @@ methodologies:
 **Used by:**
 
 - `framework/skills/analysis-selector.md` — reads MVP-status rows; presents them via `AskUserQuestion`.
+- `framework/skills/select-supporting-analyses.md` — reads MVP-status rows; filters to completed-on-disk subset for the `/wireframe` Stage-1b numbered list; derives each selection's `sidecar_path` from the row's `output_path` directory plus the canonical convention.
 - `framework/orchestrators/analyse-requirement-orch.md` — reads the chosen row's `analyser_agent` and `output_path` to drive invocation and the prior-artefact gate.
-- `framework/agents/analyses/<method>-analyser.md` — each analyser reads its own `reference_asset`, `character`, and `template_asset` paths at activation.
+- `framework/agents/analyses/<method>-analyser.md` — each analyser reads its own `reference_asset`, `character`, and `template_asset` paths at activation, and writes both the prose artefact at `output_path` AND the structured JSON sidecar at `<dirname(output_path)>/<name>.sidecar.json` per `framework/assets/analyses/sidecar-schema.md`.
+- `framework/agents/blueprint-architect.md` — at step 2.6 reads the structured sidecar instead of the prose `output_path` when the sidecar is present (the prose stays consultant-readable on disk; the sidecar is what feeds the architect's downstream steps without context bloat). See `framework/assets/analyses/sidecar-schema.md` for the canonical shape.
+
+**Sidecar projection (downstream context-cost optimisation).** Every MVP analyser is expected to emit a structured JSON sidecar alongside its prose artefact, conforming to the canonical schema at `framework/assets/analyses/sidecar-schema.md`. The sidecar carries `architect_projection` keyed by the closed-enum `architect_roles` defined in `framework/skills/select-supporting-analyses.md > Static method → architect_roles mapping`. Downstream consumers (today: `framework/agents/blueprint-architect.md`) read the small (≤ 20 KB) sidecar in place of the large prose artefact (which can exceed 100 KB), avoiding context bloat. **Sidecar emission is being rolled out one methodology per PR** following the migration plan documented in the plan file at `C:\Users\roden\.claude\plans\when-the-user-selects-unified-honey.md`; analysers that have not yet been updated trip the legacy-fallback path documented in `framework/shared/refusal-registry.md > RF-09`, capped at 60 KB on-disk prose size.
 
 **Adding a new methodology:**
 
 1. Append a row to the frontmatter (or flip an existing `future` row to `mvp`).
 2. Populate all eight fields: `name`, `status`, `description`, `output_path`, `reference_asset`, `template_asset` (may be `null`), `map_skill`, `analyser_agent`, `character`.
 3. Author the analyser agent, the reference asset, the character file, and (if needed) the template asset.
-4. No orchestrator changes required — the selector skill picks the new row up automatically.
+4. Implement sidecar emission in the analyser per `framework/assets/analyses/sidecar-schema.md` — write the structured JSON to `<dirname(output_path)>/<name>.sidecar.json`, populating only the `architect_projection[<role>]` entries for roles the method actually exposes per the `select-supporting-analyses.md` static mapping. Verify the write via `framework/skills/verify-artifact-write.md`. Skipping this step is permitted only as a temporary migration measure — the analyser will trigger the `RF-09` legacy-fallback path on selection in `/wireframe`.
+5. Append a row to the static `architect_roles` mapping in `framework/skills/select-supporting-analyses.md > Static method → architect_roles mapping`.
+6. No orchestrator changes required — the selector skill picks the new row up automatically.
 
 **Field semantics:**
 

@@ -1,0 +1,27 @@
+{
+  "scope_slug": "file-upload-log",
+  "variant_id": "CAREFUL-DEFAULT",
+  "authored_at": "2026-05-25T14:25:00Z",
+  "persona_binding": "Importer",
+  "design_philosophy": "Spacious confirmation-gated upload; rich validation feedback for diagnose-and-fix sessions.",
+  "dimension_positions": {
+    "speed-accuracy": -1,
+    "power-simplicity": 0,
+    "density-focus": -1,
+    "control-automation": 0,
+    "flexibility-consistency": 0,
+    "memorability-discoverability": 0
+  },
+  "strengths": [
+    "Confirmation step prevents accidental file submissions",
+    "Each validation error shown with row, message, and raw payload",
+    "Plenty of whitespace, easy to follow what happens next"
+  ],
+  "weaknesses": [
+    "Slower per upload than a one-click submit",
+    "More scrolling on file log and error screens",
+    "Less information visible per screen than a dense layout"
+  ],
+  "tradeoffs": "Fewer mistakes and clearer recovery paths; a slower pace per upload that experienced daily users may find verbose.",
+  "use_when": "First-time or occasional uploads, or whenever care matters more than speed."
+}

@@ -21,6 +21,20 @@ The architect runs four sub-steps in order:
 3. Compose variant configurations deterministically; bind personas; pick polar positions.
 4. Self-validate per `tradeoff-dimensions-registry.md`.
 
+**Supporting analyses consumed at this step.** When step 2.6 captured analyses (either as role-keyed projections from sidecars in `cached_projections[<role>][<source-name>]` per `framework/assets/analyses/sidecar-schema.md`, as bounded prose in `cached_legacy_full_reads[<source-name>].content`, or as deferred metadata stubs in `pending_step5_selections[]`), this step consumes those whose `architect_roles` include `variant-philosophy`, `variant-dimension-applicability`, `per-screen-state-chips`, `per-screen-async-states`, `per-screen-role-visibility`, `per-screen-cta-set`, `copy-vocabulary`, or `feature-presence`. The analyses **augment** the variant configurations with refining detail (per-screen state chip sets from STATE-DIAGRAM, persona-bound visibility from ACTIVITY-DIAGRAM, async screen variants from SEQUENCE-DIAGRAM, label vocabulary from GLOSSARY) and additional instructions about variant philosophy (USER-JOURNEYS pain-points and JTBD job-outcome mappings inform `design_philosophy` text and per-variant feature emphasis). Trade-off dimension applicability prefers the cached `trade-off-dimension-analysis` selection over the legacy fallback path at step 2.7.
+
+## 5.0 Preamble — open deferred step-5 selections
+
+Before composition begins, walk `pending_step5_selections[]` (populated at `step-02-read-inputs.md > 2.6.3`). For each entry, apply the same sidecar-first / bounded-fallback read protocol that block 2.6.2 used at step-02:
+
+1. **Source artefact existence check.** If `entry.output_path` is absent on disk, halt plain-text per the same data-integrity message as 2.6.2 (a file disappearing between step-02 and step-05 is a `RF-04`-class halt).
+2. **Sidecar branch.** When `entry.sidecar_present == true` AND the sidecar file exists: `Read` it; verify `schema_version`, `method`, and `source_sha256` per 2.6.2; fire `RF-08 stale_analysis_sidecar` on drift mismatch; for each role in `entry.step5_roles`, capture `architect_projection[<role>]` into `cached_projections[<role>][<entry.name>]`. Skip absent roles silently.
+3. **Legacy fallback branch.** When the sidecar is absent: log `[ANALYSIS-FALLBACK: <entry.name>]` to the variant generator's in-thread summary; measure on-disk size of `entry.output_path`; fire `RF-09 legacy_analysis_too_large` if > 60 KB (same three-way `AskUserQuestion` as 2.6.2); otherwise full-Read into `cached_legacy_full_reads[<entry.name>]` and proceed.
+
+After the preamble, the in-memory cache shape for step-5 consumption is uniform: every role payload the architect needs at this step is in `cached_projections[<role>][<source-name>]` (sidecar branch) or `cached_legacy_full_reads[<source-name>].content` (legacy branch).
+
+`pending_step5_selections[]` is emptied after this preamble completes.
+
 ## 5.1 Resolve dimensions and cardinality
 
 Read `scope.json > dimension_override`.
@@ -40,8 +54,9 @@ On `mode = "add-variant"`, skip steps 5.1–5.3 entirely; jump to 5.4.
 ## 5.2 Filter dimensions for applicability + fallback chain
 
 Read `framework/assets/wireframes/tradeoff-dimensions-registry.md > Section 2`
-applicability rules. For each dimension in `dimensions_diverging_on`, check
-applicability against the scope:
+applicability rules. When `cached_projections["variant-dimension-applicability"]["trade-off-dimension-analysis"]` exists (sidecar branch — preferred; payload shape per `framework/assets/analyses/sidecar-schema.md > 2.10`), iterate its `dimension_scores[]` and use them to refine the applicability decision: a dimension is applicable iff the registry's Section 2 heuristic permits **and** the analysis scores ≥1 in-scope goal at a non-neutral position (`score` ∈ `{-2, -1, +1, +2}`) on the dimension. When that slot is absent but `cached_legacy_full_reads["trade-off-dimension-analysis"].content` is populated (legacy branch — fallback), best-effort-extract the same per-goal × dimension scoring from the prose's `<table>` body. When both are absent, fall back to the step-2.7 legacy read result; when all three are absent, use the registry heuristics alone.
+
+For each dimension in `dimensions_diverging_on`, check applicability against the scope:
 
 - **density-focus** applies iff scope contains ≥1 collection screen (table / data-list / dashboard inferred from the blueprint's screen inventory).
 - **speed-accuracy** applies iff scope contains ≥1 input / capture screen (form or wizard inferred from the blueprint).
@@ -110,9 +125,15 @@ These match `domain-defaults.md > Section 3` verbatim.
 
 The architect composes a one-line `design_philosophy` string grounded in the variant's bound persona and dimension positions. ≤ 100 chars. **No** dimension notation (`D3+2`), **no** pattern-catalogue IDs (`table.compact`). Plain English only.
 
-Happy-path examples:
+When `cached_projections["variant-philosophy"]["user-journeys"]` or `cached_projections["variant-philosophy"]["jtbd"]` is populated (sidecar branch — preferred; payload shape per `framework/assets/analyses/sidecar-schema.md > 2.9`), iterate `philosophy_inputs[]` and incorporate the relevant `phase_or_job` + `design_implication` (e.g. *"reduces frustration at the `Validating` phase"* per a USER-JOURNEYS pain-point entry) or the job-outcome mapping (e.g. *"prioritises the `submit-and-leave` job"* per a JTBD entry) into the prose. When the sidecar projection is absent for either source but `cached_legacy_full_reads["user-journeys"].content` or `cached_legacy_full_reads["jtbd"].content` is populated (legacy branch — fallback), best-effort-extract the same pain-point / job-outcome facts from the prose. The string remains ≤ 100 chars and plain-English; cite the source only via `augmented_by` in step 6's `variants.json` metadata (see 5.6 below), not inline in `design_philosophy`.
+
+Happy-path examples (no analyses cached):
 - `CAREFUL-DEFAULT`: *"Spacious layout with careful confirmation gates; built for occasional or new operators."*
 - `POWER-DENSE`: *"Dense table with keyboard-first inline-edit; built for daily high-volume operators."*
+
+Augmented examples (USER-JOURNEYS + JTBD cached):
+- `CAREFUL-DEFAULT`: *"Spacious confirmation-gated upload; reduces frustration at the Validating phase for new operators."*
+- `POWER-DENSE`: *"Dense keyboard-first table; serves the daily submit-and-leave job for high-volume operators."*
 
 ### 5.3.5 — Per-variant compatibility check (architect-side)
 
@@ -161,7 +182,7 @@ After every variant is composed (whether via 5.3 or 5.4), confirm no two variant
 
 ## 5.6 Compose `variants.json` in memory
 
-Assemble the artefact per the schema documented in `framework/agents/blueprint-architect.md > Output`:
+Assemble the artefact per the schema documented in `framework/agents/blueprint-architect.md > Output`. When step 2.6 cached one or more analyses with non-`upstream-only` roles, add an `augmented_by` field at the top level listing each consumed analysis as an audit trail (the comparator's index.html § Variant metadata cards surface this; the variant-generator does not consume it):
 
 ```json
 {
@@ -170,9 +191,15 @@ Assemble the artefact per the schema documented in `framework/agents/blueprint-a
   "blueprint_sha256": "<hash of blueprint.md as written at step 4>",
   "dimensions_diverging_on": [...],
   "cardinality_cap": 3,
+  "augmented_by": [
+    { "name": "task-flows", "consumed_at_steps": [3, 5], "consumed_roles": ["screen-inventory", "screen-flow", "per-screen-cta-set"] },
+    { "name": "state-diagram", "consumed_at_steps": [3, 5], "consumed_roles": ["screen-inventory", "per-screen-state-chips"] }
+  ],
   "variants": [...]
 }
 ```
+
+When no analyses were cached (Stage 1b returned `selected-none` or `analyses_inputs_path` was null), omit the `augmented_by` field entirely (do not write an empty array — the absence of the field signals "no augmentation").
 
 Step 6 writes it.
 

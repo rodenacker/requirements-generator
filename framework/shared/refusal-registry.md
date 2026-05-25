@@ -110,10 +110,38 @@ Add new predicates by appending; never renumber.
 
 **Refusal-registry schema field:** `setup_instructions_path` — same field as RF-01 and RF-06, pointing here at `framework/shared/setup-instructions/mmdc.md`.
 
+## RF-08 — stale_analysis_sidecar
+
+**Severity:** hard.
+
+**Trigger:** The blueprint-architect's step-02 block 2.6 read a `<METHOD>.sidecar.json` whose `source_sha256` field does not match a freshly-computed sha256 of `source_path` on disk. This indicates the consultant hand-edited the prose artefact after the analyser wrote the sidecar — the sidecar's `architect_projection` is potentially stale and the architect cannot trust it.
+
+**Surface:** Plain-text halt. The agent emits exactly one line — *"Aborting to protect downstream wireframes — sidecar `<METHOD>.sidecar.json` is stale relative to `<source_path>` (sha256 mismatch). Re-run `/analyse-requirement <method>` to regenerate the sidecar, then re-invoke `/wireframe`."* — and fails its handback. No `AskUserQuestion`; there is no meaningful in-thread choice when the analyser's structured projection has diverged from the prose the consultant edited.
+
+**Recovery:** The consultant re-runs `/analyse-requirement <method>` to regenerate both the prose artefact and the sidecar from current `requirements/requirements.md`. The wireframe pipeline is then re-invoked; rerun detection at `step-0d` picks up the prior `analyses-inputs.json` and reuses the same selection.
+
+**Refusal-registry schema field:** none specific. Distinct from `RF-04` because the data-integrity failure is between two artefacts on disk (sidecar vs prose), not between an in-memory render and disk; distinct from `RF-09` because the sidecar exists but is stale, not absent.
+
+## RF-09 — legacy_analysis_too_large
+
+**Severity:** pause.
+
+**Trigger:** The blueprint-architect's step-02 block 2.6 encountered a `selections[i]` whose sidecar is absent on disk (`sidecar_present == false` or the file is missing) AND whose prose `output_path` is larger than 60 KB on disk. Loading the prose whole would impose unacceptable architect-side context cost; the consultant is asked to regenerate the analyser so a structured sidecar is available. The 60 KB threshold is set per `framework/assets/analyses/sidecar-schema.md > Section 3.3` and reflects the largest acceptable single-analysis context contribution under the 250 KB hard ceiling enforced by `framework/skills/check-context-bloat.md`.
+
+**Surface:** `AskUserQuestion` with the choice set `{ regenerate-and-retry, proceed-with-bounded-read, cancel }` plus an "Other" override.
+
+- `regenerate-and-retry` — the architect halts step-02 and surfaces the regeneration advice in the handback message: *"Re-run `/analyse-requirement <method>` to regenerate the prose artefact and its sidecar, then re-invoke `/wireframe`."*. The wireframe pipeline does **not** write to `framework/state/.progress.json` (consistent with the wireframe-orch no-write-outside-`wireframes/`-and-`blueprints/` invariant); the architect simply exits cleanly and prior on-disk state (including the consultant's Stage-1b `analyses-inputs.json`) is reused on the next `/wireframe` invocation via the prior-set detection at step 0d. Highest-fidelity outcome.
+- `proceed-with-bounded-read` — the architect proceeds with a deferred full-Read of `output_path` at the step that consumes it, drops the cached prose from in-memory state at step boundary, and records `[ANALYSIS-FALLBACK: <selections[i].name>] (>60 KB; consultant-accepted)` in the blueprint's Architect notes. Lower-fidelity outcome; downstream context-bloat risk is real and the architect's `cached_projections[<role>][<source-name>]` for this selection is best-effort prose extraction rather than structured payload.
+- `cancel` — the architect halts step-02 and fails handback cleanly. No further work.
+
+**Recovery:** `regenerate-and-retry` exits cleanly so the consultant re-runs `/analyse-requirement <method>` (which under the per-method follow-up rollout will emit the sidecar). `proceed-with-bounded-read` continues the run with the documented degraded-fidelity caveat. `cancel` exits cleanly.
+
+**Refusal-registry schema field:** none specific. Distinct from `RF-05` because the bloat measurement is per-selection at architect-read time, not aggregated `artefact_dir` bytes at orchestrator-preflight time; distinct from `RF-08` because the sidecar is absent (one-cycle-deprecation legacy path), not stale (sha256 mismatch).
+
 ## Anti-Patterns
 
 - Do not invent a predicate ID. If no `RF-NN` covers the condition, append a new entry rather than overload an existing one.
 - Do not surface a `pause` predicate via plain-text halt. The choice set is the contract — without it, the consultant cannot machine-readably resume.
 - Do not surface a `hard` predicate via `AskUserQuestion`. There is no meaningful choice when prior work is at risk; halting cleanly is the only safe response.
-- Do not write `status: setup-pending` or `status: context-bloated` for any predicate other than `RF-01` and `RF-05` respectively. The `pending_setup` block is reserved for `RF-01` until a future predicate explicitly registers as a setup-required pause. `RF-05`'s `status: context-bloated` write is specific to the **requirements-orch surface variant**; the **design-system-orch variant** of `RF-05` deliberately does not write, for the same reason `RF-06` does not — the design-system pipeline is bound by a no-write-outside-`design-system/` invariant. RF-06 deliberately does **not** write to `framework/state/.progress.json` either; its `install-and-retry` path surfaces the advice in the handback message instead.
+- Do not write `status: setup-pending` or `status: context-bloated` for any predicate other than `RF-01` and `RF-05` respectively. The `pending_setup` block is reserved for `RF-01` until a future predicate explicitly registers as a setup-required pause. `RF-05`'s `status: context-bloated` write is specific to the **requirements-orch surface variant**; the **design-system-orch variant** of `RF-05` deliberately does not write, for the same reason `RF-06` does not — the design-system pipeline is bound by a no-write-outside-`design-system/` invariant. RF-06 deliberately does **not** write to `framework/state/.progress.json` either; its `install-and-retry` path surfaces the advice in the handback message instead. RF-09 deliberately does **not** write either — the wireframe pipeline is bound by a no-write-outside-`wireframes/`-and-`blueprints/` invariant, and the consultant's Stage-1b `analyses-inputs.json` is reused on re-invocation via the wireframe-orch's prior-set detection.
 - Do not silently downgrade a `hard` predicate to `pause`. `RF-04` halts; conflating it with a pausable refusal hides write failures.

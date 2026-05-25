@@ -1,0 +1,44 @@
+{
+  "scope_slug": "file-upload-log",
+  "authored_at": "2026-05-25T14:19:55Z",
+  "blueprint_sha256": "a8979de04c2d173a5fc0082d4a02bfff39bb93bc0881659349fa84ae98c07362",
+  "dimensions_diverging_on": ["density-focus", "speed-accuracy"],
+  "cardinality_cap": 3,
+  "augmented_by": [
+    { "name": "data-model", "consumed_at_steps": [3], "consumed_roles": ["screen-properties-cross-check", "screen-inventory-entity-bijection"] },
+    { "name": "ooux", "consumed_at_steps": [3], "consumed_roles": ["screen-inventory-entity-bijection"] },
+    { "name": "use-cases", "consumed_at_steps": [3], "consumed_roles": ["screen-inventory", "screen-flow"] },
+    { "name": "user-journeys", "consumed_at_steps": [3, 5], "consumed_roles": ["screen-inventory", "variant-philosophy"] },
+    { "name": "task-flows", "consumed_at_steps": [3], "consumed_roles": ["screen-inventory", "screen-flow"] },
+    { "name": "jtbd", "consumed_at_steps": [5], "consumed_roles": ["variant-philosophy"] },
+    { "name": "trade-off-dimension-analysis", "consumed_at_steps": [5], "consumed_roles": ["variant-dimension-applicability"] }
+  ],
+  "variants": [
+    {
+      "variant_id": "CAREFUL-DEFAULT",
+      "persona_binding": "Importer",
+      "design_philosophy": "Spacious confirmation-gated upload; rich validation feedback for diagnose-and-fix sessions.",
+      "dimension_positions": {
+        "density-focus": -1,
+        "speed-accuracy": -1,
+        "power-simplicity": 0,
+        "control-automation": 0,
+        "flexibility-consistency": 0,
+        "memorability-discoverability": 0
+      }
+    },
+    {
+      "variant_id": "POWER-DENSE",
+      "persona_binding": "Importer",
+      "design_philosophy": "Dense scannable file log with default-sort by recent; built for daily submit-and-leave operators.",
+      "dimension_positions": {
+        "density-focus": 2,
+        "speed-accuracy": 1,
+        "power-simplicity": 0,
+        "control-automation": 0,
+        "flexibility-consistency": 0,
+        "memorability-discoverability": 0
+      }
+    }
+  ]
+}
