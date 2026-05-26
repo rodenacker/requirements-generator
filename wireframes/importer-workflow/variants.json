@@ -1,0 +1,35 @@
+{
+  "scope_slug": "importer-workflow",
+  "authored_at": "2026-05-26T08:21:57Z",
+  "blueprint_sha256": "c264a0bb8deb0c45ebf71a13e9454c2de715228a6e392b4e038789ef050c5bba",
+  "dimensions_diverging_on": ["density-focus", "speed-accuracy"],
+  "cardinality_cap": 3,
+  "variants": [
+    {
+      "variant_id": "CAREFUL-DEFAULT",
+      "persona_binding": "Importer",
+      "design_philosophy": "Spacious layout with confirmation gates; protects daily Importers from wrong-file uploads.",
+      "dimension_positions": {
+        "density-focus": -1,
+        "speed-accuracy": -1,
+        "power-simplicity": 0,
+        "control-automation": 0,
+        "flexibility-consistency": 0,
+        "memorability-discoverability": 0
+      }
+    },
+    {
+      "variant_id": "POWER-DENSE",
+      "persona_binding": "Importer",
+      "design_philosophy": "Dense table with keyboard-first inline actions; daily Importers scan and act fast.",
+      "dimension_positions": {
+        "density-focus": 2,
+        "speed-accuracy": 1,
+        "power-simplicity": 0,
+        "control-automation": 0,
+        "flexibility-consistency": 0,
+        "memorability-discoverability": 0
+      }
+    }
+  ]
+}

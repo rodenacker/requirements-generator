@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>S-05 File Summary dashboard — POWER-DENSE — importer-workflow</title>
+  <link rel="stylesheet" href="wireframe-ds.css" />
+  <meta name="wf-scope-slug" content="importer-workflow" />
+  <meta name="wf-variant-id" content="POWER-DENSE" />
+  <meta name="wf-screen-id" content="S-05" />
+  <meta name="wf-screen-sources" content="UI-08,G-03" />
+  <meta name="wf-persona-binding" content="Importer" />
+  <meta name="wf-states-rendered" content="default|loading|partial-error" />
+</head>
+<body>
+  <header class="wf-chrome" data-src="UI-08,G-03">
+    <strong>S-05 · File Summary dashboard</strong>
+    <span class="wf-help">POWER-DENSE · Speed-leaning · Maximally dense · for Importer</span>
+    <nav aria-label="Within-variant flow">
+      <a href="screen-03-file-log-detail-view.html" target="_blank" rel="noopener">&lsaquo; S-03 File Log detail</a>
+      <strong>S-05 File Summary dashboard</strong>
+    </nav>
+    <nav aria-label="Across variants" class="wf-role-switcher">
+      <button aria-pressed="true">Current: POWER-DENSE</button>
+      <a href="../CAREFUL-DEFAULT/screen-05-file-summary-dashboard.html" target="_blank" rel="noopener">Open in CAREFUL-DEFAULT</a>
+    </nav>
+    <span style="margin-left: auto;">
+      <a href="../index.html" class="wf-btn">Back to index</a>
+      <a href="../index.html#trade-off-matrix" class="wf-btn" target="_blank" rel="noopener">Trade-off matrix</a>
+    </span>
+  </header>
+
+  <main class="wf-shell" style="max-width: 1100px; margin: 0 auto; padding: 0 16px;">
+    <h1 data-src="UI-08,G-03">File Summary dashboard</h1>
+
+    <section class="wf-section" aria-labelledby="primary-region-label">
+      <h2 id="primary-region-label" class="visually-hidden" style="position:absolute; left:-9999px;">Primary content</h2>
+
+      <!-- Primary: collections/dashboard, default variant, composed of collections/kpi-tile.
+           At D3+2 dense the four tiles render in one row (no wrapping) for at-a-glance scanning. -->
+      <div role="region" aria-label="File summary tiles" data-src="UI-08,G-03"
+           style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+
+        <div class="wf-card" data-src="UI-08">
+          <h3>Total records</h3>
+          <p style="font-size: 2rem; margin: 4px 0;" data-prop="FileSummary.TotalRecords">1,204</p>
+          <p class="wf-help">All transactions in this file.</p>
+        </div>
+
+        <div class="wf-card" data-src="UI-08">
+          <h3>Imported</h3>
+          <p style="font-size: 2rem; margin: 4px 0;" data-prop="FileSummary.ImportedCount">1,184</p>
+          <p class="wf-help">Awaiting approver review.</p>
+        </div>
+
+        <div class="wf-card" data-src="UI-08">
+          <h3>Approved</h3>
+          <p style="font-size: 2rem; margin: 4px 0;" data-prop="FileSummary.ApprovedCount">0</p>
+          <p class="wf-help">Signed off by an approver.</p>
+        </div>
+
+        <div class="wf-card" data-src="UI-08">
+          <h3>Rejected</h3>
+          <p style="font-size: 2rem; margin: 4px 0;" data-prop="FileSummary.RejectedCount">20</p>
+          <p class="wf-help">Returned to the importer.</p>
+        </div>
+      </div>
+
+      <p style="margin-top: 16px;">
+        <a class="wf-btn primary" href="screen-06-transaction-list-with-filter-and-search.html" target="_blank" rel="noopener" data-src="G-03">Open transaction list</a>
+        <a class="wf-btn" href="screen-03-file-log-detail-view.html" target="_blank" rel="noopener">Back to file detail</a>
+      </p>
+    </section>
+
+    <!-- Secondary state: loading (per-tile skeleton; dashboards isolate per-tile loading). -->
+    <section class="wf-section" aria-labelledby="loading-state-label">
+      <h2 id="loading-state-label">State: loading</h2>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+        <div class="wf-skeleton" aria-hidden="true">&nbsp;</div>
+        <div class="wf-skeleton" aria-hidden="true">&nbsp;</div>
+        <div class="wf-skeleton" aria-hidden="true">&nbsp;</div>
+        <div class="wf-skeleton" aria-hidden="true">&nbsp;</div>
+      </div>
+    </section>
+
+    <!-- Secondary state: partial-error (one tile failed, others succeeded). -->
+    <section class="wf-section" aria-labelledby="partial-error-state-label">
+      <h2 id="partial-error-state-label">State: partial-error</h2>
+      <div class="wf-banner" data-tone="warning" role="status" data-src="UI-08">
+        <strong>One tile could not load.</strong>
+        <p>Other tiles continue to render. Refresh to retry the failed tile only.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wf-chrome" style="margin-top: 32px;">
+    <span class="wf-help">
+      States rendered on this screen: <code>default | loading | partial-error</code>
+    </span>
+  </footer>
+</body>
+</html>

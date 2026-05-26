@@ -1,0 +1,64 @@
+{
+  "scope_slug": "importer-workflow",
+  "authored_at": "2026-05-26T08:38:49Z",
+  "blueprint_sha256": "c264a0bb8deb0c45ebf71a13e9454c2de715228a6e392b4e038789ef050c5bba",
+  "compared_variants": ["CAREFUL-DEFAULT", "POWER-DENSE"],
+  "drift_flags": [
+    {
+      "variant_id": "CAREFUL-DEFAULT",
+      "screen_id": "S-01",
+      "dimension": "density-focus",
+      "declared_position": -1,
+      "rendered_pattern": "table.default",
+      "expected_pattern_set": ["card-grid.spacious"]
+    },
+    {
+      "variant_id": "CAREFUL-DEFAULT",
+      "screen_id": "S-01",
+      "dimension": "speed-accuracy",
+      "declared_position": -1,
+      "rendered_pattern": "table.default",
+      "expected_pattern_set": ["table.comfortable"]
+    },
+    {
+      "variant_id": "CAREFUL-DEFAULT",
+      "screen_id": "S-04",
+      "dimension": "density-focus",
+      "declared_position": -1,
+      "rendered_pattern": "table.default",
+      "expected_pattern_set": ["card-grid.spacious"]
+    },
+    {
+      "variant_id": "CAREFUL-DEFAULT",
+      "screen_id": "S-04",
+      "dimension": "speed-accuracy",
+      "declared_position": -1,
+      "rendered_pattern": "table.default",
+      "expected_pattern_set": ["table.comfortable"]
+    },
+    {
+      "variant_id": "CAREFUL-DEFAULT",
+      "screen_id": "S-06",
+      "dimension": "density-focus",
+      "declared_position": -1,
+      "rendered_pattern": "table.default",
+      "expected_pattern_set": ["card-grid.spacious"]
+    },
+    {
+      "variant_id": "CAREFUL-DEFAULT",
+      "screen_id": "S-06",
+      "dimension": "speed-accuracy",
+      "declared_position": -1,
+      "rendered_pattern": "table.default",
+      "expected_pattern_set": ["table.comfortable"]
+    },
+    {
+      "variant_id": "POWER-DENSE",
+      "screen_id": "S-02",
+      "dimension": "density-focus",
+      "declared_position": 2,
+      "rendered_pattern": "single-form.compact",
+      "expected_pattern_set": ["single-form.compact + two-column"]
+    }
+  ]
+}

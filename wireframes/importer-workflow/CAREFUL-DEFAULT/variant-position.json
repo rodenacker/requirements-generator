@@ -1,0 +1,27 @@
+{
+  "scope_slug": "importer-workflow",
+  "variant_id": "CAREFUL-DEFAULT",
+  "authored_at": "2026-05-26T08:35:30Z",
+  "persona_binding": "Importer",
+  "design_philosophy": "Spacious layout with confirmation gates; protects daily Importers from wrong-file uploads.",
+  "dimension_positions": {
+    "density-focus": -1,
+    "speed-accuracy": -1,
+    "power-simplicity": 0,
+    "control-automation": 0,
+    "flexibility-consistency": 0,
+    "memorability-discoverability": 0
+  },
+  "strengths": [
+    "Generous whitespace lets daily Importers spot the right file before clicking.",
+    "Every destructive action opens a confirm step with default focus on Keep.",
+    "Required fields and inline help reduce wrong-file uploads on the upload form."
+  ],
+  "weaknesses": [
+    "Fewer rows fit on screen, so high-volume reviewers will scroll more often.",
+    "Extra confirmation steps slow the keyboard-first experts who never miss-click.",
+    "Spacious layout means less context visible side-by-side for deep audits."
+  ],
+  "tradeoffs": "Trades throughput for safety: Importers move slower but make fewer expensive mistakes on file uploads and cancellations.",
+  "use_when": "Importers who upload daily but care more about getting it right than getting it done fast."
+}

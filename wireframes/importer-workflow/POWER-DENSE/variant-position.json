@@ -1,0 +1,27 @@
+{
+  "scope_slug": "importer-workflow",
+  "variant_id": "POWER-DENSE",
+  "authored_at": "2026-05-26T08:31:33Z",
+  "persona_binding": "Importer",
+  "design_philosophy": "Dense table with keyboard-first inline actions; daily Importers scan and act fast.",
+  "dimension_positions": {
+    "speed-accuracy": 1,
+    "power-simplicity": 0,
+    "density-focus": 2,
+    "control-automation": 0,
+    "flexibility-consistency": 0,
+    "memorability-discoverability": 0
+  },
+  "strengths": [
+    "Many records visible at once with eight columns and tight rows",
+    "Keyboard shortcuts on common row actions; submit from any field with Enter",
+    "Bulk-select speeds repeat actions across many files at once"
+  ],
+  "weaknesses": [
+    "Dense tables can overwhelm first-time or low-frequency users",
+    "Keyboard hints are subtle; new users may miss the fast paths",
+    "Tight rows leave less breathing room when reviewing errors"
+  ],
+  "tradeoffs": "Faster scanning and action for daily importers; less friendly for occasional users who need more space and explicit guidance.",
+  "use_when": "Daily importers handling many files who know the product and prefer keyboard speed."
+}
