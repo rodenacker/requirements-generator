@@ -63,14 +63,14 @@ The artefact has a fixed top-to-bottom shape (rendered by the template; placehol
 
 1. **Overview block.** Title, subtitle, meta-grid (Domain, Generated timestamp, Manifest fingerprint, Sources consumed, Tier breakdown, Total goals, Explicit / Inferred counts, Life / End / Experience counts, Hard / Soft counts, Conflicts count).
 2. **`user-goal-meta` HTML comment** carrying the additive-merge cursor (`manifest_fingerprint`, `run_count`).
-3. **TOC** — static top-level anchors (Overview, Goal register, Goal hierarchy, Actor map, Conflicts, Use in /requirements, Diagnostics).
-4. **Goal register** (`<section id="register">`). Goal cards grouped by Cooper type (Life / End / Experience sub-sections). Each `<article class="goal-card">`:
+3. **TOC** — static top-level anchors (Overview, Goal hierarchy, Goal register, Actor map, Conflicts, Use in /requirements, Diagnostics).
+4. **Goal hierarchy** (`<section id="hierarchy">`) — **the diagram, placed first among the content sections** (diagram-first ordering, mirroring journey-mapping / affinity-mapping: compact overview, then the prominent diagram, then the rest). A CSS-only nested `<ul>` tree of the KAOS AND/OR refinement; each branch node labelled `AND` or `OR`; leaves are operationalisable goals; inferred nodes marked inline. No JS, no Mermaid.
+5. **Goal register** (`<section id="register">`). Goal cards grouped by Cooper type (Life / End / Experience sub-sections). Each `<article class="goal-card">`:
    - Cooper-type badge (Life / End / Experience) + hardness pill (Hard / Soft) + Goal ID (`G-NN`).
    - Provenance badge: `Explicit` (green) or `Inferred` (amber `.ai-suggested`). Inferred cards also show the **technique** chip and the **anchor** `[SRC: <filename>]` they laddered from + the `AI-NN | blocking|non-blocking` flag.
    - The canonical goal statement (*"`<Actor>` wants to `<outcome>` so that `<higher-level goal>`."*).
    - Actor chips (one per holding actor, `A-NN`).
    - Criterion line: a success measure (hard) or satisficing threshold (soft), or the `(no-metric-in-inputs)` / `(no-satisficing-criterion-in-inputs)` marker.
-5. **Goal hierarchy** (`<section id="hierarchy">`). A CSS-only nested `<ul>` tree of the KAOS AND/OR refinement; each branch node labelled `AND` or `OR`; leaves are operationalisable goals. No JS, no Mermaid.
 6. **Actor map** (`<section id="actor-map">`). A table: actor `A-NN` × the goals they hold and the goals they depend on another actor/the system to satisfy.
 7. **Conflicts** (`<section id="conflicts">`). A table of goal pairs that pull against each other (e.g. a security goal vs an ease-of-access goal), each with a one-line tension note and `[SRC: <filename>]` on the evidence. Empty is a legitimate state (rendered as "no goal conflicts surfaced in the consumed inputs").
 8. **JSON body block** (`<section id="body">` → `<pre><code class="language-json" id="user-goal-analysis-body">`). The machine-readable re-ingestion contract per the JSON SCHEMA below.

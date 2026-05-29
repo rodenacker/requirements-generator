@@ -28,9 +28,9 @@ Every quality check in `framework/assets/analyses-inputs/user-goal-analysis-refe
 The rendered HTML is laid out top-to-bottom as (per the template's scaffolded structure):
 
 1. **Overview** — title, subtitle, meta-grid.
-2. **TOC** — static top-level anchors (Overview, Goal register, Goal hierarchy, Actor map, Conflicts, Use in /requirements, Diagnostics).
-3. **Goal register** (`<section id="register">`) — `{{GOAL_REGISTER}}`; Cooper-type sub-sections of goal cards.
-4. **Goal hierarchy** (`<section id="hierarchy">`) — `{{GOAL_HIERARCHY}}`; CSS-only nested AND/OR tree.
+2. **TOC** — static top-level anchors (Overview, Goal hierarchy, Goal register, Actor map, Conflicts, Use in /requirements, Diagnostics).
+3. **Goal hierarchy** (`<section id="hierarchy">`) — `{{GOAL_HIERARCHY}}`; CSS-only nested AND/OR tree. **The diagram — the first content item** (diagram-first ordering, mirroring journey-mapping / affinity-mapping).
+4. **Goal register** (`<section id="register">`) — `{{GOAL_REGISTER}}`; Cooper-type sub-sections of goal cards.
 5. **Actor map** (`<section id="actor-map">`) — `{{ACTOR_MAP}}`.
 6. **Conflicts** (`<section id="conflicts">`) — `{{CONFLICTS_TABLE}}` (or the empty-state paragraph).
 7. **Machine-readable model** (`<section id="body">`) — `{{BODY_JSON}}` inside `<pre><code id="user-goal-analysis-body">`.
@@ -389,7 +389,7 @@ Before handing back, verify all of the following against the written artefact an
 - The artefact contains zero literal `{{...}}` placeholder strings.
 - The artefact begins with `<!doctype html>` and is well-formed self-contained HTML with **no `<script>` tag, no external `href`/`src` URL, and no Mermaid block**.
 - The artefact contains exactly one `<!-- user-goal-meta: ... -->` line. Its `manifest_fingerprint` equals the Step 2 value; its `run_count` equals `prior.run_count + 1` (or `1` on first run).
-- The artefact contains exactly one each of `<section id="overview">`, `<nav class="toc">`, `<section id="register">`, `<section id="hierarchy">`, `<section id="actor-map">`, `<section id="conflicts">`, `<section id="body">`, `<section id="round-trip">`, and `<details id="diagnostics">` — in that order.
+- The artefact contains exactly one each of `<section id="overview">`, `<nav class="toc">`, `<section id="hierarchy">`, `<section id="register">`, `<section id="actor-map">`, `<section id="conflicts">`, `<section id="body">`, `<section id="round-trip">`, and `<details id="diagnostics">` — in that order (diagram-first: the hierarchy precedes the register).
 - The Overview meta-grid carries correct `{{MANIFEST_FINGERPRINT}}`, `{{SOURCE_COUNT}}`, `{{TIER_BREAKDOWN}}`, `{{GOAL_COUNT}}`, `{{EXPLICIT_COUNT}}`, `{{INFERRED_COUNT}}`, `{{LIFE_COUNT}}`, `{{END_COUNT}}`, `{{EXPERIENCE_COUNT}}`, `{{HARD_COUNT}}`, `{{SOFT_COUNT}}`, `{{CONFLICT_COUNT}}` substitutions.
 - Every goal in `final_goals` is rendered as exactly one `<article class="goal-card">`; the explicit/inferred/type/hardness sub-counts match the meta-grid.
 - **Every goal carries exactly one provenance shape:** explicit goals carry ≥1 `<span class="src-chip">[SRC: <filename>]</span>` and **no** `AI-NN` badge; inferred goals carry an `.ai-suggested` block with one `AI-NN | blocking|non-blocking` badge, one `technique-chip` (a value from the closed set), and ≥1 anchor `[SRC: <filename>]`.
@@ -406,7 +406,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` exists, has been verified, and contains a complete goal register: Overview, TOC, Goal register (≥1 goal card), Goal hierarchy (CSS-only AND/OR tree, every goal placed once), Actor map, Conflicts (table or empty-state), JSON body block, Round-trip footer, Diagnostics (provenance + technique + criteria + Cooper-coverage + Source roster + 7 gate results + flagged low-confidence + Run history), and the `user-goal-meta` cursor line.
+- `analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` exists, has been verified, and contains a complete goal register: Overview, TOC, Goal hierarchy (the diagram — first content item; CSS-only AND/OR tree, every goal placed once), Goal register (≥1 goal card), Actor map, Conflicts (table or empty-state), JSON body block, Round-trip footer, Diagnostics (provenance + technique + criteria + Cooper-coverage + Source roster + 7 gate results + flagged low-confidence + Run history), and the `user-goal-meta` cursor line.
 - Every explicit goal is `[SRC]`-cited; every inferred goal carries `[AI-SUGGESTED: AI-NN | blocking|non-blocking]` + a named technique + ≥1 anchor `[SRC]`. No anchorless inferred goal; no solution-as-goal; no platitude root.
 - Either all 7 hard quality gates passed, or the consultant explicitly chose Override and the Run-history bullet records every violation.
 - Additive-merge contract honoured: every prior-run goal card, hierarchy node, actor-map row, and conflict is present (unless explicitly dropped via Revise or re-clustered by the `re-extract-everything` drift branch with a Run-history note).

@@ -10,11 +10,12 @@
 
   No sibling under /analyse-requirement — User Goal Analysis ships only on the inputs side.
 
-  Section order (top-to-bottom):
+  Section order (top-to-bottom) — diagram-first (mirrors journey-mapping / affinity-mapping:
+  compact overview, then the prominent diagram, then the rest):
     1. Overview (id="overview")        — title, subtitle, meta-grid.
     2. TOC (<nav class="toc">)         — static top-level anchors.
-    3. Goal register (id="register")   — {{GOAL_REGISTER}} — Cooper-type sub-sections of goal cards.
-    4. Goal hierarchy (id="hierarchy") — {{GOAL_HIERARCHY}} — CSS-only nested AND/OR tree.
+    3. Goal hierarchy (id="hierarchy") — {{GOAL_HIERARCHY}} — CSS-only nested AND/OR tree. THE DIAGRAM; first content item.
+    4. Goal register (id="register")   — {{GOAL_REGISTER}} — Cooper-type sub-sections of goal cards.
     5. Actor map (id="actor-map")      — {{ACTOR_MAP}} — actor × held/depended goals table.
     6. Conflicts (id="conflicts")      — {{CONFLICTS_TABLE}} — goal-tension table.
     7. JSON body (id="body")           — {{BODY_JSON}} inside <pre><code id="user-goal-analysis-body">.
@@ -486,8 +487,8 @@
     <nav class="toc" aria-label="Sections">
       <ol>
         <li><a href="#overview">Overview</a></li>
-        <li><a href="#register">Goal register</a></li>
         <li><a href="#hierarchy">Goal hierarchy</a></li>
+        <li><a href="#register">Goal register</a></li>
         <li><a href="#actor-map">Actor map</a></li>
         <li><a href="#conflicts">Conflicts</a></li>
         <li><a href="#round-trip">Use in /requirements</a></li>
@@ -495,18 +496,18 @@
       </ol>
     </nav>
 
+    <section id="hierarchy" aria-label="Goal refinement hierarchy">
+      <h2 class="section-title">Goal hierarchy</h2>
+      <p class="section-caption">KAOS-style refinement: each parent goal refines into children via <span class="refine-badge refine-and">AND</span> (all required) or <span class="refine-badge refine-or">OR</span> (alternatives). Leaves are operationalisable goals. Inferred goals (amber) are marked inline.</p>
+      <div class="tree-wrap">
+        {{GOAL_HIERARCHY}}
+      </div>
+    </section>
+
     <section id="register" aria-label="Goal register">
       <h2 class="section-title">Goal register</h2>
       <p class="section-caption">Goals grouped by Cooper type. <strong>Explicit</strong> goals are lifted from the inputs and cited; <strong>inferred</strong> goals (amber, dashed) were laddered from a stated anchor via a named technique — review each before relying on it.</p>
       {{GOAL_REGISTER}}
-    </section>
-
-    <section id="hierarchy" aria-label="Goal refinement hierarchy">
-      <h2 class="section-title">Goal hierarchy</h2>
-      <p class="section-caption">KAOS-style refinement: each parent goal refines into children via <span class="refine-badge refine-and">AND</span> (all required) or <span class="refine-badge refine-or">OR</span> (alternatives). Leaves are operationalisable goals.</p>
-      <div class="tree-wrap">
-        {{GOAL_HIERARCHY}}
-      </div>
     </section>
 
     <section id="actor-map" aria-label="Actor to goal map">
