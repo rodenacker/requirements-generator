@@ -1,0 +1,552 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses-inputs/user-goal-analysis-analyser.md.
+
+  Purpose: HTML/CSS skeleton for the User Goal Analysis goal register, **input-analysis
+  variant** — analyses raw consultant material enumerated in
+  `requirements/source-manifest.json` (not the synthesised `requirements/requirements.md`).
+  Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`). No external CSS/JS
+  dependencies, NO Mermaid, NO CDN, NO `<script>`; viewable by opening `file://` in a
+  browser; shareable with clients without tooling. Readability-optimised.
+
+  No sibling under /analyse-requirement — User Goal Analysis ships only on the inputs side.
+
+  Section order (top-to-bottom):
+    1. Overview (id="overview")        — title, subtitle, meta-grid.
+    2. TOC (<nav class="toc">)         — static top-level anchors.
+    3. Goal register (id="register")   — {{GOAL_REGISTER}} — Cooper-type sub-sections of goal cards.
+    4. Goal hierarchy (id="hierarchy") — {{GOAL_HIERARCHY}} — CSS-only nested AND/OR tree.
+    5. Actor map (id="actor-map")      — {{ACTOR_MAP}} — actor × held/depended goals table.
+    6. Conflicts (id="conflicts")      — {{CONFLICTS_TABLE}} — goal-tension table.
+    7. JSON body (id="body")           — {{BODY_JSON}} inside <pre><code id="user-goal-analysis-body">.
+    8. Round-trip footer (id="round-trip") — static paragraph above diagnostics.
+    9. Diagnostics (id="diagnostics")  — <details> wrapper, collapsed by default.
+
+  Placeholders the analyser substitutes (string substitution, all values pre-escaped for HTML
+  EXCEPT the BODY_JSON block which is escaped for the &lt; / &amp; that would break <pre><code>):
+
+    {{TITLE}}                    — short title (e.g. "User Goal Register — Inputs — Project X")
+    {{DOMAIN}}                   — domain string (best-effort: manifest `target`/brief)
+    {{GENERATED_AT}}             — ISO-8601 UTC timestamp the artefact was rendered
+    {{MANIFEST_FINGERPRINT}}     — sha256 of requirements/source-manifest.json at read time
+    {{SOURCE_COUNT}}             — count of consumed manifest rows (tier != "Unsupported")
+    {{TIER_BREAKDOWN}}           — e.g. "3 Native-text, 1 Native-multimodal, 1 Supported-via-MCP"
+    {{GOAL_COUNT}}               — total goals
+    {{EXPLICIT_COUNT}}           — count of provenance=explicit goals
+    {{INFERRED_COUNT}}           — count of provenance=inferred goals
+    {{LIFE_COUNT}}               — count of cooper_type=life goals
+    {{END_COUNT}}                — count of cooper_type=end goals
+    {{EXPERIENCE_COUNT}}         — count of cooper_type=experience goals
+    {{HARD_COUNT}}               — count of hardness=hard goals
+    {{SOFT_COUNT}}               — count of hardness=soft goals
+    {{CONFLICT_COUNT}}           — count of surfaced goal conflicts
+    {{GOAL_REGISTER}}            — pre-rendered Cooper-type sub-sections per GOAL CARD SCHEMA.
+    {{GOAL_HIERARCHY}}           — pre-rendered nested <ul class="goal-tree"> per HIERARCHY SCHEMA.
+    {{ACTOR_MAP}}                — pre-rendered <table class="actor-map"> per ACTOR MAP SCHEMA.
+    {{CONFLICTS_TABLE}}          — pre-rendered <table class="conflicts"> per CONFLICTS SCHEMA,
+                                   or the empty-state paragraph.
+    {{BODY_JSON}}                — the machine-readable JSON re-ingestion contract (escaped).
+    {{DIAGNOSTICS_BLOCK}}        — pre-rendered <section class="diagnostics"> per DIAGNOSTICS SCHEMA.
+    <!-- user-goal-meta: ... --> — analyser emits this HTML comment immediately before </main>
+                                   carrying manifest_fingerprint=<sha256>, run_count=<int>.
+                                   Step 3 prior-artefact detection parses the first match.
+
+  Output: analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html.
+
+  GOAL CARD SCHEMA — the register groups cards under one <section class="type-group"> per
+  Cooper type that has ≥1 goal (Life, then End, then Experience). Each card:
+
+      <article id="goal-<id>" class="goal-card prov-<explicit|inferred> hard-<hard|soft>"
+               aria-labelledby="goal-<id>-id">
+        <header class="goal-card-header">
+          <span class="type-badge type-<life|end|experience>">END</span>
+          <span class="hard-pill hard-<hard|soft>">HARD</span>
+          <span class="prov-badge prov-<explicit|inferred>">EXPLICIT</span>   <!-- "INFERRED" uses .ai-suggested -->
+          <span id="goal-<id>-id" class="goal-id">G-NN</span>
+        </header>
+        <p class="goal-statement">{{actor}} wants to {{outcome}} so that {{higher-level goal}}.</p>
+        <div class="goal-meta-row">
+          <span class="actor-chips">
+            <span class="actor-chip" title="Actor who holds this goal">A-NN {{actor name}}</span>
+          </span>
+        </div>
+        <!-- EXPLICIT provenance: -->
+        <div class="provenance explicit">
+          <span class="src-chip">[SRC: {{filename}}]</span> <!-- one per source -->
+        </div>
+        <!-- INFERRED provenance (replaces the explicit block; .ai-suggested wrapper): -->
+        <div class="provenance inferred ai-suggested">
+          <span class="ai-badge">AI-NN · {{blocking|non-blocking}}</span>
+          <span class="technique-chip">via {{technique}}</span>
+          <span class="anchor">anchor: &ldquo;{{anchor_text}}&rdquo; <span class="src-chip">[SRC: {{filename}}]</span></span>
+        </div>
+        <p class="criterion"><span class="criterion-label">{{Success measure|Satisficing}}</span>
+           {{criterion-or-marker}}</p>     <!-- marker: (no-metric-in-inputs) / (no-satisficing-criterion-in-inputs) -->
+      </article>
+
+  HIERARCHY SCHEMA — a CSS-only nested list. Each <li> is a goal node; a branch node carries
+  an AND/OR label; leaves carry no label. Inferred goals keep the .ai-suggested class on their
+  node label. No JS, no <details> needed (always expanded for print + round-trip):
+
+      <ul class="goal-tree">
+        <li class="tree-node">
+          <span class="node-label">
+            <span class="goal-ref">G-01</span> {{short goal phrase}}
+            <span class="refine-badge refine-and">AND</span>   <!-- or refine-or "OR"; omit on leaves -->
+          </span>
+          <ul>
+            <li class="tree-node">
+              <span class="node-label ai-suggested">
+                <span class="goal-ref">G-05</span> {{short goal phrase}}
+                <span class="ai-tag">inferred</span>
+              </span>
+            </li>
+            ...
+          </ul>
+        </li>
+      </ul>
+
+  ACTOR MAP SCHEMA:
+
+      <table class="actor-map" aria-label="Actor to goal map">
+        <thead><tr><th>Actor</th><th>Holds</th><th>Depends on (actor/system → goal)</th></tr></thead>
+        <tbody>
+          <tr><th>A-01 {{name}}</th>
+              <td><span class="goal-ref">G-01</span> <span class="goal-ref">G-04</span> …</td>
+              <td>{{e.g. "depends on System → G-09"}} or <span class="muted">—</span></td></tr>
+        </tbody>
+      </table>
+
+  CONFLICTS SCHEMA (or, when none, the empty-state paragraph the analyser substitutes verbatim):
+
+      <table class="conflicts" aria-label="Goal conflicts">
+        <thead><tr><th>Goals in tension</th><th>Tension</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td><span class="goal-ref">G-04</span> ⇄ <span class="goal-ref">G-09</span></td>
+              <td>{{one-line tension note}}</td>
+              <td><span class="src-chip">[SRC: {{filename}}]</span> …</td></tr>
+        </tbody>
+      </table>
+    empty-state: <p class="empty-state">No goal conflicts surfaced in the consumed inputs.</p>
+
+  DIAGNOSTICS SCHEMA — the analyser's {{DIAGNOSTICS_BLOCK}} substitutes a single
+  <section class="diagnostics">. The template wraps it in a <details class="diagnostics-toggle">
+  (collapsed by default). The analyser does NOT emit the <details>/<summary> wrapper. Inner
+  section, in order:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>User goal register (input-analysis variant) — N goals (E explicit, I inferred) across
+           M Cooper types, drawn from K consumed manifest rows.</p>
+        <p>Provenance: explicit cited from <inline source breakdown>; inferred anchored to
+           <inline anchor-source breakdown>.</p>
+        <p>Inference techniques: A laddering, B five-whys, C solution-reframe, D obstacle-analysis,
+           E softgoal-from-quality-adjective.</p>
+        <p>Criteria: P measured/satisficed, Q with `(no-metric-in-inputs)`, R with
+           `(no-satisficing-criterion-in-inputs)`.</p>
+        <p>Cooper coverage: {{life count or `no-life-signal-in-inputs`}};
+           {{experience count or `no-experience-signal-in-inputs`}}.</p>
+        <h3>Source roster — Consumed</h3>
+        <table class="source-roster">
+          <thead><tr><th>filename</th><th>tier</th><th>sha256</th><th>goals (expl/anchor)</th></tr></thead>
+          <tbody><!-- one row per tier != "Unsupported"; `irrelevant-to-goals` rows noted in last cell --></tbody>
+        </table>
+        <h3>Source roster — Skipped</h3>
+        <table class="source-roster">
+          <thead><tr><th>filename</th><th>reason</th></tr></thead>
+          <tbody><!-- one row per tier == "Unsupported" --></tbody>
+        </table>
+        <h3>Quality gates</h3>
+        <ul>
+          <li class="check-pass|check-fail">G1 — Provenance: every goal cited or anchored-inferred.</li>
+          ... (all 7 gates G1–G7 listed in order)
+        </ul>
+        <h3>Flagged low-confidence inferred goals</h3>
+        <ul><!-- inferred goals the analyser judged weakest (e.g. single-anchor, long ladder); empty <li class="muted">none</li> if none --></ul>
+        <h3>Run history</h3>
+        <ul>
+          <li>{{ISO date}} — run #{{run_count}} — {{n_new_goals}} new goals ({{n_new_inferred}} inferred);
+              total goals: {{goal_count}}; Override: <gate list> if applicable.</li>
+        </ul>
+        <!-- Override-only: flagged-goals <ul> per failed gate with goal-id + offending text + citation. -->
+      </section>
+
+  CSS classes used by the analyser:
+    .type-life, .type-end, .type-experience   — type badge + type-group accent.
+    .hard-hard, .hard-soft                     — hardness pill.
+    .prov-explicit, .prov-inferred             — provenance badge + card accent.
+    .ai-suggested                              — INFERRED provenance block + inferred tree node;
+                                                  the distinct amber treatment that makes inference obvious.
+    .src-chip                                  — `[SRC: <filename>]` text chip.
+    .ai-badge, .technique-chip, .anchor        — inferred-goal provenance internals.
+    .goal-ref                                  — monospace goal-id reference (tree, actor map, conflicts).
+    .refine-and, .refine-or                    — AND/OR branch labels in the hierarchy.
+    .source-roster                             — diagnostics tables (Consumed / Skipped).
+    .empty-state, .muted                       — empty-state copy.
+
+  The CSS below is fixed scaffolding and should not be edited by the analyser — only the
+  {{placeholders}} above are substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --col-bg: #ffffff;
+      --shadow: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+      --header-bg: #efefef;
+
+      /* Cooper goal types */
+      --type-life-bg: #d8c7ee; --type-life-border: #8a6ec7; --type-life-fg: #2e1e55;
+      --type-end-bg:  #b9d7f0; --type-end-border:  #4f8fbf; --type-end-fg:  #0c2a44;
+      --type-exp-bg:  #f6c6d5; --type-exp-border:  #c97a92; --type-exp-fg:  #4a1a2a;
+
+      /* Hardness pills */
+      --hard-bg: #c8e6b2; --hard-border: #7fb069; --hard-fg: #1f3d12;
+      --soft-bg: #e8eaee; --soft-border: #8a8a8a; --soft-fg: #2a2a2a;
+
+      /* Provenance — explicit green, inferred amber (.ai-suggested) */
+      --expl-bg: #c8e6b2; --expl-border: #7fb069; --expl-fg: #1f3d12;
+      --ai-bg: #ffe2b3;  --ai-border: #d48a2a;  --ai-fg: #4a2e00;
+      --ai-soft-bg: #fff4e0;
+
+      /* Source chips */
+      --src-chip-bg: #f4f0e6;
+      --src-chip-border: #c9b88f;
+      --src-chip-fg: #5a4a1a;
+
+      --pass-fg: #2a8a2a;
+      --rev-bg: #ffeaea; --rev-border: #d44a4a; --rev-fg: #8a1a1a;
+      --not-named-fg: #9a9a9a;
+
+      /* Hierarchy tree guides */
+      --tree-line: #c4c4c4;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--bg); color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px; line-height: 1.45;
+    }
+    main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px 0; }
+    .subtitle { color: var(--muted); font-size: 13px; margin: 0 0 24px 0; }
+
+    section[id] { scroll-margin-top: 12px; }
+    .section-title { font-size: 17px; font-weight: 600; margin: 28px 0 12px 0; }
+    .section-caption { font-size: 12px; color: var(--muted); margin: 0 0 12px 0; }
+
+    .meta-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 8px 24px; padding: 12px 16px; border: 1px solid var(--border);
+      border-radius: 6px; background: #fff; margin-bottom: 8px; font-size: 13px;
+    }
+    .meta-grid dt { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; margin: 0; }
+    .meta-grid dd { margin: 0 0 6px 0; font-variant-numeric: tabular-nums; word-break: break-word; }
+
+    /* ------- table of contents ------- */
+    .toc {
+      margin: 0 0 8px 0; padding: 10px 14px; background: #fff;
+      border: 1px solid var(--border); border-left: 4px solid var(--border-strong);
+      border-radius: 6px; font-size: 13px;
+    }
+    .toc ol { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 18px; counter-reset: toc-item; }
+    .toc li { counter-increment: toc-item; }
+    .toc li::before { content: counter(toc-item) ". "; color: var(--muted); margin-right: 4px; font-variant-numeric: tabular-nums; }
+    .toc a { color: var(--fg); text-decoration: none; border-bottom: 1px dotted var(--border-strong); }
+    .toc a:hover { border-bottom-color: var(--fg); }
+
+    /* ------- goal register ------- */
+    .type-group { margin: 0 0 20px 0; }
+    .type-group-header {
+      margin: 0 0 12px 0; padding: 6px 12px; border-radius: 6px;
+      font-size: 14px; font-weight: 700; letter-spacing: 0.04em;
+      border: 1px solid var(--border); border-left: 4px solid var(--border-strong); background: #fff;
+    }
+    .type-group.type-life  .type-group-header { border-left-color: var(--type-life-border); }
+    .type-group.type-end   .type-group-header { border-left-color: var(--type-end-border); }
+    .type-group.type-experience .type-group-header { border-left-color: var(--type-exp-border); }
+
+    .goal-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 12px; align-items: start;
+    }
+    .goal-card {
+      display: flex; flex-direction: column; gap: 8px; padding: 12px;
+      background: var(--col-bg); border: 1px solid var(--border);
+      border-radius: 6px; border-top: 3px solid var(--border-strong);
+    }
+    .goal-card.prov-inferred { border-top-color: var(--ai-border); background: var(--ai-soft-bg); }
+    .goal-card.prov-explicit { border-top-color: var(--expl-border); }
+
+    .goal-card-header { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .type-badge, .hard-pill, .prov-badge {
+      display: inline-block; padding: 2px 6px; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.07em; border-radius: 3px; border: 1px solid transparent;
+    }
+    .type-badge.type-life { background: var(--type-life-bg); border-color: var(--type-life-border); color: var(--type-life-fg); }
+    .type-badge.type-end  { background: var(--type-end-bg);  border-color: var(--type-end-border);  color: var(--type-end-fg); }
+    .type-badge.type-experience { background: var(--type-exp-bg); border-color: var(--type-exp-border); color: var(--type-exp-fg); }
+    .hard-pill.hard-hard { background: var(--hard-bg); border-color: var(--hard-border); color: var(--hard-fg); }
+    .hard-pill.hard-soft { background: var(--soft-bg); border-color: var(--soft-border); color: var(--soft-fg); }
+    .prov-badge.prov-explicit { background: var(--expl-bg); border-color: var(--expl-border); color: var(--expl-fg); }
+    .prov-badge.prov-inferred { background: var(--ai-bg); border-color: var(--ai-border); color: var(--ai-fg); }
+
+    .goal-id { margin-left: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+    .goal-statement { margin: 0; font-size: 14px; line-height: 1.4; }
+
+    .goal-meta-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .actor-chips { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+    .actor-chip {
+      display: inline-block; padding: 1px 7px; border-radius: 10px;
+      background: var(--header-bg); border: 1px solid var(--border-strong);
+      font-size: 11px; color: var(--fg);
+    }
+
+    .provenance { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 11px; }
+    .provenance.inferred.ai-suggested {
+      padding: 6px 8px; border-radius: 4px;
+      background: #fff; border: 1px dashed var(--ai-border);
+    }
+    .ai-badge {
+      display: inline-block; padding: 1px 7px; border-radius: 3px; font-weight: 700;
+      background: var(--ai-bg); border: 1px solid var(--ai-border); color: var(--ai-fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 10px;
+    }
+    .technique-chip {
+      display: inline-block; padding: 1px 7px; border-radius: 3px;
+      background: var(--header-bg); border: 1px solid var(--border-strong); color: var(--muted);
+      font-size: 10px; font-weight: 600; letter-spacing: 0.03em;
+    }
+    .anchor { color: var(--muted); font-style: italic; }
+
+    .src-chip {
+      display: inline-block; padding: 1px 6px; border-radius: 3px;
+      background: var(--src-chip-bg); border: 1px solid var(--src-chip-border); color: var(--src-chip-fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 10px;
+      line-height: 1.35; white-space: nowrap; font-style: normal;
+    }
+
+    .criterion { margin: 0; font-size: 12px; color: var(--fg); }
+    .criterion-label {
+      display: inline-block; margin-right: 6px; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted);
+    }
+
+    /* ------- hierarchy tree (CSS-only, no JS, no Mermaid) ------- */
+    .tree-wrap {
+      padding: 16px; border: 1px solid var(--border); border-radius: 6px; background: #fff;
+      overflow-x: auto;
+    }
+    ul.goal-tree, ul.goal-tree ul { list-style: none; margin: 0; padding: 0; }
+    ul.goal-tree ul { margin-left: 18px; padding-left: 14px; border-left: 1px solid var(--tree-line); }
+    .tree-node { margin: 4px 0; position: relative; }
+    .tree-node ul .tree-node::before {
+      content: ""; position: absolute; top: 12px; left: -14px; width: 12px;
+      border-top: 1px solid var(--tree-line);
+    }
+    .node-label {
+      display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      padding: 3px 8px; border-radius: 4px; background: var(--col-bg);
+      border: 1px solid var(--border); font-size: 13px;
+    }
+    .node-label.ai-suggested { background: var(--ai-soft-bg); border-color: var(--ai-border); }
+    .goal-ref {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums;
+    }
+    .refine-badge {
+      display: inline-block; padding: 0 6px; border-radius: 3px; font-size: 9px; font-weight: 800;
+      letter-spacing: 0.08em; border: 1px solid transparent;
+    }
+    .refine-and { background: var(--type-end-bg); border-color: var(--type-end-border); color: var(--type-end-fg); }
+    .refine-or  { background: var(--type-life-bg); border-color: var(--type-life-border); color: var(--type-life-fg); }
+    .ai-tag { font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ai-fg); }
+
+    /* ------- actor map + conflicts tables ------- */
+    table.actor-map, table.conflicts {
+      width: 100%; border-collapse: collapse; font-size: 13px; background: #fff;
+      border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+    }
+    table.actor-map th, table.actor-map td,
+    table.conflicts th, table.conflicts td {
+      border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top;
+    }
+    table.actor-map thead th, table.conflicts thead th {
+      background: var(--header-bg); font-weight: 600; font-size: 11px;
+      letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted);
+    }
+    table.actor-map tbody th { background: #fff; font-weight: 600; white-space: nowrap; }
+    table.actor-map .goal-ref, table.conflicts .goal-ref { margin-right: 4px; }
+    .empty-state { padding: 12px 14px; border: 1px dashed var(--border-strong); border-radius: 6px; background: #fff; color: var(--muted); font-style: italic; }
+    .muted { color: var(--muted); }
+
+    /* ------- JSON body block ------- */
+    .body-wrap { padding: 0; }
+    pre.body-json {
+      margin: 0; padding: 14px 16px; background: #1e1e1e; color: #e8e8e8;
+      border-radius: 6px; overflow-x: auto; font-size: 11px; line-height: 1.4;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    pre.body-json code { white-space: pre; }
+
+    /* ------- round-trip footer ------- */
+    .round-trip {
+      margin: 24px 0; padding: 12px 16px; background: #fff; border: 1px solid var(--border);
+      border-left: 4px solid var(--expl-border); border-radius: 6px; font-size: 13px; color: var(--fg);
+    }
+    .round-trip strong { color: var(--expl-fg); }
+    .round-trip code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; background: var(--header-bg); padding: 1px 4px; border-radius: 3px; }
+
+    /* ------- diagnostics ------- */
+    details.diagnostics-toggle { margin-bottom: 24px; }
+    details.diagnostics-toggle > summary {
+      cursor: pointer; padding: 10px 14px; background: #fff; border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong); border-radius: 6px; font-weight: 600;
+      font-size: 14px; color: var(--fg); list-style: none; display: flex; align-items: center; gap: 8px; user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before { content: "▶"; font-size: 10px; color: var(--muted); transition: transform 0.15s ease; display: inline-block; }
+    details.diagnostics-toggle[open] > summary { border-radius: 6px 6px 0 0; border-bottom: none; }
+    details.diagnostics-toggle[open] > summary::before { transform: rotate(90deg); }
+    .diagnostics { padding: 16px; border: 1px solid var(--border); border-left: 4px solid var(--border-strong); border-radius: 6px; background: #fff; margin-bottom: 24px; }
+    details.diagnostics-toggle > .diagnostics { border-top: none; border-radius: 0 0 6px 6px; margin-bottom: 0; }
+    details.diagnostics-toggle > .diagnostics > h2 { display: none; }
+    .diagnostics h2 { font-size: 16px; margin: 0 0 8px 0; }
+    .diagnostics h3 { font-size: 13px; margin: 16px 0 6px 0; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .diagnostics > p { margin: 4px 0; }
+    .diagnostics > ul { margin: 8px 0 12px 0; padding-left: 20px; }
+    .diagnostics .check-pass::before { content: "PASS "; color: var(--pass-fg); font-weight: 600; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--rev-fg);  font-weight: 600; }
+    table.source-roster { width: 100%; border-collapse: collapse; font-size: 12px; margin: 4px 0 12px 0; }
+    table.source-roster th, table.source-roster td { border: 1px solid var(--border); padding: 4px 8px; text-align: left; vertical-align: top; }
+    table.source-roster thead th { background: var(--header-bg); font-weight: 600; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+    table.source-roster td.sha { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; color: var(--muted); }
+
+    footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 11px; }
+    footer .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+    footer .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    footer .legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid transparent; }
+    footer .legend-swatch.s-life { background: var(--type-life-bg); border-color: var(--type-life-border); }
+    footer .legend-swatch.s-end  { background: var(--type-end-bg);  border-color: var(--type-end-border); }
+    footer .legend-swatch.s-exp  { background: var(--type-exp-bg);  border-color: var(--type-exp-border); }
+    footer .legend-swatch.s-expl { background: var(--expl-bg); border-color: var(--expl-border); }
+    footer .legend-swatch.s-ai   { background: var(--ai-bg);   border-color: var(--ai-border); }
+    footer .legend-swatch.s-src  { background: var(--src-chip-bg); border-color: var(--src-chip-border); }
+    footer .credit { margin-top: 6px; text-align: right; }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .goal-grid { gap: 8px; }
+      .goal-card { break-inside: avoid; }
+      .type-group { break-inside: avoid-page; }
+      .tree-wrap { break-inside: avoid; overflow-x: visible; }
+      pre.body-json { white-space: pre-wrap; word-break: break-word; }
+      .toc { display: none; }
+      .round-trip { break-inside: avoid; }
+      details.diagnostics-toggle[open] > summary::before { content: ""; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section id="overview">
+      <h1>{{TITLE}}</h1>
+      <p class="subtitle">User goal register (input-analysis variant) — one card per goal (type · hardness · provenance · statement · criterion), grouped by Cooper goal type, with a refinement hierarchy, actor map, and conflicts. Sourced from raw consultant inputs enumerated in <code>requirements/source-manifest.json</code>. Explicit goals are cited; inferred goals are anchored, marked, and auditable.</p>
+
+      <dl class="meta-grid">
+        <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+        <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+        <div><dt>Manifest fingerprint</dt><dd>{{MANIFEST_FINGERPRINT}}</dd></div>
+        <div><dt>Sources consumed</dt><dd>{{SOURCE_COUNT}}</dd></div>
+        <div><dt>Tier breakdown</dt><dd>{{TIER_BREAKDOWN}}</dd></div>
+        <div><dt>Goals</dt><dd>{{GOAL_COUNT}}</dd></div>
+        <div><dt>Explicit</dt><dd>{{EXPLICIT_COUNT}}</dd></div>
+        <div><dt>Inferred</dt><dd>{{INFERRED_COUNT}}</dd></div>
+        <div><dt>Life</dt><dd>{{LIFE_COUNT}}</dd></div>
+        <div><dt>End</dt><dd>{{END_COUNT}}</dd></div>
+        <div><dt>Experience</dt><dd>{{EXPERIENCE_COUNT}}</dd></div>
+        <div><dt>Hard</dt><dd>{{HARD_COUNT}}</dd></div>
+        <div><dt>Soft</dt><dd>{{SOFT_COUNT}}</dd></div>
+        <div><dt>Conflicts</dt><dd>{{CONFLICT_COUNT}}</dd></div>
+      </dl>
+    </section>
+
+    <nav class="toc" aria-label="Sections">
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#register">Goal register</a></li>
+        <li><a href="#hierarchy">Goal hierarchy</a></li>
+        <li><a href="#actor-map">Actor map</a></li>
+        <li><a href="#conflicts">Conflicts</a></li>
+        <li><a href="#round-trip">Use in /requirements</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+      </ol>
+    </nav>
+
+    <section id="register" aria-label="Goal register">
+      <h2 class="section-title">Goal register</h2>
+      <p class="section-caption">Goals grouped by Cooper type. <strong>Explicit</strong> goals are lifted from the inputs and cited; <strong>inferred</strong> goals (amber, dashed) were laddered from a stated anchor via a named technique — review each before relying on it.</p>
+      {{GOAL_REGISTER}}
+    </section>
+
+    <section id="hierarchy" aria-label="Goal refinement hierarchy">
+      <h2 class="section-title">Goal hierarchy</h2>
+      <p class="section-caption">KAOS-style refinement: each parent goal refines into children via <span class="refine-badge refine-and">AND</span> (all required) or <span class="refine-badge refine-or">OR</span> (alternatives). Leaves are operationalisable goals.</p>
+      <div class="tree-wrap">
+        {{GOAL_HIERARCHY}}
+      </div>
+    </section>
+
+    <section id="actor-map" aria-label="Actor to goal map">
+      <h2 class="section-title">Actor map</h2>
+      <p class="section-caption">Which actor holds which goals, and which goals they depend on another actor or the system to satisfy.</p>
+      {{ACTOR_MAP}}
+    </section>
+
+    <section id="conflicts" aria-label="Goal conflicts">
+      <h2 class="section-title">Conflicts</h2>
+      <p class="section-caption">Goal pairs that pull against each other. Surfaced for the consultant to weigh — not resolved here.</p>
+      {{CONFLICTS_TABLE}}
+    </section>
+
+    <section id="body" class="body-wrap" aria-label="Machine-readable goal model">
+      <h2 class="section-title">Machine-readable model</h2>
+      <p class="section-caption">The full goal model in JSON — the re-ingestion contract that survives a markitdown HTML&rarr;MD round-trip as a fenced code block.</p>
+      <pre class="body-json"><code class="language-json" id="user-goal-analysis-body">{{BODY_JSON}}</code></pre>
+    </section>
+
+    <section id="round-trip" class="round-trip" aria-label="Use in /requirements">
+      <p><strong>Use this register as input to <code>/requirements</code>:</strong> copy this file into <code>input/</code> and re-invoke <code>/requirements</code>. The shared input-handler will detect the new file, surface a manifest-refresh prompt, and add it as a <code>Native-text</code> row. The drafter then seeds <code>&sect;4 User goals &amp; stories</code> from the <strong>explicit</strong> goals, while the <strong>inferred</strong> goals surface to the resolver as <code>AI-NNN</code> questions — <em>blocking</em> ones as mandatory confirmations, <em>non-blocking</em> ones as suggestions — so you validate every inference before it becomes a requirement. The <code>[SRC: <em>&lt;filename&gt;</em>]</code> anchors preserve the audit trail back to the original briefs / notes / decks.</p>
+    </section>
+
+    <details id="diagnostics" class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    <footer>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-life" aria-hidden="true"></span> Life goal</span>
+        <span class="legend-item"><span class="legend-swatch s-end" aria-hidden="true"></span> End goal</span>
+        <span class="legend-item"><span class="legend-swatch s-exp" aria-hidden="true"></span> Experience goal</span>
+        <span class="legend-item"><span class="legend-swatch s-expl" aria-hidden="true"></span> Explicit (cited)</span>
+        <span class="legend-item"><span class="legend-swatch s-ai" aria-hidden="true"></span> Inferred (anchored)</span>
+        <span class="legend-item"><span class="legend-swatch s-src" aria-hidden="true"></span> [SRC: filename] source chip</span>
+      </div>
+      <div class="credit">Generated by <code>framework/agents/analyses-inputs/user-goal-analysis-analyser.md</code> — Cooper goal types · KAOS AND/OR refinement · means-end laddering · i*-lite actor map.</div>
+    </footer>
+  </main>
+</body>
+</html>

@@ -131,6 +131,35 @@ methodologies:
   #     copied into input/, with the Disconnect Register's
   #     `consultant_follow_up: yes` rows flowing into the resolver
   #     pipeline as AI-NNN questions in the existing grammar).
+  #   - `user-goal-analysis` (User Goal Analysis — a pragmatic Goal-Oriented
+  #     Requirements Engineering synthesis: Cooper's three goal types
+  #     (life / end / experience) + the hard/soft goal split (Chung et al.
+  #     NFR framework) + KAOS AND/OR goal refinement (van Lamsweerde) +
+  #     means-end laddering (Gutman) & Five-Whys for inferring unstated
+  #     goals + an i*-lite actor↔goal dependency map (Yu); adapted for raw
+  #     consultant inputs as a six-pass document-only
+  #     extraction-AND-bounded-inference process. Surfaces user goals both
+  #     EXPLICITLY stated and INFERRED. Explicit goals carry [SRC: <filename>];
+  #     inferred goals carry [AI-SUGGESTED: AI-NN | blocking|non-blocking]
+  #     co-present with a named technique (laddering / five-whys /
+  #     solution-reframe / obstacle-analysis / softgoal-from-quality-adjective)
+  #     AND ≥1 source anchor — anchorless inference is forbidden (the
+  #     load-bearing anti-confabulation gate G2, mirroring task-analysis's
+  #     "inferred terminals forbidden"). Seven hard gates (provenance,
+  #     anti-confabulation, solution-bias/anti-vacuity, classification,
+  #     hierarchy integrity, criterion, coverage). Self-contained,
+  #     dependency-free HTML (NO Mermaid / mmdc): goal register grouped by
+  #     Cooper type, a CSS-only nested AND/OR refinement tree, an actor map,
+  #     a conflicts table, and an embedded
+  #     <pre><code class="language-json" id="user-goal-analysis-body"> block
+  #     carrying the full goal model for /requirements re-ingestion via
+  #     markitdown HTML→MD round-trip. Designed as a /requirements input:
+  #     explicit goals seed §4 User goals & stories; inferred goals surface
+  #     to the resolver as AI-NNN questions — blocking ones as mandatory
+  #     confirmations — so the consultant validates every inference before it
+  #     becomes a requirement. Distinct from JTBD (jobs, extraction-only),
+  #     task-analysis (decomposes a GIVEN goal DOWN into operations), and
+  #     opportunity-solution-trees (jumps to solutions).
   - { name: glossary, status: future }
   - { name: five-whys, status: future }
   - name: task-analysis
@@ -205,6 +234,15 @@ methodologies:
     map_skill: framework/skills/map-affinity-mapping-from-inputs-to-ui.md
     analyser_agent: framework/agents/analyses-inputs/affinity-mapping-analyser.md
     character: framework/assets/characters/affinity-mapping-inputs-analysis.md
+  - name: user-goal-analysis
+    status: mvp
+    description: Surfaces the user goals the raw inputs carry — both explicitly stated AND inferred — as a readability-optimised HTML goal register. A pragmatic GORE synthesis (Cooper's life/end/experience goal types + hard/soft goals + KAOS AND/OR refinement + means-end laddering & Five-Whys for inference + an i*-lite actor↔goal map). Explicit goals carry [SRC: <filename>]; inferred goals carry [AI-SUGGESTED: AI-NN | blocking|non-blocking] co-present with a named technique (laddering / five-whys / solution-reframe / obstacle-analysis / softgoal-from-quality-adjective) AND ≥1 source anchor — anchorless inference is forbidden (anti-confabulation gate G2). Seven hard gates. Self-contained, dependency-free HTML (NO Mermaid): goal register grouped by Cooper type, a CSS-only nested AND/OR refinement tree, an actor map, a conflicts table, and an embedded <pre><code class="language-json" id="user-goal-analysis-body"> block carrying the full goal model. Designed to be re-fed into /requirements — explicit goals seed §4 User goals & stories; inferred goals surface to the resolver as AI-NNN questions (blocking ones as mandatory confirmations), so the consultant validates every inference before it becomes a requirement. Distinct from JTBD (jobs, extraction-only), task-analysis (decomposes a GIVEN goal DOWN into operations), and opportunity-solution-trees (jumps to solutions).
+    output_path: analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html
+    reference_asset: framework/assets/analyses-inputs/user-goal-analysis-reference.md
+    template_asset: framework/assets/analyses-inputs/template-user-goal-analysis.html
+    map_skill: framework/skills/map-user-goal-analysis-from-inputs-to-ui.md
+    analyser_agent: framework/agents/analyses-inputs/user-goal-analysis-analyser.md
+    character: framework/assets/characters/user-goal-analysis-inputs-analysis.md
 ---
 
 # analyses-inputs/registry.md
@@ -250,4 +288,4 @@ methodologies:
 - `analyser_agent` — the foreground agent invoked by the orchestrator. Required only when `status: mvp`.
 - `character` — stance the Unicorn adopts while running the analyser. Required only when `status: mvp`.
 
-**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `task-analysis`, `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, `jtbd`, `ooux`, `swim-lane-process-mapping`, and `affinity-mapping` now at `status: mvp`, the selector presents eight options to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.
+**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `task-analysis`, `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, `jtbd`, `ooux`, `swim-lane-process-mapping`, `affinity-mapping`, and `user-goal-analysis` now at `status: mvp`, the selector presents nine options to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.

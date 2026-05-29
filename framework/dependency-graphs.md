@@ -138,12 +138,13 @@ state-diagram-analyser → svg-overlap-check.md
 
 ---
 
-## 5. analyse-inputs-orch.md · 53 nodes / 66 edges / depth 4
+## 5. analyse-inputs-orch.md · 57 nodes / 71 edges / depth 4
 
 ```
 orch → analysis-selector, check-context-bloat, input-handler, refusal-registry,
-       + 8 analysers: thematic-analysis, opportunity-solution-trees, journey-mapping,
-         task-analysis, jtbd, ooux, swim-lane-process-mapping, affinity-mapping
+       + 9 analysers: thematic-analysis, opportunity-solution-trees, journey-mapping,
+         task-analysis, jtbd, ooux, swim-lane-process-mapping, affinity-mapping,
+         user-goal-analysis
 analysis-selector → analyses-inputs/registry.md
 input-handler ⇒ @input-handler-subtree (progress_path=null)
 
@@ -151,15 +152,17 @@ Each analyser → analyses-inputs/<m>-reference.md, characters/<m>-inputs-analys
                 verify-artifact-write
 deltas:
   +template (analyses-inputs/template-<m>.html): journey-mapping, task-analysis, jtbd,
-     ooux, swim-lane-process-mapping, affinity-mapping
+     ooux, swim-lane-process-mapping, affinity-mapping, user-goal-analysis
   +mermaid-validator: thematic-analysis, opportunity-solution-trees, ooux,
      swim-lane-process-mapping, affinity-mapping
   +setup-instructions/mmdc.md: affinity-mapping only
   (thematic-analysis, opportunity-solution-trees carry NO template — pure markdown)
+  (user-goal-analysis is intentionally dependency-free: HTML template, NO mermaid-validator,
+     NO mmdc — its goal-refinement hierarchy renders as a CSS-only nested AND/OR tree)
 ```
 
 **Notes (unique):**
-- 8 MVP analysers; `glossary` + `five-whys` are `status: future` (files absent) → omitted.
+- 9 MVP analysers; `glossary` + `five-whys` are `status: future` (files absent) → omitted.
 - input-handler create/refresh writes are the only writes outside `analyse-inputs/<METHOD>/`.
 - map-skills are registry metadata → no edges (mirrors graph 4).
 - **mermaid-validator behaviour:** on `not-installed`, thematic-analysis / opportunity-solution-trees / ooux / swim-lane halt; affinity-mapping surfaces `RF-07` with a 3-way `{install-and-retry, skip-with-warning, abort}` choice (degraded path). swim-lane / ooux / affinity-mapping implement drop-on-3-retry-failure (artefact still writes; block replaced with `[GAP-MERMAID-INVALID]`).
