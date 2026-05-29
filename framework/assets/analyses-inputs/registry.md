@@ -160,6 +160,50 @@ methodologies:
   #     becomes a requirement. Distinct from JTBD (jobs, extraction-only),
   #     task-analysis (decomposes a GIVEN goal DOWN into operations), and
   #     opportunity-solution-trees (jumps to solutions).
+  #   - `business-context-definition` (Business Context Definition — an
+  #     enterprise-motivation synthesis: OMG Business Motivation Model Ends
+  #     (Vision / Goal / Objective) + IIBA BABOK Business Need (problem OR
+  #     opportunity; underlying-cause-vs-symptom) + Five-Whys root-cause
+  #     analysis + Gause & Weinberg problem-as-gap + Design-Thinking POV /
+  #     "How Might We" reframing + KAOS AND/OR goal refinement kept at the
+  #     enterprise tier; adapted for raw consultant inputs as a six-pass
+  #     document-only extraction-AND-bounded-inference process. Surfaces the
+  #     enterprise motivation behind the request — the Business Problem(s),
+  #     Business Need(s), Business Goal(s) / Objective(s), and a human-centered
+  #     Problem Statement — both EXPLICITLY stated and INFERRED, linked in a
+  #     problem→need→goal→problem-statement causal chain. The four mandated
+  #     artefacts are the four labelled sections of one self-contained HTML
+  #     report: Business Needs Assessment, Business Problem Statement (with
+  #     Five-Whys root-cause ladders), Business Goals collection (BMM-tiered
+  #     CSS-only AND/OR tree), and a solution-neutral Problem Statement (POV +
+  #     HMW). Explicit items carry [SRC: <filename>]; inferred items carry
+  #     [AI-SUGGESTED: AI-NN | blocking|non-blocking] co-present with a named
+  #     technique (five-whys-root-cause / bmm-laddering / opportunity-reframe /
+  #     abductive-best-explanation / swot-influencer-inference / pov-hmw-reframe)
+  #     AND ≥1 source anchor — anchorless inference forbidden (anti-confabulation
+  #     gate Q2). Seven hard gates (Q1 provenance, Q2 anti-confabulation,
+  #     Q3 classification, Q4 causal-chain integrity, Q5 well-formedness,
+  #     Q6 enterprise-scope, Q7 coverage). ENTERPRISE-ONLY: actor / end-user
+  #     goals are user-goal-analysis's exclusive lane — encountered actor goals
+  #     are routed to a `deferred-to-user-goal-analysis` boundary-audit log
+  #     (decision-tree D0 + gate Q6), never classified as Business Goals, so a
+  #     consultant can run both methods on one input/ and get two clean,
+  #     non-overlapping registers. Self-contained, dependency-free HTML (NO
+  #     Mermaid): a CSS-only four-stage causal-chain map (diagram-first),
+  #     need/problem/goal/problem-statement cards, a BMM AND/OR goal tree, a
+  #     tensions table, and an embedded
+  #     <pre><code class="language-json" id="bcd-body"> block carrying the full
+  #     business-context model for /requirements re-ingestion via markitdown
+  #     HTML→MD round-trip. Designed to be re-fed into /requirements —
+  #     explicit Goals / Objectives / Needs seed the strategic framing (why each
+  #     requirement exists), the causal chain seeds requirement→goal→need→problem
+  #     traceability, the Problem Statement seeds scope framing, and inferred
+  #     items surface to the resolver as AI-NNN questions (blocking ones as
+  #     mandatory confirmations). Distinct from user-goal-analysis (ACTOR goals,
+  #     Cooper types), opportunity-solution-trees (jumps to solutions), and
+  #     five-whys (a bare cause chain) — BCD owns the enterprise
+  #     problem→need→goal→problem-statement account and stops at the requirement
+  #     boundary.
   - { name: glossary, status: future }
   - { name: five-whys, status: future }
   - name: task-analysis
@@ -243,6 +287,15 @@ methodologies:
     map_skill: framework/skills/map-user-goal-analysis-from-inputs-to-ui.md
     analyser_agent: framework/agents/analyses-inputs/user-goal-analysis-analyser.md
     character: framework/assets/characters/user-goal-analysis-inputs-analysis.md
+  - name: business-context-definition
+    status: mvp
+    description: Surfaces the enterprise motivation behind the request — the Business Problem(s), Business Need(s), Business Goal(s)/Objective(s), and a human-centered Problem Statement the raw inputs state OR imply — as a readability-optimised HTML report, linked in a problem→need→goal→problem-statement causal chain. An enterprise-motivation synthesis (OMG BMM Ends + BABOK Business Need + Five-Whys root cause + Gause-Weinberg problem-as-gap + Design-Thinking POV/HMW + KAOS AND/OR refinement). Explicit items carry [SRC: <filename>]; inferred items carry [AI-SUGGESTED: AI-NN | blocking|non-blocking] co-present with a named technique (five-whys-root-cause / bmm-laddering / opportunity-reframe / abductive-best-explanation / swot-influencer-inference / pov-hmw-reframe) AND ≥1 source anchor — anchorless inference forbidden (gate Q2). Seven hard gates. ENTERPRISE-ONLY — actor goals are user-goal-analysis's lane, routed to a deferred-to-user-goal-analysis boundary-audit log (D0 + Q6), never classified as Business Goals. Self-contained, dependency-free HTML (NO Mermaid): a CSS-only four-stage causal-chain map, need/problem/goal/problem-statement cards, a BMM AND/OR goal tree, a tensions table, and an embedded <pre><code class="language-json" id="bcd-body"> block carrying the full business-context model. Designed to be re-fed into /requirements — explicit Goals/Objectives/Needs seed strategic framing, the causal chain seeds traceability, and inferred items surface to the resolver as AI-NNN questions (blocking ones as mandatory confirmations). Distinct from user-goal-analysis (actor goals), opportunity-solution-trees (jumps to solutions), and five-whys (a bare cause chain).
+    output_path: analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html
+    reference_asset: framework/assets/analyses-inputs/business-context-definition-reference.md
+    template_asset: framework/assets/analyses-inputs/template-business-context-definition.html
+    map_skill: framework/skills/map-business-context-definition-from-inputs-to-ui.md
+    analyser_agent: framework/agents/analyses-inputs/business-context-definition-analyser.md
+    character: framework/assets/characters/business-context-definition-inputs-analysis.md
 ---
 
 # analyses-inputs/registry.md
@@ -288,4 +341,4 @@ methodologies:
 - `analyser_agent` — the foreground agent invoked by the orchestrator. Required only when `status: mvp`.
 - `character` — stance the Unicorn adopts while running the analyser. Required only when `status: mvp`.
 
-**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `task-analysis`, `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, `jtbd`, `ooux`, `swim-lane-process-mapping`, `affinity-mapping`, and `user-goal-analysis` now at `status: mvp`, the selector presents nine options to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.
+**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `task-analysis`, `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, `jtbd`, `ooux`, `swim-lane-process-mapping`, `affinity-mapping`, `user-goal-analysis`, and `business-context-definition` now at `status: mvp`, the selector presents ten options to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.

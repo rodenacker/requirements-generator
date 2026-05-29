@@ -1,0 +1,711 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses-inputs/business-context-definition-analyser.md.
+
+  Purpose: HTML/CSS skeleton for the Business Context Definition report, **input-analysis
+  variant** — analyses raw consultant material enumerated in
+  `requirements/source-manifest.json` (not the synthesised `requirements/requirements.md`).
+  Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`). No external CSS/JS
+  dependencies, NO Mermaid, NO CDN, NO `<script>`; viewable by opening `file://` in a
+  browser; shareable with clients without tooling. Readability-optimised.
+
+  No sibling under /analyse-requirement — Business Context Definition ships only on the inputs side.
+
+  Scope: ENTERPRISE motivation only (BMM Ends + BABOK Business Need + Five-Whys + Design-Thinking
+  POV/HMW). Actor / end-user goals are user-goal-analysis's lane and are NOT rendered here — any
+  encountered are logged in Diagnostics as `deferred-to-user-goal-analysis`.
+
+  Section order (top-to-bottom) — diagram-first (the causal-chain map is the connective tissue;
+  it leads so the reader sees how the four artefacts connect before the detail cards):
+    1. Overview (id="overview")             — title, subtitle, meta-grid.
+    2. TOC (<nav class="toc">)              — static top-level anchors.
+    3. Causal-chain map (id="causal-map")   — {{CAUSAL_MAP}} — CSS-only 4-stage grid. THE DIAGRAM; first content item.
+    4. Business Needs Assessment (id="needs")           — {{NEEDS_BLOCK}}            — artefact #1.
+    5. Business Problem Statement (id="problems")       — {{PROBLEMS_BLOCK}}         — artefact #2 (Five-Whys ladders).
+    6. Business Goals (id="goals")                      — {{GOALS_HIERARCHY}} + {{GOALS_BLOCK}} — artefact #3 (BMM AND/OR tree + cards).
+    7. Problem Statement (id="problem-statement")       — {{PROBLEM_STATEMENTS_BLOCK}} — artefact #4 (POV+HMW).
+    8. Tensions (id="tensions")             — {{TENSIONS_TABLE}} — goal/need tensions table.
+    9. JSON body (id="body")                — {{BODY_JSON}} inside <pre><code id="bcd-body">.
+   10. Round-trip footer (id="round-trip")  — static paragraph above diagnostics.
+   11. Diagnostics (id="diagnostics")       — <details> wrapper, collapsed by default.
+
+  Placeholders the analyser substitutes (string substitution, all values pre-escaped for HTML
+  EXCEPT the BODY_JSON block which is escaped for the &lt; / &amp; / &gt; that would break <pre><code>):
+
+    {{TITLE}}                       — short title (e.g. "Business Context — Inputs — Project X")
+    {{DOMAIN}}                      — domain string (best-effort: manifest `target`/brief)
+    {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
+    {{MANIFEST_FINGERPRINT}}        — sha256 of requirements/source-manifest.json at read time
+    {{SOURCE_COUNT}}                — count of consumed manifest rows (tier != "Unsupported")
+    {{TIER_BREAKDOWN}}              — e.g. "3 Native-text, 1 Native-multimodal, 1 Supported-via-MCP"
+    {{PROBLEM_COUNT}}               — count of business_problems
+    {{NEED_COUNT}}                  — count of business_needs
+    {{GOAL_COUNT}}                  — count of business_goals
+    {{OBJECTIVE_COUNT}}             — count of business_objectives
+    {{PROBLEM_STATEMENT_COUNT}}     — count of problem_statements
+    {{EXPLICIT_COUNT}}              — count of provenance=explicit items (all buckets)
+    {{INFERRED_COUNT}}              — count of provenance=inferred items (all buckets)
+    {{PROBLEM_DRIVEN_COUNT}}        — count of needs with driver=problem-driven
+    {{OPPORTUNITY_DRIVEN_COUNT}}    — count of needs with driver=opportunity-driven
+    {{TENSION_COUNT}}               — count of surfaced tensions
+    {{CAUSAL_MAP}}                  — pre-rendered grid children per CAUSAL MAP SCHEMA.
+    {{NEEDS_BLOCK}}                 — pre-rendered <article class="ctx-card need-card"> set per NEED CARD SCHEMA.
+    {{PROBLEMS_BLOCK}}              — pre-rendered <article class="ctx-card problem-card"> set per PROBLEM CARD SCHEMA.
+    {{GOALS_HIERARCHY}}             — pre-rendered nested <ul class="goal-tree"> per GOAL TREE SCHEMA.
+    {{GOALS_BLOCK}}                 — pre-rendered <article class="ctx-card goal-card"> / objective rows per GOAL CARD SCHEMA.
+    {{PROBLEM_STATEMENTS_BLOCK}}    — pre-rendered <article class="ctx-card ps-card"> set per PROBLEM STATEMENT CARD SCHEMA.
+    {{TENSIONS_TABLE}}             — pre-rendered <table class="tensions"> per TENSIONS SCHEMA, or the empty-state paragraph.
+    {{BODY_JSON}}                   — the machine-readable JSON re-ingestion contract (escaped).
+    {{DIAGNOSTICS_BLOCK}}           — pre-rendered <section class="diagnostics"> per DIAGNOSTICS SCHEMA.
+    <!-- bcd-meta: ... -->          — analyser emits this HTML comment immediately before </main>
+                                      carrying manifest_fingerprint=<sha256>, run_count=<int>.
+                                      Step 3 prior-artefact detection parses the first match.
+
+  Output: analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html.
+
+  ----------------------------------------------------------------------------------------------
+  CAUSAL MAP SCHEMA — a single CSS grid of 7 tracks: 4 stage columns separated by 3 arrow columns
+  (grid-template-columns: 1fr 1.2em 1fr 1.2em 1fr 1.2em 1fr). The analyser emits a FLAT sequence
+  of grid children, row by row, left to right (auto-placement fills the 7 tracks per row):
+
+    HEADER ROW — exactly 7 children:
+      <div class="causal-head stage-problem">Business Problem</div>
+      <div class="causal-spacer"></div>
+      <div class="causal-head stage-need">Business Need</div>
+      <div class="causal-spacer"></div>
+      <div class="causal-head stage-goal">Goal / Objective</div>
+      <div class="causal-spacer"></div>
+      <div class="causal-head stage-ps">Problem Statement</div>
+
+    THEN per causal chain — exactly 7 children (cell, arrow, cell, arrow, cell, arrow, cell):
+      <div class="chain-cell stage-problem">
+        <span class="ctx-ref">BP-01</span> <span class="cell-text">short symptom→root phrase</span>
+      </div>                                          <!-- opportunity-driven chain: <span class="cell-empty">— opportunity-driven (no problem)</span> -->
+      <span class="chain-arrow" aria-hidden="true">&rarr;</span>
+      <div class="chain-cell stage-need">
+        <span class="ctx-ref">BN-01</span> <span class="cell-text">short need phrase</span>
+      </div>
+      <span class="chain-arrow" aria-hidden="true">&rarr;</span>
+      <div class="chain-cell stage-goal">
+        <span class="ctx-ref">BG-01</span> <span class="cell-text">short goal phrase</span>
+      </div>
+      <span class="chain-arrow" aria-hidden="true">&rarr;</span>
+      <div class="chain-cell stage-ps">
+        <span class="ctx-ref">PS-01</span> <span class="cell-text">short HMW phrase</span>
+      </div>
+
+    Inferred nodes add the .ai-suggested class to their .chain-cell. A missing node in a chain
+    renders <span class="cell-empty">(none)</span> inside its cell.
+
+  ----------------------------------------------------------------------------------------------
+  NEED CARD SCHEMA — {{NEEDS_BLOCK}} is one <article> per need:
+
+      <article id="need-<id>" class="ctx-card need-card prov-<explicit|inferred> driver-<problem|opportunity>">
+        <header class="ctx-card-header">
+          <span class="stage-badge stage-need">NEED</span>
+          <span class="driver-pill driver-<problem|opportunity>">PROBLEM-DRIVEN</span>   <!-- or OPPORTUNITY-DRIVEN -->
+          <span class="prov-badge prov-<explicit|inferred>">EXPLICIT</span>
+          <span class="ctx-id">BN-NN</span>
+        </header>
+        <p class="ctx-statement">The organisation needs to close the gap between {{current}} and {{desired}} because {{pressure}}.</p>
+        <div class="ctx-links">
+          <span class="link-label">From</span> <span class="ctx-ref">BP-01</span> …       <!-- or "opportunity" -->
+          <span class="link-label">Serves</span> <span class="ctx-ref">BG-01</span> …
+        </div>
+        {{PROVENANCE BLOCK}}                                                               <!-- see PROVENANCE BLOCK SCHEMA -->
+      </article>
+
+  PROBLEM CARD SCHEMA — {{PROBLEMS_BLOCK}} is one <article> per problem, carrying a Five-Whys ladder:
+
+      <article id="problem-<id>" class="ctx-card problem-card prov-<explicit|inferred>">
+        <header class="ctx-card-header">
+          <span class="stage-badge stage-problem">PROBLEM</span>
+          <span class="prov-badge prov-<explicit|inferred>">EXPLICIT</span>
+          <span class="ctx-id">BP-NN</span>
+        </header>
+        <p class="ctx-statement"><strong>Symptom:</strong> {{symptom}}</p>
+        <ol class="why-chain" aria-label="Five-Whys root-cause ladder">
+          <li>{{why rung 1}}</li>
+          <li>{{why rung 2}}</li>
+          <li class="root-cause">{{root cause}}</li>                                       <!-- last rung -->
+        </ol>
+        <div class="ctx-links"><span class="link-label">Feeds</span> <span class="ctx-ref">BN-01</span> …</div>
+        {{PROVENANCE BLOCK}}
+      </article>
+
+  GOAL TREE SCHEMA — {{GOALS_HIERARCHY}} is a CSS-only nested list (BMM Ends ladder; KAOS AND/OR).
+  Each <li> is a Vision/Goal/Objective node; a branch node carries an AND/OR label; objective
+  nodes carry a tier tag. Inferred nodes keep the .ai-suggested class on the node label:
+
+      <ul class="goal-tree">
+        <li class="tree-node">
+          <span class="node-label tier-vision">
+            <span class="ctx-ref">BG-00</span> {{vision phrase}} <span class="tier-tag">VISION</span>
+          </span>
+          <ul>
+            <li class="tree-node">
+              <span class="node-label tier-goal">
+                <span class="ctx-ref">BG-01</span> {{goal phrase}}
+                <span class="refine-badge refine-and">AND</span>                           <!-- or refine-or "OR"; omit on leaves -->
+              </span>
+              <ul>
+                <li class="tree-node">
+                  <span class="node-label tier-objective">
+                    <span class="ctx-ref">OBJ-01</span> {{objective phrase}} <span class="tier-tag">OBJ</span>
+                  </span>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    If no Vision was stated, the tree has no apex Vision node and the analyser notes
+    `no-vision-stated-in-inputs` in Diagnostics.
+
+  GOAL CARD SCHEMA — {{GOALS_BLOCK}} is one <article> per Goal, with its Objectives nested as rows:
+
+      <article id="goal-<id>" class="ctx-card goal-card prov-<explicit|inferred>">
+        <header class="ctx-card-header">
+          <span class="stage-badge stage-goal">GOAL</span>
+          <span class="tier-pill">{{goal|vision}}</span>
+          <span class="prov-badge prov-<explicit|inferred>">EXPLICIT</span>
+          <span class="ctx-id">BG-NN</span>
+        </header>
+        <p class="ctx-statement">{{qualitative goal statement}}</p>
+        <div class="ctx-links"><span class="link-label">Serves needs</span> <span class="ctx-ref">BN-01</span> …</div>
+        {{PROVENANCE BLOCK}}
+        <ul class="objective-list">                                                        <!-- omit if no objectives -->
+          <li class="objective-row prov-<explicit|inferred>">
+            <span class="stage-badge stage-obj">OBJ</span> <span class="ctx-id">OBJ-NN</span>
+            <span class="obj-statement">{{measurable objective}}</span>
+            <span class="obj-target">{{target}} </span>                                    <!-- or marker (no-target-in-inputs) -->
+            {{inline provenance chip(s)}}
+          </li>
+        </ul>
+      </article>
+
+  PROBLEM STATEMENT CARD SCHEMA — {{PROBLEM_STATEMENTS_BLOCK}} is one <article> per PS (POV + HMW):
+
+      <article id="ps-<id>" class="ctx-card ps-card prov-<explicit|inferred>">
+        <header class="ctx-card-header">
+          <span class="stage-badge stage-ps">PROBLEM STATEMENT</span>
+          <span class="prov-badge prov-<explicit|inferred>">INFERRED</span>
+          <span class="ctx-id">PS-NN</span>
+        </header>
+        <p class="pov"><span class="frame-label">POV</span> {{affected party}} needs {{need}} because {{insight}}.</p>
+        <p class="hmw"><span class="frame-label">HMW</span> How might we {{enable the need}} so that {{business goal}}?</p>
+        <div class="ctx-links">
+          <span class="link-label">Derived from</span> <span class="ctx-ref">BP-01</span> …  <!-- or "opportunity" -->
+          <span class="link-label">Serves</span> <span class="ctx-ref">BG-01</span>
+        </div>
+        {{PROVENANCE BLOCK}}
+      </article>
+
+  PROVENANCE BLOCK SCHEMA — appended to every card:
+      <!-- EXPLICIT: -->
+      <div class="provenance explicit"><span class="src-chip">[SRC: {{filename}}]</span> …</div>
+      <!-- INFERRED (.ai-suggested wrapper): -->
+      <div class="provenance inferred ai-suggested">
+        <span class="ai-badge">AI-NN · {{blocking|non-blocking}}</span>
+        <span class="technique-chip">via {{technique}}</span>
+        <span class="conf-chip conf-<high|medium|low>">{{HIGH|MEDIUM|LOW}}</span>
+        <span class="anchor">anchor: &ldquo;{{anchor_text}}&rdquo; <span class="src-chip">[SRC: {{filename}}]</span></span>
+      </div>
+
+  TENSIONS SCHEMA (or, when none, the empty-state paragraph substituted verbatim):
+
+      <table class="tensions" aria-label="Goal and need tensions">
+        <thead><tr><th>In tension</th><th>Tension</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td><span class="ctx-ref">BG-01</span> &#8644; <span class="ctx-ref">BG-03</span></td>
+              <td>{{one-line tension note}}</td>
+              <td><span class="src-chip">[SRC: {{filename}}]</span> …</td></tr>
+        </tbody>
+      </table>
+    empty-state: <p class="empty-state">No goal or need tensions surfaced in the consumed inputs.</p>
+
+  DIAGNOSTICS SCHEMA — the analyser's {{DIAGNOSTICS_BLOCK}} substitutes a single
+  <section class="diagnostics">. The template wraps it in a <details class="diagnostics-toggle">
+  (collapsed by default). The analyser does NOT emit the <details>/<summary> wrapper. Inner
+  section, in order:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>Business context report (input-analysis variant) — P problems, N needs, G goals,
+           O objectives, S problem statements (E explicit, I inferred) drawn from K consumed manifest rows.</p>
+        <p>Provenance: explicit cited from <inline source breakdown>; inferred anchored to
+           <inline anchor-source breakdown>.</p>
+        <p>Inference techniques: a five-whys-root-cause, b bmm-laddering, c opportunity-reframe,
+           d abductive-best-explanation, e swot-influencer-inference, f pov-hmw-reframe.</p>
+        <p>Confidence: x HIGH, y MEDIUM, z LOW (inferred items only).</p>
+        <p>Need drivers: P problem-driven, Q opportunity-driven. Vision: {{stated phrase or `no-vision-stated-in-inputs`}}.</p>
+        <h3>Source roster — Consumed</h3>
+        <table class="source-roster">
+          <thead><tr><th>filename</th><th>tier</th><th>sha256</th><th>candidates</th></tr></thead>
+          <tbody><!-- one row per tier != "Unsupported"; `irrelevant-to-business-context` rows noted in last cell --></tbody>
+        </table>
+        <h3>Source roster — Skipped</h3>
+        <table class="source-roster">
+          <thead><tr><th>filename</th><th>reason</th></tr></thead>
+          <tbody><!-- one row per tier == "Unsupported" --></tbody>
+        </table>
+        <h3>Boundary audit — deferred to user-goal-analysis</h3>
+        <ul><!-- one <li> per actor-goal statement ejected by D0/Q6: text + reason + [SRC]; <li class="muted">none</li> if none --></ul>
+        <h3>Quality gates</h3>
+        <ul>
+          <li class="check-pass|check-fail">Q1 — Provenance: every item cited or anchored-inferred.</li>
+          ... (all 7 gates Q1–Q7 listed in order)
+        </ul>
+        <h3>Flagged low-confidence inferred items</h3>
+        <ul><!-- inferred items judged weakest (LOW confidence / single anchor / long ladder); <li class="muted">none</li> if none --></ul>
+        <h3>Run history</h3>
+        <ul>
+          <li>{{ISO date}} — run #{{run_count}} — {{n_new_items}} new items ({{n_new_inferred}} inferred);
+              totals P/N/G/O/S; Override: <gate list> if applicable.</li>
+        </ul>
+        <!-- Override-only: flagged-items <ul> per failed gate with id + offending text + citation. -->
+      </section>
+
+  CSS classes used by the analyser:
+    .stage-problem, .stage-need, .stage-goal, .stage-obj, .stage-ps  — per-stage accent (map + badges).
+    .driver-problem, .driver-opportunity                              — need driver pill + card accent.
+    .prov-explicit, .prov-inferred                                    — provenance badge + card accent.
+    .ai-suggested                                                     — INFERRED provenance block, inferred map cell + tree node.
+    .src-chip                                                         — `[SRC: <filename>]` text chip.
+    .ai-badge, .technique-chip, .conf-chip, .anchor                   — inferred-item provenance internals.
+    .conf-high, .conf-medium, .conf-low                               — confidence chip shades.
+    .ctx-ref                                                          — monospace id reference (map, links, tables).
+    .ctx-id                                                           — monospace id in a card header (right-aligned).
+    .why-chain, .root-cause                                           — Five-Whys ladder list + terminal root-cause rung.
+    .goal-tree, .tree-node, .node-label, .refine-and, .refine-or      — BMM AND/OR hierarchy.
+    .tier-vision, .tier-goal, .tier-objective, .tier-tag, .tier-pill  — BMM tier styling.
+    .objective-list, .objective-row, .obj-target                      — objectives nested under a goal card.
+    .pov, .hmw, .frame-label                                          — POV+HMW problem-statement framing.
+    .source-roster                                                    — diagnostics tables (Consumed / Skipped).
+    .empty-state, .muted                                              — empty-state copy.
+
+  The CSS below is fixed scaffolding and should not be edited by the analyser — only the
+  {{placeholders}} above are substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --col-bg: #ffffff;
+      --shadow: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+      --header-bg: #efefef;
+
+      /* Causal-chain stages */
+      --stage-problem-bg: #f3cdc6; --stage-problem-border: #c0573f; --stage-problem-fg: #5a1e10;
+      --stage-need-bg:    #c9dcf2; --stage-need-border:    #4f7fbf; --stage-need-fg:    #14304f;
+      --stage-goal-bg:    #c8e6b2; --stage-goal-border:    #5e9a3e; --stage-goal-fg:    #1f3d12;
+      --stage-obj-bg:     #bfe6dd; --stage-obj-border:     #3f9a89; --stage-obj-fg:     #103a32;
+      --stage-ps-bg:      #ddccef; --stage-ps-border:      #8a62c7; --stage-ps-fg:      #2e1e55;
+
+      /* Need drivers */
+      --driver-problem-border: #c0573f;
+      --driver-opportunity-border: #b8860b;
+
+      /* Provenance — explicit green, inferred amber (.ai-suggested) */
+      --expl-bg: #c8e6b2; --expl-border: #7fb069; --expl-fg: #1f3d12;
+      --ai-bg: #ffe2b3;  --ai-border: #d48a2a;  --ai-fg: #4a2e00;
+      --ai-soft-bg: #fff4e0;
+
+      /* Confidence chips */
+      --conf-high-bg: #c8e6b2; --conf-high-fg: #1f3d12;
+      --conf-medium-bg: #ffe2b3; --conf-medium-fg: #4a2e00;
+      --conf-low-bg: #f3cdc6; --conf-low-fg: #5a1e10;
+
+      /* Source chips */
+      --src-chip-bg: #f4f0e6;
+      --src-chip-border: #c9b88f;
+      --src-chip-fg: #5a4a1a;
+
+      --pass-fg: #2a8a2a;
+      --rev-fg: #8a1a1a;
+
+      /* tree guides */
+      --tree-line: #c4c4c4;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--bg); color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px; line-height: 1.45;
+    }
+    main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px 0; }
+    .subtitle { color: var(--muted); font-size: 13px; margin: 0 0 24px 0; }
+
+    section[id] { scroll-margin-top: 12px; }
+    .section-title { font-size: 17px; font-weight: 600; margin: 28px 0 12px 0; }
+    .section-caption { font-size: 12px; color: var(--muted); margin: 0 0 12px 0; }
+    .section-caption code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; background: var(--header-bg); padding: 1px 4px; border-radius: 3px; }
+
+    .meta-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 8px 24px; padding: 12px 16px; border: 1px solid var(--border);
+      border-radius: 6px; background: #fff; margin-bottom: 8px; font-size: 13px;
+    }
+    .meta-grid dt { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; margin: 0; }
+    .meta-grid dd { margin: 0 0 6px 0; font-variant-numeric: tabular-nums; word-break: break-word; }
+
+    /* ------- table of contents ------- */
+    .toc {
+      margin: 0 0 8px 0; padding: 10px 14px; background: #fff;
+      border: 1px solid var(--border); border-left: 4px solid var(--border-strong);
+      border-radius: 6px; font-size: 13px;
+    }
+    .toc ol { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 18px; counter-reset: toc-item; }
+    .toc li { counter-increment: toc-item; }
+    .toc li::before { content: counter(toc-item) ". "; color: var(--muted); margin-right: 4px; font-variant-numeric: tabular-nums; }
+    .toc a { color: var(--fg); text-decoration: none; border-bottom: 1px dotted var(--border-strong); }
+    .toc a:hover { border-bottom-color: var(--fg); }
+
+    /* ------- causal-chain map (CSS-only grid; no JS, no Mermaid) ------- */
+    .causal-wrap { padding: 16px; border: 1px solid var(--border); border-radius: 6px; background: #fff; overflow-x: auto; }
+    .causal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.4em 1fr 1.4em 1fr 1.4em 1fr;
+      align-items: stretch; gap: 8px 0; min-width: 720px;
+    }
+    .causal-head {
+      font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 6px 8px; border-radius: 4px 4px 0 0; text-align: center; align-self: end;
+      border: 1px solid transparent; border-bottom-width: 2px;
+    }
+    .causal-head.stage-problem { background: var(--stage-problem-bg); border-color: var(--stage-problem-border); color: var(--stage-problem-fg); }
+    .causal-head.stage-need    { background: var(--stage-need-bg);    border-color: var(--stage-need-border);    color: var(--stage-need-fg); }
+    .causal-head.stage-goal    { background: var(--stage-goal-bg);    border-color: var(--stage-goal-border);    color: var(--stage-goal-fg); }
+    .causal-head.stage-ps      { background: var(--stage-ps-bg);      border-color: var(--stage-ps-border);      color: var(--stage-ps-fg); }
+    .causal-spacer { }
+    .chain-cell {
+      display: flex; flex-direction: column; gap: 3px; padding: 8px 10px;
+      border: 1px solid var(--border); border-radius: 5px; background: var(--col-bg);
+      border-left-width: 3px; font-size: 12px; min-height: 38px;
+    }
+    .chain-cell.stage-problem { border-left-color: var(--stage-problem-border); }
+    .chain-cell.stage-need    { border-left-color: var(--stage-need-border); }
+    .chain-cell.stage-goal    { border-left-color: var(--stage-goal-border); }
+    .chain-cell.stage-ps      { border-left-color: var(--stage-ps-border); }
+    .chain-cell.ai-suggested  { background: var(--ai-soft-bg); border-left-color: var(--ai-border); }
+    .chain-cell .cell-text { line-height: 1.35; }
+    .chain-cell .cell-empty { color: var(--muted); font-style: italic; }
+    .chain-arrow { align-self: center; color: var(--border-strong); font-size: 16px; text-align: center; }
+
+    /* ------- context cards (needs / problems / goals / problem-statements) ------- */
+    .ctx-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 12px; align-items: start; }
+    .ctx-card {
+      display: flex; flex-direction: column; gap: 8px; padding: 12px;
+      background: var(--col-bg); border: 1px solid var(--border);
+      border-radius: 6px; border-top: 3px solid var(--border-strong);
+    }
+    .ctx-card.prov-inferred { border-top-color: var(--ai-border); background: var(--ai-soft-bg); }
+    .need-card.prov-explicit     { border-top-color: var(--stage-need-border); }
+    .problem-card.prov-explicit  { border-top-color: var(--stage-problem-border); }
+    .goal-card.prov-explicit     { border-top-color: var(--stage-goal-border); }
+    .ps-card.prov-explicit       { border-top-color: var(--stage-ps-border); }
+    .need-card.driver-opportunity { border-top-style: dashed; }
+
+    .ctx-card-header { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .stage-badge, .driver-pill, .prov-badge, .tier-pill {
+      display: inline-block; padding: 2px 6px; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.07em; border-radius: 3px; border: 1px solid transparent;
+    }
+    .stage-badge.stage-problem { background: var(--stage-problem-bg); border-color: var(--stage-problem-border); color: var(--stage-problem-fg); }
+    .stage-badge.stage-need    { background: var(--stage-need-bg);    border-color: var(--stage-need-border);    color: var(--stage-need-fg); }
+    .stage-badge.stage-goal    { background: var(--stage-goal-bg);    border-color: var(--stage-goal-border);    color: var(--stage-goal-fg); }
+    .stage-badge.stage-obj     { background: var(--stage-obj-bg);     border-color: var(--stage-obj-border);     color: var(--stage-obj-fg); }
+    .stage-badge.stage-ps      { background: var(--stage-ps-bg);      border-color: var(--stage-ps-border);      color: var(--stage-ps-fg); }
+    .driver-pill.driver-problem     { background: var(--stage-problem-bg); border-color: var(--driver-problem-border); color: var(--stage-problem-fg); }
+    .driver-pill.driver-opportunity { background: #fae8c0; border-color: var(--driver-opportunity-border); color: #5a4205; }
+    .prov-badge.prov-explicit { background: var(--expl-bg); border-color: var(--expl-border); color: var(--expl-fg); }
+    .prov-badge.prov-inferred { background: var(--ai-bg); border-color: var(--ai-border); color: var(--ai-fg); }
+    .tier-pill { background: var(--header-bg); border-color: var(--border-strong); color: var(--muted); text-transform: uppercase; }
+
+    .ctx-id { margin-left: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .ctx-statement { margin: 0; font-size: 14px; line-height: 1.4; }
+
+    .ctx-links { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 11px; color: var(--muted); }
+    .link-label { font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; font-size: 9px; }
+    .ctx-ref {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px; color: var(--fg); font-variant-numeric: tabular-nums;
+      background: var(--header-bg); border: 1px solid var(--border); border-radius: 3px; padding: 0 5px;
+    }
+
+    /* ------- Five-Whys ladder ------- */
+    ol.why-chain { margin: 4px 0 0 0; padding: 0 0 0 4px; list-style: none; counter-reset: why; }
+    ol.why-chain li {
+      position: relative; margin: 0 0 4px 0; padding: 4px 8px 4px 22px; font-size: 12px;
+      border-left: 2px solid var(--stage-problem-border); background: #fff; border-radius: 0 4px 4px 0;
+    }
+    ol.why-chain li::before {
+      content: "↳ why?"; position: absolute; left: -2px; top: -10px;
+      font-size: 8px; font-weight: 700; letter-spacing: 0.05em; color: var(--muted);
+    }
+    ol.why-chain li:first-child::before { content: ""; }
+    ol.why-chain li.root-cause { border-left-color: var(--stage-problem-fg); background: var(--stage-problem-bg); font-weight: 600; }
+    ol.why-chain li.root-cause::after { content: " — root cause"; font-weight: 400; font-style: italic; color: var(--stage-problem-fg); }
+
+    /* ------- BMM goal hierarchy (CSS-only AND/OR tree) ------- */
+    .tree-wrap { padding: 16px; border: 1px solid var(--border); border-radius: 6px; background: #fff; overflow-x: auto; margin-bottom: 16px; }
+    ul.goal-tree, ul.goal-tree ul { list-style: none; margin: 0; padding: 0; }
+    ul.goal-tree ul { margin-left: 18px; padding-left: 14px; border-left: 1px solid var(--tree-line); }
+    .tree-node { margin: 4px 0; position: relative; }
+    .tree-node ul .tree-node::before {
+      content: ""; position: absolute; top: 12px; left: -14px; width: 12px; border-top: 1px solid var(--tree-line);
+    }
+    .node-label {
+      display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      padding: 3px 8px; border-radius: 4px; background: var(--col-bg); border: 1px solid var(--border); font-size: 13px;
+    }
+    .node-label.tier-vision    { background: #ece3f7; border-color: var(--stage-ps-border); font-weight: 600; }
+    .node-label.tier-goal      { background: #eef6e8; border-color: var(--stage-goal-border); }
+    .node-label.tier-objective { background: #e3f3ef; border-color: var(--stage-obj-border); }
+    .node-label.ai-suggested   { background: var(--ai-soft-bg); border-color: var(--ai-border); }
+    .tier-tag { font-size: 8px; font-weight: 800; letter-spacing: 0.06em; color: var(--muted); border: 1px solid var(--border-strong); border-radius: 3px; padding: 0 4px; }
+    .refine-badge { display: inline-block; padding: 0 6px; border-radius: 3px; font-size: 9px; font-weight: 800; letter-spacing: 0.08em; border: 1px solid transparent; }
+    .refine-and { background: var(--stage-goal-bg); border-color: var(--stage-goal-border); color: var(--stage-goal-fg); }
+    .refine-or  { background: var(--stage-need-bg); border-color: var(--stage-need-border); color: var(--stage-need-fg); }
+
+    /* ------- objectives nested under a goal card ------- */
+    ul.objective-list { list-style: none; margin: 4px 0 0 0; padding: 8px 0 0 0; border-top: 1px dashed var(--border); display: flex; flex-direction: column; gap: 6px; }
+    li.objective-row { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; font-size: 12px; }
+    li.objective-row.prov-inferred { color: var(--ai-fg); }
+    .obj-statement { flex: 1 1 auto; }
+    .obj-target { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+    /* ------- POV + HMW problem statement ------- */
+    .pov, .hmw { margin: 0; font-size: 13px; line-height: 1.45; }
+    .frame-label {
+      display: inline-block; margin-right: 6px; font-size: 9px; font-weight: 800; letter-spacing: 0.06em;
+      text-transform: uppercase; padding: 1px 5px; border-radius: 3px; vertical-align: middle;
+      background: var(--stage-ps-bg); border: 1px solid var(--stage-ps-border); color: var(--stage-ps-fg);
+    }
+    .hmw { margin-top: 6px; font-weight: 500; }
+
+    /* ------- provenance blocks (shared) ------- */
+    .provenance { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 11px; }
+    .provenance.inferred.ai-suggested { padding: 6px 8px; border-radius: 4px; background: #fff; border: 1px dashed var(--ai-border); }
+    .ai-badge {
+      display: inline-block; padding: 1px 7px; border-radius: 3px; font-weight: 700;
+      background: var(--ai-bg); border: 1px solid var(--ai-border); color: var(--ai-fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 10px;
+    }
+    .technique-chip {
+      display: inline-block; padding: 1px 7px; border-radius: 3px;
+      background: var(--header-bg); border: 1px solid var(--border-strong); color: var(--muted);
+      font-size: 10px; font-weight: 600; letter-spacing: 0.03em;
+    }
+    .conf-chip { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 9px; font-weight: 800; letter-spacing: 0.06em; border: 1px solid transparent; }
+    .conf-chip.conf-high   { background: var(--conf-high-bg);   color: var(--conf-high-fg); }
+    .conf-chip.conf-medium { background: var(--conf-medium-bg); color: var(--conf-medium-fg); }
+    .conf-chip.conf-low    { background: var(--conf-low-bg);    color: var(--conf-low-fg); }
+    .anchor { color: var(--muted); font-style: italic; }
+    .src-chip {
+      display: inline-block; padding: 1px 6px; border-radius: 3px;
+      background: var(--src-chip-bg); border: 1px solid var(--src-chip-border); color: var(--src-chip-fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 10px;
+      line-height: 1.35; white-space: nowrap; font-style: normal;
+    }
+
+    /* ------- tensions table ------- */
+    table.tensions { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    table.tensions th, table.tensions td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+    table.tensions thead th { background: var(--header-bg); font-weight: 600; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+    table.tensions .ctx-ref { margin-right: 4px; }
+    .empty-state { padding: 12px 14px; border: 1px dashed var(--border-strong); border-radius: 6px; background: #fff; color: var(--muted); font-style: italic; }
+    .muted { color: var(--muted); }
+
+    /* ------- JSON body block ------- */
+    .body-wrap { padding: 0; }
+    pre.body-json { margin: 0; padding: 14px 16px; background: #1e1e1e; color: #e8e8e8; border-radius: 6px; overflow-x: auto; font-size: 11px; line-height: 1.4; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    pre.body-json code { white-space: pre; }
+
+    /* ------- round-trip footer ------- */
+    .round-trip { margin: 24px 0; padding: 12px 16px; background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--stage-goal-border); border-radius: 6px; font-size: 13px; color: var(--fg); }
+    .round-trip strong { color: var(--stage-goal-fg); }
+    .round-trip code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; background: var(--header-bg); padding: 1px 4px; border-radius: 3px; }
+
+    /* ------- diagnostics ------- */
+    details.diagnostics-toggle { margin-bottom: 24px; }
+    details.diagnostics-toggle > summary {
+      cursor: pointer; padding: 10px 14px; background: #fff; border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong); border-radius: 6px; font-weight: 600;
+      font-size: 14px; color: var(--fg); list-style: none; display: flex; align-items: center; gap: 8px; user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before { content: "▶"; font-size: 10px; color: var(--muted); transition: transform 0.15s ease; display: inline-block; }
+    details.diagnostics-toggle[open] > summary { border-radius: 6px 6px 0 0; border-bottom: none; }
+    details.diagnostics-toggle[open] > summary::before { transform: rotate(90deg); }
+    .diagnostics { padding: 16px; border: 1px solid var(--border); border-left: 4px solid var(--border-strong); border-radius: 6px; background: #fff; margin-bottom: 24px; }
+    details.diagnostics-toggle > .diagnostics { border-top: none; border-radius: 0 0 6px 6px; margin-bottom: 0; }
+    details.diagnostics-toggle > .diagnostics > h2 { display: none; }
+    .diagnostics h2 { font-size: 16px; margin: 0 0 8px 0; }
+    .diagnostics h3 { font-size: 13px; margin: 16px 0 6px 0; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .diagnostics > p { margin: 4px 0; }
+    .diagnostics > ul { margin: 8px 0 12px 0; padding-left: 20px; }
+    .diagnostics .check-pass::before { content: "PASS "; color: var(--pass-fg); font-weight: 600; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--rev-fg); font-weight: 600; }
+    table.source-roster { width: 100%; border-collapse: collapse; font-size: 12px; margin: 4px 0 12px 0; }
+    table.source-roster th, table.source-roster td { border: 1px solid var(--border); padding: 4px 8px; text-align: left; vertical-align: top; }
+    table.source-roster thead th { background: var(--header-bg); font-weight: 600; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+    table.source-roster td.sha { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; color: var(--muted); }
+
+    footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 11px; }
+    footer .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+    footer .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    footer .legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid transparent; }
+    footer .legend-swatch.s-problem { background: var(--stage-problem-bg); border-color: var(--stage-problem-border); }
+    footer .legend-swatch.s-need    { background: var(--stage-need-bg);    border-color: var(--stage-need-border); }
+    footer .legend-swatch.s-goal    { background: var(--stage-goal-bg);    border-color: var(--stage-goal-border); }
+    footer .legend-swatch.s-ps      { background: var(--stage-ps-bg);      border-color: var(--stage-ps-border); }
+    footer .legend-swatch.s-expl    { background: var(--expl-bg); border-color: var(--expl-border); }
+    footer .legend-swatch.s-ai      { background: var(--ai-bg);   border-color: var(--ai-border); }
+    footer .credit { margin-top: 6px; text-align: right; }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .ctx-grid { gap: 8px; }
+      .ctx-card { break-inside: avoid; }
+      .causal-wrap { break-inside: avoid; overflow-x: visible; }
+      .causal-grid { min-width: 0; }
+      .tree-wrap { break-inside: avoid; overflow-x: visible; }
+      pre.body-json { white-space: pre-wrap; word-break: break-word; }
+      .toc { display: none; }
+      .round-trip { break-inside: avoid; }
+      details.diagnostics-toggle[open] > summary::before { content: ""; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section id="overview">
+      <h1>{{TITLE}}</h1>
+      <p class="subtitle">Business context report (input-analysis variant) — the enterprise motivation behind the request: a Business Needs Assessment, a Business Problem Statement, a Business Goals collection, and a human-centered Problem Statement, linked in a problem&rarr;need&rarr;goal causal chain. Sourced from raw consultant inputs enumerated in <code>requirements/source-manifest.json</code>. Explicit items are cited; inferred items are anchored, marked, and auditable. Enterprise altitude only — actor goals are <code>user-goal-analysis</code>'s lane.</p>
+
+      <dl class="meta-grid">
+        <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+        <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+        <div><dt>Manifest fingerprint</dt><dd>{{MANIFEST_FINGERPRINT}}</dd></div>
+        <div><dt>Sources consumed</dt><dd>{{SOURCE_COUNT}}</dd></div>
+        <div><dt>Tier breakdown</dt><dd>{{TIER_BREAKDOWN}}</dd></div>
+        <div><dt>Problems</dt><dd>{{PROBLEM_COUNT}}</dd></div>
+        <div><dt>Needs</dt><dd>{{NEED_COUNT}}</dd></div>
+        <div><dt>Goals</dt><dd>{{GOAL_COUNT}}</dd></div>
+        <div><dt>Objectives</dt><dd>{{OBJECTIVE_COUNT}}</dd></div>
+        <div><dt>Problem statements</dt><dd>{{PROBLEM_STATEMENT_COUNT}}</dd></div>
+        <div><dt>Explicit</dt><dd>{{EXPLICIT_COUNT}}</dd></div>
+        <div><dt>Inferred</dt><dd>{{INFERRED_COUNT}}</dd></div>
+        <div><dt>Problem-driven needs</dt><dd>{{PROBLEM_DRIVEN_COUNT}}</dd></div>
+        <div><dt>Opportunity-driven needs</dt><dd>{{OPPORTUNITY_DRIVEN_COUNT}}</dd></div>
+        <div><dt>Tensions</dt><dd>{{TENSION_COUNT}}</dd></div>
+      </dl>
+    </section>
+
+    <nav class="toc" aria-label="Sections">
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#causal-map">Causal-chain map</a></li>
+        <li><a href="#needs">Business Needs Assessment</a></li>
+        <li><a href="#problems">Business Problem Statement</a></li>
+        <li><a href="#goals">Business Goals</a></li>
+        <li><a href="#problem-statement">Problem Statement</a></li>
+        <li><a href="#tensions">Tensions</a></li>
+        <li><a href="#round-trip">Use in /requirements</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+      </ol>
+    </nav>
+
+    <section id="causal-map" aria-label="Problem to need to goal to problem-statement causal chain">
+      <h2 class="section-title">Causal-chain map</h2>
+      <p class="section-caption">How the four artefacts connect: each <strong>Business Problem</strong> (or opportunity) creates a <strong>Business Need</strong>, which a <strong>Business Goal / Objective</strong> resolves, which a human-centered <strong>Problem Statement</strong> reframes for solution exploration. Inferred nodes (amber) are anchored and auditable. Opportunity-driven chains correctly have no problem.</p>
+      <div class="causal-wrap">
+        <div class="causal-grid">
+          {{CAUSAL_MAP}}
+        </div>
+      </div>
+    </section>
+
+    <section id="needs" aria-label="Business Needs Assessment">
+      <h2 class="section-title">Business Needs Assessment</h2>
+      <p class="section-caption">The organisation's imperatives for change — the gap between current and desired state. Each need is <strong>problem-driven</strong> (a dysfunction to remove) or <strong>opportunity-driven</strong> (an upside to capture). BABOK <em>Define Business Need</em>.</p>
+      <div class="ctx-grid">
+        {{NEEDS_BLOCK}}
+      </div>
+    </section>
+
+    <section id="problems" aria-label="Business Problem Statement">
+      <h2 class="section-title">Business Problem Statement</h2>
+      <p class="section-caption"><strong>Diagnosis</strong> — what is wrong with the organisation today and why. Each card climbs a Five-Whys ladder from symptom to an organisationally-actionable root cause. <em>Distinct from the <a href="#problem-statement">Problem Statement</a> below: this section looks backward to the cause; that one looks forward to the solution search.</em></p>
+      <div class="ctx-grid">
+        {{PROBLEMS_BLOCK}}
+      </div>
+    </section>
+
+    <section id="goals" aria-label="Business Goals collection">
+      <h2 class="section-title">Business Goals</h2>
+      <p class="section-caption">Desired organisational end-states (BMM Ends). A <strong>Goal</strong> is qualitative and long-term; an <strong>Objective</strong> is its measurable, time-bound child. The tree shows KAOS <span class="refine-badge refine-and">AND</span> / <span class="refine-badge refine-or">OR</span> refinement; a Vision apex appears only if explicitly stated.</p>
+      <div class="tree-wrap">
+        {{GOALS_HIERARCHY}}
+      </div>
+      <div class="ctx-grid">
+        {{GOALS_BLOCK}}
+      </div>
+    </section>
+
+    <section id="problem-statement" aria-label="Human-centered Problem Statement">
+      <h2 class="section-title">Problem Statement</h2>
+      <p class="section-caption"><strong>Brief</strong> — a solution-neutral, human-centered reframing (Design Thinking POV + &ldquo;How Might We&rdquo;) that orients solution exploration without prescribing a solution. <em>Derived from a Business Problem or opportunity above; it names who is affected and the goal served, and prescribes nothing.</em></p>
+      <div class="ctx-grid">
+        {{PROBLEM_STATEMENTS_BLOCK}}
+      </div>
+    </section>
+
+    <section id="tensions" aria-label="Goal and need tensions">
+      <h2 class="section-title">Tensions</h2>
+      <p class="section-caption">Goal or need pairs that pull against each other. Surfaced for the consultant to weigh — not resolved here.</p>
+      {{TENSIONS_TABLE}}
+    </section>
+
+    <section id="body" class="body-wrap" aria-label="Machine-readable business-context model">
+      <h2 class="section-title">Machine-readable model</h2>
+      <p class="section-caption">The full business-context model in JSON — the re-ingestion contract that survives a markitdown HTML&rarr;MD round-trip as a fenced code block.</p>
+      <pre class="body-json"><code class="language-json" id="bcd-body">{{BODY_JSON}}</code></pre>
+    </section>
+
+    <section id="round-trip" class="round-trip" aria-label="Use in /requirements">
+      <p><strong>Use this report as input to <code>/requirements</code>:</strong> copy this file into <code>input/</code> and re-invoke <code>/requirements</code>. The shared input-handler will detect the new file, surface a manifest-refresh prompt, and add it as a <code>Native-text</code> row. The drafter then seeds the <strong>strategic framing</strong> (why each requirement exists) from the explicit <strong>Goals</strong>, <strong>Objectives</strong>, and <strong>Needs</strong>, and the scope framing from the <strong>Problem Statement</strong>, while the <strong>inferred</strong> items surface to the resolver as <code>AI-NNN</code> questions — <em>blocking</em> ones (inferred root causes, inferred root goals, abductive explanations) as mandatory confirmations, <em>non-blocking</em> ones as suggestions — so you validate every inference before it frames a requirement. The <code>causal_links</code> seed traceability (requirement &rarr; goal &rarr; need &rarr; problem), and the <code>[SRC: <em>&lt;filename&gt;</em>]</code> anchors preserve the audit trail back to the original briefs / notes / decks.</p>
+    </section>
+
+    <details id="diagnostics" class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    <footer>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-problem" aria-hidden="true"></span> Business problem</span>
+        <span class="legend-item"><span class="legend-swatch s-need" aria-hidden="true"></span> Business need</span>
+        <span class="legend-item"><span class="legend-swatch s-goal" aria-hidden="true"></span> Goal / objective</span>
+        <span class="legend-item"><span class="legend-swatch s-ps" aria-hidden="true"></span> Problem statement</span>
+        <span class="legend-item"><span class="legend-swatch s-expl" aria-hidden="true"></span> Explicit (cited)</span>
+        <span class="legend-item"><span class="legend-swatch s-ai" aria-hidden="true"></span> Inferred (anchored)</span>
+      </div>
+      <div class="credit">Generated by <code>framework/agents/analyses-inputs/business-context-definition-analyser.md</code> — BMM Ends · BABOK Business Need · Five-Whys root cause · Design-Thinking POV/HMW · KAOS AND/OR refinement.</div>
+    </footer>
+  </main>
+</body>
+</html>
