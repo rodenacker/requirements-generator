@@ -1,1215 +1,276 @@
 # Framework Dependency Graphs
 
-Two transitive dependency trees, one rooted at each orchestrator. Edges represent explicit load / Read / invoke intent declared inside each file. "See also" directory pointers (e.g. `pattern-catalogue/`) are not drawn as edges.
+Eight transitive load/read/invoke trees, one per orchestrator. Source of truth for "what loads what". LLM-only doc (not loaded at runtime) — diagrams dropped in favour of filename-keyed adjacency lists.
 
-## requirements-orch.md
+## Notation
 
-```mermaid
-graph TD
-    classDef orch fill:#1f2937,color:#fff,stroke:#000,stroke-width:2px,font-weight:bold
-    classDef agent fill:#2563eb,color:#fff,stroke:#1e40af
-    classDef skill fill:#0d9488,color:#fff,stroke:#0f766e
-    classDef asset fill:#d97706,color:#fff,stroke:#92400e
-    classDef shared fill:#7c3aed,color:#fff,stroke:#5b21b6
-    classDef char fill:#db2777,color:#fff,stroke:#9d174d
-    classDef state fill:#525252,color:#fff,stroke:#262626
+- `A → B, C` — A loads/reads/invokes B and C. The arrow target is the **filename** (node identity); dir prefixes shown only where they disambiguate (`characters/`, `steps/`, `reviews/`, …).
+- `A ⇒ @macro` — A expands a shared subtree defined in *Shared conventions*.
+- `[cond: …]` — conditional/runtime-predicated edge (was a dashed Mermaid edge).
+- `[parallel …]` — dispatched as a parallel sub-agent (was a dashed-border node), not a foreground invocation.
+- `(char)`/`(tmpl)` — optional type hint when the filename alone is ambiguous.
+- Stats `N nodes / M edges / depth D` describe the original graph topology (unchanged; same edges, terser notation).
 
-    subgraph Orchestrator
-      orch_req[requirements-orch.md]
-    end
+## Shared conventions (apply to every graph unless a per-graph note overrides)
 
-    subgraph Agents
-      agent_input[input-handler.md]
-      agent_drafter[requirements-drafter.md]
-      agent_resolver[requirements-resolver.md]
-      agent_merger[requirements-merger.md]
-    end
+- **No cycles** in any subtree.
+- **Pipeline output artefacts are produced, not loaded** → never drawn as edges (e.g. `requirements/requirements.md`, `prd/prd.md`, manifests, draft sidecars). A pipeline's own read target (e.g. analysers/reviewers reading `requirements/requirements.md`) is implicit, not drawn.
+- **No `pattern-catalogue/` "see also" pointers** drawn — except graph 8, where `pattern-catalogue/_index.md` is a real direct read.
+- **Write isolation.** Each pipeline writes only its own output dir. Two documented cross-pipeline write exceptions, both inherited from shared agents: `input-handler.md` writes `requirements/source-manifest.json` + `input/*.converted.md` (create/refresh modes only); `blueprint-architect.md` writes `blueprints/<slug>/{scope.json, blueprint.md}`. Orchestrator step-0b preflight has read-only access to `requirements/`, `requirements/source-manifest.json`, `state/.progress.json`.
+- **check-context-bloat.md** → `refusal-registry.md`, `state/.progress.json` (existence/byte check only; callers never write `.progress.json`). `artefact_dir` = `input/` for the two `*-inputs` pipelines, else `requirements/`.
+- **verify-artifact-write.md** → `refusal-registry.md`, called from every agent's write step. Shared across all orchestrators (one file on disk).
+- **Registry-driven orchs (graphs 3, 4, 5, 6).** `<selector> → registry.md` is the discovery edge; `orch → agent_*` edges are runtime invocation paths. Adding an MVP method = new registry row + asset fan-out + one `orch → agent` edge; **zero orchestrator edits**.
 
-    subgraph Skills
-      skill_classify[classify-input-tier.md]
-      skill_preflight[preflight-mcp.md]
-      skill_convert[convert-input-file.md]
-      skill_buildmanifest[build-source-manifest.md]
-      skill_checkfresh[check-manifest-freshness.md]
-      skill_verifywrite[verify-artifact-write.md]
-      skill_bloat[check-context-bloat.md]
-      skill_gappass[completeness-gap-pass.md]
-      skill_mermaid[mermaid-validator.md]
-      skill_qa1[run-qa-level1.md]
-      skill_qa2[run-qa-level2.md]
-      skill_flag[flag-gaps-ambiguities.md]
-    end
+### `@input-handler-subtree` (graphs 1, 5, 6, 7 — one set of files on disk)
 
-    subgraph Assets
-      asset_template_req[template-requirements.md]
-      asset_topics_req[topics-requirements.md]
-    end
-
-    subgraph Characters
-      char_req_qa[characters/requirements-qa.md]
-    end
-
-    subgraph Shared
-      shared_refusal[refusal-registry.md]
-      shared_protoscope[prototype-scope.md]
-      shared_genrules[general-rules.md]
-      shared_protoinv[prototype-invariants.md]
-      shared_setup_md[setup-instructions/markitdown.md]
-    end
-
-    subgraph State
-      state_progress[state/.progress.json]
-    end
-
-    orch_req --> agent_input
-    orch_req --> agent_drafter
-    orch_req --> agent_resolver
-    orch_req --> agent_merger
-    orch_req --> skill_bloat
-    orch_req --> shared_refusal
-    orch_req --> state_progress
-
-    agent_input --> skill_checkfresh
-    agent_input --> skill_classify
-    agent_input --> skill_preflight
-    agent_input --> skill_convert
-    agent_input --> skill_buildmanifest
-    agent_input --> skill_verifywrite
-    agent_input --> shared_refusal
-    agent_input --> shared_setup_md
-
-    skill_classify --> skill_convert
-    skill_preflight --> shared_refusal
-    skill_convert --> skill_verifywrite
-    skill_convert --> shared_refusal
-    skill_buildmanifest --> skill_verifywrite
-    skill_verifywrite --> shared_refusal
-    skill_bloat --> shared_refusal
-    skill_bloat --> state_progress
-
-    agent_drafter --> asset_template_req
-    agent_drafter --> shared_protoscope
-    agent_drafter --> shared_genrules
-    agent_drafter --> shared_refusal
-    agent_drafter --> skill_verifywrite
-    agent_drafter --> skill_gappass
-    agent_drafter --> skill_mermaid
-
-    skill_gappass --> shared_protoscope
-    skill_gappass --> shared_genrules
-    skill_gappass --> asset_topics_req
-
-    agent_resolver --> char_req_qa
-    agent_resolver --> skill_qa1
-    agent_resolver --> skill_qa2
-    agent_resolver --> skill_flag
-    agent_resolver --> shared_protoscope
-    agent_resolver --> shared_genrules
-
-    skill_flag --> shared_protoscope
-    skill_flag --> shared_genrules
-
-    agent_merger --> shared_protoinv
-
-    class orch_req orch
-    class agent_input,agent_drafter,agent_resolver,agent_merger agent
-    class skill_classify,skill_preflight,skill_convert,skill_buildmanifest,skill_checkfresh,skill_verifywrite,skill_bloat,skill_gappass,skill_mermaid,skill_qa1,skill_qa2,skill_flag skill
-    class asset_template_req,asset_topics_req asset
-    class char_req_qa char
-    class shared_refusal,shared_protoscope,shared_genrules,shared_protoinv,shared_setup_md shared
-    class state_progress state
+```
+input-handler.md → check-manifest-freshness.md, classify-input-tier.md, preflight-mcp.md,
+                   convert-input-file.md, build-source-manifest.md, verify-artifact-write.md,
+                   refusal-registry.md, setup-instructions/markitdown.md
+  classify-input-tier → convert-input-file
+  preflight-mcp       → refusal-registry
+  convert-input-file  → verify-artifact-write, refusal-registry
+  build-source-manifest → verify-artifact-write
+  verify-artifact-write → refusal-registry
 ```
 
-**Stats:** 26 nodes / 40 edges / depth 4.
-
-**Notes:**
-- Shared subtrees: `refusal-registry.md` is referenced from 7 ancestors (orchestrator, input-handler, preflight-mcp, convert-input-file, verify-artifact-write, check-context-bloat, drafter). `prototype-scope.md` and `general-rules.md` are each shared between drafter, completeness-gap-pass, resolver, and flag-gaps-ambiguities. `check-manifest-freshness.md` is a sub-skill of `input-handler.md` (added in step 0 of the agent's workflow to gate the create / refresh / no-op / halt decision); it is shared across all four input-handler-using graphs (1, 5, 6, 7) but represents one file on disk.
-- `state/.progress.json` is a state file written by the orchestrator and read by `check-context-bloat.md`; included as a deliberate working-state node, not an asset.
-- `topics-requirements.md` is consulted by `completeness-gap-pass.md` (bijection invariants).
-- The pipeline output artefacts (`requirements/source-manifest.json`, `requirements-draft.md`, `consultant-answers.md`, `requirements.md`) are intentionally not drawn — they are produced by the agents, not loaded as dependencies.
-- The character file `requirements-qa.md` is a stub that does not transitively reference further framework files.
-- The `input-handler.md` agent node (previously `requirements-input-handler.md`) is **cross-pipeline**: it is also rooted under `analyse-inputs-orch.md` (graph 5), `review-inputs-orch.md` (graph 6), and `generate-prd-orch.md` (graph 7). The agent is unchanged in shape; its `progress_path` parameter is the per-call hinge — `requirements-orch.md` passes `framework/state/.progress.json`, `generate-prd-orch.md` passes `framework/state/.prd-progress.json`, `analyse-inputs-orch.md` and `review-inputs-orch.md` both pass `null`. The six transitive skills below `agent_input` (`check-manifest-freshness`, `classify-input-tier`, `preflight-mcp`, `convert-input-file`, `build-source-manifest`, `verify-artifact-write`) are shared across all four input-handler-using graphs. `check-manifest-freshness` is the newest addition: it runs at the agent's step 0 to compare manifest vs disk state and decide whether to create / refresh / no-op / halt; the other five skills run at steps 3–6 on the create / refresh paths only.
-- The drafter's `derive-architectural-implications` substep (step 6 in its workflow) consumes an **inline** capability catalogue declared in `requirements-drafter.md` itself; it does **not** add a new file dependency. §1.7 architectural-implication rows are emitted as `[AI-SUGGESTED: non-blocking]` and refined through the resolver's Phase 2.
-- The drafter's workflow has **nine** instrumented substeps in `framework/state/timing.ndjson`: `read-inputs`, `populate-template`, `gap-pass`, `derive-architectural-implications`, `author-mermaid`, `write-draft`, `write-claims-sidecar`, `grounding-verify`, `mermaid-validate`. Total per clean drafter run: 10 tool calls for 18 events. (`grep-crosscheck` was removed as a redundant in-memory substep; the gap pass enumerates the same bijections deterministically and the post-Write self-validation Greps target the on-disk draft.)
-- The merger **retains** `[SRC: C-NNN]` provenance tags in the final `requirements/requirements.md` (was: stripped). Downstream LLM consumers (review-requirement, analyse-requirement, design phases) can read provenance inline without joining against `requirements/draft-claims.ndjson`; the sidecar remains the authoritative store of verbatim quotes for grounding re-verification.
-- `template-requirements.md` carries one-line `<!-- format: ... -->` (and optional `<!-- guidance: ... -->`) directives under every H2/H3 — they describe the content shape (table / matrix / bullets / mermaid / narrative) and survive the merger's strip pattern (which only matches `[AI-SUGGESTED]` / `[STANDARD-RULE]` / `[OUT-OF-SCOPE]` / blocking-suffix / `AI-NNN` / `GR-NN`). Directives are part of the published spec — downstream LLM consumers benefit from the same format contract the drafter saw.
-- The template carries **two additive sub-sections** beyond gap-pass bijections: §6.3 Validation rules (visible field-level UI validation; backend invariants remain in §6.2 / sibling backend doc) and §6.4.5 Edge / empty / error states (conditional on ≥1 §5 `exception_paths` or §6.4 state-branching). Neither participates in Tier A bijections in this pass; future Tier B candidates noted in the rollout plan.
-- No cycles. No `framework/assets/pattern-catalogue/` "see also" pointers appear in this subtree.
+Per-caller `progress_path`: requirements = `.progress.json`; generate-prd = `.prd-progress.json`; analyse-inputs / review-inputs = `null` (suppresses the agent's `RF-01 continue-later` write). `check-manifest-freshness` runs at step 0 (create / refresh / no-op / halt decision) whenever a manifest exists; the other five skills run at steps 3–6 on create/refresh only.
 
 ---
 
-## design-system-orch.md
+## 1. requirements-orch.md · 26 nodes / 40 edges / depth 4
 
-```mermaid
-graph TD
-    classDef orch fill:#1f2937,color:#fff,stroke:#000,stroke-width:2px,font-weight:bold
-    classDef agent fill:#2563eb,color:#fff,stroke:#1e40af
-    classDef step fill:#0891b2,color:#fff,stroke:#155e75
-    classDef skill fill:#0d9488,color:#fff,stroke:#0f766e
-    classDef prompt fill:#ca8a04,color:#fff,stroke:#854d0e
-    classDef data fill:#a16207,color:#fff,stroke:#713f12
-    classDef asset fill:#d97706,color:#fff,stroke:#92400e
-    classDef shared fill:#7c3aed,color:#fff,stroke:#5b21b6
-    classDef char fill:#db2777,color:#fff,stroke:#9d174d
-
-    subgraph Orchestrator
-      orch_ds[design-system-orch.md]
-    end
-
-    subgraph Agent
-      agent_styler[design-system-styler.md]
-    end
-
-    subgraph Steps
-      step01[step-01-activate.md]
-      step02[step-02-inputs.md]
-      step04[step-04-site-fetching.md]
-      step05[step-05-brand-extraction.md]
-      step05b[step-05b-domain-inference.md]
-      step06[step-06-artifact-generation.md]
-      step07[step-07-handback.md]
-    end
-
-    subgraph PromptTemplates
-      pt_site[prompt-templates/site-fetching.md]
-      pt_css[prompt-templates/css-identification.md]
-      pt_brand[prompt-templates/brand-extraction.md]
-      pt_domain[prompt-templates/domain-inference.md]
-      pt_artifact[prompt-templates/artifact-generation.md]
-    end
-
-    subgraph Data
-      data_color[data/color-extraction-rules.md]
-      data_font[data/font-rules.md]
-      data_typo[data/typography-scale-rules.md]
-      data_shadow[data/shadow-motion-rules.md]
-      data_contrast[data/contrast-validation.md]
-      data_insuff[data/insufficient-data-handling.md]
-      data_catalogue[data/component-catalogue.md]
-    end
-
-    subgraph Skills
-      skill_preflight_ds[preflight-mcp.md]
-      skill_verifywrite_ds[verify-artifact-write.md]
-      skill_bloat_ds[check-context-bloat.md]
-    end
-
-    subgraph State
-      state_progress_ds[state/.progress.json]
-    end
-
-    subgraph Assets
-      asset_persona[persona-llm.md]
-      asset_template_ds[template-design-system.html]
-      asset_standards[design-system-standards.html]
-    end
-
-    subgraph Characters
-      char_style[characters/style-extraction.md]
-    end
-
-    subgraph Shared
-      shared_refusal_ds[refusal-registry.md]
-      shared_setup_pw[setup-instructions/playwright.md]
-    end
-
-    orch_ds --> agent_styler
-    orch_ds --> skill_bloat_ds
-    orch_ds --> shared_refusal_ds
-    orch_ds --> state_progress_ds
-
-    skill_bloat_ds --> shared_refusal_ds
-    skill_bloat_ds --> state_progress_ds
-
-    agent_styler --> step01
-    agent_styler --> step02
-    agent_styler --> step04
-    agent_styler --> step05
-    agent_styler --> step05b
-    agent_styler --> step06
-    agent_styler --> step07
-    agent_styler --> char_style
-    agent_styler --> asset_persona
-
-    step01 --> char_style
-
-    step04 --> skill_preflight_ds
-    step04 --> shared_refusal_ds
-    step04 --> shared_setup_pw
-    step04 --> pt_site
-    step04 --> pt_css
-
-    skill_preflight_ds --> shared_refusal_ds
-
-    step05 --> pt_brand
-    step05 --> data_insuff
-    step05 --> data_color
-    step05 --> data_font
-    step05 --> data_typo
-    step05 --> data_shadow
-
-    step05b --> data_contrast
-    step05b --> pt_domain
-
-    step06 --> pt_artifact
-    step06 --> asset_template_ds
-    step06 --> asset_standards
-    step06 --> data_catalogue
-    step06 --> skill_verifywrite_ds
-
-    skill_verifywrite_ds --> shared_refusal_ds
-
-    pt_artifact --> asset_template_ds
-
-    class orch_ds orch
-    class agent_styler agent
-    class step01,step02,step04,step05,step05b,step06,step07 step
-    class pt_site,pt_css,pt_brand,pt_domain,pt_artifact prompt
-    class data_color,data_font,data_typo,data_shadow,data_contrast,data_insuff,data_catalogue data
-    class skill_preflight_ds,skill_verifywrite_ds,skill_bloat_ds skill
-    class asset_persona,asset_template_ds,asset_standards asset
-    class char_style char
-    class shared_refusal_ds,shared_setup_pw shared
-    class state_progress_ds state
-    classDef state fill:#525252,color:#fff,stroke:#262626
+```
+orch → input-handler, requirements-drafter, requirements-resolver, requirements-merger,
+       check-context-bloat, refusal-registry, state/.progress.json
+input-handler ⇒ @input-handler-subtree (progress_path=.progress.json)
+requirements-drafter → template-requirements.md, prototype-scope.md, general-rules.md,
+       refusal-registry.md, verify-artifact-write, completeness-gap-pass.md, mermaid-validator.md
+completeness-gap-pass → prototype-scope.md, general-rules.md, topics-requirements.md
+requirements-resolver → characters/requirements-qa.md, run-qa-level1.md, run-qa-level2.md,
+       flag-gaps-ambiguities.md, prototype-scope.md, general-rules.md
+flag-gaps-ambiguities → prototype-scope.md, general-rules.md
+requirements-merger → prototype-invariants.md
 ```
 
-**Stats:** 30 nodes / 41 edges / depth 5.
-
-**Notes:**
-- Step-05b (domain-inference) loads `prompt-templates/domain-inference.md` to derive an inferred token set per-run from the consultant's `{{domain}}` string. Status colours and any token unset after step-05 are filled here.
-- `template-design-system.html` is shared between `step-06-artifact-generation.md` (the operative loader) and `prompt-templates/artifact-generation.md` (which instructs step-06 to read it).
-- `data/component-catalogue.md` is read by `step-06-artifact-generation.md` only. It owns the **Components** section's single CSS block + per-family `Live demo` and `States matrix` HTML snippets. Step-06 token-substitutes any `{{colours.*.hex}}` / `{{typography.*.value}}` / `{{effects.*.value}}` references against the in-memory token set, then injects the resulting CSS into the template's `{{COMPONENT_STYLES}}` placeholder and the resulting HTML into `{{COMPONENT_SPECIMENS}}`. Edits to which components render, what their HTML / CSS looks like, and what states are shown happen in this one file.
-- `refusal-registry.md` is shared between `step-04-site-fetching.md`, `preflight-mcp.md`, `verify-artifact-write.md`, and `check-context-bloat.md`.
-- `check-context-bloat.md` is shared between both orchestrators (`requirements-orch.md` and `design-system-orch.md`); the design-system caller passes `requirements/` as `artefact_dir` because prior `/requirements` state on disk is the meaningful proxy for in-conversation bloat against the styler.
-- `state/.progress.json` is read (existence + at-least-one-`completed`-event check) by `check-context-bloat.md` from both orchestrators; the design-system orchestrator never writes to it.
-- `design-system-standards.html` references `framework/assets/template-design-spec.md` only as a passing comment ("document exceptions in the design-spec, not the design-system output") — not a load target. Not drawn as an edge. (Its `.md` sibling is the human-edit source of truth, kept in sync with the `.html`; the styler reads only the `.html`.)
-- Per the styler's stand-alone constraint, no edges reach `requirements/`, `framework/state/`, `prototype-scope.md`, `general-rules.md`, or `prototype-invariants.md` from the styler subtree. The orchestrator's narrow read exception for the step-0b preflight (read-only access to `requirements/`, `requirements/source-manifest.json`, `framework/state/.progress.json`) is captured by the `orch_ds → skill_bloat_ds → state_progress_ds` edges and a documented stand-alone-constraint clause in the orchestrator.
-- No cycles.
+**Notes (unique):**
+- drafter's `derive-architectural-implications` substep uses an **inline** capability catalogue declared in `requirements-drafter.md` → not a file edge. Rows emitted as `[AI-SUGGESTED: non-blocking]`, refined in resolver Phase 2.
+- merger **retains** `[SRC: C-NNN]` tags in final `requirements.md`; `draft-claims.ndjson` stays authoritative for verbatim quotes (grounding re-verification).
+- `template-requirements.md`'s `<!-- format: -->` / `<!-- guidance: -->` directives survive the merger strip (which only matches `[AI-SUGGESTED]`/`[STANDARD-RULE]`/`[OUT-OF-SCOPE]`/blocking-suffix/`AI-NNN`/`GR-NN`) — they are part of the published spec.
+- `characters/requirements-qa.md` is a stub (no transitive deps).
 
 ---
 
-## review-requirement-orch.md
+## 2. design-system-orch.md · 30 nodes / 41 edges / depth 5
 
-```mermaid
-graph TD
-    classDef orch fill:#1f2937,color:#fff,stroke:#000,stroke-width:2px,font-weight:bold
-    classDef agent fill:#2563eb,color:#fff,stroke:#1e40af
-    classDef worker fill:#3b82f6,color:#fff,stroke:#1d4ed8,stroke-dasharray:3 3
-    classDef skill fill:#0d9488,color:#fff,stroke:#0f766e
-    classDef asset fill:#d97706,color:#fff,stroke:#92400e
-    classDef shared fill:#7c3aed,color:#fff,stroke:#5b21b6
-    classDef char fill:#db2777,color:#fff,stroke:#9d174d
-    classDef state fill:#525252,color:#fff,stroke:#262626
-
-    subgraph Orchestrator
-      orch_rv[review-requirement-orch.md]
-    end
-
-    subgraph Agents
-      agent_adv[adversarial-reviewer.md]
-      agent_fp[first-principles-reviewer.md]
-      agent_uxq[ten-ux-questions-reviewer.md]
-      agent_baq[ten-ba-questions-reviewer.md]
-      agent_usr[user-stories-reviewer.md]
-    end
-
-    subgraph Workers
-      worker_adv_dim[adversarial-dimension-worker.md]
-    end
-
-    subgraph Skills
-      skill_revsel[review-selector.md]
-      skill_verifywrite_rv[verify-artifact-write.md]
-      skill_bloat_rv[check-context-bloat.md]
-    end
-
-    subgraph Assets
-      asset_registry_rv[reviews/registry.md]
-      asset_ref_adv[reviews/adversarial-reference.md]
-      asset_tmpl_adv[reviews/template-adversarial.md]
-      asset_ref_fp[reviews/first-principles-reference.md]
-      asset_tmpl_fp[reviews/template-first-principles.md]
-      asset_ref_uxq[reviews/ten-ux-questions-reference.md]
-      asset_tmpl_uxq[reviews/template-ten-ux-questions.md]
-      asset_ref_baq[reviews/ten-ba-questions-reference.md]
-      asset_tmpl_baq[reviews/template-ten-ba-questions.md]
-      asset_ref_usr[reviews/user-stories-reference.md]
-      asset_tmpl_usr[reviews/template-user-stories.md]
-    end
-
-    subgraph Characters
-      char_adv[characters/adversarial-review.md]
-      char_fp[characters/first-principles-review.md]
-      char_uxq[characters/ten-ux-questions-review.md]
-      char_baq[characters/ten-ba-questions-review.md]
-      char_usr[characters/user-stories-review.md]
-    end
-
-    subgraph Shared
-      shared_refusal_rv[refusal-registry.md]
-      shared_genrules_rv[general-rules.md]
-      shared_protoinv_rv[prototype-invariants.md]
-      shared_protoscope_rv[prototype-scope.md]
-    end
-
-    subgraph State
-      state_progress_rv[state/.progress.json]
-    end
-
-    orch_rv --> skill_revsel
-    orch_rv --> skill_bloat_rv
-    orch_rv --> shared_refusal_rv
-    orch_rv --> agent_adv
-    orch_rv --> agent_fp
-    orch_rv --> agent_uxq
-    orch_rv --> agent_baq
-    orch_rv --> agent_usr
-
-    skill_revsel --> asset_registry_rv
-    skill_bloat_rv --> shared_refusal_rv
-    skill_bloat_rv --> state_progress_rv
-    skill_verifywrite_rv --> shared_refusal_rv
-
-    agent_adv --> char_adv
-    agent_adv --> asset_ref_adv
-    agent_adv --> asset_tmpl_adv
-    agent_adv --> skill_verifywrite_rv
-    agent_adv --> worker_adv_dim
-
-    agent_fp --> char_fp
-    agent_fp --> asset_ref_fp
-    agent_fp --> asset_tmpl_fp
-    agent_fp --> skill_verifywrite_rv
-    agent_fp --> shared_genrules_rv
-    agent_fp --> shared_protoinv_rv
-
-    agent_uxq --> char_uxq
-    agent_uxq --> asset_ref_uxq
-    agent_uxq --> asset_tmpl_uxq
-    agent_uxq --> skill_verifywrite_rv
-    agent_uxq --> shared_genrules_rv
-    agent_uxq --> shared_protoinv_rv
-    agent_uxq --> shared_protoscope_rv
-
-    agent_baq --> char_baq
-    agent_baq --> asset_ref_baq
-    agent_baq --> asset_tmpl_baq
-    agent_baq --> skill_verifywrite_rv
-    agent_baq --> shared_genrules_rv
-    agent_baq --> shared_protoinv_rv
-    agent_baq --> shared_protoscope_rv
-    agent_baq -.->|Step 4 filter source only| asset_ref_uxq
-
-    agent_usr --> char_usr
-    agent_usr --> asset_ref_usr
-    agent_usr --> asset_tmpl_usr
-    agent_usr --> skill_verifywrite_rv
-    agent_usr --> shared_genrules_rv
-    agent_usr --> shared_protoinv_rv
-
-    class orch_rv orch
-    class agent_adv,agent_fp,agent_uxq,agent_baq,agent_usr agent
-    class worker_adv_dim worker
-    class skill_revsel,skill_verifywrite_rv,skill_bloat_rv skill
-    class asset_registry_rv,asset_ref_adv,asset_tmpl_adv,asset_ref_fp,asset_tmpl_fp,asset_ref_uxq,asset_tmpl_uxq,asset_ref_baq,asset_tmpl_baq,asset_ref_usr,asset_tmpl_usr asset
-    class char_adv,char_fp,char_uxq,char_baq,char_usr char
-    class shared_refusal_rv,shared_genrules_rv,shared_protoinv_rv,shared_protoscope_rv shared
-    class state_progress_rv state
+```
+orch → design-system-styler, check-context-bloat, refusal-registry, state/.progress.json
+design-system-styler → steps/step-01-activate … step-07-handback,
+       characters/style-extraction.md, persona-llm.md
+  step-01-activate → characters/style-extraction.md
+  step-04-site-fetching → preflight-mcp, refusal-registry, setup-instructions/playwright.md,
+       prompt-templates/site-fetching.md, prompt-templates/css-identification.md
+  step-05-brand-extraction → prompt-templates/brand-extraction.md,
+       data/insufficient-data-handling.md, data/color-extraction-rules.md, data/font-rules.md,
+       data/typography-scale-rules.md, data/shadow-motion-rules.md
+  step-05b-domain-inference → data/contrast-validation.md, prompt-templates/domain-inference.md
+  step-06-artifact-generation → prompt-templates/artifact-generation.md, template-design-system.html,
+       design-system-standards.html, data/component-catalogue.md, verify-artifact-write
+prompt-templates/artifact-generation.md → template-design-system.html
+preflight-mcp → refusal-registry
 ```
 
-**Stats:** 32 nodes / 45 edges / depth 3.
-
-**Notes:**
-- The orchestrator is registry-driven: it does not know at design time which reviewer will run. The `skill_revsel → asset_registry_rv` edge is the discovery mechanism; `orch_rv → agent_*` edges represent the runtime invocation paths once the consultant has selected a methodology. Adding a new MVP reviewer requires adding a new agent node (plus its character / reference / template asset nodes) and an `orch_rv → agent_new` edge — no orchestrator file edit is required.
-- The adversarial reviewer fans out eight non-interactive read-only dimension workers per `adversarial-dimension-worker.md` at its Step 3; this is the only sub-agent dispatch under the `/review-requirement` pipeline. The worker node is drawn with a dashed border to indicate it is a parallel sub-agent rather than an orchestrator-invoked agent. The ten-ux-questions reviewer is single-pass and dispatches no workers.
-- The ten-ux-questions reviewer reads three shared-policy files (`general-rules.md`, `prototype-invariants.md`, `prototype-scope.md`) at its Step 4 as filter sources only — the agent drops candidate questions whose topics are already deterministically answered by an active `GR-NN` or `PI-NN`, or are out of scope per `prototype-scope.md`. These three edges are unique to this reviewer; the adversarial reviewer does not read shared-policy files because its task is defect-citation in present content, not gap-filtering against deterministic defaults.
-- The ten-ba-questions reviewer reads the same three shared-policy files at its Step 4, **plus** one fourth filter source: `framework/assets/reviews/ten-ux-questions-reference.md` (drawn as a dashed cross-methodology edge labelled *"Step 4 filter source only"*). This fourth read is the UX-lens-drop filter — a BA candidate whose question shape fits a UX category from that reference is dropped at Step 4 rule 4, and gate 9 catches escapees. The dashed edge documents the BA→UX cross-methodology dependency without inverting the methodologies' independence: the UX reviewer never reads the BA reference, only the reverse. The orthogonality contract between the two "10 questions" methodologies is therefore enforced by a one-way read at filter time, not by a circular dependency or by a shared third file. The BA reviewer otherwise mirrors the UX reviewer's single-pass, no-fan-out shape; it dispatches no workers.
-- The first-principles reviewer reads the same **two** shared-policy files as the user-stories reviewer (`general-rules.md`, `prototype-invariants.md`) at its Step 6 — and only as filter sources for the Q3/Q5 rescue pass (a Q5 over-spec `no` is re-marked `yes-with-evidence` when `GR-NN` or `PI-NN` foreclosed the underlying premise). No `prototype-scope.md` edge — every §4–§7 subject is in-scope for first-principles evaluation by construction. No cross-methodology edge to any other reviewer's reference — the four sibling lenses are independent. The reviewer is single-pass, no-fan-out, and rates every numbered item in §4.1 / §4.2 / §6 / §7 against six per-subject defensibility questions (Q1–Q6) plus one document-wide coverage pass (Q7) for orphans; the artefact carries a full ratings table plus a Top-10 deep-dive callout plus a Critical-missing-artefacts section, governed by 11 quality gates (gate 8 has a `warn` variant for layers absent from the doc).
-- The user-stories reviewer reads only **two** shared-policy files at its Step 4 (`general-rules.md`, `prototype-invariants.md`) — fewer than the BA / UX reviewers. The two deliberate omissions: (a) no `prototype-scope.md` edge, because every §4.2 story is in-scope by construction (a story narrating an out-of-scope concern would have been caught at `/requirements` time); (b) no cross-methodology edge to `ten-ux-questions-reference.md`, because story-quality criteria (Meaningful / Implementable / Testable / Coherent / Scoped / Outcome-aligned) are orthogonal to UX-vs-BA framing — a UX-shaped story can pass all six criteria and a BA-shaped story can fail them. Both omissions are documented as `not-applicable` filter sources in the reviewer's own diagnostics block. The reviewer is single-pass, no-fan-out, and surfaces every defective story (no top-N cap — distinct from the BA / UX reviewers' 50→10 selection).
-- `check-context-bloat.md` is shared across all three orchestrators (`requirements-orch.md`, `design-system-orch.md`, `review-requirement-orch.md`); the review-requirement-orch caller passes `requirements/` as `artefact_dir` because prior `/requirements` state on disk is the meaningful proxy for in-conversation bloat against the reviewer.
-- `state/.progress.json` is read (existence + at-least-one-`completed`-event check) by `check-context-bloat.md` from the review-requirement orchestrator; the review-requirement orchestrator never writes to it, consistent with the no-write-outside-`review-requirements/` invariant.
-- Per each reviewer's stand-alone constraint, no edges reach `requirements/` (except `requirements/requirements.md` itself, which is the read target — implicit, not drawn), `analyse-requirements/`, `design-system/`, or `framework/state/` from the reviewer subtrees. The shared-policy edges from `agent_uxq` are the documented Step-4 filter-source exception.
-- No cycles.
+**Notes (unique):**
+- Deepest tree (depth 5). `step-05b-domain-inference` derives an inferred token set per-run from the `{{domain}}` string (status colours + tokens left unset after step-05).
+- `template-design-system.html` shared by `step-06` (operative loader) and `prompt-templates/artifact-generation.md` (which tells step-06 to read it).
+- `data/component-catalogue.md` (step-06 only) owns the Components CSS + per-family `Live demo` / `States matrix` HTML; step-06 token-substitutes token refs into the template placeholders.
+- `design-system-standards.html` names `template-design-spec.md` only in prose → not an edge. (`.md` sibling is the human-edit SoT; styler reads only the `.html`.)
+- orch reads `requirements/` as the bloat proxy (step-0b); styler subtree itself reaches nothing in `requirements/`, `state/`, or the shared policy files.
 
 ---
 
-## analyse-requirement-orch.md
+## 3. review-requirement-orch.md · 32 nodes / 45 edges / depth 3
 
-```mermaid
-graph TD
-    classDef orch fill:#1f2937,color:#fff,stroke:#000,stroke-width:2px,font-weight:bold
-    classDef agent fill:#2563eb,color:#fff,stroke:#1e40af
-    classDef skill fill:#0d9488,color:#fff,stroke:#0f766e
-    classDef asset fill:#d97706,color:#fff,stroke:#92400e
-    classDef shared fill:#7c3aed,color:#fff,stroke:#5b21b6
-    classDef char fill:#db2777,color:#fff,stroke:#9d174d
-    classDef state fill:#525252,color:#fff,stroke:#262626
+```
+orch → review-selector, check-context-bloat, refusal-registry,
+       + 5 reviewers: adversarial, first-principles, ten-ux-questions,
+         ten-ba-questions, user-stories
+review-selector → reviews/registry.md
 
-    subgraph Orchestrator
-      orch_an[analyse-requirement-orch.md]
-    end
-
-    subgraph Agents
-      agent_ooux[ooux-analyser.md]
-      agent_jtbd[jtbd-analyser.md]
-      agent_uc[use-cases-analyser.md]
-      agent_dm[data-model-analyser.md]
-      agent_uj[user-journeys-analyser.md]
-      agent_seq[sequence-diagram-analyser.md]
-      agent_state[state-diagram-analyser.md]
-      agent_act[activity-diagram-analyser.md]
-      agent_tf[task-flows-analyser.md]
-      agent_fw[five-whys-analyser.md]
-      agent_glossary[glossary-analyser.md]
-      agent_ost[opportunity-solution-trees-analyser.md]
-    end
-
-    subgraph Skills
-      skill_ansel[analysis-selector.md]
-      skill_verifywrite_an[verify-artifact-write.md]
-      skill_bloat_an[check-context-bloat.md]
-      skill_svgoverlap_an[svg-overlap-check.md]
-    end
-
-    subgraph Assets
-      asset_registry_an[analyses/registry.md]
-      asset_ref_tf[analyses/task-flows-reference.md]
-      asset_tmpl_tf[analyses/template-task-flows.html]
-    end
-
-    subgraph Characters
-      char_tf[characters/task-flows-analysis.md]
-    end
-
-    subgraph Shared
-      shared_refusal_an[refusal-registry.md]
-    end
-
-    subgraph State
-      state_progress_an[state/.progress.json]
-    end
-
-    orch_an --> skill_ansel
-    orch_an --> skill_bloat_an
-    orch_an --> shared_refusal_an
-    orch_an --> agent_ooux
-    orch_an --> agent_jtbd
-    orch_an --> agent_uc
-    orch_an --> agent_dm
-    orch_an --> agent_uj
-    orch_an --> agent_seq
-    orch_an --> agent_state
-    orch_an --> agent_act
-    orch_an --> agent_tf
-    orch_an --> agent_fw
-    orch_an --> agent_glossary
-    orch_an --> agent_ost
-
-    skill_ansel --> asset_registry_an
-    skill_bloat_an --> shared_refusal_an
-    skill_bloat_an --> state_progress_an
-    skill_verifywrite_an --> shared_refusal_an
-
-    agent_tf --> char_tf
-    agent_tf --> asset_ref_tf
-    agent_tf --> asset_tmpl_tf
-    agent_tf --> skill_verifywrite_an
-    agent_tf --> skill_svgoverlap_an
-    agent_dm --> skill_svgoverlap_an
-    agent_state --> skill_svgoverlap_an
-
-    class orch_an orch
-    class agent_ooux,agent_jtbd,agent_uc,agent_dm,agent_uj,agent_seq,agent_state,agent_act,agent_tf,agent_fw,agent_glossary,agent_ost agent
-    class skill_ansel,skill_verifywrite_an,skill_bloat_an,skill_svgoverlap_an skill
-    class asset_registry_an,asset_ref_tf,asset_tmpl_tf asset
-    class char_tf char
-    class shared_refusal_an shared
-    class state_progress_an state
+Each reviewer → characters/<r>-review.md, reviews/<r>-reference.md,
+                reviews/template-<r>.md, verify-artifact-write
+deltas:
+  adversarial      +adversarial-dimension-worker.md  [parallel ×8, read-only, step 3]
+  first-principles +general-rules, prototype-invariants            [Q3/Q5 rescue, step 6]
+  ten-ux-questions +general-rules, prototype-invariants, prototype-scope   [step-4 filter]
+  ten-ba-questions +general-rules, prototype-invariants, prototype-scope,
+                   +reviews/ten-ux-questions-reference.md  [one-way UX-drop filter, step 4]
+  user-stories     +general-rules, prototype-invariants
 ```
 
-**Stats:** 22 nodes / 26 edges / depth 3. (Per-analyser reference / template / character / map-skill nodes for the ten other MVP analysers are intentionally omitted to keep the graph readable — each analyser node implicitly fans out to the same four-asset shape as `agent_tf`. Five-whys and glossary both exercise the registry's `template_asset: null` clause and compose markdown directly; their template-node fan-out is correspondingly nil.)
-
-**Notes:**
-- The orchestrator is **registry-driven**: at design time it does not know which analyser will run. The `skill_ansel → asset_registry_an` edge is the discovery mechanism; `orch_an → agent_*` edges represent the runtime invocation paths once the consultant has selected a methodology via `analysis-selector.md`. **Adding a new MVP analyser requires zero orchestrator edits** — only a new registry row plus the four-asset shape (analyser agent + reference + template + character) plus the orchestrator-node edge in this graph. The `task-flows` row added in this PR follows that pattern.
-- Each analyser is itself **stand-alone-ish**: it reads `requirements/requirements.md` plus its own four assets (reference / character / template / map-skill stub) and nothing else under `requirements/`, `framework/state/`, or `framework/shared/`. The reference + template + character edges for `agent_tf` are drawn to illustrate the shape; the same shape applies to all seven other analyser nodes (omitted for readability — see each analyser's own *Inputs* section for the exact paths).
-- `check-context-bloat.md` is shared across all six orchestrators (`requirements-orch.md`, `design-system-orch.md`, `review-requirement-orch.md`, `analyse-requirement-orch.md`, `analyse-inputs-orch.md`, `review-inputs-orch.md`); the analyse-requirement-orch caller passes `requirements/` as `artefact_dir` because prior `/requirements` state on disk is the meaningful proxy for in-conversation bloat against the analyser. The `/analyse-inputs` and `/review-inputs` callers both pass `input/` as `artefact_dir` because the raw input folder is what enters their agents' context.
-- `state/.progress.json` is read (existence + at-least-one-`completed`-event check) by `check-context-bloat.md` from the analyse-requirement orchestrator; the analyse-requirement orchestrator never writes to it, consistent with the no-write-outside-`analyse-requirements/` invariant. This mirrors the design-system-orch surface variant of RF-05 documented in `framework/orchestrators/analyse-requirement-orch.md > RF-05 — analyse-requirement-orch surface variant`.
-- `verify-artifact-write.md` is shared across all six orchestrators; every analyser and reviewer calls it from its write step (Step 11 for `task-flows-analyser.md` and `gap-analysis-reviewer.md`, Step 12 for `adversarial-reviewer.md` and `completeness-reviewer.md`). For `/review-inputs` (graph 6), all four MVP reviewers (`adversarial`, `ambiguity-review`, `completeness-review`, `gap-analysis`) call `verify-artifact-write.md` from their own write step; future reviewers in that pipeline will follow the same standard pattern.
-- `svg-overlap-check.md` is called from the write step of the three SVG-heavy analysers (`task-flows-analyser.md` Step 11, `data-model-analyser.md` Step 10, `state-diagram-analyser.md` Step 10) — only after `verify-artifact-write` passes, and only when the analyser actually emitted ≥1 inline SVG figure (i.e., a non-empty consultant selection at the figure-selection sub-step). Reads the just-written artefact; writes a report under `framework/state/svg-overlap-<pipeline>.ndjson`. Other analysers may adopt by passing their own node/edge class allowlists.
-- Per each analyser's stand-alone constraint, no edges reach `requirements/` (except `requirements/requirements.md` itself, which is the read target — implicit, not drawn), `design-system/`, `review-requirements/`, or `framework/state/` from the analyser subtrees. The orchestrator's narrow read exception for the step-0b preflight (read-only access to `requirements/`, `requirements/source-manifest.json`, `framework/state/.progress.json`) is captured by the `orch_an → skill_bloat_an → state_progress_an` edges and a documented stand-alone-constraint clause in the orchestrator.
-- No cycles.
+**Notes (unique):**
+- adversarial is the only sub-agent dispatch here (8 parallel read-only dimension workers, step 3); all others single-pass, no fan-out.
+- Shared-policy reads are **filter sources only** — reviewers drop candidate questions already answered by an active `GR-NN`/`PI-NN` or out-of-scope per `prototype-scope.md`. (adversarial reads none — its task is defect-citation, not gap-filtering.)
+- ba→ux-reference is **one-way** (ux never reads ba) — orthogonality enforced by a filter-time read, not a circular dep.
+- first-principles / user-stories omit `prototype-scope.md` (their subjects are in-scope by construction); user-stories also omits the ux-reference (story-quality criteria are orthogonal to UX/BA framing) and applies no top-N cap.
 
 ---
 
-## analyse-inputs-orch.md
+## 4. analyse-requirement-orch.md · 22 nodes / 26 edges / depth 3
 
-```mermaid
-graph TD
-    classDef orch fill:#1f2937,color:#fff,stroke:#000,stroke-width:2px,font-weight:bold
-    classDef agent fill:#2563eb,color:#fff,stroke:#1e40af
-    classDef skill fill:#0d9488,color:#fff,stroke:#0f766e
-    classDef asset fill:#d97706,color:#fff,stroke:#92400e
-    classDef shared fill:#7c3aed,color:#fff,stroke:#5b21b6
-    classDef state fill:#525252,color:#fff,stroke:#262626
+```
+orch → analysis-selector, check-context-bloat, refusal-registry,
+       + 12 analysers: ooux, jtbd, use-cases, data-model, user-journeys,
+         sequence-diagram, state-diagram, activity-diagram, task-flows,
+         five-whys, glossary, opportunity-solution-trees
+analysis-selector → analyses/registry.md
 
-    subgraph Orchestrator
-      orch_ai[analyse-inputs-orch.md]
-    end
-
-    subgraph Agents
-      agent_input_ai[input-handler.md]
-      agent_ta[thematic-analysis-analyser.md]
-      agent_ost_ai[opportunity-solution-trees-analyser.md]
-      agent_jm[journey-mapping-analyser.md]
-      agent_taa[task-analysis-analyser.md]
-      agent_jtbd[jtbd-analyser.md]
-      agent_ooux_ai[ooux-analyser.md]
-      agent_slpm[swim-lane-process-mapping-analyser.md]
-      agent_am[affinity-mapping-analyser.md]
-    end
-
-    subgraph Skills
-      skill_ansel_ai[analysis-selector.md]
-      skill_bloat_ai[check-context-bloat.md]
-      skill_verifywrite_ai[verify-artifact-write.md]
-      skill_classify_ai[classify-input-tier.md]
-      skill_preflight_ai[preflight-mcp.md]
-      skill_convert_ai[convert-input-file.md]
-      skill_buildmanifest_ai[build-source-manifest.md]
-      skill_checkfresh_ai[check-manifest-freshness.md]
-      skill_mermaid_ai[mermaid-validator.md]
-    end
-
-    subgraph Assets
-      asset_registry_ai[analyses-inputs/registry.md]
-      asset_ta_ref[analyses-inputs/thematic-analysis-reference.md]
-      asset_ta_char[characters/thematic-analysis-inputs-analysis.md]
-      asset_ta_map[skills/map-thematic-analysis-to-ui.md]
-      asset_ost_ai_ref[analyses-inputs/opportunity-solution-trees-reference.md]
-      asset_ost_ai_char[characters/opportunity-solution-trees-inputs-analysis.md]
-      asset_ost_ai_map[skills/map-opportunity-solution-trees-from-inputs-to-ui.md]
-      asset_jm_ref[analyses-inputs/journey-mapping-reference.md]
-      asset_jm_char[characters/journey-mapping-inputs-analysis.md]
-      asset_jm_tmpl[analyses-inputs/template-journey-mapping.html]
-      asset_jm_map[skills/map-journey-mapping-from-inputs-to-ui.md]
-      asset_taa_ref[analyses-inputs/task-analysis-reference.md]
-      asset_taa_char[characters/task-analysis-inputs-analysis.md]
-      asset_taa_tmpl[analyses-inputs/template-task-analysis.html]
-      asset_taa_map[skills/map-task-analysis-from-inputs-to-ui.md]
-      asset_jtbd_ref[analyses-inputs/jtbd-reference.md]
-      asset_jtbd_char[characters/jtbd-inputs-analysis.md]
-      asset_jtbd_tmpl[analyses-inputs/template-jtbd.html]
-      asset_jtbd_map[skills/map-jtbd-from-inputs-to-ui.md]
-      asset_ooux_ai_ref[analyses-inputs/ooux-reference.md]
-      asset_ooux_ai_char[characters/ooux-inputs-analysis.md]
-      asset_ooux_ai_tmpl[analyses-inputs/template-ooux.html]
-      asset_ooux_ai_map[skills/map-ooux-from-inputs-to-ui.md]
-      asset_slpm_ref[analyses-inputs/swim-lane-process-mapping-reference.md]
-      asset_slpm_char[characters/swim-lane-process-mapping-inputs-analysis.md]
-      asset_slpm_tmpl[analyses-inputs/template-swim-lane-process-mapping.html]
-      asset_slpm_map[skills/map-swim-lane-process-mapping-from-inputs-to-ui.md]
-      asset_am_ref[analyses-inputs/affinity-mapping-reference.md]
-      asset_am_char[characters/affinity-mapping-inputs-analysis.md]
-      asset_am_tmpl[analyses-inputs/template-affinity-mapping.html]
-      asset_am_map[skills/map-affinity-mapping-from-inputs-to-ui.md]
-    end
-
-    subgraph Shared
-      shared_refusal_ai[refusal-registry.md]
-      shared_setup_md_ai[setup-instructions/markitdown.md]
-      shared_setup_mmdc_ai[setup-instructions/mmdc.md]
-    end
-
-    subgraph State
-      state_progress_ai[state/.progress.json]
-    end
-
-    orch_ai --> skill_ansel_ai
-    orch_ai --> skill_bloat_ai
-    orch_ai --> agent_input_ai
-    orch_ai --> agent_ta
-    orch_ai --> agent_ost_ai
-    orch_ai --> agent_jm
-    orch_ai --> agent_taa
-    orch_ai --> agent_jtbd
-    orch_ai --> agent_ooux_ai
-    orch_ai --> agent_slpm
-    orch_ai --> agent_am
-    orch_ai --> shared_refusal_ai
-
-    skill_ansel_ai --> asset_registry_ai
-
-    agent_ta --> asset_ta_ref
-    agent_ta --> asset_ta_char
-    agent_ta --> skill_verifywrite_ai
-    agent_ta --> skill_mermaid_ai
-
-    agent_ost_ai --> asset_ost_ai_ref
-    agent_ost_ai --> asset_ost_ai_char
-    agent_ost_ai --> skill_verifywrite_ai
-    agent_ost_ai --> skill_mermaid_ai
-
-    agent_jm --> asset_jm_ref
-    agent_jm --> asset_jm_char
-    agent_jm --> asset_jm_tmpl
-    agent_jm --> skill_verifywrite_ai
-
-    agent_taa --> asset_taa_ref
-    agent_taa --> asset_taa_char
-    agent_taa --> asset_taa_tmpl
-    agent_taa --> skill_verifywrite_ai
-
-    agent_jtbd --> asset_jtbd_ref
-    agent_jtbd --> asset_jtbd_char
-    agent_jtbd --> asset_jtbd_tmpl
-    agent_jtbd --> skill_verifywrite_ai
-
-    agent_ooux_ai --> asset_ooux_ai_ref
-    agent_ooux_ai --> asset_ooux_ai_char
-    agent_ooux_ai --> asset_ooux_ai_tmpl
-    agent_ooux_ai --> skill_verifywrite_ai
-    agent_ooux_ai --> skill_mermaid_ai
-
-    agent_slpm --> asset_slpm_ref
-    agent_slpm --> asset_slpm_char
-    agent_slpm --> asset_slpm_tmpl
-    agent_slpm --> skill_verifywrite_ai
-    agent_slpm --> skill_mermaid_ai
-
-    agent_am --> asset_am_ref
-    agent_am --> asset_am_char
-    agent_am --> asset_am_tmpl
-    agent_am --> skill_verifywrite_ai
-    agent_am --> skill_mermaid_ai
-    agent_am --> shared_setup_mmdc_ai
-
-    skill_bloat_ai --> shared_refusal_ai
-    skill_bloat_ai --> state_progress_ai
-
-    agent_input_ai --> skill_checkfresh_ai
-    agent_input_ai --> skill_classify_ai
-    agent_input_ai --> skill_preflight_ai
-    agent_input_ai --> skill_convert_ai
-    agent_input_ai --> skill_buildmanifest_ai
-    agent_input_ai --> skill_verifywrite_ai
-    agent_input_ai --> shared_refusal_ai
-    agent_input_ai --> shared_setup_md_ai
-
-    skill_classify_ai --> skill_convert_ai
-    skill_preflight_ai --> shared_refusal_ai
-    skill_convert_ai --> skill_verifywrite_ai
-    skill_convert_ai --> shared_refusal_ai
-    skill_buildmanifest_ai --> skill_verifywrite_ai
-    skill_verifywrite_ai --> shared_refusal_ai
-
-    class orch_ai orch
-    class agent_input_ai,agent_ta,agent_ost_ai,agent_jm,agent_taa,agent_jtbd,agent_ooux_ai,agent_slpm,agent_am agent
-    class skill_ansel_ai,skill_bloat_ai,skill_verifywrite_ai,skill_classify_ai,skill_preflight_ai,skill_convert_ai,skill_buildmanifest_ai,skill_checkfresh_ai,skill_mermaid_ai skill
-    class asset_registry_ai,asset_ta_ref,asset_ta_char,asset_ta_map,asset_ost_ai_ref,asset_ost_ai_char,asset_ost_ai_map,asset_jm_ref,asset_jm_char,asset_jm_tmpl,asset_jm_map,asset_taa_ref,asset_taa_char,asset_taa_tmpl,asset_taa_map,asset_jtbd_ref,asset_jtbd_char,asset_jtbd_tmpl,asset_jtbd_map,asset_ooux_ai_ref,asset_ooux_ai_char,asset_ooux_ai_tmpl,asset_ooux_ai_map,asset_slpm_ref,asset_slpm_char,asset_slpm_tmpl,asset_slpm_map,asset_am_ref,asset_am_char,asset_am_tmpl,asset_am_map asset
-    class shared_refusal_ai,shared_setup_md_ai,shared_setup_mmdc_ai shared
-    class state_progress_ai state
+task-flows-analyser → characters/task-flows-analysis.md, analyses/task-flows-reference.md,
+       analyses/template-task-flows.html, verify-artifact-write, svg-overlap-check.md
+data-model-analyser  → svg-overlap-check.md
+state-diagram-analyser → svg-overlap-check.md
 ```
 
-**Stats:** 53 nodes / 66 edges / depth 4 (8 MVP analysers: `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, `task-analysis`, `jtbd`, `ooux`, `swim-lane-process-mapping`, `affinity-mapping`). The remaining `status: future` rows (`glossary`, `five-whys`) are intentionally omitted from the graph because their agent / reference / character / map-skill files do not exist on disk yet. Each future methodology PR adds one `orch_ai → agent_<method>` edge plus the standard four-asset fan-out (or five-asset for HTML-template methodologies like `journey-mapping`, `task-analysis`, `jtbd`, `ooux`, `swim-lane-process-mapping`, and `affinity-mapping`), mirroring graph 4. The shape matches the fan-out structure of `analyse-requirement-orch.md`. Note: none of `agent_ta`, `agent_ost_ai`, `agent_jm`, `agent_taa`, `agent_jtbd`, `agent_ooux_ai`, `agent_slpm`, or `agent_am` has an edge to its `asset_*_map` map-skill — map-skills are registry metadata consumed by the future design-spec-drafter, not by the analyser itself, mirroring the precedent in graph 4. `agent_jm`, `agent_taa`, `agent_jtbd`, `agent_ooux_ai`, `agent_slpm`, and `agent_am` are the six MVP analysers in this pipeline that ship with a non-null `template_asset` (HTML scaffold); their `asset_jm_tmpl`, `asset_taa_tmpl`, `asset_jtbd_tmpl`, `asset_ooux_ai_tmpl`, `asset_slpm_tmpl`, and `asset_am_tmpl` edges are the distinguishing structural difference from the markdown-only `agent_ta` and `agent_ost_ai` analysers. `agent_ooux_ai`, `agent_slpm`, and `agent_am` join `agent_ta` and `agent_ost_ai` as the five Mermaid-emitting analysers that depend on `mermaid-validator.md` (the inputs-side OOUX renders a `flowchart`/`erDiagram` block as the "MUST contain a diagram" deliverable alongside the canonical sticky-note column-board; swim-lane renders one `flowchart TD` per process; **affinity-mapping renders a `mindmap` primary plus a conditional `flowchart TD` for cross-cluster tensions — the only methodology so far to use the `mindmap` diagram type, introduced for the radial single-root super-theme → cluster hierarchy, stable in `mmdc` since v10.x; the `agent_am → shared_setup_mmdc_ai` edge is the only graph-5 edge to the new `framework/shared/setup-instructions/mmdc.md` install copy, surfaced by `RF-07` when `mmdc` is not on PATH**).)
-
-**Notes:**
-- The orchestrator is **registry-driven** (same pattern as `analyse-requirement-orch.md`). The `skill_ansel_ai → asset_registry_ai` edge is the discovery mechanism; future `orch_ai → agent_<method>` edges represent the runtime invocation paths once the consultant has selected a methodology. **Adding a new MVP input-analyser requires zero orchestrator edits** — only a new MVP row in `framework/assets/analyses-inputs/registry.md`, the four-asset shape (analyser + reference + template + character), and the new edge in this graph.
-- The `input-handler.md` agent is **shared with `requirements-orch.md`** (graph 1, where it appears as `agent_input`), `review-inputs-orch.md` (graph 6), and `generate-prd-orch.md` (graph 7). The six skills below it (`check-manifest-freshness`, `classify-input-tier`, `preflight-mcp`, `convert-input-file`, `build-source-manifest`, `verify-artifact-write`) and the two shared-policy edges (`refusal-registry.md`, `setup-instructions/markitdown.md`) are the same node identities; they appear in all four input-handler-using graphs but represent one set of files on disk. The per-call difference across pipelines is the agent's `progress_path` parameter: `requirements-orch.md` passes `framework/state/.progress.json`, `generate-prd-orch.md` passes `framework/state/.prd-progress.json`, `analyse-inputs-orch.md` and `review-inputs-orch.md` both pass `null` (which suppresses the agent's `RF-01 continue-later` `.progress.json` write). `check-manifest-freshness` runs at the agent's step 0 on every invocation when an existing manifest is present, deciding whether to create / refresh / no-op / halt; the other five skills run at steps 3–6 on the create / refresh paths only.
-- The shared `input-handler` invocation at step 1 is the **only** edge in this subtree that writes outside `analyse-inputs/<METHOD>/`. The writes it performs (`requirements/source-manifest.json` and `input/*.converted.md` siblings) are bounded to those paths and are documented as a cross-pipeline exception in `framework/orchestrators/analyse-inputs-orch.md > Stand-alone constraint`. Writes happen on the input-handler's `mode = "create"` or `mode = "refresh"` paths only; on `mode = "no-op"` (fresh) and `mode = "proceed-stale"`, no write occurs. No write reaches `requirements/requirements*.md`, `requirements/consultant-answers.md`, `requirements/requirements-draft.md`, `requirements/draft-claims*.ndjson`, `design-system/`, `analyse-requirements/<METHOD>/`, `review-requirements/`, `review-inputs/`, or `framework/state/`.
-- `state/.progress.json` is read (existence + byte-size check) by `check-context-bloat.md` from this orchestrator; the orchestrator never writes to it, consistent with the no-write-outside-`analyse-inputs/` invariant. The shared `input-handler.md` agent **also** never writes to `.progress.json` from this pipeline because the orchestrator invokes it with `progress_path: null` (the agent's RF-01 continue-later write is suppressed in that mode).
-- `check-context-bloat.md` is invoked with `artefact_dir: input/` (not `requirements/`) — the byte volume of the raw input folder is the meaningful proxy for in-conversation bloat against an input-analyser, in contrast to the `/analyse-requirement` caller which passes `requirements/`.
-- The `mermaid-validator.md` skill is invoked inline from `agent_ta` (Step 10 sub-step C), from `agent_ost_ai` (Step 10 sub-step C), from `agent_slpm` (Step 11 sub-step C — once per process, validating each `flowchart TD` source block), from `agent_ooux_ai` (Step 11 sub-step C — validating the single `erDiagram` block), **and** from `agent_am` (Step 11 sub-step C — validating the primary `mindmap` block plus, when `tensions.length >= 1`, the conditional secondary `flowchart TD`) to validate Mermaid before write; on `not-installed` `agent_ta` / `agent_ost_ai` / `agent_ooux_ai` / `agent_slpm` halt per the validator's own copy and fail handback, while `agent_am` surfaces `RF-07 mermaid_render_dependency_missing` with a three-way `{install-and-retry, skip-mermaid-validation-with-warning, abort}` choice that allows a degraded run-without-validation path. `agent_slpm`, `agent_ooux_ai`, and `agent_am` all implement a drop-on-3-retry-failure path (the artefact still writes; the failing Mermaid block is replaced with a `[GAP-MERMAID-INVALID]` placeholder and the diagnostics surface the drop) — `agent_ooux_ai`'s drop also propagates to Gate 7's `pass-with-drops` status because the matrix-vs-nested-refs vs erDiagram agreement check loses one of its three legs; `agent_am`'s drop is captured by Gate 9 with `pass-with-drops` and applies independently to the primary mindmap and the conditional tensions flowchart. This differs from `agent_ta` / `agent_ost_ai`, which embed a single Mermaid diagram per artefact and have no graceful degradation. **`agent_jm`, `agent_taa`, and `agent_jtbd` do NOT depend on `mermaid-validator.md`** — Journey Mapping renders diagrams as inline SVG (hand-crafted by the analyser, USER-JOURNEYS pattern) and CSS-grid HTML tables; Task Analysis renders the visual tree as nested HTML `<ol>` / `<details>` with Plan-type badges (no Mermaid, no SVG); JTBD renders the job-card grid + 5×5 opportunity matrix as CSS-grid HTML with inline styling (no Mermaid). The `mermaid-validator.md` file on disk is shared across pipelines that do use Mermaid (sequence-diagram, state-diagram, activity-diagram in graph 4; thematic-analysis, opportunity-solution-trees, ooux, swim-lane-process-mapping, and affinity-mapping in this graph).
-- The `agent_am` (affinity-mapping) analyser is the **only sub-agent-invoking analyser** in this graph (and in the whole `/analyse-inputs` pipeline). Step 6 (Round 3) invokes a `general-purpose` sub-agent via the `Agent` tool whose prompt content is the Round 1 notes JSON only — no Pass-1 cluster labels in the sub-agent's context. This is a **documented exception to the workspace's "no sub-agents" convention** because the invocation is purely computational (no consultant interaction, no `AskUserQuestion`, no handback gate within the sub-agent); the convention's intent — preserving same-thread acceptance for interactive surfaces — is honoured. The sub-agent edge is not drawn in the Mermaid graph above because the sub-agent is a one-shot tool invocation rather than a persistent node in the dependency tree; it is documented here for clarity. The sub-agent's role is the load-bearing anti-anchoring control of the KJ methodology — Pass-1 labels would otherwise remain in the parent's working memory and bias next-token prediction during the Pass-2 re-cluster, defeating the methodology's central discipline.
-- `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, `task-analysis`, `jtbd`, `ooux`, `swim-lane-process-mapping`, and `affinity-mapping` are the eight MVP methodologies of `/analyse-inputs`. The newest sibling, `affinity-mapping`, grounds on Kawakita's 1967 KJ method + Beyer & Holtzblatt's 1997 *Contextual Design* — it is the **bottom-up, atomic-claim, anti-anchoring-disciplined** complement to the structurally-shaped analysers (`ooux` clusters nouns, `swim-lane` clusters by actor, `journey-mapping` linearises by phase, `task-analysis` decomposes hierarchically) and the motivation-shaped analyser (`jtbd`). It operates one abstraction layer below `thematic-analysis` (which clusters *codes* into *themes* against a deductive 10-area frame); affinity-mapping clusters **atomic notes** (one observation per note) into L2 clusters and 4–8 L3 super-themes with **no deductive frame** and **no fixed stopping rule** — the silent re-cluster (here, sub-agent-isolated Pass-2 with Jaccard-similarity drift detection) is the load-bearing anti-anchoring discipline that defines KJ. Its template asset is `template-affinity-mapping.html` (a sixth HTML-template methodology after `journey-mapping`, `task-analysis`, `jtbd`, `ooux`, and `swim-lane-process-mapping`); its diagram backbone is Mermaid `mindmap` (primary, hierarchical root → super-themes → clusters; ≤ 34 nodes — note-level leaves excluded to preserve legibility) plus a conditional Mermaid `flowchart TD` for cross-cluster tensions (rendered only when ≥ 1 tension surfaces); its **analytical core is the sub-agent Pass-2 re-cluster** in Round 3 (the only realistic context-isolation mechanism for an autonomous LLM run; the sub-agent receives the Round 1 notes JSON only — no Pass-1 cluster labels — and Jaccard similarity on cluster memberships flags drifted notes mechanically, no semantic-equivalence judgement required). The previous sibling, `ooux`, grounds on Sophia Prater's ORCA process (Object-Oriented UX) adapted for raw consultant inputs — it is the **object-modelling, synonym-merge-load-bearing** complement to the workflow-shaped analysers (`journey-mapping`, `task-analysis`, `swim-lane-process-mapping`) and the motivation-shaped analyser (`jtbd`); it surfaces the conceptual scaffolding (objects, relationships, CTAs, attributes, CCPs) that lets the consultant feed a structured domain model back into `/requirements` via markitdown round-trip. Its template asset is `template-ooux.html` (a fifth HTML-template methodology after `journey-mapping`, `task-analysis`, `jtbd`, and `swim-lane-process-mapping`); its diagram backbone is Mermaid `erDiagram` (entities + relationships + cardinality + PK on primary CCP — rendered out-of-band via mmdc / mermaid.live, no inline runtime, no CDN); its **analytical core is the synonym-merge log** in Round 2 (every cross-source collision logged with literal terms collapsed, source filenames, and merge heuristic — the most-interpretive surface and the audit trail consultants use to confirm or revise cross-source identity decisions); the OOUX-specific Gate 8 forces every consumed manifest row to contribute ≥1 candidate noun OR be marked `irrelevant-to-domain` with a reason in diagnostics, surfacing silent skips that the synthesised `requirements/requirements.md` would have hidden. The previous sibling, `swim-lane-process-mapping`, grounds on Rummler-Brache Cross-Functional Process Mapping + Disconnect Analysis (Rummler & Brache 1990) framed under BABOK 10.35 Process Modelling — it is the **multi-actor, handoff-shaped** complement to `journey-mapping` (single-persona linear emotion arc) and `task-analysis` (single-actor hierarchical decomposition); the three are commonly run together when the inputs describe cross-functional workflows. Its template asset is `template-swim-lane-process-mapping.html` (a fourth HTML-template methodology after `journey-mapping`, `task-analysis`, and `jtbd`); its diagram backbone is Mermaid `flowchart TD` with `subgraph` swim-lanes (rendered out-of-band via mmdc / mermaid.live — no inline runtime, no CDN); its **analytical core is the Disconnect Register** (every lane-to-lane handoff classified `clean | ambiguous-trigger | missing-actor | unstated-exception | conflicting-source` via a conjunctive four-element cleanliness rubric — Rummler estimated 80% of process failures live in the "white space" between lanes, and the register surfaces those gaps); it is re-ingestible by `/requirements` via markitdown HTML→Markdown conversion (the structured YAML model lives in `<pre><code class="language-yaml">` so it survives the round-trip as a fenced code block; the Mermaid source blocks survive as plain `<pre>` text; `consultant_follow_up: yes` disconnect rows flow into the resolver as AI-NNN questions in the existing grammar). The first two carry `template_asset: null` (pure-markdown analyser; the Mermaid diagram embeds as a fenced block within the markdown artefact); `journey-mapping`, `task-analysis`, `jtbd`, `ooux`, and `swim-lane-process-mapping` carry HTML templates (`template-journey-mapping.html`, `template-task-analysis.html`, `template-jtbd.html`, `template-ooux.html`, and `template-swim-lane-process-mapping.html` respectively). The OST inputs-side analyser is the **forward-discovery** sibling of the reverse-discovery `opportunity-solution-trees` analyser under `/analyse-requirement` (graph 4); `journey-mapping` is the **current-state-of-the-world** sibling of the future-state-of-the-spec `user-journeys` analyser under `/analyse-requirement` (graph 4); `task-analysis` is the **document-only HTA + SGT-information-layer** sibling of the requirements-side `task-flows` analyser under `/analyse-requirement` (graph 4) — the slug differs (`task-analysis` vs `task-flows`) to make the methodological-emphasis distinction explicit (pure HTA + per-terminal information requirements vs HTA + Task-Flow Diagram pairs), the input source material differs (raw `input/` via manifest vs synthesised `requirements/requirements.md`), and the citation discipline differs (`[SRC: <filename>]` markers on each YAML node + tree row vs `[SRC: C-NNN]` claim IDs); `jtbd` is the **primary-source-motivation** sibling of the requirements-doc-lensing `jtbd` analyser under `/analyse-requirement` (graph 4) — the methodology framing (Christensen-Moesta canonical statement form + Ulwick opportunity scoring + four forces of progress) is shared verbatim across both, but the source contract differs (raw `input/` via manifest vs synthesised `requirements/requirements.md`), the provenance markers differ (`[SRC: <filename>]` here vs the sibling's `provenance-from-personas` / `src-from-task-flows`-class markers), and the "missing data" textual markers differ (`(no-metric-in-inputs)` / `not-named-in-inputs` here vs the sibling's `(no-metric-in-requirements)` / `not-named-in-requirements`; `consultant-assigned-no-signal` is identical in both). The inputs-side `journey-mapping`, `task-analysis`, `jtbd`, `ooux`, and `swim-lane-process-mapping` analysers are all **re-ingestible by `/requirements`** — `journey-mapping`, `task-analysis`, `ooux`, and `swim-lane-process-mapping` via markitdown HTML→Markdown conversion (HTML is `Native-text` for the input-handler's classifier but markitdown produces a cleaner `.converted.md` sibling for the drafter to read; for `task-analysis` and `swim-lane-process-mapping`, the structured YAML model survives as a fenced code block because it lives in `<pre><code class="language-yaml">` not `<script type="application/json">`; for `ooux`, the structured JSON object model survives as a fenced ```json code block because it lives in `<pre><code class="language-json" id="ooux-object-map-body">` (the `<head>`'s small `<script type="application/json" id="ooux-object-map-meta">` block is acceptable because it carries only counts + manifest fingerprint for the analyser's own drift-detection on subsequent runs — markitdown strips it, but `/requirements` does not depend on it); that pre-code-block distinction is the load-bearing markitdown-round-trip-preservation contract for the downstream drafter; for `swim-lane-process-mapping` and `ooux` the Mermaid `<pre class="mermaid-source">` blocks also survive as plain `<pre>` text); `jtbd` is read by the drafter directly as `Native-text` (no markitdown conversion needed — the HTML's `[SRC: <filename>]` chips and statement-stack content are picked up in-context, and the round-trip footer in the artefact tells the consultant about the pathway). The remaining `status: future` rows (`glossary`, `five-whys`) become operational only when their analyser / reference / character / map-skill files are authored and the row is promoted to `status: mvp` in a follow-up PR.
-- No cycles. No `framework/assets/pattern-catalogue/` "see also" pointers appear in this subtree.
+**Notes (unique):**
+- Only task-flows' full 4-asset shape is drawn; the other 11 analysers fan out identically (reference + template + character + map-skill) — omitted for readability. `five-whys` + `glossary` carry `template_asset: null` (compose markdown directly).
+- `svg-overlap-check.md` is called from the write step of the 3 SVG-heavy analysers (task-flows, data-model, state-diagram) only **after** `verify-artifact-write` passes and only when ≥1 inline SVG was emitted; writes `state/svg-overlap-<pipeline>.ndjson`.
+- map-skills are **registry metadata** (for a future design-spec-drafter), not loaded by the analyser → no edge.
 
 ---
 
-## review-inputs-orch.md
+## 5. analyse-inputs-orch.md · 53 nodes / 66 edges / depth 4
 
-```mermaid
-graph TD
-    classDef orch fill:#1f2937,color:#fff,stroke:#000,stroke-width:2px,font-weight:bold
-    classDef agent fill:#2563eb,color:#fff,stroke:#1e40af
-    classDef worker fill:#3b82f6,color:#fff,stroke:#1d4ed8,stroke-dasharray:3 3
-    classDef skill fill:#0d9488,color:#fff,stroke:#0f766e
-    classDef asset fill:#d97706,color:#fff,stroke:#92400e
-    classDef char fill:#db2777,color:#fff,stroke:#9d174d
-    classDef shared fill:#7c3aed,color:#fff,stroke:#5b21b6
-    classDef state fill:#525252,color:#fff,stroke:#262626
+```
+orch → analysis-selector, check-context-bloat, input-handler, refusal-registry,
+       + 8 analysers: thematic-analysis, opportunity-solution-trees, journey-mapping,
+         task-analysis, jtbd, ooux, swim-lane-process-mapping, affinity-mapping
+analysis-selector → analyses-inputs/registry.md
+input-handler ⇒ @input-handler-subtree (progress_path=null)
 
-    subgraph Orchestrator
-      orch_ri[review-inputs-orch.md]
-    end
-
-    subgraph Agents
-      agent_input_ri[input-handler.md]
-      agent_adv_ri[adversarial-reviewer.md]
-      agent_amb_ri[ambiguity-reviewer.md]
-      agent_comp_ri[completeness-reviewer.md]
-      agent_gap_ri[gap-analysis-reviewer.md]
-    end
-
-    subgraph Workers
-      worker_adv_dim_ri[adversarial-dimension-worker.md]
-    end
-
-    subgraph Skills
-      skill_ansel_ri[analysis-selector.md]
-      skill_bloat_ri[check-context-bloat.md]
-      skill_verifywrite_ri[verify-artifact-write.md]
-      skill_classify_ri[classify-input-tier.md]
-      skill_preflight_ri[preflight-mcp.md]
-      skill_convert_ri[convert-input-file.md]
-      skill_buildmanifest_ri[build-source-manifest.md]
-      skill_checkfresh_ri[check-manifest-freshness.md]
-    end
-
-    subgraph Assets
-      asset_registry_ri[reviews-inputs/registry.md]
-      asset_ref_adv_ri[reviews-inputs/adversarial-reference.md]
-      asset_tmpl_adv_ri[reviews-inputs/template-adversarial.html]
-      asset_ref_amb_ri[reviews-inputs/ambiguity-reference.md]
-      asset_ref_comp_ri[reviews-inputs/completeness-reference.md]
-      asset_ref_gap_ri[reviews-inputs/gap-analysis-reference.md]
-      asset_tmpl_gap_ri[reviews-inputs/template-gap-analysis.html]
-      asset_topics_ri[assets/topics-requirements.md]
-    end
-
-    subgraph Characters
-      char_adv_ri[characters/adversarial-inputs-review.md]
-      char_amb_ri[characters/ambiguity-inputs-review.md]
-      char_comp_ri[characters/completeness-inputs-review.md]
-      char_gap_ri[characters/gap-analysis-inputs-review.md]
-    end
-
-    subgraph Shared
-      shared_refusal_ri[refusal-registry.md]
-      shared_setup_md_ri[setup-instructions/markitdown.md]
-      shared_genrules_ri[general-rules.md]
-      shared_protoscope_ri[prototype-scope.md]
-    end
-
-    subgraph State
-      state_progress_ri[state/.progress.json]
-    end
-
-    orch_ri --> skill_ansel_ri
-    orch_ri --> skill_bloat_ri
-    orch_ri --> agent_input_ri
-    orch_ri --> agent_adv_ri
-    orch_ri --> agent_amb_ri
-    orch_ri --> agent_comp_ri
-    orch_ri --> agent_gap_ri
-    orch_ri --> shared_refusal_ri
-
-    skill_ansel_ri --> asset_registry_ri
-
-    skill_bloat_ri --> shared_refusal_ri
-    skill_bloat_ri --> state_progress_ri
-
-    agent_input_ri --> skill_checkfresh_ri
-    agent_input_ri --> skill_classify_ri
-    agent_input_ri --> skill_preflight_ri
-    agent_input_ri --> skill_convert_ri
-    agent_input_ri --> skill_buildmanifest_ri
-    agent_input_ri --> skill_verifywrite_ri
-    agent_input_ri --> shared_refusal_ri
-    agent_input_ri --> shared_setup_md_ri
-
-    agent_adv_ri --> char_adv_ri
-    agent_adv_ri --> asset_ref_adv_ri
-    agent_adv_ri --> asset_tmpl_adv_ri
-    agent_adv_ri --> skill_verifywrite_ri
-    agent_adv_ri --> worker_adv_dim_ri
-
-    agent_amb_ri --> char_amb_ri
-    agent_amb_ri --> asset_ref_amb_ri
-    agent_amb_ri --> skill_verifywrite_ri
-
-    agent_comp_ri --> char_comp_ri
-    agent_comp_ri --> asset_ref_comp_ri
-    agent_comp_ri --> skill_verifywrite_ri
-    agent_comp_ri --> shared_genrules_ri
-    agent_comp_ri -.->|Step 15 only when target=prototype| shared_protoscope_ri
-
-    agent_gap_ri --> char_gap_ri
-    agent_gap_ri --> asset_ref_gap_ri
-    agent_gap_ri --> asset_tmpl_gap_ri
-    agent_gap_ri --> skill_verifywrite_ri
-    agent_gap_ri --> asset_topics_ri
-    agent_gap_ri --> shared_genrules_ri
-    agent_gap_ri -.->|Step 3 only when target=prototype| shared_protoscope_ri
-
-    skill_classify_ri --> skill_convert_ri
-    skill_preflight_ri --> shared_refusal_ri
-    skill_convert_ri --> skill_verifywrite_ri
-    skill_convert_ri --> shared_refusal_ri
-    skill_buildmanifest_ri --> skill_verifywrite_ri
-    skill_verifywrite_ri --> shared_refusal_ri
-
-    class orch_ri orch
-    class agent_input_ri,agent_adv_ri,agent_amb_ri,agent_comp_ri,agent_gap_ri agent
-    class worker_adv_dim_ri worker
-    class skill_ansel_ri,skill_bloat_ri,skill_verifywrite_ri,skill_classify_ri,skill_preflight_ri,skill_convert_ri,skill_buildmanifest_ri,skill_checkfresh_ri skill
-    class asset_registry_ri,asset_ref_adv_ri,asset_tmpl_adv_ri,asset_ref_amb_ri,asset_ref_comp_ri,asset_ref_gap_ri,asset_tmpl_gap_ri,asset_topics_ri asset
-    class char_adv_ri,char_amb_ri,char_comp_ri,char_gap_ri char
-    class shared_refusal_ri,shared_setup_md_ri,shared_genrules_ri,shared_protoscope_ri shared
-    class state_progress_ri state
+Each analyser → analyses-inputs/<m>-reference.md, characters/<m>-inputs-analysis.md,
+                verify-artifact-write
+deltas:
+  +template (analyses-inputs/template-<m>.html): journey-mapping, task-analysis, jtbd,
+     ooux, swim-lane-process-mapping, affinity-mapping
+  +mermaid-validator: thematic-analysis, opportunity-solution-trees, ooux,
+     swim-lane-process-mapping, affinity-mapping
+  +setup-instructions/mmdc.md: affinity-mapping only
+  (thematic-analysis, opportunity-solution-trees carry NO template — pure markdown)
 ```
 
-**Stats:** 33 nodes / 43 edges / depth 4 (4 MVP reviewers: `adversarial`, `ambiguity-review`, `completeness-review`, `gap-analysis`). Each future methodology PR adds one `orch_ri → agent_<method>` edge plus the standard four-asset fan-out (reviewer + reference + character + template, the last possibly `null`), mirroring graphs 4 and 5. The `adversarial` reviewer also fans out to a parallel dimension worker (drawn with a dashed border) — a pattern shared with the `/review-requirement` adversarial reviewer in graph 3. The `ambiguity-review`, `completeness-review`, and `gap-analysis` reviewers are all **sequential / single-threaded** — no dimension workers, no `Agent`/`Task` dispatch; their dimensions / topics sweep one-per-agent-step, then cross-dimension consolidation collapses same-span / same-topic multi-dimension hits. `ambiguity-review` and `completeness-review` carry `template_asset: null` (pure-markdown renderer); `gap-analysis` carries `template-gap-analysis.html` (the visual-output requirement of the methodology). All four reviewers carry `map_skill: null` (reviews don't translate into UI inventory).
-
-**Notes:**
-- The orchestrator is **registry-driven** (same pattern as `analyse-requirement-orch.md` and `analyse-inputs-orch.md`). The `skill_ansel_ri → asset_registry_ri` edge is the discovery mechanism; future `orch_ri → agent_<method>` edges represent the runtime invocation paths once the consultant has selected a methodology. **Adding a new MVP input-reviewer requires zero orchestrator edits** — only a new MVP row in `framework/assets/reviews-inputs/registry.md`, the four-asset shape (reviewer + reference + template + character), and the new edge in this graph.
-- The `analysis-selector.md` skill is **shared with graphs 4 and 5** (`/analyse-requirement` and `/analyse-inputs`); `/review-inputs` is its third caller. The skill is methodology-neutral and pipeline-neutral — `/review-inputs` passes the new registry path plus `list_label: "reviews"` and `verb_label: "review"` so the printed prompt reads naturally for reviewing rather than analysing.
-- The `input-handler.md` agent is **shared with `requirements-orch.md` (graph 1), `analyse-inputs-orch.md` (graph 5), and `generate-prd-orch.md` (graph 7)**. The eight nodes below it (`check-manifest-freshness`, `classify-input-tier`, `preflight-mcp`, `convert-input-file`, `build-source-manifest`, `verify-artifact-write`, plus the two shared-policy edges to `refusal-registry.md` and `setup-instructions/markitdown.md`) are the same node identities; they appear in all four input-handler-using graphs but represent one set of files on disk. The per-call difference across pipelines is the agent's `progress_path` parameter: `requirements-orch.md` passes `framework/state/.progress.json`; `generate-prd-orch.md` passes `framework/state/.prd-progress.json`; `analyse-inputs-orch.md` and `review-inputs-orch.md` both pass `null` (which suppresses the agent's `RF-01 continue-later` `.progress.json` write). `check-manifest-freshness` is the newest sub-skill: it runs at the agent's step 0 to gate the create / refresh / no-op / halt decision.
-- The shared `input-handler` invocation at step 1 is the **only** edge in this subtree that writes outside `review-inputs/<METHOD>/`. The writes it performs (`requirements/source-manifest.json` and `input/*.converted.md` siblings) are bounded to those paths and are documented as a cross-pipeline exception in `framework/orchestrators/review-inputs-orch.md > Stand-alone constraint`. Writes happen on the input-handler's `mode = "create"` or `mode = "refresh"` paths only; on `mode = "no-op"` (fresh) and `mode = "proceed-stale"`, no write occurs. No write reaches `requirements/requirements*.md`, `requirements/consultant-answers.md`, `requirements/requirements-draft.md`, `requirements/draft-claims*.ndjson`, `design-system/`, `analyse-requirements/<METHOD>/`, `analyse-inputs/<METHOD>/`, `review-requirements/<METHOD>/`, or `framework/state/`.
-- `state/.progress.json` is read (existence + byte-size check) by `check-context-bloat.md` from this orchestrator; the orchestrator never writes to it, consistent with the no-write-outside-`review-inputs/` invariant. The shared `input-handler.md` agent **also** never writes to `.progress.json` from this pipeline because the orchestrator invokes it with `progress_path: null`.
-- `check-context-bloat.md` is invoked with `artefact_dir: input/` (matching graph 5's `/analyse-inputs` caller) — the byte volume of the raw input folder is the meaningful proxy for in-conversation bloat against an input-reviewer.
-- The `adversarial` reviewer fans out **six** non-interactive tool-less dimension workers per `adversarial-dimension-worker.md` at its Step 4; this is the only sub-agent dispatch under the `/review-inputs` pipeline (and parallels the eight-worker fan-out in graph 3 for `/review-requirement` adversarial). The worker node is drawn with a dashed border to indicate it is a parallel sub-agent rather than an orchestrator-invoked agent. Inputs-side workers are stricter than requirements-side workers: they have **no tools at all** (no Read scope) because the parent inlines a frozen evidence bundle plus per-source quote indices, eliminating the need for any worker disk access. The six dimensions are tuned for raw-input defects under the *corpus IS the voice* principle (Stakeholder & Role Coverage incl. first-hand vs second-hand voice authenticity, Domain & Workflow Coverage, Ambiguity & Vague Language, Source Provenance/Consistency/Conflict, Quantitative & Measurable Signal, Scope & MVP Signal). Recommendations are restricted to five sanctioned corpus-handling forms (Reconcile in-corpus / Label / Treat as silence / Treat as second-hand / Resolve at draft time) — never elicitation. A prior seventh dimension (Bias / Sampling / Self-Selection) existed in earlier drafts but was structurally incompatible with the principle (the corpus IS the voice — there is no should-be larger corpus to recommend); its observability content survives in the artefact's Diagnostics block as the **Corpus Shape** subsection (source count / distinct-author count / time-window / tier distribution — reported, not findings-generating).
-- The `adversarial` reviewer is **full overwrite** per run (no additive merge, no manifest-fingerprint cursor, no Run-history section) — each run reflects only the current input set. This differs from the `/analyse-inputs` analysers in graph 5 (`thematic-analysis`, `opportunity-solution-trees`), which use additive merge to grow understanding across runs. The semantic difference: analysis artefacts *grow* understanding; review punch-lists *change* as inputs change. The `ambiguity-review` reviewer follows the same full-overwrite contract.
-- The `ambiguity-review` reviewer is the second MVP under `/review-inputs`. Its seven dimensions are tuned for linguistic ambiguity (Berry & Kamsties 2004 + Femmer requirements-smells): lexical, syntactic, referential, vague predicates, subjective qualifiers, weak verbs, optionality + agentless passive. Its central methodology rule is the **≥2-interpretations test** — every finding must list ≥2 plausible readings (each producing a different downstream requirement) before logging; candidates that fail the test are dropped to adversarial-review territory. Its finding schema is 8 fields (ID, Dimension(s), Severity, Location, Evidence, Interpretations, Problem, Elicitation question) — distinct from adversarial's 8-field schema (which carries a Patch/Defer/Reject Disposition rubric in place of Interpretations + Elicitation question). Its Severity rubric is Blocker/Major/Minor (no Disposition) and the verdict mapping is severity-only. Each finding carries a ready-to-paste stakeholder elicitation question grouped by source filename in a dedicated artefact section — the value-prop that earns the methodology its keep over adversarial's coarser Dimension 3 (Ambiguity & Vague Language).
-- The `completeness-review` reviewer is the third MVP under `/review-inputs`. Its ten dimensions are anchored to the requirements-engineering literature on the *completeness* quality attribute: IEEE 29148:2018 §5.2.4 + §6.4.2.3 (the canonical nine completeness checks), IEEE 830 §4.3, Volere §2–§26 (Drivers, Naming, Assumptions, Data, Business Rules, NFRs, External Interfaces, Open Issues, Waiting Room), BABOK §10.5 / §10.10 / §10.22 / §10.41 / §10.43 / §11.5, INCOSE GtWR R3 / R6 / R29 / R39, and ISO/IEC 25010 (the product quality model anchoring NFR coverage). Its central methodology rule is the **absent-vs-out-of-scope test** — every finding must confirm corpus silence on the topic, the absence of an explicit-exclusion quote, and the absence of a covering `GR-NN` rule, before defaulting to `Needs-Clarification`. Its finding schema is 9 fields (ID, Dimension(s), Severity, **Disposition**, Location, Evidence, **Authority**, Problem, Elicitation question) — the addition of `Disposition` (`Needs-Clarification` / `Standard-Rule-Applies` / `Out-of-Scope`) is the methodology's load-bearing pipeline contribution, pre-classifying every gap into the same three categories the `/requirements` drafter must render markers for (`[AI-SUGGESTED]` / `[STANDARD-RULE: GR-NN]` / `[OUT-OF-SCOPE: domain-default]`). The Verdict mapping inspects both severity and disposition: `BLOCKED` requires ≥1 `Blocker + Needs-Clarification`; `NEEDS-ELICITATION` requires ≥1 `Needs-Clarification` (no Blockers); `ACCEPTED-WITH-GAPS` covers the remaining cases. The reviewer additionally renders a 10-dimension × N-source **Coverage Matrix** between the Executive Summary and the Triage callout — a unique structural addition vs the two sibling reviewers (whose dimensions are not orthogonal enough to support a clean matrix). Twelve quality gates (the ambiguity-review ten plus two completeness-specific gates: gate 11 enforces disposition-shaped Elicitation fields; gate 12 enforces real `GR-NN` ids for `Standard-Rule-Applies` findings).
-- The `completeness-reviewer` agent's two cross-edge shared-policy dependencies — `shared_genrules_ri` (always read at Step 15 disposition assignment) and `shared_protoscope_ri` (dashed edge, read at Step 15 **only when** the manifest's `target == "prototype"`) — are unique to this reviewer in the `/review-inputs` subtree. The adversarial and ambiguity-review reviewers read neither file (their methodologies are taxonomy-driven and do not need to map findings onto rule-resolved or scope-resolved dispositions). The two shared-policy reads honour the stand-alone-ish constraint by being **read-only** and bounded to the disposition step; no write reaches `framework/shared/`. The conditional dashed edge to `prototype-scope.md` follows the convention established in graph 3 (ten-ba-questions reviewer's filter-source edges to `ten-ux-questions-reference.md`) — dashed edges indicate non-default loads governed by a runtime predicate.
-- The `gap-analysis` reviewer is the fourth MVP under `/review-inputs`. It is the **drafter-aligned sibling** of `completeness-review`: where `completeness-review` measures the inputs against the BA-canon (IEEE 29148 / Volere / BABOK / Wiegers / INCOSE / ISO 25010 — ten dimensions), `gap-analysis` measures the inputs against the project's own `framework/assets/topics-requirements.md` template (30+ topics, eight dimensions read from the per-topic `Dimension` column). The two methodologies are independent and complementary; each reads the manifest separately and neither cross-reads the other's artefact. The reviewer ships **three distinctive dependencies** vs the sibling reviewers in this subtree: (1) `asset_topics_ri` — the canonical topic list + per-topic `Dimension` SPoT + Tier A/B/C/D classification, read once at Step 3. **This is the only edge in graph 6 that touches `framework/assets/topics-requirements.md`** — the file is otherwise only consumed by `requirements-drafter.md` (graph 1) and `completeness-gap-pass.md` (graph 1 sub-skill). The `Dimension` column added in the same PR is read verbatim — gap-analysis never invents a dimension. (2) `asset_tmpl_gap_ri` — an HTML scaffold (`template-gap-analysis.html`) populated at Step 11. Unlike `completeness-review` (markdown) and `ambiguity-review` (markdown), `gap-analysis` produces an HTML artefact with an inline-SVG coverage heatmap + gap matrix table; the visual surface is the user-stated requirement of the methodology. (3) `shared_genrules_ri` (always, at Step 3) + `shared_protoscope_ri` (dashed, at Step 3, only when `target == "prototype"`) — same edges `completeness-reviewer` carries, but consumed at Step 3 (during the topic walk's standard-rule / out-of-scope checks) rather than at a post-sweep disposition assignment. The reviewer's finding schema is 10 fields (`id`, `topic_ref`, `dimension`, `coverage`, `impact`, `confidence`, `moscow`, `recommendation`, `candidate_requirement`, `evidence`, `also_see`) — the **Candidate Requirement** column is shall-form / behavioural / drafter-ingestible, ready for `/requirements` re-ingestion via `[SRC: gap-analysis.html]` citations when the consultant drops the produced HTML into `input/`. Eight quality gates (the ambiguity-review ten minus two: gap-analysis has no Disposition / Authority fields, so the corresponding gates 11–12 are absent; gap-analysis-specific gates enforce Dimension fidelity against the SPoT, no-solutioning in the Candidate Requirement column, and Confidence-honesty against Tier A classification).
-- Framework now carries four MVP reviewers under `/review-inputs` (`adversarial`, `ambiguity-review`, `completeness-review`, `gap-analysis`); the `reviews-inputs/registry.md` carries no remaining `status: future` rows.
-- No cycles. No `framework/assets/pattern-catalogue/` "see also" pointers appear in this subtree.
+**Notes (unique):**
+- 8 MVP analysers; `glossary` + `five-whys` are `status: future` (files absent) → omitted.
+- input-handler create/refresh writes are the only writes outside `analyse-inputs/<METHOD>/`.
+- map-skills are registry metadata → no edges (mirrors graph 4).
+- **mermaid-validator behaviour:** on `not-installed`, thematic-analysis / opportunity-solution-trees / ooux / swim-lane halt; affinity-mapping surfaces `RF-07` with a 3-way `{install-and-retry, skip-with-warning, abort}` choice (degraded path). swim-lane / ooux / affinity-mapping implement drop-on-3-retry-failure (artefact still writes; block replaced with `[GAP-MERMAID-INVALID]`).
+- affinity-mapping is the **only `mindmap`-emitting** analyser (+ conditional `flowchart TD` for tensions) → the only edge to `setup-instructions/mmdc.md`.
+- affinity-mapping is the **only sub-agent-invoking** analyser: step-6 Round-3 `general-purpose` sub-agent receives the Round-1 notes JSON only (no Pass-1 labels) — documented "no sub-agents" exception (purely computational anti-anchoring KJ discipline; not drawn — one-shot tool call).
+- Methodology rationale (KJ/ORCA/Rummler-Brache provenance, sibling comparisons, re-ingestibility) lives in each analyser + `*-reference.md`, not here.
 
 ---
 
-## generate-prd-orch.md
+## 6. review-inputs-orch.md · 33 nodes / 43 edges / depth 4
 
-```mermaid
-graph TD
-    classDef orch fill:#1f2937,color:#fff,stroke:#000,stroke-width:2px,font-weight:bold
-    classDef agent fill:#2563eb,color:#fff,stroke:#1e40af
-    classDef skill fill:#0d9488,color:#fff,stroke:#0f766e
-    classDef asset fill:#d97706,color:#fff,stroke:#92400e
-    classDef shared fill:#7c3aed,color:#fff,stroke:#5b21b6
-    classDef char fill:#db2777,color:#fff,stroke:#9d174d
-    classDef state fill:#525252,color:#fff,stroke:#262626
+```
+orch → analysis-selector, check-context-bloat, input-handler, refusal-registry,
+       + 4 reviewers: adversarial, ambiguity, completeness, gap-analysis
+analysis-selector → reviews-inputs/registry.md
+input-handler ⇒ @input-handler-subtree (progress_path=null)
 
-    subgraph Orchestrator
-      orch_prd[generate-prd-orch.md]
-    end
-
-    subgraph Agents
-      agent_input_prd[input-handler.md]
-      agent_prd_drafter[prd-drafter.md]
-      agent_prd_resolver[prd-resolver.md]
-      agent_prd_merger[prd-merger.md]
-    end
-
-    subgraph Skills
-      skill_classify_prd[classify-input-tier.md]
-      skill_preflight_prd[preflight-mcp.md]
-      skill_convert_prd[convert-input-file.md]
-      skill_buildmanifest_prd[build-source-manifest.md]
-      skill_checkfresh_prd[check-manifest-freshness.md]
-      skill_verifywrite_prd[verify-artifact-write.md]
-      skill_bloat_prd[check-context-bloat.md]
-      skill_gappass_prd[completeness-gap-pass-prd.md]
-      skill_grounding_prd[grounding-verifier.md]
-    end
-
-    subgraph Assets
-      asset_template_prd[template-prd.md]
-      asset_topics_prd[topics-prd.md]
-    end
-
-    subgraph Characters
-      char_prd_drafting[characters/prd-drafting.md]
-      char_prd_resolving[characters/prd-resolving.md]
-      char_prd_finalising[characters/prd-finalising.md]
-    end
-
-    subgraph Shared
-      shared_refusal_prd[refusal-registry.md]
-      shared_setup_md_prd[setup-instructions/markitdown.md]
-    end
-
-    subgraph State
-      state_prd_progress[state/.prd-progress.json]
-    end
-
-    orch_prd --> agent_input_prd
-    orch_prd --> agent_prd_drafter
-    orch_prd --> agent_prd_resolver
-    orch_prd --> agent_prd_merger
-    orch_prd --> skill_bloat_prd
-    orch_prd --> shared_refusal_prd
-    orch_prd --> state_prd_progress
-
-    agent_input_prd --> skill_checkfresh_prd
-    agent_input_prd --> skill_classify_prd
-    agent_input_prd --> skill_preflight_prd
-    agent_input_prd --> skill_convert_prd
-    agent_input_prd --> skill_buildmanifest_prd
-    agent_input_prd --> skill_verifywrite_prd
-    agent_input_prd --> shared_refusal_prd
-    agent_input_prd --> shared_setup_md_prd
-
-    skill_classify_prd --> skill_convert_prd
-    skill_preflight_prd --> shared_refusal_prd
-    skill_convert_prd --> skill_verifywrite_prd
-    skill_convert_prd --> shared_refusal_prd
-    skill_buildmanifest_prd --> skill_verifywrite_prd
-    skill_verifywrite_prd --> shared_refusal_prd
-    skill_bloat_prd --> shared_refusal_prd
-    skill_bloat_prd --> state_prd_progress
-
-    agent_prd_drafter --> asset_template_prd
-    agent_prd_drafter --> char_prd_drafting
-    agent_prd_drafter --> shared_refusal_prd
-    agent_prd_drafter --> skill_verifywrite_prd
-    agent_prd_drafter --> skill_gappass_prd
-    agent_prd_drafter --> skill_grounding_prd
-
-    skill_gappass_prd --> asset_topics_prd
-
-    agent_prd_resolver --> char_prd_resolving
-
-    agent_prd_merger --> char_prd_finalising
-
-    class orch_prd orch
-    class agent_input_prd,agent_prd_drafter,agent_prd_resolver,agent_prd_merger agent
-    class skill_classify_prd,skill_preflight_prd,skill_convert_prd,skill_buildmanifest_prd,skill_checkfresh_prd,skill_verifywrite_prd,skill_bloat_prd,skill_gappass_prd,skill_grounding_prd skill
-    class asset_template_prd,asset_topics_prd asset
-    class char_prd_drafting,char_prd_resolving,char_prd_finalising char
-    class shared_refusal_prd,shared_setup_md_prd shared
-    class state_prd_progress state
+Each reviewer → characters/<r>-inputs-review.md, reviews-inputs/<r>-reference.md,
+                verify-artifact-write
+deltas:
+  adversarial    +reviews-inputs/template-adversarial.html,
+                 +adversarial-dimension-worker.md  [parallel ×6, NO tools, step 4]
+  ambiguity      (none — pure markdown)
+  completeness   +general-rules                          [step-15 disposition]
+                 +prototype-scope  [cond: target=prototype, step 15]
+  gap-analysis   +reviews-inputs/template-gap-analysis.html, +topics-requirements.md [step 3],
+                 +general-rules                          [step 3]
+                 +prototype-scope  [cond: target=prototype, step 3]
 ```
 
-**Stats:** 23 nodes / 33 edges / depth 4.
-
-**Notes:**
-- The `input-handler.md` agent is **shared with `requirements-orch.md` (graph 1), `analyse-inputs-orch.md` (graph 5), and `review-inputs-orch.md` (graph 6)**. The six transitive skills below it (`check-manifest-freshness`, `classify-input-tier`, `preflight-mcp`, `convert-input-file`, `build-source-manifest`, `verify-artifact-write`) plus the two shared-policy edges to `refusal-registry.md` and `setup-instructions/markitdown.md` are the same node identities across all four input-handler-using graphs. The per-call difference is the agent's `progress_path` parameter: `requirements-orch.md` passes `framework/state/.progress.json`; `generate-prd-orch.md` passes `framework/state/.prd-progress.json` (a distinct progress file for the PRD pipeline, so `RF-01 continue-later` halts don't conflate with `/requirements`-in-flight state); `analyse-inputs-orch.md` and `review-inputs-orch.md` both pass `null` (which suppresses the agent's `RF-01 continue-later` progress-file write). `check-manifest-freshness` runs at the agent's step 0 to gate the create / refresh / no-op / halt decision on every invocation when an existing manifest is present.
-- The shared `requirements/source-manifest.json` is read but its `target` field is **informational only** for the PRD pipeline — surfaced in §1 metadata of the PRD as a reference, but no decision tree branches on it. The PRD orchestrator does **not** invoke `framework/skills/set-build-target.md`; if `target` is `null` on entry (typical when `/generate-prd` runs before `/requirements`), the drafter surfaces "to-be-determined" in §1 and proceeds without writing the field.
-- The PRD pipeline emits exactly **two markers** in draft body: `[SRC: PC-NNN]` (PRD-namespaced citations, sidecar at `prd/draft-claims.ndjson`) and `[AI-SUGGESTED: PAI-NNN | blocking|non-blocking]`. **No `[STANDARD-RULE]`, `[OUT-OF-SCOPE]`, or `[REQ:]` markers** are ever emitted — the `GR-NN` rules in `framework/shared/general-rules.md` govern UI behaviour (irrelevant to PRD content), §10 is the out-of-scope section (self-referential marker would be incoherent), and the pipeline is fully independent of `requirements/requirements.md` (no cross-doc pointers). The PRD-drafter does **not** depend on `framework/shared/general-rules.md` or `framework/shared/prototype-scope.md` — the only shared edge from the drafter is to `refusal-registry.md` (for `RF-04`).
-- `completeness-gap-pass-prd.md` is a clone-and-modify of `framework/skills/completeness-gap-pass.md` (the requirements-pipeline gap-pass). The PRD version has a smaller decision tree (two marker outcomes only), no general-rules lookup, no out-of-scope routing, no Tier C, no Tier D visual-manifestation gating. Tier A invariants are PRD-shaped (B1–B10: metric↔problem/hypothesis, hypothesis↔falsification, risk↔mitigation, persona↔phasing, stakeholder↔sign-off-role, phase↔release-criterion, phase↔milestone, capability↔upstream-tie, competitive-landscape-named, out-of-scope-nonempty). Cloning rather than parameterising is justified per CLAUDE.md §3's "extract only when ≥2 callers and clean parameter inputs" rule — the bijection sets are pipeline-specific (not clean parameter inputs).
-- `topics-prd.md` is consulted by `completeness-gap-pass-prd.md` for the bijection invariants — same pattern as `topics-requirements.md`'s relationship to `completeness-gap-pass.md` in graph 1.
-- The drafter's workflow has **six** instrumented substeps in `framework/state/timing.ndjson` (the requirements drafter has nine after `grep-crosscheck` was removed): `read-inputs`, `populate-template`, `gap-pass`, `write-draft`, `write-claims-sidecar`, `grounding-verify`. The three substeps absent here that the requirements drafter has (`derive-architectural-implications`, `author-mermaid`, `mermaid-validate`) do not apply — PRDs don't ship architectural-implications catalogues or Mermaid diagrams. `grep-crosscheck` was previously emitted by both drafters; it has been removed from both for the same reason — the gap pass enumerates the same bijections deterministically, and the post-Write self-validation Greps target the on-disk draft. Total per clean PRD-drafter run: 7 tool calls for 12 events.
-- The merger **retains** `[SRC: PC-NNN]` provenance tags in the final `prd/prd.md` (same convention as `/requirements`-pipeline merger retains `[SRC: C-NNN]`). Downstream LLM consumers (review pipelines reading the PRD, analysers consuming it) can read provenance inline; the sidecar `prd/draft-claims.ndjson` remains the authoritative store of verbatim quotes for grounding re-verification.
-- The merger **does not** append a `## Prototype invariants` block. PI-NN are prototype-build invariants for the FE spec — they have no place in a PRD's strategic framing. The merger explicitly never Reads `framework/shared/prototype-invariants.md` (no edge in this graph).
-- `state/.prd-progress.json` is a state file written by the orchestrator and read by `check-context-bloat.md` and `agent_input_prd`; it is **distinct from `state/.progress.json`** so the two pipelines can be in flight concurrently without state collision. The two resolver sidecar triplets are likewise PRD-namespaced (`prd-resolver-{manifest,answers,cursor}.{ndjson,json}`) and live alongside the requirements-pipeline triplets in `framework/state/` without overlap.
-- The PRD resolver has **no edges to `framework/shared/general-rules.md` or `framework/shared/prototype-scope.md`** (unlike the requirements resolver in graph 1, which consults both via `flag-gaps-ambiguities.md`). The PRD resolver does not run the `apply-rule` / `defer-out-of-scope` follow-up filter — the PRD pipeline does not apply rule lookups or scope deferrals during Q&A.
-- The PRD pipeline writes to: `prd/*`, `framework/state/.prd-progress.json`, `framework/state/prd-resolver-*.{ndjson,json}`, `framework/state/timing.ndjson` (append-only). The documented cross-pipeline exception (inherited from the shared input-handler) writes `requirements/source-manifest.json` and `input/*.converted.md` siblings. No write reaches `requirements/requirements*.md`, `requirements/consultant-answers.md`, `requirements/requirements-draft.md`, `requirements/draft-claims*.ndjson`, `requirements/draft-claims-verification.ndjson`, `framework/state/.progress.json`, `framework/state/resolver-*` (those belong to `/requirements`), `design-system/`, `analyse-requirements/<METHOD>/`, `analyse-inputs/<METHOD>/`, `review-requirements/<METHOD>/`, or `review-inputs/<METHOD>/`.
-- No cycles. No `framework/assets/pattern-catalogue/` "see also" pointers appear in this subtree.
+**Notes (unique):**
+- `analysis-selector.md` shared with graphs 4 + 5; here it gets `list_label:"reviews"` + `verb_label:"review"`.
+- adversarial fans out 6 parallel **tool-less** workers (parent inlines a frozen evidence bundle + quote indices, so workers need no disk access). adversarial + ambiguity are full-overwrite per run (no additive merge), unlike graph-5 analysers.
+- `gap-analysis → topics-requirements.md` is the **only graph-6 edge** touching that file (otherwise read only by drafter + completeness-gap-pass in graph 1); the `Dimension` column is read verbatim. gap-analysis emits a drafter-ingestible `Candidate Requirement` column.
+- completeness renders a 10×N coverage matrix; gap-analysis renders an HTML SVG heatmap. All four reviewers carry `map_skill: null`. `reviews-inputs/registry.md` has no remaining `future` rows.
 
 ---
 
-## wireframe-orch.md
+## 7. generate-prd-orch.md · 23 nodes / 33 edges / depth 4
 
-```mermaid
-graph TD
-    classDef orch fill:#1f2937,color:#fff,stroke:#000,stroke-width:2px,font-weight:bold
-    classDef agent fill:#2563eb,color:#fff,stroke:#1e40af
-    classDef parallel fill:#3b82f6,color:#fff,stroke:#1d4ed8,stroke-dasharray:3 3
-    classDef step fill:#0891b2,color:#fff,stroke:#155e75
-    classDef skill fill:#0d9488,color:#fff,stroke:#0f766e
-    classDef asset fill:#d97706,color:#fff,stroke:#92400e
-    classDef ds fill:#ea580c,color:#fff,stroke:#9a3412
-    classDef shared fill:#7c3aed,color:#fff,stroke:#5b21b6
-    classDef char fill:#db2777,color:#fff,stroke:#9d174d
-    classDef state fill:#525252,color:#fff,stroke:#262626
-
-    subgraph Orchestrator
-      orch_wf[wireframe-orch.md]
-    end
-
-    subgraph Agents
-      agent_architect[blueprint-architect.md]
-      agent_comparator[wireframe-comparator.md]
-      agent_variant[wireframe-variant-generator.md]
-    end
-
-    subgraph ArchitectSteps
-      arch_s1[blueprint-architect/steps/step-01-activate.md]
-      arch_s2[blueprint-architect/steps/step-02-read-inputs.md]
-      arch_s3[blueprint-architect/steps/step-03-author-blueprint.md]
-      arch_s4[blueprint-architect/steps/step-04-check-pattern-coverage.md]
-      arch_s5[blueprint-architect/steps/step-05-compose-variants.md]
-      arch_s6[blueprint-architect/steps/step-06-write-artefacts.md]
-      arch_s7[blueprint-architect/steps/step-07-handback.md]
-    end
-
-    subgraph VariantSteps
-      var_s1[wireframe-variant-generator/steps/step-01-activate.md]
-      var_s2[wireframe-variant-generator/steps/step-02-read-inputs.md]
-      var_s3[wireframe-variant-generator/steps/step-03-extract-ds.md]
-      var_s4[wireframe-variant-generator/steps/step-04-compose-screens.md]
-      var_s5[wireframe-variant-generator/steps/step-05-write-landing-and-sidecars.md]
-      var_s6[wireframe-variant-generator/steps/step-06-self-validate-and-handback.md]
-    end
-
-    subgraph Skills
-      skill_scopesel[scope-selector.md]
-      skill_selectanalyses[select-supporting-analyses.md]
-      skill_pcov[check-pattern-coverage.md]
-      skill_freshness[check-wireframe-set-freshness.md]
-      skill_bloat_wf[check-context-bloat.md]
-      skill_verifywrite_wf[verify-artifact-write.md]
-    end
-
-    subgraph Templates
-      tmpl_screen[templates/template-screen.html]
-      tmpl_blueprint[templates/template-blueprint.md]
-      tmpl_setindex[wireframes/template-set-index.html]
-    end
-
-    subgraph DesignSystems
-      ds_wireframe[design-systems/wireframe-ds.html]
-    end
-
-    subgraph Assets
-      asset_dimensions[trade-off-dimensions.md]
-      asset_wfregistry[wireframes/tradeoff-dimensions-registry.md]
-      asset_pbindings[wireframes/pattern-bindings.md]
-      asset_domaindefaults[wireframes/domain-defaults.md]
-      asset_posvocab[wireframes/position-vocabulary.md]
-      asset_realization[wireframes/realization-strategies.md]
-      asset_divergence[wireframes/divergence-heuristics.md]
-      asset_pcatalogue[pattern-catalogue/_index.md]
-      asset_personallm[persona-llm.md]
-      asset_analyses_registry[analyses/registry.md]
-      asset_sidecar_schema[analyses/sidecar-schema.md]
-      asset_analyses_inputs[wireframes/&lt;slug&gt;/analyses-inputs.json]
-      asset_selected_sidecars[analyse-requirements/&lt;METHOD&gt;/&lt;name&gt;.sidecar.json selected]
-      asset_selected_analyses[analyse-requirements/&lt;METHOD&gt;/* selected legacy-fallback]
-      asset_tradeoffmatrix[analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html legacy-fallback]
-    end
-
-    subgraph Characters
-      char_architect[characters/blueprint-architect.md]
-      char_variant[characters/wireframe-variant.md]
-      char_comparator[characters/wireframe-comparator.md]
-    end
-
-    subgraph Shared
-      shared_refusal_wf[refusal-registry.md]
-    end
-
-    subgraph State
-      state_progress_wf[state/.progress.json]
-    end
-
-    orch_wf --> skill_scopesel
-    orch_wf --> skill_selectanalyses
-    orch_wf --> skill_bloat_wf
-    orch_wf --> skill_freshness
-    orch_wf --> agent_architect
-    orch_wf --> agent_variant
-    orch_wf --> agent_comparator
-    orch_wf --> shared_refusal_wf
-
-    skill_bloat_wf --> shared_refusal_wf
-    skill_bloat_wf --> state_progress_wf
-    skill_verifywrite_wf --> shared_refusal_wf
-
-    skill_scopesel --> skill_verifywrite_wf
-    skill_scopesel --> asset_divergence
-    asset_divergence --> asset_wfregistry
-    asset_divergence --> asset_posvocab
-
-    skill_selectanalyses --> asset_analyses_registry
-    skill_selectanalyses --> asset_sidecar_schema
-    skill_selectanalyses --> skill_verifywrite_wf
-    skill_selectanalyses --> skill_bloat_wf
-    skill_selectanalyses -.->|writes per-scope| asset_analyses_inputs
-
-    agent_architect --> arch_s1
-    agent_architect --> arch_s2
-    agent_architect --> arch_s3
-    agent_architect --> arch_s4
-    agent_architect --> arch_s5
-    agent_architect --> arch_s6
-    agent_architect --> arch_s7
-    agent_architect --> char_architect
-    agent_architect --> asset_personallm
-
-    arch_s1 --> char_architect
-    arch_s2 -.->|when present| asset_analyses_inputs
-    arch_s2 --> asset_sidecar_schema
-    arch_s2 -.->|sidecar branch per selection| asset_selected_sidecars
-    arch_s2 -.->|legacy fallback per selection ≤60KB| asset_selected_analyses
-    arch_s2 -.->|legacy fallback only| asset_tradeoffmatrix
-    arch_s5 -.->|step-5-only deferred sidecar branch| asset_selected_sidecars
-    arch_s5 -.->|step-5-only deferred legacy fallback| asset_selected_analyses
-    arch_s3 --> asset_realization
-    arch_s4 --> skill_pcov
-    arch_s4 --> tmpl_blueprint
-    arch_s4 --> skill_verifywrite_wf
-    arch_s5 --> asset_dimensions
-    arch_s5 --> asset_wfregistry
-    arch_s5 --> asset_pbindings
-    arch_s5 --> asset_domaindefaults
-    arch_s5 --> asset_posvocab
-    arch_s5 --> asset_pcatalogue
-    arch_s5 --> asset_realization
-    arch_s6 --> skill_verifywrite_wf
-
-    skill_pcov --> asset_pcatalogue
-
-    agent_variant --> var_s1
-    agent_variant --> var_s2
-    agent_variant --> var_s3
-    agent_variant --> var_s4
-    agent_variant --> var_s5
-    agent_variant --> var_s6
-    agent_variant --> char_variant
-    agent_variant --> asset_personallm
-
-    var_s1 --> char_variant
-    var_s2 --> tmpl_screen
-    var_s2 --> asset_posvocab
-    var_s2 --> asset_pcatalogue
-    var_s3 --> ds_wireframe
-    var_s3 --> skill_verifywrite_wf
-    var_s4 --> asset_pcatalogue
-    var_s4 --> asset_posvocab
-    var_s4 --> skill_verifywrite_wf
-    var_s5 --> skill_verifywrite_wf
-
-    agent_comparator --> char_comparator
-    agent_comparator --> asset_personallm
-    agent_comparator --> tmpl_setindex
-    agent_comparator --> asset_posvocab
-    agent_comparator --> skill_verifywrite_wf
-
-    class orch_wf orch
-    class agent_architect,agent_comparator agent
-    class agent_variant parallel
-    class arch_s1,arch_s2,arch_s3,arch_s4,arch_s5,arch_s6,arch_s7,var_s1,var_s2,var_s3,var_s4,var_s5,var_s6 step
-    class skill_scopesel,skill_selectanalyses,skill_pcov,skill_freshness,skill_bloat_wf,skill_verifywrite_wf skill
-    class tmpl_screen,tmpl_blueprint,tmpl_setindex asset
-    class ds_wireframe ds
-    class asset_dimensions,asset_wfregistry,asset_pbindings,asset_domaindefaults,asset_posvocab,asset_realization,asset_divergence,asset_pcatalogue,asset_personallm,asset_analyses_registry,asset_sidecar_schema,asset_analyses_inputs,asset_selected_sidecars,asset_selected_analyses,asset_tradeoffmatrix asset
-    class char_architect,char_variant,char_comparator char
-    class shared_refusal_wf shared
-    class state_progress_wf state
+```
+orch → input-handler, prd-drafter, prd-resolver, prd-merger,
+       check-context-bloat, refusal-registry, state/.prd-progress.json
+input-handler ⇒ @input-handler-subtree (progress_path=.prd-progress.json)
+prd-drafter → template-prd.md, characters/prd-drafting.md, refusal-registry.md,
+       verify-artifact-write, completeness-gap-pass-prd.md, grounding-verifier.md
+completeness-gap-pass-prd → topics-prd.md
+prd-resolver → characters/prd-resolving.md
+prd-merger  → characters/prd-finalising.md
 ```
 
-**Stats:** 43 nodes / 64 edges / depth 4. (Net of the surface-model refactor: +2 asset nodes — `realization-strategies.md`, `divergence-heuristics.md`; −3 edges from the generator + comparator no longer reading `tradeoff-dimensions-registry.md` / `pattern-bindings.md`; +6 edges for the architect reading the catalogue + realization asset at step 5, step 3 reading the realization asset, and the scope-selector executing the divergence heuristic.)
+**Notes (unique):**
+- `.prd-progress.json` is distinct from `.progress.json` so `/requirements` and `/generate-prd` can run concurrently without state collision; resolver sidecars likewise PRD-namespaced (`prd-resolver-*`).
+- `source-manifest.json > target` is **informational only** (no decision branches; orch never invokes `set-build-target.md`). Pipeline is fully independent of `requirements/requirements.md` (never reads/writes it).
+- Emits exactly **2 markers**: `[SRC: PC-NNN]`, `[AI-SUGGESTED: PAI-NNN]`. No `STANDARD-RULE`/`OUT-OF-SCOPE`/`REQ`. drafter's only shared edge is `refusal-registry.md` (RF-04) — **no** general-rules / prototype-scope. resolver has **no** shared-policy edges (unlike the requirements resolver).
+- `completeness-gap-pass-prd.md` is a clone of `completeness-gap-pass.md` (smaller tree: no general-rules, no out-of-scope, no Tier C/D; Tier-A invariants B1–B10 are PRD-shaped). Cloned, not parameterised — bijection sets are pipeline-specific.
+- merger retains `[SRC: PC-NNN]`; **never** appends a Prototype-invariants block (no edge to `prototype-invariants.md`).
 
-**Notes:**
-- The orchestrator is **four-stage** (Scope → Design-Brief → Parallel Variant Generation → Comparison), not registry-driven like `/analyse-requirement`. Variant cardinality is bounded per-run (default 2, hard cap 3) but variant *configurations* are emergent — composed by the architect from dimension positions × user goals × scope personas, not picked from a closed archetype registry. The `wireframe-variant-generator.md` agent node is drawn with a **dashed border** to indicate it is dispatched as a **parallel sub-agent** at Stage 3 (one Agent-tool call per variant in a single message, hard-capped at 4 parallel). This is the only parallel sub-agent in the pipeline; the scope-selector, architect, and comparator all run in the foreground.
-- `blueprint-architect.md` is **cross-pipeline** — joins the existing convention (`input-handler.md`) per CLAUDE.md §3. It is shared with a future `framework/orchestrators/prototype-orch.md` (not on disk in current ship) which will pass a different `variants_output_path` (or `null` to skip variant composition entirely). The per-call differences are expressed through the five input parameters (`scope_slug`, `scope_path`, `blueprint_output_path`, `variants_output_path`, `mode`); the agent's logic is identical across callers. Likewise `scope-selector.md` is the cross-pipeline skill — parameterised by `output_dir` and `pipeline_name`; default labels assume `/wireframe`-style prompts but a future `/prototype` invocation works unchanged.
-- `check-pattern-coverage.md` is cross-pipeline by design (the catalogue/blueprint matching shape is pipeline-neutral). For now it has exactly one caller (`blueprint-architect.md > step-04`) but the second caller (a future `/prototype` architect using the same skill) is the rationale for keeping the parameter shape clean rather than inlining the logic.
-- `check-wireframe-set-freshness.md` is wireframe-private (the per-scope on-disk shape is wireframe-specific — per-variant subdirs + comparator + index outputs). Single caller (`wireframe-orch.md > step 0d`) but the freshness logic is non-trivial enough to factor out per CLAUDE.md §3's extraction criteria — clean parameter inputs and a single structured return value.
-- The **shared `blueprints/<scope-slug>/` directory** is the architectural contract for cross-pipeline reuse — see CLAUDE.md §2 architecture top-level dirs and the `/wireframe` stand-alone-constraint clause. `blueprint-architect.md`'s write to `blueprints/<scope-slug>/{scope.json, blueprint.md}` is the documented cross-pipeline exception (mirrors `input-handler.md`'s cross-pipeline write to `requirements/source-manifest.json` and `input/*.converted.md`).
-- The **shared `framework/assets/design-systems/` directory** is the home for cross-pipeline design-system assets. `wireframe-ds.html` is the low-fidelity DS shipped today; a future consumer DS for `/prototype` would live alongside it. Likewise `framework/assets/templates/` is the cross-pipeline DS-agnostic template directory; `template-screen.html` and `template-blueprint.md` are DS-agnostic (the DS path is a template slot, filled by the variant-generator with the wireframe-DS path today and the consumer-DS path under a future `/prototype`).
-- `pattern-catalogue/_index.md` is shared with the `/design-system` styler subtree (which loads it transitively via `data/component-catalogue.md`) — but the `/wireframe` consumers (`check-pattern-coverage.md`, `wireframe-variant-generator.md > step-02/04`) read it directly for per-pattern lookups. Per-pattern files under `pattern-catalogue/<category>/<pattern>.md` are read **selectively** by the variant-generator at step 4 (only the patterns picked per screen), not loaded en masse — keeps per-sub-agent context lean.
-- `select-supporting-analyses.md` is the **Stage 1b** skill invoked between the existing step 0d (prior-set detection) and step 1 (scope-selector verification). It reads `framework/assets/analyses/registry.md`, filters MVP rows to the **completed-on-disk subset** (i.e. analyses the consultant has actually produced under `analyse-requirements/<METHOD>/`), surfaces the subset as a terminal-style print-and-parse numbered list for comma-separated multi-select, and writes `wireframes/<scope-slug>/analyses-inputs.json`. The skill is wireframe-private; a future `/prototype` will author its own variant with a different per-method-to-role mapping. The dashed `skill_selectanalyses -.->|writes per-scope| asset_analyses_inputs` edge reflects the per-scope-slug output path (the artefact is dynamic per run). When zero MVP analyses resolve on disk the skill **auto-proceeds (no prompt)**, writing the empty-`selections[]` `analyses-inputs.json` and returning `selected-none`.
-- `wireframes/<scope-slug>/analyses-inputs.json` is drawn as a **dashed conditional edge** from the architect's step 2 (`arch_s2 -.->|when present| asset_analyses_inputs`); the architect reads it only when `analyses_inputs_path` is non-null and the file exists on disk. The per-selection follow-on read uses a **sidecar-first protocol** (per `framework/assets/analyses/sidecar-schema.md`): when `selections[i].sidecar_present == true` the architect reads `selections[i].sidecar_path` (a ≤ 20 KB structured JSON projection — the `asset_selected_sidecars` node); when absent on disk it falls back to a bounded full-Read of the prose `selections[i].output_path` capped at 60 KB by `RF-09` (the `asset_selected_analyses` node, now relabeled `legacy-fallback`). The two dashed edges from `arch_s2` reflect this either/or branching per selection. The matching pair of dashed edges from `arch_s5` reflects the step-05 preamble that opens deferred step-5-only selections (those whose `architect_roles` carry no step-3 role) — the same sidecar-first / bounded-fallback protocol applies. The solid edge `arch_s2 --> asset_sidecar_schema` is the canonical-shape dependency: the step file transitively constrains its read protocol by the schema's envelope + per-role payload definitions. The new `asset_sidecar_schema` node is also depended on by `skill_selectanalyses` (used to compute the `sidecar_path` per selection via the canonical convention).
-- `analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html` is now a **legacy fallback only** (relabeled `legacy-fallback` in the graph): the architect's step 2.7 reads it only when `analyses_inputs_path` is null/absent AND the consultant did not select `trade-off-dimension-analysis` at Stage 1b. When the consultant explicitly selected trade-off-dimensions, the step-2.6 cached content takes precedence and step 2.7 is skipped entirely. Absent → skipped silently (same as before).
-- `state/.progress.json` is read (existence + at-least-one-`completed`-event check) by `check-context-bloat.md` from the wireframe orchestrator; the wireframe orchestrator **never writes to it**, consistent with the no-write-outside-`wireframes/`-and-`blueprints/` invariant. The wireframe-orch surface variant of RF-05 (see `framework/orchestrators/wireframe-orch.md > RF-05 — wireframe-orch surface variant`) deliberately omits the `status: context-bloated` write — same shape as the design-system-orch + analyse-requirement-orch variants. (When `framework/shared/refusal-registry.md` is next revised, append a fourth surface-variant block for `wireframe-orch`.)
-- `verify-artifact-write.md` is shared across all orchestrators; every wireframe pipeline write goes through it: scope.json (scope-selector at step 7), blueprint.md (architect at step 4 — written twice, once with placeholder pattern-coverage summary, once with the actual summary after the skill returns), variants.json (architect at step 6), per-variant wireframe-ds.css + screen-NN-*.html files (variant-generator at steps 3 + 4) + manifest.json + variant-position.json (variant-generator at step 5), index.html + _drift.json (comparator). The standalone `comparison.html` artefact and its `template-comparison.html` template have been removed; the trade-off matrix lives in `index.html` §4. The per-variant `wireframes.html` was also previously removed; the scope `index.html` is the single metadata-only landing page surfacing scope details, side-by-side screen links, side-by-side prose comparison cards, and the trade-off matrix in four ordered sections plus a TOC. The comparator's per-screen `data-src` audit attributes remain in screen HTML for DOM inspection but no longer render as visible hover tooltips — the `[data-src]:hover::after` CSS rule was removed from `framework/assets/design-systems/wireframe-ds.html` because the raw requirement-ID dump is agent-only audit metadata, not consultant-facing copy.
-- The pipeline writes to: `blueprints/<scope-slug>/{scope.json, blueprint.md}` (cross-pipeline shared) + `wireframes/<scope-slug>/**` (wireframe-private). No write reaches `requirements/`, `prd/`, `design-system/`, `analyse-requirements/<METHOD>/`, `analyse-inputs/<METHOD>/`, `review-requirements/<METHOD>/`, `review-inputs/<METHOD>/`, or `framework/state/`.
-- Per each agent's stand-alone constraint, no edges reach `requirements/` (except `requirements/requirements.md` itself, which is the architect's full read at step 2 — implicit, not drawn), `framework/state/`, `framework/shared/` (except `refusal-registry.md` transitively via the skills), or the consumer `design-system/` from the architect / variant-generator / comparator subtrees. The orchestrator's narrow read exception for the step-0b preflight (read-only access to `requirements/`, `requirements/source-manifest.json`, `framework/state/.progress.json`) is captured by the `orch_wf → skill_bloat_wf → state_progress_wf` edges and a documented stand-alone-constraint clause in the orchestrator.
-- **Surface-model refactor (pattern-fidelity + decomposition divergence):** per-screen pattern selection moved **out** of the parallel variant-generator and **into** the architect, authored per-variant in `variants.json > surface_plan` (the new edges `arch_s5 → asset_pcatalogue` + `arch_s5 → asset_realization` + the architect's selective per-pattern-file reads). The generator now **renders** `surface_plan` (so `var_s2 → asset_wfregistry` and `var_s2 → asset_pbindings` were removed — it no longer derives patterns), and the comparator checks **render-vs-`surface_plan`** (so `agent_comparator → asset_wfregistry` was removed — drift is no longer a registry re-derivation). The `tradeoff-dimensions-registry.md` Section 3 is now consumed by exactly one agent (the architect, at author time), eliminating the prior double-interpretation that produced false-positive drift.
-- **Logical-surface model:** the blueprint is now a decomposition-agnostic **surface inventory** (`LS-NN` + per-surface `allowed_realizations` / `default_realization`, per `wireframes/realization-strategies.md`). Each variant's `surface_plan` picks a realization (standalone / inline-drawer / inline-expand / modal / wizard-split — `combined` is fast-follow), so variants may differ in physical screen count. The all-standalone baseline reproduces the pre-refactor pipeline 1:1 (`LS-NN ≡ S-NN`).
-- **Goal-driven divergence:** the scope-selector executes `wireframes/divergence-heuristics.md` (new edges `skill_scopesel → asset_divergence`, `asset_divergence → asset_wfregistry`, `asset_divergence → asset_posvocab`) when the orchestrator passes `propose_divergence_axes: true`, and persists a `divergence_profile` into `scope.json`. The architect consumes that persisted profile at step 5 (it does **not** re-read `divergence-heuristics.md` — compute-once-in-scope-selector / consume-in-architect, so no `arch → asset_divergence` edge).
-- **Zero-on-disk auto-proceed:** when no MVP analyses resolve on disk, `select-supporting-analyses.md` auto-proceeds (no `AskUserQuestion`), writing the empty-`selections[]` `analyses-inputs.json` and returning `selected-none`.
-- No cycles.
+---
+
+## 8. wireframe-orch.md · 43 nodes / 64 edges / depth 4
+
+```
+orch → scope-selector, select-supporting-analyses, check-context-bloat,
+       check-wireframe-set-freshness, blueprint-architect, wireframe-variant-generator,
+       wireframe-comparator, refusal-registry
+
+scope-selector → verify-artifact-write, wireframes/divergence-heuristics.md
+  divergence-heuristics → wireframes/tradeoff-dimensions-registry.md,
+                          wireframes/position-vocabulary.md
+select-supporting-analyses → analyses/registry.md, analyses/sidecar-schema.md,
+       verify-artifact-write, check-context-bloat,
+       [writes per-scope] wireframes/<slug>/analyses-inputs.json
+
+blueprint-architect → steps/step-01-activate … step-07-handback,
+       characters/blueprint-architect.md, persona-llm.md
+  step-01 → characters/blueprint-architect.md
+  step-02 → analyses/sidecar-schema.md,
+            [cond present] wireframes/<slug>/analyses-inputs.json,
+            [cond sidecar branch] analyse-requirements/<M>/<name>.sidecar.json,
+            [cond legacy ≤60KB, RF-09] analyse-requirements/<M>/*,
+            [cond legacy only] analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html
+  step-03 → wireframes/realization-strategies.md
+  step-04 → check-pattern-coverage, templates/template-blueprint.md, verify-artifact-write
+  step-05 → trade-off-dimensions.md, wireframes/tradeoff-dimensions-registry.md,
+            wireframes/pattern-bindings.md, wireframes/domain-defaults.md,
+            wireframes/position-vocabulary.md, pattern-catalogue/_index.md,
+            wireframes/realization-strategies.md,
+            [cond deferred sidecar] analyse-requirements/<M>/<name>.sidecar.json,
+            [cond deferred legacy] analyse-requirements/<M>/*
+  step-06 → verify-artifact-write
+check-pattern-coverage → pattern-catalogue/_index.md
+
+wireframe-variant-generator → steps/step-01-activate … step-06-self-validate-and-handback,
+       characters/wireframe-variant.md, persona-llm.md   [parallel sub-agent: 1 Agent call/variant, cap 4]
+  step-01 → characters/wireframe-variant.md
+  step-02 → templates/template-screen.html, wireframes/position-vocabulary.md, pattern-catalogue/_index.md
+  step-03 → design-systems/wireframe-ds.html, verify-artifact-write
+  step-04 → pattern-catalogue/_index.md, wireframes/position-vocabulary.md, verify-artifact-write
+  step-05 → verify-artifact-write
+
+wireframe-comparator → characters/wireframe-comparator.md, persona-llm.md,
+       wireframes/template-set-index.html, wireframes/position-vocabulary.md, verify-artifact-write
+```
+
+**Notes (unique):**
+- **Four-stage** (Scope → Design-Brief → Parallel Variant Generation → Comparison), not registry-driven. Variant cardinality default 2 / cap 3; configs are emergent (composed by architect from dimensions × goals × personas, not a closed archetype registry). variant-generator is the only parallel sub-agent; scope-selector / architect / comparator run foreground.
+- **Cross-pipeline** (shared with a future `/prototype`): `blueprint-architect.md`, `scope-selector.md`, `check-pattern-coverage.md`. `check-wireframe-set-freshness.md` is wireframe-private. architect writes `blueprints/<slug>/{scope.json, blueprint.md}` — the documented cross-pipeline exception.
+- **Sidecar-first protocol** (per `analyses/sidecar-schema.md`): `sidecar_present` → read sidecar (≤20 KB); else bounded full-Read of the prose `output_path` ≤60 KB (`RF-09`); drift halts under `RF-08`. Applies at step-02 and at step-05's deferred step-5-only selections.
+- `analyses-inputs.json` read only when `analyses_inputs_path` is non-null and present. `select-supporting-analyses` **auto-proceeds (no prompt)** when zero MVP analyses resolve on disk → empty `selections[]` → `selected-none`. `trade-off-matrix.html` is legacy-fallback only (step-2.7, when `analyses_inputs_path` null/absent AND trade-off-dimensions not selected at Stage 1b).
+- **Surface-model refactor:** per-screen pattern selection lives in the architect's `variants.json > surface_plan` (step-05 reads `pattern-catalogue/_index.md` + `realization-strategies.md`). The generator now **renders** `surface_plan` (no longer reads `tradeoff-dimensions-registry.md` / `pattern-bindings.md`); the comparator checks **render-vs-`surface_plan`** (no longer re-derives from the registry).
+- **Logical-surface model:** blueprint is a decomposition-agnostic `LS-NN` inventory + `allowed`/`default` realizations (per `realization-strategies.md`). Each `surface_plan` picks a realization (standalone / inline-drawer / inline-expand / modal / wizard-split). All-standalone baseline ≡ legacy 1-screen-per-surface (`LS-NN ≡ S-NN`).
+- **Goal-driven divergence:** scope-selector executes `divergence-heuristics.md` when orch passes `propose_divergence_axes: true` and persists `divergence_profile` into `scope.json`; the architect **consumes** that profile at step-05 (does **not** re-read the heuristic → no `architect → divergence-heuristics` edge).
+- `pattern-catalogue/_index.md` is shared with the `/design-system` styler (which loads it transitively via `data/component-catalogue.md`); wireframe consumers read it directly. Per-pattern files under `pattern-catalogue/<category>/<pattern>.md` are read **selectively** (only picked patterns), not en masse.
