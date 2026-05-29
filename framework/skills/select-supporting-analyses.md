@@ -24,7 +24,7 @@ The skill borrows the print-and-parse interaction shape from `framework/skills/a
 Exactly one of:
 
 - **`selected`** — `selections[]` is non-empty; `analyses-inputs.json` has been written and `verify-artifact-write` returned `pass`. The orchestrator advances.
-- **`selected-none`** — the consultant explicitly accepted "no supporting analyses" (typed `none`, replied empty, or accepted `Proceed-without` on the zero-on-disk branch); an empty-`selections[]` JSON has been written and verified. The orchestrator advances (the architect runs without consuming analyses).
+- **`selected-none`** — the consultant explicitly accepted "no supporting analyses" (typed `none`, replied empty), or the skill **auto-proceeded on the zero-on-disk branch**; an empty-`selections[]` JSON has been written and verified. The orchestrator advances (the architect runs without consuming analyses).
 - **`cancelled`** — the consultant chose to cancel out of the prompt (typed `0` / `cancel` / `q` / `exit`, hit the retry budget, or chose `Cancel` at confirmation). No JSON is written. The orchestrator exits cleanly.
 
 ## Used by
@@ -72,17 +72,11 @@ Role semantics (closed enum, consumed by `blueprint-architect.md`):
 1. **Read the registry.** `Read` the file at `<registry_path>`. Parse the YAML frontmatter. Locate the `methodologies:` list.
 2. **Filter to MVP.** Retain rows whose `status` is the literal string `mvp`. Discard `future` rows.
 3. **Filter to completed-on-disk.** For each MVP row, `Glob` the row's `output_path` to determine whether the file exists. **Drop every row whose output does not exist.** This is the load-bearing filter — the consultant must never see a methodology they have not produced. Do not annotate missing rows; do not append "(not yet run)" hints; do not append "Run /analyse-requirement first" hints inside the numbered list. Missing methodologies are simply absent from the list.
-4. **Defensive guard — zero on-disk analyses.** If the filtered list is empty, surface a single `AskUserQuestion`:
-    - Question: *"No requirement analyses have been produced yet under `analyse-requirements/`. Run `/analyse-requirement` first if you want the wireframes to be augmented by analysis outputs. Proceed without supporting analyses?"*
-    - Header: `No analyses`
-    - `multiSelect: false`
-    - Options:
-        1. `Proceed without supporting analyses (Recommended)` — the wireframe pipeline runs against `requirements/requirements.md` alone.
-        2. `Cancel — exit /wireframe to run /analyse-requirement first`
-    - Branch:
-        - **Proceed-without** — write the JSON described in step 8 with `"selections": []`, verify, return `selected-none`.
-        - **Cancel** — return `cancelled` without writing.
-    - This is the **only** step in the skill that gestures at methodologies that don't yet exist; it does not enumerate them by name.
+4. **Auto-proceed — zero on-disk analyses.** If the filtered list (MVP ∩ on-disk) is empty, do **not** prompt. Print exactly one plain-text line:
+
+    *"No analyses on disk; proceeding from `requirements.md` alone — run `/analyse-requirement` first if you want goal/journey augmentation."*
+
+    Then jump to step 8 with an empty selection set, write the empty-`selections[]` JSON (step 9 — the write stays **inside this skill**; the calling orchestrator is a strict delegator and must not write the artefact itself), verify via `framework/skills/verify-artifact-write.md`, and return `selected-none`. Do **not** surface any `AskUserQuestion`. Zero analyses is the common first-run case, not a decision; a full interaction round for it is removed. The consultant retains a Cancel affordance at the architect's conditional gate (Stage 2) and the orchestrator-owned Stage-4b accept gate, and can abort the whole pipeline at any prompt — so no decision is lost. Supporting analyses are **optional augmentation**, not a prerequisite (the architect runs from `requirements.md` alone on `selected-none`). This is the **only** step in the skill that gestures at methodologies that don't yet exist; it does not enumerate them by name, and it prints the notice **outside** any numbered list.
 5. **Build the numbered list** (only when ≥1 on-disk MVP rows remain). Number the retained rows starting at **1**, in **registry order**. Do not re-sort. For each row, format a three-line block:
 
     `{{n}}. {{name}}`
@@ -199,12 +193,13 @@ Role semantics (closed enum, consumed by `blueprint-architect.md`):
 
 11. **Return the consultant's choice.**
     - If step 5–7 produced a valid non-empty selection and the JSON was written + verified: return `selected`.
-    - If step 5 returned a `none` / empty / `Proceed-without` path, the empty-`selections[]` JSON was written + verified: return `selected-none`.
+    - If step 5 returned a `none` / empty path, or step 4 auto-proceeded on the zero-on-disk branch, the empty-`selections[]` JSON was written + verified: return `selected-none`.
     - If any step returned a cancel keyword, retry-budget exhaustion, `Cancel` option, or write-verify failure: return `cancelled` (no further work).
 
 ## Self-validation
 
 - The numbered list was printed at most three times in total (initial print plus up to two re-prompts on invalid input). The skill never loops indefinitely.
+- On the zero-on-disk branch, **no `AskUserQuestion` was surfaced**: a single plain-text notice was printed, the numbered list was not rendered, and an empty-`selections[]` JSON was written + verified before returning `selected-none`.
 - Methodologies were numbered in registry order; no row was re-sorted alphabetically or otherwise.
 - The on-disk filter was applied **before** the numbered list was rendered; the printed list contains zero rows whose `output_path` does not resolve on disk.
 - The JSON artefact contains exactly four top-level fields (`scope_slug`, `selected_at`, `registry_path`, `selections`); it does not carry a `skipped_absent`, `not_yet_run`, `available_to_run`, or any other field that enumerates methodologies the consultant did not pick because they have not been produced.
@@ -222,7 +217,8 @@ Role semantics (closed enum, consumed by `blueprint-architect.md`):
 - Do not surface methodologies whose `output_path` does not resolve on disk. The completed-on-disk filter at step 3 is the **load-bearing rule**; appending "(not yet run)" suffixes, "Run /analyse-requirement first" hints, or "coming soon" annotations to absent rows defeats the rule. The consultant is selecting *from what they have produced*, not browsing the methodology catalogue.
 - Do not record absent methodologies anywhere in the JSON. No `skipped_absent` field, no `available_to_run` field, no audit trail of "what the consultant didn't pick because they hadn't produced it." The on-disk subset is the universe; absent rows are out of scope.
 - Do not hardcode methodology names or paths. The registry is canonical; the static `architect_roles` table keys on the registry's `name` slug.
-- Do not invoke `AskUserQuestion` for the multi-select itself. The list cardinality (13 mvp rows in the registry today, ≤ that many on disk) exceeds the 4-option cap. Print-and-parse handles arbitrary cardinality in one prompt; the `AskUserQuestion` calls in this skill are limited to the (a) zero-on-disk defensive branch, (b) post-parse Confirm/Edit/Cancel, and (c) optional context-bloat re-check.
+- Do not invoke `AskUserQuestion` for the multi-select itself. The list cardinality (13 mvp rows in the registry today, ≤ that many on disk) exceeds the 4-option cap. Print-and-parse handles arbitrary cardinality in one prompt; the `AskUserQuestion` calls in this skill are limited to (a) post-parse Confirm/Edit/Cancel, and (b) the optional context-bloat re-check.
+- Do not surface an `AskUserQuestion` on the zero-on-disk branch. Zero analyses is not a decision — auto-proceed with a printed notice and return `selected-none`. The Cancel affordance lives at the architect's conditional gate (Stage 2) and the orchestrator's Stage-4b accept gate, not here.
 - Do not omit the confirmation step. The print-and-parse step accepts comma-separated text; the `AskUserQuestion` confirmation is the consultant's structured chance to verify the parse landed correctly.
 - Do not write the JSON before confirmation. The confirmation step is the commit point; an Edit response must not leave a stale JSON on disk.
 - Do not write the JSON outside `<output_dir><scope_slug>/`. The skill is parameterised on `output_dir`; cross-pipeline contamination (e.g. writing into `blueprints/` because the architect reads from there) is a structural bug.

@@ -36,12 +36,20 @@ on the duplicated axis.
 > canonical doc is authored and de-duplicated.
 
 **Used by:**
-- `framework/agents/blueprint-architect.md` — dimension-applicability filter,
-  variant-position coherence check, persona-position compatibility check.
-- `framework/agents/wireframe-variant-generator.md` — per-screen pattern variant
-  selection (e.g. table.compact vs table.spacious).
-- `framework/agents/wireframe-comparator.md` — drift detection (does the
-  variant's declared position match its rendered pattern picks?).
+- `framework/agents/blueprint-architect.md` — **sole consumer of Section 3**:
+  dimension-applicability filter (§2), the base-pattern-owner / modifier-layering rule
+  (§3.0), per-surface pattern-variant selection **at author time** (§3),
+  variant-position coherence check (§4), persona-position compatibility check (§5).
+  Pattern picks are authored into `variants.json > surface_plan` here — not re-derived
+  downstream.
+- `framework/assets/wireframes/divergence-heuristics.md` — reuses §2 goal-type
+  applicability and §5 persona-trait positions (references, does not re-define them).
+
+> The variant-generator and comparator **no longer read this registry.** Pattern
+> selection moved into the architect (`surface_plan`); the generator renders the
+> authored plan and the comparator checks render-vs-plan. This removes the prior
+> double-interpretation (generator picked from §3, comparator re-derived from §3) that
+> produced false-positive drift.
 
 ---
 
@@ -87,27 +95,60 @@ inapplicable dimensions are still recorded in `variants.json` with
 
 ---
 
+## Section 3.0 — Base-pattern ownership & modifier layering
+
+A screen has exactly **one** primary pattern. When more than one diverging dimension
+has an effect on the same pattern-category (the common case — `density-focus` and
+`speed-accuracy` both touch Collections), they cannot each name a base pattern for the
+same screen. Per pattern-category, exactly **one** dimension is the **base-pattern owner**
+(it selects `primary_pattern` + `primary_pattern_variant`); every other diverging
+dimension layers as a **modifier** (it contributes `modifiers[]` + `secondary_patterns[]`
+only, never a competing base pattern).
+
+| Pattern-category | Base-pattern owner | Modifier dimensions express as |
+|---|---|---|
+| Collections (table / data-list / card-grid / master-detail) | **D3 density-focus** → base pattern + `wf-table--spacious` / `wf-table--compact` | D1 speed-accuracy → confirmation friction, bulk-select (`selectable`), keyboard shortcuts, inline-edit (`editable`); D4 control-automation → auto-defaults / suggestion; D5 flexibility-consistency → shell reuse |
+| Forms | **D1 speed-accuracy** → archetype (`multi-step-wizard` ↔ `single-form` ↔ `inline-edit`); **D3 density-focus** → layout variant (`single-form.compact` / `single-form.two-column`) | D2 power-simplicity → help density; D4 control-automation → autofill |
+| Navigation / surfaces | **D2 power-simplicity** | D1 speed-accuracy → keyboard-first; D6 (inactive) |
+
+**Rule.** If a modifier dimension's Section-3 effect names a base pattern, re-express it
+as a modifier on the owner's base. Forms is the only **two-owner** category — D1 picks the
+archetype and D3 picks the layout variant; they decide *different* things and never
+conflict (e.g. a `single-form` can simultaneously be `two-column` from D3 and
+submit-on-Enter from D1+).
+
+**Consumed at author time.** The blueprint-architect applies this rule once per variant per
+surface when it authors `variants.json > surface_plan` (see
+`framework/agents/blueprint-architect/steps/step-05-compose-variants.md > 5.3.6`). Every
+pattern + variant it names must exist in `framework/assets/pattern-catalogue/` — an absent
+pattern routes to the architect's step-07 conditional gate, never to silent drift.
+
+---
+
 ## Section 3 — Per-pattern-category HTML effects
 
 This section is the load-bearing translation: for each {dimension, pattern-category, position}
-triple, it documents what the variant-generator visibly changes when composing
-the pattern. The mappings are deliberately concrete — the comparator's drift
-detection uses them to verify a variant's declared position matches its
-rendered pattern picks.
+triple, it documents the concrete composition the **blueprint-architect** authors into
+`surface_plan` at design time (per Section 3.0's base-owner rule). Each position cell names a
+catalogue pattern *variant* (present in that pattern's `variants:` block) or a DS spacing
+modifier (`wf-table--spacious` / `wf-table--compact`) — **never** a variant absent from the
+catalogue.
 
-Format: rows are `dimension → pattern-category → effect-per-position`. Each
-position cell names the catalogue pattern *variant* picked (per the pattern's
-`variants:` block) plus any composition adjustments.
+Format: rows are `dimension → pattern-category → effect-per-position`.
 
-### D1 speed-accuracy — Collections
+### D1 speed-accuracy — Collections (modifier — density-focus owns the base)
 
-| Position | Effect |
+D1 contributes **modifiers only** on Collections; the base pattern + density variant come
+from D3 (Section 3.0). Express D1's position as composition adjustments layered on whatever
+base D3 chose — never as a competing base pattern.
+
+| Position | Modifier effect (layered on D3's base) |
 |---|---|
-| -2 | `table.spacious` or `master-detail-list`; one record per row; explicit confirmation on every action; no bulk-select. |
-| -1 | `table.comfortable`; per-row confirm on destructive actions; bulk-select disabled by default. |
-|  0 | `table.default`; standard inline actions; confirm on destructive only. |
-| +1 | `table.compact`; keyboard shortcuts for common actions; bulk-select on. |
-| +2 | `table.compact` with `bulk-edit` enabled; auto-apply on focus-blur; minimal confirmation friction. |
+| -2 | Explicit confirmation on every row action; no bulk-select; one deliberate action at a time. |
+| -1 | Per-row confirm on destructive actions; bulk-select disabled by default. |
+|  0 | Standard inline actions; confirm on destructive only. |
+| +1 | Keyboard shortcuts for common actions; bulk-select on (`selectable` variant). |
+| +2 | Inline-edit (`editable` variant) + `selectable`; auto-apply on focus-blur; minimal confirmation friction. |
 
 ### D1 speed-accuracy — Forms
 
@@ -139,15 +180,20 @@ position cell names the catalogue pattern *variant* picked (per the pattern's
 | +1 | `tabs` + `command-palette` + keyboard shortcuts. |
 | +2 | `omnibar` or `command-palette` as primary entry; tabs collapsed. |
 
-### D3 density-focus — Collections
+### D3 density-focus — Collections (base-pattern owner)
 
-| Position | Effect |
-|---|---|
-| -2 | `master-detail-list` with single-record focus; one card per viewport. |
-| -1 | `card-grid.spacious`; lots of whitespace; 1-2 cards per row. |
-|  0 | `table.default` or `card-grid.default`; standard density. |
-| +1 | `table.compact`; 5+ visible columns; small row height. |
-| +2 | `table.compact` with 8+ columns; `inline-edit` enabled; high information density per viewport. |
+D3 owns the base pattern + density. All entries are catalogue-real; the density nuance at
+±1 is a DS spacing modifier on the default `table`, not a (non-existent) `table.spacious` /
+`table.comfortable` catalogue variant. Behavioral variants (`editable`, `selectable`) are
+contributed by D1 (the modifier dimension), not here.
+
+| Position | Base pattern + catalogue variant | DS spacing modifier |
+|---|---|---|
+| -2 | `collections/master-detail-list` `default` — single-record focus, one record per viewport. | — |
+| -1 | `collections/table` `default` — roomy rows, whitespace-led. (For visual/browse-oriented collections, `collections/card-grid` `default` is the alternative base.) | `wf-table--spacious` |
+|  0 | `collections/table` `default` — standard density. | — |
+| +1 | `collections/table` `default` — 5+ visible columns, compact rows. | `wf-table--compact` |
+| +2 | `collections/table` `default` — 8+ columns, high information density per viewport. | `wf-table--compact` |
 
 ### D3 density-focus — Forms
 
@@ -267,8 +313,13 @@ Persona traits are extracted by the architect from `requirements.md > §3` per-p
 - Do not loosen the persona-position rules in Section 5 to expand variant
   cardinality. The cardinality cap of 3 is a separate constraint; relaxing
   persona viability just to add a variant degrades the comparison's signal.
-- Do not propose patterns outside `framework/assets/pattern-catalogue/`. The
-  pattern variants named in Section 3 (`table.compact`, `single-form.two-column`,
-  etc.) must all be present in their respective catalogue entries' `variants:`
-  block. If they are not, the catalogue is the source of truth — update the
-  catalogue first, then update this registry.
+- Do not name a pattern or pattern variant in Section 3 / 3.0 that is absent from
+  `framework/assets/pattern-catalogue/`. Section 3 is consumed by the
+  blueprint-architect **at author time**: a named variant missing from the catalogue's
+  `variants:` block is caught when the architect validates `surface_plan` and routes to
+  its step-07 conditional gate — it is no longer silently rendered as a fallback that
+  later flags as drift. The catalogue is the source of truth; keep this section
+  catalogue-true at all times (this is why `table.spacious` / `table.comfortable` /
+  `card-grid.spacious` were removed — they never existed in the catalogue). DS spacing
+  modifiers (`wf-table--spacious` / `wf-table--compact`) are design-system classes, not
+  catalogue variants — they live in `framework/assets/design-systems/wireframe-ds.html`.

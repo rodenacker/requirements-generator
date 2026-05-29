@@ -16,9 +16,9 @@ On `mode = "regenerate-variants"` and `mode = "add-variant"`, the blueprint is r
 Skipped when `variants_output_path == null`.
 
 1. Ensure the parent directory exists: `Bash mkdir -p $(dirname <variants_output_path>)` (the parent is typically `wireframes/<scope_slug>/` which may not exist yet on a fresh scope-slug).
-2. Render the in-memory `variants.json` payload from step 5.7 as a JSON string with two-space indentation. Compute the sha256.
+2. Render the in-memory `variants.json` payload assembled at `step-05-compose-variants.md > 5.6` as a JSON string with two-space indentation. Compute the sha256. **The payload is now larger than the pre-realization shape:** each `variants[]` entry carries a nested `surface_plan` (keyed by `LS-NN`, with per-surface pattern picks + realization + `physical_screens[]` per `framework/assets/wireframes/realization-strategies.md > Section 2`) and a `physical_flow` string. This adds bulk but no new top-level field; the write + verify logic is unchanged.
 3. `Write <variants_output_path>` with the rendered content.
-4. Call `framework/skills/verify-artifact-write.md` with `path = <variants_output_path>`, `expected_sha256 = <rendered hash>`, `expected_min_bytes = 200` (a minimal-shape variants.json with 1 variant + the meta fields is comfortably above 200 bytes).
+4. Call `framework/skills/verify-artifact-write.md` with `path = <variants_output_path>`, `expected_sha256 = <rendered hash>`, `expected_min_bytes = 200` (the `surface_plan` makes a real variants.json far larger than this floor, so the 200-byte minimum remains a safe lower bound — even a minimal-shape variants.json with 1 variant + 1 standalone surface clears it comfortably).
 
 On `pass`, capture `wrote_variants = true` and advance. On `RF-04 trigger`, propagate the hard halt per `framework/shared/refusal-registry.md > RF-04` (fail handback; the orchestrator does not advance to Stage 3).
 

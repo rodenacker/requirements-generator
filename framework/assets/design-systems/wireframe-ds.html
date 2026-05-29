@@ -262,6 +262,14 @@ template-screen.html's link slot.
     }
     .wf-table th { background: var(--wf-surface-muted); font-weight: 700; }
     .wf-table tr.selected { background: var(--wf-surface-muted); }
+    /* Density modifiers — the symmetric spacious/compact ladder for density-focus.
+       The catalogue ships a `compact` table variant but no spacious/comfortable one,
+       so both poles are expressed here as DS spacing classes on the default table
+       (see tradeoff-dimensions-registry.md Section 3 — Collections). */
+    .wf-table--spacious th,
+    .wf-table--spacious td { padding: calc(var(--wf-spacing) * 2.5); }
+    .wf-table--compact th,
+    .wf-table--compact td { padding: calc(var(--wf-spacing) * 0.5); line-height: 1.2; }
 
     /* Lists */
     .wf-list ul { list-style: none; margin: 0; padding: 0; }

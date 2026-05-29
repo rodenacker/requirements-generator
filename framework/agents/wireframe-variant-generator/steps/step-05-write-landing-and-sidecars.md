@@ -1,5 +1,5 @@
 ---
-name: step-05-write-sidecars
+name: step-05-write-landing-and-sidecars
 description: 'Write manifest.json (per-screen bindings accumulator) and variant-position.json (immutable mirror of variants.json own-entry + self-authored concise strengths/weaknesses/use-when). Verify each. The per-variant landing page (wireframes.html) is no longer authored — the scope index.html owns all variant navigation and meta surfacing.'
 ---
 
@@ -17,7 +17,7 @@ clicks (open index → click screen link).
 ## 5.1 Write `manifest.json`
 
 Serialise the in-memory accumulator (built up during step-04's per-screen
-loop) into the schema documented in
+loop and fold-record pass) into the schema documented in
 `framework/agents/wireframe-variant-generator.md > Output`:
 
 ```json
@@ -30,6 +30,17 @@ loop) into the schema documented in
 }
 ```
 
+The `screens` map is keyed by **physical** screen_id for standalone + wizard-split
+physical screens (`S-NN`, `S-NNa`, …) and by **logical surface_id** (`LS-NN`) for
+folds (which have no physical screen file). **Each record additionally carries
+`surface_id`, `realization`, and `modifiers`** (mirrored verbatim from the authored
+`surface_plan` during step 4.8). This lets the comparator align variants **by
+logical surface** (not by physical-screen ordinal — which now diverges across
+variants when realizations differ) and drift-check each surface's pattern picks +
+modifiers against the architect's plan. Because step 4 copied the records verbatim
+from the authored plan, `manifest == surface_plan` by construction; the comparator's
+render-vs-plan check is a write-time guarantee, not a derivation that can drift.
+
 Compute sha256. Write to `<output_dir>/manifest.json` with two-space indentation. Verify with `expected_min_bytes = 256`.
 
 On `pass`, capture `manifest_written = true` and advance.
@@ -38,7 +49,7 @@ On `pass`, capture `manifest_written = true` and advance.
 
 Compose the artefact per the schema in `framework/agents/wireframe-variant-generator.md > Output`. The `dimension_positions`, `persona_binding`, and `design_philosophy` fields are **immutable mirrors** of `own.*` (verbatim — drift here is a structural bug). The `strengths`, `weaknesses`, `tradeoffs`, `use_when` fields are **self-authored** by this sub-agent based on:
 
-- The chosen pattern picks in `manifest.screens` (e.g. compact-table at dense → strength: "Many records visible without scrolling").
+- The chosen pattern picks in `manifest.screens` (e.g. a compact, dense table → strength: "Many records visible without scrolling"). These picks are now mirrored from the architect's authored `surface_plan` rather than derived by this sub-agent, but the **authoring logic here is unchanged** — read the picks (incl. `realization` and `modifiers`) from `manifest.screens`, just as before; the source of the picks changed, not how this step consumes them.
 - The bound persona's traits from `own.persona_traits` (e.g. daily user → use_when: "Daily users handling high volumes").
 - The dimension positions at the poles (e.g. expert-leaning → weakness: "Less guidance for first-time users").
 

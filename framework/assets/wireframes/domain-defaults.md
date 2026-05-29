@@ -29,10 +29,22 @@ under a new pipeline-specific defaults asset instead.
 - `framework/agents/blueprint-architect.md` — reads this file in its variant
   composition step; applies the defaults unless `scope.json > chosen_dimensions`
   records a consultant override.
+- `framework/assets/wireframes/divergence-heuristics.md` — references this file as
+  the **Rule-D / Rule-W fallback**: when the scope's personas are uniform-goal-type
+  (Rule D) or the goal evidence is too weak to anchor (Rule W), the heuristic
+  recommends exactly the static profile defined here, and the architect applies it.
 
 ---
 
 ## Section 1 — Default diverging dimensions
+
+> **Precedence note.** When `scope.json > divergence_profile` is present and in force
+> (a goal/persona-driven recommendation the consultant confirmed via the
+> scope-selector — see `framework/assets/wireframes/divergence-heuristics.md`), the
+> architect uses **that** profile instead of these static defaults. This file is the
+> **Rule-D / Rule-W fallback** the heuristic recommends when the personas are
+> uniform-goal-type or the goal evidence is too weak to anchor. The static content
+> below remains the canonical fallback — do not move or delete it.
 
 The architect diverges variants on **exactly these two dimensions** by default:
 
@@ -106,6 +118,13 @@ incoherent-pair check in `tradeoff-dimensions-registry.md > Section 4`
 ---
 
 ## Section 4 — Persona-binding rule
+
+> **Precedence note.** When `scope.json > divergence_profile` is present and in force
+> (see `framework/assets/wireframes/divergence-heuristics.md`), its
+> `variant_bindings[]` supply the persona-binding directly and the architect uses
+> them instead of the rules below. This section is the **Rule-D / Rule-W fallback**
+> binding rule the heuristic recommends for uniform-goal-type or weak-evidence
+> scopes; it remains the canonical fallback — do not move or delete it.
 
 The architect bind variants to personas using these rules (in order; first
 match wins).

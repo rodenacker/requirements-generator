@@ -7,11 +7,12 @@ description: 'Fire the conditional gate only when self-validation flagged struct
 
 ## 7.1 Decide whether the conditional gate fires
 
-The gate fires if **any** of these three predicates is true (from in-memory state captured in earlier steps):
+The gate fires if **any** of these predicates is true (from in-memory state captured in earlier steps):
 
-- `validation.bijection.result == "FAIL"` (orphan source(s) and/or orphan screen(s) survived the step-3 self-revision attempt).
-- `validation.conflicts.result != "NONE"` (one or more requirement-pair conflicts inside a screen).
-- `pattern_coverage.verdict == "gap"` (one or more screens with no catalogue pattern fit; AI-SUGGESTED stubs needed).
+- `validation.bijection.result == "FAIL"` (orphan source(s) and/or orphan surface(s) survived the step-3 self-revision attempt).
+- `validation.conflicts.result != "NONE"` (one or more requirement-pair conflicts inside a surface).
+- `pattern_coverage.verdict == "gap"` (one or more surfaces with no catalogue pattern fit; AI-SUGGESTED stubs needed).
+- `validation.surface_plan_gap == true` (step-5's `surface_plan` authoring named a pattern or `primary_pattern_variant` absent from the catalogue, hit a `(dimension × realization)` incoherence, or hit a no-fold-of-fold / inapplicable-realization violation, that its one-shot self-revision could not resolve).
 
 Otherwise the gate does **not** fire (auto-accept path); skip to 7.4.
 
@@ -33,6 +34,9 @@ Compose a structured prompt for `AskUserQuestion`:
     Conflicts:
       - S-03 (Validation): F-05 "single-step submission" + BR-04 "two-stage approval gate required" foreclose each other.
 
+    Surface-plan gaps:
+      - V-B LS-02: authored realization wizard-split, but the catalogue has no `forms/multi-step-wizard` variant `<x>`; or a chosen pattern/variant is absent from the catalogue; or a `(density-focus -2 × combined)`-style incoherence.
+
     What would you like to do?
     ```
 
@@ -50,7 +54,7 @@ Compose a structured prompt for `AskUserQuestion`:
 
 - **Accept as-is** — record warnings in the architect's final summary (next sub-step). Step 5's variants.json was already written; auto-accept the gate.
 - **Revise inventory** — surface a follow-up `AskUserQuestion` to capture the specific revision intent (free text). Re-run step 3 with the revision applied; re-run step 4 (the blueprint will be re-written); re-run step 5 (variants will be re-prompted from scratch); re-evaluate the gate. Loop until accept or cancel.
-- **Revise variants** — re-run step 5 only (variants are re-prompted from scratch); re-write `variants.json`; re-evaluate the gate. The blueprint is unchanged.
+- **Revise variants** — re-run step 5 only (variants are re-prompted from scratch); re-write `variants.json`; re-evaluate the gate. The blueprint is unchanged. **A `surface_plan_gap` is resolved on this path** (re-authoring the `surface_plan` with a catalogue-valid pattern/variant + a coherent realization); it never requires re-authoring the blueprint.
 - **Narrow scope** — fail handback cleanly with structured plain-text *"Cancelled at design-brief gate. The blueprint at `<blueprint_output_path>` may still exist on disk; remove it by re-running `/wireframe` with the same `scope_slug` and choosing `Overwrite` at the prior-set gate."*
 - **Escalate to /review-requirement** — fail handback cleanly with the same structured plain-text plus *"Then run `/review-requirement → ADVERSARIAL` against `requirements/requirements.md` to surface and resolve the conflict before re-invoking `/wireframe`."*
 - **Cancel** — fail handback cleanly with the structured plain-text.
@@ -63,8 +67,8 @@ Whether or not the gate fired, emit a single Unicorn-voice summary block to the 
 
 ```
 Blueprint for `<scope_slug>`:
-- <N> screens (S-01 … S-NN); <M> sources covered.
-- Flow: <one-line flow description>.
+- <N> logical surfaces (LS-01 … LS-NN); <M> sources covered.
+- Logical flow: <one-line flow description>.
 - Bijection: <PASS | FAIL with reason>.
 - Conflicts: <NONE | count + first conflict pair>.
 - Pattern coverage: <verdict>; <notes>.
