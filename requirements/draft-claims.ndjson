@@ -1,0 +1,186 @@
+{"claim_id":"C-001","draft_locator":"§1.name","claim_text":"Northstar Wealth Client Onboarding & KYC Wizard","source_file":"input/brief.md","source_quote":"Northstar Wealth Client Onboarding & KYC Wizard"}
+{"claim_id":"C-002","draft_locator":"§1.domain","claim_text":"Wealth management firm","source_file":"input/brief.md","source_quote":"Northstar Wealth is a wealth management firm"}
+{"claim_id":"C-003","draft_locator":"§1.purpose","claim_text":"Shift information gathering to a self-service digital experience","source_file":"input/brief.md","source_quote":"shift most information gathering, verification, and risk assessment activities to a self-service digital experience that clients can complete from home"}
+{"claim_id":"C-004","draft_locator":"§1.purpose","claim_text":"Reduce the advisor meeting to approximately 20 minutes","source_file":"input/brief.md","source_quote":"reduce advisor meeting time to approximately 20 minutes"}
+{"claim_id":"C-005","draft_locator":"§1.domain","claim_text":"KYC and AML onboarding practices","source_file":"input/brief.md","source_quote":"Know Your Customer (KYC) and Anti-Money Laundering (AML) onboarding practices"}
+{"claim_id":"C-006","draft_locator":"§1.business_goal","claim_text":"Reduce advisor-led onboarding time from 2-3 hours to ~20 minutes","source_file":"input/brief.md","source_quote":"Reduce advisor-led onboarding time from"}
+{"claim_id":"C-007","draft_locator":"§1.business_goal","claim_text":"Collect KYC and suitability information before advisor review","source_file":"input/brief.md","source_quote":"Collect all information required for KYC and suitability assessments before advisor review."}
+{"claim_id":"C-008","draft_locator":"§1.5.In","claim_text":"Multi-step onboarding workflow","source_file":"input/brief.md","source_quote":"Multi-step workflow"}
+{"claim_id":"C-009","draft_locator":"§1.5.In","claim_text":"Progress indicator","source_file":"input/brief.md","source_quote":"Progress indicator"}
+{"claim_id":"C-010","draft_locator":"§1.5.In","claim_text":"Forward and backward navigation","source_file":"input/brief.md","source_quote":"Forward and backward navigation"}
+{"claim_id":"C-011","draft_locator":"§1.5.In","claim_text":"Validation and error handling","source_file":"input/brief.md","source_quote":"Validation and error handling"}
+{"claim_id":"C-012","draft_locator":"§1.5.In","claim_text":"Save and resume capability","source_file":"input/brief.md","source_quote":"Save and resume capability"}
+{"claim_id":"C-013","draft_locator":"§1.5.In","claim_text":"File upload and preview","source_file":"input/brief.md","source_quote":"File upload and preview"}
+{"claim_id":"C-014","draft_locator":"§1.5.In","claim_text":"Risk profile calculation","source_file":"input/brief.md","source_quote":"Risk profile calculation"}
+{"claim_id":"C-015","draft_locator":"§1.5.In","claim_text":"Review and edit functionality","source_file":"input/brief.md","source_quote":"Review and edit functionality"}
+{"claim_id":"C-016","draft_locator":"§1.5.In","claim_text":"Submission confirmation","source_file":"input/brief.md","source_quote":"Submission confirmation"}
+{"claim_id":"C-017","draft_locator":"§1.5.Out","claim_text":"Desktop viewport only","source_file":"input/brief.md","source_quote":"Desktop viewport only"}
+{"claim_id":"C-018","draft_locator":"§1.5.Out","claim_text":"No full authentication system","source_file":"input/brief.md","source_quote":"without requiring a full authentication system"}
+{"claim_id":"C-019","draft_locator":"§1.6.dependency","claim_text":"Mock upload endpoint for documents","source_file":"input/brief.md","source_quote":"Mock upload endpoint"}
+{"claim_id":"C-020","draft_locator":"§1.6.dependency","claim_text":"Mock submission endpoint","source_file":"input/brief.md","source_quote":"Mock submission endpoint"}
+{"claim_id":"C-021","draft_locator":"§1.6.dependency","claim_text":"Persistent local storage state","source_file":"input/brief.md","source_quote":"Persistent localStorage state"}
+{"claim_id":"C-022","draft_locator":"§1.6.prerequisite","claim_text":"Opening a new investment account","source_file":"input/brief.md","source_quote":"Opening a new investment account."}
+{"claim_id":"C-023","draft_locator":"§1.6.environment","claim_text":"Desktop viewport 1280px and above","source_file":"input/brief.md","source_quote":"1280px and above"}
+{"claim_id":"C-024","draft_locator":"§2.1.OnboardingSession","claim_text":"Session stored locally for resumption","source_file":"input/brief.md","source_quote":"Store session locally for resumption"}
+{"claim_id":"C-025","draft_locator":"§2.1.Applicant","claim_text":"Identity and residency information for KYC compliance","source_file":"input/brief.md","source_quote":"Collect identity and residency information required for KYC compliance."}
+{"claim_id":"C-026","draft_locator":"§2.1.IdentityDocument","claim_text":"Supporting documentation for KYC verification","source_file":"input/brief.md","source_quote":"Collect supporting documentation required for KYC verification."}
+{"claim_id":"C-027","draft_locator":"§2.1.ProofOfAddress","claim_text":"Dated within the last three months","source_file":"input/brief.md","source_quote":"Dated within the last three months"}
+{"claim_id":"C-028","draft_locator":"§2.1.EmploymentProfile","claim_text":"Financial information for regulatory compliance","source_file":"input/brief.md","source_quote":"Collect financial information required for regulatory compliance."}
+{"claim_id":"C-029","draft_locator":"§2.1.RiskProfile","claim_text":"Determine investment risk tolerance","source_file":"input/brief.md","source_quote":"investment risk tolerance"}
+{"claim_id":"C-030","draft_locator":"§2.1.OnboardingSubmission","claim_text":"Confirmation number generated","source_file":"input/brief.md","source_quote":"Generate confirmation number"}
+{"claim_id":"C-031","draft_locator":"§2.1.RiskScore","claim_text":"Risk score minimum 5","source_file":"input/brief.md","source_quote":"Minimum Score: 5"}
+{"claim_id":"C-032","draft_locator":"§2.1.RiskCategory","claim_text":"Risk categories","source_file":"input/brief.md","source_quote":"Risk Categories"}
+{"claim_id":"C-033","draft_locator":"§2.1.CompletionProgress","claim_text":"Completion percentage","source_file":"input/brief.md","source_quote":"Completion percentage"}
+{"claim_id":"C-034","draft_locator":"§2.3.invariant","claim_text":"All mandatory KYC documentation submitted prior to advisor review","source_file":"input/brief.md","source_quote":"All mandatory KYC documentation is submitted prior to advisor review."}
+{"claim_id":"C-035","draft_locator":"§2.3.invariant","claim_text":"Age must be 18 years or older","source_file":"input/brief.md","source_quote":"Age must be 18 years or older"}
+{"claim_id":"C-036","draft_locator":"§2.3.invariant","claim_text":"Declarations must be accepted before submission","source_file":"input/brief.md","source_quote":"Terms and conditions accepted."}
+{"claim_id":"C-037","draft_locator":"§2.5.trigger","claim_text":"Client begins onboarding","source_file":"input/brief.md","source_quote":"Begin onboarding"}
+{"claim_id":"C-038","draft_locator":"§2.5.precondition","claim_text":"Valid email provided","source_file":"input/brief.md","source_quote":"Valid email format"}
+{"claim_id":"C-039","draft_locator":"§2.5.effect","claim_text":"Onboarding session created","source_file":"input/brief.md","source_quote":"Create onboarding session"}
+{"claim_id":"C-040","draft_locator":"§2.5.trigger","claim_text":"Existing progress detected on return","source_file":"input/brief.md","source_quote":"If existing progress is detected"}
+{"claim_id":"C-041","draft_locator":"§2.5.precondition","claim_text":"Re-enter the email used to start onboarding","source_file":"input/brief.md","source_quote":"the user must re-enter the email address used to start onboarding"}
+{"claim_id":"C-042","draft_locator":"§2.5.effect","claim_text":"Welcome back message shown","source_file":"input/brief.md","source_quote":"Welcome back. Continue from Step X."}
+{"claim_id":"C-043","draft_locator":"§2.5.trigger","claim_text":"Review reached to verify information before submission","source_file":"input/brief.md","source_quote":"Allow users to verify information before submission."}
+{"claim_id":"C-044","draft_locator":"§2.5.effect","claim_text":"Each section has an Edit action","source_file":"input/brief.md","source_quote":"Each section includes an Edit action."}
+{"claim_id":"C-045","draft_locator":"§2.5.trigger","claim_text":"Submit onboarding application","source_file":"input/brief.md","source_quote":"Submit onboarding application to mock endpoint."}
+{"claim_id":"C-046","draft_locator":"§2.5.effect","claim_text":"Submission confirmation message shown","source_file":"input/brief.md","source_quote":"Submission confirmation message"}
+{"claim_id":"C-047","draft_locator":"§2.5.effect","claim_text":"Local session state cleared after successful submission","source_file":"input/brief.md","source_quote":"Clear localStorage after successful submission"}
+{"claim_id":"C-048","draft_locator":"§3.expertise","claim_text":"Financial knowledge may vary significantly","source_file":"input/brief.md","source_quote":"Financial knowledge may vary significantly."}
+{"claim_id":"C-049","draft_locator":"§3.expertise","claim_text":"May be unfamiliar with KYC terminology","source_file":"input/brief.md","source_quote":"May be unfamiliar with KYC terminology."}
+{"claim_id":"C-050","draft_locator":"§3.expertise","claim_text":"Comfortable using desktop web applications","source_file":"input/brief.md","source_quote":"Comfortable using desktop web applications."}
+{"claim_id":"C-051","draft_locator":"§3.stakes","claim_text":"Required to provide identity and financial information","source_file":"input/brief.md","source_quote":"Required to provide identity and financial information."}
+{"claim_id":"C-052","draft_locator":"§3.frequency","claim_text":"Completing onboarding independently","source_file":"input/brief.md","source_quote":"Completing onboarding independently."}
+{"claim_id":"C-053","draft_locator":"§3.drivers.wants","claim_text":"Understand what information is needed before starting","source_file":"input/brief.md","source_quote":"Understand what information I need before starting."}
+{"claim_id":"C-054","draft_locator":"§3.drivers.wants","claim_text":"Complete onboarding from home at own pace","source_file":"input/brief.md","source_quote":"Complete onboarding from home at my own pace."}
+{"claim_id":"C-055","draft_locator":"§3.drivers.wants","claim_text":"Save progress and continue later","source_file":"input/brief.md","source_quote":"Save my progress and continue later."}
+{"claim_id":"C-056","draft_locator":"§3.drivers.wants","claim_text":"Receive confirmation that the application was submitted successfully","source_file":"input/brief.md","source_quote":"Receive confirmation that my application has been submitted successfully."}
+{"claim_id":"C-057","draft_locator":"§3.drivers.fears","claim_text":"Expect professionalism and clarity","source_file":"input/brief.md","source_quote":"Expect professionalism and clarity."}
+{"claim_id":"C-058","draft_locator":"§3.drivers.fears","claim_text":"May be cautious about sharing personal and financial information online","source_file":"input/brief.md","source_quote":"May be cautious about sharing personal and financial information online."}
+{"claim_id":"C-059","draft_locator":"§3.drivers.fears","claim_text":"Know why sensitive information is being requested","source_file":"input/brief.md","source_quote":"Know why sensitive information is being requested."}
+{"claim_id":"C-060","draft_locator":"§4.1.G-01.signal","claim_text":"Complete onboarding within approximately 15 minutes","source_file":"input/brief.md","source_quote":"Clients can complete onboarding within approximately 15 minutes."}
+{"claim_id":"C-061","draft_locator":"§4.1.G-02","claim_text":"Pause and resume onboarding without losing progress","source_file":"input/brief.md","source_quote":"Users can pause and resume onboarding without losing progress."}
+{"claim_id":"C-062","draft_locator":"§4.1.G-02.signal","claim_text":"No data loss during refresh","source_file":"input/brief.md","source_quote":"No data loss during refresh"}
+{"claim_id":"C-063","draft_locator":"§4.1.G-03","claim_text":"Review and validate information before submission","source_file":"input/brief.md","source_quote":"Increase data accuracy by allowing clients to review and validate their information before submission."}
+{"claim_id":"C-064","draft_locator":"§4.1.G-03.signal","claim_text":"Increased data accuracy through review","source_file":"input/brief.md","source_quote":"review and validate their information before submission"}
+{"claim_id":"C-065","draft_locator":"§4.1.G-04","claim_text":"Understand investment risk profile","source_file":"input/brief.md","source_quote":"Understand my investment risk profile."}
+{"claim_id":"C-066","draft_locator":"§4.1.G-04.signal","claim_text":"Risk assessments completed consistently and accurately","source_file":"input/brief.md","source_quote":"Risk profile assessments are completed consistently and accurately."}
+{"claim_id":"C-067","draft_locator":"§4.1.G-05","claim_text":"Feel confident personal information is handled securely","source_file":"input/brief.md","source_quote":"Feel confident that my personal information is handled securely."}
+{"claim_id":"C-068","draft_locator":"§4.1.G-05.signal","claim_text":"Information handled professionally and responsibly","source_file":"input/brief.md","source_quote":"handling their personal information professionally and responsibly"}
+{"claim_id":"C-069","draft_locator":"§4.2.story1.objective","claim_text":"See estimated completion time before beginning","source_file":"input/brief.md","source_quote":"Estimated completion time (15 minutes)"}
+{"claim_id":"C-070","draft_locator":"§4.2.story1.ac","claim_text":"Required documents shown including government-issued ID","source_file":"input/brief.md","source_quote":"Government-issued ID"}
+{"claim_id":"C-071","draft_locator":"§4.2.story2.ac","claim_text":"Resume after re-entering the starting email","source_file":"input/brief.md","source_quote":"re-enter the email address used to start onboarding"}
+{"claim_id":"C-072","draft_locator":"§4.2.story3.objective","claim_text":"Verify information before submission","source_file":"input/brief.md","source_quote":"verify information before submission"}
+{"claim_id":"C-073","draft_locator":"§4.2.story3.ac","claim_text":"Return directly to Review after saving changes","source_file":"input/brief.md","source_quote":"users return directly to Review after saving changes."}
+{"claim_id":"C-074","draft_locator":"§4.2.story4.objective","claim_text":"Complete the risk questionnaire and see the category","source_file":"input/brief.md","source_quote":"investment risk tolerance"}
+{"claim_id":"C-075","draft_locator":"§4.2.story4.ac","claim_text":"One-sentence description displayed","source_file":"input/brief.md","source_quote":"One-sentence description"}
+{"claim_id":"C-076","draft_locator":"§4.2.story5.ac","claim_text":"Advisor follow-up process shown in success state","source_file":"input/brief.md","source_quote":"Advisor follow-up process"}
+{"claim_id":"C-077","draft_locator":"§5.flow1.step1","claim_text":"Session created and stored locally","source_file":"input/brief.md","source_quote":"Store session locally for resumption"}
+{"claim_id":"C-078","draft_locator":"§5.flow1.step2","claim_text":"Required fields validated","source_file":"input/brief.md","source_quote":"Required fields completed"}
+{"claim_id":"C-079","draft_locator":"§5.flow1.step3","claim_text":"Uploads previewed","source_file":"input/brief.md","source_quote":"Preview thumbnail after upload"}
+{"claim_id":"C-080","draft_locator":"§5.flow1.step4","claim_text":"Employment and source-of-funds information","source_file":"input/brief.md","source_quote":"financial information required for regulatory compliance"}
+{"claim_id":"C-081","draft_locator":"§5.flow1.step5","claim_text":"Risk profile assessment","source_file":"input/brief.md","source_quote":"Risk Profile Assessment"}
+{"claim_id":"C-082","draft_locator":"§5.flow1.step6","claim_text":"Review and submit; confirmation shown","source_file":"input/brief.md","source_quote":"Submission confirmation message"}
+{"claim_id":"C-083","draft_locator":"§5.flow1.decision","claim_text":"Passport requires front image only","source_file":"input/brief.md","source_quote":"Front image only"}
+{"claim_id":"C-084","draft_locator":"§5.flow1.decision","claim_text":"Employment status determines conditional fields","source_file":"input/brief.md","source_quote":"Conditional Fields"}
+{"claim_id":"C-085","draft_locator":"§5.flow1.exception","claim_text":"Unsupported file type validation feedback","source_file":"input/brief.md","source_quote":"Supported file type"}
+{"claim_id":"C-086","draft_locator":"§5.flow1.exception","claim_text":"Upload failure: please try again","source_file":"input/brief.md","source_quote":"Please try again."}
+{"claim_id":"C-087","draft_locator":"§5.flow2.step1","claim_text":"Minimum identity check on resume","source_file":"input/brief.md","source_quote":"minimum identity check without requiring a full authentication system"}
+{"claim_id":"C-088","draft_locator":"§5.flow2.step2","claim_text":"Welcome back; resume at saved step","source_file":"input/brief.md","source_quote":"Welcome back. Continue from Step X."}
+{"claim_id":"C-089","draft_locator":"§5.flow2.decision","claim_text":"Whether existing progress is detected","source_file":"input/brief.md","source_quote":"If existing progress is detected"}
+{"claim_id":"C-090","draft_locator":"§5.flow3.trigger","claim_text":"Reach the Review & Submit step","source_file":"input/brief.md","source_quote":"Review & Submit"}
+{"claim_id":"C-091","draft_locator":"§5.flow3.step1","claim_text":"Review the read-only summary grouped by section","source_file":"input/brief.md","source_quote":"Read-only summary grouped by"}
+{"claim_id":"C-092","draft_locator":"§5.flow3.step2","claim_text":"Edit a section","source_file":"input/brief.md","source_quote":"Each section includes an Edit action."}
+{"claim_id":"C-093","draft_locator":"§5.flow4.step1","claim_text":"Accept the required declarations","source_file":"input/brief.md","source_quote":"Information provided is accurate."}
+{"claim_id":"C-094","draft_locator":"§5.flow4.step2","claim_text":"Submit the onboarding application","source_file":"input/brief.md","source_quote":"Submit onboarding application to mock endpoint."}
+{"claim_id":"C-095","draft_locator":"§5.flow4.decision","claim_text":"All declaration checkboxes accepted","source_file":"input/brief.md","source_quote":"Consent to identity verification checks."}
+{"claim_id":"C-096","draft_locator":"§6.1.F-01.statement","claim_text":"Enter email and begin, establishing a resumable session","source_file":"input/brief.md","source_quote":"establish a resumable session"}
+{"claim_id":"C-097","draft_locator":"§6.1.F-01.ac","claim_text":"On begin an onboarding session is created","source_file":"input/brief.md","source_quote":"Create onboarding session"}
+{"claim_id":"C-098","draft_locator":"§6.1.F-02.statement","claim_text":"Provide personal and residency details for KYC compliance","source_file":"input/brief.md","source_quote":"identity and residency information required for KYC compliance"}
+{"claim_id":"C-099","draft_locator":"§6.1.F-02.ac","claim_text":"Full legal name and other fields captured","source_file":"input/brief.md","source_quote":"Full legal name"}
+{"claim_id":"C-100","draft_locator":"§6.1.F-03.statement","claim_text":"Identity document types","source_file":"input/brief.md","source_quote":"Identity Document Types"}
+{"claim_id":"C-101","draft_locator":"§6.1.F-03.ac","claim_text":"Back image required for some document types","source_file":"input/brief.md","source_quote":"Back image"}
+{"claim_id":"C-102","draft_locator":"§6.1.F-04.statement","claim_text":"Proof of address: utility bill","source_file":"input/brief.md","source_quote":"Utility bill"}
+{"claim_id":"C-103","draft_locator":"§6.1.F-04.ac","claim_text":"Dated within the last three months","source_file":"input/brief.md","source_quote":"Dated within the last three months"}
+{"claim_id":"C-104","draft_locator":"§6.1.F-05.statement","claim_text":"Employment and source-of-funds information","source_file":"input/brief.md","source_quote":"financial information required for regulatory compliance"}
+{"claim_id":"C-105","draft_locator":"§6.1.F-05.ac","claim_text":"Other source of funds requires 20-char explanation","source_file":"input/brief.md","source_quote":"Minimum 20 characters"}
+{"claim_id":"C-106","draft_locator":"§6.1.F-06.statement","claim_text":"Five-question risk assessment, max score 20","source_file":"input/brief.md","source_quote":"Maximum Score: 20"}
+{"claim_id":"C-107","draft_locator":"§6.1.F-06.ac","claim_text":"Score maps to Conservative category","source_file":"input/brief.md","source_quote":"Conservative"}
+{"claim_id":"C-108","draft_locator":"§6.1.F-07.statement","claim_text":"Read-only summary grouped by section","source_file":"input/brief.md","source_quote":"Read-only summary grouped by"}
+{"claim_id":"C-109","draft_locator":"§6.1.F-07.ac","claim_text":"Grouped by Personal Details","source_file":"input/brief.md","source_quote":"Personal Details"}
+{"claim_id":"C-110","draft_locator":"§6.1.F-08.statement","claim_text":"Accept declarations and submit","source_file":"input/brief.md","source_quote":"Submit onboarding application to mock endpoint."}
+{"claim_id":"C-111","draft_locator":"§6.1.F-08.ac","claim_text":"Required checkboxes for declarations","source_file":"input/brief.md","source_quote":"Required checkboxes"}
+{"claim_id":"C-112","draft_locator":"§6.1.F-09.statement","claim_text":"Submission confirmation displayed","source_file":"input/brief.md","source_quote":"Submission confirmation message"}
+{"claim_id":"C-113","draft_locator":"§6.1.F-10.ac","claim_text":"Total steps shown","source_file":"input/brief.md","source_quote":"Total steps"}
+{"claim_id":"C-114","draft_locator":"§6.1.F-11.statement","claim_text":"Pause and resume using persisted state","source_file":"input/brief.md","source_quote":"pause and resume onboarding without losing progress"}
+{"claim_id":"C-115","draft_locator":"§6.1.F-11.ac","claim_text":"Re-enter starting email to resume","source_file":"input/brief.md","source_quote":"re-enter the email address used to start onboarding"}
+{"claim_id":"C-116","draft_locator":"§6.1.F-13.ac","claim_text":"Validation consistent across steps","source_file":"input/brief.md","source_quote":"Validation consistent across steps"}
+{"claim_id":"C-117","draft_locator":"§6.1.F-14.ac","claim_text":"Upload progress indicator shown","source_file":"input/brief.md","source_quote":"Upload progress indicator"}
+{"claim_id":"C-118","draft_locator":"§6.1.F-15.statement","claim_text":"Risk category displayed","source_file":"input/brief.md","source_quote":"Risk category"}
+{"claim_id":"C-119","draft_locator":"§6.1.F-15.ac","claim_text":"Balanced category example description","source_file":"input/brief.md","source_quote":"You are comfortable accepting moderate fluctuations in pursuit of long-term investment growth."}
+{"claim_id":"C-120","draft_locator":"§6.1.F-16.statement","claim_text":"Each step displays why information is required","source_file":"input/brief.md","source_quote":"Each step includes a short explanation describing why the information is required."}
+{"claim_id":"C-121","draft_locator":"§6.1.F-16.ac","claim_text":"Short explanation describing why information is required","source_file":"input/brief.md","source_quote":"a short explanation describing why the information is required"}
+{"claim_id":"C-122","draft_locator":"§6.1.F-17.ac","claim_text":"Return to Review rather than re-completing the workflow","source_file":"input/brief.md","source_quote":"rather than re-completing the workflow"}
+{"claim_id":"C-123","draft_locator":"§6.2.BR-03","claim_text":"Email confirmation matches Step 1 email","source_file":"input/brief.md","source_quote":"Email confirmation matches Step 1 email"}
+{"claim_id":"C-124","draft_locator":"§6.2.BR-04","claim_text":"Maximum 5 MB per file","source_file":"input/brief.md","source_quote":"Maximum 5 MB per file"}
+{"claim_id":"C-125","draft_locator":"§6.2.BR-05","claim_text":"Other requires minimum 20 characters","source_file":"input/brief.md","source_quote":"Minimum 20 characters"}
+{"claim_id":"C-126","draft_locator":"§6.2.BR-06","claim_text":"Terms and conditions accepted","source_file":"input/brief.md","source_quote":"Terms and conditions accepted."}
+{"claim_id":"C-127","draft_locator":"§6.2.BR-07","claim_text":"Re-enter starting email as minimum identity check","source_file":"input/brief.md","source_quote":"minimum identity check"}
+{"claim_id":"C-128","draft_locator":"§6.3.email.required","claim_text":"Email required","source_file":"input/brief.md","source_quote":"Email required"}
+{"claim_id":"C-129","draft_locator":"§6.3.email.format","claim_text":"Valid email format","source_file":"input/brief.md","source_quote":"Valid email format"}
+{"claim_id":"C-130","draft_locator":"§6.3.mobile.format","claim_text":"Mobile number valid format","source_file":"input/brief.md","source_quote":"Mobile number valid format"}
+{"claim_id":"C-131","draft_locator":"§6.3.nationality.required","claim_text":"Nationality selected","source_file":"input/brief.md","source_quote":"Nationality selected"}
+{"claim_id":"C-132","draft_locator":"§6.3.idfile.enum","claim_text":"Supported file types","source_file":"input/brief.md","source_quote":"Supported File Types"}
+{"claim_id":"C-133","draft_locator":"§6.3.idfile.range","claim_text":"File size limit","source_file":"input/brief.md","source_quote":"File size limit"}
+{"claim_id":"C-134","draft_locator":"§6.3.proof.error","claim_text":"Proof of address must be dated within the last three months","source_file":"input/brief.md","source_quote":"Your proof of address must be dated within the last three months."}
+{"claim_id":"C-135","draft_locator":"§6.4.UI-05","claim_text":"Clear validation feedback","source_file":"input/brief.md","source_quote":"Clear validation feedback"}
+{"claim_id":"C-136","draft_locator":"§6.4.UI-05.ac","claim_text":"Errors specific and corrective","source_file":"input/brief.md","source_quote":"Specific and corrective"}
+{"claim_id":"C-137","draft_locator":"§6.4.UI-06.ac","claim_text":"Each review section has an Edit action","source_file":"input/brief.md","source_quote":"Each section includes an Edit action."}
+{"claim_id":"C-138","draft_locator":"§6.4.UI-07.ac","claim_text":"Risk category and description shown","source_file":"input/brief.md","source_quote":"One-sentence description"}
+{"claim_id":"C-139","draft_locator":"§6.4.5.loading","claim_text":"Upload progress indicator while uploading","source_file":"input/brief.md","source_quote":"Upload progress indicator"}
+{"claim_id":"C-140","draft_locator":"§6.4.5.error","claim_text":"Specific corrective validation messages","source_file":"input/brief.md","source_quote":"Specific and corrective"}
+{"claim_id":"C-141","draft_locator":"§6.6.1.reauth","claim_text":"Re-enter starting email to resume","source_file":"input/brief.md","source_quote":"To resume an application, the user must re-enter the email address used to start onboarding."}
+{"claim_id":"C-142","draft_locator":"§6.6.1.mfa","claim_text":"No full authentication system","source_file":"input/brief.md","source_quote":"without requiring a full authentication system"}
+{"claim_id":"C-143","draft_locator":"§6.6.2.render","claim_text":"Step transitions under 300ms","source_file":"input/brief.md","source_quote":"Step transitions under 300ms"}
+{"claim_id":"C-144","draft_locator":"§6.6.2.content","claim_text":"Upload simulation under 2 seconds","source_file":"input/brief.md","source_quote":"Upload simulation under 2 seconds"}
+{"claim_id":"C-145","draft_locator":"§6.6.4.explain","claim_text":"Explain why example: tax residency","source_file":"input/brief.md","source_quote":"We collect your tax residency information to meet international regulatory requirements."}
+{"claim_id":"C-146","draft_locator":"§6.6.4.reassure","claim_text":"Documents securely transmitted only to verify identity","source_file":"input/brief.md","source_quote":"Your documents are securely transmitted and only used to verify your identity."}
+{"claim_id":"C-147","draft_locator":"§6.6.4.consent","claim_text":"Consent to identity verification checks","source_file":"input/brief.md","source_quote":"Consent to identity verification checks."}
+{"claim_id":"C-148","draft_locator":"§6.6.5.a11y","claim_text":"Keyboard accessible navigation","source_file":"input/brief.md","source_quote":"Keyboard accessible navigation"}
+{"claim_id":"C-149","draft_locator":"§6.6.5.a11y","claim_text":"Visible focus states","source_file":"input/brief.md","source_quote":"Visible focus states"}
+{"claim_id":"C-150","draft_locator":"§6.6.5.a11y","claim_text":"Associated labels for all fields","source_file":"input/brief.md","source_quote":"Associated labels for all fields"}
+{"claim_id":"C-151","draft_locator":"§6.6.5.a11y","claim_text":"Screen-reader friendly error messages","source_file":"input/brief.md","source_quote":"Screen-reader friendly error messages"}
+{"claim_id":"C-152","draft_locator":"§6.8.NT-01.event","claim_text":"Application submitted successfully","source_file":"input/brief.md","source_quote":"application has been submitted successfully"}
+{"claim_id":"C-153","draft_locator":"§6.8.NT-01.trigger","claim_text":"On successful submission","source_file":"input/brief.md","source_quote":"Submit onboarding application to mock endpoint."}
+{"claim_id":"C-154","draft_locator":"§6.8.NT-02.trigger","claim_text":"Prior progress exists in local storage","source_file":"input/brief.md","source_quote":"Use localStorage."}
+{"claim_id":"C-155","draft_locator":"§6.10.upload","claim_text":"Mock upload endpoint","source_file":"input/brief.md","source_quote":"Mock upload endpoint"}
+{"claim_id":"C-156","draft_locator":"§6.10.submit","claim_text":"Submission returns a confirmation number","source_file":"input/brief.md","source_quote":"Generate confirmation number"}
+{"claim_id":"C-157","draft_locator":"§7.OnboardingSession.email","claim_text":"Email address captured at Step 1","source_file":"input/brief.md","source_quote":"Email address"}
+{"claim_id":"C-158","draft_locator":"§7.Applicant.fullLegalName","claim_text":"Full legal name","source_file":"input/brief.md","source_quote":"Full legal name"}
+{"claim_id":"C-159","draft_locator":"§7.Applicant.preferredName","claim_text":"Preferred name","source_file":"input/brief.md","source_quote":"Preferred name"}
+{"claim_id":"C-160","draft_locator":"§7.Applicant.dateOfBirth","claim_text":"Date of birth","source_file":"input/brief.md","source_quote":"Date of birth"}
+{"claim_id":"C-161","draft_locator":"§7.Applicant.nationality","claim_text":"Nationality dropdown of at least 20 common countries","source_file":"input/brief.md","source_quote":"Nationality and tax residency dropdowns must include at least the 20 most common countries."}
+{"claim_id":"C-162","draft_locator":"§7.Applicant.countryOfResidence","claim_text":"Country of residence","source_file":"input/brief.md","source_quote":"Country of residence"}
+{"claim_id":"C-163","draft_locator":"§7.Applicant.taxResidency","claim_text":"Tax residency","source_file":"input/brief.md","source_quote":"Tax residency"}
+{"claim_id":"C-164","draft_locator":"§7.Applicant.mobileNumber","claim_text":"Mobile number","source_file":"input/brief.md","source_quote":"Mobile number"}
+{"claim_id":"C-165","draft_locator":"§7.Applicant.emailConfirmation","claim_text":"Email confirmation","source_file":"input/brief.md","source_quote":"Email confirmation"}
+{"claim_id":"C-166","draft_locator":"§7.IdentityDocument.documentType","claim_text":"Passport document type","source_file":"input/brief.md","source_quote":"Passport"}
+{"claim_id":"C-167","draft_locator":"§7.IdentityDocument.frontImage","claim_text":"Front image required","source_file":"input/brief.md","source_quote":"Front image"}
+{"claim_id":"C-168","draft_locator":"§7.IdentityDocument.backImage","claim_text":"Back image required for some types","source_file":"input/brief.md","source_quote":"Back image"}
+{"claim_id":"C-169","draft_locator":"§7.ProofOfAddress.documentType","claim_text":"Bank statement document type","source_file":"input/brief.md","source_quote":"Bank statement"}
+{"claim_id":"C-170","draft_locator":"§7.ProofOfAddress.file","claim_text":"Max 5 MB per file","source_file":"input/brief.md","source_quote":"Maximum 5 MB per file"}
+{"claim_id":"C-171","draft_locator":"§7.EmploymentProfile.employmentStatus","claim_text":"Employment status","source_file":"input/brief.md","source_quote":"Employment Status"}
+{"claim_id":"C-172","draft_locator":"§7.EmploymentProfile.incomeBracket","claim_text":"Annual income brackets","source_file":"input/brief.md","source_quote":"Annual Income Brackets"}
+{"claim_id":"C-173","draft_locator":"§7.EmploymentProfile.sourceOfFunds","claim_text":"Source of funds","source_file":"input/brief.md","source_quote":"Source of Funds"}
+{"claim_id":"C-174","draft_locator":"§7.EmploymentProfile.otherExplanation","claim_text":"Other requires minimum 20 characters","source_file":"input/brief.md","source_quote":"Minimum 20 characters"}
+{"claim_id":"C-175","draft_locator":"§7.EmploymentProfile.conditionalDetails","claim_text":"Status-specific conditional fields","source_file":"input/brief.md","source_quote":"Conditional Fields"}
+{"claim_id":"C-176","draft_locator":"§7.RiskProfile.answers","claim_text":"Five answers, minimum total score 5","source_file":"input/brief.md","source_quote":"Minimum Score: 5"}
+{"claim_id":"C-177","draft_locator":"§7.OnboardingSubmission.confirmationNumber","claim_text":"Confirmation number","source_file":"input/brief.md","source_quote":"Confirmation number"}
+{"claim_id":"C-178","draft_locator":"§7.OnboardingSubmission.contactEmail","claim_text":"Contact email address","source_file":"input/brief.md","source_quote":"Contact email address"}
+{"claim_id":"C-179","draft_locator":"§7.X.RiskScore","claim_text":"Sum of five answers up to 20","source_file":"input/brief.md","source_quote":"Maximum Score: 20"}
+{"claim_id":"C-180","draft_locator":"§7.X.RiskCategory","claim_text":"Map score to band Aggressive at top","source_file":"input/brief.md","source_quote":"Aggressive"}
+{"claim_id":"C-181","draft_locator":"§7.X.CompletionProgress","claim_text":"Compute completion from current step","source_file":"input/brief.md","source_quote":"Current step"}
+{"claim_id":"C-182","draft_locator":"§8.reference","claim_text":"Six-step onboarding wizard brief","source_file":"input/brief.md","source_quote":"The application consists of a six-step onboarding wizard."}
+{"claim_id":"C-183","draft_locator":"§9.KYC","claim_text":"Know Your Customer","source_file":"input/brief.md","source_quote":"Know Your Customer (KYC)"}
+{"claim_id":"C-184","draft_locator":"§9.AML","claim_text":"Anti-Money Laundering","source_file":"input/brief.md","source_quote":"Anti-Money Laundering (AML)"}
+{"claim_id":"C-185","draft_locator":"§9.suitability","claim_text":"Suitability assessments before advisor review","source_file":"input/brief.md","source_quote":"suitability assessments before advisor review"}
+{"claim_id":"C-186","draft_locator":"§9.sourceOfFunds","claim_text":"Source of funds options including sale of property","source_file":"input/brief.md","source_quote":"Sale of property"}

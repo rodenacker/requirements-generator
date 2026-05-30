@@ -1,9 +1,9 @@
 {
-  "blocking_resolved": 9,
-  "next_manifest_line": 51,
-  "current_section_heading": "",
   "phase": "self-validation",
-  "next_batch_size": 0,
-  "next_open_id": "",
-  "non_blocking_resolved": 41
+  "next_manifest_line": 50,
+  "next_open_id": null,
+  "blocking_resolved": 4,
+  "non_blocking_resolved": 44,
+  "current_section_heading": "(complete)",
+  "next_batch_size": 0
 }
