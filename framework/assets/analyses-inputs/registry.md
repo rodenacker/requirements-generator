@@ -204,11 +204,59 @@ methodologies:
   #     five-whys (a bare cause chain) — BCD owns the enterprise
   #     problem→need→goal→problem-statement account and stops at the requirement
   #     boundary.
-  - { name: glossary, status: future }
+  #   - `glossary` (Glossary — establishing ONE agreed vocabulary, the project's
+  #     ubiquitous language, for the system's specification and design: Evans 2003
+  #     DDD ubiquitous language + bounded contexts + ISO 704 / ISO 1087 definition
+  #     principles (genus-differentia, non-circularity, essential characteristics)
+  #     + Berry & Kamsties ambiguity-vs-vagueness + Frantzi et al. 2000
+  #     termhood/unithood term extraction adapted for small heterogeneous corpora
+  #     via an LLM-as-extractor with a MANDATORY source-tuple per candidate (the
+  #     traceability guard that replaces statistical confidence). Surfaces the
+  #     significant terms across the raw inputs, classifies each domain (problem
+  #     space) vs application (solution space), defines each from the inputs
+  #     (cited [SRC: <filename>]), and rates shared-understanding maturity 0-4
+  #     (Undefined / Implicit / Partial / Settled / Conflicting). DRIVES
+  #     CONVERGENCE — for an L0/L1 term it proposes a candidate definition, for an
+  #     L2 term a refinement, for a synonym cluster a canonical term + reconciling
+  #     definition, for an L4 conflict a unify-or-context-split resolution — each
+  #     rendered in a fenced .ai-proposal block marked
+  #     [AI-SUGGESTED: AI-NNN | blocking] with a named technique
+  #     (genus-differentia-synthesis / usage-context-abstraction /
+  #     domain-analogue-mapping / synonym-merge / conflict-unify / context-split)
+  #     and >=1 source anchor — never anchorless, never on a Settled (L3) term,
+  #     never merged into the cited definition. This deliberately relaxes the
+  #     requirements-side GLOSSARY's hard no-[AI-SUGGESTED] rule, bounded to this
+  #     sanctioned, blocking, confirm-before-canon channel (the same channel
+  #     task-analysis / user-goal-analysis / business-context-definition use), so
+  #     it does not widen the framework-wide invariant. Ten hard gates (G1
+  #     provenance, G2 anti-confabulation, G3 field-separation, G4 classification,
+  #     G5 maturity/agreement, G6 lexical-presence, G7 canonical-convergence, G8
+  #     additive-merge, G9 coverage, G10 self-containment). Self-contained,
+  #     dependency-free HTML (NO Mermaid): alphabetical term cards with
+  #     classification / maturity / agreement badges, five open-item registers
+  #     (needs-definition / to-refine / to-reconcile / to-resolve /
+  #     ambiguous-general), and an embedded
+  #     <pre><code class="language-json" id="glossary-body"> block carrying the
+  #     full term model that survives a markitdown HTML→MD round-trip for
+  #     /requirements re-ingestion. Designed as a /requirements input: settled
+  #     definitions become the canonical vocabulary the drafter adopts; the
+  #     blocking proposals surface to the resolver as AI-NNN mandatory
+  #     confirmations the consultant agrees before they anchor requirements.
+  #     map_skill: null — a glossary is a vocabulary artefact, not a UI inventory;
+  #     its consumer is /requirements, not a design-spec/wireframe author.)
+  - name: glossary
+    status: mvp
+    description: Choose this when you want one agreed vocabulary for the system's spec and design — the significant terms across your raw inputs surfaced, classified as domain or application terms, defined from the inputs, and rated for how settled each shared understanding is. It produces an HTML glossary that reads as a lookup reference — per-term cards with a domain/application badge, a 0-4 maturity badge, the cited definition, and, where the inputs leave a term undefined, weak, synonymous, or conflicting, a fenced proposed definition or canonical resolution for you to confirm. Re-drop it into input/ so /requirements adopts the agreed terms as canonical vocabulary and the blocking proposals reach the resolver as questions you confirm before they anchor requirements.
+    output_path: analyse-inputs/GLOSSARY/glossary.html
+    reference_asset: framework/assets/analyses-inputs/glossary-reference.md
+    template_asset: framework/assets/analyses-inputs/template-glossary.html
+    map_skill: null
+    analyser_agent: framework/agents/analyses-inputs/glossary-analyser.md
+    character: framework/assets/characters/glossary-inputs-analysis.md
   - { name: five-whys, status: future }
   - name: task-analysis
     status: mvp
-    description: Hierarchical Task Analysis (HTA) of raw consultant inputs — decomposes user goals into a numbered sub-goal / operation tree with mandatory Plans (sequence / selection / iteration / concurrent / discretionary) on every non-terminal and per-terminal data-noun annotations (Sub-Goal Template information layer). Designed to be re-fed into /requirements as a secondary input — the embedded YAML structured tree becomes a bijection target for the drafter's completeness gap pass, Plans seed acceptance-criteria branches, and information-requirements hint at §7 Data entities.
+    description: Choose this when the raw inputs describe how users accomplish goals step by step and you want that procedure decomposed before /requirements drafts from it. It produces an HTML hierarchical task analysis — a numbered sub-goal and operation tree with a plan on every non-terminal and the data each step reads or writes. Re-drop the artefact into input/ so the drafter uses its structured tree as a completeness target and seeds acceptance-criteria branches and data entities from it.
     output_path: analyse-inputs/TASK-ANALYSIS/task-analysis.html
     reference_asset: framework/assets/analyses-inputs/task-analysis-reference.md
     template_asset: framework/assets/analyses-inputs/template-task-analysis.html
@@ -217,7 +265,7 @@ methodologies:
     character: framework/assets/characters/task-analysis-inputs-analysis.md
   - name: thematic-analysis
     status: mvp
-    description: Surfaces the patterns the consultant's raw inputs already carry as codes, themes, and a theme-map — and bridges each theme to candidate requirements before /requirements drafts them.
+    description: Choose this when your raw inputs are unstructured — interviews, notes, decks — and you want the recurring patterns surfaced before drafting requirements. It produces a Markdown report of the codes and themes the inputs carry, a theme-map, and candidate requirements bridged from each theme. Re-drop it into input/ so /requirements drafts from the themes, or use it yourself to sanity-check coverage.
     output_path: analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md
     reference_asset: framework/assets/analyses-inputs/thematic-analysis-reference.md
     template_asset: null
@@ -226,7 +274,7 @@ methodologies:
     character: framework/assets/characters/thematic-analysis-inputs-analysis.md
   - name: opportunity-solution-trees
     status: mvp
-    description: Maps raw inputs into an outcome → opportunities → solutions → assumption-test discovery tree (Torres 2016), with a bridge of candidate-requirement seeds /requirements can pick up when the artefact is re-dropped into input/.
+    description: Choose this when the raw inputs name a desired outcome and you want the opportunities and solution options mapped before requirements lock in. It produces a Markdown discovery tree of outcome → opportunities → solutions → assumption tests (Torres 2016), with candidate-requirement seeds. Re-drop it into input/ so /requirements picks up the seeds, and use the assumption tests to decide what to validate first.
     output_path: analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.md
     reference_asset: framework/assets/analyses-inputs/opportunity-solution-trees-reference.md
     template_asset: null
@@ -235,7 +283,7 @@ methodologies:
     character: framework/assets/characters/opportunity-solution-trees-inputs-analysis.md
   - name: journey-mapping
     status: mvp
-    description: Maps the as-is user workflow described in raw inputs into one journey card per persona — phases, steps, touchpoints, channels, thoughts, sentiment curve, pain points, backstage, opportunities, moments of truth — giving the /requirements drafter a concrete backbone for task flows, NFRs, integrations, user stories, and priorities.
+    description: Choose this when the raw inputs describe an as-is workflow and you want it mapped per persona before drafting task flows and NFRs. It produces an HTML journey card per persona — phases, steps, touchpoints, channels, sentiment curve, pain points, and opportunities. Hand it to /requirements as a backbone for task flows, integrations, and user stories, and use the pain points to set priorities.
     output_path: analyse-inputs/JOURNEY-MAPPING/journey-mapping.html
     reference_asset: framework/assets/analyses-inputs/journey-mapping-reference.md
     template_asset: framework/assets/analyses-inputs/template-journey-mapping.html
@@ -244,7 +292,7 @@ methodologies:
     character: framework/assets/characters/journey-mapping-inputs-analysis.md
   - name: jtbd
     status: mvp
-    description: Surfaces the jobs, outcomes, and forces of progress (push / pull / anxiety / habit) that the consultant's raw inputs describe — hybrid Christensen-Moesta canonical statement form + Ulwick opportunity scoring — so the requirements that follow anchor to user motivation rather than features. Re-ingestible by /requirements when copied into input/ as a Native-text source.
+    description: Choose this when you want the requirements anchored to user motivation, drawn from what the raw inputs say about why users act. It produces an HTML job map of the jobs, outcomes, and forces of progress (push / pull / anxiety / habit) the inputs describe, with Ulwick opportunity scores. Re-drop it into input/ as a Native-text source so the requirements that follow target jobs and outcomes rather than features.
     output_path: analyse-inputs/JTBD/jtbd-job-map.html
     reference_asset: framework/assets/analyses-inputs/jtbd-reference.md
     template_asset: framework/assets/analyses-inputs/template-jtbd.html
@@ -253,7 +301,7 @@ methodologies:
     character: framework/assets/characters/jtbd-inputs-analysis.md
   - name: ooux
     status: mvp
-    description: Sophia Prater's ORCA process applied to raw consultant inputs — six rounds (Discovery → Objects → Relationships → CTAs → Attributes → CCPs) producing the canonical OOUX sticky-note column-board PLUS a Mermaid `erDiagram` of objects + relationships + cardinality PLUS an embedded `<pre><code class="language-json">` body block carrying the full machine-readable object model. Synonym merge across sources is the load-bearing Round 2 step (`Customer` vs `Client` vs `Account holder` — every collision logged with literal terms collapsed, source filenames, and merge heuristic). Provenance markers `from-source-<filename>` / `synonym-merged-from-[<filenames>]` / `inferred-from-<filename>` on every object — never unmarked. Eight hard quality gates: seven inherited from the requirements-side OOUX reference plus Gate 8 (every consumed manifest row contributes ≥1 candidate noun OR is marked `irrelevant-to-domain` with a reason — surfaces silent skips that the synthesised `requirements/requirements.md` would have hidden). Designed as a `/requirements` re-ingestion input — the embedded JSON body block and the Mermaid erDiagram both survive markitdown HTML→MD conversion as fenced code blocks, so the drafter consumes the full object model in one shot when the consultant copies the artefact into `input/` for a downstream `/requirements` run.
+    description: Choose this when your raw inputs span many sources and you need one reconciled object model — merging synonyms like Customer, Client, and Account holder — before requirements. It produces an HTML object map combining a sticky-note column-board, a Mermaid entity-relationship diagram, and an embedded machine-readable object model, with every object tagged by source. Re-drop it into input/ so /requirements ingests the full object model in one pass, and review the synonym-merge log to confirm the cross-source identity calls.
     output_path: analyse-inputs/OOUX/ooux-object-map.html
     reference_asset: framework/assets/analyses-inputs/ooux-reference.md
     template_asset: framework/assets/analyses-inputs/template-ooux.html
@@ -262,7 +310,7 @@ methodologies:
     character: framework/assets/characters/ooux-inputs-analysis.md
   - name: swim-lane-process-mapping
     status: mvp
-    description: Maps every discrete cross-functional process the raw inputs describe into Rummler-Brache swim-lane flowcharts (Mermaid `flowchart TD` with one `subgraph` per actor lane) and surfaces a Disconnect Register classifying every lane-to-lane handoff — clean / ambiguous-trigger / missing-actor / unstated-exception / conflicting-source — exposing the "white-space" gaps Rummler attributed 80% of process failures to. Designed to be re-fed into /requirements as a secondary input — the embedded YAML structured model becomes a bijection target for the drafter's completeness gap pass (processes → §5 Task flows, handoffs → §6 integration constraints, decision branch guards → §6 acceptance-criteria branches, data-store and external-system steps → §7 data entities and §2 external-system aggregates), and every `consultant_follow_up: yes` disconnect flows into the resolver as an AI-NNN question.
+    description: Choose this when the raw inputs describe a cross-functional process and you want the actor handoffs and their gaps surfaced before drafting. It produces an HTML set of Rummler-Brache swim-lane flowcharts plus a Disconnect Register classifying every lane-to-lane handoff as clean or defective (the "white-space" gaps Rummler attributed 80% of process failures to). Re-drop it into input/ so processes seed task flows and handoffs seed integration constraints, and chase the flagged handoff gaps with stakeholders.
     output_path: analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html
     reference_asset: framework/assets/analyses-inputs/swim-lane-process-mapping-reference.md
     template_asset: framework/assets/analyses-inputs/template-swim-lane-process-mapping.html
@@ -271,7 +319,7 @@ methodologies:
     character: framework/assets/characters/swim-lane-process-mapping-inputs-analysis.md
   - name: affinity-mapping
     status: mvp
-    description: Bottom-up affinity diagram (Kawakita 1967 KJ method; Beyer & Holtzblatt 1997 Contextual Design) applied to raw consultant inputs — atomic notes extracted per-claim from briefs / decks / interviews / screenshots, clustered by conceptual similarity through a sub-agent-isolated two-pass re-cluster (Pass-1 in main context; Pass-2 in a fresh sub-agent context that sees only the note list — the only realistic anti-anchoring mechanism for an autonomous LLM run; Jaccard-similarity drift detection on cluster memberships, no semantic-equivalence judgement required), labelled in insight-statement form (Beyer/Holtzblatt rule — labels after clustering, never before), grouped into 4–8 L3 super-themes; orphans preserved in an explicit parking-lot; cross-cluster tensions surfaced as a secondary diagram when present. Self-contained HTML with diagram-first ordering: compact overview, primary Mermaid `mindmap` near top (root → super-themes → L2 clusters only — full notes live in cluster cards below to preserve mindmap legibility at ≤34 nodes), conditional secondary Mermaid `flowchart TD` tension graph, cluster cards listing every note with `[SRC: <filename>]` citations and stable/drifted confidence chip with Jaccard value, orphans table, embedded `<pre><code class="language-json" id="affinity-map-body">` re-ingestion block carrying the full hierarchy, collapsed diagnostics with Pass-1/Pass-2 Jaccard drift log. Re-ingestible by /requirements via markitdown HTML→MD when copied into input/ — the JSON body block and mindmap source survive as fenced code blocks; super-theme insight statements feed §1 vision anchors, clusters feed §5 task-flow groupings and §3 acceptance-criteria threads, orphans feed §10 out-of-scope candidates, tensions feed §6 trade-off-aware acceptance-criteria branches.
+    description: Choose this when you have a large, messy pile of raw notes and want them clustered bottom-up into themes before imposing any structure. It produces an HTML affinity diagram — atomic notes grouped into labelled clusters and 4–8 super-themes, with orphans and cross-cluster tensions called out. Re-drop it into input/ so super-themes seed vision anchors and clusters seed task-flow groupings, and use the orphans as out-of-scope candidates.
     output_path: analyse-inputs/AFFINITY-MAPPING/affinity-map.html
     reference_asset: framework/assets/analyses-inputs/affinity-mapping-reference.md
     template_asset: framework/assets/analyses-inputs/template-affinity-mapping.html
@@ -280,7 +328,7 @@ methodologies:
     character: framework/assets/characters/affinity-mapping-inputs-analysis.md
   - name: user-goal-analysis
     status: mvp
-    description: Surfaces the user goals the raw inputs carry — both explicitly stated AND inferred — as a readability-optimised HTML goal register. A pragmatic GORE synthesis (Cooper's life/end/experience goal types + hard/soft goals + KAOS AND/OR refinement + means-end laddering & Five-Whys for inference + an i*-lite actor↔goal map). Explicit goals carry [SRC: <filename>]; inferred goals carry [AI-SUGGESTED: AI-NN | blocking|non-blocking] co-present with a named technique (laddering / five-whys / solution-reframe / obstacle-analysis / softgoal-from-quality-adjective) AND ≥1 source anchor — anchorless inference is forbidden (anti-confabulation gate G2). Seven hard gates. Self-contained, dependency-free HTML (NO Mermaid): goal register grouped by Cooper type, a CSS-only nested AND/OR refinement tree, an actor map, a conflicts table, and an embedded <pre><code class="language-json" id="user-goal-analysis-body"> block carrying the full goal model. Designed to be re-fed into /requirements — explicit goals seed §4 User goals & stories; inferred goals surface to the resolver as AI-NNN questions (blocking ones as mandatory confirmations), so the consultant validates every inference before it becomes a requirement. Distinct from JTBD (jobs, extraction-only), task-analysis (decomposes a GIVEN goal DOWN into operations), and opportunity-solution-trees (jumps to solutions).
+    description: Choose this when you want the actor and end-user goals behind the request made explicit — both the goals the inputs state and the ones they imply. It produces an HTML goal register grouped by goal type, with an AND/OR refinement tree, an actor map, and a conflicts table, and inferred goals flagged for confirmation. Re-drop it into input/ so explicit goals seed user stories and inferred goals reach the resolver as questions you confirm before they become requirements.
     output_path: analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html
     reference_asset: framework/assets/analyses-inputs/user-goal-analysis-reference.md
     template_asset: framework/assets/analyses-inputs/template-user-goal-analysis.html
@@ -289,7 +337,7 @@ methodologies:
     character: framework/assets/characters/user-goal-analysis-inputs-analysis.md
   - name: business-context-definition
     status: mvp
-    description: Surfaces the enterprise motivation behind the request — the Business Problem(s), Business Need(s), Business Goal(s)/Objective(s), and a human-centered Problem Statement the raw inputs state OR imply — as a readability-optimised HTML report, linked in a problem→need→goal→problem-statement causal chain. An enterprise-motivation synthesis (OMG BMM Ends + BABOK Business Need + Five-Whys root cause + Gause-Weinberg problem-as-gap + Design-Thinking POV/HMW + KAOS AND/OR refinement). Explicit items carry [SRC: <filename>]; inferred items carry [AI-SUGGESTED: AI-NN | blocking|non-blocking] co-present with a named technique (five-whys-root-cause / bmm-laddering / opportunity-reframe / abductive-best-explanation / swot-influencer-inference / pov-hmw-reframe) AND ≥1 source anchor — anchorless inference forbidden (gate Q2). Seven hard gates. ENTERPRISE-ONLY — actor goals are user-goal-analysis's lane, routed to a deferred-to-user-goal-analysis boundary-audit log (D0 + Q6), never classified as Business Goals. Self-contained, dependency-free HTML (NO Mermaid): a CSS-only four-stage causal-chain map, need/problem/goal/problem-statement cards, a BMM AND/OR goal tree, a tensions table, and an embedded <pre><code class="language-json" id="bcd-body"> block carrying the full business-context model. Designed to be re-fed into /requirements — explicit Goals/Objectives/Needs seed strategic framing, the causal chain seeds traceability, and inferred items surface to the resolver as AI-NNN questions (blocking ones as mandatory confirmations). Distinct from user-goal-analysis (actor goals), opportunity-solution-trees (jumps to solutions), and five-whys (a bare cause chain).
+    description: Choose this when you need the enterprise motivation behind the request — the business problems, needs, and goals — rather than the individual actor goals user-goal-analysis covers. It produces an HTML report linking business problem → need → goal → problem-statement in one causal chain, with inferred items flagged for confirmation. Re-drop it into input/ so the chain seeds strategic framing and requirement traceability, and run user-goal-analysis alongside it for actor-level goals.
     output_path: analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html
     reference_asset: framework/assets/analyses-inputs/business-context-definition-reference.md
     template_asset: framework/assets/analyses-inputs/template-business-context-definition.html
@@ -333,7 +381,7 @@ methodologies:
 
 - `name` — kebab-case slug. Used as the subdirectory name under `analyse-inputs/` (uppercased to `analyse-inputs/<METHOD>/`) and as the path component in the analyser agent file. Methodology slugs are shared across registries (a row named `glossary` can exist in both `analyses/registry.md` and `analyses-inputs/registry.md`); the artefacts do not clobber because the output paths differ (`analyse-requirements/GLOSSARY/...` vs `analyse-inputs/GLOSSARY/...`).
 - `status` — `mvp` (selectable now) or `future` (not yet built; this is the default state for every row on framework first-ship).
-- `description` — one-line label surfaced in the selector's printed list. Required only when `status: mvp`.
+- `description` — short consultant-facing blurb surfaced in the selector's printed list, written as three succinct sentences (why/when to choose it → what it produces → how to use the output). Required only when `status: mvp`.
 - `output_path` — relative path of the artefact the analyser writes. Drives the prior-artefact gate in the orchestrator. **Must** live under `analyse-inputs/` for write-isolation. Required only when `status: mvp`.
 - `reference_asset` — the methodology reference the analyser follows. Required only when `status: mvp`.
 - `template_asset` — file scaffold the analyser populates (may be `null` for methodologies that emit pure Markdown).
@@ -341,4 +389,4 @@ methodologies:
 - `analyser_agent` — the foreground agent invoked by the orchestrator. Required only when `status: mvp`.
 - `character` — stance the Unicorn adopts while running the analyser. Required only when `status: mvp`.
 
-**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `task-analysis`, `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, `jtbd`, `ooux`, `swim-lane-process-mapping`, `affinity-mapping`, `user-goal-analysis`, and `business-context-definition` now at `status: mvp`, the selector presents ten options to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.
+**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `task-analysis`, `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, `jtbd`, `ooux`, `swim-lane-process-mapping`, `affinity-mapping`, `user-goal-analysis`, `business-context-definition`, and `glossary` now at `status: mvp`, the selector presents eleven options to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.

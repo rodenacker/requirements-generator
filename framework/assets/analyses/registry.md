@@ -5,7 +5,7 @@ methodologies:
   # MVP — fully implemented and selectable via /analyse-requirement. Listed alphabetically; none privileged.
   - name: data-model
     status: mvp
-    description: Surfaces the entities, attributes, and relationships implied by the requirements so forms, lists, and detail views can be designed against an explicit schema.
+    description: Choose this when the requirements imply data but never state the schema and you need an explicit entity model before designing forms, lists, and detail views. It produces an HTML data model of the entities, attributes, and relationships the requirements imply, each traced back to its source requirement. Use it as the schema your screens and field-level UI are designed against, and to spot entities the requirements left undefined.
     output_path: analyse-requirements/DATA-MODEL/data-model.html
     reference_asset: framework/assets/analyses/data-model-reference.md
     template_asset: framework/assets/analyses/template-data-model.html
@@ -14,7 +14,7 @@ methodologies:
     character: framework/assets/characters/data-model-analysis.md
   - name: jtbd
     status: mvp
-    description: Surfaces the jobs and outcomes users hire the product for so design decisions anchor to user motivation rather than features.
+    description: Choose this when you want design decisions anchored to user motivation rather than to the feature list the requirements already assume. It produces an HTML job map of the jobs users hire the product for and the outcomes they expect from each. Use the jobs and outcomes to sanity-check which features earn their place and to prioritise the ones that serve a real job.
     output_path: analyse-requirements/JTBD/jtbd-job-map.html
     reference_asset: framework/assets/analyses/jtbd-reference.md
     template_asset: framework/assets/analyses/template-jtbd.html
@@ -23,7 +23,7 @@ methodologies:
     character: framework/assets/characters/jtbd-analysis.md
   - name: ooux
     status: mvp
-    description: Identifies the core objects, attributes, and CTAs implied by the requirements so screens and navigation can be structured around them.
+    description: Choose this when you need to structure screens and navigation around the product's core objects before laying out any UI. It produces an HTML object map of the core objects, their attributes, and their call-to-action verbs implied by the requirements. Use the objects to drive your information architecture — what gets its own screen, what nests, and what each object's primary actions are.
     output_path: analyse-requirements/OOUX/ooux-object-map.html
     reference_asset: framework/assets/analyses/ooux-reference.md
     template_asset: framework/assets/analyses/template-ooux.html
@@ -32,7 +32,7 @@ methodologies:
     character: framework/assets/characters/ooux-analysis.md
   - name: sequence-diagram
     status: mvp
-    description: Clarifies how the user, system components, and external services interact across a scenario before APIs and async flows are specified.
+    description: Choose this when a scenario crosses the user, system components, and external services and you need that interaction clear before specifying APIs or async flows. It produces an HTML sequence diagram of the messages exchanged across one scenario, ordered over time. Use it to pin down API calls, request and response ordering, and the failure points async flows must handle.
     output_path: analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html
     reference_asset: framework/assets/analyses/sequence-diagram-reference.md
     template_asset: framework/assets/analyses/template-sequence-diagram.html
@@ -41,7 +41,7 @@ methodologies:
     character: framework/assets/characters/sequence-diagram-analysis.md
   - name: use-cases
     status: mvp
-    description: Surfaces actor goals, preconditions, and main/extension flows implied by the requirements so screens and APIs are designed against explicit usage paths.
+    description: Choose this when you want explicit usage paths — actor goals, preconditions, and main and extension flows — before designing the screens and APIs that serve them. It produces an HTML use-case map of each actor's goals with the main flow and its extensions and exceptions. Use the flows as the usage paths your screens and endpoints are designed against, and to catch unhandled exception branches.
     output_path: analyse-requirements/USE-CASES/use-cases-map.html
     reference_asset: framework/assets/analyses/use-cases-reference.md
     template_asset: framework/assets/analyses/template-use-cases.html
@@ -50,7 +50,7 @@ methodologies:
     character: framework/assets/characters/use-cases-analysis.md
   - name: user-journeys
     status: mvp
-    description: Maps the experience phases, pain-points, and opportunities the requirements describe so feature prioritisation targets the moments that matter most.
+    description: Choose this when you want to target the experience moments that matter most rather than spreading design effort evenly across features. It produces an HTML journey map of the experience phases, pain-points, and opportunities the requirements describe. Use the pain-points and opportunities to prioritise the features that relieve the sharpest friction.
     output_path: analyse-requirements/USER-JOURNEYS/user-journeys-map.html
     reference_asset: framework/assets/analyses/user-journeys-reference.md
     template_asset: framework/assets/analyses/template-user-journeys.html
@@ -65,7 +65,7 @@ methodologies:
   - { name: thematic-analysis, status: future }
   - name: opportunity-solution-trees
     status: mvp
-    description: Audits whether the document's features ladder up to its stated outcomes and surfaces unaddressed opportunities or missing assumption tests.
+    description: Choose this when you want to check that the requirements' features actually ladder up to its stated outcomes and surface opportunities it missed. It produces an HTML opportunity-solution tree linking the desired outcome to opportunities, the proposed solutions, and their assumption tests. Use it to cut features that serve no outcome, flag outcomes with no solution, and queue the assumption tests worth running.
     output_path: analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html
     reference_asset: framework/assets/analyses/opportunity-solution-trees-reference.md
     template_asset: framework/assets/analyses/template-opportunity-solution-trees.html
@@ -75,7 +75,7 @@ methodologies:
   - { name: storytelling-narrative-synthesis, status: future }
   - name: five-whys
     status: mvp
-    description: Drills each requirement's rationale down to a user goal, business driver, or external mandate so thin-justification chains can be flagged for consultant interview before features are designed against them.
+    description: Choose this when you suspect some requirements rest on thin justification and want each one's rationale traced before designing against it. It produces a Markdown report drilling each requirement down to the user goal, business driver, or external mandate behind it. Use the thin-justification chains it flags as an interview list for the consultant before those features are built.
     output_path: analyse-requirements/FIVE-WHYS/five-whys.md
     reference_asset: framework/assets/analyses/five-whys-reference.md
     template_asset: null
@@ -84,7 +84,7 @@ methodologies:
     character: framework/assets/characters/five-whys-analysis.md
   - name: glossary
     status: mvp
-    description: Produces an alphabetical, citation-bound vocabulary inventory before copy, labels, status pills, or role surfaces are designed.
+    description: Choose this before writing copy, labels, status pills, or role surfaces, when terms in the requirements need one agreed meaning. It produces an alphabetical, citation-bound Markdown glossary of every domain term the requirements use. Use it as the single source for UI wording and to catch terms used inconsistently across the document.
     output_path: analyse-requirements/GLOSSARY/glossary.md
     reference_asset: framework/assets/analyses/glossary-reference.md
     template_asset: null
@@ -98,7 +98,7 @@ methodologies:
   - { name: scenarios, status: future }
   - name: activity-diagram
     status: mvp
-    description: Clarifies multi-actor process flow, branching, and parallel paths in the requirements before the screens that drive them are designed.
+    description: Choose this when a multi-actor process with branching or parallel paths needs to be clear before designing the screens that drive it. It produces an HTML activity diagram of the process flow, including decision branches and concurrent paths. Use it to design each step's screen and to make sure no branch or parallel path is left without UI.
     output_path: analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html
     reference_asset: framework/assets/analyses/activity-diagram-reference.md
     template_asset: framework/assets/analyses/template-activity-diagram.html
@@ -107,7 +107,7 @@ methodologies:
     character: framework/assets/characters/activity-diagram-analysis.md
   - name: state-diagram
     status: mvp
-    description: Surfaces entity lifecycles — statuses, transitions, and guards — implicit in the requirements before status-driven UI is designed.
+    description: Choose this when entities move through statuses and you need their lifecycle explicit before designing status-driven UI. It produces an HTML state diagram of each entity's statuses, the transitions between them, and the guards on each transition. Use it to drive status pills, enabled and disabled actions, and the transition rules your screens must enforce.
     output_path: analyse-requirements/STATE-DIAGRAM/state-diagram.html
     reference_asset: framework/assets/analyses/state-diagram-reference.md
     template_asset: framework/assets/analyses/template-state-diagram.html
@@ -117,7 +117,7 @@ methodologies:
   - { name: decision-matrix, status: future }
   - name: task-flows
     status: mvp
-    description: Surfaces the goal-decomposition structure and step-by-step user paths implicit in the requirements before screens, wizards, or form sequences are designed.
+    description: Choose this when you need the step-by-step paths a user takes to reach a goal before designing screens, wizards, or form sequences. It produces an HTML task-flow map decomposing each goal into its ordered steps and decision points. Use the flows to decide screen sequencing, wizard splits, and where a single form should branch.
     output_path: analyse-requirements/TASK-FLOWS/task-flows.html
     reference_asset: framework/assets/analyses/task-flows-reference.md
     template_asset: framework/assets/analyses/template-task-flows.html
@@ -126,7 +126,7 @@ methodologies:
     character: framework/assets/characters/task-flows-analysis.md
   - name: trade-off-dimension-analysis
     status: mvp
-    description: Scores each user goal against a curated set of UX trade-off dimensions (Speed vs Accuracy, Simplicity vs Power, Automation vs Control, ...) to guide wireframing posture per goal.
+    description: Choose this when you want a clear design posture per user goal — fast versus accurate, simple versus powerful, automated versus controlled — before wireframing. It produces an HTML matrix scoring each user goal against a curated set of UX trade-off dimensions. Use each goal's scores to set the design stance for its screens and to brief divergent wireframe variants.
     output_path: analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html
     reference_asset: framework/assets/analyses/trade-off-dimension-reference.md
     template_asset: framework/assets/analyses/template-trade-off-dimension.html
@@ -162,7 +162,7 @@ methodologies:
 
 - `name` — kebab-case slug. Used as the subdirectory name under `analyse-requirements/` and as the path component in the analyser agent file.
 - `status` — `mvp` (selectable now) or `future` (not yet built).
-- `description` — one-line label surfaced in the `AskUserQuestion` choice list.
+- `description` — short consultant-facing blurb surfaced in the `AskUserQuestion` choice list, written as three succinct sentences (why/when to choose it → what it produces → how to use the output).
 - `output_path` — relative path of the artefact the analyser writes. Drives the prior-artefact gate in the orchestrator.
 - `reference_asset` — the methodology reference the analyser follows.
 - `template_asset` — file scaffold the analyser populates (may be `null` for methodologies that emit pure Markdown).

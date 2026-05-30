@@ -138,13 +138,13 @@ state-diagram-analyser → svg-overlap-check.md
 
 ---
 
-## 5. analyse-inputs-orch.md · 61 nodes / 76 edges / depth 4
+## 5. analyse-inputs-orch.md · 65 nodes / 81 edges / depth 4
 
 ```
 orch → analysis-selector, check-context-bloat, input-handler, refusal-registry,
-       + 10 analysers: thematic-analysis, opportunity-solution-trees, journey-mapping,
+       + 11 analysers: thematic-analysis, opportunity-solution-trees, journey-mapping,
          task-analysis, jtbd, ooux, swim-lane-process-mapping, affinity-mapping,
-         user-goal-analysis, business-context-definition
+         user-goal-analysis, business-context-definition, glossary
 analysis-selector → analyses-inputs/registry.md
 input-handler ⇒ @input-handler-subtree (progress_path=null)
 
@@ -153,7 +153,7 @@ Each analyser → analyses-inputs/<m>-reference.md, characters/<m>-inputs-analys
 deltas:
   +template (analyses-inputs/template-<m>.html): journey-mapping, task-analysis, jtbd,
      ooux, swim-lane-process-mapping, affinity-mapping, user-goal-analysis,
-     business-context-definition
+     business-context-definition, glossary
   +mermaid-validator: thematic-analysis, opportunity-solution-trees, ooux,
      swim-lane-process-mapping, affinity-mapping
   +setup-instructions/mmdc.md: affinity-mapping only
@@ -163,10 +163,15 @@ deltas:
   (business-context-definition is likewise dependency-free: HTML template, NO mermaid-validator,
      NO mmdc — its problem→need→goal causal-chain map renders as a CSS-only four-stage grid and
      its goal hierarchy as a CSS-only KAOS AND/OR tree)
+  (glossary is likewise dependency-free: HTML template, NO mermaid-validator, NO mmdc — alphabetical
+     term cards with classification/maturity/agreement badges + five open-item registers render in
+     CSS only; it is the only analyses-inputs analyser using the [AI-SUGGESTED] channel as a
+     convergence engine across L0/L1 (definition), L2 (refinement), synonym clusters, and L4
+     conflicts (canonical-resolution), and the only one with map_skill: null)
 ```
 
 **Notes (unique):**
-- 10 MVP analysers; `glossary` + `five-whys` are `status: future` (files absent) → omitted.
+- 11 MVP analysers; `five-whys` is `status: future` (file absent) → omitted; `glossary` is now `mvp`.
 - input-handler create/refresh writes are the only writes outside `analyse-inputs/<METHOD>/`.
 - map-skills are registry metadata → no edges (mirrors graph 4).
 - **mermaid-validator behaviour:** on `not-installed`, thematic-analysis / opportunity-solution-trees / ooux / swim-lane halt; affinity-mapping surfaces `RF-07` with a 3-way `{install-and-retry, skip-with-warning, abort}` choice (degraded path). swim-lane / ooux / affinity-mapping implement drop-on-3-retry-failure (artefact still writes; block replaced with `[GAP-MERMAID-INVALID]`).

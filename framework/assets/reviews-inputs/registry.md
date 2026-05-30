@@ -23,7 +23,7 @@ methodologies:
   # differ (`review-inputs/COMPLETENESS/...` vs `review-requirements/COMPLETENESS/...`).
   - name: adversarial
     status: mvp
-    description: Choose this to surface defects in the raw consultant input corpus (voice authenticity, ambiguity, cross-source contradiction, silence-with-downstream-impact) so /requirements drafts with explicit handling of every defect. Treats the corpus as the stakeholder voice; recommendations propose corpus-handling, never new elicitation.
+    description: Choose this when you want the raw input corpus itself stress-tested — voice authenticity, ambiguity, cross-source contradiction, and consequential silence — before /requirements drafts from it. It produces an HTML adversarial review flagging each defect across six dimensions, treating the corpus as the stakeholder voice, so it recommends how to handle the existing material rather than new elicitation. Apply each flagged defect's corpus-handling recommendation to your input set so the requirements draft starts from material whose weaknesses are already accounted for.
     output_path: review-inputs/ADVERSARIAL/adversarial-review.html
     reference_asset: framework/assets/reviews-inputs/adversarial-reference.md
     template_asset: framework/assets/reviews-inputs/template-adversarial.html
@@ -32,7 +32,7 @@ methodologies:
     character: framework/assets/characters/adversarial-inputs-review.md
   - name: completeness-review
     status: mvp
-    description: Choose this for an RE-literature completeness sweep — catalogues what is absent, partially covered, or explicitly excluded across the raw consultant inputs, anchored to the BA canon (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010) across ten dimensions (stakeholder coverage, scope boundaries, data entities, workflows incl. non-happy paths, NFRs, business rules, acceptance criteria, integrations, constraints & assumptions, glossary). Disposition-classified findings (Needs-Clarification / Standard-Rule-Applies / Out-of-Scope) ready for /requirements drafting. Markdown register + per-source elicitation questions for stakeholder follow-up. Pick this when you need a broad, authority-grounded gap punch-list to drive elicitation. Complementary to gap-analysis (which uses this project's own template as yardstick).
+    description: Choose this when you want a broad, authority-grounded punch-list of what the raw inputs are missing, measured against the BA canon (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010) — pick its sibling gap-analysis instead to measure against this project's own requirements template. It produces a Markdown completeness register across ten coverage dimensions, each finding classified Needs-Clarification, Standard-Rule-Applies, or Out-of-Scope, plus per-source elicitation questions. Send the elicitation questions to stakeholders to chase missing material before /requirements drafts from the inputs.
     output_path: review-inputs/COMPLETENESS-REVIEW/completeness-review.md
     reference_asset: framework/assets/reviews-inputs/completeness-reference.md
     template_asset: null
@@ -41,7 +41,7 @@ methodologies:
     character: framework/assets/characters/completeness-inputs-review.md
   - name: ambiguity-review
     status: mvp
-    description: Choose this to surface lexical, syntactic, referential, vague, subjective, weak-verb, and optionality ambiguities in the raw consultant inputs (Berry/Kamsties + Femmer taxonomy) — with ready-to-paste stakeholder elicitation questions per finding — before /requirements drafts from them.
+    description: Choose this when you suspect the raw inputs are worded loosely and want every ambiguity caught — lexical, syntactic, referential, vague, subjective, weak-verb, and optionality (Berry/Kamsties + Femmer) — before /requirements drafts from them. It produces a Markdown register of each ambiguous passage, classified by ambiguity type, with a ready-to-paste stakeholder question per finding. Send the questions to pin down the intended meaning, then feed the clarified wording back into your input set.
     output_path: review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md
     reference_asset: framework/assets/reviews-inputs/ambiguity-reference.md
     template_asset: null
@@ -50,7 +50,7 @@ methodologies:
     character: framework/assets/characters/ambiguity-inputs-review.md
   - name: gap-analysis
     status: mvp
-    description: Choose this for a template-bijection delta — measures the raw consultant inputs against the /requirements drafter's specific template (framework/assets/topics-requirements.md), surfacing per-section gaps classified by dimension (Stakeholder / Scope / Domain / Functional / Process / Non-functional / Compliance / Integration / Data — read from the per-topic dimension column) and by Impact × Confidence → MoSCoW. Every Must/Should gap ships with a shall-form Candidate Requirement ready for /requirements re-ingestion — drop the produced HTML into input/ and the drafter cites it via the gap-analysis.html source marker. HTML output with inline-SVG coverage heatmap + gap matrix table. Pick this when you want a visual, drafter-aligned gap map with pre-drafted requirements. Complementary to completeness-review (which uses the BA literature canon as yardstick).
+    description: Choose this when you want a visual, drafter-aligned gap map — the raw inputs measured against this project's own requirements template — rather than the BA-literature canon its sibling completeness-review uses. It produces an HTML report with a coverage heatmap and gap matrix, each gap scored Impact × Confidence → MoSCoW and every Must/Should gap carrying a ready-drafted shall-form candidate requirement. Ratify, edit, or reject each candidate, then drop the HTML into input/ so the next /requirements run ingests and cites it.
     output_path: review-inputs/GAP-ANALYSIS/gap-analysis.html
     reference_asset: framework/assets/reviews-inputs/gap-analysis-reference.md
     template_asset: framework/assets/reviews-inputs/template-gap-analysis.html
@@ -100,7 +100,7 @@ Folding input-reviews into the analyses-inputs registry would muddy the consulta
 
 - `name` — kebab-case slug. Used as the subdirectory name under `review-inputs/` (uppercased to `review-inputs/<METHOD>/`) and as the path component in the reviewer agent file. Methodology slugs are shared across registries; the artefacts do not clobber because the output paths differ.
 - `status` — `mvp` (selectable now) or `future` (not yet built; reviewer / reference / character / template files do not exist on disk).
-- `description` — one-line label surfaced in the selector's printed list. Required only when `status: mvp`.
+- `description` — short consultant-facing blurb surfaced in the selector's printed list, written as three succinct sentences (why/when to choose it → what it produces → how to use the output). Required only when `status: mvp`.
 - `output_path` — relative path of the artefact the reviewer writes. Drives the prior-artefact gate in the orchestrator. **Must** live under `review-inputs/` for write-isolation. Required only when `status: mvp`.
 - `reference_asset` — the methodology reference the reviewer follows. Required only when `status: mvp`.
 - `template_asset` — file scaffold the reviewer populates (may be `null` for methodologies that emit pure Markdown).
@@ -116,4 +116,4 @@ Folding input-reviews into the analyses-inputs registry would muddy the consulta
 - **Downstream verb.** `completeness-review` says *"go elicit"* (every Needs-Clarification finding ships with a stakeholder elicitation question). `gap-analysis` says *"ratify, edit, or reject this candidate"* (every Must/Should gap ships with a shall-form Candidate Requirement ready for `/requirements` re-ingestion).
 - **Output.** `completeness-review` produces markdown (`template_asset: null`). `gap-analysis` produces HTML with inline-SVG coverage heatmap + gap matrix table.
 
-The two methodologies are independent and complementary. Either, both, or neither may run on a given input set; sibling reviewers never cross-read each other's artefacts. Consultants who want a broad authority-grounded punch-list for client follow-up pick `completeness-review`; those who want a visual drafter-aligned gap map with pre-drafted requirements pick `gap-analysis`. Many will run both. The sharpened registry descriptions above lead with the same five-block shape (discriminator phrase → yardstick → output → *"Pick this when…"* → sibling cross-reference) so the consultant can compare them at a glance in the selector list.
+The two methodologies are independent and complementary. Either, both, or neither may run on a given input set; sibling reviewers never cross-read each other's artefacts. Consultants who want a broad authority-grounded punch-list for client follow-up pick `completeness-review`; those who want a visual drafter-aligned gap map with pre-drafted requirements pick `gap-analysis`. Many will run both. The registry descriptions above follow the standard three-sentence selector shape (why/when → what it produces → how to use the output), and each sibling names the other in its first sentence so the consultant can tell them apart at a glance in the selector list.

@@ -5,7 +5,7 @@ methodologies:
   # MVP — fully implemented and selectable via /review-requirement. Listed alphabetically; none privileged.
   - name: adversarial
     status: mvp
-    description: Choose this to flush out defects in the requirements so design starts from a patched doc, not inherited weaknesses.
+    description: Choose this when you want the requirements stress-tested for defects so design starts from a patched document rather than inherited weaknesses. It produces a Markdown critique flagging contradictions, gaps, ambiguities, and risky assumptions across the document. Work the flagged defects back into requirements.md before design or estimation begins.
     output_path: review-requirements/ADVERSARIAL/adversarial-review.md
     reference_asset: framework/assets/reviews/adversarial-reference.md
     template_asset: framework/assets/reviews/template-adversarial.md
@@ -14,7 +14,7 @@ methodologies:
     character: framework/assets/characters/adversarial-review.md
   - name: first-principles
     status: mvp
-    description: Choose this to test whether each requirement is defensible against business rationale, so weak items get cut or strengthened before design.
+    description: Choose this when you suspect some requirements were carried over by habit and want each tested against its business rationale. It produces a Markdown review judging whether each requirement is defensible from first principles, marking the weak ones. Cut or strengthen the flagged items before they reach design.
     output_path: review-requirements/FIRST-PRINCIPLES/first-principles-review.md
     reference_asset: framework/assets/reviews/first-principles-reference.md
     template_asset: framework/assets/reviews/template-first-principles.md
@@ -23,7 +23,7 @@ methodologies:
     character: framework/assets/characters/first-principles-review.md
   - name: ten-ba-questions
     status: mvp
-    description: Choose this before design or estimation to surface the ten most pressing stakeholder questions the doc has left unanswered.
+    description: Choose this before design or estimation when you want the most consequential business-analysis gaps named rather than a full critique. It produces a Markdown list of the ten most pressing stakeholder questions the requirements leave unanswered. Take the ten questions to your stakeholders and fold the answers back into the document.
     output_path: review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md
     reference_asset: framework/assets/reviews/ten-ba-questions-reference.md
     template_asset: framework/assets/reviews/template-ten-ba-questions.md
@@ -32,7 +32,7 @@ methodologies:
     character: framework/assets/characters/ten-ba-questions-review.md
   - name: ten-ux-questions
     status: mvp
-    description: Choose this before designing screens to surface the ten most pressing UX questions the doc has left unanswered, so you don't design against gaps.
+    description: Choose this before designing screens when you want the sharpest UX unknowns surfaced so you don't design against gaps. It produces a Markdown list of the ten most pressing UX questions the requirements leave unanswered. Resolve the ten questions before wireframing, or carry them into design as explicit assumptions.
     output_path: review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.md
     reference_asset: framework/assets/reviews/ten-ux-questions-reference.md
     template_asset: framework/assets/reviews/template-ten-ux-questions.md
@@ -41,7 +41,7 @@ methodologies:
     character: framework/assets/characters/ten-ux-questions-review.md
   - name: user-stories
     status: mvp
-    description: Choose this to find which user stories aren't ready for design or estimation, so you can rework them before they enter the backlog.
+    description: Choose this when you need to know which user stories aren't ready for design or estimation before they enter the backlog. It produces a Markdown review judging each story against readiness criteria and flagging the ones that fall short. Rework the flagged stories until they're ready, then admit them to the backlog.
     output_path: review-requirements/USER-STORIES/user-stories-review.md
     reference_asset: framework/assets/reviews/user-stories-reference.md
     template_asset: framework/assets/reviews/template-user-stories.md
@@ -88,7 +88,7 @@ This registry is structurally identical to `framework/assets/analyses/registry.m
 
 - `name` — kebab-case slug. Used as the basis for the subdirectory name under `review-requirements/` (uppercased, e.g. `adversarial` → `review-requirements/ADVERSARIAL/`) and as the path component in the reviewer agent file.
 - `status` — `mvp` (selectable now) or `future` (not yet built).
-- `description` — one-line label surfaced in the `AskUserQuestion` choice list.
+- `description` — short consultant-facing blurb surfaced in the `AskUserQuestion` choice list, written as three succinct sentences (why/when to choose it → what it produces → how to use the output).
 - `output_path` — relative path of the artefact the reviewer writes. Drives the prior-artefact gate in the orchestrator.
 - `reference_asset` — the methodology reference the reviewer follows.
 - `template_asset` — file scaffold the reviewer populates (may be `null` for methodologies that emit pure Markdown without placeholders).
