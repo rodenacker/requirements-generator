@@ -189,3 +189,36 @@ Each rule has a stable ID `GR-NN`, a scope predicate (template field/element it 
 **Override:** edit this rule's cap integer for a project requiring a different ceiling. The cap is read by the gap-pass skill on every drafter invocation; there is no per-run prompt. If `blocking_count >= 50`, every blocking item is still kept and the non-blocking budget is zero — the cap is a floor for blocking, not a ceiling.
 
 **Rationale:** drafts on the current pipeline typically emit 100–150 `[AI-SUGGESTED]` markers (12 blocking + 88–138 non-blocking), of which the non-blocking majority is bulk-accepted by the consultant in Phase 2. Surfacing every bijection-filler item as a question costs Phase 2 turns disproportionate to the answer-value. The cap respects the byte-for-byte identical-set invariant in `completeness-gap-pass.md` (applied uniformly across both targets, narrowing only) and preserves the closed system: a field is `[AI-SUGGESTED]` (Q&A required), `[STANDARD-RULE: GR-NN]` (deterministic), `[OUT-OF-SCOPE]` (prototype-only marker), or value-only fill (no marker). The cap simply rebalances the AI-SUGGESTED vs value-only split by priority.
+
+## GR-23 — Acceptance-criteria syntax (hybrid EARS)
+
+**Applies to:** the `Acceptance criteria` cells of §6.1 functional requirements and §6.2 business rules. **Not** applied to §4.2 stories or §6.4 UI feature needs (those keep observable-signal / Given-When-Then phrasing — see below).
+
+**Rule:** Phrase §6.1 and §6.2 acceptance criteria using **EARS** (Easy Approach to Requirements Syntax) keywords, one clause per criterion:
+
+- **Ubiquitous** (always active): `The system shall <response>.`
+- **Event-driven:** `When <trigger>, the system shall <response>.`
+- **State-driven:** `While <state>, the system shall <response>.`
+- **Optional-feature:** `Where <feature is included>, the system shall <response>.`
+- **Unwanted-behaviour:** `If <unwanted condition>, then the system shall <response>.`
+
+Cap a single criterion at **≤ 3 preconditions**; beyond that, decompose into multiple EARS lines (EARS degrades into an unreadable run-on past three preconditions). §6.3 validation rows are **already** in EARS event-driven form by construction — the `Rule → Error message` pairing reads "When the field violates {rule}, the system shall show {error message}" — so §6.3 is **not** re-phrased, it is left in its tabular form.
+
+**§4.2 stories and §6.4 UI feature-need acceptance criteria keep observable-signal / Given-When-Then phrasing.** These are the stakeholder-/user-facing criteria where natural-language reads more clearly; EARS is reserved for the system/rule/data criteria where testability and downstream (validation, future backend/API) mapping matter most. `GR-21` (no layout vocabulary) applies to all acceptance phrasing regardless of notation.
+
+**Rationale:** EARS is lightweight, grep-able, testable, has low training overhead, and maps cleanly onto validation logic and a future backend/DB/API generator (the closest peer system, Kiro, standardised on it). But it stiffens stakeholder-facing UX criteria and degrades past three preconditions — so it is applied as a hybrid: EARS for the convergent system/rule sections, observable-signal/GWT for the divergent user-facing ones.
+
+## GR-24 — Requirement priority (MoSCoW) default
+
+**Applies to:** the `Priority` field on §6.1 F-NN rows, §6.4 UI-NN rows, and §4.2 stories, when the input does not state a priority.
+
+**Rule:** Assign a MoSCoW priority (`Must` / `Should` / `Could` / `Won't`) by this default mapping:
+
+- **Must** — the capability is in the §1.5 **In** bucket **and** linked to a top-level §4.1 goal (or to a §5 happy-path core-flow step).
+- **Should** — the capability is in the §1.5 **In** bucket and linked to a sub-level or interaction-level §4.1 goal.
+- **Could** — the capability is in the §1.5 **Deferred** bucket, or is not linked to any goal or flow.
+- **Won't** (this build) — the capability is in the §1.5 **Out** bucket (normally excluded entirely; only appears if a row references it).
+
+Input-stated priorities override the default (carry `[SRC: C-NNN]`). Default-derived priorities carry `[STANDARD-RULE: GR-24]` — the resolver skips them; the consultant may adjust any priority during the merger's accept/edit loop.
+
+**Rationale:** every requirements benchmark (Spec Kit P1/P2/P3, BMAD epic/story order, Volere/ISO priority attribute, Patton story-mapping MVP slicing) prioritises; the framework had no per-requirement priority, so an MVP slice could not be expressed within a chosen scope. MoSCoW enables MVP slicing for wireframe/prototype generation. Deriving the default deterministically keeps priority out of resolver Q&A while remaining consultant-overridable. The §1.5 buckets are doc-level, the per-run `scope-selector` is run-level, and this field is requirement-level — three distinct grains, not a duplication.

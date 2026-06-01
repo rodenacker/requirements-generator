@@ -32,9 +32,9 @@ Topics that belong to backend, infrastructure, or implementation domains and can
 
 - **Backend internals** — endpoint logic, middleware, request handling, persistence design, queue infrastructure. The FE consumes the backend only as contracts (§6.10), specified in a sibling backend requirements document under the `application` target or replaced by fixtures under the `prototype` target.
 - **Database schema and migration specifics** — table definitions, indexes, migration scripts (FE references §7 data shapes only, never storage shape).
-- **Authentication/authorization implementation** — OAuth flows, token management, session storage internals. UI surfaces of auth (timeout warnings, re-auth modal trigger, sign-in screens) remain in scope via §6.6.1.
+- **Authentication/authorization implementation** — OAuth flows, token management, session storage internals. UI surfaces of auth (timeout warnings, re-auth modal trigger, sign-in screens) remain in scope as **behavioural** needs via §6.4 (UI feature needs) and §5 (task flows). The §6.6.1 Session-UX **policy table** (quantified idle/absolute timeouts, MFA scope) is `application`-target-only and is omitted under `prototype` (server/auth is simulated per PI-01/PI-03, so timeout durations are moot).
 - **DevOps, CI/CD, infrastructure** — deployment pipelines, container orchestration, monitoring.
-- **Performance optimization techniques** (backend-side) — caching strategies, query optimization, CDN configuration. FE perf budgets (TTI, bundle size, render budget) remain in scope via §6.6.2.
+- **Performance optimization techniques** (backend-side) — caching strategies, query optimization, CDN configuration. FE perf budgets (§6.6.2: TTI, bundle size, render budget) are `application`-target-only and omitted under `prototype` — the prototype is a review harness (PI-08), not a perf-optimised build.
 - **Data migration strategies** — ETL processes, data transformation scripts.
 - **Security implementation details** — encryption, input sanitization, CORS policies.
 - **Third-party service integration internals** — SDK configuration, webhook handlers, API keys.

@@ -128,7 +128,7 @@ On `Keep`, advance to step 5.2. On `Enter new slug`, parse the next turn, normal
 
 5.2 **Walk the requirements doc to enumerate selectable IDs.** Extract:
 
-- Every `F-NN`, `BR-NN`, `UI-NN`, `G-NN` ID from header anchors or §1.7 / §6 table rows.
+- Every `F-NN`, `BR-NN`, `UI-NN`, `G-NN` ID — canonically defined in §4 / §6 table rows (§1.7 is an optional, application-target-only secondary reference for these IDs and may be absent; rely on §4 / §6).
 - Every §5 task flow name (`### Flow: <name>` headers).
 - Every §6.4.x UI feature row.
 - Every §7 data shape name (`### <Name>` headers under §7).

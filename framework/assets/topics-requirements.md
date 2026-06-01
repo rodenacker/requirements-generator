@@ -33,8 +33,8 @@ Adding a new topic ships its `Dimension` value with the row; consumers read the 
 | 0.1 | Target-mode applicability reference | always | Scope |
 | 1 | Application context | always | Scope |
 | 1.5 | Scope (in / out / deferred) | always | Scope |
-| 1.6 | Assumptions & dependencies | always | Scope |
-| 1.7 | Architectural implications | always (drafter-derived) | Scope |
+| 1.6 | Assumptions & dependencies | conditional — ≥1 assumption / dependency stated or domain-implied (no filler rows) | Scope |
+| 1.7 | Architectural implications | conditional — `target == application` (drafter-derived; **omitted under `prototype`**) | Scope |
 | 2.1 | Concepts | always | Domain |
 | 2.2 | Relationships | always | Domain |
 | 2.3 | Aggregates & lifecycles | always | Domain |
@@ -50,8 +50,8 @@ Adding a new topic ships its `Dimension` value with the row; consumers read the 
 | 6.4 | UI feature needs (formerly "User-facing") | always | Functional |
 | 6.4.5 | Edge, empty & error states | conditional — ≥1 §5 flow has `exception_paths` OR ≥1 §6.4 row implies state branching | Process |
 | 6.5 | Access control (RBAC) | always | Stakeholder |
-| 6.6.1 | Session UX | always | Non-functional |
-| 6.6.2 | FE performance budgets | always | Non-functional |
+| 6.6.1 | Session UX | conditional — `target == application` (**omitted under `prototype`**: server/auth simulated, PI-01/PI-03) | Non-functional |
+| 6.6.2 | FE performance budgets | conditional — `target == application` (**omitted under `prototype`**: review harness, PI-08) | Non-functional |
 | 6.6.4 | Compliance UI behaviour | always (may be `[OUT-OF-SCOPE]` if not applicable) | Compliance |
 | 6.6.5 | Accessibility | always | Non-functional |
 | 6.7 | Reporting feature needs | conditional — inputs name reports/dashboards/exports, or domain implies them | Functional |
@@ -60,8 +60,8 @@ Adding a new topic ships its `Dimension` value with the row; consumers read the 
 | 6.10 | Consumed backend contracts | always (sub-block matches `manifest.target`) | Integration |
 | 7 | Data shapes consumed by the FE | always | Data |
 | 7.X | Derivations | conditional — ≥1 §2.1 concept marked `Persistence = derived` | Data |
-| 8 | Source UI references | always | Scope |
-| 9 | Key terminology | always | Domain |
+| 8 | Source UI references | conditional — ≥1 consultant-supplied screenshot / wireframe / existing-tool screen | Scope |
+| 9 | Key terminology | conditional — ≥1 inconsistency flag / alternate-term usage (full glossary lives in the GLOSSARY analysis) | Domain |
 | 10 | Volumes | always | Non-functional |
 
 Sections retired vs. prior versions: **§6.6.3 Availability** (backend concern; lives in sibling backend doc). The §6.3 slot — previously retired as `Data` (subsumed into §7 + §6.4) — is now **reinstated** as **Validation rules** (visible field-level UI validation; backend invariants remain in §6.2 / sibling backend doc).
@@ -71,15 +71,16 @@ Sections retired vs. prior versions: **§6.6.3 Availability** (backend concern; 
 - §4 is split into **§4.1 Goals catalogue** (flat list, stable G-NN IDs, outcome-level — quality signals + goal kind live here) and **§4.2 Stories by persona** (Connextra-triple stories grouped by persona, each referencing a goal ID from §4.1). M:N: a single goal may be referenced by stories under multiple personas.
 - Every persona in §3 **MUST** have ≥1 user story in §4.2.
 - Every story in §4.2 **MUST** reference exactly one goal ID from §4.1. Every goal in §4.1 SHOULD be referenced by ≥1 story (orphan goals are a vague-finding, not a blocker).
-- Quality signals are recorded on the goal, never restated on the story.
-- §4.2 stories, §6.1 functional reqs, §6.2 business rules, and every §5 task-flow step **MUST** carry an Acceptance criteria value (behavioural / observable signal; `GR-21` applies — no visual phrasing). Drafter auto-fabricates from observable signals when input is silent (Tier B5).
+- Quality signals are recorded on the goal, never restated on the story. Quality signals on **top-level** goals SHOULD be measurable outcome signals where the inputs support one (the lightweight stand-in for a success-metrics section when no PRD is run; full success metrics stay in the PRD §5.2). No separate column.
+- §4.2 stories, §6.1 functional reqs, §6.2 business rules, and every §5 task-flow step **MUST** carry an Acceptance criteria value (`GR-21` applies — no visual phrasing). **Acceptance-criteria syntax is hybrid per `GR-23`:** §6.1 functional reqs and §6.2 business rules use **EARS** keywords (`When/While/Where/If-Then … the system shall …`, ≤3 preconditions); §4.2 stories, §5 flow steps, and §6.4 UI feature needs keep observable-signal / Given-When-Then phrasing. §6.3 validation rows are already in EARS event-driven form by construction (Rule → Error message). Drafter auto-fabricates from observable signals when input is silent (Tier B5).
+- §4.2 stories, §6.1 functional reqs (F-NN), and §6.4 UI feature needs (UI-NN) **MUST** carry a `Priority` value (`Must` / `Should` / `Could` / `Won't`). Default derived per `GR-24` (carries `[STANDARD-RULE: GR-24]`); input-stated priority carries `[SRC: C-NNN]`. Priority enables MVP slicing for downstream wireframe / prototype generation. Soft completeness check B6.
 - §6 sub-sections: §6.1 Functional, §6.2 Business rules, §6.3 Validation rules, §6.4 UI feature needs, §6.4.5 Edge / empty / error states (conditional), §6.5 RBAC, §6.6 NFR (FE-only), §6.7 Reporting (conditional), §6.8 Notifications (conditional), §6.9 Audit-trail UI (conditional), §6.10 Consumed backend contracts.
 - §6.2 Business rules are typed rows (BR-NN), not free bullets. Each row carries Statement / Enforcement point / Acceptance criteria / Source / Severity. Bijection: every §2.3 aggregate `Key invariant` appears as a BR; every BR sourced from §2.3 cites it.
 - §6.3 Validation rules capture the *visible* field-level validation surface (required-field markers, format / range / length / enum / cross-field errors). Field cell references a §7 shape field; `business-rule-ref` cells cite a §6.2 BR-NN. Backend enforcement of business invariants belongs to §6.2 and the sibling backend doc. Validation *timing* (real-time / on-blur / on-submit) is governed by `GR-05` and captured in §6.4.
 - §6.4 UI feature needs are typed rows (UI-NN). `GR-21` forbids layout vocabulary; cells describe *what must exist*, not *how it is arranged*. Rows deterministically resolved by `GR-05..GR-18` carry `[STANDARD-RULE: GR-NN]`.
 - §6.4.5 Edge, empty & error states is emitted when ≥1 §5 flow has `exception_paths` OR a §6.4 row implies state branching. Surface cell references a §4.2 story, §5 flow, or §6.4 UI-NN; condition uses the closed vocabulary `{empty, partial, error, offline, loading, permission-denied}`. Behavioural phrasing only (`GR-21`).
 - §6.5 RBAC is a roles-×-resources matrix. Bijection: every §3 persona is a row; every §7 entity and every §5 flow is a column (or scoped action). Conditional cells cite a BR-NN from §6.2.
-- §6.6 NFR is **FE-only**. Required sub-sections: §6.6.1 Session UX, §6.6.2 FE performance budgets, §6.6.4 Compliance UI behaviour, §6.6.5 Accessibility. Backend availability / throughput / persistence concerns belong in the sibling backend doc. Marker per drafter Classification: §6.6.5 Accessibility is in-scope (uses `[AI-SUGGESTED]` when inferred); §6.6.1 / §6.6.2 / §6.6.4 are also in-scope (FE-relevant) and may carry `[AI-SUGGESTED]` when inferred.
+- §6.6 NFR is **FE-only**. Sub-sections: §6.6.4 Compliance UI behaviour + §6.6.5 Accessibility are emitted under **both** targets (FE-relevant; `[AI-SUGGESTED]` when inferred). §6.6.1 Session UX + §6.6.2 FE performance budgets are **`application`-target-only** — omitted under `prototype` (server/auth simulated per PI-01/PI-03; the prototype is a review harness per PI-08), emitted under `application`. Backend availability / throughput / persistence concerns belong in the sibling backend doc.
 - §6.7 Reporting needs **never** specify chart type or layout (`GR-21`). Source concept(s) must reference §2.1; audience must reference §3.
 - §6.8 Notification points use capability-level channel names only (`in-app`, `email`, `sms`, `webhook`, `push`); no vendor name (`GR-20`).
 - §6.10 Consumed backend contracts emits exactly one sub-block — the one matching `manifest.target`. Prototype variant rows reference fixture paths; application variant rows are *pointers only* into the sibling backend doc and never restate the contract.
@@ -109,8 +110,9 @@ Sections retired vs. prior versions: **§6.6.3 Availability** (backend concern; 
   - `goals_without_story_ref == 0`
   - `rbac_conditional_cells_dangling == 0`
   - `entity_relationships_misaligned_with_2_2` — warn only.
-  - **B4** `architectural_implication_cites_requirement == true` — every §1.7 row's Driving requirement cell cross-refs ≥1 §6 / §10 row; warn-only.
-  - **B5** `acceptance_criteria_populated == true` — every §4.2 story / §6.1 F-NN / §6.2 BR-NN / §5 flow step has a populated Acceptance criteria cell; drafter auto-fabricates from observable signals when silent (`[AI-SUGGESTED]`).
+  - **B4** `architectural_implication_cites_requirement == true` — every §1.7 row's Driving requirement cell cross-refs ≥1 §6 / §10 row; warn-only. **Skipped under `target == prototype`** (§1.7 is not emitted).
+  - **B5** `acceptance_criteria_populated == true` — every §4.2 story / §6.1 F-NN / §6.2 BR-NN / §5 flow step has a populated Acceptance criteria cell; drafter auto-fabricates from observable signals when silent (`[AI-SUGGESTED]`). §6.1 / §6.2 cells use EARS per `GR-23`.
+  - **B6** `priority_populated == true` — every §4.2 story / §6.1 F-NN / §6.4 UI-NN has a `Priority` value (`Must` / `Should` / `Could` / `Won't`); default derived per `GR-24` (`[STANDARD-RULE: GR-24]`), so this never gates as AI-SUGGESTED. Warn-only if a row is missing one.
 - **Tier C (do not gate — domain-default fill):**
   - §6.6 sub-sections are FE-relevant under both targets; emptiness no longer fails completeness because they always populate from `GR-19` defaults or `[AI-SUGGESTED]` inferences. (§6.6.3 Availability is retired entirely from the template — backend concern.)
 - **Tier D (visual-manifestation gating):**

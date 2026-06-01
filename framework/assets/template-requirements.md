@@ -2,7 +2,7 @@
 
 # Requirements: {{application_name}}
 
-**Domain:** {{domain}} <!-- inferred from inputs; flag [AI-SUGGESTED] if not stated explicitly --> **Target:** prototype | application <!-- from `requirements/source-manifest.json > target`; controls §6.10 sub-block and PI-append --> **Created:** {{date}} **Status:** draft | final **Last finalised at:** {{last_finalised_at}}
+**Domain:** {{domain}} <!-- inferred from inputs; flag [AI-SUGGESTED] if not stated explicitly --> **Target:** prototype | application <!-- from `requirements/source-manifest.json > target`; controls §6.10 sub-block, PI-append, and the emit-conditional sections listed in §0.1 --> **Created:** {{date}} **Status:** draft | final **Last finalised at:** {{last_finalised_at}}
 
 > **Authoring guardrails.** Cells across §1–§10 must obey:
 > - **`GR-20` No stack specifics.** No framework, library, vendor, product, version, or brand name in any cell. Speak in capability categories ("client-side state management", "binary blob storage tier"). Stack picks happen at code-generation time, not here.
@@ -23,13 +23,20 @@
 
 <!-- format: table[4-col: section, prototype, application, mode-conditional?]; one row per mode-conditional section -->
 
-> The `target` field on the source manifest is `prototype` or `application`. The drafter picks the matching variant for the rows below at fill-time; the merger does not see both.
+> The `target` field on the source manifest is `prototype` or `application`. The drafter picks the matching variant for the rows below at fill-time; the merger does not see both. Rows marked *emit-conditional on target* are **omitted entirely** under `prototype` (the section heading does not appear) and emitted under `application` — these are the FE-irrelevant sections that the convergent/backend consumers (and a future BFF-API-doc / DB-script generator) need, but that add noise to a client-side prototype. Rows marked *content-conditional* are omitted when they have no content under either target.
 
 | Section | `prototype` | `application` | Mode-conditional? |
 | --- | --- | --- | --- |
+| §1.6 Assumptions & dependencies | omitted when no assumption/dependency applies | emitted | yes — content-conditional |
+| §1.7 Architectural implications | **omitted** | emitted (drafter-derived) | yes — emit-conditional on target |
+| §6.1 `Rationale` column | column omitted | column emitted (optional) | yes — column-conditional on target |
+| §6.6.1 Session UX | **omitted** | emitted | yes — emit-conditional on target |
+| §6.6.2 FE performance budgets | **omitted** | emitted (optional) | yes — emit-conditional on target |
 | §6.10 Consumed backend contracts | fixture references | pointers into the sibling backend requirements document | yes — sub-block content differs |
 | §7 Data shapes consumed by FE | shape sourced from fixtures | shape sourced from backend contracts | provenance label only |
-| `## Prototype invariants` appendix | appended (PI-01..PI-07) | omitted | yes — merger conditional |
+| §8 Source UI references | omitted when no consultant-supplied reference exists | same | yes — content-conditional |
+| §9 Key terminology | omitted unless ≥1 inconsistency flag or alternate-term usage exists (full domain glossary lives in the GLOSSARY analysis, not here) | same | yes — content-conditional |
+| `## Prototype invariants` appendix | appended (PI-01..PI-08) | omitted | yes — merger conditional |
 | (all other sections) | identical | identical | no |
 
 ---
@@ -70,8 +77,9 @@
 ## 1.6 Assumptions & dependencies
 
 <!-- format: table[3-col: kind, statement, source]; one row per assumption; kind ∈ {abstract-service-dependency, persona-prerequisite, environment-assumption} -->
+<!-- emit: content-conditional — omit the whole section when no assumption / dependency is stated or domain-implied; not read by any design pipeline, so do not fabricate filler rows -->
 
-> Abstract services, persona prerequisites, environment assumptions. Cells naming a product or vendor fail `GR-20`.
+> Abstract services, persona prerequisites, environment assumptions. Cells naming a product or vendor fail `GR-20`. Omitted entirely when nothing applies (§0.1 content-conditional).
 
 | Kind | Statement | Source |
 | --- | --- | --- |
@@ -88,8 +96,9 @@
 ## 1.7 Architectural implications
 
 <!-- format: table[3-col: capability_category, driving_requirements, recommendation]; capability_category from drafter's inline catalogue (≤15 entries); recommendation optional -->
+<!-- emit: emit-conditional on target — OMITTED entirely under `target = prototype` (no design pipeline reads it); emitted under `target = application` (backend capability plan, consumed by application-build + a future BFF/DB generator) -->
 
-> Capability categories derived by the drafter from §6 functional requirements + §10 volumes + §6.7 reporting needs, against an inline catalogue of ≤15 categories (see `framework/agents/requirements-drafter.md > derive-architectural-implications`). Drafter seeds every row as `[AI-SUGGESTED: AI-NNN | non-blocking]`; resolver Q&A refines. Recommendation column is **optional** and **non-deterministic** — a stack choice belongs in the code-generation step, not here.
+> **Emitted under `target = application` only** (§0.1). Capability categories derived by the drafter from §6 functional requirements + §10 volumes + §6.7 reporting needs, against an inline catalogue of ≤15 categories (see `framework/agents/requirements-drafter.md > derive-architectural-implications`). Drafter seeds every row as `[AI-SUGGESTED: AI-NNN | non-blocking]`; resolver Q&A refines. Recommendation column is **optional** and **non-deterministic** — a stack choice belongs in the code-generation step, not here.
 
 | Capability category | Driving requirement(s) | Recommendation (optional) |
 | --- | --- | --- |
@@ -195,17 +204,18 @@ classDiagram
 ### 4.1 Goals catalogue
 
 <!-- format: table[6-col: ID(G-NN), goal_statement, quality_signals, goal_kind∈{top,sub,interaction}, layout_pref?, ux_pattern_pref?]; outcome-level only -->
+<!-- quality_signals on top-level goals SHOULD be measurable outcome signals where the inputs support one (e.g. "task completion < 5 min", "≤ 1 support contact per onboarding") — this is the lightweight stand-in for a success-metrics section when no PRD is run; deeper success metrics + baselines/targets stay in the PRD (§5.2). Do not add a separate column. -->
 
 | ID | Goal statement | Quality signals | Goal kind | Layout pref (optional) | UX-pattern pref (optional) |
 | --- | --- | --- | --- | --- | --- |
-| G-{{nn}} | {{goal_statement}} | {{quality_signals}} <!-- resolve via taxonomy-goals.md --> | top-level / sub-level / interaction-level | {{layout_preference}} | {{ux_pattern_preference}} |
+| G-{{nn}} | {{goal_statement}} | {{quality_signals}} <!-- resolve via taxonomy-goals.md; prefer a measurable outcome signal on top-level goals --> | top-level / sub-level / interaction-level | {{layout_preference}} | {{ux_pattern_preference}} |
 
 <!-- repeat per goal; IDs are stable and referenced from §4.2 stories and §5 task flows -->
 
 ### 4.2 Stories by persona
 
-<!-- format: per-persona heading then per-story heading "Story: As a {role}, I want {intent}, so that {benefit}", followed by table[5-row: goal_ref, objective, context, linked_flow?, acceptance_criteria]; AC behavioural — given-when-then OR observable-signal bullet -->
-<!-- guidance: every persona ≥1 story (A1); every story exactly 1 §4.1 goal-id (A2) -->
+<!-- format: per-persona heading then per-story heading "Story: As a {role}, I want {intent}, so that {benefit}", followed by table[6-row: goal_ref, priority, objective, context, linked_flow?, acceptance_criteria]; AC behavioural — given-when-then OR observable-signal bullet (NOT EARS — see GR-23) -->
+<!-- guidance: every persona ≥1 story (A1); every story exactly 1 §4.1 goal-id (A2); priority per GR-24 (B6) -->
 
 #### {{persona_name}} <!-- → §3 -->
 
@@ -214,10 +224,11 @@ classDiagram
 | Field                                    | Value                                                                                      |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------ |
 | Goal                                     | → §4.1 G-{{nn}}                                                                            |
+| Priority                                 | Must / Should / Could / Won't <!-- MoSCoW; default per GR-24 carries [STANDARD-RULE: GR-24]; input-stated carries [SRC] --> |
 | Objective                                | {{objective}} <!-- behavioural objective for this story; the outcome lives on the goal --> |
 | Context (frequency / expertise / stakes) | {{context}}                                                                                |
 | Linked task flow (optional)              | {{flow_ref}} <!-- → §5 -->                                                                 |
-| Acceptance criteria                      | {{given_when_then_or_observable_signals}} <!-- ≥1 bullet; behavioural, not visual; see Tier B5 in gap-pass --> |
+| Acceptance criteria                      | {{given_when_then_or_observable_signals}} <!-- ≥1 bullet; behavioural observable-signal / Given-When-Then, not visual; NOT EARS (GR-23 reserves EARS for §6.1/§6.2); see Tier B5 in gap-pass --> |
 
 <!-- repeat per story under each persona; persona heading once per persona, story sub-heading per story. A single goal in §4.1 may be referenced by stories under multiple personas (M:N is expected). -->
 
@@ -247,22 +258,24 @@ classDiagram
 
 ### 6.1 Functional
 
-<!-- format: table[4-col: ID(F-NN), statement, acceptance_criteria, source]; statement is atomic — single capability per row, no compound "and"; AC as Given-When-Then OR observable-signal bullet -->
-<!-- guidance: atomic decomposition aids gap-pass mapping to §6.10 ops (A14) and BR refs -->
+<!-- format: table[cols: ID(F-NN), priority, statement, acceptance_criteria, source, rationale?]; statement is atomic — single capability per row, no compound "and"; AC in EARS form (GR-23) -->
+<!-- guidance: atomic decomposition aids gap-pass mapping to §6.10 ops (A14) and BR refs; priority per GR-24 (B6); AC in EARS keywords per GR-23 -->
+<!-- Rationale column: emit-conditional on target — present under `application` (optional), OMITTED under `prototype` (§0.1) -->
 
-| ID       | Statement              | Acceptance criteria                                                       | Source                                |
-| -------- | ---------------------- | ------------------------------------------------------------------------- | ------------------------------------- |
-| F-{{nn}} | {{functional_requirement}} | {{given_when_then_or_observable_signal}} <!-- Tier B5 auto-fabricates --> | stated / → §X / inferred              |
+| ID       | Priority | Statement              | Acceptance criteria (EARS — GR-23)                                       | Source                   | Rationale (application only, optional) |
+| -------- | -------- | ---------------------- | ------------------------------------------------------------------------ | ------------------------ | -------------------------------------- |
+| F-{{nn}} | Must / Should / Could / Won't <!-- GR-24 --> | {{functional_requirement}} | {{ears_acceptance_criterion}} <!-- "When <trigger>, the system shall <response>." etc. — GR-23; ≤3 preconditions; Tier B5 auto-fabricates --> | stated / → §X / inferred | {{why_this_requirement}} <!-- the business reason; application target only, omit the column under prototype --> |
 
 <!-- repeat per functional requirement -->
 
 ### 6.2 Business rules
 
-<!-- format: table[6-col: ID(BR-NN), statement(when/then), enforcement_point∈{ui,service,data,cross-layer}, acceptance_criteria, source, severity∈{blocker,major,minor}]; statement form "When {condition}, then {required_outcome}" -->
+<!-- format: table[6-col: ID(BR-NN), statement(when/then), enforcement_point∈{ui,service,data,cross-layer}, acceptance_criteria, source, severity∈{blocker,major,minor}]; statement form "When {condition}, then {required_outcome}"; AC in EARS form (GR-23) -->
+<!-- guidance: enforcement_point ∈ {ui, service, data, cross-layer} — `service`/`data`/`cross-layer` rows are the server-side enforcement that a future BFF/DB generator consumes; AC in EARS keywords per GR-23 -->
 
-| ID | Statement (when / then) | Enforcement point | Acceptance criteria | Source | Severity |
+| ID | Statement (when / then) | Enforcement point | Acceptance criteria (EARS — GR-23) | Source | Severity |
 | --- | --- | --- | --- | --- | --- |
-| BR-{{nn}} | When {{condition}}, then {{required_outcome}} | UI / service / data / cross-layer | {{observable_signal_or_test}} <!-- Tier B5 --> | → §2.3 invariant / → §6.1 F-{{nn}} / consultant input | blocker / major / minor |
+| BR-{{nn}} | When {{condition}}, then {{required_outcome}} | UI / service / data / cross-layer | {{ears_acceptance_criterion}} <!-- "If <unwanted condition>, then the system shall <response>." / "When <trigger>, the system shall <response>." — GR-23; Tier B5 --> | → §2.3 invariant / → §6.1 F-{{nn}} / consultant input | blocker / major / minor |
 
 <!-- repeat per business rule; IDs are stable and may be referenced from §5 task flows (decision points), §6.5 access control (action gating), and §2.5 state transitions (pre-conditions) -->
 
@@ -271,7 +284,7 @@ classDiagram
 <!-- format: table[4-col: field→§7, validation_type∈{required,format,range,length,enum,cross-field,business-rule-ref}, rule, error_message]; references §7 fields; business-rule-ref points to §6.2 BR-NN -->
 <!-- guidance: prototypable inline error feedback only; backend validation logic is OOS per `framework/shared/prototype-scope.md` -->
 
-> Field-level validation surfaced to the user as inline UI feedback (required-field markers, format hints, range/length errors). Validation timing follows `GR-05`. Backend enforcement of business invariants belongs to §6.2 BR-NN and the sibling backend doc; this section captures the *visible* validation surface only.
+> Field-level validation surfaced to the user as inline UI feedback (required-field markers, format hints, range/length errors). Validation timing follows `GR-05`. Backend enforcement of business invariants belongs to §6.2 BR-NN and the sibling backend doc; this section captures the *visible* validation surface only. The `Rule → Error message` pairing is **already** in EARS event-driven form by construction ("When the field violates {rule}, the system shall show {error message}"), so `GR-23` does not re-phrase this section — its tabular shape is retained.
 
 | Field (→ §7)              | Validation type                                                                | Rule                          | Error message              |
 | ------------------------- | ------------------------------------------------------------------------------ | ----------------------------- | -------------------------- |
@@ -281,14 +294,14 @@ classDiagram
 
 ### 6.4 UI feature needs
 
-<!-- format: table[4-col: ID(UI-NN), feature_need, linked(G/story/BR), acceptance_criteria]; behavioural phrasing only — "user can …", "system shows …"; GR-21 forbids layout vocabulary -->
-<!-- guidance: rows deterministically resolved by GR-05..GR-18 carry [STANDARD-RULE: GR-NN] -->
+<!-- format: table[5-col: ID(UI-NN), priority, feature_need, linked(G/story/BR), acceptance_criteria]; behavioural phrasing only — "user can …", "system shows …"; GR-21 forbids layout vocabulary; AC observable-signal NOT EARS (GR-23) -->
+<!-- guidance: rows deterministically resolved by GR-05..GR-18 carry [STANDARD-RULE: GR-NN]; priority per GR-24 (B6) -->
 
-> *What UI elements and behaviours the FE must provide.* Never layout, position, framework, component name, or visual design (`GR-21`). Phrase behaviourally ("user can filter by status", "save action is available"); do not phrase visually ("filter chips in the toolbar"). UI feature rows resolved deterministically by `GR-05..GR-18` carry `[STANDARD-RULE: GR-NN]`.
+> *What UI elements and behaviours the FE must provide.* Never layout, position, framework, component name, or visual design (`GR-21`). Phrase behaviourally ("user can filter by status", "save action is available"); do not phrase visually ("filter chips in the toolbar"). UI feature rows resolved deterministically by `GR-05..GR-18` carry `[STANDARD-RULE: GR-NN]`. Acceptance criteria stay observable-signal phrasing (`GR-23` reserves EARS for §6.1/§6.2).
 
-| ID | Feature need | Linked (G / story / BR) | Acceptance criteria |
-| --- | --- | --- | --- |
-| UI-{{nn}} | {{behavioural_need}} <!-- e.g. "user can bulk-delete selected rows with confirmation" --> | → §4.1 G-{{nn}} / → §4.2 / → §6.2 BR-{{nn}} | {{observable_signal}} |
+| ID | Priority | Feature need | Linked (G / story / BR) | Acceptance criteria |
+| --- | --- | --- | --- | --- |
+| UI-{{nn}} | Must / Should / Could / Won't <!-- GR-24 --> | {{behavioural_need}} <!-- e.g. "user can bulk-delete selected rows with confirmation" --> | → §4.1 G-{{nn}} / → §4.2 / → §6.2 BR-{{nn}} | {{observable_signal}} |
 
 <!-- repeat per feature need -->
 
@@ -327,6 +340,9 @@ classDiagram
 #### 6.6.1 Session UX
 
 <!-- format: table[3-col: field, value, source]; quantified — minutes/seconds/hours, never "soon"; GR-19 supplies defaults when input is silent -->
+<!-- emit: emit-conditional on target — OMITTED under `target = prototype` (server + auth are simulated per PI-01/PI-03, so session policy is moot); emitted under `target = application` -->
+
+> **Emitted under `target = application` only** (§0.1) — a client-side prototype has no real session/auth surface (PI-01/PI-03).
 
 | Field                    | Value                                                                             | Source            |
 | ------------------------ | --------------------------------------------------------------------------------- | ----------------- |
@@ -340,6 +356,9 @@ classDiagram
 #### 6.6.2 Frontend performance budgets
 
 <!-- format: table[3-col: metric, target, source]; targets quantified with units & percentile (e.g. "p95 ≤ 2.0s", "≤ 250KB gzipped") — never "fast" or "small" -->
+<!-- emit: emit-conditional on target — OMITTED under `target = prototype` (the prototype is a review harness per PI-08, never perf-optimised); emitted under `target = application` (optional) -->
+
+> **Emitted under `target = application` only** (§0.1) — the prototype is a review harness (PI-08), not a perf-optimised build.
 
 | Metric                                                | Target    | Source            |
 | ----------------------------------------------------- | --------- | ----------------- |
@@ -455,6 +474,9 @@ classDiagram
 ## 8. Source UI references
 
 <!-- format: table[3-col: reference_name, location_path_or_url, notes]; input citations only — exempt from GR-21 -->
+<!-- emit: content-conditional — omit the whole section when no consultant supplied a screenshot / wireframe / existing-tool screen (§0.1); never emit an empty table -->
+
+> Omitted entirely when no consultant-supplied UI reference exists (§0.1 content-conditional).
 
 | Reference | Location        | Notes                                                        |
 | --------- | --------------- | ------------------------------------------------------------ |
@@ -467,8 +489,9 @@ classDiagram
 ## 9. Key terminology
 
 <!-- format: table[3-col: term, definition_or_§2.1_ref, inconsistency_flag]; domain or non-domain terms -->
+<!-- emit: content-conditional — emit a row ONLY for a term that carries an inconsistency flag or an alternate-term usage worth recording; omit the whole section when none apply. The full domain glossary is produced by the GLOSSARY analysis (`analyse-requirements/GLOSSARY/`), not duplicated here. -->
 
-> Domain-concept definitions or non-domain-concept terms (process, role, UI).
+> **Inconsistency register, not a glossary.** Record only terms where the consultant uses an alternate label or the inputs disagree — the canonical, complete domain glossary is produced separately by the GLOSSARY methodology (`analyse-requirements/GLOSSARY/`). Omitted entirely when no inconsistency applies (§0.1 content-conditional).
 
 | Term     | Definition                                 | Inconsistency flag                              |
 | -------- | ------------------------------------------ | ----------------------------------------------- |
