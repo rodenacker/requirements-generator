@@ -1,0 +1,1212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adversarial Review (inputs-side) — Northstar Wealth Client Onboarding &amp; KYC Wizard</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --fg: #1a1a1a;
+    --muted: #5a5a5a;
+    --border: #d4d4d4;
+    --border-strong: #8a8a8a;
+    --section-bg: #ffffff;
+    --code-bg: #f3f3f3;
+    --shadow-card: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+
+    --sev-blocker: #b91c1c;
+    --sev-blocker-bg: rgba(185, 28, 28, 0.10);
+    --sev-major: #c2410c;
+    --sev-major-bg: rgba(194, 65, 12, 0.10);
+    --sev-minor: #a16207;
+    --sev-minor-bg: rgba(161, 98, 7, 0.10);
+
+    --disp-patch: #15803d;
+    --disp-patch-bg: rgba(21, 128, 61, 0.10);
+    --disp-defer: #1d4ed8;
+    --disp-defer-bg: rgba(29, 78, 216, 0.10);
+    --disp-reject: #b91c1c;
+    --disp-reject-bg: rgba(185, 28, 28, 0.10);
+
+    --verdict-blocked-fg: #ffffff;
+    --verdict-blocked-bg: #991b1b;
+    --verdict-needs-fg: #ffffff;
+    --verdict-needs-bg: #c2410c;
+    --verdict-accepted-fg: #ffffff;
+    --verdict-accepted-bg: #15803d;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 32px 64px;
+  }
+
+  /* Header */
+  header { margin-bottom: 24px; }
+  h1#top {
+    margin: 0 0 12px 0;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px 24px;
+    padding: 14px 18px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-card);
+    margin: 16px 0;
+    font-size: 13px;
+  }
+  .meta-grid > div { display: flex; flex-direction: column; gap: 2px; }
+  .meta-grid dt {
+    margin: 0;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  .meta-grid dd {
+    margin: 0;
+    font-size: 14px;
+    color: var(--fg);
+    word-break: break-all;
+  }
+
+  /* TOC */
+  .toc {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin: 0 0 32px 0;
+    padding: 12px 18px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    box-shadow: var(--shadow-card);
+    font-size: 13px;
+  }
+  .toc-label {
+    display: block;
+    margin: 0 0 6px 0;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  .toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    counter-reset: toc-item;
+  }
+  .toc li {
+    counter-increment: toc-item;
+  }
+  .toc li::before {
+    content: counter(toc-item) ". ";
+    color: var(--muted);
+    margin-right: 4px;
+  }
+  .toc a {
+    color: var(--fg);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--border-strong);
+    padding-bottom: 1px;
+  }
+  .toc a:hover { border-bottom-color: var(--fg); color: #000; }
+
+  /* Sections */
+  section {
+    margin: 32px 0;
+    padding: 20px 24px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-card);
+  }
+  section h2 {
+    margin: 0 0 16px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border-strong);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  section h3 {
+    margin: 20px 0 10px 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  section h4 {
+    margin: 16px 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* Back-to-top */
+  .back-to-top {
+    margin: 24px 0 0 0;
+    text-align: right;
+    font-size: 12px;
+  }
+  .back-to-top a {
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--border-strong);
+    padding-bottom: 1px;
+  }
+  .back-to-top a:hover { color: var(--fg); border-bottom-color: var(--fg); }
+
+  /* Verdict banner */
+  .verdict {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+  }
+  .verdict-BLOCKED { background: var(--verdict-blocked-bg); color: var(--verdict-blocked-fg); }
+  .verdict-NEEDS-REVISION { background: var(--verdict-needs-bg); color: var(--verdict-needs-fg); }
+  .verdict-ACCEPTED-WITH-FIXES { background: var(--verdict-accepted-bg); color: var(--verdict-accepted-fg); }
+
+  /* Severity / disposition chips */
+  .chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .chip.severity-Blocker { background: var(--sev-blocker-bg); color: var(--sev-blocker); }
+  .chip.severity-Major { background: var(--sev-major-bg); color: var(--sev-major); }
+  .chip.severity-Minor { background: var(--sev-minor-bg); color: var(--sev-minor); }
+  .chip.disposition-Patch { background: var(--disp-patch-bg); color: var(--disp-patch); }
+  .chip.disposition-Defer { background: var(--disp-defer-bg); color: var(--disp-defer); }
+  .chip.disposition-Reject { background: var(--disp-reject-bg); color: var(--disp-reject); }
+  .chip.gate-pass { background: var(--disp-patch-bg); color: var(--disp-patch); }
+  .chip.gate-fail { background: var(--disp-reject-bg); color: var(--disp-reject); }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  table caption {
+    text-align: left;
+    margin-bottom: 8px;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  thead {
+    background: #f3f3f3;
+    border-bottom: 2px solid var(--border-strong);
+  }
+  th {
+    text-align: left;
+    padding: 8px 10px;
+    font-weight: 600;
+    color: var(--fg);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:hover { background: #fafafa; }
+  td code, dd code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+  }
+
+  /* Findings table — full table */
+  table.findings-full thead { position: sticky; top: 48px; z-index: 5; }
+  table.findings-full td:nth-child(7) { min-width: 280px; }
+
+  /* Triage / Clusters */
+  table.triage-table tr.severity-Blocker { background: rgba(185, 28, 28, 0.04); }
+  .triage-overflow {
+    margin: 8px 0 0 0;
+    padding: 8px 12px;
+    background: var(--sev-blocker-bg);
+    color: var(--sev-blocker);
+    border-radius: 4px;
+    font-size: 13px;
+  }
+  .clusters-singletons {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* Findings list (per-dimension) */
+  .findings-list-header {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  article.finding {
+    margin: 16px 0;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    background: #fcfcfc;
+    box-shadow: 0 1px 1px rgba(0,0,0,.03);
+  }
+  article.finding.severity-Blocker { border-left-color: var(--sev-blocker); }
+  article.finding.severity-Major { border-left-color: var(--sev-major); }
+  article.finding.severity-Minor { border-left-color: var(--sev-minor); }
+  article.finding h4 {
+    margin: 0 0 12px 0;
+    padding: 0;
+    color: var(--fg);
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  article.finding h4 code {
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+  }
+
+  /* Finding fields (dl-grid) */
+  dl.finding-fields {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 8px 16px;
+    margin: 0;
+    font-size: 14px;
+  }
+  dl.finding-fields dt {
+    margin: 0;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding-top: 2px;
+  }
+  dl.finding-fields dd { margin: 0; word-break: break-word; }
+
+  /* Evidence blockquote */
+  blockquote.evidence {
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border-strong);
+    border-radius: 4px;
+    background: #fbfbfb;
+    overflow: hidden;
+  }
+  blockquote.evidence pre {
+    margin: 0;
+    padding: 10px 12px;
+    font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #333;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 320px;
+    overflow: auto;
+  }
+  blockquote.evidence.skipped-placeholder {
+    padding: 8px 12px;
+    font-style: italic;
+    color: var(--muted);
+    background: #f7f7f7;
+  }
+
+  /* Justification block */
+  .justification {
+    padding: 14px 18px;
+    background: var(--sev-major-bg);
+    border: 1px solid var(--sev-major);
+    border-radius: 6px;
+  }
+  .justification h3 {
+    margin: 0 0 8px 0;
+    color: var(--sev-major);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .justification p { margin: 0; }
+
+  /* Diagnostics toggle */
+  details.diagnostics-toggle { margin: 0; }
+  details.diagnostics-toggle > summary {
+    cursor: pointer;
+    padding: 0;
+    list-style: none;
+  }
+  details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+  details.diagnostics-toggle > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  details.diagnostics-toggle > summary::before {
+    content: "▶";
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform 0.15s ease;
+    display: inline-block;
+  }
+  details.diagnostics-toggle[open] > summary::before { transform: rotate(90deg); }
+
+  /* Diagnostics table accents */
+  table.diagnostics-gates tr.gate-fail { background: rgba(185, 28, 28, 0.05); }
+
+  /* Verdict legend */
+  .verdict-legend {
+    margin: 12px 0 0 0;
+    padding: 10px 12px;
+    background: #f7f7f7;
+    border-left: 3px solid var(--border-strong);
+    border-radius: 0 4px 4px 0;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  /* Responsive */
+  @media (max-width: 720px) {
+    main { padding: 16px 16px 48px; }
+    h1#top { font-size: 22px; }
+    section { padding: 14px 14px; }
+    section h2 { font-size: 18px; }
+    .meta-grid { grid-template-columns: 1fr; gap: 6px 0; }
+    dl.finding-fields { grid-template-columns: 1fr; gap: 4px 0; }
+    dl.finding-fields dt { padding-top: 6px; }
+    table { font-size: 12px; }
+    th, td { padding: 6px 6px; }
+    .toc { position: static; }
+  }
+  @media (max-width: 480px) {
+    body { font-size: 14px; }
+    h1#top { font-size: 19px; }
+    article.finding { padding: 12px 12px; }
+  }
+
+  /* Print */
+  @media print {
+    body { background: white; }
+    main { max-width: none; padding: 0; }
+    .toc, .back-to-top { display: none !important; }
+    section {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      box-shadow: none;
+      border: 1px solid #999;
+      margin: 12px 0;
+    }
+    article.finding {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      box-shadow: none;
+    }
+    details.diagnostics-toggle { display: block; }
+    details.diagnostics-toggle > summary > h3::before { display: none; }
+    details:not([open]) > *:not(summary) { display: block !important; }
+    blockquote.evidence pre { max-height: none; overflow: visible; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1 id="top">Adversarial Review (inputs-side) — Northstar Wealth Client Onboarding &amp; KYC Wizard</h1>
+  <dl class="meta-grid">
+    <div><dt>Domain</dt><dd>Wealth-management client onboarding &amp; KYC/AML (financial services)</dd></div>
+    <div><dt>Generated</dt><dd>2026-05-30T11:18:13Z</dd></div>
+    <div><dt>Manifest SHA-256</dt><dd><code>b460d2680e5dc32866c0f881fc7a84f76ff60db425ffa02be8c1afdae14589e9</code></dd></div>
+    <div><dt>Reviewer</dt><dd>Adversarial Review (BMAD-style, strict mode, inputs-side)</dd></div>
+  </dl>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <span class="toc-label">Contents</span>
+  <ol>
+    <li><a href="#executive-summary">Executive Summary</a></li>
+    <li><a href="#triage">Triage</a></li>
+    <li><a href="#clusters">Clusters</a></li>
+    <li><a href="#findings-table">Findings Table</a></li>
+    <li><a href="#dim-1">Dimension 1 — Stakeholder &amp; Role Coverage (incl. voice authenticity)</a></li>
+    <li><a href="#dim-2">Dimension 2 — Domain &amp; Workflow Coverage</a></li>
+    <li><a href="#dim-3">Dimension 3 — Ambiguity &amp; Vague Language</a></li>
+    <li><a href="#dim-4">Dimension 4 — Source Provenance, Consistency &amp; Conflict</a></li>
+    <li><a href="#dim-5">Dimension 5 — Quantitative &amp; Measurable Signal</a></li>
+    <li><a href="#dim-6">Dimension 6 — Scope &amp; MVP Signal</a></li>
+    <li><a href="#diagnostics">Diagnostics</a></li>
+  </ol>
+</nav>
+
+<section id="executive-summary">
+  <h2>Executive Summary</h2>
+  <p><strong>Total findings:</strong> 37</p>
+  <p>
+    <strong>Severity</strong> —
+    <span class="chip severity-Blocker">Blocker 1</span>
+    <span class="chip severity-Major">Major 17</span>
+    <span class="chip severity-Minor">Minor 19</span>
+  </p>
+  <p>
+    <strong>Disposition</strong> —
+    <span class="chip disposition-Patch">Patch 4</span>
+    <span class="chip disposition-Defer">Defer 30</span>
+    <span class="chip disposition-Reject">Reject 3</span>
+  </p>
+  <p><span class="verdict verdict-BLOCKED">Verdict: BLOCKED</span></p>
+  <p class="verdict-legend">
+    <strong>Verdict legend.</strong>
+    <code>BLOCKED</code> — at least one Reject or Blocker; <code>/requirements</code> cannot draft from this corpus as-is (under the <em>corpus IS the voice</em> principle, Reject is reserved for in-corpus contradictions, POPIA-scoped legal voids, or load-bearing ambiguity unresolvable at draft time — silences are Patch / Defer, not Reject).
+    <code>NEEDS-REVISION</code> — findings present but none blocking.
+    <code>ACCEPTED-WITH-FIXES</code> — zero findings on all six dimensions, every dimension carries a Justification block (rare under strict-BMAD).
+  </p>
+  <p class="verdict-legend">
+    <strong>Reviewer note (single-source corpus).</strong> The corpus is one unattributed, undated, BA/consultant-authored brief (<code>brief.md</code>) with no first-hand stakeholder material — so Dimension&nbsp;1 fires heavily (everything is second-hand voice) and cross-source contradiction (Dimension&nbsp;4) is structurally impossible. The <code>BLOCKED</code> verdict rests on the Dimension&nbsp;5 compliance-enumeration Rejects (<a href="#ADV-29"><code>ADV-29</code></a>, <a href="#ADV-30"><code>ADV-30</code></a>): a KYC/AML legal-compliance claim with no in-corpus enumeration of PII fields, retention window, or consent flow. <strong>One finding is flagged as a probable false positive — <a href="#ADV-27"><code>ADV-27</code></a></strong> reads the "~15&nbsp;min" client-onboarding figure as conflicting with the "~20&nbsp;min" advisor-meeting figure, but the brief treats these as two distinct durations; consider striking it.
+  </p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="triage">
+  <h2>Triage</h2>
+  <table class="triage-table">
+    <caption>Top issues to address first, ordered by severity. Resolve these before scanning the full Findings Table below.</caption>
+    <thead><tr><th>Rank</th><th>ID</th><th>Severity</th><th>Cluster</th><th>Location</th><th>Problem</th></tr></thead>
+    <tbody>
+      <tr class="severity-Major">
+        <td>1</td>
+        <td><a href="#ADV-27"><code>ADV-27</code></a></td>
+        <td><span class="chip severity-Major">Major</span></td>
+        <td></td>
+        <td><code>brief.md</code></td>
+        <td>Claims the ~15-minute client-completion figure conflicts with the ~20-minute advisor-meeting figure (probable false positive — they are two distinct durations).</td>
+      </tr>
+      <tr class="severity-Blocker">
+        <td>2</td>
+        <td><a href="#ADV-29"><code>ADV-29</code></a></td>
+        <td><span class="chip severity-Blocker">Blocker</span></td>
+        <td>CL-07</td>
+        <td><code>brief.md</code></td>
+        <td>KYC/AML compliance claim collects personal data but enumerates no data-protection regime, retention window, or consent flow.</td>
+      </tr>
+      <tr class="severity-Major">
+        <td>3</td>
+        <td><a href="#ADV-30"><code>ADV-30</code></a></td>
+        <td><span class="chip severity-Major">Major</span></td>
+        <td>CL-07</td>
+        <td><code>brief.md</code></td>
+        <td>Asserts an international-regulatory obligation for tax-residency data with no regime, retention period, or consent basis.</td>
+      </tr>
+      <tr class="severity-Major">
+        <td>4</td>
+        <td><a href="#ADV-01"><code>ADV-01</code></a></td>
+        <td><span class="chip severity-Major">Major</span></td>
+        <td>CL-01</td>
+        <td><code>brief.md</code></td>
+        <td>The whole corpus is a single unattributed brief, so every stakeholder position is second-hand authorship, not any role&#x27;s own voice.</td>
+      </tr>
+      <tr class="severity-Major">
+        <td>5</td>
+        <td><a href="#ADV-09"><code>ADV-09</code></a></td>
+        <td><span class="chip severity-Major">Major</span></td>
+        <td>CL-02</td>
+        <td><code>brief.md</code></td>
+        <td>File-upload workflow names a mock endpoint but never describes its failure mode, retry contract, or mid-transfer state.</td>
+      </tr>
+      <tr class="severity-Major">
+        <td>6</td>
+        <td><a href="#ADV-02"><code>ADV-02</code></a></td>
+        <td><span class="chip severity-Major">Major</span></td>
+        <td>CL-01</td>
+        <td><code>brief.md</code></td>
+        <td>The primary user is characterised entirely through brief-authored attribution with no first-hand client material.</td>
+      </tr>
+      <tr class="severity-Major">
+        <td>7</td>
+        <td><a href="#ADV-03"><code>ADV-03</code></a></td>
+        <td><span class="chip severity-Major">Major</span></td>
+        <td>CL-01</td>
+        <td><code>brief.md</code></td>
+        <td>First-person client goals are voiced by the brief author on the client&#x27;s behalf, not from first-hand client material.</td>
+      </tr>
+      <tr class="severity-Major">
+        <td>8</td>
+        <td><a href="#ADV-04"><code>ADV-04</code></a></td>
+        <td><span class="chip severity-Major">Major</span></td>
+        <td>CL-01</td>
+        <td><code>brief.md</code></td>
+        <td>The financial advisor&#x27;s work is being redesigned yet the corpus carries zero first-hand advisor voice.</td>
+      </tr>
+      <tr class="severity-Major">
+        <td>9</td>
+        <td><a href="#ADV-05"><code>ADV-05</code></a></td>
+        <td><span class="chip severity-Major">Major</span></td>
+        <td>CL-01</td>
+        <td><code>brief.md</code></td>
+        <td>The advisor&#x27;s post-onboarding review role is asserted but no first-hand source defines what that review requires.</td>
+      </tr>
+      <tr class="severity-Major">
+        <td>10</td>
+        <td><a href="#ADV-06"><code>ADV-06</code></a></td>
+        <td><span class="chip severity-Major">Major</span></td>
+        <td>CL-01</td>
+        <td><code>brief.md</code></td>
+        <td>A compliance/AML-officer role is implied by the regulatory framing but no first-hand compliance voice exists.</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="clusters">
+  <h2>Clusters</h2>
+  <table class="clusters-table">
+    <caption>Findings sharing a root cause are grouped below. Each cluster lists its member finding IDs; the per-dimension sections still contain every finding in full detail.</caption>
+    <thead><tr><th>Cluster</th><th>Theme</th><th>Findings</th><th>Max severity</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>CL-01</td>
+        <td>Stakeholder voice is second-hand or absent across the corpus</td>
+        <td><a href="#ADV-01"><code>ADV-01</code></a>, <a href="#ADV-02"><code>ADV-02</code></a>, <a href="#ADV-03"><code>ADV-03</code></a>, <a href="#ADV-04"><code>ADV-04</code></a>, <a href="#ADV-05"><code>ADV-05</code></a>, <a href="#ADV-06"><code>ADV-06</code></a>, <a href="#ADV-07"><code>ADV-07</code></a>, <a href="#ADV-08"><code>ADV-08</code></a></td>
+        <td><span class="chip severity-Major">Major</span></td>
+      </tr>
+      <tr>
+        <td>CL-02</td>
+        <td>Non-happy-path / failure behaviour silent across workflows</td>
+        <td><a href="#ADV-09"><code>ADV-09</code></a>, <a href="#ADV-10"><code>ADV-10</code></a>, <a href="#ADV-12"><code>ADV-12</code></a>, <a href="#ADV-13"><code>ADV-13</code></a>, <a href="#ADV-15"><code>ADV-15</code></a></td>
+        <td><span class="chip severity-Major">Major</span></td>
+      </tr>
+      <tr>
+        <td>CL-03</td>
+        <td>Entity &amp; reference-data shapes ungrounded</td>
+        <td><a href="#ADV-11"><code>ADV-11</code></a>, <a href="#ADV-14"><code>ADV-14</code></a></td>
+        <td><span class="chip severity-Major">Major</span></td>
+      </tr>
+      <tr>
+        <td>CL-04</td>
+        <td>Missing volume/scale &amp; unquantified NFR/KPI signal</td>
+        <td><a href="#ADV-16"><code>ADV-16</code></a>, <a href="#ADV-31"><code>ADV-31</code></a>, <a href="#ADV-32"><code>ADV-32</code></a>, <a href="#ADV-33"><code>ADV-33</code></a></td>
+        <td><span class="chip severity-Minor">Minor</span></td>
+      </tr>
+      <tr>
+        <td>CL-05</td>
+        <td>Vague / approximate language across goals &amp; scope</td>
+        <td><a href="#ADV-17"><code>ADV-17</code></a>, <a href="#ADV-18"><code>ADV-18</code></a>, <a href="#ADV-19"><code>ADV-19</code></a>, <a href="#ADV-20"><code>ADV-20</code></a>, <a href="#ADV-21"><code>ADV-21</code></a>, <a href="#ADV-22"><code>ADV-22</code></a>, <a href="#ADV-23"><code>ADV-23</code></a></td>
+        <td><span class="chip severity-Minor">Minor</span></td>
+      </tr>
+      <tr>
+        <td>CL-06</td>
+        <td>Provenance, attribution &amp; naming-consistency defects</td>
+        <td><a href="#ADV-24"><code>ADV-24</code></a>, <a href="#ADV-25"><code>ADV-25</code></a>, <a href="#ADV-26"><code>ADV-26</code></a>, <a href="#ADV-28"><code>ADV-28</code></a></td>
+        <td><span class="chip severity-Major">Major</span></td>
+      </tr>
+      <tr>
+        <td>CL-07</td>
+        <td>Compliance/regulatory claims lack enumeration &amp; scope</td>
+        <td><a href="#ADV-29"><code>ADV-29</code></a>, <a href="#ADV-30"><code>ADV-30</code></a>, <a href="#ADV-35"><code>ADV-35</code></a></td>
+        <td><span class="chip severity-Blocker">Blocker</span></td>
+      </tr>
+      <tr>
+        <td>CL-08</td>
+        <td>Scope boundaries &amp; phasing unstated</td>
+        <td><a href="#ADV-34"><code>ADV-34</code></a>, <a href="#ADV-37"><code>ADV-37</code></a></td>
+        <td><span class="chip severity-Major">Major</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="clusters-singletons">2 singleton findings remain unclustered:
+    <a href="#ADV-27"><code>ADV-27</code></a> (probable false-positive duration "contradiction"),
+    <a href="#ADV-36"><code>ADV-36</code></a> (accessibility named without a conformance standard).</p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="findings-table">
+  <h2>Findings Table</h2>
+  <table class="findings-full">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Dim</th>
+        <th>Severity</th>
+        <th>Disposition</th>
+        <th>Cluster</th>
+        <th>Location</th>
+        <th>Problem</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="finding-row severity-Blocker disposition-Reject"><td><a href="#ADV-29"><code>ADV-29</code></a></td><td>5</td><td><span class="chip severity-Blocker">Blocker</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-07</td><td>brief.md</td><td>KYC/AML compliance claim collects personal data but enumerates no data-protection regime, retention window, or consent flow.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-01"><code>ADV-01</code></a></td><td>1</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-01</td><td>brief.md</td><td>The entire corpus is a single unattributed, undated brief, so every stakeholder position is second-hand authorship.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-02"><code>ADV-02</code></a></td><td>1</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-01</td><td>brief.md</td><td>The primary user is characterised entirely through brief-authored attribution with no first-hand client material.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-03"><code>ADV-03</code></a></td><td>1</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-01</td><td>brief.md</td><td>First-person client goals are voiced by the brief author, not from first-hand client material.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-04"><code>ADV-04</code></a></td><td>1</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-01</td><td>brief.md</td><td>The financial advisor&#x27;s work is being redesigned yet the corpus carries zero first-hand advisor voice.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-05"><code>ADV-05</code></a></td><td>1</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-01</td><td>brief.md</td><td>The advisor&#x27;s post-onboarding review role is asserted but no first-hand source defines what it requires.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-06"><code>ADV-06</code></a></td><td>1</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-01</td><td>brief.md</td><td>A compliance/AML-officer role is implied by regulatory framing but no first-hand compliance voice exists.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-09"><code>ADV-09</code></a></td><td>2</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-02</td><td>brief.md</td><td>File-upload workflow names a mock endpoint but never describes its failure mode, retry contract, or mid-transfer state.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-10"><code>ADV-10</code></a></td><td>2</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-02</td><td>brief.md</td><td>Submission workflow describes only the success state, leaving failure, timeout, and double-submit silent.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-11"><code>ADV-11</code></a></td><td>2</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-03</td><td>brief.md</td><td>The confirmation-number entity is named with no format, length, uniqueness, or sample value.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-12"><code>ADV-12</code></a></td><td>2</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-02</td><td>brief.md</td><td>Save/resume describes only the happy re-entry path; the email-mismatch failure path is silent.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-13"><code>ADV-13</code></a></td><td>2</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-02</td><td>brief.md</td><td>Reliance on localStorage with no behaviour defined when it is unavailable, full, cleared, or cross-device.</td></tr>
+      <tr class="finding-row severity-Major disposition-Patch"><td><a href="#ADV-24"><code>ADV-24</code></a></td><td>4</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-06</td><td>brief.md</td><td>The brief carries no author, role, date, or version stamp.</td></tr>
+      <tr class="finding-row severity-Major disposition-Reject"><td><a href="#ADV-27"><code>ADV-27</code></a></td><td>4</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Reject">Reject</span></td><td></td><td>brief.md</td><td>Claims a ~15-min vs ~20-min duration contradiction (probable false positive — the two durations are distinct).</td></tr>
+      <tr class="finding-row severity-Major disposition-Reject"><td><a href="#ADV-30"><code>ADV-30</code></a></td><td>5</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Reject">Reject</span></td><td>CL-07</td><td>brief.md</td><td>Asserts an international-regulatory obligation for tax-residency data with no regime, retention, or consent basis.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-34"><code>ADV-34</code></a></td><td>6</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-08</td><td>brief.md</td><td>In-scope named (six-step wizard) but no explicit out-of-scope statement, so adjacent capabilities are implicitly in scope.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-35"><code>ADV-35</code></a></td><td>6</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-07</td><td>brief.md</td><td>AML named with no scope boundary on what screening (e.g. sanctions/PEP) the app performs versus advisor review.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-36"><code>ADV-36</code></a></td><td>6</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td></td><td>brief.md</td><td>Accessibility listed as behaviours but names no testable conformance standard (e.g. WCAG 2.1 AA).</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-07"><code>ADV-07</code></a></td><td>1</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-01</td><td>brief.md</td><td>The auditor/regulator whose requirements drive "all information required for KYC" is never a first-hand source.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-08"><code>ADV-08</code></a></td><td>1</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-01</td><td>brief.md</td><td>An operations/back-office role that would receive submitted applications is never described.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-14"><code>ADV-14</code></a></td><td>2</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-03</td><td>brief.md</td><td>Nationality/tax-residency reference entity named with no enumerated value list, source, or samples.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-15"><code>ADV-15</code></a></td><td>2</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-02</td><td>brief.md</td><td>Upload describes happy-path progress/preview but is silent on empty and multi-document partial-failure states.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-16"><code>ADV-16</code></a></td><td>2</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-04</td><td>brief.md</td><td>No volume/scale signal for any workflow — no concurrency, document-size distribution, or throughput.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-17"><code>ADV-17</code></a></td><td>3</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-05</td><td>brief.md</td><td>"most information gathering" does not state which activities remain advisor-led versus move to self-service.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-18"><code>ADV-18</code></a></td><td>3</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-05</td><td>brief.md</td><td>"approximately 20 minutes" leaves the target meeting duration with no upper bound or tolerance.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-19"><code>ADV-19</code></a></td><td>3</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-05</td><td>brief.md</td><td>"approximately 15 minutes" gives the completion-time measure no tolerance band, so pass/fail is undefined.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-20"><code>ADV-20</code></a></td><td>3</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-05</td><td>brief.md</td><td>"at least the 20 most common countries" — neither ranking basis nor the specific list is enumerated.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-21"><code>ADV-21</code></a></td><td>3</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-05</td><td>brief.md</td><td>"Suitability assessments" is undefined jargon never enumerated beyond the five risk questions.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-22"><code>ADV-22</code></a></td><td>3</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-05</td><td>brief.md</td><td>"professional, trustworthy, and secure" are marketing abstractions with no measurable criteria.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-23"><code>ADV-23</code></a></td><td>3</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-05</td><td>brief.md</td><td>"If existing progress is detected" is imprecise about the detection mechanism and which device.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-25"><code>ADV-25</code></a></td><td>4</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-06</td><td>brief.md</td><td>The actor is referred to as "prospective client", "new client", "client", and "user" with no canonical term.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-26"><code>ADV-26</code></a></td><td>4</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-06</td><td>brief.md</td><td>The reviewing role is named both "financial advisor" and "advisor" with no glossary equating them.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-28"><code>ADV-28</code></a></td><td>4</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-06</td><td>brief.md</td><td>Current-state description and aspirational target-state requirements are mixed without consistent labels.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-31"><code>ADV-31</code></a></td><td>5</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-04</td><td>brief.md</td><td>Cycle-time KPI has baseline+target but no measurement method, sample window, or success threshold.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-32"><code>ADV-32</code></a></td><td>5</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-04</td><td>brief.md</td><td>"completed consistently and accurately" has no metric, tolerance, or pass criterion.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-33"><code>ADV-33</code></a></td><td>5</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-04</td><td>brief.md</td><td>Reliability NFR has no concurrency, session-count, or storage-limit bound against localStorage capacity.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-37"><code>ADV-37</code></a></td><td>6</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-08</td><td>brief.md</td><td>Deliverables/features carry no MVP-vs-future separator and no team-size, budget, or deadline constraint.</td></tr>
+    </tbody>
+  </table>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-1">
+  <h2>Dimension 1 — Stakeholder &amp; Role Coverage (incl. voice authenticity)</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+    <article class="finding severity-Major disposition-Defer" id="ADV-01">
+      <h4><code>ADV-01</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · Whole corpus is second-hand authorship</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre># Northstar Wealth Client Onboarding &amp; KYC Wizard</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The entire corpus is a single unattributed, undated project brief with no author byline, so every stakeholder position in it is second-hand authorship rather than any role&#x27;s own voice.</dd>
+        <dt>Recommendation</dt><dd>Treat as second-hand.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Defer" id="ADV-02">
+      <h4><code>ADV-02</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · Primary user defined only by brief author</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>* Opening a new investment account.
+* Completing onboarding independently.
+* Comfortable using desktop web applications.
+* Required to provide identity and financial information.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The primary user (prospective client) is characterised entirely through brief-authored attribution with no first-hand client material defining their actual needs.</dd>
+        <dt>Recommendation</dt><dd>Treat as second-hand.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Defer" id="ADV-03">
+      <h4><code>ADV-03</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · Client goals voiced by the brief author</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>* Understand what information I need before starting.
+* Complete onboarding from home at my own pace.
+* Save my progress and continue later.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>These first-person client goals are voiced by the brief author on the client&#x27;s behalf, not sourced from any first-hand prospective-client material.</dd>
+        <dt>Recommendation</dt><dd>Treat as second-hand.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Defer" id="ADV-04">
+      <h4><code>ADV-04</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · No first-hand financial-advisor voice</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>new clients complete onboarding during a 2–3 hour in-person meeting with a financial advisor</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The financial advisor is a named role whose work is being materially redesigned, yet the corpus carries zero first-hand advisor voice describing their current process or review needs.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Defer" id="ADV-05">
+      <h4><code>ADV-05</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · Advisor review role asserted, not sourced</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>Advisor meetings focus on review and advice rather than data capture.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The advisor&#x27;s post-onboarding review role is asserted by the brief but no first-hand advisor source defines what that review actually requires.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Defer" id="ADV-06">
+      <h4><code>ADV-06</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · Compliance/AML-officer voice absent</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>complying with Know Your Customer (KYC) and Anti-Money Laundering (AML) onboarding practices</pre></blockquote></dd>
+        <dt>Problem</dt><dd>A compliance/AML officer role is implied by the regulatory framing but no first-hand compliance-officer voice exists in the corpus to confirm what KYC/AML actually demands here.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-07">
+      <h4><code>ADV-07</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · Regulator/auditor voice absent</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>4. Collect all information required for KYC and suitability assessments before advisor review.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The auditor/regulator whose requirements drive &#x27;all information required for KYC&#x27; is never present as a first-hand source, leaving the corpus silent on the regulatory voice it depends on.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-08">
+      <h4><code>ADV-08</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · Back-office/ops consumer never described</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>Submit onboarding application to mock endpoint.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>An operations/back-office role that would receive and act on submitted applications is never described, so the corpus is silent on the downstream consumer of the onboarding output.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-2">
+  <h2>Dimension 2 — Domain &amp; Workflow Coverage (including non-happy paths)</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+    <article class="finding severity-Major disposition-Defer" id="ADV-09">
+      <h4><code>ADV-09</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · Upload-endpoint failure mode silent</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>* Base64 encoded files stored in state
+* Mock upload endpoint</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The file-upload workflow names a mock upload endpoint but the corpus never describes its failure mode, retry contract, or what state the application holds when an upload to that endpoint fails mid-transfer.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence — downstream marks the upload-endpoint failure contract as unspecified and applies a GR-NN default.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Defer" id="ADV-10">
+      <h4><code>ADV-10</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · Submission failure path silent</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>Submit onboarding application to mock endpoint.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The submission workflow names a mock endpoint but the corpus describes only the success state, leaving submission failure, timeout, and double-submit behaviour entirely silent.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence — downstream marks the submission-failure path as unspecified and applies a GR-NN default.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Defer" id="ADV-11">
+      <h4><code>ADV-11</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · Confirmation-number entity ungrounded</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>* Mock submission endpoint
+* Generate confirmation number
+* Clear localStorage after successful submission</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The confirmation-number entity is named with no field-level shape — no format, length, uniqueness, or sample value — so the entity is a coverage gap.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence — downstream marks the confirmation-number shape as unspecified and applies a GR-NN default.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Defer" id="ADV-12">
+      <h4><code>ADV-12</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · Resume email-mismatch path silent</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>To resume an application, the user must re-enter the email address used to start onboarding.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The save/resume workflow describes only the happy re-entry path and is silent on the failure path where the re-entered email does not match the stored session, including lockout, retry count, or recovery.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence — downstream marks the email-mismatch resume failure path as unspecified and applies a GR-NN default.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Defer" id="ADV-13">
+      <h4><code>ADV-13</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · localStorage-unavailable behaviour silent</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>Use localStorage.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The save/resume workflow depends entirely on localStorage but the corpus is silent on behaviour when localStorage is unavailable, full, cleared by the browser, or accessed from a different device where no session exists.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence — downstream marks localStorage-unavailable behaviour as unspecified and applies a GR-NN default.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-14">
+      <h4><code>ADV-14</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · Reference-data country list undefined</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>Nationality and tax residency dropdowns must include at least the 20 most common countries.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The nationality/tax-residency reference entity is named with no enumerated value list, source, or sample values, leaving the actual dropdown contents undefined.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence — downstream marks the reference-data country list as unspecified and applies a GR-NN default.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-15">
+      <h4><code>ADV-15</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · Empty/partial upload states silent</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>* Upload progress indicator
+* Preview thumbnail after upload
+* Clear validation feedback</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The upload workflow describes a happy-path progress indicator and preview but is silent on the empty state (no file selected) and the partial-failure state where one of multiple required documents uploads but another fails.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence — downstream marks multi-document partial-upload-failure states as unspecified and applies a GR-NN default.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-16">
+      <h4><code>ADV-16</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · No volume/scale signal for any workflow</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>* Step transitions under 300ms
+* Upload simulation under 2 seconds</pre></blockquote></dd>
+        <dt>Problem</dt><dd>No volume or scale signal exists for any workflow — no expected concurrent client count, document size distribution beyond a 5 MB cap, or onboarding throughput — so realistic load shape is absent.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence — downstream marks workflow volume/scale signals as unspecified and applies a GR-NN default.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-3">
+  <h2>Dimension 3 — Ambiguity &amp; Vague Language</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-17">
+      <h4><code>ADV-17</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · Vague quantifier "most information gathering"</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>The objective of this project is to shift most information gathering, verification, and risk assessment activities to a self-service digital experience that clients can complete from home.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The vague quantifier &quot;most information gathering&quot; does not state which gathering activities remain advisor-led versus move to self-service, so the boundary of in-scope data capture is imprecise.</dd>
+        <dt>Recommendation</dt><dd>Resolve at draft time by treating the six-step wizard&#x27;s enumerated fields as the operative scope of self-service data capture.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-18">
+      <h4><code>ADV-18</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · Hedge "approximately 20 minutes"</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>1. Reduce advisor-led onboarding time from 2–3 hours to approximately 20 minutes.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The hedge &quot;approximately 20 minutes&quot; leaves the target meeting duration imprecise as a success measure with no upper bound or tolerance.</dd>
+        <dt>Recommendation</dt><dd>Resolve at draft time by treating &quot;approximately 20 minutes&quot; as a non-binding target narrative rather than a verifiable acceptance threshold.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-19">
+      <h4><code>ADV-19</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · Hedge "approximately 15 minutes"</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>* Clients can complete onboarding within approximately 15 minutes.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The hedge &quot;approximately 15 minutes&quot; gives a completion-time success measure no tolerance band, so pass/fail against it is undefined.</dd>
+        <dt>Recommendation</dt><dd>Resolve at draft time by treating &quot;approximately 15 minutes&quot; as an indicative target rather than a testable timing requirement.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-20">
+      <h4><code>ADV-20</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · "20 most common countries" unquantified</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>Nationality and tax residency dropdowns must include at least the 20 most common countries.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The phrase &quot;at least the 20 most common countries&quot; is unquantified — neither the ranking basis (most common by what population/measure) nor the specific country list is enumerated.</dd>
+        <dt>Recommendation</dt><dd>Resolve at draft time by treating any reasonable list of 20+ countries as satisfying the requirement, with the exact roster annotated as an implementation default.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-21">
+      <h4><code>ADV-21</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · "Suitability assessments" undefined</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>4. Collect all information required for KYC and suitability assessments before advisor review.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;Suitability assessments&quot; is undefined jargon — the corpus never enumerates what a suitability assessment comprises beyond the five risk-profile questions, leaving its information requirements imprecise.</dd>
+        <dt>Recommendation</dt><dd>Resolve at draft time by treating the Step 5 risk-profile questionnaire plus the Step 2/4 KYC fields as the full information set backing suitability assessment.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-22">
+      <h4><code>ADV-22</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · Marketing-abstraction adjectives</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>The application must create a professional, trustworthy, and secure experience that reflects the expectations of financial services clients</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;Professional, trustworthy, and secure&quot; are marketing-abstraction adjectives with no measurable criteria, making them undraftable as testable requirements on their own.</dd>
+        <dt>Recommendation</dt><dd>Resolve at draft time by binding these adjectives to the concrete Trust &amp; Tone Strategy directives (explain-why copy, reassurance phrasing, professional-tone rules) already enumerated in the corpus.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-23">
+      <h4><code>ADV-23</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · "Existing progress detected" mechanism imprecise</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>If existing progress is detected:</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;If existing progress is detected&quot; is imprecise about the detection mechanism (what signals existing progress and on which device), given localStorage is device-bound while resume also requires re-entering the start email.</dd>
+        <dt>Recommendation</dt><dd>Resolve at draft time by treating localStorage presence on the same browser as the detection trigger, with the email re-entry as the gating check.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-4">
+  <h2>Dimension 4 — Source Provenance, Consistency &amp; Conflict</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+    <article class="finding severity-Major disposition-Patch" id="ADV-24">
+      <h4><code>ADV-24</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Patch">Patch</span> · Brief has no author/date/version</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre># Northstar Wealth Client Onboarding &amp; KYC Wizard</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The brief carries no author, role, date, or version stamp, so no downstream claim can be traced to an identifiable origin or revision.</dd>
+        <dt>Recommendation</dt><dd>Label / annotate the brief with an attribution header (author/role, date, version) at the top of the corpus.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-25">
+      <h4><code>ADV-25</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · Onboarding-actor naming drift</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>As a prospective client, I want to:</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The same actor is referred to interchangeably as &quot;prospective client&quot;, &quot;new client&quot;, &quot;client&quot;, and &quot;user&quot;/&quot;Users&quot; with no glossary fixing one canonical term, risking referential drift downstream.</dd>
+        <dt>Recommendation</dt><dd>Label / annotate the corpus with a glossary fixing one canonical term for the onboarding actor (client / prospective client / user).</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-26">
+      <h4><code>ADV-26</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · "financial advisor" vs "advisor" drift</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>in-person meeting with a financial advisor</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The reviewing role is named both &quot;financial advisor&quot; and &quot;advisor&quot; within the single source with no glossary establishing they are the same entity.</dd>
+        <dt>Recommendation</dt><dd>Label / annotate the corpus with a glossary entry equating &quot;financial advisor&quot; and &quot;advisor&quot;.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Reject" id="ADV-27">
+      <h4><code>ADV-27</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Reject">Reject</span> · ⚠ Probable false positive: 15-min vs 20-min "contradiction"</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>* Clients can complete onboarding within approximately 15 minutes.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The Success Measures state clients complete onboarding in ~15 minutes while the Project Overview and Primary Goal both fix the target at ~20 minutes for the advisor meeting, conflating two different durations under overlapping framing without reconciliation. <strong>(Reviewer note: this appears to be a misreading — the brief consistently distinguishes the ~15-minute client self-service onboarding from the ~20-minute advisor meeting; recommend striking this finding at the accept gate.)</strong></dd>
+        <dt>Recommendation</dt><dd>Reconcile in-corpus the ~15-minute client-completion figure against the ~20-minute advisor-meeting figure so the two durations are unambiguously distinct.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-28">
+      <h4><code>ADV-28</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · Current-state vs target-state unlabelled</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>Today, new clients complete onboarding during a 2–3 hour in-person meeting with a financial advisor.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The brief mixes current-state description with aspirational target-state requirements throughout without a consistent label marking which statements are existing versus to-be-built.</dd>
+        <dt>Recommendation</dt><dd>Label / annotate each section as current-state versus target-state so aspirational requirements are distinguishable from existing process description.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-5">
+  <h2>Dimension 5 — Quantitative &amp; Measurable Signal</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+    <article class="finding severity-Blocker disposition-Reject" id="ADV-29">
+      <h4><code>ADV-29</code> — <span class="chip severity-Blocker">Blocker</span> · <span class="chip disposition-Reject">Reject</span> · KYC/AML compliance claim with no enumeration</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>complying with Know Your Customer (KYC) and Anti-Money Laundering (AML) onboarding practices.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The brief makes a KYC/AML legal-compliance claim and collects clearly-personal data but enumerates no data-protection regime, no retention window, and no consent flow beyond a single checkbox, leaving /requirements unable to write testable compliance NFRs.</dd>
+        <dt>Recommendation</dt><dd>Resolve at draft time: surface the legally-required enumeration of PII fields, retention window, and consent flow to the consultant-answers loop, since no GR-NN default can substitute for legally-required compliance enumeration.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Reject" id="ADV-30">
+      <h4><code>ADV-30</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Reject">Reject</span> · Tax-residency regulatory claim unenumerated</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>We collect your tax residency information to meet international regulatory requirements.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The brief asserts an &#x27;international regulatory requirements&#x27; obligation for collecting tax residency but enumerates no regime, no retention period, and no consent basis for this cross-border personal data, making the compliance requirement untestable.</dd>
+        <dt>Recommendation</dt><dd>Resolve at draft time: surface the specific international regulatory regime, retention window, and consent basis for tax-residency data to the consultant-answers loop.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-31">
+      <h4><code>ADV-31</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · Cycle-time KPI has no measurement method</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>1. Reduce advisor-led onboarding time from 2–3 hours to approximately 20 minutes.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>This KPI carries a baseline (2–3 hours) and target (20 minutes) but no measurement method, sample window, or success threshold (e.g. percentage of meetings), so its testability is partial.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence: let a GR-NN default cover the absent measurement method and success threshold for this cycle-time KPI.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-32">
+      <h4><code>ADV-32</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · "Consistently and accurately" unquantified</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>* Risk profile assessments are completed consistently and accurately.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>This success measure uses unquantified qualifiers (&#x27;consistently and accurately&#x27;) with no metric, tolerance, or pass criterion, so /requirements cannot derive a testable acceptance threshold.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence: let a GR-NN default cover the absent quantification for this risk-assessment success measure.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-33">
+      <h4><code>ADV-33</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · Reliability NFR has no capacity bound</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>* No data loss during refresh
+* Validation consistent across steps</pre></blockquote></dd>
+        <dt>Problem</dt><dd>This reliability NFR states no-data-loss and validation-consistency goals but carries no concurrency, session-count, or storage-limit bound against localStorage capacity, so the durability claim is unquantified.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence: let a GR-NN default cover the absent storage-bound and concurrency quantification for the reliability NFR.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-6">
+  <h2>Dimension 6 — Scope &amp; MVP Signal</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+    <article class="finding severity-Major disposition-Defer" id="ADV-34">
+      <h4><code>ADV-34</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · No explicit out-of-scope statement</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>The application consists of a six-step onboarding wizard.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The brief names what is in scope (a six-step wizard) but contains no explicit out-of-scope statement, so every adjacent capability touched by the corpus is left implicitly in scope rather than explicitly excluded.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence — downstream applies framework/shared/prototype-scope.md default and marks unaddressed adjacent capabilities [OUT-OF-SCOPE: domain-default].</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Defer" id="ADV-35">
+      <h4><code>ADV-35</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · AML screening scope boundary unstated</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>complying with Know Your Customer (KYC) and Anti-Money Laundering (AML) onboarding practices.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>AML is named as a compliance practice but the brief sets no scope boundary on what AML screening (e.g. sanctions/PEP checks) the application itself performs versus what advisor review handles, leaving a compliance capability untagged.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence — downstream applies framework/shared/prototype-scope.md default for AML screening capability absent any in-corpus boundary.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Defer" id="ADV-36">
+      <h4><code>ADV-36</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · Accessibility named without a standard</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>* Keyboard accessible navigation
+* Visible focus states
+* Associated labels for all fields
+* Screen-reader friendly error messages</pre></blockquote></dd>
+        <dt>Problem</dt><dd>Accessibility is specified as an itemized behaviour list but names no testable conformance standard (e.g. WCAG 2.1 AA), so the accessibility scope cannot be objectively verified against a target.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence — downstream applies framework/shared/prototype-scope.md default rather than asserting an unnamed conformance level.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-37">
+      <h4><code>ADV-37</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · No MVP/phasing or resourcing constraint</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>brief.md</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>1. React application
+2. TypeScript source code
+3. Tailwind styling implementation</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The brief enumerates deliverables and features with no MVP-versus-future / must-have-versus-nice-to-have separator and no team-size, budget, or deadline constraint, so the buildable scope is unbounded with no phasing signal.</dd>
+        <dt>Recommendation</dt><dd>Treat as silence — downstream applies framework/shared/prototype-scope.md default treating the full enumerated feature set as single-phase scope absent any phasing or resourcing constraint.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="diagnostics">
+  <h2>Diagnostics</h2>
+  <details class="diagnostics-toggle" open>
+    <summary>Show / hide diagnostics</summary>
+
+    <h4>Quality gates</h4>
+    <table class="diagnostics-gates">
+      <thead><tr><th>Gate</th><th>Result</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr class="gate-pass"><td>1. All findings have 8 schema fields populated</td><td><span class="chip gate-pass">PASS</span></td><td>37/37 findings complete.</td></tr>
+        <tr class="gate-pass"><td>2. Every finding&#x27;s Dimension is exactly one integer 1–6</td><td><span class="chip gate-pass">PASS</span></td><td>No cross-dimension findings.</td></tr>
+        <tr class="gate-pass"><td>3. Every finding&#x27;s Severity ∈ Blocker | Major | Minor</td><td><span class="chip gate-pass">PASS</span></td><td>Blocker 1 / Major 17 / Minor 19.</td></tr>
+        <tr class="gate-pass"><td>4. Every finding&#x27;s Disposition ∈ Patch | Defer | Reject</td><td><span class="chip gate-pass">PASS</span></td><td>Patch 4 / Defer 30 / Reject 3.</td></tr>
+        <tr class="gate-pass"><td>5. Every Evidence is verbatim (≤5 lines) from the cited source&#x27;s quote index</td><td><span class="chip gate-pass">PASS</span></td><td>All quotes verified as verbatim substrings of brief.md; no skipped-placeholder forms used (0 skipped sources).</td></tr>
+        <tr class="gate-pass"><td>6. Every Location matches a consumed (or skipped) manifest filename</td><td><span class="chip gate-pass">PASS</span></td><td>All 37 cite <code>brief.md</code>.</td></tr>
+        <tr class="gate-pass"><td>7. Every dimension reports ≥1 finding or a Justification block</td><td><span class="chip gate-pass">PASS</span></td><td>All six dimensions returned findings; no Justification blocks needed.</td></tr>
+        <tr class="gate-pass"><td>8. Every Justification block ≥3 sentences and cites a filename</td><td><span class="chip gate-pass">PASS</span></td><td>N/A — no Justification blocks this run.</td></tr>
+        <tr class="gate-pass"><td>9. Verdict line consistent with the disposition/severity tally</td><td><span class="chip gate-pass">PASS</span></td><td>3 Rejects + 1 Blocker → BLOCKED.</td></tr>
+        <tr class="gate-pass"><td>10. Findings Table row count = sum of per-dimension counts</td><td><span class="chip gate-pass">PASS</span></td><td>8+8+7+5+5+4 = 37 rows.</td></tr>
+        <tr class="gate-pass"><td>11. MANIFEST_FINGERPRINT matches Step-2 SHA-256 and per-source sha256[:8] match</td><td><span class="chip gate-pass">PASS</span></td><td>Manifest <code>b460d268…</code>; brief.md <code>538fd17d</code> matches manifest row.</td></tr>
+        <tr class="gate-pass"><td>12. Corpus Shape subsection populated</td><td><span class="chip gate-pass">PASS</span></td><td>Source count, author count, time-window, tier distribution all populated below.</td></tr>
+        <tr class="gate-pass"><td>13. Every Recommendation is one of the five sanctioned corpus-handling forms</td><td><span class="chip gate-pass">PASS</span></td><td>No elicitation-form recommendations; all map to Reconcile / Label / Treat-as-silence / Treat-as-second-hand / Resolve-at-draft-time.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Coverage map</h4>
+    <table class="coverage-map">
+      <thead><tr><th>Dimension</th><th>Filenames touched</th><th>Finding count</th></tr></thead>
+      <tbody>
+        <tr><td>1. Stakeholder &amp; Role Coverage (incl. voice authenticity)</td><td><code>brief.md</code></td><td>8</td></tr>
+        <tr><td>2. Domain &amp; Workflow Coverage (incl. non-happy paths)</td><td><code>brief.md</code></td><td>8</td></tr>
+        <tr><td>3. Ambiguity &amp; Vague Language</td><td><code>brief.md</code></td><td>7</td></tr>
+        <tr><td>4. Source Provenance, Consistency &amp; Conflict</td><td><code>brief.md</code></td><td>5</td></tr>
+        <tr><td>5. Quantitative &amp; Measurable Signal</td><td><code>brief.md</code></td><td>5</td></tr>
+        <tr><td>6. Scope &amp; MVP Signal</td><td><code>brief.md</code></td><td>4</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Strict-BMAD re-run log</h4>
+    <p>No dimensions triggered the strict-BMAD re-run rule. Each of the six dimension workers produced at least one finding on its first pass, so no anti-confirmation re-run or Justification block was required.</p>
+
+    <h4>Override log</h4>
+    <p>All quality gates passed; no override invoked.</p>
+
+    <h4>Corpus Shape</h4>
+    <table class="corpus-shape">
+      <thead><tr><th>Dimension</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Source count (consumable rows)</td><td>1</td></tr>
+        <tr><td>Distinct-author count (first-hand + second-hand combined)</td><td>0 named — the single brief is unattributed (no author byline)</td></tr>
+        <tr><td>Time-window span (earliest source date to latest)</td><td>No source dates present (single undated brief); span not computable</td></tr>
+        <tr><td>Tier distribution</td><td>Native-text: 1, Supported-via-MCP: 0, Native-multimodal: 0, Unsupported (skipped): 0</td></tr>
+      </tbody>
+    </table>
+    <p class="corpus-shape-note">
+      Reporting only — the dropped Dim 7 (Bias / Sampling) used to convert these
+      signals into findings. Under the <em>corpus IS the voice</em> principle, the
+      corpus is whatever shape it is; downstream consumers may use this shape as
+      context for interpretation, but the reviewer does not critique it. (Practical note: with a single
+      second-hand source and no first-hand stakeholder material, the entire Dimension&nbsp;1 finding set
+      is structurally expected, and cross-source contradiction in Dimension&nbsp;4 is impossible.)
+    </p>
+
+    <h4>Source roster — Consumed</h4>
+    <table class="source-roster-consumed">
+      <thead><tr><th>filename</th><th>tier</th><th>sha256</th><th>findings-from-this-source</th></tr></thead>
+      <tbody>
+        <tr><td><code>brief.md</code></td><td>Native-text</td><td><code>538fd17d</code></td><td>37</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Source roster — Skipped</h4>
+    <p><em>(no sources skipped this run)</em></p>
+  </details>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+</main>
+</body>
+</html>
