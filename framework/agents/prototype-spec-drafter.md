@@ -13,9 +13,9 @@ Populate `framework/assets/prototypes/template-design-spec.md` into `prototypes/
 - `blueprints/<scope_slug>/scope.json` — scope IDs, personas, `scope_slug`.
 - `blueprints/<scope_slug>/blueprint.md` — the logical surfaces `LS-NN`, per-surface **Property closed sets**, allowed/default realizations, logical flow. The anti-fabrication source of truth.
 - `requirements/requirements.md` — the scoped requirement (read the sections named in `scope.json > sources`).
-- `prototypes/.specs/<name_slug>/supporting-inputs.json` — the consultant's B–E selections + `prototype_roles`. For each `analyse_requirement` selection, prefer its `sidecar_path` (≤20 KB) when `sidecar_present`, else a bounded prose Read (`RF-09` cap). For a wireframe selection with `primary_basis: true`, read its `variant_position.json` (positions, philosophy) and `manifest.json` (per-surface `surface_plan` realizations) — the **fast-path basis**.
+- `prototypes/.specs/<name_slug>/supporting-inputs.json` — the consultant's B–E selections + `prototype_roles`. For each `analyse_requirement` selection, prefer its `sidecar_path` (≤20 KB) when `sidecar_present`, else a bounded prose Read (`RF-09` cap). For a wireframe selection with `primary_basis: true`, read its `variant_position.json` (`posture`, positions, philosophy — the posture is read **directly**, not mapped to a nearest match) and `manifest.json` (per-surface `surface_plan` realizations) — the **fast-path basis**.
 - `prototype_identity` — passed by the orchestrator from Step B: `{ name, name_slug, scope_slug, posture, dimension_positions, primary_persona, purpose_prose, wireframe_basis }`.
-- `framework/assets/prototypes/design-philosophies.md` — the chosen posture's structural + realization recommendations.
+- `framework/assets/wireframes/design-philosophies.md` — the chosen posture's structural + realization recommendations.
 - `framework/assets/wireframes/position-vocabulary.md` — plain-English position labels for §4.
 - `framework/assets/prototypes/ux-baseline-checklist.md` — the §9 floor.
 - `framework/assets/prototypes/template-design-spec.md` — the structure to populate.

@@ -275,7 +275,7 @@ confirmation density on *reversible* actions while `D1 speed-accuracy ≥ +1`
 nag) — reserve heavy confirmation for genuinely irreversible / expensive
 actions and use undo elsewhere (NN/g, *Confirmation Dialogs*). This is a
 cross-pipeline coherence note (referenced by
-`framework/assets/prototypes/design-philosophies.md`); it warns rather than
+`framework/assets/wireframes/design-philosophies.md`); it warns rather than
 blocks and does not introduce a new `D`-axis.
 
 ---

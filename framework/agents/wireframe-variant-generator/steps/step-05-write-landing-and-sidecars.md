@@ -47,7 +47,7 @@ On `pass`, capture `manifest_written = true` and advance.
 
 ## 5.2 Write `variant-position.json`
 
-Compose the artefact per the schema in `framework/agents/wireframe-variant-generator.md > Output`. The `dimension_positions`, `persona_binding`, and `design_philosophy` fields are **immutable mirrors** of `own.*` (verbatim — drift here is a structural bug). The `strengths`, `weaknesses`, `tradeoffs`, `use_when` fields are **self-authored** by this sub-agent based on:
+Compose the artefact per the schema in `framework/agents/wireframe-variant-generator.md > Output`. The `dimension_positions`, `persona_binding`, `posture`, `posture_label`, and `design_philosophy` fields are **immutable mirrors** of `own.*` (verbatim — drift here is a structural bug; `posture`/`posture_label` may be `null` when the variant carried no posture). The `strengths`, `weaknesses`, `tradeoffs`, `use_when` fields are **self-authored** by this sub-agent based on:
 
 - The chosen pattern picks in `manifest.screens` (e.g. a compact, dense table → strength: "Many records visible without scrolling"). These picks are now mirrored from the architect's authored `surface_plan` rather than derived by this sub-agent, but the **authoring logic here is unchanged** — read the picks (incl. `realization` and `modifiers`) from `manifest.screens`, just as before; the source of the picks changed, not how this step consumes them.
 - The bound persona's traits from `own.persona_traits` (e.g. daily user → use_when: "Daily users handling high volumes").

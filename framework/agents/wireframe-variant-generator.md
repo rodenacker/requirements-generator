@@ -120,6 +120,8 @@ All files under `<output_dir>` (= `wireframes/<scope_slug>/<variant_id>/`):
       "variant_id": "POWER-DENSITY-EXPERT",
       "authored_at": "<ISO-8601 UTC>",
       "persona_binding": "Importer (daily, high-volume)",
+      "posture": "P1",
+      "posture_label": "Efficiency-First / Power-Operator",
       "design_philosophy": "Inline-edit table optimised for keyboard navigation; minimal confirmation friction.",
       "dimension_positions": {
         "speed-accuracy": 1,
@@ -178,6 +180,7 @@ Before returning `ok`, verify all of the following:
 - `variant-position.json > persona_binding` equals the variants.json own-entry's `persona_binding` verbatim (immutable mirror).
 - `variant-position.json > dimension_positions` equals the variants.json own-entry's `dimension_positions` for every key (immutable mirror; drift here is a `RF-04`-class structural bug).
 - `variant-position.json > design_philosophy` equals the variants.json own-entry's `design_philosophy` verbatim.
+- `variant-position.json > posture` and `> posture_label` equal the variants.json own-entry's `posture` / `posture_label` verbatim (immutable mirror; both may be `null` when the variant carried no posture).
 - `variant-position.json > strengths`, `weaknesses`, `tradeoffs`, `use_when` are all populated (≥1 entry for strengths and weaknesses, non-empty strings for the other two).
 - `manifest.json` and `variant-position.json` both parse as valid JSON.
 - The output_dir contains no files outside the documented set (`wireframe-ds.css`, `screen-NN-*.html` and `screen-NNa/b-*.html` wizard sub-screens, `manifest.json`, `variant-position.json`). Folded surfaces contribute no file (their footprint lives on the host screen), so the screen-file count equals the count of standalone + wizard-split `physical_screens[]` elements across `surface_plan`, not the count of logical surfaces.

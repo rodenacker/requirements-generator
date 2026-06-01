@@ -17,7 +17,7 @@ Walk through the **Self-validation** list in `framework/agents/wireframe-variant
     - **Missing `data-prop` on a data-bound element** → re-render the offending element with the correct `data-prop` attribute. If the element binds to a property not in the owning unit's `covers_properties`, treat it as a fabricated-`data-prop` case (above): drop the field or escalate.
     - **Authored pattern/variant absent from the catalogue** → not recoverable by substitution. Halt with `checks[<id>] = "fail (unrecoverable)"` and surface as a `failed` handback — this is an architect bug (author-time catalogue validation should have caught it); the generator never silently falls back to `variants.default`.
     - Wrong DS link → re-render the offending screen with corrected `{{DS_PATH}}` slot; re-write; re-verify.
-    - Drift in `variant-position.json > dimension_positions` vs `variants.json own-entry` → re-render `variant-position.json`; re-write; re-verify.
+    - Drift in `variant-position.json > dimension_positions` (or `posture` / `posture_label`) vs `variants.json own-entry` → re-render `variant-position.json`; re-write; re-verify.
     - Invalid catalogue pattern ID in `manifest.json` → halt (this is a step-4 composition bug; the agent does not have safe automatic remediation since the pattern was already rendered into the screen HTML). Record `checks[<id>] = "fail (unrecoverable)"`.
 
 If after one fix attempt the check still fails, the sub-agent's run is unrecoverable.

@@ -232,7 +232,7 @@ prd-merger  → characters/prd-finalising.md
 
 ---
 
-## 8. wireframe-orch.md · 43 nodes / 64 edges / depth 4
+## 8. wireframe-orch.md · 44 nodes / 66 edges / depth 4
 
 ```
 orch → scope-selector, select-supporting-analyses, check-context-bloat,
@@ -241,7 +241,8 @@ orch → scope-selector, select-supporting-analyses, check-context-bloat,
 
 scope-selector → verify-artifact-write, wireframes/divergence-heuristics.md
   divergence-heuristics → wireframes/tradeoff-dimensions-registry.md,
-                          wireframes/position-vocabulary.md
+                          wireframes/position-vocabulary.md,
+                          wireframes/design-philosophies.md  [§4b posture lookup]
 select-supporting-analyses → analyses/registry.md, analyses/sidecar-schema.md,
        verify-artifact-write, check-context-bloat,
        [writes per-scope] wireframes/<slug>/analyses-inputs.json
@@ -260,6 +261,7 @@ blueprint-architect → steps/step-01-activate … step-07-handback,
             wireframes/pattern-bindings.md, wireframes/domain-defaults.md,
             wireframes/position-vocabulary.md, pattern-catalogue/_index.md,
             wireframes/realization-strategies.md,
+            [cond posture non-null] wireframes/design-philosophies.md,
             [cond deferred sidecar] analyse-requirements/<M>/<name>.sidecar.json,
             [cond deferred legacy] analyse-requirements/<M>/*
   step-06 → verify-artifact-write
@@ -284,7 +286,7 @@ wireframe-comparator → characters/wireframe-comparator.md, persona-llm.md,
 - `analyses-inputs.json` read only when `analyses_inputs_path` is non-null and present. `select-supporting-analyses` **auto-proceeds (no prompt)** when zero MVP analyses resolve on disk → empty `selections[]` → `selected-none`. `trade-off-matrix.html` is legacy-fallback only (step-2.7, when `analyses_inputs_path` null/absent AND trade-off-dimensions not selected at Stage 1b).
 - **Surface-model refactor:** per-screen pattern selection lives in the architect's `variants.json > surface_plan` (step-05 reads `pattern-catalogue/_index.md` + `realization-strategies.md`). The generator now **renders** `surface_plan` (no longer reads `tradeoff-dimensions-registry.md` / `pattern-bindings.md`); the comparator checks **render-vs-`surface_plan`** (no longer re-derives from the registry).
 - **Logical-surface model:** blueprint is a decomposition-agnostic `LS-NN` inventory + `allowed`/`default` realizations (per `realization-strategies.md`). Each `surface_plan` picks a realization (standalone / inline-drawer / inline-expand / modal / wizard-split). All-standalone baseline ≡ legacy 1-screen-per-surface (`LS-NN ≡ S-NN`).
-- **Goal-driven divergence:** scope-selector executes `divergence-heuristics.md` when orch passes `propose_divergence_axes: true` and persists `divergence_profile` into `scope.json`; the architect **consumes** that profile at step-05 (does **not** re-read the heuristic → no `architect → divergence-heuristics` edge).
+- **Goal-driven divergence + posture:** scope-selector executes `divergence-heuristics.md` when orch passes `propose_divergence_axes: true` and persists `divergence_profile` into `scope.json`; §4b of the heuristic looks up each variant's `recommended_posture` from `wireframes/design-philosophies.md` (the shared posture registry) and records it in the profile. The architect **consumes** that profile (incl. posture) at step-05 (does **not** re-read the heuristic or re-pick the posture → no `architect → divergence-heuristics` edge; the architect reads `design-philosophies.md` only for the *chosen* posture's structural recommendations). The posture is a structural/realization + naming overlay — it does not change `dimension_positions`, so the comparator's matrix stays single-axis.
 - `pattern-catalogue/_index.md` is shared with the `/design-system` styler (which loads it transitively via `data/component-catalogue.md`); wireframe consumers read it directly. Per-pattern files under `pattern-catalogue/<category>/<pattern>.md` are read **selectively** (only picked patterns), not en masse.
 
 ---
@@ -305,10 +307,10 @@ select-prototype-inputs → analyses/registry.md, analyses-inputs/registry.md, a
 blueprint-architect → (see graph 8; invoked with variants_output_path:null → blueprint-only, writes
        blueprints/<slug>/blueprint.md, NO variants.json)
 prototype-spec-drafter → prototypes/template-design-spec.md,
-       characters/prototype-spec-drafting.md, prototypes/design-philosophies.md,
+       characters/prototype-spec-drafting.md, wireframes/design-philosophies.md,
        prototypes/ux-baseline-checklist.md, wireframes/position-vocabulary.md,
        wireframes/tradeoff-dimensions-registry.md, blueprints/<slug>/blueprint.md, verify-artifact-write
-       [cond fast path] wireframes/<slug>/<variant>/{variant-position.json, manifest.json}
+       [cond fast path] wireframes/<slug>/<variant>/{variant-position.json (posture read direct), manifest.json}
 prototype-spec-resolver → characters/prototype-spec-resolving.md, flag-gaps-ambiguities.md,
        wireframes/tradeoff-dimensions-registry.md, verify-artifact-write
 prototype-spec-merger → characters/prototype-spec-finalising.md, prototype-invariants.md
@@ -326,8 +328,8 @@ prototype-landing-updater → wireframes/position-vocabulary.md, verify-artifact
 
 **Notes (unique):**
 - **One prototype per run**, accumulating in the shared `prototypes/` Next.js app (rule 1). `.prototype-progress.json` tracks the in-flight run; the durable completed set lives in `prototypes/.registry.json`. Distinct progress file → concurrent with other pipelines.
-- **Cross-pipeline reuse:** `scope-selector` (`propose_divergence_axes:false`) + `blueprint-architect` (`variants_output_path:null`, blueprint-only). Write scope: `prototypes/**` + `framework/state/*` (+ the shared `blueprints/<slug>/{scope.json,blueprint.md}` exception via those two shared components). `prototypes/template-design-spec.md`, `design-philosophies.md`, `ux-baseline-checklist.md`, `scaffolding-instructions.md`, `app-shell-spec.md`, `shared-component-conventions.md` all live under `framework/assets/prototypes/`.
-- **Divergence is UX only** (brand fixed/shared). The posture preset (`design-philosophies.md`) supplies D1–D5 starting positions (references `tradeoff-dimensions-registry.md` + `position-vocabulary.md`, never redefines; **D6 inactive → 0**). On the **wireframe-seeded fast path**, the drafter cites realizations from a selected variant's `surface_plan` (not `[AI-SUGGESTED]`), so the resolver often auto-completes.
+- **Cross-pipeline reuse:** `scope-selector` (`propose_divergence_axes:false`) + `blueprint-architect` (`variants_output_path:null`, blueprint-only) + `design-philosophies.md` (the shared UX-posture registry, now under `framework/assets/wireframes/`). Write scope: `prototypes/**` + `framework/state/*` (+ the shared `blueprints/<slug>/{scope.json,blueprint.md}` exception via those two shared components). `prototypes/template-design-spec.md`, `ux-baseline-checklist.md`, `scaffolding-instructions.md`, `app-shell-spec.md`, `shared-component-conventions.md` live under `framework/assets/prototypes/`; the posture registry `design-philosophies.md` lives under `framework/assets/wireframes/` (shared with `/wireframe`).
+- **Divergence is UX only** (brand fixed/shared). The posture preset (`design-philosophies.md`) supplies D1–D5 starting positions (references `tradeoff-dimensions-registry.md` + `position-vocabulary.md`, never redefines; **D6 inactive → 0**). On the **wireframe-seeded fast path**, the drafter cites realizations from a selected variant's `surface_plan` (not `[AI-SUGGESTED]`), and Step B reads the basis variant's `posture` **directly** from `variant-position.json` (wireframe variants are now posture-bound — no "nearest posture" mapping), so the resolver often auto-completes.
 - **Conditional scaffold:** `prototype-app-scaffolder` runs only on the first run (skipped when `prototypes/.scaffold.json` present). Brand source a→b→c via `extract-brand-theme.md`. `npm install` once (amortised — rule 13).
 - **Parallel generation:** `prototype-generator` is the only parallel sub-agent dispatch (≤4 per-surface sub-agents, non-interactive). The driver owns cross-cutting writes (types/fixtures/stores/seed) + all route files; sub-agents own disjoint shared-component filenames (collision-safety per `shared-component-conventions.md §3`).
 - **Verify gate:** `verify-prototype-build.md` runs lint + tsc + `next build` + Playwright smoke. New refusals `RF-10` (node missing), `RF-11` (playwright browsers), `RF-12` (build failed after retries), `RF-13` (scaffold failed). Invariants PI-01..PI-08 (PI-08 = chrome is a harness).

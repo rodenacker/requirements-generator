@@ -67,5 +67,5 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Timing event | Append-only NDJSON record of the run timeline (`timing.ndjson`). | `state/timing.ndjson` |
 | Trade-off dimension | One of six axes `D1..D6` a design is positioned on (D6 inactive). | `trade-off-dimensions.md` |
 | Traceability | End-state: every final fact follows back to a citation or marker. | `CLAUDE.md §1` |
-| UX posture | Named preset over dimensions + structural choices (P1–P6); the "design philosophy". | `prototypes/design-philosophies.md` |
+| UX posture | Named preset over dimensions + structural choices (P1–P6); the "design philosophy". Cross-pipeline: manual single pick in `/prototype`, auto-recommended per variant in `/wireframe`. | `wireframes/design-philosophies.md` |
 | Wireframe variant | One persona-bound config in `variants.json`; a prototype is one-per-run, not a variant. | `blueprint-architect.md` |

@@ -149,8 +149,8 @@ Bare *Design* in system copy means **UX / interaction / information-architecture
 Not to be confused with: **design-system**, **design-spec**, **design philosophy**.
 
 ### UX posture
-A curated, named **preset** over the active trade-off dimensions plus the structural/realization choices it implies — the selectable "design philosophy" of `/prototype`. The six: **P1** Efficiency-First / Power-Operator, **P2** Guided / Novice-Safe, **P3** Analytical / Information-Dense, **P4** Error-Averse / High-Stakes, **P5** Calm Focus, **P6** Adaptive / Progressive Pro. Postures vary **layout and workflow only** — never visual brand.
-Canonical source: `framework/assets/prototypes/design-philosophies.md`.
+A curated, named **preset** over the active trade-off dimensions plus the structural/realization choices it implies — the system's single notion of "design philosophy". The six: **P1** Efficiency-First / Power-Operator, **P2** Guided / Novice-Safe, **P3** Analytical / Information-Dense, **P4** Error-Averse / High-Stakes, **P5** Calm Focus, **P6** Adaptive / Progressive Pro. Postures vary **layout and workflow only** — never visual brand. Cross-pipeline: in `/prototype` the consultant **manually picks one** posture per run; in `/wireframe` postures are **auto-recommended, one per variant** (the divergence heuristic looks one up per variant binding) and consumed by the architect as a structural/realization + naming overlay that does not change the variant's dimension positions.
+Canonical source: `framework/assets/wireframes/design-philosophies.md` (incl. the "Posture selection by persona goal-type" mapping both pipelines reference).
 Aliases: **design philosophy** (the consultant-facing label for a posture). Not to be confused with: **position** (a single dimension value) or **brand**.
 
 ### Trade-off dimension

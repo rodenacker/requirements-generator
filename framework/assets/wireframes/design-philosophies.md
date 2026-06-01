@@ -1,19 +1,24 @@
-# Prototype UX-posture registry (`design-philosophies.md`)
+# UX-posture registry (`design-philosophies.md`)
 
-**Role:** asset (prototype-private).
+**Role:** asset (cross-pipeline — `/wireframe` + `/prototype`). Canonical owner of the named **UX postures** ("design philosophies") and the posture-selection mapping. Lives alongside the trade-off substrate it presets (`tradeoff-dimensions-registry.md`, `position-vocabulary.md`, `divergence-heuristics.md`, `domain-defaults.md`).
 
-**Purpose:** Provide the consultant a curated, named set of **UX postures** — the selectable "design philosophy" of `/prototype` (rule 9). In a prototype, the **visual brand is fixed and identical across all prototypes** (one `theme.css`, one shared component set); the *only* thing that differs between prototypes is the **UX approach** — how the design reshapes **layout and workflows**. Each posture is a curated **preset** over the active trade-off dimensions plus the concrete structural choices it implies. The chosen posture + tuned positions are the "design parameters" (rule 12) the LLM uses to make layout/workflow decisions during generation (rule 10).
+**Purpose:** Provide a curated, named set of **UX postures** — the system's single notion of "design philosophy". In both pipelines the **visual brand is fixed**; the *only* thing a posture varies is the **UX approach** — how the design reshapes **layout and workflows**. Each posture is a curated **preset** over the active trade-off dimensions plus the concrete structural choices it implies. The two pipelines consume postures differently:
+- **`/prototype`** — the consultant **manually picks one** posture per run (rule 9); the chosen posture + tuned positions are the "design parameters" (rule 12) the LLM uses to make layout/workflow decisions during generation (rule 10).
+- **`/wireframe`** — postures are **auto-recommended, one per variant** (the divergence heuristic maps each derived variant's persona-goal-type + pole to a posture), surfaced behind the scope-selector confirmation gate, and consumed by the architect as a structural/realization + naming overlay (it does **not** change the variant's `dimension_positions` — see "Posture selection for /wireframe" below).
 
-**This file owns only new content** (the same additive pattern `framework/assets/wireframes/domain-defaults.md` uses): the posture → starting-position-vector **presets**, posture characterizations, and posture → structural/realization recommendations.
+**This file owns only new content** (the same additive pattern `framework/assets/wireframes/domain-defaults.md` uses): the posture → starting-position-vector **presets**, posture characterizations, posture → structural/realization recommendations, and the posture-selection mapping.
 
 **Inherits from / references (never redefines):**
 - `framework/assets/wireframes/tradeoff-dimensions-registry.md` — canonical owner of the dimensions (D1–D6), their poles, applicability (§2), incoherent-pairs (§4), and persona-position rules (§5). This file references those by name and **must not restate** them. New posture-derived incoherent pairs are appended **there**, not here.
 - `framework/assets/wireframes/position-vocabulary.md` — canonical owner of the plain-English `(dimension, position)` labels. This file references those labels; it never invents new ones.
-- `framework/assets/prototypes/ux-baseline-checklist.md` — the non-negotiable UX floor every prototype satisfies regardless of posture.
+- `framework/assets/wireframes/divergence-heuristics.md` — the wireframe goal/persona divergence procedure that **looks up** the recommended posture per variant via the "Posture selection by persona goal-type" mapping below; it references that mapping and does not re-define postures.
+- `framework/assets/prototypes/ux-baseline-checklist.md` — the non-negotiable UX floor every prototype satisfies regardless of posture (prototype-only).
 
 **Used by:**
 - `framework/orchestrators/prototype-orch.md` — Step B surfaces the posture list and (after a pick) the posture's default positions for confirm/tune.
 - `framework/agents/prototype-spec-drafter.md` — reads the chosen posture's structural/realization recommendations to draft per-surface realization decisions and the workflow design.
+- `framework/skills/scope-selector.md` — at its Step 3.5 (divergence inference) it looks up the recommended posture per variant binding via the mapping below and persists it to `scope.json > divergence_profile.variant_bindings[].recommended_posture`.
+- `framework/agents/blueprint-architect/steps/step-05-compose-variants.md` — consumes each variant's `recommended_posture` **verbatim** (never re-picks it) to bias pattern picks (5.3.6 A) and author the `design_philosophy` string (5.3.4).
 
 ---
 
@@ -207,15 +212,48 @@ Plain-English labels for each cell come from `position-vocabulary.md` (e.g. D3 `
 
 ---
 
-## Posture-selection guidance (Step B)
+## Posture selection by persona goal-type (shared mapping)
+
+This deterministic mapping is the **single bridge** between the trade-off substrate and the named postures. Both pipelines reference it (never re-derive it): `/prototype`'s Step B uses it to *recommend* a posture from the scope's primary persona; `/wireframe`'s `divergence-heuristics.md` uses it to *assign* a posture to each derived variant. It maps a persona's `(dominant-goal-type, traits, abstract pole)` to exactly one posture, and the chosen posture's positions are **pole-consistent** with the heuristic's abstract pole (`power` → a power-leaning posture, `careful` → a careful-leaning posture, `mixed` → P6).
+
+Goal-types are the registry-§2 vocabulary (`high-throughput input`, `batch processing`, `transactional data entry`, `read-only browsing`, `navigational`); traits are the architect's trait vocabulary (`frequency`, `expertise`, `role`, per `framework/agents/blueprint-architect/steps/step-02-read-inputs.md > 2.4`).
+
+| Dominant goal-type + key traits | Posture | Pole (must match) |
+|---|---|---|
+| `high-throughput input`, daily / expert | **P1** Efficiency-First | `power` |
+| `read-only browsing` (analyst — reads-to-compare), daily / expert | **P3** Analytical | `power` |
+| `batch processing`, daily / expert | **P1** Efficiency-First (bulk emphasis) | `power` |
+| `transactional data entry` + audit overlay, or `read-only browsing` + audit (`audit / compliance` role) | **P4** Error-Averse | `careful` |
+| `transactional data entry` or `read-only browsing`, occasional / first-time | **P2** Guided | `careful` |
+| single-task focus (occasional or daily), low comparison need | **P5** Calm Focus | `careful` |
+| genuinely mixed population (a novice persona **and** an expert persona named) | **P6** Adaptive (requires the mixed-population justification) | `mixed` |
+| `navigational` (no other dominant type) | inherit the persona's secondary dominant goal-type; if none, default by traits (occasional → P2, daily/expert → P1) | per inherited row |
+
+**Tie-breaks.** Audit accountability dominates throughput (a persona that is both high-throughput and audit-bearing → P4, `careful`), mirroring the registry §5 hard-reject asymmetry for `audit / compliance role`. When two rows match equally, prefer the row whose pole matches the heuristic's already-chosen abstract `pole` for that variant.
+
+**Coherence guard.** Every row's posture preset is already §4/§5-validated (see the preset matrix above). The mapping never produces a posture whose preset violates the bound persona's §5 rules — if a future row would, fix the row, not the registry.
+
+---
+
+## Posture selection for `/prototype` (Step B — manual single pick)
 
 1. Read the scope's persona(s) + goals (from `requirements.md > §3`/`§4`, surfaced via `scope.json`).
-2. Pick the posture whose "Who/when it fits" best matches the **primary** persona. Genuinely mixed population → P6 (with justification).
+2. Pick the posture whose "Who/when it fits" best matches the **primary** persona (the mapping above is the recommended starting point). Genuinely mixed population → P6 (with justification).
 3. Take the posture's D1–D5 defaults as starting positions; the consultant confirms or tunes them (rendered with `position-vocabulary.md` labels).
 4. Re-check the tuned positions against `tradeoff-dimensions-registry.md` §4 (incoherent pairs) and §5 (persona rules) — hard conflicts block; soft conflicts warn.
 5. Record the final positions + the posture id in the design spec front-matter (instance data, not a definition).
 
-**Wireframe-seeded fast path.** If a wireframe variant for the same scope was selected as the basis (`/prototype` input D), pre-fill steps 2–3 from the variant's `variant-position.json` (`design_philosophy`, `dimension_positions`): map the variant's `design_philosophy` to the nearest posture above and adopt its positions as the defaults. The consultant confirms/tweaks rather than choosing from scratch.
+**Wireframe-seeded fast path.** If a wireframe variant for the same scope was selected as the basis (`/prototype` input D), pre-fill steps 2–3 from the variant's `variant-position.json`: **read its `posture` field directly** (wireframe variants are now posture-bound — no "nearest posture" guess) and adopt its `dimension_positions` as the defaults. The consultant confirms/tweaks rather than choosing from scratch.
+
+---
+
+## Posture selection for `/wireframe` (auto-recommended, one per variant)
+
+Unlike `/prototype` (one deliberate pick), `/wireframe` generates 2–3 **contrasting** variants and recommends a posture for **each**:
+
+1. The divergence heuristic (`divergence-heuristics.md`) already binds each variant to a persona + an abstract `pole` and chooses the separating axis. It then **looks up** each binding's posture via the mapping above (one lookup per binding — not a second inference) and records `recommended_posture` + `posture_label` in `scope.json > divergence_profile.variant_bindings[]`.
+2. The scope-selector surfaces the per-variant posture behind its Step-4 confirmation gate (plain-English, e.g. *"Importer → Efficiency-First (dense, keyboard-first)"*). The consultant accepts, or uses `Edit dimensions` to supersede the whole recommendation.
+3. The architect consumes `recommended_posture` **verbatim** (`step-05-compose-variants.md`): it uses the posture's **structural recommendations** to bias pattern + realization picks and to author the `design_philosophy` string — but it leaves the variant's `dimension_positions` exactly as the heuristic set them (separating-axis pole + `0` elsewhere), so the cross-variant comparison stays clean and single-axis. **Only the structural layer crosses over** (navigation model, data display, disclosure, input philosophy, realization preference); hi-fi interaction specifics (command palette, optimistic-update toasts, type-to-confirm) stay prototype-only.
 
 ---
 
@@ -236,3 +274,6 @@ The **canonical** incoherent-pair rules live in `tradeoff-dimensions-registry.md
 - Do not pre-select P6 or let it become the default. It requires an explicit mixed-population justification.
 - Do not invent a seventh posture without grounding it in the literature and checking it against §4/§5; the six are chosen to span the meaningful space while staying decisive.
 - Do not author a preset that violates a §4 incoherent-pair or a §5 hard persona rule. Re-check on every edit.
+- Do not re-pick or re-derive a posture in the architect. For `/wireframe`, each variant's posture is looked up **once** in the scope-selector (via the mapping above) and persisted to `divergence_profile`; `step-05-compose-variants.md` consumes it verbatim (anti-double-inference).
+- Do not let a `/wireframe` posture change the variant's `dimension_positions`. In `/wireframe` the posture is a structural/realization + naming overlay only; the divergence heuristic owns the numeric positions (separating-axis pole + `0` elsewhere) so the cross-variant comparison stays single-axis. (In `/prototype`, by contrast, the posture preset *is* the starting position vector — that distinction is intentional.)
+- Do not author a mapping row whose posture pole contradicts the heuristic's abstract `pole` (`power`/`careful`/`mixed`). Pole-consistency is what keeps the recommended posture coherent with the variant the heuristic already chose.

@@ -81,8 +81,9 @@ On `Cancel`, return `cancelled`. On `Enter slug`, parse the next turn, normalise
 - **§2 persona goal-type assignment** — for each persona in `personas_available`, derive `(frequency, expertise, role, dominant-goal-type)` using the architect's trait-extraction vocabulary referenced by the heuristics (`framework/agents/blueprint-architect/steps/step-02-read-inputs.md > 2.4`).
 - **§3 divergence decision** — apply exactly one of Rule P / Rule D / Rule W.
 - **§4 realization recommendation** — populate `realization_recommendation` per bound persona's dominant goal-type.
+- **§4b posture recommendation** — for each `variant_bindings[i]`, look up `recommended_posture` (`P1`..`P6`) + `posture_label` from `framework/assets/wireframes/design-philosophies.md > Posture selection by persona goal-type`, keyed by the binding's `(persona_goal_type, traits, pole)`, pole-consistent with the binding's `pole`. (If `design-philosophies.md` is unreadable, leave both fields `null` — the architect then falls back to today's position-derived structural choices; do not hard-halt.)
 
-3.5.3 **Produce the in-memory `divergence_profile`.** Assemble the object per the schema in Step 7 (`source` left provisional — the scope-selector finalises it at Step 4: `"recommended-confirmed"` for an accepted Rule-P profile, `"static-default"` for Rule D / Rule W). Capture `evidence_strength`, `dimensions`, `cardinality`, `variant_bindings[]` (with verbatim `evidence`), and `realization_recommendation`. **Do not write anything yet** — the profile is surfaced for confirmation at Step 4 and persisted only at Step 7.
+3.5.3 **Produce the in-memory `divergence_profile`.** Assemble the object per the schema in Step 7 (`source` left provisional — the scope-selector finalises it at Step 4: `"recommended-confirmed"` for an accepted Rule-P profile, `"static-default"` for Rule D / Rule W). Capture `evidence_strength`, `dimensions`, `cardinality`, `variant_bindings[]` (with verbatim `evidence` **and** `recommended_posture` + `posture_label` per §4b), and `realization_recommendation`. **Do not write anything yet** — the profile is surfaced for confirmation at Step 4 and persisted only at Step 7.
 
 ### Step 4 — Confirmation gate
 
@@ -93,7 +94,7 @@ Surface a single `AskUserQuestion`:
     - **Requirement IDs** (counts per category): e.g. *"3 functional, 2 business rules, 4 UI needs, 1 goal, 1 task flow, 1 data shape"* — render `0` categories as omitted.
     - **Personas in scope:** comma-separated `personas_available`.
     - **Variant divergence** — render this block per the divergence profile produced at Step 3.5 (or the static default when Step 3.5 was skipped):
-        - **When Step 3.5 produced a Rule-P profile** (`source` provisional `"recommended-confirmed"`, `evidence_strength: "strong"`): render the recommendation as **"(Recommended)"** — one line per variant in `variant_bindings[]` formatted as *"`{{persona}}` → {{plain-English pole label}} — {{one-line rationale}}"*, where the pole label comes from `framework/assets/wireframes/position-vocabulary.md` for the separating dimension's recommended position (never the cryptic `D3+`/`-1` notation). Lead the block with *"Recommended (from your goals + personas): variants diverge on `{{separating dimension}}`, one per persona."* and append *"The architect picks exact polar positions automatically. Choose `Edit dimensions` to override this recommendation with a manual dimension set."*
+        - **When Step 3.5 produced a Rule-P profile** (`source` provisional `"recommended-confirmed"`, `evidence_strength: "strong"`): render the recommendation as **"(Recommended)"** — one line per variant in `variant_bindings[]` formatted as *"`{{persona}}` → {{posture_label}} · {{plain-English pole label}} — {{one-line rationale}}"*, where `posture_label` is the binding's `recommended_posture` label (e.g. *"Efficiency-First"*; omit only if `null`) and the pole label comes from `framework/assets/wireframes/position-vocabulary.md` for the separating dimension's recommended position (never the cryptic `D3+`/`-1` notation). Lead the block with *"Recommended (from your goals + personas): variants diverge on `{{separating dimension}}`, one per persona — each gets a UX posture (design philosophy)."* and append *"The architect picks exact polar positions automatically and applies each posture's layout/workflow recommendations. Choose `Edit dimensions` to override this recommendation with a manual dimension set."*
         - **When Step 3.5 produced a Rule-D / Rule-W profile, OR Step 3.5 was skipped** (`propose_divergence_axes == false` / heuristics unreadable): render today's static text — *"density-focus · speed-accuracy"* (the two defaults per `domain-defaults.md > Section 1`), appended with *"Default variants: 2 (`CAREFUL-DEFAULT`, `POWER-DENSE`). The architect picks polar positions automatically — see `framework/assets/wireframes/domain-defaults.md > Section 3` for the exact positions."* When the profile is Rule W (weak evidence), annotate the block *"(static default — goal evidence weak/uniform)"* so the consultant knows it is a fallback rather than a goal-extrapolated divergence.
 - Header: `Scope`
 - `multiSelect: false`
@@ -232,6 +233,8 @@ When `divergence_profile` is non-null (a Rule-P recommendation accepted at Step 
       "persona": "Importer",
       "persona_goal_type": "high-throughput input",
       "pole": "power",
+      "recommended_posture": "P1",
+      "posture_label": "Efficiency-First / Power-Operator",
       "rationale": "Daily operator scans and acts on a high-volume table; dense layout suits throughput.",
       "evidence": [
         "§4 G-01 'Successfully import transaction files for downstream approval'",
@@ -243,6 +246,8 @@ When `divergence_profile` is non-null (a Rule-P recommendation accepted at Step 
       "persona": "Approver",
       "persona_goal_type": "read-only browsing + audit",
       "pole": "careful",
+      "recommended_posture": "P4",
+      "posture_label": "Error-Averse / High-Stakes",
       "rationale": "Auditor reviews each record deliberately under audit; spacious one-record focus suits judgement.",
       "evidence": [
         "§4 G-02 'Maintain control over which transactions are approved and which are rejected with reason'",
@@ -277,8 +282,9 @@ When `divergence_profile` is non-null (a Rule-P recommendation accepted at Step 
     "cardinality": <int>,
     "variant_bindings": [
       { "variant_index": <int>, "persona": "<name>", "persona_goal_type": "<registry-§2 goal-type>",
-        "pole": "careful" | "power" | "mixed", "rationale": "<one line>",
-        "evidence": ["§3 …", "§4 …"] }
+        "pole": "careful" | "power" | "mixed",
+        "recommended_posture": "P1".."P6" | null, "posture_label": "<posture label>" | null,
+        "rationale": "<one line>", "evidence": ["§3 …", "§4 …"] }
     ],
     "realization_recommendation": { "<goal-type>": { "prefer": ["<realization>", ...], "avoid": ["<realization>", ...] } }
   }
@@ -288,6 +294,7 @@ When `divergence_profile` is non-null (a Rule-P recommendation accepted at Step 
   - `dimensions` — the separating axis (Rule P, typically a single dimension) or the static defaults `["density-focus", "speed-accuracy"]` (Rule D / W).
   - `cardinality` — `== variant_bindings.length`. Hard cap 3.
   - `variant_bindings[]` — one entry per variant. `persona` must be ∈ `personas_available`. `pole` is abstract (the architect maps it to concrete `-2..+2` positions per `tradeoff-dimensions-registry.md > Section 3`). Rule-P bindings carry ≥ 1 verbatim `evidence` anchor; Rule-D / Rule-W bindings mirror the `domain-defaults.md` `CAREFUL-DEFAULT` / `POWER-DENSE` split and may carry lighter rationale.
+  - `recommended_posture` / `posture_label` — the UX posture (`P1`..`P6`) + its label, looked up per binding at Step 3.5's §4b from `framework/assets/wireframes/design-philosophies.md > Posture selection by persona goal-type` (keyed by `persona_goal_type` + traits + `pole`, pole-consistent with `pole`). The architect consumes it **verbatim** as a structural/realization + naming overlay (it does not change `dimension_positions`). Both are `null` only when `design-philosophies.md` was unreadable at Step 3.5 — the architect then uses today's position-derived structural choices. Posture is owned by `design-philosophies.md`, never defined here.
   - `realization_recommendation` — keyed by each bound persona's dominant goal-type per `divergence-heuristics.md > Section 4`; consumed by the architect when it intersects with each surface's `allowed_realizations`. May be omitted on Rule D / W (the architect then uses each surface's `default_realization`). `combined` is never recommended (fast-follow).
   - **Back-compat.** An absent or `null` `divergence_profile` behaves exactly as today — the architect's precedence falls straight through to `domain-defaults.md`. Existing `scope.json` files that predate this field need **zero** migration; downstream readers treat a missing key as `null`.
 
@@ -304,6 +311,7 @@ When `divergence_profile` is non-null (a Rule-P recommendation accepted at Step 
 - `dimension_override` is either `null` or an object whose `dimensions.length == cardinality` and whose `dimensions` are all in the active set `{speed-accuracy, power-simplicity, density-focus, control-automation, flexibility-consistency}` (canonical names per `tradeoff-dimensions-registry.md > Section 1`; `memorability-discoverability` is excluded — inactive).
 - `divergence_profile` is `null` **iff** `propose_divergence_axes == false` (or the heuristics asset was unreadable at Step 3.5). When `propose_divergence_axes == true` and the heuristics asset was readable, `divergence_profile` is a non-null object conforming to the schema above.
 - When `divergence_profile` is non-null: every `variant_bindings[i].persona` is ∈ `personas_available`; `cardinality == variant_bindings.length`; `dimensions` are all in the active canonical set (same set as `dimension_override`).
+- When `divergence_profile` is non-null and `design-philosophies.md` was readable at Step 3.5: every `variant_bindings[i].recommended_posture` is a valid posture id (`P1`..`P6`) with a non-null `posture_label`, and is **pole-consistent** with `variant_bindings[i].pole` — `power` → `{P1, P3}`, `careful` → `{P2, P4, P5}`, `mixed` → `{P6}`. (When `design-philosophies.md` was unreadable, both `recommended_posture` and `posture_label` are `null` for every binding.)
 - When `divergence_profile.source == "recommended-confirmed"` (Rule P): every `variant_bindings[i]` carries ≥ 1 verbatim `evidence` anchor, and no two bindings share the same `persona` (Rule P binds each variant to a *distinct* persona).
 - When `divergence_profile.evidence_strength == "weak"`: `source == "static-default"` (weak evidence never produces a Rule-P persona-divergence).
 - When the consultant entered Edit-dimensions (Step 6) on a run with `propose_divergence_axes == true`: `divergence_profile.source == "manual-override-supersedes"` and its `dimensions` / `cardinality` mirror the non-null `dimension_override`.
@@ -330,3 +338,4 @@ When `divergence_profile` is non-null (a Rule-P recommendation accepted at Step 
 - Do not bypass the Step-4 confirmation gate for the recommendation. The divergence profile is always surfaced to the consultant before it is persisted — Accept persists it, Edit dimensions supersedes it, Cancel discards it.
 - Do not overload `dimension_override` with the divergence profile. `divergence_profile` is a separate, optional `scope.json` field; the two coexist (the architect's precedence reads `dimension_override` first, then `divergence_profile`, then `domain-defaults.md`).
 - Do not define or invent dimension names in the recommendation. Separating axes are canonical registry §1 dimensions only; the heuristics asset (`divergence-heuristics.md`) governs which axis is chosen and defers concrete polar positions to the architect.
+- Do not define or invent postures. `recommended_posture` / `posture_label` are looked up at Step 3.5 §4b from `framework/assets/wireframes/design-philosophies.md` (the canonical owner); the lookup must be pole-consistent with the binding's `pole`. A posture id outside `P1`..`P6`, or one whose pole contradicts the binding, is a mapping defect — never emit it.

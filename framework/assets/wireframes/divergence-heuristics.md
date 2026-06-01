@@ -33,6 +33,11 @@ that profile verbatim and never re-derives it.
 - `framework/assets/wireframes/position-vocabulary.md` — the plain-English
   `(dimension, position)` labels the scope-selector surfaces in its confirmation
   prompt when it renders a Rule-P recommendation.
+- `framework/assets/wireframes/design-philosophies.md` — canonical owner of the
+  named UX postures (P1–P6) and the **"Posture selection by persona goal-type"**
+  mapping. §4b below **looks up** each binding's `recommended_posture` via that
+  mapping; this file references the postures and the mapping, it does not re-define
+  them.
 
 **Used by:**
 - `framework/skills/scope-selector.md` — **executes** §1–§4 below (its new Step 3.5)
@@ -46,6 +51,9 @@ that profile verbatim and never re-derives it.
   it does today — this file's Rule D / Rule W is what *recommends* that fallback.
   The architect maps each binding's abstract `pole` onto concrete dimension
   positions per the registry's §3; it does not consume §1–§4 of this file directly.
+  It **does** consume each binding's `recommended_posture` (populated by §4b below)
+  **verbatim** — as a structural/realization + naming overlay only — and never
+  re-runs §4b's lookup itself.
 
 ---
 
@@ -177,6 +185,8 @@ input` and another is `read-only browsing` / `transactional data entry` + audit)
   dense side, `"careful"` for the spacious / audit side, `"mixed"` only when a
   persona genuinely straddles), a one-line `rationale`, and an `evidence[]` array of
   the verbatim `§3 …` / `§4 …` anchors that justified the binding.
+- Populate each binding's `recommended_posture` + `posture_label` per §4b below
+  (the lookup keyed by the binding's `persona_goal_type` + traits + `pole`).
 - Populate `realization_recommendation` per §4 below, keyed by each bound persona's
   dominant goal-type.
 
@@ -193,6 +203,12 @@ persona).
 `variant_bindings[]` mirror the domain-defaults `CAREFUL-DEFAULT` / `POWER-DENSE`
 split; `realization_recommendation` may be omitted (the architect uses each
 surface's `default_realization`) or populated from §4 keyed by the uniform goal-type.
+Still populate each binding's `recommended_posture` + `posture_label` per §4b from
+the bound persona's traits + pole (the `careful` binding typically → **P2** for an
+occasional persona or **P5** for a single-task one; the `power` binding → **P1**, or
+**P3** for an analyst persona). Weak-evidence Rule W (below) populates postures the
+same way — the weak tag never suppresses the posture, it only flags the divergence
+itself as a fallback.
 
 ### Rule W — weak evidence (fail-safe to static)
 
@@ -232,6 +248,38 @@ Notes:
 
 ---
 
+## Section 4b — Posture recommendation
+
+For each binding produced by §3 (Rule P / D / W), look up exactly one **recommended
+posture** from `framework/assets/wireframes/design-philosophies.md > Posture selection
+by persona goal-type`. The lookup key is the binding's `(persona_goal_type, persona
+traits, pole)`; the result is a posture id (`P1`..`P6`) plus its label. Populate
+`variant_bindings[i].recommended_posture` and `variant_bindings[i].posture_label`.
+
+- **Pole-consistency (load-bearing).** The looked-up posture's pole class must match
+  the binding's abstract `pole`: a `power` binding maps only to a power-leaning
+  posture (P1 / P3), a `careful` binding only to a careful-leaning posture
+  (P2 / P4 / P5), a `mixed` binding only to P6. If the mapping table would return a
+  pole-inconsistent posture, that is a mapping-table defect — fix the table, never
+  emit the inconsistent pair.
+- **Audit dominance.** A persona bearing an audit overlay (registry §5
+  `audit / compliance role`) maps to **P4** regardless of throughput, mirroring the
+  §2/§3 tie-break that audit accountability dominates throughput.
+- **P6 guard.** §4b only returns P6 when §3 bound a genuinely `mixed` pole (a single
+  persona straddling, or a mixed population). It never upgrades two distinct
+  single-pole personas to P6 — Rule P's whole premise is that they diverge.
+- **This section adds no new posture and no new dimension.** It is a pure lookup into
+  the canonical mapping; the posture presets, labels, and §4/§5 validation all live
+  in `design-philosophies.md` and `tradeoff-dimensions-registry.md`.
+
+The posture is a **structural/realization + naming overlay** the architect applies at
+`step-05-compose-variants.md` (it biases pattern picks and names the
+`design_philosophy` string); it does **not** alter the binding's `pole` or the
+architect's concrete `dimension_positions`, which remain governed by §3 + the
+registry's §3. This keeps the per-variant comparison single-axis.
+
+---
+
 ## Section 5 — Reuse contract
 
 - This file **defines no new dimension names.** Every separating axis named in §3 is
@@ -246,6 +294,11 @@ Notes:
   axis and which side*; the architect chooses *how far along the axis*.
 - The realization enum in §4 is exactly the closed enum from
   `realization-strategies.md` §1 — no realization name is invented here.
+- This file **defines no postures.** §4b emits a `recommended_posture` per binding by
+  pure lookup into `design-philosophies.md > Posture selection by persona goal-type`;
+  the posture ids, labels, presets, and structural recommendations all live there. The
+  heuristic chooses *which posture fits the binding*; `design-philosophies.md` owns
+  *what the posture is*; the architect *applies* it as a structural overlay.
 
 ---
 
@@ -276,3 +329,11 @@ Notes:
   The heuristic never writes a divergence profile the consultant did not see.
 - Do not re-run this heuristic in the architect. It executes once, in the
   scope-selector; the architect consumes `scope.json > divergence_profile` verbatim.
+- Do not define a posture here or restate its preset/structural recommendations. §4b
+  is a pure lookup into `design-philosophies.md`; that file is the canonical owner.
+- Do not emit a `recommended_posture` whose pole class contradicts the binding's
+  abstract `pole`. Pole-consistency (§4b) is load-bearing: a `careful` binding never
+  carries a power-leaning posture, and vice-versa.
+- Do not let the posture lookup change the binding's `pole`, the chosen separating
+  axis, or the cardinality. §4b is purely additive metadata; §3 already decided the
+  divergence shape.

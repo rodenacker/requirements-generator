@@ -32,6 +32,7 @@ JSON-parse. Locate the entry where `variants[i].variant_id == <variant_id>`. **R
 
 - `own.variant_id`
 - `own.persona_binding`
+- `own.posture` + `own.posture_label` (the variant's UX posture id `P1`..`P6` + label, or both `null`) — metadata mirrored into `variant-position.json`; the posture's structural influence is already baked into `own.surface_plan` by the architect, so this generator does **not** re-apply it (render-the-plan contract).
 - `own.design_philosophy`
 - `own.dimension_positions` (all six canonical dimensions)
 - `own.surface_plan` — the architect's authored per-surface composition + realization plan, keyed by `LS-NN`. This is the **single source of truth** for this variant's pattern picks and information-architecture realizations. Per-surface shape (`realization`, `host_surface`/`rendered_on`/`host_state`, `physical_screens[]`, `covers_properties`, `primary_pattern`, `primary_pattern_variant`, `base_pattern_owner`, `modifiers[]`, `secondary_patterns[]`, `states_rendered[]`) is defined canonically in `framework/assets/wireframes/realization-strategies.md > Section 2`. Capture verbatim — the generator renders it, it does not re-derive it.
