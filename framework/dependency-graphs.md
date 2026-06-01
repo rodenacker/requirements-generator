@@ -92,10 +92,10 @@ preflight-mcp → refusal-registry
 ## 3. review-requirement-orch.md · 32 nodes / 45 edges / depth 3
 
 ```
-orch → review-selector, check-context-bloat, refusal-registry,
+orch → analysis-selector, check-context-bloat, refusal-registry,
        + 5 reviewers: adversarial, first-principles, ten-ux-questions,
          ten-ba-questions, user-stories
-review-selector → reviews/registry.md
+analysis-selector → reviews/registry.md  [shared selector, review labels; Globs each row's output_path for ✓/★ marks]
 
 Each reviewer → characters/<r>-review.md, reviews/<r>-reference.md,
                 reviews/template-<r>.md, verify-artifact-write

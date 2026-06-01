@@ -2,9 +2,11 @@
 role: asset
 kind: registry
 methodologies:
-  # MVP — fully implemented and selectable via /review-requirement. Listed alphabetically; none privileged.
+  # MVP — fully implemented and selectable via /review-requirement. Curated order + `group`
+  # drive the selector's lens grouping + `★ suggested next` flag (see framework/skills/analysis-selector.md).
   - name: adversarial
     status: mvp
+    group: Document integrity
     description: Choose this when you want the requirements stress-tested for defects so design starts from a patched document rather than inherited weaknesses. It produces a Markdown critique flagging contradictions, gaps, ambiguities, and risky assumptions across the document. Work the flagged defects back into requirements.md before design or estimation begins.
     output_path: review-requirements/ADVERSARIAL/adversarial-review.md
     reference_asset: framework/assets/reviews/adversarial-reference.md
@@ -14,6 +16,7 @@ methodologies:
     character: framework/assets/characters/adversarial-review.md
   - name: first-principles
     status: mvp
+    group: Document integrity
     description: Choose this when you suspect some requirements were carried over by habit and want each tested against its business rationale. It produces a Markdown review judging whether each requirement is defensible from first principles, marking the weak ones. Cut or strengthen the flagged items before they reach design.
     output_path: review-requirements/FIRST-PRINCIPLES/first-principles-review.md
     reference_asset: framework/assets/reviews/first-principles-reference.md
@@ -23,6 +26,7 @@ methodologies:
     character: framework/assets/characters/first-principles-review.md
   - name: ten-ba-questions
     status: mvp
+    group: Stakeholder & BA gaps
     description: Choose this before design or estimation when you want the most consequential business-analysis gaps named rather than a full critique. It produces a Markdown list of the ten most pressing stakeholder questions the requirements leave unanswered. Take the ten questions to your stakeholders and fold the answers back into the document.
     output_path: review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md
     reference_asset: framework/assets/reviews/ten-ba-questions-reference.md
@@ -32,6 +36,7 @@ methodologies:
     character: framework/assets/characters/ten-ba-questions-review.md
   - name: ten-ux-questions
     status: mvp
+    group: UX gaps
     description: Choose this before designing screens when you want the sharpest UX unknowns surfaced so you don't design against gaps. It produces a Markdown list of the ten most pressing UX questions the requirements leave unanswered. Resolve the ten questions before wireframing, or carry them into design as explicit assumptions.
     output_path: review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.md
     reference_asset: framework/assets/reviews/ten-ux-questions-reference.md
@@ -41,6 +46,7 @@ methodologies:
     character: framework/assets/characters/ten-ux-questions-review.md
   - name: user-stories
     status: mvp
+    group: Backlog readiness
     description: Choose this when you need to know which user stories aren't ready for design or estimation before they enter the backlog. It produces a Markdown review judging each story against readiness criteria and flagging the ones that fall short. Rework the flagged stories until they're ready, then admit them to the backlog.
     output_path: review-requirements/USER-STORIES/user-stories-review.md
     reference_asset: framework/assets/reviews/user-stories-reference.md
@@ -67,20 +73,20 @@ methodologies:
 
 # reviews/registry.md
 
-**Purpose:** Methodology registry for `/review-requirement`. The frontmatter above is the **machine-readable** contract — `framework/skills/review-selector.md` filters `status == "mvp"` to present options to the consultant; `framework/orchestrators/review-requirement-orch.md` looks up `reviewer_agent` for the chosen methodology and invokes it.
+**Purpose:** Methodology registry for `/review-requirement`. The frontmatter above is the **machine-readable** contract — `framework/skills/analysis-selector.md` (invoked with `list_label: "reviews"`, `verb_label: "review"`) filters `status == "mvp"` to present options to the consultant, clustered by `group` with the next un-run review flagged `★ suggested next`; `framework/orchestrators/review-requirement-orch.md` looks up `reviewer_agent` for the chosen methodology and invokes it. (The former pipeline-private `review-selector.md` was retired — `/review-requirement` now shares the methodology-neutral `analysis-selector` with the other three selector pipelines.)
 
 This registry is structurally identical to `framework/assets/analyses/registry.md` (which drives `/analyse-requirement`) so the two pipelines share the same registry-driven, open/closed extension contract. The semantic distinction is the *intent* of the output: `/analyse-requirement` produces derived structural models (object maps, job maps, use-case maps) that downstream design phases consume; `/review-requirement` produces critique reports flagging defects, gaps, ambiguities, and risks in `requirements/requirements.md` itself.
 
 **Used by:**
 
-- `framework/skills/review-selector.md` — reads MVP-status rows; presents them via `AskUserQuestion`.
+- `framework/skills/analysis-selector.md` — reads MVP-status rows; presents them as a printed numbered list clustered by `group`, with `★ suggested next` / `✓ already run` marks. Invoked with `list_label: "reviews"`, `verb_label: "review"`.
 - `framework/orchestrators/review-requirement-orch.md` — reads the chosen row's `reviewer_agent` and `output_path` to drive invocation and the prior-artefact gate.
 - `framework/agents/reviews/<method>-reviewer.md` — each reviewer reads its own `reference_asset`, `character`, and `template_asset` paths at activation.
 
 **Adding a new methodology:**
 
 1. Append a row to the frontmatter (or flip an existing `future` row to `mvp`).
-2. Populate all eight fields: `name`, `status`, `description`, `output_path`, `reference_asset`, `template_asset` (may be `null`), `map_skill` (typically `null` for reviews — reviews don't feed UI inventory), `reviewer_agent`, `character`.
+2. Populate the fields: `name`, `status`, `description`, `output_path`, `reference_asset`, `template_asset` (may be `null`), `map_skill` (typically `null` for reviews — reviews don't feed UI inventory), `reviewer_agent`, `character`, and the optional `group` (assign a lens group; omitting it drops the row into a trailing `Other` group). Place the row at its best-practice position within its group so the selector's `★ suggested next` flag stays sensible.
 3. Author the reviewer agent, the reference asset, the character file, and (if needed) the template asset.
 4. No orchestrator changes required — the selector skill picks the new row up automatically.
 
@@ -88,7 +94,8 @@ This registry is structurally identical to `framework/assets/analyses/registry.m
 
 - `name` — kebab-case slug. Used as the basis for the subdirectory name under `review-requirements/` (uppercased, e.g. `adversarial` → `review-requirements/ADVERSARIAL/`) and as the path component in the reviewer agent file.
 - `status` — `mvp` (selectable now) or `future` (not yet built).
-- `description` — short consultant-facing blurb surfaced in the `AskUserQuestion` choice list, written as three succinct sentences (why/when to choose it → what it produces → how to use the output).
+- `group` — optional lens-group label (e.g. `Document integrity`, `UX gaps`). The selector clusters MVP rows by this value (groups in first-appearance order, registry order preserved within each group) and renders it as a header. Rows with no `group` fall into a trailing `Other` group. Consultant-facing — keep it short and human-readable.
+- `description` — short consultant-facing blurb surfaced in the selector's printed list, written as three succinct sentences (why/when to choose it → what it produces → how to use the output).
 - `output_path` — relative path of the artefact the reviewer writes. Drives the prior-artefact gate in the orchestrator.
 - `reference_asset` — the methodology reference the reviewer follows.
 - `template_asset` — file scaffold the reviewer populates (may be `null` for methodologies that emit pure Markdown without placeholders).

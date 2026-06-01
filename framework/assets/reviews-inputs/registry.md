@@ -23,6 +23,7 @@ methodologies:
   # differ (`review-inputs/COMPLETENESS/...` vs `review-requirements/COMPLETENESS/...`).
   - name: adversarial
     status: mvp
+    group: Corpus integrity
     description: Choose this when you want the raw input corpus itself stress-tested — voice authenticity, ambiguity, cross-source contradiction, and consequential silence — before /requirements drafts from it. It produces an HTML adversarial review flagging each defect across six dimensions, treating the corpus as the stakeholder voice, so it recommends how to handle the existing material rather than new elicitation. Apply each flagged defect's corpus-handling recommendation to your input set so the requirements draft starts from material whose weaknesses are already accounted for.
     output_path: review-inputs/ADVERSARIAL/adversarial-review.html
     reference_asset: framework/assets/reviews-inputs/adversarial-reference.md
@@ -32,6 +33,7 @@ methodologies:
     character: framework/assets/characters/adversarial-inputs-review.md
   - name: completeness-review
     status: mvp
+    group: Completeness & gaps
     description: Choose this when you want a broad, authority-grounded punch-list of what the raw inputs are missing, measured against the BA canon (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010) — pick its sibling gap-analysis instead to measure against this project's own requirements template. It produces a Markdown completeness register across ten coverage dimensions, each finding classified Needs-Clarification, Standard-Rule-Applies, or Out-of-Scope, plus per-source elicitation questions. Send the elicitation questions to stakeholders to chase missing material before /requirements drafts from the inputs.
     output_path: review-inputs/COMPLETENESS-REVIEW/completeness-review.md
     reference_asset: framework/assets/reviews-inputs/completeness-reference.md
@@ -41,6 +43,7 @@ methodologies:
     character: framework/assets/characters/completeness-inputs-review.md
   - name: ambiguity-review
     status: mvp
+    group: Clarity
     description: Choose this when you suspect the raw inputs are worded loosely and want every ambiguity caught — lexical, syntactic, referential, vague, subjective, weak-verb, and optionality (Berry/Kamsties + Femmer) — before /requirements drafts from them. It produces a Markdown register of each ambiguous passage, classified by ambiguity type, with a ready-to-paste stakeholder question per finding. Send the questions to pin down the intended meaning, then feed the clarified wording back into your input set.
     output_path: review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md
     reference_asset: framework/assets/reviews-inputs/ambiguity-reference.md
@@ -50,6 +53,7 @@ methodologies:
     character: framework/assets/characters/ambiguity-inputs-review.md
   - name: gap-analysis
     status: mvp
+    group: Completeness & gaps
     description: Choose this when you want a visual, drafter-aligned gap map — the raw inputs measured against this project's own requirements template — rather than the BA-literature canon its sibling completeness-review uses. It produces an HTML report with a coverage heatmap and gap matrix, each gap scored Impact × Confidence → MoSCoW and every Must/Should gap carrying a ready-drafted shall-form candidate requirement. Ratify, edit, or reject each candidate, then drop the HTML into input/ so the next /requirements run ingests and cites it.
     output_path: review-inputs/GAP-ANALYSIS/gap-analysis.html
     reference_asset: framework/assets/reviews-inputs/gap-analysis-reference.md
@@ -74,7 +78,7 @@ Folding input-reviews into the analyses-inputs registry would muddy the consulta
 
 **Used by:**
 
-- `framework/skills/analysis-selector.md` — reads MVP-status rows; presents them via the numbered-list prompt. The skill is methodology-neutral and pipeline-neutral; `/review-inputs` is its third caller (after `/analyse-requirement` and `/analyse-inputs`). The caller passes `list_label: "reviews"` and `verb_label: "review"` so the printed prompt reads naturally for reviewing rather than analysing.
+- `framework/skills/analysis-selector.md` — reads MVP-status rows; presents them as a printed numbered list clustered by `group`, with `★ suggested next` / `✓ already run` marks derived from each row's `output_path` presence on disk. The skill is methodology-neutral and pipeline-neutral; it serves all four selector pipelines (`/analyse-requirement`, `/analyse-inputs`, `/review-inputs`, and `/review-requirement`). The caller passes `list_label: "reviews"` and `verb_label: "review"` so the printed prompt reads naturally for reviewing rather than analysing.
 - `framework/orchestrators/review-inputs-orch.md` — reads the chosen row's `reviewer_agent` and `output_path` to drive invocation and the prior-artefact gate.
 - `framework/agents/reviews-inputs/<method>-reviewer.md` — each reviewer reads its own `reference_asset`, `character`, and `template_asset` paths at activation. No reviewer file exists on disk until its row has been promoted to `status: mvp`.
 
@@ -92,7 +96,7 @@ Folding input-reviews into the analyses-inputs registry would muddy the consulta
 3. Author the reference asset at `framework/assets/reviews-inputs/<method>-reference.md` (methodology rules and patterns).
 4. Author the character file at `framework/assets/characters/<method>-inputs-review.md` (Unicorn stance during the reviewer run).
 5. (Optional) Author the template asset at `framework/assets/reviews-inputs/template-<method>.{html,md}`. Set `template_asset: null` for methodologies that emit pure Markdown without a scaffold.
-6. Promote the registry row: flip `status: future` to `status: mvp` and populate all remaining fields (`description`, `output_path`, `reference_asset`, `template_asset`, `map_skill`, `reviewer_agent`, `character`). `output_path` lives under `review-inputs/<METHOD>/` (uppercase methodology name) — e.g. `review-inputs/COMPLETENESS-REVIEW/completeness-review.md`.
+6. Promote the registry row: flip `status: future` to `status: mvp` and populate all remaining fields (`description`, `output_path`, `reference_asset`, `template_asset`, `map_skill`, `reviewer_agent`, `character`, and the optional `group` — assign a lens group; omitting it drops the row into a trailing `Other` group). `output_path` lives under `review-inputs/<METHOD>/` (uppercase methodology name) — e.g. `review-inputs/COMPLETENESS-REVIEW/completeness-review.md`.
 7. Add the reviewer node to graph 6 in `framework/dependency-graphs.md`.
 8. No orchestrator changes required — the selector skill picks the new MVP row up automatically.
 
@@ -100,6 +104,7 @@ Folding input-reviews into the analyses-inputs registry would muddy the consulta
 
 - `name` — kebab-case slug. Used as the subdirectory name under `review-inputs/` (uppercased to `review-inputs/<METHOD>/`) and as the path component in the reviewer agent file. Methodology slugs are shared across registries; the artefacts do not clobber because the output paths differ.
 - `status` — `mvp` (selectable now) or `future` (not yet built; reviewer / reference / character / template files do not exist on disk).
+- `group` — optional lens-group label (e.g. `Completeness & gaps`, `Clarity`). The selector clusters MVP rows by this value (groups in first-appearance order, registry order preserved within each group) and renders it as a header. Rows with no `group` fall into a trailing `Other` group. Consultant-facing — keep it short and human-readable.
 - `description` — short consultant-facing blurb surfaced in the selector's printed list, written as three succinct sentences (why/when to choose it → what it produces → how to use the output). Required only when `status: mvp`.
 - `output_path` — relative path of the artefact the reviewer writes. Drives the prior-artefact gate in the orchestrator. **Must** live under `review-inputs/` for write-isolation. Required only when `status: mvp`.
 - `reference_asset` — the methodology reference the reviewer follows. Required only when `status: mvp`.

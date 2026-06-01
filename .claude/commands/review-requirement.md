@@ -7,7 +7,7 @@ Launch the review orchestrator at `framework/orchestrators/review-requirement-or
 Follow the orchestrator exactly — run the chosen reviewer in the prescribed foreground:
 
 1. Prerequisite gate — `requirements/requirements.md` must exist and be non-empty. If absent, exit cleanly with the prerequisite message; do not invoke any agent.
-2. Methodology selection — `framework/skills/review-selector.md` reads `framework/assets/reviews/registry.md` and presents the `status: mvp` rows.
+2. Methodology selection — `framework/skills/analysis-selector.md` (invoked with `list_label: "reviews"`, `verb_label: "review"`) reads `framework/assets/reviews/registry.md` and presents the `status: mvp` rows as a grouped numbered list (clustered by `group`, with `★ suggested next` / `✓ already run` marks).
 3. Prior-artefact gate per methodology — Overwrite / Keep / Cancel against `<chosen.output_path>`.
 4. The selected reviewer agent (e.g. `framework/agents/reviews/adversarial-reviewer.md`) runs in the foreground — wait for the artefact to be accepted.
 
