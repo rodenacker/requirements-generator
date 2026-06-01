@@ -269,6 +269,15 @@ The architect surfaces a clear rejection message naming the pair and the
 incompatibility; the consultant either adjusts the variant or accepts a
 narrower position.
 
+**Soft tension (warn, do not reject) — over-confirmation × speed.** High
+confirmation density on *reversible* actions while `D1 speed-accuracy ≥ +1`
+*defeats* error prevention through habituation (users click through the
+nag) — reserve heavy confirmation for genuinely irreversible / expensive
+actions and use undo elsewhere (NN/g, *Confirmation Dialogs*). This is a
+cross-pipeline coherence note (referenced by
+`framework/assets/prototypes/design-philosophies.md`); it warns rather than
+blocks and does not introduce a new `D`-axis.
+
 ---
 
 ## Section 5 — Persona-position compatibility rules

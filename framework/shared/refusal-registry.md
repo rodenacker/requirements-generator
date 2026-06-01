@@ -138,10 +138,63 @@ Add new predicates by appending; never renumber.
 
 **Refusal-registry schema field:** none specific. Distinct from `RF-05` because the bloat measurement is per-selection at architect-read time, not aggregated `artefact_dir` bytes at orchestrator-preflight time; distinct from `RF-08` because the sidecar is absent (one-cycle-deprecation legacy path), not stale (sha256 mismatch).
 
+## RF-10 — node_toolchain_missing
+
+**Severity:** pause.
+
+**Trigger:** The `prototype-app-scaffolder`'s preflight (or `framework/skills/scaffold-prototype-app.md`) finds Node.js / npm absent from PATH, or the Node major version is below what the prototype app requires (the template targets Next 16 / React 19 → Node ≥ 20). Fires only at scaffold time (Step F1 of `prototype-orch.md`), before `npm install`.
+
+**Surface:** `AskUserQuestion` with the choice set `{ install-and-retry, abort }` plus an "Other" override.
+- `install-and-retry` — the orchestrator writes `status: "setup-pending"` and `pending_setup: { predicate: "RF-10", advice_path: "framework/shared/setup-instructions/node-toolchain.md", since: <ISO-8601 UTC> }` to `framework/state/.prototype-progress.json` and exits cleanly. The consultant installs Node and re-invokes `/prototype`; resumption picks up at scaffold.
+- `abort` — the scaffolder fails its handback; the orchestrator does not advance and does not write `.scaffold.json`.
+
+**Recovery:** Read `framework/shared/setup-instructions/node-toolchain.md`. The `advice_path` is also surfaced in the question text.
+
+**Refusal-registry schema field:** `setup_instructions_path` — `framework/shared/setup-instructions/node-toolchain.md`.
+
+## RF-11 — playwright_browsers_missing
+
+**Severity:** pause.
+
+**Trigger:** `framework/skills/verify-prototype-build.md`'s smoke phase finds the Playwright browser binaries are not installed (`@playwright/test` is a dependency of the app, but `npx playwright install` has not been run — the launch errors with an "Executable doesn't exist" class message). Distinct from `RF-10` because the toolchain is present and the build already passed; only the runtime browser is missing, and a degraded path (skip the smoke) exists.
+
+**Surface:** `AskUserQuestion` with the choice set `{ install-and-retry, skip-smoke-with-warning, abort }` plus an "Other" override. The question text must include the install instructions path (`advice_path`) and the verbatim fidelity warning for the skip option.
+- `install-and-retry` — the verify skill surfaces the advice path in its return; the orchestrator writes `status: "setup-pending"` + `pending_setup: { predicate: "RF-11", advice_path: "framework/shared/setup-instructions/playwright-browsers.md", since: <ISO-8601 UTC> }` to `framework/state/.prototype-progress.json` and exits cleanly. The generated route + spec remain on disk; re-invoke resumes at verify. Highest-assurance outcome.
+- `skip-smoke-with-warning` — the verify gate degrades to `lint` + `tsc --noEmit` + `next build` only; the runtime smoke is skipped. The verify skill returns `pass-with-warning`; the landing-updater records `smoke_skipped: true` for that prototype. Lower assurance — runtime render/click is not proven.
+- `abort` — the verify skill returns a structured fail; the orchestrator does not advance to the landing update.
+
+**Recovery:** `install-and-retry` exits cleanly so the consultant installs browsers per `framework/shared/setup-instructions/playwright-browsers.md` and re-invokes. `skip-smoke-with-warning` continues; `abort` halts.
+
+**Refusal-registry schema field:** `setup_instructions_path` — `framework/shared/setup-instructions/playwright-browsers.md`.
+
+## RF-12 — prototype_build_failed_after_retries
+
+**Severity:** hard.
+
+**Trigger:** `framework/skills/verify-prototype-build.md` reports a failing phase (`lint`, `tsc --noEmit`, `next build`, or Playwright smoke) and the `prototype-generator`'s bounded retry budget (N = 2 regenerations of the offending surface) is exhausted with the failure persisting. Distinct from `RF-04` (single-artefact write-verification) — this is a failure of the **assembled app** to compile/lint/render.
+
+**Surface:** Plain-text halt. The agent emits exactly one line — *"Aborting to protect your work — the prototype `<name-slug>` failed `<phase>` after 2 regeneration attempts: `<last error summary>`. Inspect the spec / shared components and re-invoke `/prototype`."* — and fails its handback. The generated (broken) route + spec remain on disk for inspection; the landing is **not** updated to list a broken prototype.
+
+**Recovery:** The consultant inspects the build/test error, corrects the design spec or a shared component, and re-invokes `/prototype`; resumption picks up at generate/verify for that `<name-slug>`.
+
+**Refusal-registry schema field:** none specific.
+
+## RF-13 — prototype_app_scaffold_failed
+
+**Severity:** hard.
+
+**Trigger:** The `prototype-app-scaffolder` failed irrecoverably — the copy failed, `npm install` failed, or the empty-app build smoke (`scaffolding-instructions.md §6`) failed after one retry; OR a partial `prototypes/` tree was detected without a valid `.scaffold.json` (`scaffolding-instructions.md §1`).
+
+**Surface:** Plain-text halt. The agent emits exactly one line — *"Aborting — scaffolding `prototypes/` failed at `<step>`: `<error>`. `.scaffold.json` was not written; remove any partial `prototypes/` tree and re-invoke `/prototype` to retry clean."* — and fails its handback. Because `.scaffold.json` is **not** written, the next run's idempotency gate treats the app as un-scaffolded.
+
+**Recovery:** The consultant inspects (disk space, npm registry reachability, Node version), removes any partial `prototypes/` tree if instructed, and re-invokes.
+
+**Refusal-registry schema field:** none specific.
+
 ## Anti-Patterns
 
 - Do not invent a predicate ID. If no `RF-NN` covers the condition, append a new entry rather than overload an existing one.
 - Do not surface a `pause` predicate via plain-text halt. The choice set is the contract — without it, the consultant cannot machine-readably resume.
 - Do not surface a `hard` predicate via `AskUserQuestion`. There is no meaningful choice when prior work is at risk; halting cleanly is the only safe response.
-- Do not write `status: setup-pending` or `status: context-bloated` for any predicate other than `RF-01` and `RF-05` respectively. The `pending_setup` block is reserved for `RF-01` until a future predicate explicitly registers as a setup-required pause. `RF-05`'s `status: context-bloated` write is specific to the **requirements-orch surface variant**; the **design-system-orch variant** of `RF-05` deliberately does not write, for the same reason `RF-06` does not — the design-system pipeline is bound by a no-write-outside-`design-system/` invariant. RF-06 deliberately does **not** write to `framework/state/.progress.json` either; its `install-and-retry` path surfaces the advice in the handback message instead. RF-09 deliberately does **not** write either — the wireframe pipeline is bound by a no-write-outside-`wireframes/`-and-`blueprints/` invariant, and the consultant's Stage-1b `analyses-inputs.json` is reused on re-invocation via the wireframe-orch's prior-set detection.
+- Do not write `status: setup-pending` or `status: context-bloated` for any predicate other than `RF-01`, `RF-10`, `RF-11` (setup-pending) and `RF-05` (context-bloated) respectively. The `pending_setup` block is reserved for those setup-required pauses: `RF-01` writes it to `framework/state/.progress.json`; `RF-10` / `RF-11` write it to `framework/state/.prototype-progress.json` (the prototype-orch's own progress file). A future predicate must explicitly register here before writing `pending_setup`. `RF-05`'s `status: context-bloated` write is specific to the **requirements-orch surface variant**; the **design-system-orch variant** of `RF-05` deliberately does not write, for the same reason `RF-06` does not — the design-system pipeline is bound by a no-write-outside-`design-system/` invariant. RF-06 deliberately does **not** write to `framework/state/.progress.json` either; its `install-and-retry` path surfaces the advice in the handback message instead. RF-09 deliberately does **not** write either — the wireframe pipeline is bound by a no-write-outside-`wireframes/`-and-`blueprints/` invariant, and the consultant's Stage-1b `analyses-inputs.json` is reused on re-invocation via the wireframe-orch's prior-set detection.
 - Do not silently downgrade a `hard` predicate to `pause`. `RF-04` halts; conflating it with a pausable refusal hides write failures.

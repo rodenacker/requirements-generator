@@ -1,6 +1,6 @@
 # Framework Dependency Graphs
 
-Eight transitive load/read/invoke trees, one per orchestrator. Source of truth for "what loads what". LLM-only doc (not loaded at runtime) — diagrams dropped in favour of filename-keyed adjacency lists.
+Nine transitive load/read/invoke trees, one per orchestrator. Source of truth for "what loads what". LLM-only doc (not loaded at runtime) — diagrams dropped in favour of filename-keyed adjacency lists.
 
 ## Notation
 
@@ -286,3 +286,50 @@ wireframe-comparator → characters/wireframe-comparator.md, persona-llm.md,
 - **Logical-surface model:** blueprint is a decomposition-agnostic `LS-NN` inventory + `allowed`/`default` realizations (per `realization-strategies.md`). Each `surface_plan` picks a realization (standalone / inline-drawer / inline-expand / modal / wizard-split). All-standalone baseline ≡ legacy 1-screen-per-surface (`LS-NN ≡ S-NN`).
 - **Goal-driven divergence:** scope-selector executes `divergence-heuristics.md` when orch passes `propose_divergence_axes: true` and persists `divergence_profile` into `scope.json`; the architect **consumes** that profile at step-05 (does **not** re-read the heuristic → no `architect → divergence-heuristics` edge).
 - `pattern-catalogue/_index.md` is shared with the `/design-system` styler (which loads it transitively via `data/component-catalogue.md`); wireframe consumers read it directly. Per-pattern files under `pattern-catalogue/<category>/<pattern>.md` are read **selectively** (only picked patterns), not en masse.
+
+---
+
+## 9. prototype-orch.md · one-prototype-per-run; generates a real Next.js app
+
+```
+orch → scope-selector, select-prototype-inputs, check-context-bloat,
+       blueprint-architect, prototype-spec-drafter, prototype-spec-resolver, prototype-spec-merger,
+       prototype-app-scaffolder, prototype-generator, prototype-landing-updater,
+       refusal-registry, state/.prototype-progress.json
+
+scope-selector → verify-artifact-write   [propose_divergence_axes:false → NO divergence-heuristics edge]
+select-prototype-inputs → analyses/registry.md, analyses-inputs/registry.md, analyses/sidecar-schema.md,
+       wireframes/<slug>/variants.json, requirements/source-manifest.json,
+       verify-artifact-write, check-context-bloat,
+       [writes] prototypes/.specs/<name-slug>/supporting-inputs.json
+blueprint-architect → (see graph 8; invoked with variants_output_path:null → blueprint-only, writes
+       blueprints/<slug>/blueprint.md, NO variants.json)
+prototype-spec-drafter → prototypes/template-design-spec.md,
+       characters/prototype-spec-drafting.md, prototypes/design-philosophies.md,
+       prototypes/ux-baseline-checklist.md, wireframes/position-vocabulary.md,
+       wireframes/tradeoff-dimensions-registry.md, blueprints/<slug>/blueprint.md, verify-artifact-write
+       [cond fast path] wireframes/<slug>/<variant>/{variant-position.json, manifest.json}
+prototype-spec-resolver → characters/prototype-spec-resolving.md, flag-gaps-ambiguities.md,
+       wireframes/tradeoff-dimensions-registry.md, verify-artifact-write
+prototype-spec-merger → characters/prototype-spec-finalising.md, prototype-invariants.md
+prototype-app-scaffolder → scaffold-prototype-app.md, extract-brand-theme.md,
+       prototypes/scaffolding-instructions.md, prototypes/app-shell-spec.md, verify-artifact-write
+       [cond brand source a] design-system/design-system.html
+prototype-generator → steps/step-01-activate … step-07-handback, steps/step-sub-render-surface.md,
+       characters/prototype-generator.md, persona-llm.md, prototypes/shared-component-conventions.md,
+       prototypes/ux-baseline-checklist.md, blueprints/<slug>/blueprint.md,
+       verify-prototype-build.md, verify-artifact-write
+       [parallel sub-agent: 1 Agent call/surface, cap 4 → step-sub-render-surface]
+  verify-prototype-build → refusal-registry (RF-11/RF-12)
+prototype-landing-updater → wireframes/position-vocabulary.md, verify-artifact-write
+```
+
+**Notes (unique):**
+- **One prototype per run**, accumulating in the shared `prototypes/` Next.js app (rule 1). `.prototype-progress.json` tracks the in-flight run; the durable completed set lives in `prototypes/.registry.json`. Distinct progress file → concurrent with other pipelines.
+- **Cross-pipeline reuse:** `scope-selector` (`propose_divergence_axes:false`) + `blueprint-architect` (`variants_output_path:null`, blueprint-only). Write scope: `prototypes/**` + `framework/state/*` (+ the shared `blueprints/<slug>/{scope.json,blueprint.md}` exception via those two shared components). `prototypes/template-design-spec.md`, `design-philosophies.md`, `ux-baseline-checklist.md`, `scaffolding-instructions.md`, `app-shell-spec.md`, `shared-component-conventions.md` all live under `framework/assets/prototypes/`.
+- **Divergence is UX only** (brand fixed/shared). The posture preset (`design-philosophies.md`) supplies D1–D5 starting positions (references `tradeoff-dimensions-registry.md` + `position-vocabulary.md`, never redefines; **D6 inactive → 0**). On the **wireframe-seeded fast path**, the drafter cites realizations from a selected variant's `surface_plan` (not `[AI-SUGGESTED]`), so the resolver often auto-completes.
+- **Conditional scaffold:** `prototype-app-scaffolder` runs only on the first run (skipped when `prototypes/.scaffold.json` present). Brand source a→b→c via `extract-brand-theme.md`. `npm install` once (amortised — rule 13).
+- **Parallel generation:** `prototype-generator` is the only parallel sub-agent dispatch (≤4 per-surface sub-agents, non-interactive). The driver owns cross-cutting writes (types/fixtures/stores/seed) + all route files; sub-agents own disjoint shared-component filenames (collision-safety per `shared-component-conventions.md §3`).
+- **Verify gate:** `verify-prototype-build.md` runs lint + tsc + `next build` + Playwright smoke. New refusals `RF-10` (node missing), `RF-11` (playwright browsers), `RF-12` (build failed after retries), `RF-13` (scaffold failed). Invariants PI-01..PI-08 (PI-08 = chrome is a harness).
+- **Anti-fabrication:** every `data-prop` binds to a blueprint per-surface Property closed set; fixtures carry only closed-set fields — mirrors the wireframe `data-prop` rule.
+- **Per-prototype reset** deletes only the in-flight slug's `.specs/<slug>/` + `src/app/<slug>/` + its `.registry.json` entry + resolver sidecars; never other prototypes, the shared library, the scaffold, or the brand.

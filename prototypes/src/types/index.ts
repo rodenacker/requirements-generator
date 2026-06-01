@@ -1,0 +1,2 @@
+// Prototype entity types are added per-generation by prototype-generator (step-03). Shared across prototypes.
+export {}
