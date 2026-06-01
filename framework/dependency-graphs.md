@@ -120,9 +120,9 @@ deltas:
 
 ```
 orch → analysis-selector, check-context-bloat, refusal-registry,
-       + 12 analysers: ooux, jtbd, use-cases, data-model, user-journeys,
+       + 13 analysers: ooux, jtbd, use-cases, data-model, user-journeys,
          sequence-diagram, state-diagram, activity-diagram, task-flows,
-         five-whys, glossary, opportunity-solution-trees
+         five-whys, glossary, opportunity-solution-trees, crud-coverage
 analysis-selector → analyses/registry.md
 
 task-flows-analyser → characters/task-flows-analysis.md, analyses/task-flows-reference.md,

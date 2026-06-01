@@ -49,6 +49,7 @@ The skill stamps an `architect_roles` array into every `selections[]` row, drawn
 | `trade-off-dimension-analysis` | `variant-dimension-applicability` |
 | `glossary` | `copy-vocabulary` |
 | `opportunity-solution-trees` | `feature-presence`, `variant-philosophy` |
+| `crud-coverage` | `screen-inventory-entity-bijection`, `per-screen-cta-set` |
 | `five-whys` | `upstream-only` |
 
 Role semantics (closed enum, consumed by `blueprint-architect.md`):

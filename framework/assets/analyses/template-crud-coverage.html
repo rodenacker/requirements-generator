@@ -1,0 +1,243 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses/crud-coverage-analyser.md.
+
+  Purpose: HTML/CSS skeleton for a CRUD / Entity-Lifecycle Coverage artefact —
+  a matrix crossing every data entity against the four lifecycle operations
+  (C/R/U/D), each cell carrying one coverage verdict (delivered /
+  granted-not-delivered / forgotten / intentional), plus a lifecycle-hole
+  register and an optional role × entity × operation view.
+
+  Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`). No external
+  CSS/JS dependencies; viewable by opening `file://` in a browser; shareable
+  with clients without tooling.
+
+  Section order (top-to-bottom) — DIAGRAMS FIRST:
+    1. Overview (id="overview")        — title, subtitle, meta-grid.
+    2. TOC (<nav class="toc">)         — static top-level anchors.
+    3. Diagrams (id="diagrams")        — {{HEATMAP_BLOCK}} (coverage heatmap,
+       the centrepiece) followed by {{ROLE_VIEW_BLOCK}} (role grid + SoD flags,
+       or the single-actor note).
+    4. Tabular information (id="tables") — {{TRACEABILITY_BLOCK}} (entity ×
+       function) + {{HOLE_REGISTER_BLOCK}} (lifecycle-hole register) +
+       {{PLAIN_MATRIX_BLOCK}} (accessible entity × operation table).
+    5. Diagnostics (id="diagnostics")  — <details>, collapsed by default;
+       counts, check results, density warning, embedded JSON. Bottom of page.
+
+  Placeholders the analyser substitutes (string substitution; all values
+  pre-escaped for HTML before injection):
+
+    {{TITLE}}                       — e.g. "CRUD Coverage — <domain>".
+    {{DOMAIN}}                      — domain string (from requirements §1), or
+                                      "(not declared in requirements.md)".
+    {{GENERATED_AT}}                — ISO-8601 UTC timestamp at render time.
+    {{REQUIREMENTS_SHA256}}         — sha256 of requirements/requirements.md at read time.
+    {{ENTITY_COUNT}}                — number of entity rows.
+    {{CELL_COUNT}}                  — total operation cells (= ENTITY_COUNT × 4).
+    {{DELIVERED_COUNT}}             — count of cells with verdict `delivered`.
+    {{GRANTED_COUNT}}               — count of cells with verdict `granted-not-delivered`.
+    {{FORGOTTEN_COUNT}}             — count of cells with verdict `forgotten`.
+    {{INTENTIONAL_COUNT}}           — count of cells with verdict `intentional`.
+    {{HOLE_COUNT}}                  — FORGOTTEN_COUNT + GRANTED_COUNT (register row count).
+    {{AI_SUGGESTED_COUNT}}          — total items marked `ai-suggested` (= FORGOTTEN_COUNT).
+    {{ROLE_COUNT}}                  — number of roles parsed from §6.5 (0 if §6.5 absent).
+    {{HEATMAP_BLOCK}}               — pre-rendered <section class="heatmap"> (see schema).
+    {{ROLE_VIEW_BLOCK}}             — pre-rendered <section class="role-view"> OR the
+                                      single-actor note <p class="single-actor-note">.
+    {{TRACEABILITY_BLOCK}}          — pre-rendered <section class="traceability">.
+    {{HOLE_REGISTER_BLOCK}}         — pre-rendered <section class="hole-register">.
+    {{PLAIN_MATRIX_BLOCK}}          — pre-rendered <section class="plain-matrix">.
+    {{DIAGNOSTICS_BLOCK}}           — pre-rendered <section class="diagnostics"> incl.
+                                      the embedded <script type="application/json"
+                                      id="crud-matrix"> data block.
+
+  CSS class contract used by the analyser (the template owns these; the analyser
+  emits HTML using them and does not edit the CSS):
+    - Verdict cell classes: .cov-delivered, .cov-granted, .cov-forgotten, .cov-intentional
+    - Verdict glyphs are text (●/△/✕/○) + the verdict word — colour is never the sole signal.
+    - Provenance row class: .provenance-ai-suggested (forgotten register rows).
+    - .ai-suggested — italic + dim, on any cell carrying the [AI-SUGGESTED] prefix.
+    - Pills: .op-pill (C/R/U/D), .persist-persistent, .persist-derived, .verdict-pill.
+    - .heatmap-table, .role-grid, .traceability-table, .hole-table, .plain-matrix-table.
+    - .sod-flag — Segregation-of-Duties violation callout.
+    - .hidden — display:none (density-warning line when under threshold).
+  Only the documented {{placeholders}} are substituted; CSS, layout, and class
+  names are fixed.
+
+  Output: analyse-requirements/CRUD-COVERAGE/crud-matrix.html.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root {
+    --bg: #fbfbfd; --surface: #ffffff; --ink: #1d1d1f; --muted: #6e6e73;
+    --line: #d2d2d7; --line-soft: #e8e8ed; --accent: #0a5ad6;
+    --delivered-bg: #e6f4ea; --delivered-ink: #137333; --delivered-line: #a8d5b5;
+    --granted-bg: #fef3e0; --granted-ink: #9a5b00; --granted-line: #f3cf94;
+    --forgotten-bg: #fde7e7; --forgotten-ink: #b3261e; --forgotten-line: #f2b2ae;
+    --intentional-bg: #eef0f2; --intentional-ink: #5f6368; --intentional-line: #d6dade;
+    --radius: 10px; --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans);
+         line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  main { max-width: 1180px; margin: 0 auto; padding: 32px 24px 96px; }
+  h1 { font-size: 1.7rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+  h2 { font-size: 1.25rem; margin: 40px 0 12px; padding-top: 8px; letter-spacing: -0.01em; }
+  h3 { font-size: 1.02rem; margin: 24px 0 8px; }
+  p { margin: 8px 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, .mono { font-family: var(--mono); font-size: 0.86em; }
+
+  /* Overview */
+  .subtitle { color: var(--muted); margin: 0 0 16px; }
+  .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+               gap: 10px; margin: 16px 0 4px; }
+  .meta-cell { background: var(--surface); border: 1px solid var(--line-soft);
+               border-radius: var(--radius); padding: 10px 12px; }
+  .meta-cell .k { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em;
+                  color: var(--muted); }
+  .meta-cell .v { font-size: 1.1rem; font-weight: 600; }
+  .meta-cell .v.mono { font-size: 0.78rem; font-weight: 500; word-break: break-all; }
+
+  /* TOC */
+  .toc { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 18px 0 8px;
+         padding: 10px 14px; background: var(--surface); border: 1px solid var(--line-soft);
+         border-radius: var(--radius); font-size: 0.9rem; }
+  .toc a { color: var(--muted); } .toc a:hover { color: var(--accent); }
+
+  /* Section cards */
+  section.card { background: var(--surface); border: 1px solid var(--line-soft);
+                 border-radius: var(--radius); padding: 16px 18px; margin: 12px 0; }
+
+  /* Tables (shared) */
+  table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+  th, td { border: 1px solid var(--line-soft); padding: 7px 10px; text-align: left;
+           vertical-align: top; }
+  thead th { background: #f5f5f7; font-weight: 600; position: sticky; top: 0; }
+  .scroll-x { overflow-x: auto; }
+
+  /* Heatmap */
+  .heatmap-table th.op-col { text-align: center; width: 88px; }
+  .heatmap-table td.cell { text-align: center; font-size: 0.8rem; }
+  .heatmap-table td.entity-name { font-weight: 600; white-space: nowrap; }
+  .cell .glyph { font-size: 1rem; display: block; }
+  .cell .verdict-word { font-size: 0.62rem; text-transform: uppercase;
+                        letter-spacing: 0.03em; display: block; }
+  .cell .srcs { font-family: var(--mono); font-size: 0.66rem; color: inherit;
+                opacity: 0.85; display: block; margin-top: 2px; }
+  .cov-delivered  { background: var(--delivered-bg);  color: var(--delivered-ink); }
+  .cov-granted    { background: var(--granted-bg);    color: var(--granted-ink); }
+  .cov-forgotten  { background: var(--forgotten-bg);  color: var(--forgotten-ink); }
+  .cov-intentional{ background: var(--intentional-bg);color: var(--intentional-ink); }
+
+  /* Legend */
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 12px 0 4px;
+            font-size: 0.78rem; }
+  .legend .lg { display: inline-flex; align-items: center; gap: 6px;
+                padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); }
+  .legend .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+  /* Pills */
+  .op-pill, .verdict-pill, .persist-persistent, .persist-derived {
+    display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 0.72rem;
+    font-weight: 600; border: 1px solid var(--line); }
+  .persist-persistent { background: #eef4ff; color: #0a3a86; border-color: #c3d8fb; }
+  .persist-derived { background: #f3eefe; color: #5a2ca0; border-color: #d8c7f5; }
+
+  /* Role view + SoD */
+  .role-grid td.granted { background: var(--delivered-bg); color: var(--delivered-ink);
+                          text-align: center; font-family: var(--mono); }
+  .role-grid td.not-granted { background: #fff; color: var(--muted); text-align: center; }
+  .sod-flag { background: var(--forgotten-bg); color: var(--forgotten-ink);
+              border: 1px solid var(--forgotten-line); border-radius: var(--radius);
+              padding: 8px 12px; margin: 8px 0; font-size: 0.85rem; }
+  .single-actor-note { background: var(--intentional-bg); color: var(--intentional-ink);
+              border: 1px solid var(--intentional-line); border-radius: var(--radius);
+              padding: 10px 14px; font-size: 0.9rem; }
+
+  /* Hole register */
+  .hole-table .verdict-pill.v-forgotten { background: var(--forgotten-bg);
+              color: var(--forgotten-ink); border-color: var(--forgotten-line); }
+  .hole-table .verdict-pill.v-granted { background: var(--granted-bg);
+              color: var(--granted-ink); border-color: var(--granted-line); }
+  .ai-suggested { font-style: italic; background: #fffaf0; }
+  tr.provenance-ai-suggested td:first-child { border-left: 3px solid var(--forgotten-ink); }
+
+  /* Diagnostics */
+  .diagnostics { margin-top: 28px; }
+  .diagnostics summary { cursor: pointer; font-weight: 600; color: var(--muted); }
+  .diagnostics .check-pass::before { content: "PASS "; color: var(--delivered-ink);
+              font-family: var(--mono); font-size: 0.78rem; }
+  .diagnostics .check-fail::before { content: "FAIL "; color: var(--forgotten-ink);
+              font-family: var(--mono); font-size: 0.78rem; }
+  .diagnostics .density-warning { color: var(--granted-ink); }
+  .diagnostics pre { background: #f5f5f7; border-radius: 8px; padding: 12px;
+              overflow-x: auto; font-size: 0.76rem; }
+  .hidden { display: none; }
+
+  @media print {
+    body { background: #fff; } section.card { break-inside: avoid; }
+    .toc { display: none; } thead th { position: static; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <!-- 1. Overview -->
+  <header id="overview">
+    <h1>{{TITLE}}</h1>
+    <p class="subtitle">Entity × operation coverage matrix — every data entity crossed against Create / Read / Update / Delete, each cell given one coverage verdict. Diagrams first; the lifecycle-hole register and traceability tables follow.</p>
+    <div class="meta-grid">
+      <div class="meta-cell"><div class="k">Domain</div><div class="v">{{DOMAIN}}</div></div>
+      <div class="meta-cell"><div class="k">Entities</div><div class="v">{{ENTITY_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">Cells</div><div class="v">{{CELL_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">Delivered</div><div class="v">{{DELIVERED_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">Holes</div><div class="v">{{HOLE_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">AI-suggested</div><div class="v">{{AI_SUGGESTED_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">Roles (§6.5)</div><div class="v">{{ROLE_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">Generated</div><div class="v mono">{{GENERATED_AT}}</div></div>
+      <div class="meta-cell"><div class="k">requirements.md sha256</div><div class="v mono">{{REQUIREMENTS_SHA256}}</div></div>
+    </div>
+  </header>
+
+  <!-- 2. TOC -->
+  <nav class="toc">
+    <a href="#overview">Overview</a>
+    <a href="#diagrams">Coverage heatmap</a>
+    <a href="#role-view">Role view</a>
+    <a href="#tables">Traceability &amp; holes</a>
+    <a href="#diagnostics">Diagnostics</a>
+  </nav>
+
+  <!-- 3. Diagrams (top of document) -->
+  <h2 id="diagrams">Coverage heatmap</h2>
+  <div class="legend">
+    <span class="lg"><span class="sw" style="background:var(--delivered-bg);border:1px solid var(--delivered-line)"></span> ● delivered — a function delivers it</span>
+    <span class="lg"><span class="sw" style="background:var(--granted-bg);border:1px solid var(--granted-line)"></span> △ granted-not-delivered — §6.5 grants it, nothing delivers it</span>
+    <span class="lg"><span class="sw" style="background:var(--forgotten-bg);border:1px solid var(--forgotten-line)"></span> ✕ forgotten — expected, absent</span>
+    <span class="lg"><span class="sw" style="background:var(--intentional-bg);border:1px solid var(--intentional-line)"></span> ○ intentional — deliberately narrow</span>
+  </div>
+  {{HEATMAP_BLOCK}}
+
+  <h2 id="role-view">Role view (BABOK #39 — Roles &amp; Permissions)</h2>
+  {{ROLE_VIEW_BLOCK}}
+
+  <!-- 4. Tabular information -->
+  <h2 id="tables">Traceability &amp; lifecycle holes</h2>
+  {{TRACEABILITY_BLOCK}}
+  {{HOLE_REGISTER_BLOCK}}
+  {{PLAIN_MATRIX_BLOCK}}
+
+  <!-- 5. Diagnostics -->
+  {{DIAGNOSTICS_BLOCK}}
+
+</main>
+</body>
+</html>

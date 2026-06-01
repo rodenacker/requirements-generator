@@ -126,6 +126,16 @@ methodologies:
     map_skill: framework/skills/map-state-diagram-to-ui.md
     analyser_agent: framework/agents/analyses/state-diagram-analyser.md
     character: framework/assets/characters/state-diagram-analysis.md
+  - name: crud-coverage
+    status: mvp
+    group: Objects, data & lifecycle
+    description: Choose this when your domain is entity-and-operation heavy and you want a mechanical check that every entity has a create, read, update, and delete path before wireframing. It produces an HTML coverage matrix crossing each entity against the four lifecycle operations, marking each cell delivered, granted-not-delivered, forgotten, or intentional, plus a lifecycle-hole register and an optional role view with Segregation-of-Duties flags. Use the filled cells as a screen-and-action checklist against the blueprint and chase the flagged holes — especially rights §6.5 grants that no function delivers — before building.
+    output_path: analyse-requirements/CRUD-COVERAGE/crud-matrix.html
+    reference_asset: framework/assets/analyses/crud-coverage-reference.md
+    template_asset: framework/assets/analyses/template-crud-coverage.html
+    map_skill: framework/skills/map-crud-coverage-to-ui.md
+    analyser_agent: framework/agents/analyses/crud-coverage-analyser.md
+    character: framework/assets/characters/crud-coverage-analysis.md
   - { name: decision-matrix, status: future }
   - name: task-flows
     status: mvp
