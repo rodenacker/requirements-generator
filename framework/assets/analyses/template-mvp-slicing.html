@@ -1,0 +1,392 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses/mvp-slicing-analyser.md.
+
+  Purpose: HTML/CSS skeleton for an MVP-SLICING artefact — a Jeff Patton user-story
+  map (backbone activities × release bands, with a walking-skeleton MVP slice line)
+  paired with a DSDM MoSCoW board. The lens VISUALISES priorities already set in
+  requirements.md (GR-24); it never re-prioritises.
+
+  Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`). No external
+  CSS/JS dependencies; viewable by opening `file://` in a browser; shareable with
+  clients without tooling. No SVG, no Mermaid — pure CSS Grid.
+
+  Section order (top-to-bottom) — DIAGRAM FIRST:
+    1. Overview (id="overview")     — title, subtitle, meta-grid, proposed-MVP callout.
+    2. TOC (<nav class="toc">)      — static top-level anchors.
+    3. Story map (id="storymap")    — {{STORY_MAP_BLOCK}}: backbone-activity columns ×
+       release bands, MVP band above the slice line. The centrepiece.
+    4. MoSCoW board (id="board")    — {{MOSCOW_BOARD_BLOCK}}: four priority columns;
+       Won't greyed + collapsed.
+    5. Diagnostics (id="diagnostics") — {{DIAGNOSTICS_BLOCK}}: <details>, collapsed;
+       checks, soft warnings, counts, embedded JSON dump. Bottom of page.
+
+  Placeholders the analyser substitutes (string substitution; ALL values pre-escaped
+  for HTML before injection). Scalar placeholders appear in the Overview + callout
+  only; the three {{*_BLOCK}} placeholders are fully pre-rendered by the analyser:
+
+    {{TITLE}}                  — e.g. "MVP Slicing — <domain>".
+    {{DOMAIN}}                 — domain string (from requirements §1), or
+                                 "(not declared in requirements.md)".
+    {{GENERATED_AT}}           — ISO-8601 UTC timestamp at render time.
+    {{REQUIREMENTS_SHA256}}    — sha256 of requirements/requirements.md at read time.
+    {{BACKBONE_SOURCE}}        — "§5 task flows" | "§4.1 goals (no §5 flows)" |
+                                 "single column (no flows or goals)".
+    {{ACTIVITY_COUNT}}         — number of backbone activity columns (incl. Supporting).
+    {{CARD_COUNT}}             — total cards on the map (stories + F-NN + UI-NN).
+    {{MUST_COUNT}} {{SHOULD_COUNT}} {{COULD_COUNT}} {{WONT_COUNT}} — per-bucket counts.
+    {{UNPRIORITISED_COUNT}}    — cards with no Priority cell.
+    {{N_SUPPORTING}}           — cards in the trailing "Supporting" column (no flow link).
+    {{MVP_ITEM_COUNT}}         — size of the proposed MVP; ASSERTED == {{MUST_COUNT}}.
+    {{MVP_RATIONALE_LINE}}     — one factual sentence about the proposed slice.
+    {{STORY_MAP_BLOCK}}        — pre-rendered <div class="storymap-scroll"> (see STORY MAP SCHEMA).
+    {{MOSCOW_BOARD_BLOCK}}     — pre-rendered <section class="moscow"> (see MOSCOW SCHEMA).
+    {{DIAGNOSTICS_BLOCK}}      — pre-rendered <section class="diagnostics"> incl. the
+                                 embedded <script type="application/json" id="mvp-slice"> dump.
+
+  STORY MAP SCHEMA — {{STORY_MAP_BLOCK}} substitutes a single scroll wrapper. The
+  analyser sets --activity-count inline on .storymap-inner. Backbone-row and every
+  band's .band-lanes use the SAME fixed-column grid so lanes align under their
+  backbone cell. The slice line is a full-width divider between the MVP band and the
+  Release-2 band. Bands render in fixed order: MVP (Must) → [slice line] → Release 2
+  (Should) → Later (Could) → Unprioritised (only if {{UNPRIORITISED_COUNT}} > 0).
+  Won't is NOT on the map.
+
+      <div class="storymap-scroll">
+        <div class="storymap-inner" style="--activity-count: 4;">
+
+          <div class="backbone-row" aria-label="Backbone activities">
+            <div class="backbone-cell" data-src="§5:Flow «Submit claim»">
+              <span class="backbone-index">1</span>
+              <span class="backbone-name">Submit claim</span>
+              <span class="backbone-steps">enter details → attach docs → confirm</span>
+            </div>
+            ( … one per activity; a backbone-supporting cell is the trailing column … )
+          </div>
+
+          <div class="band band-mvp">
+            <div class="band-header">MVP — Must (9)</div>
+            <div class="band-lanes">
+              <div class="lane" data-activity="1">
+                <article class="card card-functional card-must" data-src="F-12"
+                         data-priority="Must" data-activity="1"
+                         data-goal="G-03" data-flow="Submit claim">
+                  <span class="card-id">F-12</span><span class="card-kind" title="Functional requirement">F</span>
+                  <p class="card-text">User can submit a claim with required documents.</p>
+                  <span class="card-prio prio-must">Must</span>
+                </article>
+              </div>
+              ( … one .lane per activity column … empty lanes render an em-dash … )
+            </div>
+          </div>
+
+          <div class="slice-line" role="separator" aria-label="MVP release-slice line">
+            <span class="slice-label">MVP release slice — 9 Must items above</span>
+          </div>
+
+          <div class="band band-r2">
+            <div class="band-header">Release 2 — Should (6)</div>
+            <div class="band-lanes"> … </div>
+          </div>
+
+          <div class="band band-r3">
+            <div class="band-header">Later — Could (5)</div>
+            <div class="band-lanes"> … </div>
+          </div>
+
+          (Unprioritised band only if {{UNPRIORITISED_COUNT}} > 0)
+          <div class="band band-unprioritised">
+            <div class="band-header">Unprioritised — no Priority set (2)</div>
+            <div class="band-lanes"> … </div>
+          </div>
+
+        </div>
+      </div>
+
+  Card kind classes: .card-functional | .card-ui | .card-story.
+  Card priority classes: .card-must | .card-should | .card-could | .card-wont | .card-unset.
+  A Must card flagged GR-24-inconsistent also carries .gr24-flag.
+
+  MOSCOW SCHEMA — {{MOSCOW_BOARD_BLOCK}} substitutes a single <section class="moscow">
+  with a 4-column grid. Won't is a <details class="moscow-col col-wont"> collapsed.
+  An empty column renders an empty-state note rather than being omitted. The same
+  .card markup is reused (the .card-must … classes carry the colour).
+
+      <section class="moscow" aria-label="MoSCoW board">
+        <div class="moscow-grid">
+          <div class="moscow-col col-must">
+            <h3 class="col-head">Must <span class="col-count">9</span></h3>
+            <article class="card card-functional card-must" data-src="F-12" …>…</article>
+          </div>
+          <div class="moscow-col col-should"><h3 class="col-head">Should <span class="col-count">6</span></h3> … </div>
+          <div class="moscow-col col-could"><h3 class="col-head">Could <span class="col-count">5</span></h3> … </div>
+          <details class="moscow-col col-wont">
+            <summary class="col-head">Won't <span class="col-count">3</span> — excluded from this build</summary>
+            <article class="card card-functional card-wont" data-src="F-31" data-priority="Won't">…</article>
+          </details>
+        </div>
+      </section>
+
+  DIAGNOSTICS SCHEMA — {{DIAGNOSTICS_BLOCK}} substitutes a single
+  <section class="diagnostics"> (the template wraps it in <details> collapsed). Contains:
+  the counts summary line; per-check PASS/FAIL lines (.check-pass / .check-fail);
+  soft-warning lines (.soft-warn, with class="hidden" when not fired); and the
+  embedded machine dump <script type="application/json" id="mvp-slice"> { … }.
+
+  CSS class contract used by the analyser (the template owns these; the analyser emits
+  HTML using them and does NOT edit the CSS). Only the documented {{placeholders}} are
+  substituted; CSS, layout, and class names are fixed.
+
+  Output: analyse-requirements/MVP-SLICING/mvp-slicing.html.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root {
+    --bg: #fbfbfd; --surface: #ffffff; --ink: #1d1d1f; --muted: #6e6e73;
+    --line: #d2d2d7; --line-soft: #e8e8ed; --accent: #0a5ad6;
+    --radius: 10px;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+    /* priority palette (must=green, should=amber, could=slate-blue, wont=grey, unset=red) */
+    --must-bg: #e6f4ea;  --must-ink: #137333;  --must-line: #a8d5b5;
+    --should-bg: #fef3e0; --should-ink: #9a5b00; --should-line: #f3cf94;
+    --could-bg: #eef4ff;  --could-ink: #0a3a86;  --could-line: #c3d8fb;
+    --wont-bg: #eef0f2;   --wont-ink: #5f6368;   --wont-line: #d6dade;
+    --unset-bg: #fde7e7;  --unset-ink: #b3261e;  --unset-line: #f2b2ae;
+
+    --col-width: 240px;
+    --col-gap: 12px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans);
+         line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  main { max-width: 1280px; margin: 0 auto; padding: 32px 24px 96px; }
+  h1 { font-size: 1.7rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+  h2 { font-size: 1.25rem; margin: 40px 0 12px; padding-top: 8px; letter-spacing: -0.01em; }
+  h3 { font-size: 1.0rem; margin: 0 0 8px; }
+  p { margin: 8px 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, .mono { font-family: var(--mono); font-size: 0.86em; }
+
+  /* Overview */
+  .subtitle { color: var(--muted); margin: 0 0 16px; }
+  .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+               gap: 10px; margin: 16px 0 4px; }
+  .meta-cell { background: var(--surface); border: 1px solid var(--line-soft);
+               border-radius: var(--radius); padding: 10px 12px; }
+  .meta-cell .k { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em;
+                  color: var(--muted); }
+  .meta-cell .v { font-size: 1.1rem; font-weight: 600; }
+  .meta-cell .v.mono { font-size: 0.78rem; font-weight: 500; word-break: break-all; }
+
+  /* Proposed-MVP callout (convergence headline) */
+  .mvp-proposal { margin: 18px 0 4px; padding: 14px 16px; background: var(--must-bg);
+                  border: 1px solid var(--must-line); border-left: 5px solid var(--must-ink);
+                  border-radius: var(--radius); }
+  .mvp-proposal .mvp-proposal-head { font-weight: 700; color: var(--must-ink); margin: 0 0 4px; }
+  .mvp-proposal .mvp-proposal-body { margin: 0 0 6px; }
+  .mvp-proposal .mvp-proposal-handback { margin: 0; color: var(--muted); font-size: 0.88rem; }
+
+  /* TOC */
+  .toc { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 18px 0 8px;
+         padding: 10px 14px; background: var(--surface); border: 1px solid var(--line-soft);
+         border-radius: var(--radius); font-size: 0.9rem; }
+  .toc a { color: var(--muted); } .toc a:hover { color: var(--accent); }
+
+  /* ---------- Story map ---------- */
+  .storymap-scroll { overflow-x: auto; padding-bottom: 10px; }
+  .storymap-inner {
+    /* fixed total width so every band's columns align under the backbone, scroll when wide */
+    width: calc(var(--activity-count) * (var(--col-width) + var(--col-gap)));
+    min-width: 100%;
+  }
+  .backbone-row, .band-lanes {
+    display: grid;
+    grid-template-columns: repeat(var(--activity-count), var(--col-width));
+    gap: var(--col-gap);
+  }
+  .backbone-row { margin-bottom: 10px; }
+  .backbone-cell {
+    background: #2b2f36; color: #fff; border-radius: 8px; padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .backbone-cell.backbone-supporting { background: #555a62; }
+  .backbone-cell .backbone-index { font-size: 0.7rem; opacity: 0.7; font-variant-numeric: tabular-nums; }
+  .backbone-cell .backbone-name { font-weight: 700; font-size: 0.95rem; }
+  .backbone-cell .backbone-steps { font-size: 0.72rem; opacity: 0.8; line-height: 1.3; }
+
+  .band { margin: 0 0 6px; }
+  .band-header {
+    font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 6px 10px; border-radius: 6px 6px 0 0; margin-bottom: 2px;
+  }
+  .band-mvp .band-header { background: var(--must-bg); color: var(--must-ink); }
+  .band-r2  .band-header { background: var(--should-bg); color: var(--should-ink); }
+  .band-r3  .band-header { background: var(--could-bg); color: var(--could-ink); }
+  .band-unprioritised .band-header { background: var(--unset-bg); color: var(--unset-ink); }
+  .band-lanes { align-items: start; padding: 8px; border-radius: 0 0 8px 8px; }
+  .band-mvp .band-lanes { background: rgba(19,115,51,0.06); }
+  .band-unprioritised .band-lanes {
+    background: repeating-linear-gradient(45deg, #fff, #fff 8px, #fdeded 8px, #fdeded 16px);
+  }
+  .lane { display: flex; flex-direction: column; gap: 8px; min-height: 16px; }
+  .lane:empty::after { content: "—"; color: var(--muted); opacity: 0.4; padding: 4px; }
+
+  /* slice line — full inner width */
+  .slice-line {
+    border-top: 3px solid var(--must-ink); margin: 4px 0 10px; padding-top: 6px;
+    display: flex; justify-content: flex-start;
+  }
+  .slice-label {
+    background: var(--must-ink); color: #fff; font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 10px; border-radius: 0 0 6px 6px;
+  }
+
+  /* ---------- Cards (shared by map + board) ---------- */
+  .card {
+    background: var(--surface); border: 1px solid var(--line-soft);
+    border-left: 4px solid var(--line); border-radius: 8px; padding: 8px 10px;
+    display: grid; grid-template-columns: 1fr auto; grid-template-areas: "id kind" "text text" "prio prio";
+    gap: 3px 6px; box-shadow: 0 1px 2px rgba(0,0,0,.05);
+  }
+  .card .card-id { grid-area: id; font-family: var(--mono); font-size: 0.74rem; font-weight: 700; }
+  .card .card-kind { grid-area: kind; font-size: 0.62rem; font-weight: 700; width: 16px; height: 16px;
+                     display: inline-flex; align-items: center; justify-content: center;
+                     border-radius: 3px; background: #e8e8ed; color: var(--muted); }
+  .card .card-text { grid-area: text; margin: 0; font-size: 0.82rem; line-height: 1.3;
+                     overflow-wrap: break-word; }
+  .card .card-prio { grid-area: prio; justify-self: start; font-size: 0.64rem; font-weight: 700;
+                     text-transform: uppercase; letter-spacing: 0.04em; padding: 1px 6px; border-radius: 999px; }
+  .card-functional .card-kind { background: #dfe9ff; color: #0a3a86; }
+  .card-ui         .card-kind { background: #e7f6e9; color: #137333; }
+  .card-story      .card-kind { background: #f3e9ff; color: #5a2ca0; }
+  .card-must   { border-left-color: var(--must-ink); }
+  .card-must   .prio-must,   .prio-must   { background: var(--must-bg);   color: var(--must-ink); }
+  .card-should { border-left-color: var(--should-ink); }
+  .card-should .prio-should, .prio-should { background: var(--should-bg); color: var(--should-ink); }
+  .card-could  { border-left-color: var(--could-ink); }
+  .card-could  .prio-could,  .prio-could  { background: var(--could-bg);  color: var(--could-ink); }
+  .card-wont   { border-left-color: var(--wont-ink); filter: grayscale(0.4); }
+  .card-wont   .prio-wont,   .prio-wont   { background: var(--wont-bg);   color: var(--wont-ink); }
+  .card-unset  { border-left-color: var(--unset-ink); }
+  .card-unset  .card-prio { background: var(--unset-bg); color: var(--unset-ink); }
+  .card.gr24-flag { box-shadow: 0 0 0 2px var(--should-ink); }
+  .card.gr24-flag .card-id::after { content: " ⚑"; color: var(--should-ink); }
+
+  /* ---------- MoSCoW board ---------- */
+  .moscow-grid { display: grid; grid-template-columns: repeat(4, minmax(200px, 1fr)); gap: 12px; align-items: start; }
+  .moscow-col { background: var(--surface); border: 1px solid var(--line-soft); border-radius: var(--radius);
+                padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .moscow-col .col-head { margin: 0; font-size: 0.95rem; }
+  .moscow-col .col-count { font-variant-numeric: tabular-nums; color: var(--muted); font-weight: 600; }
+  .col-must  .col-head { color: var(--must-ink); }
+  .col-should .col-head { color: var(--should-ink); }
+  .col-could .col-head { color: var(--could-ink); }
+  details.col-wont { opacity: 0.7; }
+  details.col-wont > summary { cursor: pointer; font-size: 0.95rem; color: var(--wont-ink); list-style: none; }
+  details.col-wont > summary::-webkit-details-marker { display: none; }
+  details.col-wont > summary::before { content: "▶ "; font-size: 0.7rem; color: var(--muted); }
+  details.col-wont[open] > summary::before { content: "▼ "; }
+  .moscow-col .empty-note { color: var(--muted); font-size: 0.8rem; font-style: italic; }
+  @media (max-width: 760px) { .moscow-grid { grid-template-columns: 1fr 1fr; } }
+
+  /* ---------- Diagnostics ---------- */
+  details.diagnostics-toggle { margin-top: 28px; }
+  details.diagnostics-toggle > summary { cursor: pointer; font-weight: 600; color: var(--muted);
+        padding: 8px 0; }
+  .diagnostics { padding: 4px 2px; }
+  .diagnostics ul { margin: 8px 0; padding-left: 20px; }
+  .diagnostics .check-pass::before { content: "PASS "; color: var(--must-ink); font-family: var(--mono); font-size: 0.78rem; font-weight: 700; }
+  .diagnostics .check-fail::before { content: "FAIL "; color: var(--unset-ink); font-family: var(--mono); font-size: 0.78rem; font-weight: 700; }
+  .diagnostics .soft-warn { color: var(--should-ink); }
+  .diagnostics pre { background: #f5f5f7; border-radius: 8px; padding: 12px; overflow-x: auto; font-size: 0.74rem; }
+  .hidden { display: none; }
+
+  /* ---------- Footer legend ---------- */
+  footer { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--line-soft);
+           color: var(--muted); font-size: 0.78rem; }
+  footer .legend { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+  footer .lg { display: inline-flex; align-items: center; gap: 6px; }
+  footer .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; border: 1px solid var(--line); }
+  footer .credit { margin-top: 8px; text-align: right; }
+
+  @media print {
+    body { background: #fff; }
+    .toc { display: none; }
+    .storymap-scroll { overflow: visible; }
+    .card, .moscow-col, .band { break-inside: avoid; }
+    details.diagnostics-toggle { display: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <!-- 1. Overview -->
+  <header id="overview">
+    <h1>{{TITLE}}</h1>
+    <p class="subtitle">MVP slice + MoSCoW board — a §5 task-flow backbone with each requirement hung beneath its activity and a proposed release-slice line, paired with the MoSCoW priority board. The priorities are read verbatim from requirements.md (GR-24); this lens shows the cut, it does not make it.</p>
+    <div class="meta-grid">
+      <div class="meta-cell"><div class="k">Domain</div><div class="v">{{DOMAIN}}</div></div>
+      <div class="meta-cell"><div class="k">Backbone source</div><div class="v">{{BACKBONE_SOURCE}}</div></div>
+      <div class="meta-cell"><div class="k">Activities</div><div class="v">{{ACTIVITY_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">Requirements mapped</div><div class="v">{{CARD_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">Proposed MVP (Must)</div><div class="v">{{MVP_ITEM_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">Should / Could / Won't</div><div class="v">{{SHOULD_COUNT}} / {{COULD_COUNT}} / {{WONT_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">Unprioritised / Supporting</div><div class="v">{{UNPRIORITISED_COUNT}} / {{N_SUPPORTING}}</div></div>
+      <div class="meta-cell"><div class="k">Generated</div><div class="v mono">{{GENERATED_AT}}</div></div>
+      <div class="meta-cell"><div class="k">requirements.md sha256</div><div class="v mono">{{REQUIREMENTS_SHA256}}</div></div>
+    </div>
+
+    <aside class="mvp-proposal" role="note">
+      <p class="mvp-proposal-head">Proposed MVP — the walking skeleton</p>
+      <p class="mvp-proposal-body">{{MVP_ITEM_COUNT}} requirements are <strong>Must</strong> (above the release-slice line). {{MVP_RATIONALE_LINE}}</p>
+      <p class="mvp-proposal-handback">Confirm or adjust this slice before client hand-off — the consultant owns the final cut.</p>
+    </aside>
+  </header>
+
+  <!-- 2. TOC -->
+  <nav class="toc">
+    <a href="#overview">Overview</a>
+    <a href="#storymap">Story map</a>
+    <a href="#board">MoSCoW board</a>
+    <a href="#diagnostics">Diagnostics</a>
+  </nav>
+
+  <!-- 3. Story map (top of document) -->
+  <h2 id="storymap">User-story map</h2>
+  <p class="subtitle">Columns are backbone activities in §5 flow order. Cards above the slice line are the proposed MVP (Must); cards below are later releases. Won't items are on the MoSCoW board only.</p>
+  {{STORY_MAP_BLOCK}}
+
+  <!-- 4. MoSCoW board -->
+  <h2 id="board">MoSCoW board</h2>
+  <p class="subtitle">The §6.1 / §6.4 / §4.2 Priority field rendered as a board. Won't items are excluded from the build (GR-24) and shown collapsed for completeness.</p>
+  {{MOSCOW_BOARD_BLOCK}}
+
+  <!-- 5. Diagnostics -->
+  <details id="diagnostics" class="diagnostics-toggle">
+    <summary>Diagnostics &amp; provenance</summary>
+    {{DIAGNOSTICS_BLOCK}}
+  </details>
+
+  <footer>
+    <div class="legend">
+      <span class="lg"><span class="sw" style="background:var(--must-bg);border-color:var(--must-line)"></span> Must — proposed MVP</span>
+      <span class="lg"><span class="sw" style="background:var(--should-bg);border-color:var(--should-line)"></span> Should — Release 2</span>
+      <span class="lg"><span class="sw" style="background:var(--could-bg);border-color:var(--could-line)"></span> Could — Later</span>
+      <span class="lg"><span class="sw" style="background:var(--wont-bg);border-color:var(--wont-line)"></span> Won't — excluded</span>
+      <span class="lg"><span class="sw" style="background:var(--unset-bg);border-color:var(--unset-line)"></span> Unprioritised</span>
+      <span class="lg">F = functional · UI = UI need · S = story</span>
+    </div>
+    <div class="credit">Generated by `framework/agents/analyses/mvp-slicing-analyser.md`.</div>
+  </footer>
+
+</main>
+</body>
+</html>

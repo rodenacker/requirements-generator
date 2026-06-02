@@ -51,6 +51,7 @@ The skill stamps an `architect_roles` array into every `selections[]` row, drawn
 | `opportunity-solution-trees` | `feature-presence`, `variant-philosophy` |
 | `crud-coverage` | `screen-inventory-entity-bijection`, `per-screen-cta-set` |
 | `five-whys` | `upstream-only` |
+| `mvp-slicing` | `upstream-only` |
 
 Role semantics (closed enum, consumed by `blueprint-architect.md`):
 

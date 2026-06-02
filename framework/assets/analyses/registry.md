@@ -80,6 +80,16 @@ methodologies:
     map_skill: framework/skills/map-opportunity-solution-trees-to-ui.md
     analyser_agent: framework/agents/analyses/opportunity-solution-trees-analyser.md
     character: framework/assets/characters/opportunity-solution-trees-analysis.md
+  - name: mvp-slicing
+    status: mvp
+    group: Users, goals & value
+    description: Choose this when the requirements carry priorities but no one has drawn the line between what ships first and what waits. It produces an HTML user-story map — a §5 task-flow backbone with F-NN, UI-NN, and §4.2 story cards beneath each activity and a release-slice line proposed from the GR-24 Must set — paired with a MoSCoW board of the §6.1, §6.4, and §4.2 priorities. Use the proposed slice to confirm the MVP scope before wireframing, and the MoSCoW board to see at a glance what each priority bucket holds.
+    output_path: analyse-requirements/MVP-SLICING/mvp-slicing.html
+    reference_asset: framework/assets/analyses/mvp-slicing-reference.md
+    template_asset: framework/assets/analyses/template-mvp-slicing.html
+    map_skill: framework/skills/map-mvp-slicing-to-ui.md
+    analyser_agent: framework/agents/analyses/mvp-slicing-analyser.md
+    character: framework/assets/characters/mvp-slicing-analysis.md
   - { name: storytelling-narrative-synthesis, status: future }
   - name: five-whys
     status: mvp
