@@ -24,7 +24,7 @@ A Claude Code workspace for consultants and business analysts. Drop the client m
 
 `/analyse-requirement`, `/review-requirement`, `/wireframe`, and `/prototype` read `requirements/requirements.md` — run `/requirements` first. `/analyse-inputs` and `/review-inputs` read the raw `input/` files via a shared manifest. `/start`, `/requirements`, `/generate-prd`, and `/design-system` are stand-alone.
 
-For a visual map of how the commands connect — the base spine, the optional review/analysis lenses, and the final design/build layer — see the interactive **[system flowchart](https://rodenacker.github.io/requirements-generator/requirements-generator-flow.html)**. Open it in a browser and click any block for that pipeline's full description, including a card per methodology.
+For a visual map of how the commands connect — the base spine, the optional review/analysis lenses, and the final design/build layer — see the interactive **[system flowchart](https://rodenacker.github.io/requirements-generator/docs/requirements-generator-flow.html)**. Open it in a browser and click any block for that pipeline's full description, including a card per methodology.
 
 ## 2. When to use which command
 
@@ -52,7 +52,7 @@ Every command runs interactively inside Claude Code and keeps you in the loop. A
 - **Re-runs are safe.** Each pipeline detects a prior run and offers to **continue**, **start fresh**, or **overwrite** — the prior work is committed to git first, so nothing is lost. Run a lens pipeline again to add another artefact alongside the first.
 - **Input file types** (for the commands that read `input/` — `/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`): text (`.md`, `.txt`, `.drawio`, `.yml`, `.yaml`, `.xml`) and images (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`) are read directly; Office and PDF (`.docx`, `.xlsx`, `.pptx`, `.pdf`) are converted first (needs markitdown — see §4.2); anything else is logged so it doesn't slip through silently.
 
-The [system flowchart](https://rodenacker.github.io/requirements-generator/requirements-generator-flow.html) linked above gives the visual map and a deeper per-methodology description.
+The [system flowchart](https://rodenacker.github.io/requirements-generator/docs/requirements-generator-flow.html) linked above gives the visual map and a deeper per-methodology description.
 
 ### 3.1 `/start`
 
