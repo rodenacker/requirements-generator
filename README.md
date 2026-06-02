@@ -4,8 +4,22 @@
 
 - [1. Overview](#1-overview)
 - [2. When to use which command](#2-when-to-use-which-command)
-- [3. Commands](#3-commands) — [`/start`](#31-start) · [`/requirements`](#32-requirements) · [`/generate-prd`](#33-generate-prd) · [`/design-system`](#34-design-system) · [`/analyse-inputs`](#35-analyse-inputs) · [`/analyse-requirement`](#36-analyse-requirement) · [`/review-inputs`](#37-review-inputs) · [`/review-requirement`](#38-review-requirement) · [`/wireframe`](#39-wireframe) · [`/prototype`](#310-prototype)
-- [4. Setup](#4-setup) — [4.1 First-time install](#41-first-time-install-one-off) · [4.2 Office & PDF inputs](#42-to-handle-word-excel-powerpoint-and-pdf-inputs) · [4.3 Tokens from a URL](#43-to-extract-design-tokens-from-a-reference-url) · [4.4 Prototypes](#44-to-generate-clickable-prototypes)
+- [3. Commands](#3-commands) 
+    - [`/start`](#31-start) 
+    - [`/requirements`](#32-requirements)
+    - [`/generate-prd`](#33-generate-prd)
+    - [`/design-system`](#34-design-system)
+    - [`/analyse-inputs`](#35-analyse-inputs)
+    - [`/analyse-requirement`](#36-analyse-requirement)
+    - [`/review-inputs`](#37-review-inputs)
+    - [`/review-requirement`](#38-review-requirement)
+    - [`/wireframe`](#39-wireframe)
+    - [`/prototype`](#310-prototype)
+- [4. Setup](#4-setup)
+    - [4.1 First-time install](#41-first-time-install-one-off)
+    - [4.2 Office & PDF inputs](#42-to-handle-word-excel-powerpoint-and-pdf-inputs)
+    - [4.3 Tokens from a URL](#43-to-extract-design-tokens-from-a-reference-url)
+    - [4.4 Prototypes](#44-to-generate-clickable-prototypes)
 
 ## 1. Overview
 

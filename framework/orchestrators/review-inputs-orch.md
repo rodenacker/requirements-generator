@@ -27,7 +27,7 @@ This orchestrator and its reviewer agents are **isolated from the `/requirements
 - `review-inputs/<METHOD>/*` — the reviewer's output path (per the chosen registry row's `output_path` field).
 - `requirements/source-manifest.json` — **only** when step 1's input-handler invocation enters its `mode = "create"` (absent) or `mode = "refresh"` (stale, consultant chose Refresh) branch. The manifest path is shared with `/requirements`, `/generate-prd`, and `/analyse-inputs`; the write is bounded to a single canonical file. The input-handler also writes `input/<basename>.converted.md` siblings as part of the same invocation. On `mode = "no-op"` (fresh) and `mode = "proceed-stale"`, no write to this path occurs.
 - `framework/state/timing.ndjson` — **not** written by this orchestrator. This pipeline does not maintain timing state; timing observability is a `/requirements`-pipeline concern.
-- `framework/state/.progress.json` — **not** written by this orchestrator. The pipeline is a one-shot foreground run; resuming an interrupted run means restarting it. The orchestrator passes `progress_path: null` to the input-handler at step 1 so the agent's `RF-01 continue-later` write is suppressed.
+- `framework/state/.progress.json` — **not** written by this orchestrator. The pipeline loops back to the selector in memory only (see **Selection loop**); resumability is reconstructed from on-disk artefact presence, never from a progress file. The orchestrator passes `progress_path: null` to the input-handler at step 1 so the agent's `RF-01 continue-later` write is suppressed.
 
 **Reads (allowed):**
 - `framework/assets/reviews-inputs/registry.md` — methodology registry. Read-only via the analysis-selector skill.
@@ -41,38 +41,40 @@ The reviewer agent itself remains fully stand-alone-ish — its only `requiremen
 
 ## No progress file
 
-Unlike `requirements-orch.md`, this orchestrator does **not** maintain a `.progress.json` file. The pipeline is a one-shot foreground run; resuming an interrupted run means restarting it. If the consultant terminates mid-run, no state needs to be cleaned up beyond whatever the reviewer owns (each reviewer specifies its own workspace cleanup, if any). The shared input-handler is invoked with `progress_path: null` so its `RF-01 continue-later` branch records nothing on disk.
+Unlike `requirements-orch.md`, this orchestrator does **not** maintain a `.progress.json` file. The pipeline runs one reviewer per iteration and loops back to the methodology selector after each accepted artefact (see **Selection loop** below), but that loop is held **in memory only** — no progress file is written. Resumability is reconstructed from on-disk artefact presence by the selector's `already_run` `Glob` probe: after a `/clear`, re-invoking `/review-inputs` re-renders the menu with `✓ already run` marks on every methodology already produced. If the consultant terminates mid-run, no state needs to be cleaned up beyond whatever the reviewer owns (each reviewer specifies its own workspace cleanup, if any). The shared input-handler is invoked with `progress_path: null` so its `RF-01 continue-later` branch records nothing on disk.
+
+## Selection loop
+
+Steps 0–3 form an in-memory loop whose head is the step-0 methodology selector. The step-0a context-bloat preflight and the step-1 input-handler invocation are **preflight that runs exactly once per session** — they execute on the first iteration only, guarded by an in-memory `preflight_done` flag (set `true` after step 1 hands back). On every later iteration the orchestrator goes straight from the step-0 selector to step 2. After each reviewer hands back an accepted artefact, the orchestrator returns to step 0 and re-invokes the selector — which re-probes disk and re-renders the menu with the just-run methodology now marked `✓ already run` and the next un-run one flagged `★ suggested next`. The pipeline ends **only** when the selector returns `cancelled` (the consultant typed `0` / `cancel` / `q` / `exit`) or `empty-registry` (reachable only on the first iteration). Keep one in-memory counter, `run_count` (accepted methodologies this session), used solely to phrase the exit message; never persist it (nor `preflight_done`).
 
 ## Pipeline
 
-0. **Select methodology** — invoke `framework/skills/analysis-selector.md` with `registry_path: "framework/assets/reviews-inputs/registry.md"`, `list_label: "reviews"`, `verb_label: "review"`. The skill reads the registry, filters `status == mvp`, surfaces a numbered prompt + cancel option, and returns one of `selected | cancelled | empty-registry`.
+0. **Select methodology (selection-loop head)** — invoke `framework/skills/analysis-selector.md` with `registry_path: "framework/assets/reviews-inputs/registry.md"`, `list_label: "reviews"`, `verb_label: "review"`. The skill reads the registry, filters `status == mvp`, surfaces a numbered prompt + cancel option, and returns one of `selected | cancelled | empty-registry`. This step is re-entered after every accepted artefact (see **Selection loop**); each invocation re-probes disk, so already-run methodologies carry the `✓` mark and the next un-run one carries `★`.
     - `selected` — capture the returned row payload (nine registry fields) into in-memory variables: `chosen.name`, `chosen.reviewer_agent`, `chosen.output_path`, `chosen.reference_asset`, `chosen.template_asset`, `chosen.map_skill`, `chosen.character`. Advance to step 0a.
-    - `cancelled` — emit *"Cancelled. No review run."* and exit cleanly.
-    - `empty-registry` — emit *"No input-review methodologies are available yet. Each methodology ships in a separate PR — check `framework/assets/reviews-inputs/registry.md` for planned `status: future` rows."* and exit cleanly. This is the **expected** state on framework first-ship until the first methodology row's status is flipped to `mvp`.
+    - `cancelled` — this is the pipeline's sole post-preflight exit. If `run_count == 0`, emit *"Cancelled. No review run."*; if `run_count ≥ 1`, emit *"Done — ran {{run_count}} {{noun}} this session."* where `{{noun}}` is "review" when `run_count == 1` and "reviews" otherwise. Then exit cleanly.
+    - `empty-registry` — emit *"No input-review methodologies are available yet. Each methodology ships in a separate PR — check `framework/assets/reviews-inputs/registry.md` for planned `status: future` rows."* and exit cleanly. This is the **expected** state on framework first-ship until the first methodology row's status is flipped to `mvp`. (Only reachable on the first iteration; once a methodology has run, the registry is non-empty.)
 
-0a. **Preflight: context-bloat check** — performed only when step 0 returned `selected`. Call `framework/skills/check-context-bloat.md` with `artefact_dir = input/`, `manifest_path = requirements/source-manifest.json`, and `progress_path = framework/state/.progress.json`. The `input/` folder is the byte volume actually entering the reviewer's context, and is the realistic bloat source for this pipeline (in contrast to the `/requirements`-pipeline preflight which passes `requirements/`). On `ok`, proceed to step 1. On `RF-05 trigger`, surface the predicate per `framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` (review-inputs-orch surface variant, see below) via `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`.
+0a. **Preflight: context-bloat check (first iteration only)** — performed only when step 0 returned `selected` **and** `preflight_done` is `false`. On loop iterations where `preflight_done` is `true`, skip this step (and step 1) and go straight to step 2. Call `framework/skills/check-context-bloat.md` with `artefact_dir = input/`, `manifest_path = requirements/source-manifest.json`, and `progress_path = framework/state/.progress.json`. The `input/` folder is the byte volume actually entering the reviewer's context, and is the realistic bloat source for this pipeline (in contrast to the `/requirements`-pipeline preflight which passes `requirements/`). On `ok`, proceed to step 1. On `RF-05 trigger`, surface the predicate per `framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` (review-inputs-orch surface variant, see below) via `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`.
     - `proceed-without-clear` — proceed to step 1.
     - `continue-later` — output: *"Conversation context looks bloated from prior pipeline state. Run `/clear` and re-invoke `/review-inputs` for a clean run."* and exit cleanly. Do **not** write `framework/state/.progress.json` — same constraint as the `design-system-orch`, `analyse-requirement-orch`, and `analyse-inputs-orch` surface variants of RF-05. Do **not** modify any path under `review-inputs/`.
 
-1. **Input-handle** — invoke `framework/agents/input-handler.md` in the foreground with `input_dir: "input/"`, `manifest_path: "requirements/source-manifest.json"`, and `progress_path: null`. The agent owns the manifest lifecycle: it decides at its step 0 whether to **create** (manifest absent), **refresh** (present-and-stale, with consultant consent at its drift prompt), **no-op** (present-and-fresh, silent), or **halt** (present-but-corrupt). The orchestrator does not branch on manifest state itself; this single invocation is uniform regardless of what is on disk. Wait until the agent hands back per its Definition of Done. If the agent fails its handback via `RF-01 continue-later` (with `progress_path: null` the agent records nothing on disk), `RF-03 abort`, `RF-04 manifest-corruption halt`, or `Cancel` at the step-0 drift prompt, exit cleanly. On successful handback, advance to step 2.
+1. **Input-handle (first iteration only)** — performed only when `preflight_done` is `false` (skipped on later loop iterations per step 0a). Invoke `framework/agents/input-handler.md` in the foreground with `input_dir: "input/"`, `manifest_path: "requirements/source-manifest.json"`, and `progress_path: null`. The agent owns the manifest lifecycle: it decides at its step 0 whether to **create** (manifest absent), **refresh** (present-and-stale, with consultant consent at its drift prompt), **no-op** (present-and-fresh, silent), or **halt** (present-but-corrupt). The orchestrator does not branch on manifest state itself; this single invocation is uniform regardless of what is on disk. Wait until the agent hands back per its Definition of Done. If the agent fails its handback via `RF-01 continue-later` (with `progress_path: null` the agent records nothing on disk), `RF-03 abort`, `RF-04 manifest-corruption halt`, or `Cancel` at the step-0 drift prompt, exit cleanly. On successful handback, set `preflight_done = true` and advance to step 2.
 
 2. **Detect prior artefact for the chosen methodology** — `Read chosen.output_path`.
     - **No prior artefact** — proceed directly to step 3.
     - **Prior artefact exists** — surface a single `AskUserQuestion`:
-        - Question: *"`{{chosen.output_path}}` already exists. Overwrite it with a fresh run, keep it and exit, or cancel?"*
+        - Question: *"`{{chosen.output_path}}` already exists. Overwrite it with a fresh run, or keep it and pick another?"*
         - Header: `Prior artefact`
         - Options:
             1. `Overwrite — checkpoint and re-run`
-            2. `Keep — exit without changes (Recommended)`
-            3. `Cancel — exit without changes`
+            2. `Keep — back to the menu (Recommended)`
         - Branch:
             - **Overwrite** — perform the per-methodology **Reset procedure** below, then proceed to step 3.
-            - **Keep** — output: *"Keeping existing `{{chosen.output_path}}`. No changes made."* and exit cleanly.
-            - **Cancel** — output: *"Cancelled. No changes made."* and exit cleanly.
+            - **Keep** — output: *"Keeping existing `{{chosen.output_path}}`. Back to the menu."* and return to step 0 (the selection-loop head). Do not increment `run_count`.
 
 3. **Invoke the reviewer** — invoke `chosen.reviewer_agent` in the foreground. Wait until the agent reports the artefact accepted (handback gate below).
 
-There is no step 4. After the handback gate is met, the orchestrator declares done.
+After the handback gate is met, emit *"✓ Ran {{chosen.name}}. Back to the menu."*, increment `run_count`, and return to step 0 (the selection-loop head). The orchestrator does **not** declare done here — the pipeline ends only when the consultant cancels at the step-0 selector. The step-0a/step-1 preflight is not re-run (`preflight_done == true`).
 
 ## Per-methodology Reset procedure (overwrite an existing artefact)
 
@@ -119,7 +121,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 
 - `Read` — check whether `<chosen.output_path>` exists at step 2; read `framework/state/.progress.json`, `requirements/source-manifest.json`, and the files directly under `input/` (existence and byte size only) as preflight inputs to the step-0a context-bloat skill. No other reads outside the input-handler's and reviewer's input paths are permitted. The step-1 manifest existence-and-freshness check is owned by the input-handler at its step 0, not by the orchestrator.
 - `Bash` — git checkpoint commit + `rm -f <chosen.output_path>` during the Reset procedure. No other Bash usage outside what the invoked agents own. Never use destructive operations beyond the explicitly named path. Never push or skip hooks.
-- `AskUserQuestion` — surface the step-2 `{ Overwrite, Keep, Cancel }` prompt when a prior artefact exists, and surface the `RF-05 { proceed-without-clear, continue-later }` prompt when the step-0a preflight returns `RF-05 trigger`. The step-0 methodology prompt belongs to the analysis-selector skill; the step-1 input-handler's `RF-01` / `RF-03` / `Manifest drift` prompts belong to that agent; the step-3 accept/revise/restart prompts belong to the reviewer agent — the orchestrator does not surface any of these directly.
+- `AskUserQuestion` — surface the step-2 `{ Overwrite, Keep }` prompt when a prior artefact exists, and surface the `RF-05 { proceed-without-clear, continue-later }` prompt when the step-0a preflight returns `RF-05 trigger`. The step-0 methodology prompt belongs to the analysis-selector skill; the step-1 input-handler's `RF-01` / `RF-03` / `Manifest drift` prompts belong to that agent; the step-3 accept/revise/restart prompts belong to the reviewer agent — the orchestrator does not surface any of these directly.
 
 The orchestrator's tools are limited to the operations above. Every other read or write of review content belongs to the invoked agent; each agent uses the tools listed in its own agent file.
 
@@ -127,7 +129,7 @@ The orchestrator's tools are limited to the operations above. Every other read o
 
 `framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` is defined with surface variants for each pipeline orchestrator. The `/review-inputs` pipeline uses a **fifth surface variant** identical in shape to the `analyse-inputs-orch` variant:
 
-- Fired once at step 0a, immediately after the step-0 methodology selector returns `selected` and before step 1's manifest preflight runs.
+- Fired once per session, on the first selection — at step 0a, immediately after the step-0 methodology selector returns `selected` and before step 1's manifest preflight runs (guarded by `preflight_done`; not re-fired on later selection-loop iterations).
 - `proceed-without-clear` advances; `continue-later` exits cleanly with a *"run `/clear` and re-invoke `/review-inputs`"* message.
 - **No write to `framework/state/.progress.json`** on either branch. The `/review-inputs` pipeline is bound by the no-progress-file invariant; this surface variant deliberately omits the `status: context-bloated` write that the requirements-orch variant performs.
 - `artefact_dir = input/` (not `requirements/`), because `input/` is the byte volume entering the reviewer's context for this pipeline. The `bytes_total` and `row_count` thresholds in `check-context-bloat.md` are unchanged.
@@ -145,24 +147,27 @@ Each input-reviewer additionally records a source-roster section in its artefact
 
 ## Self-validation (run before declaring done)
 
-- Step 0 ran. The analysis-selector skill returned exactly one of `selected | cancelled | empty-registry`, and the orchestrator branched accordingly. On `empty-registry`, the orchestrator exited cleanly with the "no input reviews available yet" message and no further step ran.
-- Step 0a ran on every path that returned `selected` at step 0, and the consultant's `RF-05` choice (if surfaced) was honoured: `proceed-without-clear` advanced to step 1; `continue-later` exited cleanly without writing `framework/state/.progress.json` and without modifying `review-inputs/`.
-- Step 1 ran on every path that returned `selected` at step 0 and `proceed` (or `ok`) at step 0a. The input-handler was invoked uniformly with `progress_path: null` and ran to handback per its Definition of Done, decided its own mode (`create` / `refresh` / `no-op` / `proceed-stale`), and produced a manifest at `requirements/source-manifest.json` plus any required `*.converted.md` siblings (on `create` and `refresh` only). If the input-handler exited via `RF-01 continue-later`, `RF-03 abort`, step-0 `RF-04 manifest-corruption halt`, or step-0 `Cancel` at its drift prompt, the orchestrator exited cleanly and no reviewer was invoked.
-- If the consultant chose `Cancel` at the step-0 selector, `continue-later` at step 0a, or `Keep`/`Cancel` at the step-2 prior-artefact gate, no `Bash` was run and the reviewer was not invoked.
+- Step 0 ran as the selection-loop head — re-entered after every accepted artefact. On each entry the analysis-selector skill returned exactly one of `selected | cancelled | empty-registry`, and the orchestrator branched accordingly. On `empty-registry` (first iteration only), the orchestrator exited cleanly with the "no input reviews available yet" message and no further step ran. The `cancelled` exit message reflected `run_count` (zero → "No review run"; ≥1 → "ran N reviews this session").
+- Step 0a and step 1 are once-per-session preflight, guarded by `preflight_done`: they ran on the first `selected` iteration and were **skipped** on every later iteration (the orchestrator went straight from step 0 to step 2). `preflight_done` was set `true` only after step 1's successful handback.
+- On the first iteration, step 0a ran and the consultant's `RF-05` choice (if surfaced) was honoured: `proceed-without-clear` advanced to step 1; `continue-later` exited cleanly without writing `framework/state/.progress.json` and without modifying `review-inputs/`. Step 1's input-handler was invoked uniformly with `progress_path: null` and ran to handback per its Definition of Done, decided its own mode (`create` / `refresh` / `no-op` / `proceed-stale`), and produced a manifest at `requirements/source-manifest.json` plus any required `*.converted.md` siblings (on `create` and `refresh` only). If the input-handler exited via `RF-01 continue-later`, `RF-03 abort`, step-0 `RF-04 manifest-corruption halt`, or step-0 `Cancel` at its drift prompt, the orchestrator exited cleanly and no reviewer was invoked.
+- If the consultant chose `continue-later` at step 0a (first iteration) or `Keep` at the step-2 prior-artefact gate, no `Bash` was run and the reviewer was not invoked; `Keep` returned control to step 0 without incrementing `run_count`.
 - If the consultant chose `Overwrite` at step 2, the git checkpoint commit ran without `--no-verify`, without amend, and without push, and the prior artefact was deleted before the agent was invoked.
 - If the reviewer was invoked, its handback gate was met (artefact exists, verify pass, consultant accepted).
 - Every invoked agent was run in the foreground, never via the Agent / Task / fork / sub-agent mechanism.
 - No file was written outside `review-inputs/<chosen.name>/`, with the documented step-1 exception of `requirements/source-manifest.json` and `input/*.converted.md` siblings produced by the input-handler.
-- `framework/state/.progress.json` was not written by this orchestrator on any branch.
+- `framework/state/.progress.json` was not written by this orchestrator on any branch. No selection-loop state (`run_count`, `preflight_done`) was persisted to disk; the loop ran in memory only.
 - `framework/state/timing.ndjson` was not written by this orchestrator on any branch.
 
 ## Definition of Done
 
-- Either the consultant chose `Cancel` at step 0 or `Keep` / `Cancel` at step 2 (and the orchestrator exited cleanly), or
-- The selector returned `empty-registry` at step 0 (and the orchestrator exited cleanly with the "no input reviews available yet" message), or
-- The consultant chose `continue-later` at the step-0a RF-05 prompt (and the orchestrator exited cleanly with no state write), or
-- The input-handler exited via `RF-01 continue-later`, `RF-03 abort`, `RF-04 manifest-corruption halt`, or `Cancel` at the step-0 drift prompt (and the orchestrator exited cleanly), or
-- The reviewer ran to handback with a consultant Accept, and `<chosen.output_path>` exists with `verify-artifact-write` having returned `pass`.
+The pipeline is done when the **selection loop has exited** — exactly one of:
+
+- The consultant chose `Cancel` at the step-0 selector (after running zero or more methodologies this session), and the orchestrator exited cleanly with the `run_count`-aware message, or
+- The selector returned `empty-registry` at step 0 (first iteration; and the orchestrator exited cleanly with the "no input reviews available yet" message), or
+- The consultant chose `continue-later` at the step-0a RF-05 prompt on the first iteration (and the orchestrator exited cleanly with no state write), or
+- The input-handler exited on the first iteration via `RF-01 continue-later`, `RF-03 abort`, `RF-04 manifest-corruption halt`, or `Cancel` at the step-0 drift prompt (and the orchestrator exited cleanly).
+
+Each methodology run *within* the loop completes when the reviewer hands back a consultant-accepted artefact (`<chosen.output_path>` exists with `verify-artifact-write` having returned `pass`); the orchestrator then returns to the selector rather than declaring done.
 
 ## Anti-Patterns
 
@@ -171,13 +176,16 @@ Each input-reviewer additionally records a source-roster section in its artefact
 - Do not read, write, or edit any review artefact directly. The orchestrator's only direct disk operations are the existence checks (Read), the per-methodology Reset procedure (Bash rm + git commit), and the step-0a preflight reads. Every other read or write belongs to the invoked agent.
 - Do not call any skill, asset, or tool not invoked transitively by the input-handler or the reviewer, or listed in this orchestrator's **Tools** section.
 - Do not run any agent as a background / sub / async agent. Each must run in the foreground in the same thread so consultant Q&A and acceptance happen in-thread.
-- Do not run the per-methodology Reset procedure when no prior artefact was detected, and do not run it when the consultant chose `Keep` or `Cancel`.
+- Do not run the per-methodology Reset procedure when no prior artefact was detected, and do not run it when the consultant chose `Keep`.
 - Do not delete anything outside `<chosen.output_path>` during a reset. The Reset procedure is scoped to one file per methodology, plus the git checkpoint commit.
 - Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the checkpoint commit.
-- Do not maintain a `.progress.json` file. This orchestrator is single-agent at heart (the input-handler invocation at step 1 is preflight, not a tracked pipeline stage) and one-shot; progress tracking is unnecessary and out of scope.
+- Do not maintain a `.progress.json` file. This orchestrator runs one reviewer per iteration (the input-handler invocation at step 1 is once-per-session preflight, not a tracked pipeline stage) and loops back to the selector in memory only; on-disk progress tracking is unnecessary and out of scope (the selector reconstructs run-state from artefact presence).
+- Do not re-run the step-0a context-bloat preflight or the step-1 input-handler invocation on loop iterations. Both are once-per-session preflight, guarded by `preflight_done`; on later iterations the loop goes straight from step 0 to step 2.
+- Do not persist `run_count` or `preflight_done` (or any selection-loop state) to disk, and do not treat them as resumable across a `/clear`. The loop is in-memory only; cross-session continuity comes from the selector's on-disk `✓ already run` probe and the input-handler's own freshness check on a fresh invocation.
+- Do not declare done after a single accepted artefact. After handback, return to the step-0 selector; the only loop exit is selector `cancelled` (plus the first-iteration `empty-registry` / step-0a / step-1 preflight exits).
 - Do not write to `framework/state/timing.ndjson`. Timing observability is a `/requirements`-pipeline concern; this pipeline does not append to it.
 - Do not skip step 0a on a path that returned `selected` at step 0. The preflight is the only place where prior-conversation bloat is detected before the reviewer runs.
-- Do not skip step 1's input-handler invocation on a path that has not returned `cancelled` or `empty-registry` at step 0. Without it the manifest's freshness goes unchecked and (on first-mover) the manifest is never built; either way, the reviewer has no usable source enumeration.
+- Do not skip step 1's input-handler invocation on the **first** iteration (when `preflight_done` is `false`) once step 0 has returned `selected`. Without it the manifest's freshness goes unchecked and (on first-mover) the manifest is never built; either way, the reviewer has no usable source enumeration. (On later iterations the input-handler is deliberately skipped — that is the `preflight_done` guard, not a violation.)
 - Do not branch step 1 on whether the manifest exists on disk. The orchestrator must call the input-handler uniformly; the agent owns the create / refresh / no-op / halt decision. Re-introducing per-orchestrator branching here duplicates instructions the input-handler already owns.
 - Do not invoke the input-handler with a non-null `progress_path`. This pipeline does not own a progress file; passing a path would orphan a `setup-pending` state with no orchestrator that watches for it.
 - Do not write `framework/state/.progress.json` on the `RF-05 continue-later` branch or on the input-handler's `RF-01 continue-later` branch. The review-inputs pipeline is bound by the no-write-outside-`review-inputs/` invariant (with the documented step-1 exceptions).
