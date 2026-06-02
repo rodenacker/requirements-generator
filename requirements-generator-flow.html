@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Requirements Generator — System Flowchart</title>
+<style>
+  :root {
+    --ink:         #222;
+    --ink-soft:    #555;
+    --ink-faint:   #777;
+    --paper:       #fafafa;
+    --card:        #ffffff;
+    --rule:        #d6d6d6;
+    --rule-soft:   #ececec;
+    --accent:      #2a5d7e;
+    --accent-bg:   #e8f0f6;
+
+    /* Base pipelines: solid fill, solid border */
+    --base-tint:   #e6efe8;
+    --base-rule:   #5d8a6a;
+    --base-ink:    #1f3d28;
+
+    /* Optional pipelines: lighter fill, dashed border */
+    --opt-tint:    #fbf2e2;
+    --opt-rule:    #b58a3a;
+    --opt-ink:     #5d4116;
+
+    --planned-tint:#f4e9e4;
+    --planned-rule:#c9a89a;
+    --tag-bg:      #efefef;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  .page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 40px 32px 80px;
+  }
+
+  /* ---------- Header / TOC ---------- */
+  header.hero {
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 20px;
+    margin-bottom: 28px;
+  }
+  header.hero h1 {
+    font-size: 26px;
+    margin: 0 0 6px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  header.hero p { color: var(--ink-soft); margin: 0; max-width: 920px; }
+  nav.toc {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin-bottom: 30px;
+    font-size: 13px;
+  }
+  nav.toc strong { display: block; margin-bottom: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); }
+  nav.toc ul { margin: 0; padding-left: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px 22px; }
+  nav.toc a { color: var(--accent); text-decoration: none; }
+  nav.toc a:hover { text-decoration: underline; }
+
+  h2.section {
+    font-size: 18px;
+    margin: 44px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--rule);
+    font-weight: 600;
+  }
+  h2.section .num { color: var(--ink-faint); font-weight: 500; margin-right: 8px; }
+
+  p.lede { color: var(--ink-soft); max-width: 920px; margin: 0 0 18px; }
+
+  /* ---------- Flowchart ---------- */
+  .dag {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 24px 16px 18px;
+    overflow-x: auto;
+  }
+  .dag-canvas {
+    position: relative;
+    width: 1000px;
+    height: 760px;
+    margin: 0 auto;
+  }
+  .block {
+    position: absolute;
+    width: 240px;
+    height: 60px;
+    padding: 8px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: var(--card);
+    text-decoration: none;
+    color: inherit;
+    z-index: 2;
+    transition: transform .08s ease, box-shadow .12s ease;
+  }
+  .block:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.10);
+  }
+  /* Spine: solid, sharp corners (Inputs, Requirements, Wireframes) */
+  .block.spine {
+    border: 1.5px solid var(--ink);
+    border-radius: 4px;
+    background: var(--card);
+    color: var(--ink);
+  }
+  /* Optional: dashed, rounded (review-/analyse-inputs, PRD, review-/analyse-requirement) */
+  .block.opt {
+    border: 1.5px dashed var(--ink-faint);
+    border-radius: 14px;
+    background: var(--card);
+    color: var(--ink-soft);
+  }
+  /* Aside: solid rounded (Design-System) — base pipeline but isolated branch */
+  .block.aside {
+    border: 1.5px solid var(--ink);
+    border-radius: 14px;
+    background: var(--card);
+    color: var(--ink);
+  }
+  /* Folder: special style for the input/ source — not a pipeline, just a drop folder */
+  .block.folder {
+    border: 3px double var(--ink);
+    border-radius: 70%;
+    background: var(--card);
+    color: var(--ink);
+  }
+  .block .cmd {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    display: block;
+  }
+  .block.opt .cmd { color: var(--ink-soft); }
+  .block .label {
+    font-size: 10px;
+    color: var(--ink-faint);
+    margin-top: 2px;
+    display: block;
+  }
+  .block .count {
+    font-size: 9.5px;
+    color: var(--ink-faint);
+    margin-top: 2px;
+    font-style: italic;
+  }
+  .dag-svg {
+    position: absolute;
+    inset: 0;
+    width: 1000px;
+    height: 760px;
+    pointer-events: none;
+    z-index: 1;
+    overflow: visible;
+  }
+  .dag-svg text.edge-label {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 10.5px;
+    fill: #7a4f1c;
+  }
+  .dag-svg .edge-label-bg {
+    fill: #fbf2e2;
+    stroke: #d6c9a7;
+    stroke-width: 1;
+  }
+  .dag-legend {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule-soft);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 22px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    align-items: center;
+  }
+  .legend-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend-chip .box {
+    display: inline-block;
+    width: 26px; height: 14px;
+    border: 1.5px solid;
+  }
+  .legend-chip .box.spine  { border-color: var(--ink);       border-style: solid;  border-radius: 3px; }
+  .legend-chip .box.opt    { border-color: var(--ink-faint); border-style: dashed; border-radius: 7px; }
+  .legend-chip .box.aside  { border-color: var(--ink);       border-style: solid;  border-radius: 7px; }
+  .legend-chip .box.folder { border-color: var(--ink);       border-style: double; border-radius: 70%; border-width: 3px; }
+  .legend-chip .swatch {
+    display: inline-block;
+    width: 28px; height: 12px;
+    vertical-align: middle;
+  }
+  .swatch.solid  { background: var(--ink); height: 2px; }
+  .swatch.dotted { background: repeating-linear-gradient(90deg, var(--ink-faint) 0 4px, transparent 4px 8px); height: 2px; }
+
+  /* ---------- Accordion descriptions ---------- */
+  details.acc {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    scroll-margin-top: 24px;
+  }
+  details.acc.base { border-color: var(--base-rule); }
+  details.acc.opt  { border-color: var(--opt-rule); border-style: dashed; }
+  details.acc[open] { box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+  details.acc[open].hash-active { box-shadow: 0 0 0 3px var(--accent-bg), 0 2px 12px rgba(0,0,0,0.05); }
+  details.acc > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+    background: var(--card);
+  }
+  details.acc.base > summary { background: var(--base-tint); }
+  details.acc.opt  > summary { background: var(--opt-tint); }
+  details.acc > summary::-webkit-details-marker { display: none; }
+  details.acc > summary::before {
+    content: "▸";
+    color: var(--ink-soft);
+    font-size: 22px;
+    line-height: 1;
+    margin-right: 14px;
+    transition: transform .15s ease;
+    display: inline-block;
+    transform-origin: 50% 55%;
+  }
+  details.acc[open] > summary::before { transform: rotate(90deg); }
+  details.acc > summary .head-left { flex: 1 1 auto; }
+  details.acc > summary .head-cmd {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  details.acc.opt > summary .head-cmd { color: var(--opt-ink); }
+  details.acc.base > summary .head-cmd { color: var(--base-ink); }
+  details.acc > summary .head-role {
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-left: 10px;
+  }
+  details.acc > summary .head-count {
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-left: 8px;
+  }
+  details.acc .back-link {
+    font-size: 11px;
+    color: var(--accent);
+    text-decoration: none;
+    border: 1px solid var(--accent);
+    padding: 3px 8px;
+    border-radius: 99px;
+    background: var(--card);
+  }
+  details.acc .back-link:hover { background: var(--accent-bg); }
+  details.acc .acc-body {
+    padding: 16px 18px 20px;
+    border-top: 1px solid var(--rule-soft);
+  }
+  details.acc.base .acc-body { border-top-color: var(--base-rule); }
+  details.acc.opt  .acc-body { border-top-color: var(--opt-rule); }
+
+  .panel-lede {
+    color: var(--ink-soft);
+    font-size: 13px;
+    margin: 0 0 14px;
+  }
+  .panel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 12px;
+  }
+
+  /* ---------- Card ---------- */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 12px 14px 14px;
+    display: flex;
+    flex-direction: column;
+  }
+  .card.solo  { max-width: 720px; }
+  .card.base  { border-color: var(--base-rule); background: #f4f9f5; }
+  .card.opt   { border-color: var(--opt-rule);  background: #fdf8ec; border-style: dashed; }
+  .card h4 {
+    margin: 0 0 4px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .card .role {
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+  .card .field { margin-top: 8px; }
+  .card .field-label {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .card .field-body {
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .card .field-body code,
+  .handoff td code {
+    background: var(--rule-soft);
+    padding: 0 4px;
+    border-radius: 3px;
+    font-size: 11.5px;
+  }
+  .tag {
+    display: inline-block;
+    background: var(--tag-bg);
+    color: var(--ink-soft);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .tag.planned {
+    background: var(--planned-tint);
+    color: #7a4634;
+    border: 1px solid var(--planned-rule);
+  }
+
+  /* ---------- Purpose grid (Reviews vs Analyses) ---------- */
+  .purpose-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin: 16px 0 28px;
+  }
+  @media (max-width: 880px) {
+    .purpose-grid { grid-template-columns: 1fr; }
+  }
+  .purpose-card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 18px 22px 20px;
+    border-left: 4px solid var(--ink-faint);
+  }
+  .purpose-card.review   { border-left-color: #b45a3c; }
+  .purpose-card.analysis { border-left-color: #2a7561; }
+  .purpose-card h3 {
+    margin: 0 0 2px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .purpose-card.review   h3 { color: #b45a3c; }
+  .purpose-card.analysis h3 { color: #2a7561; }
+  .purpose-card .purpose-tagline {
+    margin: 0 0 14px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+  .purpose-card dl {
+    margin: 0;
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    row-gap: 8px;
+    column-gap: 14px;
+    font-size: 13px;
+  }
+  .purpose-card dt {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    align-self: start;
+    padding-top: 2px;
+  }
+  .purpose-card dd {
+    margin: 0;
+    color: var(--ink);
+  }
+  .purpose-card dd code {
+    background: var(--rule-soft);
+    padding: 0 4px;
+    border-radius: 3px;
+    font-size: 11.5px;
+  }
+  .purpose-card .examples {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- Handoff legend ---------- */
+  .handoff {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--accent);
+    border-radius: 6px;
+    padding: 18px 22px;
+    margin: 20px 0 28px;
+  }
+  .handoff h3 { margin: 0 0 8px; font-size: 14px; }
+  .handoff p { margin: 0 0 10px; color: var(--ink-soft); }
+  .handoff table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+  .handoff th, .handoff td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--rule-soft);
+    vertical-align: top;
+    font-size: 12.5px;
+  }
+  .handoff th { background: var(--rule-soft); font-weight: 600; color: var(--ink); }
+
+  /* ---------- Controls ---------- */
+  .controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin: 6px 0 12px;
+    font-size: 12px;
+  }
+  .controls button {
+    font: inherit;
+    font-size: 12px;
+    color: var(--accent);
+    background: var(--card);
+    border: 1px solid var(--accent);
+    border-radius: 99px;
+    padding: 4px 12px;
+    cursor: pointer;
+  }
+  .controls button:hover { background: var(--accent-bg); }
+
+  footer {
+    margin-top: 60px;
+    padding-top: 18px;
+    border-top: 1px solid var(--rule);
+    color: var(--ink-faint);
+    font-size: 12px;
+  }
+  footer a { color: var(--accent); }
+
+  @media print {
+    body { background: white; }
+    .page { padding: 18px; max-width: none; }
+    .dag, .handoff, details.acc { break-inside: avoid; }
+    details.acc { border-color: var(--rule); }
+    details.acc[open] { box-shadow: none; }
+    /* Force-open every accordion for print */
+    details.acc { display: block; }
+    details.acc > .acc-body { display: block !important; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="hero">
+  <h1>Requirements Generator — System Flowchart</h1>
+  <p>How the nine slash commands fit together. <strong>Base</strong> pipelines produce the core deliverables — requirements, PRD, design system, low-fi wireframes, and finally a hi-fi clickable prototype. <strong>Optional</strong> pipelines lens the material at two moments — before <code>/requirements</code> (input reviews &amp; analyses, PRD) and after it (requirement reviews &amp; analyses). The design / build layer runs last: <code>/wireframe</code> explores low-fi directions, then <code>/prototype</code> builds the chosen direction into a clickable React app. Click any block in the flowchart to expand its description below.</p>
+</header>
+
+<nav class="toc">
+  <strong>Contents</strong>
+  <ul>
+    <li><a href="#flowchart">§1 — Flowchart</a></li>
+    <li><a href="#purpose">§2 — Reviews vs Analyses</a></li>
+    <li><a href="#handoffs">§3 — Handoff patterns</a></li>
+    <li><a href="#descriptions">§4 — Pipeline descriptions</a></li>
+  </ul>
+</nav>
+
+<!-- ============== §1 FLOWCHART ============== -->
+<h2 class="section" id="flowchart"><span class="num">§1</span>Flowchart</h2>
+<p class="lede">Top-down, left-to-right workflow. Click any pipeline block to jump to its description and auto-expand it.</p>
+
+<div class="dag">
+  <div class="dag-canvas">
+
+    <!-- ===== Blocks ===== -->
+    <!-- Row 1: Inputs spine -->
+    <a class="block opt"   href="#input-reviews"   style="left: 20px;  top: 70px;"><span class="cmd">/review-inputs</span><span class="label">critique the raw corpus</span><span class="count">4 methodologies</span></a>
+    <div class="block folder"                      style="left: 380px; top: 70px;"><span class="cmd">input/</span><span class="label">briefs · decks · PDFs · screenshots</span></div>
+    <a class="block opt"   href="#input-analyses"  style="left: 740px; top: 70px;"><span class="cmd">/analyse-inputs</span><span class="label">derive models from raw inputs</span><span class="count">11 methodologies</span></a>
+
+    <!-- PRD: side branch off the right -->
+    <a class="block opt"   href="#generate-prd"    style="left: 740px; top: 230px;"><span class="cmd">/generate-prd</span><span class="label">human-audience PRD</span></a>
+
+    <!-- Row 2: Requirements spine -->
+    <a class="block opt"   href="#req-reviews"     style="left: 20px;  top: 340px;"><span class="cmd">/review-requirement</span><span class="label">critique requirements.md</span><span class="count">5 methodologies</span></a>
+    <a class="block spine" href="#requirements"    style="left: 380px; top: 340px;"><span class="cmd">/requirements</span><span class="label">draft → resolve → merge</span></a>
+    <a class="block opt"   href="#req-analyses"    style="left: 740px; top: 340px;"><span class="cmd">/analyse-requirement</span><span class="label">derive models from requirements.md</span><span class="count">15 methodologies</span></a>
+
+    <!-- Row 3: Wireframes + isolated Design-System -->
+    <a class="block aside" href="#design-system"   style="left: 20px;  top: 514px;"><span class="cmd">/design-system</span><span class="label">domain + URL → design tokens (stand-alone)</span></a>
+    <a class="block spine" href="#wireframe"       style="left: 380px; top: 514px;"><span class="cmd">/wireframe</span><span class="label">parallel low-fi HTML variants</span></a>
+
+    <!-- Row 4: Prototype — final hi-fi step -->
+    <a class="block spine" href="#prototype"       style="left: 380px; top: 680px;"><span class="cmd">/prototype</span><span class="label">hi-fi clickable React app</span><span class="count">one shared app · UX divergence</span></a>
+
+    <!-- ===== SVG arrows + labels overlay ===== -->
+    <svg class="dag-svg" viewBox="0 0 1000 827" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#222"/>
+        </marker>
+        <marker id="arrow-soft" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#888"/>
+        </marker>
+      </defs>
+
+      <!-- === Solid arrows (mechanical reads / canonical flow) === -->
+      <!-- Inputs → Review-Inputs (left) -->
+      <path d="M 378 109 L 240 109" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+      <!-- Inputs → Analyse-Inputs (right) -->
+      <path d="M 622 109 L 760 109" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+      <!-- Inputs → Requirements (down central spine) -->
+      <path d="M 500 132 L 500 360" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+      <!-- Requirements → Review-Requirement (left) -->
+      <path d="M 378 400 L 244 400" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+      <!-- Requirements → Analyse-Requirement (right) -->
+      <path d="M 622 400 L 760 400" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+      <!-- Requirements → Wireframe (down central spine) -->
+      <path d="M 500 402 L 500 560" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+      <!-- Wireframe → Prototype (down central spine, final hi-fi step) -->
+      <path d="M 500 593 L 500 740" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+      <!-- Design-System → Prototype (brand tokens feed the hi-fi step when present) -->
+      <path d="M 110 595 C 110 720, 250 770, 368 768" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+
+      <!-- === Dotted feedback arrows (consultant-mediated) === -->
+      <!-- Review-Inputs → Inputs ("Manually Update") -->
+      <path d="M 140 70 C 140 18, 440 18, 440 70" stroke="#888" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow-soft)"/>
+      <!-- Analyse-Inputs → Inputs ("Add to inputs") -->
+      <path d="M 860 70 C 860 18, 560 18, 560 70" stroke="#888" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow-soft)"/>
+      <!-- PRD → Inputs ("Add to inputs") — curve up from PRD top, sweeping left into Inputs' right edge -->
+      <path d="M 800 260 C 740 200, 700 130, 630 128" stroke="#888" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow-soft)"/>
+      <!-- Review-Requirement → Requirements ("Manually Update") -->
+      <path d="M 140 360 C 140 288, 440 288, 440 360" stroke="#888" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow-soft)"/>
+      <!-- Analyse-Requirement → Wireframes ("select as inputs") — curve down-and-left to right edge of /wireframe -->
+      <path d="M 860 400 C 860 470, 720 544, 630 565" stroke="#888" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow-soft)"/>
+
+      <!-- === Edge labels === -->
+      <!-- "Manually Update" between Review-Inputs and Inputs -->
+      <g><rect class="edge-label-bg" x="240" y="22" width="100" height="18" rx="3"/><text class="edge-label" x="290" y="34" text-anchor="middle">Manually Update</text></g>
+      <!-- "Add to inputs" between Inputs and Analyse-Inputs -->
+      <g><rect class="edge-label-bg" x="610" y="22" width="84"  height="18" rx="3"/><text class="edge-label" x="652" y="34" text-anchor="middle">Add to inputs</text></g>
+      <!-- "Add to inputs" along PRD → Inputs (positioned just above PRD, on its curve) -->
+      <g><rect class="edge-label-bg" x="700" y="170" width="84" height="18" rx="3"/><text class="edge-label" x="742" y="182" text-anchor="middle">Add to inputs</text></g>
+      <!-- "Manually Update" between Review-Requirement and Requirements -->
+      <g><rect class="edge-label-bg" x="240" y="292" width="100" height="18" rx="3"/><text class="edge-label" x="290" y="304" text-anchor="middle">Manually Update</text></g>
+      <!-- "select as inputs" along the Analyse-Req → Wireframes arrow (positioned mid-curve, in the gap between Requirements and Wireframes rows) -->
+      <g><rect class="edge-label-bg" x="728" y="462" width="104" height="18" rx="3"/><text class="edge-label" x="780" y="474" text-anchor="middle">select as inputs</text></g>
+      <!-- "brand tokens" along the Design-System → Prototype arrow -->
+      <g><rect class="edge-label-bg" x="158" y="716" width="84" height="18" rx="3"/><text class="edge-label" x="200" y="728" text-anchor="middle">brand tokens</text></g>
+    </svg>
+
+  </div>
+
+  <div class="dag-legend">
+    <span class="legend-chip"><span class="box folder"></span> Input folder (source)</span>
+    <span class="legend-chip"><span class="box spine"></span> Spine pipeline (Requirements, Wireframes, Prototype)</span>
+    <span class="legend-chip"><span class="box opt"></span> Optional pipeline (lens / enrichment)</span>
+    <span class="legend-chip"><span class="box aside"></span> Stand-alone base pipeline</span>
+    <span class="legend-chip"><span class="swatch solid"></span> Mechanical file read</span>
+    <span class="legend-chip"><span class="swatch dotted"></span> Consultant-mediated copy / edit</span>
+  </div>
+</div>
+
+<!-- ============== §2 REVIEWS vs ANALYSES ============== -->
+<h2 class="section" id="purpose"><span class="num">§2</span>Reviews vs Analyses — purpose at a glance</h2>
+<p class="lede">Both optional pipeline families lens the same source material (raw <code>input/</code> or merged <code>requirements.md</code>), but they produce categorically different outputs and demand different consultant actions.</p>
+
+<div class="purpose-grid">
+
+  <div class="purpose-card review">
+    <h3>Reviews</h3>
+    <p class="purpose-tagline">Critique — what is <em>wrong</em> with the source</p>
+    <dl>
+      <dt>Purpose</dt>
+      <dd>Surface defects, gaps, ambiguities, contradictions, completeness holes, and risks in the source material.</dd>
+      <dt>Output shape</dt>
+      <dd>A punch-list of findings — never an auto-patch. The artefact is something the consultant <em>reads and acts on</em>, not a positive contract for downstream tools.</dd>
+      <dt>Consultant action</dt>
+      <dd>Manual edits to <code>input/</code> files (for <code>/review-inputs</code>) or to <code>requirements.md</code> (for <code>/review-requirement</code>). Some findings also generate follow-up elicitation questions for the client.</dd>
+      <dt>Pick when</dt>
+      <dd>You suspect the source is incomplete, ambiguous, or weak, and you want a structured list of <em>specifically what to fix</em> before drafting or designing further.</dd>
+      <dt>Examples</dt>
+      <dd class="examples">adversarial · completeness-review · ambiguity-review · first-principles · ten-ba-questions · ten-ux-questions · user-stories · gap-analysis</dd>
+    </dl>
+  </div>
+
+  <div class="purpose-card analysis">
+    <h3>Analyses</h3>
+    <p class="purpose-tagline">Transform — make <em>implicit</em> structure <em>explicit</em></p>
+    <dl>
+      <dt>Purpose</dt>
+      <dd>Derive a structural model (objects, jobs, journeys, tasks, themes, state lifecycles, …) from the source so downstream design phases can key off an explicit contract instead of improvising.</dd>
+      <dt>Output shape</dt>
+      <dd>A positive artefact — object map, theme map, task tree, journey card, state diagram, opportunity-solution tree — that another pipeline can consume as input.</dd>
+      <dt>Consultant action</dt>
+      <dd>Copy the artefact into <code>input/</code> for re-ingestion by the next <code>/requirements</code> pass (for <code>/analyse-inputs</code>), or for <code>/analyse-requirement</code> — select it as an input to <code>/wireframe</code>.</dd>
+      <dt>Pick when</dt>
+      <dd>You want to enrich the source with a structural lens (motivation, object model, process flow, sentiment journey) before drafting or designing — and you want that lens to flow forward as a positive contract.</dd>
+      <dt>Examples</dt>
+      <dd class="examples">ooux · jtbd · journey-mapping · task-analysis · opportunity-solution-trees · state-diagram · data-model · use-cases · thematic-analysis · affinity-mapping · mvp-slicing · crud-coverage · glossary · user-goal-analysis · business-context-definition</dd>
+    </dl>
+  </div>
+
+</div>
+
+<!-- ============== §3 HANDOFFS ============== -->
+<h2 class="section" id="handoffs"><span class="num">§3</span>How outputs flow back into inputs</h2>
+<p class="lede">Pipeline outputs are <strong>not auto-piped</strong>. The consultant manually shuttles relevant pieces between runs — every cross-pipeline transfer is an explicit decision with a paper trail.</p>
+
+<div class="handoff">
+  <h3>The four handoff patterns</h3>
+  <table>
+    <tr><th style="width: 26%;">From</th><th>What the consultant does with the output</th></tr>
+    <tr>
+      <td><code>/generate-prd</code></td>
+      <td>Copy strategic content (success metrics, MVP phasing, hypotheses) <strong>into <code>input/</code></strong> before running <code>/requirements</code>.</td>
+    </tr>
+    <tr>
+      <td><code>/analyse-inputs</code> · any methodology</td>
+      <td>Copy the derived artefact (theme map, task tree, OOUX object model, JTBD job map …) from <code>analyse-inputs/&lt;METHOD&gt;/</code> <strong>into <code>input/</code></strong> before running <code>/requirements</code>. Most analysers ship a re-ingestion block (YAML/JSON + Mermaid) that survives markitdown HTML → MD conversion.</td>
+    </tr>
+    <tr>
+      <td><code>/review-inputs</code> · any methodology</td>
+      <td>Read the punch-list and <strong>manually edit the source files in <code>input/</code></strong> — add missing context, resolve ambiguity, surface stakeholder voices. Then re-run <code>/requirements</code> against the improved corpus.</td>
+    </tr>
+    <tr>
+      <td><code>/review-requirement</code> · any methodology</td>
+      <td>Read the punch-list and <strong>manually edit <code>requirements/requirements.md</code></strong> to address defects — or re-run <code>/requirements</code> with corrective input. The review never auto-patches the spec.</td>
+    </tr>
+    <tr>
+      <td>Select relevant analyses (OOUX object map, user-journeys, task-flows, trade-off-dimension matrix) as supporting inputs when you run <code>/wireframe</code> (Stage&nbsp;1b — completed analyses are read sidecar-first) or <code>/prototype</code> (basis&nbsp;B of its A–E input selection), so the produced screens and prototype reflect the lensed structure. They also remain reference reading you use to set scope and trade-off-dimension positions.</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ============== §4 DESCRIPTIONS (accordions) ============== -->
+<h2 class="section" id="descriptions"><span class="num">§4</span>Pipeline descriptions</h2>
+<p class="lede">Each pipeline below is a collapsed accordion. Click any block in the flowchart above to auto-expand the matching description. Order matches the workflow sequence — pre-requirements optional first, then base spec layer, then post-requirements optional, then final output.</p>
+
+<div class="controls">
+  <button type="button" onclick="document.querySelectorAll('details.acc').forEach(d => d.open = true)">Expand all</button>
+  <button type="button" onclick="document.querySelectorAll('details.acc').forEach(d => d.open = false)">Collapse all</button>
+</div>
+
+<!-- 3a — /review-inputs -->
+<details class="acc opt" id="input-reviews">
+  <summary>
+    <div class="head-left">
+      <span class="head-cmd">/review-inputs</span>
+      <span class="head-role">Optional · pre-requirements</span>
+      <span class="head-count">· 4 methodologies</span>
+    </div>
+    <a class="back-link" href="#flowchart">↑ Back to flowchart</a>
+  </summary>
+  <div class="acc-body">
+    <p class="panel-lede">Critique the raw <code>input/</code> corpus — missing context, ambiguity, contradiction, stakeholder-voice gaps. Output is a punch-list you act on by hand-editing files in <code>input/</code> before running <code>/requirements</code>.</p>
+    <div class="panel-grid">
+
+      <div class="card opt">
+        <h4>adversarial</h4>
+        <div class="role">BMAD six-dimension critique</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>. Treats the corpus as <em>the stakeholder voice</em>, not evidence-of-elicitation.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Before <code>/requirements</code> when you suspect the input set is uneven — coverage holes, mixed first- / second-hand voices, sources contradicting each other.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-inputs/ADVERSARIAL/adversarial-review.html</code> — six-dimension findings (stakeholder coverage, workflow coverage, ambiguity, cross-source conflict, quantitative signal, scope signal) with corpus-handling recommendations.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Hand-edit the source files in <code>input/</code> to address each finding (add context, reconcile conflict, label second-hand voices), then re-run <code>/requirements</code>.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>completeness-review</h4>
+        <div class="role">BA-canon sweep</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>. Measures against the BA literature canon (IEEE 29148, Volere, BABOK, Wiegers, INCOSE, ISO 25010) across ten coverage dimensions.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Pick this when you need a broad, authority-grounded gap punch-list to drive client follow-up elicitation. Complementary to <em>gap-analysis</em>.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-inputs/COMPLETENESS-REVIEW/completeness-review.md</code> — disposition-classified findings (Needs-Clarification / Standard-Rule-Applies / Out-of-Scope) plus per-source elicitation questions.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Use the elicitation questions to chase the client; once you receive answers, add them as new files under <code>input/</code> and re-run <code>/requirements</code>.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>ambiguity-review</h4>
+        <div class="role">Berry/Kamsties + Femmer taxonomy</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When the input set reads "soft" — vague verbs, weak modals, optional language, undefined pronouns — and you want to nail down each ambiguity before the drafter inherits it.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md</code> — every lexical / syntactic / referential / vague / subjective / weak-verb / optionality finding with a ready-to-paste stakeholder elicitation question.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Run the questions past the client; capture answers in <code>input/</code> (or rewrite the ambiguous source if you have the authority) and re-run <code>/requirements</code>.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>gap-analysis</h4>
+        <div class="role">Template-bijection delta</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>. Measures against this project's drafter template — <em>not</em> the BA canon.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When you want a visual, drafter-aligned gap map with <em>pre-drafted</em> shall-form candidate requirements. Complementary to <em>completeness-review</em>.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-inputs/GAP-ANALYSIS/gap-analysis.html</code> — inline-SVG coverage heatmap, gap-matrix table by dimension × MoSCoW. Every Must/Should gap ships a shall-form Candidate Requirement.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body"><strong>Copy <code>gap-analysis.html</code> directly into <code>input/</code></strong> and re-run <code>/requirements</code> — the drafter cites it via its filename and absorbs the candidate requirements. Edit any rows you reject before re-ingestion.</div></div>
+      </div>
+
+    </div>
+  </div>
+</details>
+
+<!-- 3b — /analyse-inputs -->
+<details class="acc opt" id="input-analyses">
+  <summary>
+    <div class="head-left">
+      <span class="head-cmd">/analyse-inputs</span>
+      <span class="head-role">Optional · pre-requirements</span>
+      <span class="head-count">· 11 methodologies</span>
+    </div>
+    <a class="back-link" href="#flowchart">↑ Back to flowchart</a>
+  </summary>
+  <div class="acc-body">
+    <p class="panel-lede">Transform raw inputs into structured models (theme maps, task trees, object models, journeys). Every analyser ships a re-ingestion block that survives copy-into-<code>input/</code> and feeds the drafter on the next <code>/requirements</code> run.</p>
+    <div class="panel-grid">
+
+      <div class="card opt">
+        <h4>task-analysis</h4>
+        <div class="role">Hierarchical Task Analysis</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs describe a goal-decomposition workflow — multi-step tasks with branches, iterations, and information requirements — and you want a numbered tree the drafter can ladder against.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/TASK-ANALYSIS/task-analysis.html</code> — numbered goal / sub-goal / operation tree with mandatory Plans (sequence / selection / iteration / concurrent / discretionary) and per-terminal data-noun annotations. Embedded YAML structured tree.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy the HTML <strong>into <code>input/</code></strong>; the drafter's gap-pass treats the embedded YAML tree as a bijection target — Plans seed acceptance-criteria branches, information requirements hint at §7 Data entities.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>thematic-analysis</h4>
+        <div class="role">Braun &amp; Clarke six-phase</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs are heavy on qualitative material (interview notes, open-ended survey responses, stakeholder narratives) and you want to surface latent patterns before drafting.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md</code> — codes, themes, theme-map (Mermaid), and a Candidate-Requirements bridge linking each theme to draftable scope.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>input/</code></strong>; the drafter picks the candidate-requirement bridge up like any other source.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>opportunity-solution-trees</h4>
+        <div class="role">Teresa Torres 2016 (forward discovery)</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs name a desired outcome and you want to ladder it down through opportunities and solutions before the drafter commits to feature scope.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.md</code> — four-layer discovery tree (Outcome → Opportunities → Solutions → Assumption-tests) with a Candidate-Requirements bridge.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>input/</code></strong>; the drafter consumes the bridge section to seed scope. Use the assumption-tests to drive validation work in parallel.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>journey-mapping</h4>
+        <div class="role">NN/G + Kalbach current-state journey</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs describe an end-to-end user experience (one or more personas) and you need a concrete backbone for §5 task flows, §6 integration constraints, §4 NFRs, user stories, and priorities.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/JOURNEY-MAPPING/journey-mapping.html</code> — one journey card per persona with phases, steps, touchpoints, channels, thoughts, emotion-curve SVG, pain-points, opportunities, moments of truth.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>input/</code></strong>; HTML survives markitdown round-trip with <code>[SRC: &lt;filename&gt;]</code> citations intact so the drafter inherits the audit trail.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>jtbd</h4>
+        <div class="role">Christensen-Moesta + Ulwick</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When you want the requirements to anchor on user motivation rather than features — "when X, I want Y, so I can Z" — and you have raw inputs that imply jobs without naming them.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/JTBD/jtbd-job-map.html</code> — canonical statements, four forces (push / pull / anxiety / habit), 5×5 Ulwick opportunity matrix.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>input/</code></strong>; the drafter cites jobs as positive scope and forces as design-influence context.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>ooux</h4>
+        <div class="role">Sophia Prater ORCA</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>. Synonym merge across sources is the load-bearing Round 2.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs imply a domain object model (entities, relationships, CTAs) and you want it canonicalised — with conflicting names merged and provenance preserved — before the drafter commits to §7 Data.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/OOUX/ooux-object-map.html</code> — Mermaid <code>erDiagram</code>, OOUX sticky-note column-board, relationship matrix, and an embedded JSON object-map body block (load-bearing for drafter re-ingestion).</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>input/</code></strong>; the JSON body and erDiagram both survive markitdown HTML → MD as fenced code so the drafter consumes the full object model in one shot.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>swim-lane-process-mapping</h4>
+        <div class="role">Rummler-Brache + Disconnect Analysis</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs describe multi-actor processes with handoffs (the "white space" between functional silos) and you want every lane-to-lane handoff classified — clean or one of four disconnect types.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html</code> — Mermaid <code>flowchart TD</code> per process with <code>subgraph</code> lanes, Actor inventory, Disconnect Register, embedded YAML model.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>input/</code></strong>; the YAML model becomes a bijection target — processes → §5 task flows, handoffs → §6 integrations, decisions → acceptance-criteria branches, data-stores → §7 entities.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>affinity-mapping</h4>
+        <div class="role">Kawakita KJ + Beyer/Holtzblatt</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs are a dense pile of atomic claims (interview snippets, sticky-notes, observations) and you want them clustered bottom-up into 4–8 super-themes without imposing a prior frame.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/AFFINITY-MAPPING/affinity-map.html</code> — Mermaid mindmap, cluster cards with stable/drifted confidence chips (Jaccard between two anti-anchoring passes), orphans table, optional tension flowchart, embedded JSON hierarchy.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>input/</code></strong>; super-theme insight statements feed §1 vision anchors, clusters seed §5 task-flow groupings and acceptance-criteria threads, orphans feed §10 out-of-scope candidates, tensions feed trade-off-aware criteria.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>glossary</h4>
+        <div class="role">Ubiquitous-language vocabulary</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>. (Distinct from the same-named <code>/analyse-requirement</code> method, which reads <code>requirements.md</code>.)</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When you want <em>one</em> agreed vocabulary for the system before drafting — significant terms surfaced, classified domain vs application, defined from the inputs, and rated for how settled each shared understanding is.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/GLOSSARY/glossary.html</code> — per-term cards with domain/application + 0–4 maturity badges and cited definitions, plus fenced proposed definitions / canonical resolutions wherever a term is left undefined, weak, synonymous, or conflicting.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Re-drop <strong>into <code>input/</code></strong> so <code>/requirements</code> adopts the agreed terms as canonical vocabulary; the blocking proposals reach the resolver as questions you confirm before they anchor requirements.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>user-goal-analysis</h4>
+        <div class="role">Actor &amp; end-user goals (GORE)</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When you want the actor and end-user goals behind the request made explicit — both the goals the inputs state <em>and</em> the ones they imply. The actor-goal complement to <em>business-context-definition</em>.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html</code> — a goal register grouped by goal type, an AND/OR refinement tree, an actor map, and a conflicts table; inferred goals flagged for confirmation.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Re-drop <strong>into <code>input/</code></strong> so explicit goals seed §4 user stories and inferred goals reach the resolver as questions you confirm before they become requirements.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>business-context-definition</h4>
+        <div class="role">Enterprise motivation (BMM + BABOK)</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When you need the <em>enterprise</em> motivation behind the request — the business problems, needs, and goals — rather than the individual actor goals <em>user-goal-analysis</em> covers. Run the two side-by-side for two clean, non-overlapping registers.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html</code> — a report linking business problem → need → goal → problem-statement in one causal chain; inferred items flagged for confirmation.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Re-drop <strong>into <code>input/</code></strong> so the causal chain seeds strategic framing and requirement traceability; run <em>user-goal-analysis</em> alongside it for actor-level goals.</div></div>
+      </div>
+
+    </div>
+  </div>
+</details>
+
+<!-- 3c — /generate-prd -->
+<details class="acc base" id="generate-prd">
+  <summary>
+    <div class="head-left">
+      <span class="head-cmd">/generate-prd</span>
+      <span class="head-role">Base · pre-requirements · human-audience PRD</span>
+    </div>
+    <a class="back-link" href="#flowchart">↑ Back to flowchart</a>
+  </summary>
+  <div class="acc-body">
+    <div class="card base solo">
+      <h4>/generate-prd</h4>
+      <div class="role">Strategic PRD for stakeholders</div>
+      <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via the shared <code>source-manifest.json</code>. Independent of <code>requirements.md</code> — never reads or writes it.</div></div>
+      <div class="field"><span class="field-label">When to use</span><div class="field-body">When you need a stakeholder-facing PRD (strategic framing, success metrics, hypotheses, MVP phasing, risks). Run before <code>/requirements</code> so its strategic framing can be folded back as a drafting input.</div></div>
+      <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>prd/prd.md</code> — narrative PRD with <code>PC-NNN</code> / <code>PAI-NNN</code> citation IDs (namespaced to avoid collision with <code>/requirements</code>).</div></div>
+      <div class="field"><span class="field-label">How to use</span><div class="field-body"><strong>Copy the relevant parts of <code>prd/prd.md</code> (success metrics, MVP phasing, hypothesis statements) into <code>input/</code></strong> before running <code>/requirements</code>. The PRD then becomes another source the drafter cites alongside the original material.</div></div>
+    </div>
+  </div>
+</details>
+
+<!-- 3d — /requirements -->
+<details class="acc base" id="requirements">
+  <summary>
+    <div class="head-left">
+      <span class="head-cmd">/requirements</span>
+      <span class="head-role">Base · spec layer · LLM-audience</span>
+    </div>
+    <a class="back-link" href="#flowchart">↑ Back to flowchart</a>
+  </summary>
+  <div class="acc-body">
+    <div class="card base solo">
+      <h4>/requirements</h4>
+      <div class="role">Citation-grounded system spec</div>
+      <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code>, enumerated via the shared <code>source-manifest.json</code>. Multimodal sources (screenshots, diagrams) read natively.</div></div>
+      <div class="field"><span class="field-label">When to use</span><div class="field-body">First proper pipeline of any engagement, once the input drop is complete (and any pre-requirements lensing — PRD, input reviews, input analyses — has been folded back into <code>input/</code>). Re-run after every meaningful change.</div></div>
+      <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>requirements/requirements.md</code> — citation-grounded, deterministic spec. Inline <code>[SRC: C-NNN]</code> traces stripped on merge; <code>[AI-SUGGESTED]</code> / <code>[STANDARD-RULE]</code> / <code>[OUT-OF-SCOPE]</code> markers retained.</div></div>
+      <div class="field"><span class="field-label">How to use</span><div class="field-body">The downstream contract every other pipeline keys off. Hand to <code>/wireframe</code> as-is. Lens with <code>/analyse-requirement</code> or <code>/review-requirement</code> before sign-off; fold review verdicts back as manual edits.</div></div>
+    </div>
+  </div>
+</details>
+
+<!-- 3e — /design-system -->
+<details class="acc base" id="design-system">
+  <summary>
+    <div class="head-left">
+      <span class="head-cmd">/design-system</span>
+      <span class="head-role">Base · spec layer · stand-alone</span>
+    </div>
+    <a class="back-link" href="#flowchart">↑ Back to flowchart</a>
+  </summary>
+  <div class="acc-body">
+    <div class="card base solo">
+      <h4>/design-system</h4>
+      <div class="role">Brand token set</div>
+      <div class="field"><span class="field-label">Inputs</span><div class="field-body">Domain text (e.g. "hospitality booking platform") + optional live URL the styler can scrape. Does not read <code>input/</code> or <code>requirements/</code> — runs in parallel to <code>/requirements</code>.</div></div>
+      <div class="field"><span class="field-label">When to use</span><div class="field-body">Whenever you want a tokenised brand basis — colours, type, shadow, motion, contrast pairs — for downstream high-fidelity work. Can run any time; fully stand-alone.</div></div>
+      <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>design-system/design-system.html</code> — self-contained HTML with an embedded LLM-readable token JSON block plus visual swatches, type specimens, shadow / motion / contrast pairs viewable via <code>file://</code>.</div></div>
+      <div class="field"><span class="field-label">How to use</span><div class="field-body">Reference for any prototype or hi-fi UI work after wireframes settle. <strong>Note:</strong> the low-fi <code>/wireframe</code> output uses its own bundled <code>wireframe-ds.css</code>, not the styler's output — design-system tokens land in the next fidelity step, not in the lo-fi variants.</div></div>
+    </div>
+  </div>
+</details>
+
+<!-- 3f — /review-requirement -->
+<details class="acc opt" id="req-reviews">
+  <summary>
+    <div class="head-left">
+      <span class="head-cmd">/review-requirement</span>
+      <span class="head-role">Optional · post-requirements</span>
+      <span class="head-count">· 5 methodologies</span>
+    </div>
+    <a class="back-link" href="#flowchart">↑ Back to flowchart</a>
+  </summary>
+  <div class="acc-body">
+    <p class="panel-lede">Critique the merged <code>requirements/requirements.md</code> — surface defects, gaps, ambiguities, and risks. Output is a punch-list you act on by hand-editing <code>requirements.md</code> (or by re-running <code>/requirements</code> with corrective input).</p>
+    <div class="panel-grid">
+
+      <div class="card opt">
+        <h4>adversarial</h4>
+        <div class="role">Eight-dimension critique</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Before handing the spec to design or engineering — flush out defects so downstream work starts from a patched doc, not inherited weaknesses.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/ADVERSARIAL/adversarial-review.md</code> — eight-dimension findings (clarity, completeness, consistency, testability, feasibility, risk, scope, traceability).</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Manually edit <code>requirements/requirements.md</code> to address each finding, or feed corrections back as new files in <code>input/</code> and re-run <code>/requirements</code>.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>first-principles</h4>
+        <div class="role">Rationale stress-test</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When the requirement set feels like a list of features without a defensible "why" — test whether each requirement is grounded in business rationale.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/FIRST-PRINCIPLES/first-principles-review.md</code> — per-requirement defensibility verdict with rework / strengthen / cut recommendations.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Manually rework, strengthen, or cut requirements in <code>requirements.md</code> per the verdicts. Use cut decisions to scope out features before they reach wireframing.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>ten-ba-questions</h4>
+        <div class="role">BA elicitation gaps</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Before design or estimation — surface the ten most pressing stakeholder questions the doc has left unanswered.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md</code> — ten ranked elicitation questions, each tied to a doc section.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Ask the client; capture answers as a new file in <code>input/</code> and re-run <code>/requirements</code> to fold them in.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>ten-ux-questions</h4>
+        <div class="role">UX elicitation gaps</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Before designing screens — surface the ten most pressing UX questions the doc has left unanswered, so wireframes don't lock decisions against gaps.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.md</code> — ten ranked UX questions tied to user goals and screen-level decisions.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Ask the client (or make defensible defaults), capture as new files in <code>input/</code>, re-run <code>/requirements</code> before running <code>/wireframe</code>.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>user-stories</h4>
+        <div class="role">Backlog-readiness check</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code> — specifically the §3 user-story rows.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Before stories enter the backlog or estimation — find which aren't ready for design or estimation so you can rework them first.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/USER-STORIES/user-stories-review.md</code> — per-story readiness verdict (INVEST-style) with specific defects called out.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Manually rework the flagged stories in <code>requirements/requirements.md</code> — split, sharpen acceptance criteria, add missing personas — before passing to engineering or wireframing.</div></div>
+      </div>
+
+    </div>
+  </div>
+</details>
+
+<!-- 3g — /analyse-requirement -->
+<details class="acc opt" id="req-analyses">
+  <summary>
+    <div class="head-left">
+      <span class="head-cmd">/analyse-requirement</span>
+      <span class="head-role">Optional · post-requirements</span>
+      <span class="head-count">· 15 methodologies</span>
+    </div>
+    <a class="back-link" href="#flowchart">↑ Back to flowchart</a>
+  </summary>
+  <div class="acc-body">
+    <p class="panel-lede">Transform the merged spec into derived structural models (object maps, journeys, state diagrams, glossaries) that downstream design phases will eventually consume. Today these are reference reading the consultant uses to inform <code>/wireframe</code> scope and dimension choices — mechanical hand-off into <code>/wireframe</code> is on the roadmap.</p>
+    <div class="panel-grid">
+
+      <div class="card opt">
+        <h4>ooux</h4>
+        <div class="role">Object-oriented UX</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Before wireframing — identify the core objects, attributes, CTAs implied by the spec so screen structure and navigation key off them.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/OOUX/ooux-object-map.html</code> — object map with CTAs, attributes, relationships, CCPs.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Today: read it and use the object/CTA inventory to inform your <code>/wireframe</code> scope-selection and trade-off-dimension choices.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>data-model</h4>
+        <div class="role">Entity schema</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Before designing forms, lists, and detail views — surface entities, attributes, and relationships so the UI keys off an explicit schema, not improvisation.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/DATA-MODEL/data-model.html</code> — entities + attributes + relationships diagram.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Today: read it and use it as ground-truth when defining wireframe scope and per-screen property sets.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>jtbd</h4>
+        <div class="role">Jobs-to-be-done</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When you need to anchor wireframing posture on user motivation rather than features — keep the variants honest to the hired jobs.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/JTBD/jtbd-job-map.html</code> — job map with outcomes implied by the spec.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Today: use the job map to weight which user goals each <code>/wireframe</code> variant should optimise for.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>use-cases</h4>
+        <div class="role">Actor flow</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Before designing screens or APIs — surface actor goals, preconditions, main and extension flows so the design is grounded in explicit usage paths.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/USE-CASES/use-cases-map.html</code> — actor / goal / pre&amp;post-condition / main+extension flow map.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Today: use the flow inventory to pick wireframe scope and to spot screens whose extension flows the variants must show.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>user-journeys</h4>
+        <div class="role">Experience-phase map</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When you want feature prioritisation — and wireframing focus — to target the experience moments that matter most (pain-points, opportunities).</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/USER-JOURNEYS/user-journeys-map.html</code> — phase / pain-point / opportunity map per persona.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Today: identify the moments of truth to prioritise as wireframe scope; let pain-points drive trade-off-dimension positions.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>task-flows</h4>
+        <div class="role">Step-by-step paths</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Before designing wizards, multi-step forms, or sequence-heavy screens — surface the step-by-step goal decomposition implicit in the spec.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/TASK-FLOWS/task-flows.html</code> — goal-decomposition map with step sequences.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Today: use the step inventory to decide whether a screen is single-page or wizard, and what the back/cancel semantics are.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>sequence-diagram</h4>
+        <div class="role">Interaction sequence</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Before APIs or async flows are specified — clarify how user, system components, and external services interact across a scenario.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html</code> — actor / lifeline / message sequence per scenario.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Hand to engineering as the basis for API design; use to spot async-handling decisions the spec should make explicit, then re-run <code>/requirements</code> with that clarification in <code>input/</code>.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>state-diagram</h4>
+        <div class="role">Entity lifecycle</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Before status-driven UI (chips, badges, conditional actions) — surface entity statuses, transitions, and guards implicit in the spec.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/STATE-DIAGRAM/state-diagram.html</code> — state / transition / guard diagram per entity.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Today: ensure every status pill in your wireframes has a corresponding state and that every CTA respects the guard set.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>activity-diagram</h4>
+        <div class="role">Multi-actor process flow</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Before designing screens that span actors or parallel paths — clarify branching, joins, and parallel sub-flows.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html</code> — multi-actor activity diagram with branches and parallel paths.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Today: identify which screens belong to which actor lane; surface synchronisation points the variants must visualise.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>opportunity-solution-trees</h4>
+        <div class="role">Reverse discovery audit</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">To audit whether the spec's features actually ladder up to its stated outcomes — surface unaddressed opportunities or missing assumption tests.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html</code> — reverse-discovery tree from features back to outcomes.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Use orphan features (no outcome path) as candidates to cut; use orphan opportunities (no solution path) as the next batch of requirements to draft.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>five-whys</h4>
+        <div class="role">Rationale chain</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When you suspect rationale is thin — drill each requirement down to a user goal, business driver, or external mandate.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/FIVE-WHYS/five-whys.md</code> — per-requirement why-chain, flagging thin or speculative justifications for consultant follow-up.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Use flagged thin-rationale rows as interview prompts with the client; capture answers in <code>input/</code> and re-run <code>/requirements</code>.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>glossary</h4>
+        <div class="role">Vocabulary inventory</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Before copy, labels, status pills, or role surfaces are designed — produce an alphabetical citation-bound vocabulary.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/GLOSSARY/glossary.md</code> — alphabetical glossary with definitions and source citations.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Adopt as canonical terminology for wireframe copy, design-system tokens (status pill names), and stakeholder communication. Surface synonym collisions back into <code>requirements.md</code> for resolution.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>trade-off-dimension-analysis</h4>
+        <div class="role">Per-goal posture map</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Before <code>/wireframe</code> — score each user goal against the canonical UX trade-off dimensions (Speed vs Accuracy, Simplicity vs Power, Automation vs Control, …) so variant configurations key off explicit per-goal posture, not architect intuition.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html</code> — goal × dimension matrix with posture scores.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Today: feed the matrix into the <code>/wireframe</code> architect as an applicability input — it's already wired as an <em>optional</em> architect input via the wireframe orchestrator. Use it to override domain defaults when the spec's goals diverge from data-management productivity assumptions.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>mvp-slicing</h4>
+        <div class="role">Release-slice story map</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code> — its §5 task flows, §4.2 stories, and §6.1 / §6.4 priorities.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When the requirements carry priorities but no one has drawn the line between what ships first and what waits — you want a defensible MVP cut before wireframing.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/MVP-SLICING/mvp-slicing.html</code> — a user-story map (a §5 task-flow backbone with F-NN, UI-NN, and §4.2 story cards under each activity and a release-slice line proposed from the <code>GR-24</code> Must set) paired with a MoSCoW board of the §6 / §4.2 priorities.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Confirm the proposed slice as the MVP scope before invoking <code>/wireframe</code> or <code>/prototype</code>; use the MoSCoW board to see at a glance what each priority bucket holds.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>crud-coverage</h4>
+        <div class="role">Entity × CRUD matrix</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code> — its §7 entities, §6 functions, and §6.5 rights grants.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When the domain is entity-and-operation heavy and you want a mechanical check that every entity has create / read / update / delete paths before wireframing.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/CRUD-COVERAGE/crud-matrix.html</code> — a matrix crossing each entity against the four lifecycle operations (delivered / granted-not-delivered / forgotten / intentional), a lifecycle-hole register, and an optional role view with Segregation-of-Duties flags.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Use the filled cells as a screen-and-action checklist against the blueprint; chase the flagged holes — especially §6.5 rights that no function delivers — before building.</div></div>
+      </div>
+
+    </div>
+  </div>
+</details>
+
+<!-- 3h — /wireframe -->
+<details class="acc base" id="wireframe">
+  <summary>
+    <div class="head-left">
+      <span class="head-cmd">/wireframe</span>
+      <span class="head-role">Base · design layer · low-fi HTML variants</span>
+    </div>
+    <a class="back-link" href="#flowchart">↑ Back to flowchart</a>
+  </summary>
+  <div class="acc-body">
+    <div class="card base solo">
+      <h4>/wireframe</h4>
+      <div class="role">Parallel low-fi HTML variants</div>
+      <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code> (full, scoped via the scope-selector at Stage 1). Reads <code>framework/assets/pattern-catalogue/**</code> for pattern bindings. Optionally reads the trade-off-dimension analysis as an architect applicability input.</div></div>
+      <div class="field"><span class="field-label">When to use</span><div class="field-body">After <code>requirements.md</code> is accepted (and ideally after any requirement reviews/analyses you wanted to run), to explore divergent UX positions on a scoped slice. Two variants default; up to three for richer comparisons.</div></div>
+      <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>wireframes/&lt;scope&gt;/index.html</code> (metadata landing — scope, side-by-side variant columns of new-tab screen links, prose cards, trade-off matrix). Per-variant screen HTMLs with <code>data-src</code> requirement-ID traceability and <code>data-prop</code> property traceability.</div></div>
+      <div class="field"><span class="field-label">How to use</span><div class="field-body">Open two variants' screens side-by-side via browser tab-drag (the index links every screen as <code>target="_blank"</code>). Use the trade-off matrix and prose cards to drive variant selection with the client; then hand the chosen variant to <code>/prototype</code> as its wireframe basis (basis&nbsp;D), or feed selected directions back as constraints for the next requirements pass.</div></div>
+    </div>
+  </div>
+</details>
+
+<!-- 3i — /prototype -->
+<details class="acc base" id="prototype">
+  <summary>
+    <div class="head-left">
+      <span class="head-cmd">/prototype</span>
+      <span class="head-role">Base · final output · hi-fi clickable React app</span>
+    </div>
+    <a class="back-link" href="#flowchart">↑ Back to flowchart</a>
+  </summary>
+  <div class="acc-body">
+    <p class="panel-lede">The final, highest-fidelity step. Each run produces <strong>one</strong> clickable, client-side-only React/Next.js prototype of a scope of <code>requirements.md</code>, accumulating in <strong>one shared app</strong> under <code>prototypes/</code> (scaffolded once from <code>template/</code>) reachable from a single landing page. Look &amp; feel is <strong>brand-locked and identical across every prototype</strong> — divergence is <em>pure UX</em>: a named <strong>UX posture</strong> + trade-off positions (D1–D5) reshape layout and workflows. Shares the <code>scope-selector</code> skill and <code>blueprint-architect</code> agent with <code>/wireframe</code>.</p>
+    <div class="panel-grid">
+
+      <div class="card base solo">
+        <h4>/prototype</h4>
+        <div class="role">Hi-fi clickable prototype (one shared app)</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code> (scoped via the shared <code>scope-selector</code>) + your <strong>A–E</strong> supporting-input selection — <strong>A</strong> requirement, <strong>B</strong> <code>analyse-requirements/*</code>, <strong>C</strong> <code>analyse-inputs/*</code>, <strong>D</strong> <code>wireframes/&lt;scope&gt;/*</code>, <strong>E</strong> <code>input/*</code> — plus <code>design-system/design-system.html</code> for brand (if present; else reference-URL / paste-tokens / template defaults) and <code>template/</code> as the one-time scaffold source.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">After <code>requirements.md</code> is accepted and wireframes have settled a direction, when you want a <em>clickable</em> artefact to demo with the client. Run it again — different posture or positions, same brand — to add a divergent prototype for side-by-side comparison.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>prototypes/</code> — one shared Next.js app: a landing page listing every prototype grouped by scope, a per-run prototype under <code>src/app/&lt;name-slug&gt;/</code>, shared components / fixtures / one <code>theme.css</code>, and a <code>PrototypeChrome</code> with a role switcher (PI-05) + data reset. Every data-bound element is traceable to a blueprint Property closed set (anti-fabrication); the build is verified (lint + typecheck + build + Playwright smoke) and honours invariants <code>PI-01</code>..<code>PI-08</code>.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Pipeline per run: scope + name → A–E inputs → blueprint (reused if present) → purpose + posture + positions → design-spec <em>draft → resolve → merge</em> → scaffold-if-needed → parallel per-surface generation → verify → landing update. Open the landing page, click into the prototype, and walk the client through the workflow. Designating a <code>/wireframe</code> variant as the basis pre-fills the posture and D1–D5 positions from that variant.</div></div>
+      </div>
+
+    </div>
+  </div>
+</details>
+
+<footer>
+  <p>Last updated 2026-06-02 · See <a href="./CLAUDE.md">CLAUDE.md</a> for the full project contract · Future-status methodologies omitted; promotions land via PR.</p>
+</footer>
+
+</div>
+
+<script>
+  (function () {
+    function openHashTarget() {
+      var hash = window.location.hash;
+      if (!hash || hash.length < 2) return;
+      var id = decodeURIComponent(hash.slice(1));
+      var el = document.getElementById(id);
+      if (!el) return;
+      // Clear previous hash-active highlight
+      document.querySelectorAll('.hash-active').forEach(function (n) { n.classList.remove('hash-active'); });
+      // If the target is a details element, expand it
+      if (el.tagName && el.tagName.toLowerCase() === 'details') {
+        el.open = true;
+        el.classList.add('hash-active');
+      }
+      // Also expand any parent details (in case of nested structure)
+      var parent = el.parentElement;
+      while (parent) {
+        if (parent.tagName && parent.tagName.toLowerCase() === 'details') {
+          parent.open = true;
+        }
+        parent = parent.parentElement;
+      }
+      // Scroll into view (slight delay to allow expansion paint)
+      setTimeout(function () {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 30);
+    }
+    window.addEventListener('hashchange', openHashTarget);
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', openHashTarget);
+    } else {
+      openHashTarget();
+    }
+  })();
+</script>
+</body>
+</html>
