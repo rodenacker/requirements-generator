@@ -94,20 +94,20 @@ methodologies:
   - name: five-whys
     status: mvp
     group: Users, goals & value
-    description: Choose this when you suspect some requirements rest on thin justification and want each one's rationale traced before designing against it. It produces a Markdown report drilling each requirement down to the user goal, business driver, or external mandate behind it. Use the thin-justification chains it flags as an interview list for the consultant before those features are built.
-    output_path: analyse-requirements/FIVE-WHYS/five-whys.md
+    description: Choose this when you suspect some requirements rest on thin justification and want each one's rationale traced before designing against it. It produces an HTML report — a pre-rendered inline-SVG why-chain diagram per requirement above the textual drill-down — drilling each requirement down to the user goal, business driver, or external mandate behind it. Use the thin-justification chains it flags as an interview list for the consultant before those features are built.
+    output_path: analyse-requirements/FIVE-WHYS/five-whys.html
     reference_asset: framework/assets/analyses/five-whys-reference.md
-    template_asset: null
+    template_asset: framework/assets/analyses/template-five-whys.html
     map_skill: framework/skills/map-five-whys-to-ui.md
     analyser_agent: framework/agents/analyses/five-whys-analyser.md
     character: framework/assets/characters/five-whys-analysis.md
   - name: glossary
     status: mvp
     group: Objects, data & lifecycle
-    description: Choose this before writing copy, labels, status pills, or role surfaces, when terms in the requirements need one agreed meaning. It produces an alphabetical, citation-bound Markdown glossary of every domain term the requirements use. Use it as the single source for UI wording and to catch terms used inconsistently across the document.
-    output_path: analyse-requirements/GLOSSARY/glossary.md
+    description: Choose this before writing copy, labels, status pills, or role surfaces, when terms in the requirements need one agreed meaning. It produces an alphabetical, citation-bound HTML glossary of every domain term the requirements use, with an embedded machine-readable term model. Use it as the single source for UI wording and to catch terms used inconsistently across the document.
+    output_path: analyse-requirements/GLOSSARY/glossary.html
     reference_asset: framework/assets/analyses/glossary-reference.md
-    template_asset: null
+    template_asset: framework/assets/analyses/template-glossary.html
     map_skill: framework/skills/map-glossary-to-ui.md
     analyser_agent: framework/agents/analyses/glossary-analyser.md
     character: framework/assets/characters/glossary-analysis.md

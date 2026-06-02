@@ -1,0 +1,857 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses-inputs/thematic-analysis-analyser.md.
+
+  Purpose: HTML/CSS skeleton for the inputs-side Thematic Analysis artefact
+  (Braun & Clarke 2006 six-phase reflexive thematic analysis adapted for
+  software-requirements inputs). Combines a pre-rendered inline-SVG theme-map
+  (the "MUST contain a diagram" deliverable — geometry computed by the
+  analyser at render time, NO client-side Mermaid runtime) with the inductive
+  themes, the theme-to-requirement-candidates bridge, the deductive coverage
+  check, and an embedded JSON body block (the machine-readable model that
+  survives markitdown HTML->MD conversion for /requirements re-ingestion).
+
+  Self-contained (`<!doctype html>` + ONE inlined `<style>` + `<body>`). No
+  external CSS/JS dependencies, no CDN, no `<script>` behaviour, no inline
+  Mermaid runtime; viewable by opening `file://` in a browser; prints to PDF;
+  shareable with clients without tooling. The Mermaid source is embedded as
+  text inside `<pre class="mermaid-source">` for export only; the rendered
+  visual is the pre-rendered inline `<svg>` in the #diagrams section.
+
+  The artefact is re-ingestible into `input/` for the /requirements drafter
+  via markitdown conversion:
+  - The pre-rendered inline <svg> theme-map carries the visible diagram.
+  - The Mermaid block (inside <pre class="mermaid-source">) survives HTML->MD
+    as a fenced ```mermaid code block — the export/re-ingestion adjunct.
+  - The embedded JSON body block (inside
+    <pre><code class="language-json" id="thematic-analysis-body">) survives as
+    a fenced ```json code block. This is the load-bearing machine-readable
+    contract — the <script type="application/json"> meta block in <head> is
+    stripped by markitdown and is only used by the drift-detection logic on
+    subsequent inputs-side thematic-analysis runs.
+  - Inline [SRC: <filename>] markers in card / list content survive as plain
+    text. No [AI-SUGGESTED] markers — thematic analysis is extraction, not
+    inference.
+
+  Section order (top-to-bottom):
+    1. Overview (id="overview")               — title, subtitle, meta-grid
+                                                 (Domain, Generated, Manifest
+                                                 SHA-256, Run #, counts).
+    2. TOC (<nav class="toc">)                — sticky top-level anchors.
+    3. Diagrams (id="diagrams")               — {{THEME_MAP_SVG}} (pre-rendered
+                                                 inline SVG theme-map) +
+                                                 {{THEME_MAP_MERMAID}} (adjacent
+                                                 collapsed mermaid-source
+                                                 <details>).
+    4. Themes (id="themes")                   — {{THEMES_BLOCK}}: one card per
+                                                 final theme, alphabetical.
+    5. Candidate requirements (id="candidates")
+                                              — {{CANDIDATES_BLOCK}}: theme ->
+                                                 requirement bridge.
+    6. Coverage (id="coverage")               — {{COVERAGE_BLOCK}}: covered /
+                                                 gap-deductive / silent.
+    7. Body (id="thematic-analysis-body-section")
+                                              — {{BODY_JSON_BLOCK}}: the
+                                                 machine-readable JSON model +
+                                                 candidate-requirements. The
+                                                 markitdown-survival contract.
+    8. Diagnostics (id="diagnostics")         — <details> wrapper, collapsed by
+                                                 default. Source roster
+                                                 (consumed/skipped) +
+                                                 manifest-fingerprint + gate
+                                                 results + run history.
+
+  Placeholders the analyser substitutes (string substitution; all text values
+  pre-escaped for HTML; JSON inside <pre><code> escaped as plain text; Mermaid
+  inside <pre class="mermaid-source"> kept literal beyond the standard `<`,
+  `>`, `&` set so node syntax survives; SVG <text> nodes XML-escaped):
+
+    {{TITLE}}                  — short title (e.g. "Thematic Analysis (inputs) — Project X").
+    {{DOMAIN}}                 — domain string (from manifest meta if declared, else
+                                 "(not declared in manifest)").
+    {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
+    {{MANIFEST_SHA256}}        — sha256 of requirements/source-manifest.json at read time.
+    {{RUN_COUNT}}              — integer >= 1, increments per run.
+    {{OBSERVATION_COUNT}}      — total Phase-1 observations.
+    {{CODE_COUNT}}             — total Phase-2 codes (after dedup).
+    {{CANDIDATE_THEME_COUNT}}  — Phase-3 candidate-theme count.
+    {{FINAL_THEME_COUNT}}      — Phase-5 final-theme count.
+    {{CANDIDATE_REQ_COUNT}}    — Phase-6 candidate-requirement count.
+    {{COVERED_COUNT}}          — coverage-frame concerns covered.
+    {{GAP_COUNT}}              — coverage-frame concerns gap-deductive.
+    {{SILENT_COUNT}}           — coverage-frame concerns silent.
+    {{CONSUMED_ROW_COUNT}}     — number of manifest rows consumed.
+    {{SKIPPED_ROW_COUNT}}      — number of manifest rows skipped (Unsupported tier).
+    {{THEME_MAP_SVG}}          — pre-rendered <figure class="theme-map"> containing
+                                 ONE inline <svg> (root node + theme nodes + optional
+                                 code nodes + dashed cross-theme proximity edges).
+                                 The "MUST contain a diagram" deliverable.
+    {{THEME_MAP_MERMAID}}      — pre-rendered <details class="mermaid-block"> containing
+                                 <pre class="mermaid-source"> with the `graph TD`
+                                 theme-map source (export / re-ingestion adjunct).
+    {{THEMES_BLOCK}}           — pre-rendered <article class="theme-card"> blocks, one
+                                 per final theme, alphabetical by label.
+    {{CANDIDATES_BLOCK}}       — pre-rendered theme->requirement bridge sub-sections.
+    {{COVERAGE_BLOCK}}         — pre-rendered Covered / Gap-deductive / Silent sub-lists.
+    {{BODY_JSON_BLOCK}}        — pre-rendered <section id="thematic-analysis-body-section">
+                                 containing a single
+                                 <pre><code class="language-json" id="thematic-analysis-body">.
+    {{DIAGNOSTICS_BLOCK}}      — pre-rendered <section class="diagnostics"> (source
+                                 roster, manifest fingerprint, gate results, run history).
+
+  Output: analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html.
+
+  THEME-MAP SVG SCHEMA — {{THEME_MAP_SVG}} substitutes a single
+  <figure class="theme-map"> containing ONE inline <svg>. The analyser computes
+  geometry at render time (a top-down hub-and-spoke: root at top centre, theme
+  nodes in a wrapping row beneath, optional code circles below each theme, dashed
+  cross-theme proximity edges). All text XML-escaped. Conventions:
+    - viewBox "0 0 W H" — W and H computed by the analyser from theme count.
+    - role="img" + aria-label on the <svg>.
+    - <path class="edge edge-root-theme"> per root->theme link (solid).
+    - <path class="edge edge-theme-theme"> per cross-theme proximity pair (dashed).
+    - <path class="edge edge-theme-code"> per theme->code link when codes are toggled on.
+    - root: <g class="node node-root"> = <rect rx="16"/> + <text>.
+    - theme: <g class="node node-theme"> = <rect rx="6"/> + <text> (label wraps via tspan).
+    - code (optional, default OFF): <g class="node node-code"> = <circle/> + <text>.
+
+      <figure class="theme-map" aria-labelledby="theme-map-cap">
+        <figcaption id="theme-map-cap">Theme map — root -> themes (-> codes when toggled), dashed edges show cross-theme proximity.</figcaption>
+        <svg viewBox="0 0 W H" role="img" aria-label="Theme map for the inputs">
+          <!-- edges first (under nodes), then node <g> groups -->
+        </svg>
+      </figure>
+
+  THEME-MAP MERMAID SCHEMA — {{THEME_MAP_MERMAID}} substitutes:
+
+      <details class="mermaid-block">
+        <summary>Theme-map Mermaid source (export / re-ingestion adjunct)</summary>
+        <p class="mermaid-caption">
+          Copy this block into <a href="https://mermaid.live">mermaid.live</a> or run
+          <code>mmdc -i &lt;source.mmd&gt; -o &lt;diagram.svg&gt;</code> to view rendered.
+          The pre-rendered SVG above is the in-page diagram; this Mermaid source
+          survives markitdown HTML->MD conversion as a fenced code block so the
+          diagram is available verbatim to /requirements on re-ingestion.
+        </p>
+        <pre class="mermaid-source">{{mermaid-source}}</pre>
+      </details>
+
+  THEMES BLOCK SCHEMA — {{THEMES_BLOCK}} substitutes one card per final theme:
+
+      <article id="theme-<slug>" class="theme-card" aria-labelledby="theme-<slug>-name">
+        <header class="theme-header">
+          <h3 id="theme-<slug>-name">{{theme label}}</h3>
+          <span class="cross-source-tag cross-yes|cross-no">Cross-source: yes (N sources)|no (single source: {{filename}})</span>
+        </header>
+        <p class="theme-def">{{1-2-sentence definition with >=1 [SRC: <filename>] marker}}</p>
+        <h4>Supporting codes</h4>
+        <ul class="code-list">
+          <li><span class="code-label">{{code_label}}</span> &mdash; <em class="extract">"{{verbatim extract}}"</em> <small class="src-inline">[SRC: {{filename}}]</small></li>
+        </ul>
+      </article>
+
+  CANDIDATES BLOCK SCHEMA — {{CANDIDATES_BLOCK}} substitutes one sub-section per theme:
+
+      <section class="candidate-group">
+        <h3>{{theme label}}</h3>
+        <ul class="candidate-list">
+          <li>The system should <strong>{{verb object}}</strong> so that {{outcome}}. <small class="src-inline">[SRC: {{filename}}]</small></li>
+        </ul>
+      </section>
+
+  COVERAGE BLOCK SCHEMA — {{COVERAGE_BLOCK}} substitutes three sub-lists; each
+  empty list emits a single italic "(none this run)" line:
+
+      <div class="coverage-grid">
+        <section class="coverage-col covered">
+          <h3>Covered</h3>
+          <ul><li><strong>{{concern}}</strong> &mdash; touched by: {{theme labels}}.</li></ul>
+        </section>
+        <section class="coverage-col gap">
+          <h3>Gap-deductive</h3>
+          <ul><li><span class="gap-marker">[GAP-DEDUCTIVE: {{concern}}]</span> &mdash; cues in: {{filenames}}. No theme touches this concern.</li></ul>
+        </section>
+        <section class="coverage-col silent">
+          <h3>Silent</h3>
+          <ul><li><strong>{{concern}}</strong> &mdash; no source mention.</li></ul>
+        </section>
+      </div>
+
+  BODY JSON BLOCK SCHEMA — {{BODY_JSON_BLOCK}} substitutes:
+
+      <section id="thematic-analysis-body-section" aria-labelledby="thematic-analysis-body-title">
+        <h2 id="thematic-analysis-body-title">Thematic model (machine-readable)</h2>
+        <p class="caption">
+          The full thematic model in JSON — codes, themes, candidate-requirements,
+          coverage results. This block survives markitdown HTML->MD conversion as a
+          fenced <code>```json</code> code block, so when the artefact is copied into
+          <code>input/</code> for /requirements re-ingestion the drafter consumes the
+          complete model (and the candidate-requirements bridge) in one shot.
+        </p>
+        <pre><code class="language-json" id="thematic-analysis-body">{{thematic_analysis_json}}</code></pre>
+      </section>
+
+  JSON SCHEMA — the block carries (minimum): schema_version, generated_at,
+  manifest_sha256, run_count, domain, source_roster {consumed[], skipped[]},
+  codes[], themes[] (label, definition, code_ids, cross_source, source_filenames),
+  candidate_requirements[] (theme, line, source_filenames), coverage_results[]
+  (concern, status, touching_themes|mentioning_sources), quality_gates[].
+
+  DIAGNOSTICS SCHEMA — the analyser's {{DIAGNOSTICS_BLOCK}} substitutes a
+  single <section class="diagnostics">. The template wraps the placeholder in a
+  <details class="diagnostics-toggle"> element (collapsed by default). The inner
+  section contains, in order:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>Thematic analysis — N observations, M codes, K final themes.</p>
+        <p>Manifest fingerprint: <code>{{MANIFEST_SHA256}}</code> — run #{{RUN_COUNT}}.</p>
+
+        <h3>Source roster — Consumed</h3>
+        <table class="source-table consumed">
+          <thead><tr><th>Filename</th><th>Tier</th><th>SHA-256</th><th>Code-count</th></tr></thead>
+          <tbody><tr><td>{{filename}}</td><td>{{tier}}</td><td class="sha">{{sha256_8}}</td><td class="count">{{n}}</td></tr></tbody>
+        </table>
+
+        <h3>Source roster — Skipped</h3>
+        <table class="source-table skipped">
+          <thead><tr><th>Filename</th><th>Reason</th></tr></thead>
+          <tbody><tr><td>{{filename}}</td><td>{{reason}}</td></tr>
+            <!-- If empty: <tr><td colspan="2" class="empty">(no skipped rows this run)</td></tr> -->
+          </tbody>
+        </table>
+
+        <h3>Quality gates (6)</h3>
+        <ul class="gate-results">
+          <li class="gate-pass|gate-fail">Gate 1 — Citation completeness.</li>
+          ... (all 6 gates listed in order)
+        </ul>
+
+        <h3>Run history</h3>
+        <ul class="run-history">
+          <li><code>{{date}}</code> — run #{{n}} — {{deltas}}.</li>
+        </ul>
+        <!-- Override-only: flagged-items <ul> per failed gate. -->
+      </section>
+
+  CSS classes used by the analyser:
+    .theme-map        — <figure> wrapping the pre-rendered inline SVG theme-map.
+    .mermaid-block    — <details> wrapping the <pre class="mermaid-source"> export adjunct.
+    .theme-card       — one per final theme.
+    .candidate-group  — one per theme in the bridge.
+    .coverage-grid / .coverage-col.covered|.gap|.silent — coverage three-column layout.
+    .gap-marker       — the [GAP-DEDUCTIVE: <concern>] inline marker.
+    .src-inline       — [SRC: <filename>] marker pill.
+    .cross-source-tag.cross-yes|.cross-no — per-theme cross-source indicator.
+    SVG: .node-root .node-theme .node-code; .edge-root-theme .edge-theme-theme .edge-theme-code.
+
+  Content TBD-able by the analyser:
+    The theme-map SVG + geometry, the Mermaid source, the theme cards, the bridge,
+    the coverage lists, the JSON body, the diagnostics block. The CSS below is fixed
+    scaffolding and should not be edited by the analyser — only the {{placeholders}}
+    above are substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script type="application/json" id="thematic-analysis-meta">
+{
+  "title": "{{TITLE}}",
+  "domain": "{{DOMAIN}}",
+  "generated_at": "{{GENERATED_AT}}",
+  "manifest_sha256": "{{MANIFEST_SHA256}}",
+  "run_count": {{RUN_COUNT}},
+  "observation_count": {{OBSERVATION_COUNT}},
+  "code_count": {{CODE_COUNT}},
+  "candidate_theme_count": {{CANDIDATE_THEME_COUNT}},
+  "final_theme_count": {{FINAL_THEME_COUNT}},
+  "candidate_requirement_count": {{CANDIDATE_REQ_COUNT}},
+  "covered_count": {{COVERED_COUNT}},
+  "gap_count": {{GAP_COUNT}},
+  "silent_count": {{SILENT_COUNT}},
+  "consumed_row_count": {{CONSUMED_ROW_COUNT}},
+  "skipped_row_count": {{SKIPPED_ROW_COUNT}}
+}
+  </script>
+
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --col-bg: #ffffff;
+      --card-shadow: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+      --header-bg: #efefef;
+      --code-bg: #f3f4f6;
+
+      /* Theme-map palette — root indigo, themes teal, codes slate */
+      --root-bg: #dbdcf0;   --root-border: #5a5fbf;   --root-fg: #1c1f5c;
+      --theme-bg: #cfe9e5;  --theme-border: #3f9488;  --theme-fg: #0d3a34;
+      --code-fill: #e8eef4; --code-stroke: #7f93a8;   --code-fg: #243446;
+      --edge-stroke: #8aa0a0;
+      --edge-cross: #b86a00;
+
+      /* Coverage columns */
+      --covered-accent: #2a8a2a;
+      --gap-accent: #b86a00;
+      --silent-accent: #8a8a8a;
+      --gap-bg: #fff3e2;
+
+      --prov-pass: #2a8a2a;
+      --rev-fg: #8a1a1a;
+      --rev-bg: #ffeaea; --rev-border: #d44a4a;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px 0; }
+    h2 { font-size: 16px; margin: 24px 0 8px 0; }
+    h3 {
+      font-size: 13px;
+      margin: 14px 0 6px 0;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    h4 {
+      font-size: 11px;
+      margin: 10px 0 4px 0;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .subtitle { color: var(--muted); font-size: 13px; margin: 0 0 24px 0; }
+    .caption { color: var(--muted); font-size: 12px; margin: 0 0 12px 0; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      background: var(--code-bg);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px 24px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+    .meta-grid dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+    .meta-grid dd { margin: 0 0 6px 0; font-variant-numeric: tabular-nums; }
+
+    .src-inline {
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+      font-size: 11px;
+      background: var(--code-bg);
+      padding: 0 4px;
+      border-radius: 3px;
+      white-space: nowrap;
+      margin-left: 4px;
+    }
+
+    /* ------- table of contents (sticky) ------- */
+
+    .toc {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      margin: 0 0 24px 0;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .toc ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 18px;
+      counter-reset: toc-item;
+    }
+    .toc li { counter-increment: toc-item; }
+    .toc li::before {
+      content: counter(toc-item) ". ";
+      color: var(--muted);
+      margin-right: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .toc a {
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--border-strong);
+    }
+    .toc a:hover { border-bottom-color: var(--fg); }
+
+    /* ------- diagrams: theme-map SVG ------- */
+
+    #diagrams {
+      margin-bottom: 24px;
+    }
+    figure.theme-map {
+      margin: 0 0 16px 0;
+      padding: 16px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    figure.theme-map figcaption {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+    figure.theme-map svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #fcfcfc;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+    /* SVG-internal styling (selectable by class on emitted shapes) */
+    figure.theme-map svg .edge { fill: none; stroke: var(--edge-stroke); stroke-width: 1.4; }
+    figure.theme-map svg .edge-root-theme { stroke: var(--root-border); }
+    figure.theme-map svg .edge-theme-theme { stroke: var(--edge-cross); stroke-dasharray: 5 4; }
+    figure.theme-map svg .edge-theme-code { stroke: var(--code-stroke); stroke-width: 1; }
+    figure.theme-map svg .node-root rect { fill: var(--root-bg); stroke: var(--root-border); stroke-width: 1.5; }
+    figure.theme-map svg .node-theme rect { fill: var(--theme-bg); stroke: var(--theme-border); stroke-width: 1.3; }
+    figure.theme-map svg .node-code circle { fill: var(--code-fill); stroke: var(--code-stroke); stroke-width: 1; }
+    figure.theme-map svg .node-root text { fill: var(--root-fg); font-size: 13px; font-weight: 700; text-anchor: middle; }
+    figure.theme-map svg .node-theme text { fill: var(--theme-fg); font-size: 12px; font-weight: 600; text-anchor: middle; }
+    figure.theme-map svg .node-code text { fill: var(--code-fg); font-size: 10px; text-anchor: middle; }
+    figure.theme-map svg text {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* ------- mermaid export adjunct ------- */
+
+    details.mermaid-block {
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin: 0 0 24px 0;
+      background: #fff;
+    }
+    details.mermaid-block > summary {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.mermaid-block > summary::-webkit-details-marker { display: none; }
+    details.mermaid-block > summary::before {
+      content: "\25B6";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.mermaid-block[open] > summary::before { transform: rotate(90deg); }
+    .mermaid-caption { color: var(--muted); font-size: 12px; margin: 8px 0; }
+    .mermaid-caption code, .mermaid-caption a {
+      font-family: ui-monospace, monospace;
+      font-size: 0.92em;
+    }
+    pre.mermaid-source {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      overflow-x: auto;
+      white-space: pre;
+      color: #111827;
+      margin: 0;
+    }
+
+    /* ------- themes ------- */
+
+    #themes { margin-bottom: 24px; }
+    .theme-card {
+      padding: 14px 16px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--theme-border);
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .theme-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .theme-header h3 {
+      margin: 0;
+      font-size: 15px;
+      color: var(--theme-fg);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .cross-source-tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+    .cross-source-tag.cross-yes { background: #e3f3ef; color: #0d3a34; border: 1px solid var(--theme-border); }
+    .cross-source-tag.cross-no  { background: var(--header-bg); color: var(--muted); border: 1px solid var(--border-strong); }
+    .theme-def { margin: 8px 0; font-size: 13px; line-height: 1.5; }
+    ul.code-list { margin: 4px 0 0 0; padding-left: 20px; font-size: 13px; }
+    ul.code-list li { margin: 3px 0; }
+    .code-label { font-weight: 600; }
+    .extract { color: var(--muted); }
+
+    /* ------- candidate requirements ------- */
+
+    #candidates { margin-bottom: 24px; }
+    .candidate-group {
+      padding: 12px 16px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .candidate-group h3 {
+      margin: 0 0 6px 0;
+      color: var(--fg);
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 13px;
+    }
+    ul.candidate-list { margin: 0; padding-left: 20px; font-size: 13px; }
+    ul.candidate-list li { margin: 4px 0; }
+
+    /* ------- coverage ------- */
+
+    #coverage { margin-bottom: 24px; }
+    .coverage-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .coverage-col {
+      padding: 12px 16px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .coverage-col.covered { border-top: 3px solid var(--covered-accent); }
+    .coverage-col.gap     { border-top: 3px solid var(--gap-accent); }
+    .coverage-col.silent  { border-top: 3px solid var(--silent-accent); }
+    .coverage-col h3 { margin-top: 0; }
+    .coverage-col ul { margin: 0; padding-left: 18px; font-size: 13px; }
+    .coverage-col li { margin: 4px 0; }
+    .coverage-col .empty { color: var(--muted); font-style: italic; list-style: none; margin-left: -14px; }
+    .gap-marker {
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gap-accent);
+      background: var(--gap-bg);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    /* ------- body JSON ------- */
+
+    #thematic-analysis-body-section {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    #thematic-analysis-body-section h2 { margin-top: 0; }
+    #thematic-analysis-body-section pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-x: auto;
+      white-space: pre;
+      color: #111827;
+      margin: 0;
+      max-height: 480px;
+    }
+
+    /* ------- diagnostics ------- */
+
+    details.diagnostics-toggle { margin-bottom: 24px; }
+    details.diagnostics-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before {
+      content: "\25B6";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.diagnostics-toggle[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.diagnostics-toggle[open] > summary::before { transform: rotate(90deg); }
+
+    .diagnostics {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > .diagnostics {
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      margin-bottom: 0;
+    }
+    details.diagnostics-toggle > .diagnostics > h2 { display: none; }
+    .diagnostics h2 { font-size: 16px; margin: 0 0 8px 0; }
+    .diagnostics p { margin: 4px 0; }
+
+    table.source-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 4px 0 12px 0;
+      font-size: 12px;
+    }
+    table.source-table th,
+    table.source-table td {
+      padding: 6px 8px;
+      border-top: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    table.source-table thead th {
+      background: var(--header-bg);
+      font-weight: 600;
+      border-top: none;
+      border-bottom: 2px solid var(--border-strong);
+    }
+    table.source-table .sha,
+    table.source-table .count {
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, monospace;
+    }
+    table.source-table .empty { color: var(--muted); font-style: italic; text-align: center; }
+
+    .diagnostics ul.gate-results,
+    .diagnostics ul.run-history {
+      margin: 0 0 12px 0;
+      padding-left: 20px;
+      font-size: 13px;
+    }
+    .diagnostics ul.gate-results li.gate-pass::before { content: "PASS "; color: var(--prov-pass); font-weight: 600; }
+    .diagnostics ul.gate-results li.gate-fail::before { content: "FAIL "; color: var(--rev-fg); font-weight: 600; }
+    .diagnostics .flagged-items {
+      margin: 8px 0 0 0;
+      padding: 8px 10px;
+      background: var(--rev-bg);
+      border-left: 3px solid var(--rev-border);
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    .diagnostics .flagged-items strong { color: var(--rev-fg); }
+
+    /* ------- next-steps / footer ------- */
+
+    section.next-steps {
+      margin-top: 24px;
+      padding: 14px 18px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--theme-border);
+      border-radius: 6px;
+    }
+    section.next-steps h2 { margin-top: 0; font-size: 14px; }
+    section.next-steps p { color: var(--muted); margin: 6px 0; font-size: 13px; }
+    section.next-steps code {
+      font-family: ui-monospace, monospace;
+      font-size: 0.92em;
+    }
+
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    footer .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+    }
+    footer .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    footer .legend-swatch {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border: 1px solid transparent;
+    }
+    footer .legend-swatch.s-root  { background: var(--root-bg);  border-color: var(--root-border); }
+    footer .legend-swatch.s-theme { background: var(--theme-bg); border-color: var(--theme-border); }
+    footer .legend-swatch.s-code  { background: var(--code-fill); border-color: var(--code-stroke); border-radius: 50%; }
+    footer .credit { margin-top: 6px; text-align: right; }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .toc { display: none; }
+      details.diagnostics-toggle { display: none; }
+      details.mermaid-block { display: none; }
+      .theme-card, .candidate-group, .coverage-col, figure.theme-map { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section id="overview">
+      <h1>{{TITLE}}</h1>
+      <p class="subtitle">Thematic analysis (inputs side) — Braun &amp; Clarke (2006) six-phase reflexive thematic analysis. Pre-rendered theme-map (inline SVG) + inductive themes + theme-to-requirement-candidates bridge + deductive coverage check + machine-readable JSON.</p>
+
+      <dl class="meta-grid">
+        <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+        <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+        <div><dt>Manifest SHA-256</dt><dd><code>{{MANIFEST_SHA256}}</code></dd></div>
+        <div><dt>Run #</dt><dd>{{RUN_COUNT}}</dd></div>
+        <div><dt>Observations</dt><dd>{{OBSERVATION_COUNT}}</dd></div>
+        <div><dt>Codes</dt><dd>{{CODE_COUNT}}</dd></div>
+        <div><dt>Candidate themes</dt><dd>{{CANDIDATE_THEME_COUNT}}</dd></div>
+        <div><dt>Final themes</dt><dd>{{FINAL_THEME_COUNT}}</dd></div>
+        <div><dt>Candidate requirements</dt><dd>{{CANDIDATE_REQ_COUNT}}</dd></div>
+        <div><dt>Coverage (covered/gap/silent)</dt><dd>{{COVERED_COUNT}} / {{GAP_COUNT}} / {{SILENT_COUNT}}</dd></div>
+        <div><dt>Consumed sources</dt><dd>{{CONSUMED_ROW_COUNT}}</dd></div>
+        <div><dt>Skipped sources</dt><dd>{{SKIPPED_ROW_COUNT}}</dd></div>
+      </dl>
+    </section>
+
+    <nav class="toc" aria-label="Sections">
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#diagrams">Theme map</a></li>
+        <li><a href="#themes">Themes</a></li>
+        <li><a href="#candidates">Candidate requirements</a></li>
+        <li><a href="#coverage">Coverage</a></li>
+        <li><a href="#thematic-analysis-body-section">Thematic model (JSON)</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+      </ol>
+    </nav>
+
+    <section id="diagrams" aria-label="Theme map">
+      {{THEME_MAP_SVG}}
+
+      {{THEME_MAP_MERMAID}}
+    </section>
+
+    <section id="themes" aria-label="Themes">
+      {{THEMES_BLOCK}}
+    </section>
+
+    <section id="candidates" aria-label="Theme-to-requirement candidates">
+      <h2>Theme-to-requirement candidates</h2>
+      <p class="caption">Solution-agnostic candidate-requirement seeds bridged from each theme. Re-ingested by /requirements as <code>§6</code> starting points; the drafter normalises voice and assigns IDs.</p>
+      {{CANDIDATES_BLOCK}}
+    </section>
+
+    <section id="coverage" aria-label="Coverage gaps and silent areas">
+      <h2>Coverage gaps and silent areas</h2>
+      <p class="caption">Deductive check against the fixed 10-area concern frame. Gap-deductive markers flag concerns the inputs mention but no theme supports — never an invitation to invent a theme.</p>
+      {{COVERAGE_BLOCK}}
+    </section>
+
+    {{BODY_JSON_BLOCK}}
+
+    <details id="diagnostics" class="diagnostics-toggle">
+      <summary>Diagnostics — source roster, manifest fingerprint, 6 quality-gate results, run history</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    <section class="next-steps">
+      <h2>Next steps</h2>
+      <p>
+        To re-ingest this artefact into <code>/requirements</code>, copy this file into <code>input/</code> (e.g. <code>input/thematic-analysis.html</code>) and re-run <code>/requirements</code>. The input-handler classifies it as <code>Supported-via-MCP</code>; markitdown converts it to <code>input/thematic-analysis.html.converted.md</code>. The embedded JSON body block (the <code>language-json</code> code block, carrying themes + the candidate-requirements bridge) and the Mermaid theme-map source survive verbatim as fenced code blocks; <code>[SRC: &lt;filename&gt;]</code> markers survive as plain text. The drafter consumes the converted markdown via the refreshed manifest.
+      </p>
+    </section>
+
+    <footer>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-root" aria-hidden="true"></span> Root</span>
+        <span class="legend-item"><span class="legend-swatch s-theme" aria-hidden="true"></span> Theme</span>
+        <span class="legend-item"><span class="legend-swatch s-code" aria-hidden="true"></span> Code (optional)</span>
+      </div>
+      <div class="credit">Generated by `framework/agents/analyses-inputs/thematic-analysis-analyser.md`.</div>
+    </footer>
+  </main>
+</body>
+</html>

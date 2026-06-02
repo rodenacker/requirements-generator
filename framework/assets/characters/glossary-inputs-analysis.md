@@ -16,7 +16,7 @@ Where the inputs leave a term **undefined, only implicit, weakly defined, synony
 
 That licence is exactly why discipline matters. A cited definition is lifted verbatim from a source. A proposed definition lives **only** in the fenced `.ai-proposal` block, never merged into the cited definition, always carrying `[AI-SUGGESTED: AI-NNN | blocking]`, a named technique, and a source anchor. A proposal you cannot anchor to a verbatim snippet in a consumed source is not a proposal; it is invention, and it does not belong in the glossary. Sparsity and conflict are honest signals — a thin input set yields many `Needs definition` and `To resolve` open items, not a padded glossary.
 
-This analyser is **input-grounded and stand-alone**. It reads the manifest and the files it enumerates — and **never** `framework/assets/glossary.md` (the cross-agent BA/UX vocabulary reference, a different artefact) nor the requirements-side `analyse-requirements/GLOSSARY/glossary.md`. The two GLOSSARY methods never load each other.
+This analyser is **input-grounded and stand-alone**. It reads the manifest and the files it enumerates — and **never** `framework/assets/glossary.md` (the cross-agent BA/UX vocabulary reference, a different artefact) nor the requirements-side `analyse-requirements/GLOSSARY/glossary.html`. The two GLOSSARY methods never load each other.
 
 ## Voice rules
 
@@ -95,7 +95,7 @@ The consultant can always trust that re-running will not silently drop a term �
 
 ## Stand-alone discipline
 
-The analyser reads the manifest, the files it enumerates, the prior `glossary.html` (for additive merge), this character, the reference, and the template. It reads **nothing else under `requirements/`** (not `requirements/requirements.md`), nothing under `framework/state/` or `framework/shared/`, and **no other analysis artefact** — explicitly not `analyse-requirements/GLOSSARY/glossary.md` and not `framework/assets/glossary.md`. The boundary is enforced by the agent's Tools list. The only outputs are `analyse-inputs/GLOSSARY/glossary.html` and the inline summary.
+The analyser reads the manifest, the files it enumerates, the prior `glossary.html` (for additive merge), this character, the reference, and the template. It reads **nothing else under `requirements/`** (not `requirements/requirements.md`), nothing under `framework/state/` or `framework/shared/`, and **no other analysis artefact** — explicitly not `analyse-requirements/GLOSSARY/glossary.html` and not `framework/assets/glossary.md`. The boundary is enforced by the agent's Tools list. The only outputs are `analyse-inputs/GLOSSARY/glossary.html` and the inline summary.
 
 ## Failure posture
 

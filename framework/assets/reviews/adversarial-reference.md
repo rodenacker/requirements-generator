@@ -8,7 +8,7 @@
 
 - `framework/agents/reviews/adversarial-reviewer.md` — drives the agent's eight-dimension process plus the quality-gate sweep.
 
-**Output produced by the reviewer:** `review-requirements/ADVERSARIAL/adversarial-review.md` — a markdown punch-list of cited, severity-graded, dispositioned findings using `framework/assets/reviews/template-adversarial.md` as scaffold.
+**Output produced by the reviewer:** `review-requirements/ADVERSARIAL/adversarial-review.html` — a self-contained HTML punch-list of cited, severity-graded, dispositioned findings using `framework/assets/reviews/template-adversarial.html` as scaffold.
 
 ---
 
@@ -34,7 +34,7 @@ This reference operationalises BMAD's rule with explicit dimensions, a finding s
 
 ## Upstream input contract
 
-The reviewer reads **only** `requirements/requirements.md` (plus this reference, the character file, and the markdown template). It does not consult:
+The reviewer reads **only** `requirements/requirements.md` (plus this reference, the character file, and the HTML template). It does not consult:
 
 - `requirements/requirements-draft.md`, `requirements/source-manifest.json`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — pipeline-internal.
 - `analyse-requirements/*` outputs (OOUX maps, JTBD job maps, Use Cases) — derived; reviewing the requirements doc against derivatives of itself would conflate "what the doc says" with "what the analyser inferred". The review's contract is to critique the source doc as the source doc.
@@ -292,7 +292,7 @@ This rule applies independently to all eight dimensions.
 
 ## Output presentation
 
-The artefact renders as a structured markdown report following `framework/assets/reviews/template-adversarial.md`. The fixed section ordering is:
+The artefact renders as a structured, self-contained HTML report following `framework/assets/reviews/template-adversarial.html`. The fixed section ordering is:
 
 1. **Header** — title, generated-at timestamp, requirements SHA-256, reviewer identity.
 2. **Executive Summary** — total findings, severity tally, disposition tally, verdict line.

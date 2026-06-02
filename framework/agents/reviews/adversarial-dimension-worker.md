@@ -16,7 +16,7 @@ This agent reads `requirements/requirements.md` and **nothing else**. It does **
 
 - `framework/assets/characters/adversarial-review.md` — supplied inline by the parent.
 - `framework/assets/reviews/adversarial-reference.md` — the relevant dimension section, finding schema, disposition rubric, and strict-BMAD rule are supplied inline by the parent.
-- `framework/assets/reviews/template-adversarial.md` — the worker does not render; rendering is the parent's job at Step 11.
+- `framework/assets/reviews/template-adversarial.html` — the worker does not render; rendering is the parent's job at Step 11.
 - Any other path under `requirements/`, `analyse-requirements/`, `analyse-inputs/`, `design-system/`, `framework/state/`, `framework/shared/`, or `review-requirements/`.
 
 This invariant is enforced by the agent's `Tools` list — `Read` is scoped to `requirements/requirements.md` only.

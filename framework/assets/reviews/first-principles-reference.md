@@ -8,9 +8,9 @@
 
 - `framework/agents/reviews/first-principles-reviewer.md` — drives the agent's enumeration, per-subject Q1–Q6 evaluation, Q7 coverage pass, filter, ranking, validate, render, and write workflow.
 
-**Output produced by the reviewer:** `review-requirements/FIRST-PRINCIPLES/first-principles-review.md` — a markdown document that (a) rates every subject in §4.1, §4.2, §6, and §7 against six per-subject defensibility questions, (b) surfaces the ten least defensible subjects in a deep-dive callout, (c) walks the doc once more to find orphan goals / personas / stories / requirements / entities (Q7), and (d) records every gate result + score histogram + filter drops in a diagnostics block.
+**Output produced by the reviewer:** `review-requirements/FIRST-PRINCIPLES/first-principles-review.html` — a self-contained HTML document that (a) rates every subject in §4.1, §4.2, §6, and §7 against six per-subject defensibility questions, (b) surfaces the ten least defensible subjects in a deep-dive callout, (c) walks the doc once more to find orphan goals / personas / stories / requirements / entities (Q7), and (d) records every gate result + score histogram + filter drops in a diagnostics block. The cross-subject coherence findings (CS1–CS5) render as an HTML table.
 
-The scaffold for the artefact is `framework/assets/reviews/template-first-principles.md`.
+The scaffold for the artefact is `framework/assets/reviews/template-first-principles.html`.
 
 ---
 

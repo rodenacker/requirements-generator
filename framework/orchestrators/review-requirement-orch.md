@@ -18,7 +18,7 @@ The reviewer agent **may** internally dispatch non-interactive analytical sub-ag
 
 ## Purpose
 
-Run a registry-driven, single-agent review pipeline. The orchestrator does not know which reviewer will be invoked at design time; it discovers the available reviewers at runtime via `framework/assets/reviews/registry.md` and the shared `analysis-selector` skill (invoked with `list_label: "reviews"`, `verb_label: "review"` — the same methodology-neutral selector `/analyse-requirement`, `/analyse-inputs`, and `/review-inputs` use). The first methodology shipped is Adversarial Review (`framework/agents/reviews/adversarial-reviewer.md` writing `review-requirements/ADVERSARIAL/adversarial-review.md`). Adding methodologies later requires no orchestrator changes — only registry rows, reviewer agents, and supporting assets.
+Run a registry-driven, single-agent review pipeline. The orchestrator does not know which reviewer will be invoked at design time; it discovers the available reviewers at runtime via `framework/assets/reviews/registry.md` and the shared `analysis-selector` skill (invoked with `list_label: "reviews"`, `verb_label: "review"` — the same methodology-neutral selector `/analyse-requirement`, `/analyse-inputs`, and `/review-inputs` use). The first methodology shipped is Adversarial Review (`framework/agents/reviews/adversarial-reviewer.md` writing `review-requirements/ADVERSARIAL/adversarial-review.html`). Adding methodologies later requires no orchestrator changes — only registry rows, reviewer agents, and supporting assets.
 
 ## Stand-alone constraint
 
@@ -55,7 +55,7 @@ Steps 1–3 form an in-memory loop whose head is the step-1 methodology selector
     - `cancelled` — this is the pipeline's sole exit. If `run_count == 0`, emit *"Cancelled. No review run."*; if `run_count ≥ 1`, emit *"Done — ran {{run_count}} {{noun}} this session."* where `{{noun}}` is "review" when `run_count == 1` and "reviews" otherwise. Then exit cleanly.
     - `empty-registry` — emit *"Configuration error: no review methodologies are registered with `status: mvp` in `framework/assets/reviews/registry.md`. Cannot continue."* and exit cleanly. This is a defensive guard; should never fire in normal operation.
 
-2. **Detect prior artefact for the chosen methodology** — `Read chosen.output_path`. (For Adversarial Review: `review-requirements/ADVERSARIAL/adversarial-review.md`.)
+2. **Detect prior artefact for the chosen methodology** — `Read chosen.output_path`. (For Adversarial Review: `review-requirements/ADVERSARIAL/adversarial-review.html`.)
     - **No prior artefact** — proceed directly to step 3.
     - **Prior artefact exists** — surface a single `AskUserQuestion`:
         - Question: *"`{{chosen.output_path}}` already exists. Overwrite it with a fresh run, or keep it and pick another?"*
@@ -108,7 +108,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 
 ## Output
 
-- `<chosen.output_path>` — produced by the reviewer at its write step. For Adversarial Review: `review-requirements/ADVERSARIAL/adversarial-review.md`. The orchestrator produces no other artefact.
+- `<chosen.output_path>` — produced by the reviewer at its write step. For Adversarial Review: `review-requirements/ADVERSARIAL/adversarial-review.html`. The orchestrator produces no other artefact.
 
 ## Tools
 

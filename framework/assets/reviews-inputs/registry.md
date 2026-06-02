@@ -34,20 +34,20 @@ methodologies:
   - name: completeness-review
     status: mvp
     group: Completeness & gaps
-    description: Choose this when you want a broad, authority-grounded punch-list of what the raw inputs are missing, measured against the BA canon (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010) — pick its sibling gap-analysis instead to measure against this project's own requirements template. It produces a Markdown completeness register across ten coverage dimensions, each finding classified Needs-Clarification, Standard-Rule-Applies, or Out-of-Scope, plus per-source elicitation questions. Send the elicitation questions to stakeholders to chase missing material before /requirements drafts from the inputs.
-    output_path: review-inputs/COMPLETENESS-REVIEW/completeness-review.md
+    description: Choose this when you want a broad, authority-grounded punch-list of what the raw inputs are missing, measured against the BA canon (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010) — pick its sibling gap-analysis instead to measure against this project's own requirements template. It produces a self-contained HTML completeness register across ten coverage dimensions (rendered as a sticky-thead coverage matrix table), each finding classified Needs-Clarification, Standard-Rule-Applies, or Out-of-Scope, plus per-source elicitation questions. Send the elicitation questions to stakeholders to chase missing material before /requirements drafts from the inputs.
+    output_path: review-inputs/COMPLETENESS-REVIEW/completeness-review.html
     reference_asset: framework/assets/reviews-inputs/completeness-reference.md
-    template_asset: null
+    template_asset: framework/assets/reviews-inputs/template-completeness.html
     map_skill: null
     reviewer_agent: framework/agents/reviews-inputs/completeness-reviewer.md
     character: framework/assets/characters/completeness-inputs-review.md
   - name: ambiguity-review
     status: mvp
     group: Clarity
-    description: Choose this when you suspect the raw inputs are worded loosely and want every ambiguity caught — lexical, syntactic, referential, vague, subjective, weak-verb, and optionality (Berry/Kamsties + Femmer) — before /requirements drafts from them. It produces a Markdown register of each ambiguous passage, classified by ambiguity type, with a ready-to-paste stakeholder question per finding. Send the questions to pin down the intended meaning, then feed the clarified wording back into your input set.
-    output_path: review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md
+    description: Choose this when you suspect the raw inputs are worded loosely and want every ambiguity caught — lexical, syntactic, referential, vague, subjective, weak-verb, and optionality (Berry/Kamsties + Femmer) — before /requirements drafts from them. It produces a self-contained HTML register of each ambiguous passage, keyed by ambiguity type, with a ready-to-paste stakeholder question per finding. Send the questions to pin down the intended meaning, then feed the clarified wording back into your input set.
+    output_path: review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html
     reference_asset: framework/assets/reviews-inputs/ambiguity-reference.md
-    template_asset: null
+    template_asset: framework/assets/reviews-inputs/template-ambiguity.html
     map_skill: null
     reviewer_agent: framework/agents/reviews-inputs/ambiguity-reviewer.md
     character: framework/assets/characters/ambiguity-inputs-review.md
@@ -96,7 +96,7 @@ Folding input-reviews into the analyses-inputs registry would muddy the consulta
 3. Author the reference asset at `framework/assets/reviews-inputs/<method>-reference.md` (methodology rules and patterns).
 4. Author the character file at `framework/assets/characters/<method>-inputs-review.md` (Unicorn stance during the reviewer run).
 5. (Optional) Author the template asset at `framework/assets/reviews-inputs/template-<method>.{html,md}`. Set `template_asset: null` for methodologies that emit pure Markdown without a scaffold.
-6. Promote the registry row: flip `status: future` to `status: mvp` and populate all remaining fields (`description`, `output_path`, `reference_asset`, `template_asset`, `map_skill`, `reviewer_agent`, `character`, and the optional `group` — assign a lens group; omitting it drops the row into a trailing `Other` group). `output_path` lives under `review-inputs/<METHOD>/` (uppercase methodology name) — e.g. `review-inputs/COMPLETENESS-REVIEW/completeness-review.md`.
+6. Promote the registry row: flip `status: future` to `status: mvp` and populate all remaining fields (`description`, `output_path`, `reference_asset`, `template_asset`, `map_skill`, `reviewer_agent`, `character`, and the optional `group` — assign a lens group; omitting it drops the row into a trailing `Other` group). `output_path` lives under `review-inputs/<METHOD>/` (uppercase methodology name) — e.g. `review-inputs/COMPLETENESS-REVIEW/completeness-review.html`.
 7. Add the reviewer node to graph 6 in `framework/dependency-graphs.md`.
 8. No orchestrator changes required — the selector skill picks the new MVP row up automatically.
 
@@ -119,6 +119,6 @@ Folding input-reviews into the analyses-inputs registry would muddy the consulta
 
 - **Yardstick.** `completeness-review` measures against the BA-canon (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010) — *"is this input set complete by professional BA standards?"*. `gap-analysis` measures against the project's `framework/assets/topics-requirements.md` template — *"is this input set complete by **this drafter's** template?"*.
 - **Downstream verb.** `completeness-review` says *"go elicit"* (every Needs-Clarification finding ships with a stakeholder elicitation question). `gap-analysis` says *"ratify, edit, or reject this candidate"* (every Must/Should gap ships with a shall-form Candidate Requirement ready for `/requirements` re-ingestion).
-- **Output.** `completeness-review` produces markdown (`template_asset: null`). `gap-analysis` produces HTML with inline-SVG coverage heatmap + gap matrix table.
+- **Output.** Both produce self-contained HTML. `completeness-review` renders a ten-dimension coverage-matrix table + per-dimension findings (no diagram). `gap-analysis` renders an inline-SVG coverage heatmap + gap matrix table.
 
 The two methodologies are independent and complementary. Either, both, or neither may run on a given input set; sibling reviewers never cross-read each other's artefacts. Consultants who want a broad authority-grounded punch-list for client follow-up pick `completeness-review`; those who want a visual drafter-aligned gap map with pre-drafted requirements pick `gap-analysis`. Many will run both. The registry descriptions above follow the standard three-sentence selector shape (why/when → what it produces → how to use the output), and each sibling names the other in its first sentence so the consultant can tell them apart at a glance in the selector list.

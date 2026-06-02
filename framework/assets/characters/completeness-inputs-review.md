@@ -203,12 +203,12 @@ The Completeness inputs-side reviewer reads:
 It does **not** read:
 
 - `requirements/requirements.md`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — derivative artefacts.
-- `review-inputs/ADVERSARIAL/adversarial-review.html`, `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading would conflate the methodologies.
+- `review-inputs/ADVERSARIAL/adversarial-review.html`, `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading would conflate the methodologies.
 - `analyse-requirements/*`, `analyse-inputs/*` outputs — derived; each lens reads the manifest independently.
 - `design-system/*`, `review-requirements/*`, `framework/state/*`, `framework/shared/prototype-invariants.md`, `framework/shared/refusal-registry.md` (except as textual references in the reference and the agent file).
 - `framework/skills/completeness-gap-pass.md` — that skill is `/requirements`-private; the conceptual decision tree it embodies is shared inspiration, but the implementations are independent because input artefacts differ.
 
-The reviewer agent's only outputs are `review-inputs/COMPLETENESS-REVIEW/completeness-review.md` and the inline-summary it surfaces to the consultant at handback.
+The reviewer agent's only outputs are `review-inputs/COMPLETENESS-REVIEW/completeness-review.html` and the inline-summary it surfaces to the consultant at handback.
 
 ## Single-threaded discipline (no parallel workers)
 
@@ -253,4 +253,4 @@ If a candidate finding cannot satisfy all three, drop it.
 
 Each run produces a **fresh** gap register reflecting the **current** input set. No additive merge, no manifest-fingerprint cursor across runs, no `Run history` section. A finding tied to a removed source disappears on the next run; new findings from added sources surface clean. This differs from the `/analyse-inputs` analysers (which use additive merge to grow understanding across runs) — completeness-review's purpose is a gap register that **changes** as the input set changes.
 
-The orchestrator's prior-artefact gate (`review-inputs/COMPLETENESS-REVIEW/completeness-review.md` exists → Overwrite / Keep / Cancel) honours this: Overwrite checkpoints the prior artefact to git history and then deletes it before the reviewer runs.
+The orchestrator's prior-artefact gate (`review-inputs/COMPLETENESS-REVIEW/completeness-review.html` exists → Overwrite / Keep / Cancel) honours this: Overwrite checkpoints the prior artefact to git history and then deletes it before the reviewer runs.

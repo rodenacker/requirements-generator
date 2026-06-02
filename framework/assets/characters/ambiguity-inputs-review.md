@@ -155,7 +155,7 @@ It does **not** read:
 - `analyse-requirements/*` or `analyse-inputs/*` outputs — each lens is independently grounded.
 - `design-system/*`, `review-requirements/*`, `framework/state/*`, `framework/shared/*` (except as textual references in the reference doc).
 
-The reviewer agent's only outputs are `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` and the inline-summary it surfaces to the consultant at handback.
+The reviewer agent's only outputs are `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` and the inline-summary it surfaces to the consultant at handback.
 
 ## Single-threaded discipline (no parallel workers)
 
@@ -198,4 +198,4 @@ If a candidate finding cannot satisfy all three, drop it.
 
 Each run produces a **fresh** punch-list reflecting the **current** input set. No additive merge, no manifest-fingerprint cursor across runs, no `Run history` section. A finding tied to a removed input disappears on the next run; new findings from added inputs surface clean. This differs from the `/analyse-inputs` analysers (which use additive merge to grow understanding across runs) — ambiguity-review's purpose is a punch-list that **changes** as the input set changes.
 
-The orchestrator's prior-artefact gate (`review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` exists → Overwrite / Keep / Cancel) honours this: Overwrite checkpoints the prior artefact to git history and then deletes it before the reviewer runs.
+The orchestrator's prior-artefact gate (`review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` exists → Overwrite / Keep / Cancel) honours this: Overwrite checkpoints the prior artefact to git history and then deletes it before the reviewer runs.

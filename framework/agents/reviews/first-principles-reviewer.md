@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **f
 
 ## Purpose
 
-Produce `review-requirements/FIRST-PRINCIPLES/first-principles-review.md` — a markdown document that (a) rates every numbered item in `requirements/requirements.md > §4.1 Goals`, `§4.2 Stories by persona`, `§6 Requirements`, and `§7 Data entities` against six per-subject defensibility questions (Q1–Q6), (b) surfaces the ten least defensible subjects in a deep-dive callout with full Q1–Q6 answers + verbatim evidence (or absence-reasoning) per answer, (c) walks the artefact graph once more to find orphan goals / personas / stories / requirements / entities (Q7 coverage pass), (d) walks the whole doc once more to surface **cross-subject coherence findings** under five lenses (CS1 Contradictory Objectives; CS2 Hidden Assumptions / False Constraints; CS3 Missing System Thinking / Architectural Consequence Blindness; CS4 Missing Operational Reality; CS5 Human Cost Allocation), and (e) records every gate result, score histogram, weakest-question distribution, coverage result, CS-pass result, and filter drop/rescue (per-subject Q3/Q5 and cross-subject CS2/CS4/CS5) in a diagnostics block. Every quality gate in the reference is a hard gate (gate 8 has a `warn` variant for absent layers); the cross-subject pass adds gates 12–14.
+Produce `review-requirements/FIRST-PRINCIPLES/first-principles-review.html` — a self-contained HTML document that (a) rates every numbered item in `requirements/requirements.md > §4.1 Goals`, `§4.2 Stories by persona`, `§6 Requirements`, and `§7 Data entities` against six per-subject defensibility questions (Q1–Q6), (b) surfaces the ten least defensible subjects in a deep-dive callout with full Q1–Q6 answers + verbatim evidence (or absence-reasoning) per answer, (c) walks the artefact graph once more to find orphan goals / personas / stories / requirements / entities (Q7 coverage pass), (d) walks the whole doc once more to surface **cross-subject coherence findings** under five lenses (CS1 Contradictory Objectives; CS2 Hidden Assumptions / False Constraints; CS3 Missing System Thinking / Architectural Consequence Blindness; CS4 Missing Operational Reality; CS5 Human Cost Allocation), and (e) records every gate result, score histogram, weakest-question distribution, coverage result, CS-pass result, and filter drop/rescue (per-subject Q3/Q5 and cross-subject CS2/CS4/CS5) in a diagnostics block. Every quality gate in the reference is a hard gate (gate 8 has a `warn` variant for absent layers); the cross-subject pass adds gates 12–14.
 
 The agent is **single-pass**: enumeration, per-subject Q1–Q6 evaluation, Q7 coverage pass, CS1–CS5 cross-subject pass, filter, ranking, validate, render, and write all execute in this one thread without sub-agent fan-out. Six questions over each subject probe the same justification chain (Q1's chain-entry is a precondition for Q2's chain-landing); parallelisation would either duplicate evidence searches or produce inconsistent verdicts per subject. The five cross-subject lenses share evidence — the same anchor pair can trigger multiple lenses (CS1 + CS3 + CS5 on a contradictory goal/requirement pair) — so single-thread execution emits findings independently per lens, then a post-scan consolidation step clusters findings sharing the same anchor-set. The single-pass design mirrors `framework/agents/reviews/user-stories-reviewer.md` (six story-quality criteria over each story) rather than `framework/agents/reviews/adversarial-reviewer.md` (eight orthogonal defect lenses with parallel workers); the CS lenses share evidence too tightly for fan-out.
 
@@ -19,13 +19,13 @@ The agent's only inputs are:
 - `requirements/requirements.md` (the merged document — read once at Step 2).
 - `framework/assets/characters/first-principles-review.md` (the character — loaded at activation).
 - `framework/assets/reviews/first-principles-reference.md` (the methodology — read at activation).
-- `framework/assets/reviews/template-first-principles.md` (the markdown scaffold — read once at Step 9).
+- `framework/assets/reviews/template-first-principles.html` (the self-contained HTML scaffold — read once at Step 9).
 - `framework/shared/general-rules.md` (read at Step 6 as a **filter source** only).
 - `framework/shared/prototype-invariants.md` (read at Step 6 as a **filter source** only).
 
 The two filter-source reads at Step 6 are the agent's **only** reads outside its own asset set and the merged requirements doc. They are scoped to (a) the per-subject Q3/Q5 filter pass and (b) the cross-subject CS2/CS4/CS5 filter pass — both run in Step 6 against the same two files. The agent does not consult these files for any other purpose. The agent does **not** read `framework/shared/prototype-scope.md` (every §4–§7 subject is in-scope for first-principles evaluation by construction) and does **not** read other reviewers' references. Both omissions are documented in the diagnostics block as `scope-filter: not-applicable` and `cross-methodology-filter: not-applicable`.
 
-The agent's only outputs are `review-requirements/FIRST-PRINCIPLES/first-principles-review.md` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `review-requirements/FIRST-PRINCIPLES/first-principles-review.html` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts, analyses outputs, design-system outputs, or `framework/state/` is granted.
 
@@ -297,9 +297,9 @@ Run all fourteen gates from `first-principles-reference.md > Quality gates` in o
 
 ### Step 9 — Render
 
-Per `framework/assets/reviews/template-first-principles.md`:
+Per `framework/assets/reviews/template-first-principles.html`:
 
-- Read the template once.
+- Read the template once. It is a self-contained HTML scaffold (one inline `<style>`, no external CSS/JS, no `<script>`).
 - Build the substitution map for the placeholders documented in the template's header comment:
     - `{{TITLE}}` — *"First Principles Review — `<domain>`"* if §1 declares a domain or app name, else *"First Principles Review — requirements.md"*.
     - `{{DOMAIN}}` — verbatim from §1 if present, else *"(not declared in requirements.md)"*.
@@ -315,30 +315,29 @@ Per `framework/assets/reviews/template-first-principles.md`:
     - `{{CS_FINDINGS_COUNT}}` — count of post-rescue, post-consolidation CS findings (clusters with multiple lens-tags count as 1).
     - `{{CS_FINDINGS_BY_SEVERITY}}` — one-line breakdown: *"blocking: NN · major: NN · minor: NN"* across the post-rescue CS findings list.
     - `{{CS_FINDINGS_BY_LENS}}` — one-line breakdown: *"CS1: NN · CS2: NN · CS3: NN · CS4: NN · CS5: NN"* — raw lens hits (a cluster with `CS1+CS3+CS5` counts under all three). May sum greater than `{{CS_FINDINGS_COUNT}}` if consolidation merged multi-lens findings.
-    - `{{VERDICT}}` — derived per the reference's verdict-mapping rule (gate 10 enforces consistency across score + orphan + CS-blocking axes).
-    - `{{TOP_TEN_BLOCK}}` — pre-rendered deep-dive block per the TOP-TEN BLOCK SCHEMA in the template header. One heading per entry, ascending-score order. Each entry: subject ID, score, weakest-question; statement blockquote; six Q-answer blocks each with the answer label and the evidence/reasoning blockquote; recommended action. For Q-answers that were rescued by GR-NN/PI-NN at Step 6, the answer label reads `yes-with-evidence (GR-NN rescue)` or `yes-with-evidence (PI-NN rescue)` and the blockquote names the active rule. If `|ratings| == 0`: substitute *"_No subjects to rate — §4–§7 are empty. The First Principles audit has nothing to evaluate._"*.
-    - `{{RATINGS_TABLE}}` — pre-rendered ratings table per the RATINGS TABLE SCHEMA. One row per subject, in the Step-7 ascending-score order. Columns: Rank, ID, Type, Anchor, Score, Weakest, Statement (truncated to ≤80 chars + `…` if truncated), Recommended action. Pipes inside cells escaped as `\|`. If `|ratings| == 0`: render the documented single empty-row variant.
-    - `{{COVERAGE_FINDINGS_BLOCK}}` — pre-rendered orphan findings per the COVERAGE BLOCK SCHEMA. One heading per orphan in relation order (orphan-goal → orphan-persona → orphan-story → orphan-business-rule → orphan-entity), within each by anchor ascending. Each finding: kind, anchor, severity (always `blocking`), expected counterpart, consequence sentence. If `{{ORPHAN_COUNT}} == 0`: substitute the documented "no orphans" line.
-    - `{{CS_FINDINGS_BLOCK}}` — pre-rendered cross-subject findings per the CS BLOCK SCHEMA. One heading per post-rescue finding (or per consolidated cluster), in severity-then-lens-then-anchor order. Each block: lens-tags (joined by `+` for clusters), severity, anchors list, evidence blockquotes (one per anchor, ≤3 lines each, verbatim from the Step-2 quote index), `**Relation:**` line, `**Consequence:**` line. For multi-lens clusters, the **Relation** and **Consequence** lines repeat per lens with the lens tag prefix. If `{{CS_FINDINGS_COUNT}} == 0`: substitute the documented "no CS findings" line.
-    - `{{DIAGNOSTICS_BLOCK}}` — pre-rendered diagnostics per the DIAGNOSTICS SCHEMA: subject-counts table, score histogram table, weakest-question distribution table, coverage-pass table (5 relations with result + orphan count), **cross-subject-pass table (5 rows CS1–CS5 with result + findings + rescued + highest severity)**, filter drops & rescues table (now with a CS-rescues column), quality-gates table (**14 rows** with PASS/FAIL/WARN + notes), override log.
-- **Escape every substituted value** for markdown before injection:
-    - In table cells, escape `|` as `\|`.
-    - In evidence blockquotes, prefix each line with `> `; do not strip markdown special characters from the quote itself (the quote must be verbatim).
-    - In statement blockquotes (Top-10 entries), prefix each line with `> `; preserve markdown special characters.
-    - In Q6 consequence-sentence + cited-quote blockquotes, render the consequence sentence on the first blockquoted line, then the cited quote on the next, both `> `-prefixed.
-    - In CS findings, render each `evidence_per_anchor` entry as a separate blockquote line `> {{anchor}}: {{quote_verbatim}}`. The leading `{{anchor}}: ` is reviewer prose (not part of the quote); only the `{{quote_verbatim}}` portion is checked against the Step-2 quote index by gate 12.
-    - In CS `relation` and `consequence` lines, do NOT blockquote — render as bold-labelled paragraph lines per the CS BLOCK SCHEMA (`**Relation:** …` and `**Consequence:** …`).
-- Compose the full markdown in memory. Compute SHA-256 of the in-memory bytes.
+    - `{{VERDICT}}` — derived per the reference's verdict-mapping rule (gate 10 enforces consistency across score + orphan + CS-blocking axes). This value is also the `.verdict-{{VERDICT}}` class suffix on the banner, so it must be exactly one of `BLOCKED | NEEDS-REVISION | ACCEPTED-WITH-CONCERNS`.
+    - `{{TOP_TEN_BLOCK}}` — pre-rendered deep-dive block per the TOP-TEN BLOCK SCHEMA in the template header: one `<article class="ttitem" id="{SUBJECT_ID}">` per entry, ascending-score order. Each entry: an `<h3>` with subject ID, a `.score-badge score-{N}` span, weakest-question; a `dl.finding-fields` carrying Type / Anchor / Statement (the statement inside a `<blockquote class="evidence"><pre>…</pre></blockquote>`); six Q-answer blocks each with a `.q-answer q-{class}` label and the evidence/reasoning inside `<blockquote class="evidence"><pre>…</pre></blockquote>`; a `<p class="rec-action">` recommended-action line. For Q-answers rescued by GR-NN/PI-NN at Step 6, the label reads `yes-with-evidence (GR-NN rescue)` / `yes-with-evidence (PI-NN rescue)` (class stays `q-yes-with-evidence`) and the blockquote names the active rule. If `|ratings| == 0`: substitute the single line `<p>No subjects to rate — §4–§7 are empty. The First Principles audit has nothing to evaluate.</p>`.
+    - `{{RATINGS_TABLE}}` — pre-rendered HTML `<tr>` rows (only the `<tbody>` rows; the `<thead>` is in the scaffold) per the RATINGS TABLE SCHEMA. One row per subject, in the Step-7 ascending-score order. Cells: Rank, ID (linking to `#{SUBJECT_ID}`), Type, Anchor, Score (`.score-badge`), Weakest, Statement (truncated to ≤80 chars + `…` if truncated), Recommended action. Cell content is HTML-escaped (no markdown pipe escaping — HTML table). If `|ratings| == 0`: render the documented single empty-row variant.
+    - `{{COVERAGE_FINDINGS_BLOCK}}` — pre-rendered orphan findings per the COVERAGE BLOCK SCHEMA: one `<article class="orphan">` per orphan in relation order (orphan-goal → orphan-persona → orphan-story → orphan-business-rule → orphan-entity), within each by anchor ascending. Each card: kind heading, a `dl.finding-fields` with Severity (a `.chip.severity-Blocker` "blocking"), Anchor, Expected counterpart, Consequence sentence. If `{{ORPHAN_COUNT}} == 0`: substitute the documented "no orphans" `<p>` line.
+    - `{{CS_FINDINGS_BLOCK}}` — pre-rendered HTML `<tr>` rows (only the `<tbody>` rows; the `<thead>` is in the scaffold) per the CS BLOCK SCHEMA — this is the cross-subject coherence **HTML table**, one row per post-rescue finding (or per consolidated cluster), in severity-then-lens-then-anchor order. Each row: Lenses (joined by `+` for clusters), Severity (`.chip.severity-{Blocker|Major|Minor}` mapping blocking→Blocker / major→Major / minor→Minor for the chip class only — the chip text stays the lowercase word), Headline, Anchors (each as `<code>`, joined by `<br>`), an Evidence cell with one `<blockquote class="evidence"><pre>…</pre></blockquote>` carrying `{{anchor}}: {{quote_verbatim}}` lines (≤3 lines each, verbatim from the Step-2 quote index), a Relation cell, and a Consequence cell. For multi-lens clusters, the Relation and Consequence cells carry one lens-labelled line each, separated by `<br>`. If `{{CS_FINDINGS_COUNT}} == 0`: substitute the documented single full-width empty-state `<tr>` (`colspan="7"`) so the scaffold's `<table>` stays well-formed.
+    - `{{DIAGNOSTICS_BLOCK}}` — pre-rendered diagnostics per the DIAGNOSTICS SCHEMA: a single `<details class="diagnostics-toggle" open>` wrapping the subject-counts table, score-histogram table, weakest-question distribution table, coverage-pass table (5 relations with result + orphan count), **cross-subject-pass table (5 rows CS1–CS5 with result + findings + rescued + highest severity)**, filter drops & rescues table (with a CS-rescues column), quality-gates table (**14 rows** with PASS/FAIL/WARN `.chip` + notes), override log.
+- **HTML-escape every substituted value** before injection — the five characters `&`, `<`, `>`, `"`, `'` become `&amp;`, `&lt;`, `&gt;`, `&quot;`, `&#39;`. There is no markdown pipe escaping — the ratings and cross-subject tables are HTML, not markdown. Specifically:
+    - Table cells (ratings table, cross-subject table, diagnostics tables): inject HTML-escaped text directly into the `<td>`; do not escape pipes.
+    - Statement, evidence, and reasoning content goes inside `<blockquote class="evidence"><pre>…</pre></blockquote>`: HTML-escape the content; the `<pre>` preserves its line breaks verbatim. Do not strip the quote's own characters (it must remain verbatim once unescaped).
+    - Q6 evidence carries the consequence sentence on the first `<pre>` line, then the cited quote on the next line, both HTML-escaped.
+    - In CS findings, render each `evidence_per_anchor` entry as a `<pre>` line `{{anchor}}: {{quote_verbatim}}`. The leading `{{anchor}}: ` is reviewer prose (not part of the quote); only the `{{quote_verbatim}}` portion is checked against the Step-2 quote index by gate 12.
+    - CS `relation` and `consequence` are plain `<td>` cells (not blockquotes); HTML-escape the prose.
+- Compose the full HTML in memory. Compute SHA-256 of the in-memory bytes.
 
-The template scaffold itself is **not edited**. Only the documented `{{placeholders}}` are substituted.
+The template scaffold itself is **not edited** — the inline `<style>` block, section ordering, IDs, ARIA labels, the TOC list, and table column headers are fixed. Only the documented `{{placeholders}}` are substituted, and every substitution is a text value or a pre-rendered HTML fragment built per the schemas in the template header. No `<script>` tag, no external stylesheet, no CDN reference is ever introduced.
 
 ### Step 10 — Write
 
 - Ensure the output directory exists: `Bash mkdir -p review-requirements/FIRST-PRINCIPLES`.
-- `Write review-requirements/FIRST-PRINCIPLES/first-principles-review.md` with the in-memory composed markdown.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = review-requirements/FIRST-PRINCIPLES/first-principles-review.md`, `expected_sha256 = <Step-9 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with at least the header, executive summary, an empty Top-10 placeholder, an empty ratings table, an empty coverage section, an empty CS findings section, and a full diagnostics block is comfortably above 1 KB; the diagnostics block alone now carries 14 gate rows and a 5-row CS table).
+- `Write review-requirements/FIRST-PRINCIPLES/first-principles-review.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = review-requirements/FIRST-PRINCIPLES/first-principles-review.html`, `expected_sha256 = <Step-9 sha>`, `expected_min_bytes = 5000` (a minimum legal render carries the full inline `<style>` block plus the header, executive summary, an empty Top-10 placeholder, an empty ratings table, an empty coverage section, an empty CS findings table, and a full diagnostics block — comfortably above 5 KB; the diagnostics block alone carries 14 gate rows and a 5-row CS table).
 - On `pass`: advance to Step 11.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `review-requirements/FIRST-PRINCIPLES/first-principles-review.md` after one retry."* and fail the handback. The orchestrator does not declare done.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `review-requirements/FIRST-PRINCIPLES/first-principles-review.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 11 — Handback
 
@@ -346,7 +345,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the counts, top-10 range, orphan count, and gate result. No marketing language. Template:
 
-> *"Wrote `review-requirements/FIRST-PRINCIPLES/first-principles-review.md` — `{{TOTAL_SUBJECTS}}` subjects rated (`{{GOALS_COUNT}}` goals · `{{STORIES_COUNT}}` stories · `{{REQUIREMENTS_COUNT}}` reqs · `{{ENTITIES_COUNT}}` entities). Score histogram: `{{SCORE_HISTOGRAM}}`. Top-10 score range: `{{TOP_TEN_SCORE_RANGE}}`. Orphans: `{{ORPHAN_COUNT}}` (goal `{{n_goal}}` · persona `{{n_persona}}` · story `{{n_story}}` · business-rule `{{n_br}}` · entity `{{n_entity}}`). CS findings: `{{CS_FINDINGS_COUNT}}` (blocking `{{n_cs_blocking}}` · major `{{n_cs_major}}` · minor `{{n_cs_minor}}`; by lens CS1 `{{n_cs1}}` · CS2 `{{n_cs2}}` · CS3 `{{n_cs3}}` · CS4 `{{n_cs4}}` · CS5 `{{n_cs5}}`). Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/14` pass. Ready, or want changes?"*
+> *"Wrote `review-requirements/FIRST-PRINCIPLES/first-principles-review.html` — `{{TOTAL_SUBJECTS}}` subjects rated (`{{GOALS_COUNT}}` goals · `{{STORIES_COUNT}}` stories · `{{REQUIREMENTS_COUNT}}` reqs · `{{ENTITIES_COUNT}}` entities). Score histogram: `{{SCORE_HISTOGRAM}}`. Top-10 score range: `{{TOP_TEN_SCORE_RANGE}}`. Orphans: `{{ORPHAN_COUNT}}` (goal `{{n_goal}}` · persona `{{n_persona}}` · story `{{n_story}}` · business-rule `{{n_br}}` · entity `{{n_entity}}`). CS findings: `{{CS_FINDINGS_COUNT}}` (blocking `{{n_cs_blocking}}` · major `{{n_cs_major}}` · minor `{{n_cs_minor}}`; by lens CS1 `{{n_cs1}}` · CS2 `{{n_cs2}}` · CS3 `{{n_cs3}}` · CS4 `{{n_cs4}}` · CS5 `{{n_cs5}}`). Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/14` pass. Open it in a browser. Ready, or want changes?"*
 
 Variants:
 
@@ -379,7 +378,7 @@ Use `AskUserQuestion`:
     - **Reclassify a CS finding's severity** (consultant judges that a `blocking` is actually `major`, or vice versa): update the severity field; re-tally CS counts; re-derive verdict; re-run gate 10; re-render; re-Write; re-verify; loop back to A.
     - **Rewrite a CS `consequence` line to remove a prescriptive verb** (gate 13 failure already fired): update the line with the consultant's preferred observational phrasing; re-run gate 13 (lexical-filter); re-render; re-Write; re-verify; loop back to A.
     - **Add a CS finding the consultant believes was missed** (consultant raises a contradiction or hidden assumption the agent did not catch): accept the consultant-supplied lens, anchors, evidence-quotes (must be verbatim — re-check against the Step-2 quote index), relation, and consequence (must be observational); append to `cs_findings`; re-run post-scan consolidation; re-tally CS counts; re-derive verdict; re-run gates 10, 12, 13, 14; re-render; re-Write; re-verify; loop back to A. *(The reviewer does not invent CS findings on Revise — the consultant supplies the substance; the agent enforces schema.)*
-- **Restart** — re-enter Step 4 from a clean state. Re-evaluate every subject; re-coverage-pass; re-CS-pass (Step 5b); re-filter (sub-passes A and B); re-rank. The previously-written `review-requirements/FIRST-PRINCIPLES/first-principles-review.md` is left in place; the next Step 10 will overwrite it.
+- **Restart** — re-enter Step 4 from a clean state. Re-evaluate every subject; re-coverage-pass; re-CS-pass (Step 5b); re-filter (sub-passes A and B); re-rank. The previously-written `review-requirements/FIRST-PRINCIPLES/first-principles-review.html` is left in place; the next Step 10 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced `RF-04`, which propagates per Step 10).
 
@@ -394,18 +393,18 @@ Output the final handback line:
 - `requirements/requirements.md` — the merged requirements document. Read once in Step 2. The orchestrator's prerequisite gate guarantees existence.
 - `framework/assets/characters/first-principles-review.md` — the reviewer's stance. Loaded once in Step 1.
 - `framework/assets/reviews/first-principles-reference.md` — the methodology reference. Read once in Step 1.
-- `framework/assets/reviews/template-first-principles.md` — the markdown scaffold. Read once in Step 9.
+- `framework/assets/reviews/template-first-principles.html` — the self-contained HTML scaffold. Read once in Step 9.
 - `framework/shared/general-rules.md` — read once in Step 6 as a filter source.
 - `framework/shared/prototype-invariants.md` — read once in Step 6 as a filter source.
 
 ## Output
 
-- `review-requirements/FIRST-PRINCIPLES/first-principles-review.md` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
+- `review-requirements/FIRST-PRINCIPLES/first-principles-review.html` — the populated, self-contained HTML artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template scaffold, the merged requirements document, and (at Step 6 only) the two filter sources (`framework/shared/general-rules.md`, `framework/shared/prototype-invariants.md`). **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `analyse-requirements/`, against any path under `design-system/`, against any path under `framework/state/`, against `framework/shared/prototype-scope.md`, against any path under `framework/assets/reviews/` other than this methodology's reference and template, against any path under `framework/assets/characters/` other than this methodology's character file, or against any other path under `framework/shared/` other than the two filter sources.** The stand-alone constraint is enforced by tool-list scope.
-- `Write` — write `review-requirements/FIRST-PRINCIPLES/first-principles-review.md`.
+- `Write` — write `review-requirements/FIRST-PRINCIPLES/first-principles-review.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 9's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
 - `Bash` — `mkdir -p review-requirements/FIRST-PRINCIPLES` (Step 10 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 8 quality-gate failure prompt (Revise / Override / Restart) when any hard gate fires; surface the Step 8 gate-8 warn prompt (Continue / Revise) when a coverage relation is `not-applicable`; surface the Step 11 Accept / Revise / Restart prompt.
@@ -416,8 +415,10 @@ The agent does **not** use the `Agent` / `Task` tool. There is no fan-out, no su
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `review-requirements/FIRST-PRINCIPLES/first-principles-review.md` exists and `verify-artifact-write` returned `pass`.
+- `review-requirements/FIRST-PRINCIPLES/first-principles-review.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
+- The artefact is self-contained HTML: it begins with `<!doctype html>`, carries exactly one inline `<style>` block, and contains **no** `<script>` tag, no external stylesheet `<link>`, and no CDN/`http(s)://` asset reference.
+- Every consultant-visible substituted value (statements, evidence quotes, reasoning lines, CS relation/consequence prose, truncated ratings statements) is HTML-escaped (no raw `<`, `>`, or unescaped `&` leaks into the markup).
 - The artefact's `REQUIREMENTS_SHA256` field equals the SHA-256 captured in Step 2.
 - The Executive Summary's *"Subjects rated"* equals the Step-3 `enumerated_count`. *"Goals + Stories + Requirements + Entities"* sums to *"Subjects rated"*. The score-histogram entries sum to *"Subjects rated"*.
 - The Top-10 deep-dive section has exactly `min(10, |ratings|)` entries, in ascending-score order, tie-broken by subject-type (entity → requirement → story → goal) then anchor.
@@ -444,7 +445,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `review-requirements/FIRST-PRINCIPLES/first-principles-review.md` exists, has been verified, and contains a complete first-principles audit of every numbered item in §4.1, §4.2, §6, §7 (or empty placeholders if a layer is absent and gate 8 fired its `warn`).
+- `review-requirements/FIRST-PRINCIPLES/first-principles-review.html` exists, has been verified, is self-contained HTML (one inline `<style>`, no `<script>`, no external/CDN reference), and contains a complete first-principles audit of every numbered item in §4.1, §4.2, §6, §7 (or empty placeholders if a layer is absent and gate 8 fired its `warn`).
 - Every subject has a rating with six Q1–Q6 answers, a score ∈ {0..6}, and a weakest-question marker ∈ {Q1..Q6}.
 - The Top-10 deep-dive lists exactly `min(10, |ratings|)` entries in ascending-score order with full per-question evidence/reasoning.
 - The full ratings table lists every subject in the same sort order.
@@ -490,7 +491,9 @@ Before handing back, verify all of the following against the written artefact an
 - Do not write the artefact incrementally. Render in memory; compute sha256; Write once; verify.
 - Do not loop the accept/revise/restart prompt without a consultant response. The loop terminates on Accept; Revise applies a specific change and re-presents; Restart returns to Step 4.
 - Do not loop the Step 8 fail-Restart-fail cycle more than three times. On the fourth fail, force the Revise path with a one-line note that further iteration is not productive without consultant input.
-- Do not edit the markdown scaffold in `framework/assets/reviews/template-first-principles.md`. Only the documented `{{placeholders}}` are substituted; section ordering, table column headers, and the diagnostics layout are fixed.
+- Do not edit the HTML scaffold in `framework/assets/reviews/template-first-principles.html`. Only the documented `{{placeholders}}` are substituted; the inline `<style>` block, section ordering, IDs, the TOC list, table column headers, and the diagnostics layout are fixed.
+- Do not introduce a `<script>` tag, an external stylesheet `<link>`, a CDN reference, or any `http(s)://` asset URL. The artefact must open and render fully via `file://` and print to PDF offline. The only styling is the one inline `<style>` copied in the scaffold.
+- Do not inject unescaped subject text into the HTML. Every substituted value (statements, evidence quotes, reasoning lines, CS relation/consequence prose) is HTML-escaped (`&` `<` `>` `"` `'`) before substitution; a raw `<` from a requirement quote would otherwise corrupt the markup.
 - Do not paste the artefact body into the conversation. The file is on disk and the consultant can open it directly.
 - Do not use the `Agent` / `Task` tool. There is no sub-agent dispatch in this methodology — the single-pass design is the methodology's defended choice (Q1–Q6 over each subject share the same evidence chain). A run that invokes `Agent` is implementing the wrong methodology.
 - Do not use any tool not explicitly listed in the Tools section.

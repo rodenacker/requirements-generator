@@ -8,9 +8,9 @@
 
 - `framework/agents/reviews/user-stories-reviewer.md` — drives the agent's enumeration, criterion-by-criterion evaluation, filter, grouping, validate, render, and write workflow.
 
-**Output produced by the reviewer:** `review-requirements/USER-STORIES/user-stories-review.md` — a markdown document listing every user story in §4.2 that fails one or more of six quality criteria, sorted by priority (`blocking | major | minor`), grouped within each priority by persona then anchor, each finding annotated with the persona group, the violated criteria, the reason for each violation, and a concise fix suggestion. Passing stories are not surfaced in the body; their pass-count is recorded in the diagnostics block.
+**Output produced by the reviewer:** `review-requirements/USER-STORIES/user-stories-review.html` — a self-contained HTML report listing every user story in §4.2 that fails one or more of six quality criteria, sorted by priority (`blocking | major | minor`), grouped within each priority by persona then anchor, each finding annotated with the persona group, the violated criteria, the reason for each violation, and a concise fix suggestion. Passing stories are not surfaced in the body; their pass-count is recorded in the diagnostics block.
 
-The scaffold for the artefact is `framework/assets/reviews/template-user-stories.md`.
+The scaffold for the artefact is `framework/assets/reviews/template-user-stories.html`.
 
 ---
 
@@ -77,7 +77,7 @@ The reviewer reads **only** the following:
 - `requirements/requirements.md` — the merged requirements document. Read once at Step 2. This is the critique target.
 - `framework/assets/characters/user-stories-review.md` — the character file. Read once at Step 1.
 - `framework/assets/reviews/user-stories-reference.md` — this document. Read once at Step 1.
-- `framework/assets/reviews/template-user-stories.md` — the markdown scaffold. Read once at Step 7 (render).
+- `framework/assets/reviews/template-user-stories.html` — the HTML scaffold. Read once at Step 7 (render).
 - `framework/shared/general-rules.md` — read at Step 4 as a **filter source**. The reviewer drops issue rows whose root cause is deterministically resolved by an active `GR-NN`.
 - `framework/shared/prototype-invariants.md` — read at Step 4 as a **filter source**. The reviewer drops issue rows whose underlying premise contradicts a `PI-NN` invariant.
 
@@ -317,7 +317,7 @@ The severity distribution **falls out of the story set**. A clean set produces f
 
 ## Output presentation
 
-The artefact renders as a structured markdown report following `framework/assets/reviews/template-user-stories.md`. The fixed section ordering is:
+The artefact renders as a self-contained HTML report following `framework/assets/reviews/template-user-stories.html`. The fixed section ordering is:
 
 1. **Header** — title, generated-at timestamp, requirements SHA-256, reviewer identity, story counts (evaluated / pass / fail), priority counts (blocking / major / minor), persona list.
 2. **Executive Summary** — counts, priority legend, source statement.

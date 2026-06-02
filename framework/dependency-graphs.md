@@ -98,7 +98,7 @@ orch → analysis-selector, check-context-bloat, refusal-registry,
 analysis-selector → reviews/registry.md  [shared selector, review labels; Globs each row's output_path for ✓/★ marks]
 
 Each reviewer → characters/<r>-review.md, reviews/<r>-reference.md,
-                reviews/template-<r>.md, verify-artifact-write
+                reviews/template-<r>.html, verify-artifact-write
 deltas:
   adversarial      +adversarial-dimension-worker.md  [parallel ×8, read-only, step 3]
   first-principles +general-rules, prototype-invariants            [Q3/Q5 rescue, step 6]
@@ -132,7 +132,7 @@ state-diagram-analyser → svg-overlap-check.md
 ```
 
 **Notes (unique):**
-- Only task-flows' full 4-asset shape is drawn; the other 11 analysers fan out identically (reference + template + character + map-skill) — omitted for readability. `five-whys` + `glossary` carry `template_asset: null` (compose markdown directly).
+- Only task-flows' full 4-asset shape is drawn; the other 11 analysers fan out identically (reference + template + character + map-skill) — omitted for readability. `five-whys` + `glossary` now carry HTML templates: `five-whys` renders a pre-rendered inline-SVG why-chain; `glossary` embeds a `language-json` body block.
 - `svg-overlap-check.md` is called from the write step of the 3 SVG-heavy analysers (task-flows, data-model, state-diagram) only **after** `verify-artifact-write` passes and only when ≥1 inline SVG was emitted; writes `state/svg-overlap-<pipeline>.ndjson`.
 - map-skills are **registry metadata** (for a future design-spec-drafter), not loaded by the analyser → no edge.
 
@@ -151,13 +151,13 @@ input-handler ⇒ @input-handler-subtree (progress_path=null)
 Each analyser → analyses-inputs/<m>-reference.md, characters/<m>-inputs-analysis.md,
                 verify-artifact-write
 deltas:
-  +template (analyses-inputs/template-<m>.html): journey-mapping, task-analysis, jtbd,
+  +template (analyses-inputs/template-<m>.html): thematic-analysis, opportunity-solution-trees,
+     journey-mapping, task-analysis, jtbd,
      ooux, swim-lane-process-mapping, affinity-mapping, user-goal-analysis,
      business-context-definition, glossary
   +mermaid-validator: thematic-analysis, opportunity-solution-trees, ooux,
      swim-lane-process-mapping, affinity-mapping
   +setup-instructions/mmdc.md: affinity-mapping only
-  (thematic-analysis, opportunity-solution-trees carry NO template — pure markdown)
   (user-goal-analysis is intentionally dependency-free: HTML template, NO mermaid-validator,
      NO mmdc — its goal-refinement hierarchy renders as a CSS-only nested AND/OR tree)
   (business-context-definition is likewise dependency-free: HTML template, NO mermaid-validator,
@@ -194,8 +194,9 @@ Each reviewer → characters/<r>-inputs-review.md, reviews-inputs/<r>-reference.
 deltas:
   adversarial    +reviews-inputs/template-adversarial.html,
                  +adversarial-dimension-worker.md  [parallel ×6, NO tools, step 4]
-  ambiguity      (none — pure markdown)
-  completeness   +general-rules                          [step-15 disposition]
+  ambiguity      +reviews-inputs/template-ambiguity.html
+  completeness   +reviews-inputs/template-completeness.html,
+                 +general-rules                          [step-15 disposition]
                  +prototype-scope  [cond: target=prototype, step 15]
   gap-analysis   +reviews-inputs/template-gap-analysis.html, +topics-requirements.md [step 3],
                  +general-rules                          [step 3]
@@ -206,7 +207,7 @@ deltas:
 - `analysis-selector.md` shared with graphs 4 + 5; here it gets `list_label:"reviews"` + `verb_label:"review"`.
 - adversarial fans out 6 parallel **tool-less** workers (parent inlines a frozen evidence bundle + quote indices, so workers need no disk access). adversarial + ambiguity are full-overwrite per run (no additive merge), unlike graph-5 analysers.
 - `gap-analysis → topics-requirements.md` is the **only graph-6 edge** touching that file (otherwise read only by drafter + completeness-gap-pass in graph 1); the `Dimension` column is read verbatim. gap-analysis emits a drafter-ingestible `Candidate Requirement` column.
-- completeness renders a 10×N coverage matrix; gap-analysis renders an HTML SVG heatmap. All four reviewers carry `map_skill: null`. `reviews-inputs/registry.md` has no remaining `future` rows.
+- completeness is now a self-contained HTML report whose 10×N coverage matrix is an HTML table (no heatmap); gap-analysis adds an inline-SVG coverage heatmap. All four reviewers carry `map_skill: null`. `reviews-inputs/registry.md` has no remaining `future` rows.
 
 ---
 

@@ -1,13 +1,17 @@
 <!--
-  ROLE: asset (HTML template). Populated by framework/agents/reviews-inputs/adversarial-reviewer.md.
+  ROLE: asset (HTML template). Populated by framework/agents/reviews/adversarial-reviewer.md.
 
-  Purpose: Self-contained HTML skeleton for the Adversarial Review (inputs-side) report.
-  No external CSS / JS / fonts — opens cleanly via file:// for consultant review and
-  prints sensibly to PDF via the browser's native Print dialog.
+  Purpose: Self-contained HTML skeleton for the Adversarial Review (requirements-doc
+  side) report. No external CSS / JS / fonts — opens cleanly via file:// for consultant
+  review and prints sensibly to PDF via the browser's native Print dialog.
 
-  Sibling template for the requirements-doc review pipeline:
-  framework/assets/reviews/template-adversarial.html — eight dimension blocks instead of
-  six, REQUIREMENTS_SHA256 instead of MANIFEST_FINGERPRINT. Both templates are now HTML.
+  Sibling (inputs-side) HTML template: framework/assets/reviews-inputs/template-adversarial.html
+  — six dimension blocks and MANIFEST_FINGERPRINT instead of eight dimension blocks and
+  REQUIREMENTS_SHA256. This requirements-doc template reads requirements/requirements.md
+  (not the source manifest) and carries eight per-dimension sections. The CSS / page chrome
+  (header, dl.meta-grid, sticky nav.toc, section cards, .chip severity/disposition classes,
+  tables, details.diagnostics-toggle, .back-to-top, @media responsive + print) is copied
+  verbatim from that donor so all review outputs stay consistent siblings.
 
   HTML-rendering contract (the reviewer agent's Step 11):
     • Every substituted value is HTML-escaped (5 chars: & < > " ').
@@ -21,13 +25,12 @@
 
   Placeholders the reviewer substitutes (string substitution, all values pre-escaped):
 
-    {{TITLE}}                  — short title (e.g. "Adversarial Review (inputs-side) — Project X")
-    {{DOMAIN}}                 — domain string (best-effort: from PrototypeBrief.md §1 if a
-                                 candidate source has a recognisable domain heading;
-                                 otherwise "(not declared in inputs)")
+    {{TITLE}}                  — short title (e.g. "Adversarial Review — Project X")
+    {{DOMAIN}}                 — domain string (from requirements §1 if present;
+                                 otherwise "(not declared in requirements.md)")
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered
-    {{MANIFEST_FINGERPRINT}}   — sha256 of requirements/source-manifest.json at Step 2 read time
-    {{REVIEWER_IDENTITY}}      — fixed string "Adversarial Review (BMAD-style, strict mode, inputs-side)"
+    {{REQUIREMENTS_SHA256}}    — sha256 of requirements/requirements.md at Step 2 read time
+    {{REVIEWER_IDENTITY}}      — fixed string "Adversarial Review (BMAD-style, strict mode)"
     {{TOTAL_FINDINGS}}         — count of findings across all dimensions
     {{BLOCKER_COUNT}}          — count of Severity: Blocker
     {{MAJOR_COUNT}}            — count of Severity: Major
@@ -47,11 +50,13 @@
     {{DIMENSION_4_BLOCK}}
     {{DIMENSION_5_BLOCK}}
     {{DIMENSION_6_BLOCK}}
+    {{DIMENSION_7_BLOCK}}
+    {{DIMENSION_8_BLOCK}}
     {{DIAGNOSTICS_BLOCK}}      — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
-                                 (Quality gates, Coverage map, Strict-BMAD re-run log,
-                                  Override log, Corpus Shape, Source roster Consumed + Skipped tables)
+                                 (Quality gates [11 rows], Coverage map [8 dimension rows],
+                                  Strict-BMAD re-run log, Override log)
 
-  Output: review-inputs/ADVERSARIAL/adversarial-review.html.
+  Output: review-requirements/ADVERSARIAL/adversarial-review.html.
 
   FINDINGS TABLE SCHEMA — each row the reviewer emits has the shape:
 
@@ -61,26 +66,26 @@
         <td><span class="chip severity-{Sev}">{Sev}</span></td>
         <td><span class="chip disposition-{Disp}">{Disp}</span></td>
         <td>{CL_or_empty}</td>
-        <td>{filename_html_escaped}</td>
+        <td>{location_html_escaped}</td>
         <td>{problem_html_escaped}</td>
       </tr>
 
     where:
-      - {ID} is the finding ID (e.g. ADV-NN, zero-padded sequence; assigned at Step 4b)
-      - {D} is the Dimension integer 1..6
+      - {ID} is the finding ID (e.g. ADV-NN, zero-padded sequence; assigned at Step 3b)
+      - {D} is the Dimension integer 1..8
       - {Sev} is one of Blocker | Major | Minor
       - {Disp} is one of Patch | Defer | Reject
-      - {CL_or_empty} is the cluster ID assigned at Step 4c (e.g. CL-NN), or empty for singletons
-      - filename + problem are HTML-escaped (no markdown pipe escaping; the table is HTML,
-        not markdown)
+      - {CL_or_empty} is the cluster ID assigned at Step 3c (e.g. CL-NN), or empty for singletons
+      - Location (§N.N, BR-NN, G-NN, FR-NN, or line-N) + problem are HTML-escaped (no markdown
+        pipe escaping; the table is HTML, not markdown)
 
     Row order is severity-driven, not ID-driven:
       1. Sort key 1: Severity, descending — Blocker, then Major, then Minor.
-      2. Sort key 2: Dimension, ascending (1..6).
+      2. Sort key 2: Dimension, ascending (1..8).
       3. Sort key 3: within (Severity, Dimension), preserve the worker's emitted order
          (matches ADV-NN ascending within that bucket).
     ADV-NN IDs are unchanged by this sort — they retain the dimension-order × within-
-    dimension-order assignment from Step 4b so audit trails that reference a specific
+    dimension-order assignment from Step 3b so audit trails that reference a specific
     ADV-NN still resolve. The id="" anchor on each finding's <article> in its dimension
     block matches the ID column's href fragment in this table.
 
@@ -96,7 +101,7 @@
             <td><a href="#{ID}"><code>{ID}</code></a></td>
             <td><span class="chip severity-{Sev}">{Sev}</span></td>
             <td>{CL_or_empty}</td>
-            <td>{filename}</td>
+            <td>{location}</td>
             <td>{problem}</td>
           </tr>
           ...
@@ -114,12 +119,8 @@
          render whatever exists; no padding.
     Rank column is the 1-based row index after sorting. Cluster column is empty for singletons.
 
-    If the triage callout exceeds the rank-10 cap AND there are additional Reject findings
-    not in the table, append a single <p class="triage-overflow"> directly under the table
-    naming the omitted ADV-NN IDs so the reader knows the callout is incomplete.
-
     If zero findings exist run-wide, render the single line
-        <p>No findings — strict-BMAD justification blocks below cover all six dimensions.</p>
+        <p>No findings — strict-BMAD justification blocks below cover all eight dimensions.</p>
     instead of the table.
 
   CLUSTERS BLOCK SCHEMA — the {{CLUSTERS_BLOCK}} is:
@@ -139,15 +140,13 @@
           ...
         </tbody>
       </table>
-      <p class="clusters-singletons">N singleton findings remain unclustered:
-        <a href="#{ID}"><code>{ID}</code></a> (theme), ...</p>
 
-    Cluster IDs are CL-01, CL-02, ... zero-padded, assigned at Step 4c in order of the
+    Cluster IDs are CL-01, CL-02, ... zero-padded, assigned at Step 3c in order of the
     lead (lowest ADV-NN) finding's ID. A cluster has ≥2 members; singletons are not
     clustered. Findings within a cluster are listed in ADV-NN ascending order. Max
     severity is the highest severity among the cluster's members (Blocker > Major > Minor).
 
-    If Step 4c produced zero clusters, render the single line
+    If Step 3c produced zero clusters, render the single line
         <p>No clusters — every finding stands on its own root cause.</p>
     instead of the table.
 
@@ -165,33 +164,28 @@
               {one-line-problem}
             </h4>
             <dl class="finding-fields">
-              <dt>Location</dt><dd><code>{filename}</code></dd>
+              <dt>Location</dt><dd><code>{location-anchor}</code></dd>
               <dt>Evidence</dt>
               <dd>
                 <blockquote class="evidence"><pre>{verbatim quote ≤5 lines, html-escaped}</pre></blockquote>
               </dd>
               <dt>Problem</dt><dd>{one-sentence problem statement}</dd>
-              <dt>Recommendation</dt><dd>{one-sentence corpus-handling action in one of the five sanctioned forms: Reconcile in-corpus | Label / annotate | Treat as silence | Treat as second-hand | Resolve at draft time. Never elicitation.}</dd>
+              <dt>Recommendation</dt><dd>{one-sentence concrete corrective action}</dd>
             </dl>
           </article>
           ... (repeat per finding within this dimension)
         </div>
 
-      The Dimension-1-only sanctioned skipped-placeholder form for Evidence is:
-
-        <blockquote class="evidence skipped-placeholder"><em>(file skipped — tier: Unsupported; reason: {reason_html_escaped})</em></blockquote>
-
     Variant B — zero findings + strict-BMAD justification:
 
         <div class="justification">
           <h3>Justification (zero findings — strict-BMAD re-run passed)</h3>
-          <p>{≥3-sentence justification citing specific evidence (filenames, verbatim
-              quotes, source-roster shape) and naming the anti-confirmation prompts
-              attempted}</p>
+          <p>{≥3-sentence justification citing specific evidence (section numbers, IDs,
+              verbatim quotes) and naming the anti-confirmation prompts attempted}</p>
         </div>
 
   DIAGNOSTICS SCHEMA — the {{DIAGNOSTICS_BLOCK}} is a single <details class="diagnostics-toggle" open>
-  wrapping SIX subsections. The enclosing section's <h2>Diagnostics</h2> is in the
+  wrapping FOUR subsections. The enclosing section's <h2>Diagnostics</h2> is in the
   scaffold; the <summary> below is the collapse/expand affordance.
 
     <details class="diagnostics-toggle" open>
@@ -202,16 +196,16 @@
         <thead><tr><th>Gate</th><th>Result</th><th>Notes</th></tr></thead>
         <tbody>
           <tr class="gate-{pass|fail}"><td>1. All findings have 8 schema fields populated</td><td><span class="chip gate-{pass|fail}">{PASS|FAIL}</span></td><td>{notes}</td></tr>
-          ... (13 gate rows total — gate 12 = Corpus Shape populated; gate 13 = Recommendation form is one of the five sanctioned forms)
+          ... (11 gate rows total — see adversarial-reference.md > Quality gates)
         </tbody>
       </table>
 
       <h4>Coverage map</h4>
       <table class="coverage-map">
-        <thead><tr><th>Dimension</th><th>Filenames touched</th><th>Finding count</th></tr></thead>
+        <thead><tr><th>Dimension</th><th>Sections / IDs touched</th><th>Finding count</th></tr></thead>
         <tbody>
-          <tr><td>1. Stakeholder &amp; Role Coverage (incl. voice authenticity)</td><td>{list}</td><td>{n}</td></tr>
-          ... (6 dimension rows total)
+          <tr><td>1. Completeness &amp; Gaps</td><td>{list}</td><td>{n}</td></tr>
+          ... (8 dimension rows total)
         </tbody>
       </table>
 
@@ -223,42 +217,6 @@
       <p>{If the consultant chose Override at the Step-10 quality-gate sweep, list each
           failed gate by number and the items flagged. Otherwise
           "All quality gates passed; no override invoked."}</p>
-
-      <h4>Corpus Shape</h4>
-      <table class="corpus-shape">
-        <thead><tr><th>Dimension</th><th>Value</th></tr></thead>
-        <tbody>
-          <tr><td>Source count (consumable rows)</td><td>{n}</td></tr>
-          <tr><td>Distinct-author count (first-hand + second-hand combined)</td><td>{n}</td></tr>
-          <tr><td>Time-window span (earliest source date to latest)</td><td>{from} to {to}, span {days}d</td></tr>
-          <tr><td>Tier distribution</td><td>Native-text: {n}, Supported-via-MCP: {n}, Native-multimodal: {n}, Unsupported (skipped): {n}</td></tr>
-        </tbody>
-      </table>
-      <p class="corpus-shape-note">
-        Reporting only — the dropped Dim 7 (Bias / Sampling) used to convert these
-        signals into findings. Under the <em>corpus IS the voice</em> principle, the
-        corpus is whatever shape it is; downstream consumers may use this shape as
-        context for interpretation, but the reviewer does not critique it.
-      </p>
-
-      <h4>Source roster — Consumed</h4>
-      <table class="source-roster-consumed">
-        <thead><tr><th>filename</th><th>tier</th><th>sha256</th><th>findings-from-this-source</th></tr></thead>
-        <tbody>
-          <tr><td><code>{filename}</code></td><td>{tier}</td><td><code>{sha256[:8]}</code></td><td>{n}</td></tr>
-          ... (one row per consumed manifest row)
-        </tbody>
-      </table>
-
-      <h4>Source roster — Skipped</h4>
-      <table class="source-roster-skipped">
-        <thead><tr><th>filename</th><th>reason</th></tr></thead>
-        <tbody>
-          <tr><td><code>{filename}</code></td><td>{conversion-failure-reason}</td></tr>
-          ... (one row per Unsupported-tier manifest row, OR if none, omit the table
-          entirely and substitute <p><em>(no sources skipped this run)</em></p>)
-        </tbody>
-      </table>
     </details>
 
   Style invariants baked into the CSS:
@@ -273,8 +231,8 @@
       long verbatim quotes do not break layout on small screens.
     • @media (max-width: 720px) and (max-width: 480px) collapse the meta-grid to a
       single column and shrink padding.
-    • @media print hides .toc, .back-to-top, .diagnostics-toggle summary chevron; expands
-      <details>; preserves page breaks before each <section>.
+    • @media print hides .toc, .back-to-top; expands <details>; preserves page breaks
+      before each <section>.
 -->
 <!doctype html>
 <html lang="en">
@@ -750,7 +708,7 @@
   <dl class="meta-grid">
     <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
     <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
-    <div><dt>Manifest SHA-256</dt><dd><code>{{MANIFEST_FINGERPRINT}}</code></dd></div>
+    <div><dt>Source SHA-256</dt><dd><code>{{REQUIREMENTS_SHA256}}</code></dd></div>
     <div><dt>Reviewer</dt><dd>{{REVIEWER_IDENTITY}}</dd></div>
   </dl>
 </header>
@@ -762,12 +720,14 @@
     <li><a href="#triage">Triage</a></li>
     <li><a href="#clusters">Clusters</a></li>
     <li><a href="#findings-table">Findings Table</a></li>
-    <li><a href="#dim-1">Dimension 1 — Stakeholder &amp; Role Coverage (incl. voice authenticity)</a></li>
-    <li><a href="#dim-2">Dimension 2 — Domain &amp; Workflow Coverage</a></li>
-    <li><a href="#dim-3">Dimension 3 — Ambiguity &amp; Vague Language</a></li>
-    <li><a href="#dim-4">Dimension 4 — Source Provenance, Consistency &amp; Conflict</a></li>
-    <li><a href="#dim-5">Dimension 5 — Quantitative &amp; Measurable Signal</a></li>
-    <li><a href="#dim-6">Dimension 6 — Scope &amp; MVP Signal</a></li>
+    <li><a href="#dim-1">Dimension 1 — Completeness &amp; Gaps</a></li>
+    <li><a href="#dim-2">Dimension 2 — Ambiguity &amp; Clarity</a></li>
+    <li><a href="#dim-3">Dimension 3 — Testability &amp; Verifiability</a></li>
+    <li><a href="#dim-4">Dimension 4 — Scope &amp; MVP Boundaries</a></li>
+    <li><a href="#dim-5">Dimension 5 — Dependency &amp; Ordering</a></li>
+    <li><a href="#dim-6">Dimension 6 — Consistency &amp; Internal Conflict</a></li>
+    <li><a href="#dim-7">Dimension 7 — Edge Cases &amp; Error Handling</a></li>
+    <li><a href="#dim-8">Dimension 8 — Feasibility &amp; Constraints</a></li>
     <li><a href="#diagnostics">Diagnostics</a></li>
   </ol>
 </nav>
@@ -790,9 +750,9 @@
   <p><span class="verdict verdict-{{VERDICT}}">Verdict: {{VERDICT}}</span></p>
   <p class="verdict-legend">
     <strong>Verdict legend.</strong>
-    <code>BLOCKED</code> — at least one Reject or Blocker; <code>/requirements</code> cannot draft from this corpus as-is (under the <em>corpus IS the voice</em> principle, Reject is reserved for in-corpus contradictions, POPIA-scoped legal voids, or load-bearing ambiguity unresolvable at draft time — silences are Patch / Defer, not Reject).
+    <code>BLOCKED</code> — at least one Reject or Blocker; the requirements doc cannot be consumed downstream until resolved.
     <code>NEEDS-REVISION</code> — findings present but none blocking.
-    <code>ACCEPTED-WITH-FIXES</code> — zero findings on all six dimensions, every dimension carries a Justification block (rare under strict-BMAD).
+    <code>ACCEPTED-WITH-FIXES</code> — zero findings on all eight dimensions, every dimension carries a Justification block (rare under strict-BMAD).
   </p>
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
@@ -831,38 +791,50 @@
 </section>
 
 <section id="dim-1">
-  <h2>Dimension 1 — Stakeholder &amp; Role Coverage (incl. voice authenticity)</h2>
+  <h2>Dimension 1 — Completeness &amp; Gaps</h2>
   {{DIMENSION_1_BLOCK}}
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
 
 <section id="dim-2">
-  <h2>Dimension 2 — Domain &amp; Workflow Coverage (including non-happy paths)</h2>
+  <h2>Dimension 2 — Ambiguity &amp; Clarity</h2>
   {{DIMENSION_2_BLOCK}}
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
 
 <section id="dim-3">
-  <h2>Dimension 3 — Ambiguity &amp; Vague Language</h2>
+  <h2>Dimension 3 — Testability &amp; Verifiability</h2>
   {{DIMENSION_3_BLOCK}}
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
 
 <section id="dim-4">
-  <h2>Dimension 4 — Source Provenance, Consistency &amp; Conflict</h2>
+  <h2>Dimension 4 — Scope &amp; MVP Boundaries</h2>
   {{DIMENSION_4_BLOCK}}
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
 
 <section id="dim-5">
-  <h2>Dimension 5 — Quantitative &amp; Measurable Signal</h2>
+  <h2>Dimension 5 — Dependency &amp; Ordering</h2>
   {{DIMENSION_5_BLOCK}}
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
 
 <section id="dim-6">
-  <h2>Dimension 6 — Scope &amp; MVP Signal</h2>
+  <h2>Dimension 6 — Consistency &amp; Internal Conflict</h2>
   {{DIMENSION_6_BLOCK}}
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-7">
+  <h2>Dimension 7 — Edge Cases &amp; Error Handling</h2>
+  {{DIMENSION_7_BLOCK}}
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-8">
+  <h2>Dimension 8 — Feasibility &amp; Constraints</h2>
+  {{DIMENSION_8_BLOCK}}
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
 

@@ -132,7 +132,7 @@ Go deeper into what your requirements doc already contains: pick a lens and the 
 | An alphabetical, **citation-bound vocabulary inventory** before designing copy, labels, status pills, or role surfaces         | `glossary`                      | _glossary_                      |
 | Each user goal scored against **UX trade-off dimensions** (Speed vs Accuracy, Simplicity vs Power, Automation vs Control, …)   | `trade-off-dimension-analysis`  | _trade-off-dimension matrix_    |
 
-**You get** one HTML (or Markdown) artefact per run under `analyse-requirements/<METHOD>/` (e.g. `OOUX/ooux-object-map.html`, `FIVE-WHYS/five-whys.md`) — formatted to share directly with whoever needed the insight.
+**You get** one HTML artefact per run under `analyse-requirements/<METHOD>/` (e.g. `OOUX/ooux-object-map.html`, `FIVE-WHYS/five-whys.html`) — formatted to share directly with whoever needed the insight.
 
 ### 3.7 `/review-inputs`
 
@@ -159,7 +159,7 @@ Find what's missing or wrong in the spec *before* you hand it over — a second 
 | Whether each requirement is **defensible against business rationale**, so weak items get cut or strengthened before design         | `first-principles`  |
 | Which **user stories aren't ready** for design or estimation, so they can be reworked before they enter the backlog                | `user-stories`      |
 
-**You get** one markdown artefact per run under `review-requirements/<METHOD>/` (e.g. `ADVERSARIAL/adversarial-review.md`). Treat it as a punch-list: fix the findings you accept in `requirements.md`, then re-run for a fresh pass.
+**You get** one HTML artefact per run under `review-requirements/<METHOD>/` (e.g. `ADVERSARIAL/adversarial-review.html`). Treat it as a punch-list: fix the findings you accept in `requirements.md`, then re-run for a fresh pass.
 
 ### 3.9 `/wireframe`
 

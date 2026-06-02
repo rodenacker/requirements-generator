@@ -8,7 +8,7 @@
 
 - `framework/agents/reviews-inputs/completeness-reviewer.md` — drives the agent's ten-dimension sequential sweep, disposition assignment, coverage-matrix construction, and quality-gate sweep.
 
-**Output produced by the reviewer:** `review-inputs/COMPLETENESS-REVIEW/completeness-review.md` — a markdown gap register of cited, severity-and-disposition-graded findings, plus a coverage matrix (10 dimensions × N consumed sources) and a per-source elicitation-question list scoped to `Needs-Clarification`-disposition findings.
+**Output produced by the reviewer:** `review-inputs/COMPLETENESS-REVIEW/completeness-review.html` — a self-contained HTML gap register of cited, severity-and-disposition-graded findings, plus a coverage matrix (10 dimensions × N consumed sources, rendered as a sticky-thead HTML table) and a per-source elicitation-question list scoped to `Needs-Clarification`-disposition findings. The reviewer renders it by substituting into the scaffold `framework/assets/reviews-inputs/template-completeness.html`.
 
 **Sibling lenses under `/review-inputs`:**
 
@@ -57,7 +57,7 @@ The reviewer reads:
 The reviewer does **not** read:
 
 - `requirements/requirements.md`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson` — derivative artefacts; the review's contract is to critique the raw inputs themselves.
-- `review-inputs/ADVERSARIAL/adversarial-review.html`, `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading would conflate the methodologies and produce correlated noise.
+- `review-inputs/ADVERSARIAL/adversarial-review.html`, `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` even when present — each input-pipeline lens is independently grounded in the manifest; cross-reading would conflate the methodologies and produce correlated noise.
 - `analyse-requirements/*`, `analyse-inputs/*` outputs — derived; each lens reads the manifest independently.
 - `design-system/*`, `review-requirements/*`, `framework/state/*`, `framework/shared/prototype-invariants.md`, `framework/shared/refusal-registry.md` (except as textual references in this document and the agent file) — out of scope.
 - `framework/skills/completeness-gap-pass.md` — **explicitly not loaded.** That skill is `/requirements`-private (it walks a synthesised draft against `topics-requirements.md` bijection invariants); this reviewer walks raw inputs against IEEE/Volere/BABOK dimension checklists. The conceptual decision-tree (Stated → Rule → Scope → Default) is shared inspiration but the implementations are independent.
@@ -776,40 +776,28 @@ The coverage matrix is a 10-row × N-column grid (where N = number of consumed s
 
 **Matrix-column semantics:** each consumed source has its own column. Sources with `tier: Unsupported` are not in the matrix (they are in the Skipped roster only). A source can be `COVERED` on some dimensions and `ABSENT` on others — that is the expected shape (a brief covers scope and assumptions but not data entities; a spec doc covers entities but not stakeholders).
 
-**Rendering convention:** the matrix is a markdown table. The first column is the dimension name (with the dimension number in parentheses). Subsequent columns are one per consumed-source filename. Cells use the four cell-value tokens above.
+**Rendering convention:** the matrix is a sticky-thead HTML table (`<table class="coverage-matrix">` in `framework/assets/reviews-inputs/template-completeness.html` — no heatmap / inline-SVG). The first column (`<th scope="row">`) is the dimension name (with the dimension number in parentheses). Subsequent columns are one per consumed-source filename. Cells render the four cell-value tokens above as coverage chips (`cov-Covered` / `cov-Partial` / `cov-Absent` / `cov-Out-of-scope-explicit`).
 
 ---
 
 ## Output presentation
 
-The artefact renders as a structured markdown report. The fixed section ordering is:
+The artefact renders as a self-contained HTML report (the reviewer substitutes pre-escaped values + pre-rendered HTML fragments into `framework/assets/reviews-inputs/template-completeness.html`; one inline `<style>`, no external CSS/JS/fonts, no diagram/heatmap — coverage is the HTML table). The per-block HTML schemas (coverage-matrix table, triage table, findings table, per-dimension finding `<article>`s, elicitation groups, source roster, diagnostics `<details>`) live in the template's leading comment. The fixed section ordering is:
 
-1. **Header** — title (`# Completeness Review (inputs-side)`) + metadata block: `Generated-At` (ISO-8601 UTC), `MANIFEST_FINGERPRINT` (SHA-256 of `requirements/source-manifest.json`), `Target` (the manifest's `target` field, or `null`), `Reviewer Identity` (fixed string *"Completeness Review (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE, ten-dimension, inputs-side)"*), `Sources Consumed` (count), `Sources Skipped` (count).
+1. **Header (Overview)** — title (`<h1 id="top">` + `<title>`) + a `dl.meta-grid` metadata block: `Domain`, `Generated` (ISO-8601 UTC), `Manifest SHA-256` (SHA-256 of `requirements/source-manifest.json`), `Target` (the manifest's `target` field, or `(unset)`), `Reviewer` (fixed string *"Completeness Review (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE, ten-dimension, inputs-side)"*), `Sources consumed` (count), `Sources skipped` (count).
 2. **Executive Summary** — total findings, severity tally (Blocker / Major / Minor), disposition tally (Needs-Clarification / Standard-Rule-Applies / Out-of-Scope), per-dimension counts, single-sentence verdict per the verdict-mapping table.
-3. **Verdict** — exactly one of `BLOCKED` / `NEEDS-ELICITATION` / `ACCEPTED-WITH-GAPS`, on its own line in bold, preceded by `Verdict:`. No other prose on the line.
-4. **Coverage matrix** — a markdown table (10 rows × N consumed-source columns; see construction rules above). Provides the executive bird's-eye view; the consultant should read this section in under thirty seconds.
+3. **Verdict** — exactly one of `BLOCKED` / `NEEDS-ELICITATION` / `ACCEPTED-WITH-GAPS`, rendered in the Executive Summary as a `<span class="verdict verdict-{VERDICT}">` banner (the token also drives the banner's colour class). It carries no other prose.
+4. **Coverage matrix** — a sticky-thead HTML table (10 rows × N consumed-source columns; see construction rules above; no heatmap/SVG). Provides the executive bird's-eye view; the consultant should read this section in under thirty seconds.
 5. **Triage** — *"Top issues to address first"* callout (≤10 entries: every `Blocker + Needs-Clarification` first, then `Major + Needs-Clarification` findings sorted by primary dimension ascending, then within-dimension by COMP-NN ascending; never includes `Standard-Rule-Applies` or `Out-of-Scope` findings even if Blocker severity, because those have no action item for the stakeholder).
 6. **Source roster** — Consumed + Skipped tables.
    - **Consumed table.** Columns: `filename`, `tier`, `sha256[:8]`, `dimensions-covered`, `dimensions-partial`, `dimensions-absent`. One row per `corpus[*]` entry.
    - **Skipped table.** Columns: `filename`, `reason`. One row per `skipped_rows[*]` entry, or the italic *"(no sources skipped this run)"* line if empty.
 7. **Findings table** — one row per finding. Columns: `ID`, `Dim(s)`, `Sev`, `Disposition`, `Location`, `Problem (one line)`. Sorted Blocker → Major → Minor, then within-severity by primary dimension ascending, then by COMP-NN ascending. Pipe characters in Problem strings escaped as `\|`.
-8. **Per-Dimension sections (1–10)** — one section per dimension, in dimension order. Section header: `### Dimension N — <dimension name>`. Variants:
-   - **Variant A (≥1 finding on this primary dimension):** numbered list of findings under the dimension. Each finding renders as a 9-field block:
-     ```
-     - **COMP-NN** — Severity: `Sev` — Disposition: `Disp` — Location: `<corpus-wide | filename>` — Dimensions: `[N]` (or `[N, M]` for multi-tag)
-       - Evidence: > <verbatim quote ≤5 lines, blockquote-prefixed, OR the sentinel `(no mention in consumed corpus)`>
-       - Authority: <authority refs, semicolon-separated>
-       - Problem: <one sentence>
-       - Elicitation question: <ends with ?, names filename; OR a sentinel string>
-     ```
-   - **Variant B (zero findings on this primary dimension):** Justification block ≥3 sentences citing specific evidence (filenames + verbatim quotes) explaining why the dimension is covered across the consumed corpus. *"Clean"* / *"Looks fine"* / *"Nothing to report"* are not justifications.
-9. **Suggested elicitation questions (grouped by source filename)** — one subsection per consumed filename that contributed ≥1 `Needs-Clarification` finding (where the finding's `Location` is the filename, OR `corpus-wide` with the filename named in the elicitation question prose). Each subsection lists the elicitation questions for that filename in COMP-NN ascending order, as a numbered list, ready to paste into a client follow-up. `Standard-Rule-Applies` and `Out-of-Scope` findings are excluded from this section. If a finding has Location = `corpus-wide`, it appears under each filename it names in its prose. If multiple filenames qualify, the finding appears under each. Renderable example:
-    ```
-    ### Questions for stakeholders of `brief.docx`
-    1. In brief.docx, can we schedule a one-hour interview with a Finance Manager to capture their daily workflow, common errors, and what 'done' looks like for them? (COMP-04)
-    2. In brief.docx, for the Customer entity: what are the key fields, lifecycle states, and identity rules? (COMP-12)
-    ```
-10. **Diagnostics** — five subsections:
+8. **Per-Dimension sections (1–10)** — one `<section id="dim-N">` per dimension, in dimension order, each headed `Dimension N — <dimension name>`. Variants (full per-block HTML schema in the template comment):
+   - **Variant A (≥1 finding on this primary dimension):** a `<div class="findings-list">` of finding `<article id="COMP-NN">`s. Each finding carries all nine schema fields: ID, Severity, Disposition, Dimensions (`[N]` or `[N, M]` for multi-tag), Location (`corpus-wide | filename`), Evidence (verbatim quote ≤5 lines in a `<blockquote class="evidence"><pre>`, OR the sentinel `(no mention in consumed corpus)` in a `<blockquote class="evidence sentinel">`), Authority (semicolon-separated), Problem (one sentence), Elicitation question (ends with `?`, names filename; OR a sentinel string).
+   - **Variant B (zero findings on this primary dimension):** a `<div class="justification">` of ≥3 sentences citing specific evidence (filenames + verbatim quotes) explaining why the dimension is covered across the consumed corpus. *"Clean"* / *"Looks fine"* / *"Nothing to report"* are not justifications.
+9. **Suggested elicitation questions (grouped by source filename)** — one `<div class="elicitation-group">` per consumed filename that contributed ≥1 `Needs-Clarification` finding (where the finding's `Location` is the filename, OR `corpus-wide` with the filename named in the elicitation question prose). Each group heads with the filename and lists its elicitation questions in COMP-NN ascending order as an `<ol class="elicitation-list">`, ready to paste into a client follow-up. `Standard-Rule-Applies` and `Out-of-Scope` findings are excluded from this section. If a finding has Location = `corpus-wide`, it appears under each filename it names in its prose. If multiple filenames qualify, the finding appears under each. Example (rendered as one group per filename): a group headed *"Questions for stakeholders of `brief.docx`"* containing *"In brief.docx, can we schedule a one-hour interview with a Finance Manager … (COMP-04)"* and *"In brief.docx, for the Customer entity: what are the key fields, lifecycle states, and identity rules? (COMP-12)"*.
+10. **Diagnostics** — a collapsed `<details>` wrapping five subsections:
     - **Quality gates** — table listing all 12 gates with `PASS` / `FAIL` + flagged items.
     - **Coverage map** — one row per consumed filename: `filename`, `tier`, total finding-count contributed, `dimensions-with-findings`, `dimensions-with-justification`.
     - **Disposition breakdown** — per-dimension counts of each disposition: `Dim | Needs-Clarification | Standard-Rule-Applies | Out-of-Scope`. Verifies the disposition-step assignment didn't silently drop or mis-route findings.
@@ -838,7 +826,7 @@ The artefact is a gap register + action list, not a narrative. Prose between fin
 - **Using inline `[SRC: <filename>]` markers inside Problem, Authority, Elicitation-question fields.** The Evidence + Location pair is the citation; do not duplicate it in prose.
 - **Skipping cross-dimension consolidation.** A topic tripping dimensions 1 and 3 (no first-hand voice, no key fields) on the same entity must emit one consolidated finding with `Dimensions: [1, 3]`, not two separate findings. Step 14 of the agent handles this; bypassing it produces double-counting in gate 9.
 - **Reviewing against the synthesised requirements doc.** Do not consult `requirements/requirements.md` or any other `/requirements`-pipeline derivative. The review's contract is to critique the **raw inputs**.
-- **Reviewing against parallel reviews.** Do not consult `review-inputs/ADVERSARIAL/adversarial-review.html` or `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` to triangulate findings. Each input-pipeline lens is independently grounded in the manifest.
+- **Reviewing against parallel reviews.** Do not consult `review-inputs/ADVERSARIAL/adversarial-review.html` or `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` to triangulate findings. Each input-pipeline lens is independently grounded in the manifest.
 - **Skipping the strict-Justification rule.** A dimension with zero findings requires a non-empty Justification block ≥3 sentences citing specific evidence and naming at least one filename. *"Clean"* is not a Justification.
 
 ---

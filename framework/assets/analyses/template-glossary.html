@@ -1,0 +1,469 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses/glossary-analyser.md.
+
+  Purpose: HTML/CSS skeleton for the Glossary report, REQUIREMENTS-ANALYSIS variant — surfaces the
+  domain vocabulary of the synthesised `requirements/requirements.md` (NOT the raw `input/*` material;
+  that is the separate analyse-inputs/GLOSSARY method). Self-contained (`<!doctype html>` + ONE inlined
+  `<style>` + `<body>`). NO external CSS/JS, NO Mermaid, NO CDN, NO `<script>`; viewable by opening
+  `file://` in a browser; prints to PDF; shareable with clients without tooling. CSS lineage adapted from
+  the near-identical sibling framework/assets/analyses-inputs/template-glossary.html so the analysis
+  outputs read as consistent siblings.
+
+  HARD METHODOLOGY RULE (requirements-side): NO [AI-SUGGESTED] anywhere. The requirements-side glossary is
+  pure extraction — a term is either DEFINED (verbatim quote + citation lifted from requirements.md) or
+  USED WITHOUT EXPLICIT DEFINITION (use-site citations only). The analyser NEVER authors a gloss, and the
+  donor's amber `.ai-proposal` convergence blocks are intentionally absent. Gate 7 forbids the literal
+  string `[AI-SUGGESTED]` in the artefact.
+
+  Scope is tiered and strictly cumulative (1 = nouns + roles + statuses → 2 += acronyms →
+  3 += action verbs → 4 += field names). Sections beyond the active tier render a single italic
+  placeholder. Re-runs are additive: prior entries are preserved verbatim; the cursor lives in the
+  `<!-- glossary-meta: ... -->` comment.
+
+  Section order (top-to-bottom):
+    1. Overview (id="overview")                 — title, subtitle, meta-grid
+                                                  (Domain, Generated, Requirements SHA-256, Scope tier,
+                                                  + term counts).
+    2. TOC (<nav class="toc">)                  — static top-level anchors (sticky).
+    3. Defined terms (id="defined")             — {{DEFINED_BLOCK}} — alphabetical cited cards.
+    4. Used without explicit definition (id="undefined") — {{UNDEFINED_BLOCK}} — alphabetical gap cards.
+    5. Acronyms and abbreviations (id="acronyms")— {{ACRONYMS_BLOCK}} — tier ≥ 2, else placeholder.
+    6. Action terms (id="actions")              — {{ACTIONS_BLOCK}} — tier ≥ 3, else placeholder.
+    7. Field names (id="fields")                — {{FIELDS_BLOCK}} — tier ≥ 4, else placeholder.
+    8. Machine-readable model (id="body")       — {{BODY_JSON}} inside <pre><code class="language-json" id="glossary-body">.
+                                                  REQUIRED: the blueprint-architect's copy-vocabulary role
+                                                  may read this artefact (sidecar-first, RF-09 bounded prose
+                                                  fallback); the embedded JSON keeps the vocabulary
+                                                  machine-extractable even from the HTML, and survives a
+                                                  markitdown HTML→MD round-trip as a fenced code block.
+    9. Run history (id="run-history")           — {{RUN_HISTORY_BLOCK}} — append-only prior-run bullets.
+   10. Diagnostics (id="diagnostics")           — <details> wrapper, collapsed by default; {{DIAGNOSTICS_BLOCK}}.
+   11. <!-- glossary-meta: ... --> comment       — analyser emits immediately before </main>.
+   12. footer                                    — legend + credit.
+
+  Placeholders the analyser substitutes (string substitution, all values pre-escaped for HTML
+  EXCEPT BODY_JSON which is additionally escaped for &lt; / &amp; / &gt; that would break <pre><code>):
+
+    {{TITLE}}                     — short title (e.g. "Glossary — Project X")
+    {{DOMAIN}}                    — domain string (from requirements §1 if present, else "(not declared in requirements.md)")
+    {{GENERATED_AT}}              — ISO-8601 UTC timestamp the artefact was rendered
+    {{REQUIREMENTS_SHA256}}       — sha256 of requirements/requirements.md at read time
+    {{SCOPE_TIER}}                — active scope tier, 1–4
+    {{TOTAL_TERM_COUNT}}          — total entries
+    {{DEFINED_COUNT}}             — entries carrying a cited definition
+    {{UNDEFINED_COUNT}}           — entries used without explicit definition
+    {{DOMAIN_NOUN_COUNT}}         — category=domain-noun count
+    {{ROLE_COUNT}}                — category=role count
+    {{STATUS_COUNT}}              — category=status count
+    {{ACRONYM_COUNT}}             — category=acronym count (tier ≥ 2)
+    {{ACTION_COUNT}}              — category=action count (tier ≥ 3)
+    {{FIELD_COUNT}}               — category=field count (tier ≥ 4)
+    {{NEW_THIS_RUN_COUNT}}        — new entries added this run
+    {{RUN_COUNT}}                 — run number (prior.run_count + 1, or 1 on first run)
+    {{DEFINED_BLOCK}}             — pre-rendered <article class="term-card …"> set per TERM CARD SCHEMA (defined variant), or empty-state.
+    {{UNDEFINED_BLOCK}}           — pre-rendered <article class="term-card …"> set per TERM CARD SCHEMA (undefined variant), or empty-state.
+    {{ACRONYMS_BLOCK}}            — tier-placeholder <p class="tier-placeholder"> OR the acronym card set.
+    {{ACTIONS_BLOCK}}             — tier-placeholder OR the action card set.
+    {{FIELDS_BLOCK}}              — tier-placeholder OR the field card set.
+    {{BODY_JSON}}                 — the machine-readable JSON term model (escaped). See BODY JSON SHAPE.
+    {{RUN_HISTORY_BLOCK}}         — pre-rendered <ul class="run-history"> of one <li> per run.
+    {{DIAGNOSTICS_BLOCK}}         — pre-rendered <section class="diagnostics"> per DIAGNOSTICS SCHEMA.
+    <!-- glossary-meta: ... -->   — analyser emits this HTML comment immediately before </main>
+                                    carrying last_scope_tier=<int>, last_input_sha256=<sha256>,
+                                    run_count=<int>. Step 3 prior-artefact detection parses the first match.
+
+  ----------------------------------------------------------------------------------------------
+  TERM CARD SCHEMA — {{DEFINED_BLOCK}} / {{UNDEFINED_BLOCK}} / {{ACRONYMS_BLOCK}} / {{ACTIONS_BLOCK}} /
+  {{FIELDS_BLOCK}} are each one <article> per term, alphabetical. Maturity badge: a DEFINED entry is
+  L3 · Settled (cited verbatim from the doc); an UNDEFINED entry is L0 · Undefined. There is NO amber
+  proposal block — the requirements-side glossary never authors a gloss.
+
+      <article id="term-<slug>" class="term-card cat-<domain-noun|role|status|acronym|action|field> m-<0|3>">
+        <header class="term-card-header">
+          <span class="term-headword">{{term}}</span>
+          <span class="category-badge cat-<…>">{{DOMAIN NOUN|ROLE|STATUS|ACRONYM|ACTION|FIELD}}</span>
+          <span class="maturity-badge m-<0|3>">L<0|3> · {{Undefined|Settled}}</span>
+        </header>
+
+        <!-- DEFINED variant — present when the analyser matched an explicit-definition pattern: -->
+        <div class="cited-definition">
+          <p class="def-text">{{verbatim definition quote}}</p>
+          <span class="src-chip">§N.M</span>
+          <span class="src-detail">{{entity / attribute / role marker if applicable}}</span>
+        </div>
+        <!-- OR UNDEFINED variant — no definition found in requirements.md: -->
+        <p class="no-definition">Used without explicit definition — {{use_count}}&times;.</p>
+
+        <!-- optional facets, omit when empty (acronym expansion / action shape / owning entity): -->
+        <div class="term-facets">
+          <span class="facet"><span class="link-label">Expands to</span> {{expansion}}</span>          <!-- acronym -->
+          <span class="facet"><span class="link-label">Surfaced shape</span> &ldquo;the {{actor}} {{verb}}s {{object}}&rdquo;</span> <!-- action -->
+          <span class="facet"><span class="link-label">Owning entity</span> <span class="ctx-ref">{{owning_entity}}</span></span>   <!-- field; "not stated" if absent -->
+        </div>
+
+        <ul class="term-sources">
+          <li>Used {{use_count}}&times; — <span class="src-chip">§{{a}}</span> <span class="src-chip">§{{b}}</span> <span class="src-chip">§{{c}}</span><span class="more">…and {{N}} more</span></li>
+        </ul>
+      </article>
+
+      empty-state for {{DEFINED_BLOCK}} / {{UNDEFINED_BLOCK}}: <p class="empty-state">{{honest empty message}}</p>
+      tier-placeholder for {{ACRONYMS_BLOCK}}/{{ACTIONS_BLOCK}}/{{FIELDS_BLOCK}} below the active tier:
+        <p class="tier-placeholder">(populated when scope tier &ge; N)</p>
+
+  BODY JSON SHAPE — {{BODY_JSON}} is the re-ingestion contract. One JSON object; HTML-escaped so it is
+  inert inside <pre><code>. The blueprint-architect's copy-vocabulary role reads `terms[]` for the
+  vocabulary. Shape (illustrative):
+
+      {
+        "method": "glossary",
+        "source": "requirements/requirements.md",
+        "requirements_sha256": "<sha>",
+        "scope_tier": 2,
+        "run_count": 1,
+        "counts": { "total": N, "defined": D, "undefined": U },
+        "terms": [
+          {
+            "term": "Order",
+            "category": "domain-noun",
+            "maturity": 3,
+            "agreement": "settled",
+            "definition": "<verbatim quote OR null>",
+            "definition_source": "§2.1",
+            "definition_pattern": "domain-model-entity-row",
+            "owning_entity": null,
+            "expansion": null,
+            "use_count": 7,
+            "use_sites": ["§2.1", "§5.2", "§6.3"]
+          }
+        ]
+      }
+
+  DIAGNOSTICS SCHEMA — {{DIAGNOSTICS_BLOCK}} substitutes a single <section class="diagnostics">. The
+  template wraps it in a <details class="diagnostics-toggle"> (collapsed by default). The analyser does
+  NOT emit the <details>/<summary> wrapper. Inner section, in order:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>Glossary (requirements-analysis variant) — T entries at scope tier {{tier}}: D defined, U used without explicit definition.</p>
+        <p>By category: {{n_domain_noun}} domain-nouns, {{n_role}} roles, {{n_status}} statuses{{, n_acronym acronyms}}{{, n_action action terms}}{{, n_field field names}}.</p>
+        <h3>Quality gates</h3>
+        <ul>
+          <li class="check-pass|check-fail">Gate 1 — Every defined-term entry carries a citation.</li>
+          ... (all 7 gates G1–G7 in order; Override'd failures get a nested flagged-items <ul>)
+        </ul>
+        <!-- non-empty only: -->
+        <p class="override-note">Quality-check violations accepted as known. Flagged items: …</p>
+      </section>
+
+  CSS classes used by the analyser:
+    .term-card, .term-card-header, .term-headword
+    .category-badge.cat-domain-noun / .cat-role / .cat-status / .cat-acronym / .cat-action / .cat-field
+    .maturity-badge.m-0 / .m-3
+    .cited-definition, .def-text, .src-chip, .src-detail, .no-definition
+    .term-facets, .facet, .link-label, .ctx-ref, .term-sources, .more
+    .empty-state, .tier-placeholder, .muted
+    .body-json (pre), #glossary-body (code.language-json)
+    .run-history
+    .diagnostics + check-pass/check-fail + override-note + source-roster (unused here but kept for lineage)
+
+  The CSS below is fixed scaffolding and should not be edited by the analyser — only the
+  {{placeholders}} above are substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --col-bg: #ffffff;
+      --shadow: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+      --header-bg: #efefef;
+
+      /* Category accents — domain-noun blue, role teal, status amber, acronym violet,
+         action green, field slate */
+      --cat-noun-bg:   #c9dcf2; --cat-noun-border:   #4f7fbf; --cat-noun-fg:   #14304f;
+      --cat-role-bg:   #bfe6dd; --cat-role-border:   #3f9a89; --cat-role-fg:   #103a32;
+      --cat-status-bg: #ffe2b3; --cat-status-border: #d48a2a; --cat-status-fg: #4a2e00;
+      --cat-acro-bg:   #ddccef; --cat-acro-border:   #8a62c7; --cat-acro-fg:   #2e1e55;
+      --cat-action-bg: #c8e6b2; --cat-action-border: #5e9a3e; --cat-action-fg: #1f3d12;
+      --cat-field-bg:  #e0e2e8; --cat-field-border:  #7a8294; --cat-field-fg:  #2a2f3a;
+
+      /* Maturity — L0 undefined (red rail), L3 settled (green rail) */
+      --m0-bg: #f3cdc6; --m0-border: #c0573f; --m0-fg: #5a1e10;
+      --m3-bg: #c8e6b2; --m3-border: #5e9a3e; --m3-fg: #1f3d12;
+
+      /* Source chips */
+      --src-chip-bg: #f4f0e6; --src-chip-border: #c9b88f; --src-chip-fg: #5a4a1a;
+
+      /* Cited (extraction) — green accent */
+      --expl-border: #7fb069;
+
+      --pass-fg: #2a8a2a;
+      --rev-fg: #8a1a1a;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--bg); color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px; line-height: 1.45;
+    }
+    main { max-width: 1100px; margin: 0 auto; padding: 24px; }
+    h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px 0; }
+    .subtitle { color: var(--muted); font-size: 13px; margin: 0 0 24px 0; }
+
+    section[id] { scroll-margin-top: 64px; }
+    .section-title { font-size: 17px; font-weight: 600; margin: 28px 0 12px 0; }
+    .section-caption { font-size: 12px; color: var(--muted); margin: 0 0 12px 0; }
+    .section-caption code, .subtitle code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; background: var(--header-bg); padding: 1px 4px; border-radius: 3px; }
+
+    .meta-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 8px 24px; padding: 12px 16px; border: 1px solid var(--border);
+      border-radius: 6px; background: #fff; margin-bottom: 8px; font-size: 13px;
+    }
+    .meta-grid dt { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; margin: 0; }
+    .meta-grid dd { margin: 0 0 6px 0; font-variant-numeric: tabular-nums; word-break: break-word; }
+
+    /* ------- table of contents (sticky) ------- */
+    .toc {
+      position: sticky; top: 0; z-index: 5;
+      margin: 16px 0 8px 0; padding: 10px 14px; background: #fff;
+      border: 1px solid var(--border); border-left: 4px solid var(--border-strong);
+      border-radius: 6px; font-size: 13px;
+    }
+    .toc ol { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 18px; counter-reset: toc-item; }
+    .toc li { counter-increment: toc-item; }
+    .toc li::before { content: counter(toc-item) ". "; color: var(--muted); margin-right: 4px; font-variant-numeric: tabular-nums; }
+    .toc a { color: var(--fg); text-decoration: none; border-bottom: 1px dotted var(--border-strong); }
+    .toc a:hover { border-bottom-color: var(--fg); }
+
+    /* ------- term cards ------- */
+    .glossary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 12px; align-items: start; }
+    .term-card {
+      display: flex; flex-direction: column; gap: 8px; padding: 12px;
+      background: var(--col-bg); border: 1px solid var(--border);
+      border-radius: 6px; border-top: 3px solid var(--border-strong);
+      border-left: 4px solid var(--border);
+    }
+    /* top rail by category */
+    .term-card.cat-domain-noun { border-top-color: var(--cat-noun-border); }
+    .term-card.cat-role        { border-top-color: var(--cat-role-border); }
+    .term-card.cat-status      { border-top-color: var(--cat-status-border); }
+    .term-card.cat-acronym     { border-top-color: var(--cat-acro-border); }
+    .term-card.cat-action      { border-top-color: var(--cat-action-border); }
+    .term-card.cat-field       { border-top-color: var(--cat-field-border); }
+    /* left rail by maturity, so the reader scans settledness down a column */
+    .term-card.m-0 { border-left-color: var(--m0-border); }
+    .term-card.m-3 { border-left-color: var(--m3-border); }
+
+    .term-card-header { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+    .term-headword { font-size: 16px; font-weight: 700; }
+
+    .category-badge, .maturity-badge {
+      display: inline-block; padding: 2px 7px; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.06em; border-radius: 3px; border: 1px solid transparent;
+    }
+    .category-badge.cat-domain-noun { background: var(--cat-noun-bg);   border-color: var(--cat-noun-border);   color: var(--cat-noun-fg); }
+    .category-badge.cat-role        { background: var(--cat-role-bg);   border-color: var(--cat-role-border);   color: var(--cat-role-fg); }
+    .category-badge.cat-status      { background: var(--cat-status-bg); border-color: var(--cat-status-border); color: var(--cat-status-fg); }
+    .category-badge.cat-acronym     { background: var(--cat-acro-bg);   border-color: var(--cat-acro-border);   color: var(--cat-acro-fg); }
+    .category-badge.cat-action      { background: var(--cat-action-bg); border-color: var(--cat-action-border); color: var(--cat-action-fg); }
+    .category-badge.cat-field       { background: var(--cat-field-bg);  border-color: var(--cat-field-border);  color: var(--cat-field-fg); }
+    .maturity-badge { margin-left: auto; }
+    .maturity-badge.m-0 { background: var(--m0-bg); border-color: var(--m0-border); color: var(--m0-fg); }
+    .maturity-badge.m-3 { background: var(--m3-bg); border-color: var(--m3-border); color: var(--m3-fg); }
+
+    /* cited (extraction-grounded) definition */
+    .cited-definition { padding: 8px 10px; border-radius: 4px; background: #fff; border: 1px solid var(--expl-border); border-left: 3px solid var(--expl-border); }
+    .cited-definition .def-text { margin: 0 0 6px 0; font-size: 14px; line-height: 1.4; }
+    .src-detail { color: var(--muted); font-size: 11px; font-style: italic; margin-left: 4px; }
+    .no-definition { margin: 0; padding: 8px 10px; border-radius: 4px; background: #fff; border: 1px dashed var(--m0-border); color: var(--m0-fg); font-size: 13px; font-style: italic; }
+
+    /* ------- facets, sources ------- */
+    .term-facets { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-size: 11px; color: var(--muted); }
+    .facet { display: inline-flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
+    .link-label { font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; font-size: 9px; color: var(--muted); }
+    .term-sources { list-style: none; margin: 0; padding: 6px 0 0 0; border-top: 1px dashed var(--border); display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--muted); }
+    .term-sources li { line-height: 1.5; }
+    .more { font-style: italic; margin-left: 4px; }
+
+    .ctx-ref {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px; color: var(--fg); font-variant-numeric: tabular-nums;
+      background: var(--header-bg); border: 1px solid var(--border); border-radius: 3px; padding: 0 5px;
+    }
+    .src-chip {
+      display: inline-block; padding: 1px 6px; border-radius: 3px;
+      background: var(--src-chip-bg); border: 1px solid var(--src-chip-border); color: var(--src-chip-fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 10px;
+      line-height: 1.35; white-space: nowrap; font-style: normal;
+    }
+
+    .empty-state { padding: 12px 14px; border: 1px dashed var(--border-strong); border-radius: 6px; background: #fff; color: var(--muted); font-style: italic; }
+    .tier-placeholder { padding: 12px 14px; border: 1px dashed var(--border-strong); border-radius: 6px; background: #fff; color: var(--muted); font-style: italic; }
+    .muted { color: var(--muted); }
+
+    /* ------- JSON body block ------- */
+    .body-wrap { padding: 0; }
+    pre.body-json { margin: 0; padding: 14px 16px; background: #1e1e1e; color: #e8e8e8; border-radius: 6px; overflow-x: auto; font-size: 11px; line-height: 1.4; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    pre.body-json code { white-space: pre; }
+
+    /* ------- run history ------- */
+    ul.run-history { margin: 0; padding-left: 20px; font-size: 13px; }
+    ul.run-history li { margin: 0 0 4px 0; }
+
+    /* ------- diagnostics ------- */
+    details.diagnostics-toggle { margin-bottom: 24px; }
+    details.diagnostics-toggle > summary {
+      cursor: pointer; padding: 10px 14px; background: #fff; border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong); border-radius: 6px; font-weight: 600;
+      font-size: 14px; color: var(--fg); list-style: none; display: flex; align-items: center; gap: 8px; user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before { content: "\25B6"; font-size: 10px; color: var(--muted); transition: transform 0.15s ease; display: inline-block; }
+    details.diagnostics-toggle[open] > summary { border-radius: 6px 6px 0 0; border-bottom: none; }
+    details.diagnostics-toggle[open] > summary::before { transform: rotate(90deg); }
+    .diagnostics { padding: 16px; border: 1px solid var(--border); border-left: 4px solid var(--border-strong); border-radius: 6px; background: #fff; margin-bottom: 24px; }
+    details.diagnostics-toggle > .diagnostics { border-top: none; border-radius: 0 0 6px 6px; margin-bottom: 0; }
+    details.diagnostics-toggle > .diagnostics > h2 { display: none; }
+    .diagnostics h2 { font-size: 16px; margin: 0 0 8px 0; }
+    .diagnostics h3 { font-size: 13px; margin: 16px 0 6px 0; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .diagnostics > p { margin: 4px 0; }
+    .diagnostics > ul { margin: 8px 0 12px 0; padding-left: 20px; }
+    .diagnostics .check-pass::before { content: "PASS "; color: var(--pass-fg); font-weight: 600; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--rev-fg); font-weight: 600; }
+    .diagnostics .override-note { color: var(--rev-fg); font-weight: 600; }
+
+    footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 11px; }
+    footer .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+    footer .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    footer .legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid transparent; }
+    footer .legend-swatch.s-m0 { background: var(--m0-bg); border-color: var(--m0-border); }
+    footer .legend-swatch.s-m3 { background: var(--m3-bg); border-color: var(--m3-border); }
+    footer .legend-swatch.s-noun { background: var(--cat-noun-bg); border-color: var(--cat-noun-border); }
+    footer .legend-swatch.s-role { background: var(--cat-role-bg); border-color: var(--cat-role-border); }
+    footer .credit { margin-top: 6px; text-align: right; }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .glossary-grid { gap: 8px; }
+      .term-card { break-inside: avoid; }
+      pre.body-json { white-space: pre-wrap; word-break: break-word; }
+      .toc { display: none; }
+      details.diagnostics-toggle[open] > summary::before { content: ""; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section id="overview">
+      <h1>{{TITLE}}</h1>
+      <p class="subtitle">Glossary (requirements-analysis variant) — the domain vocabulary of the merged <code>requirements/requirements.md</code> and the definitions the document itself gives. Each term is either <strong>defined</strong> (a verbatim definition lifted from the document, with a section citation) or <strong>used without explicit definition</strong> (surfaced as a gap, with use-site citations). Nothing is glossed from world knowledge — there are no <code>[AI-SUGGESTED]</code> entries. Scope is tiered and cumulative; re-run at a wider tier to widen additively.</p>
+
+      <dl class="meta-grid">
+        <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+        <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+        <div><dt>Requirements SHA-256</dt><dd>{{REQUIREMENTS_SHA256}}</dd></div>
+        <div><dt>Scope tier</dt><dd>{{SCOPE_TIER}}</dd></div>
+        <div><dt>Total entries</dt><dd>{{TOTAL_TERM_COUNT}}</dd></div>
+        <div><dt>Defined</dt><dd>{{DEFINED_COUNT}}</dd></div>
+        <div><dt>Used without definition</dt><dd>{{UNDEFINED_COUNT}}</dd></div>
+        <div><dt>Domain nouns</dt><dd>{{DOMAIN_NOUN_COUNT}}</dd></div>
+        <div><dt>Roles</dt><dd>{{ROLE_COUNT}}</dd></div>
+        <div><dt>Statuses</dt><dd>{{STATUS_COUNT}}</dd></div>
+        <div><dt>Acronyms</dt><dd>{{ACRONYM_COUNT}}</dd></div>
+        <div><dt>Action terms</dt><dd>{{ACTION_COUNT}}</dd></div>
+        <div><dt>Field names</dt><dd>{{FIELD_COUNT}}</dd></div>
+        <div><dt>New this run</dt><dd>{{NEW_THIS_RUN_COUNT}}</dd></div>
+        <div><dt>Run</dt><dd>#{{RUN_COUNT}}</dd></div>
+      </dl>
+    </section>
+
+    <nav class="toc" aria-label="Sections">
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#defined">Defined terms</a></li>
+        <li><a href="#undefined">Used without definition</a></li>
+        <li><a href="#acronyms">Acronyms</a></li>
+        <li><a href="#actions">Action terms</a></li>
+        <li><a href="#fields">Field names</a></li>
+        <li><a href="#body">Machine-readable model</a></li>
+        <li><a href="#run-history">Run history</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+      </ol>
+    </nav>
+
+    <section id="defined" aria-label="Defined terms">
+      <h2 class="section-title">Defined terms</h2>
+      <p class="section-caption">Terms whose definition the document itself gives — each carries a verbatim definition quote and a section citation. Alphabetical. These definitions are the canonical vocabulary downstream UI wording should adopt.</p>
+      <div class="glossary-grid">
+        {{DEFINED_BLOCK}}
+      </div>
+    </section>
+
+    <section id="undefined" aria-label="Terms used without explicit definition">
+      <h2 class="section-title">Used without explicit definition</h2>
+      <p class="section-caption">Terms the document uses but never defines — surfaced as gaps with use-site citations only. No gloss is authored. A high count here is a signal to enrich <code>&sect;2 Domain model</code>, <code>&sect;3 Target users</code>, or <code>&sect;7 Data entities</code> with definitions, then re-run.</p>
+      <div class="glossary-grid">
+        {{UNDEFINED_BLOCK}}
+      </div>
+    </section>
+
+    <section id="acronyms" aria-label="Acronyms and abbreviations">
+      <h2 class="section-title">Acronyms and abbreviations</h2>
+      <p class="section-caption">All-caps tokens and acronym-shaped terms, with their expansion if the document expands them (scope tier &ge; 2).</p>
+      {{ACRONYMS_BLOCK}}
+    </section>
+
+    <section id="actions" aria-label="Action terms">
+      <h2 class="section-title">Action terms</h2>
+      <p class="section-caption">Domain action verbs (Approve, Reject, Submit&hellip;) with their surfaced &ldquo;the {actor} {verb}s {object}&rdquo; shape (scope tier &ge; 3).</p>
+      {{ACTIONS_BLOCK}}
+    </section>
+
+    <section id="fields" aria-label="Field names">
+      <h2 class="section-title">Field names</h2>
+      <p class="section-caption">snake_case / lowerCamelCase field-name tokens and the entity each belongs to where the document states it (scope tier &ge; 4).</p>
+      {{FIELDS_BLOCK}}
+    </section>
+
+    <section id="body" class="body-wrap" aria-label="Machine-readable glossary model">
+      <h2 class="section-title">Machine-readable model</h2>
+      <p class="section-caption">The full glossary model in JSON &mdash; the machine-extractable term contract the blueprint-architect's copy-vocabulary role can read. It survives a markitdown HTML&rarr;MD round-trip as a fenced code block.</p>
+      <pre class="body-json"><code class="language-json" id="glossary-body">{{BODY_JSON}}</code></pre>
+    </section>
+
+    <section id="run-history" aria-label="Run history">
+      <h2 class="section-title">Run history</h2>
+      <p class="section-caption">Append-only record of each run — timestamp, scope tier, new-entry count, and any accepted Override violations. The artefact grows additively; prior entries are preserved verbatim across runs.</p>
+      {{RUN_HISTORY_BLOCK}}
+    </section>
+
+    <details id="diagnostics" class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    <footer>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-m3" aria-hidden="true"></span> Defined (L3 settled)</span>
+        <span class="legend-item"><span class="legend-swatch s-m0" aria-hidden="true"></span> Used without definition (L0)</span>
+        <span class="legend-item"><span class="legend-swatch s-noun" aria-hidden="true"></span> Domain noun</span>
+        <span class="legend-item"><span class="legend-swatch s-role" aria-hidden="true"></span> Role</span>
+      </div>
+      <div class="credit">Generated by <code>framework/agents/analyses/glossary-analyser.md</code> — DDD ubiquitous language &middot; ISO/IEC/IEEE 24765 vocabulary practice &middot; extraction-only, no authored glosses.</div>
+    </footer>
+    <!-- glossary-meta: last_scope_tier={{SCOPE_TIER}}, last_input_sha256={{REQUIREMENTS_SHA256}}, run_count={{RUN_COUNT}} -->
+  </main>
+</body>
+</html>

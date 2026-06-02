@@ -1,0 +1,1057 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses-inputs/opportunity-solution-trees-analyser.md.
+
+  Purpose: HTML/CSS skeleton for the inputs-side Opportunity Solution Tree
+  (Teresa Torres, "Continuous Discovery Habits", forward discovery from raw
+  consultant inputs). Combines a pre-rendered four-band discovery-tree (the
+  "MUST contain a diagram" deliverable — geometry + inline SVG <path>
+  connectors computed by the analyser at render time, the requirement-side
+  twin's {{TREE}} approach reused; NO client-side Mermaid runtime) with the
+  candidate-requirements bridge, the coverage diagnostics, and an embedded
+  JSON body block (the machine-readable model that survives markitdown
+  HTML->MD conversion for /requirements re-ingestion).
+
+  Self-contained (`<!doctype html>` + ONE inlined `<style>` + `<body>`). No
+  external CSS/JS dependencies, no CDN, no `<script>` behaviour, no inline
+  Mermaid runtime; viewable by opening `file://` in a browser; prints to PDF;
+  shareable with clients without tooling. The Mermaid source is embedded as
+  text inside `<pre class="mermaid-source">` for export only; the rendered
+  visual is the pre-rendered inline four-band <svg>-connected tree in #diagrams.
+
+  The artefact is re-ingestible into `input/` for the /requirements drafter
+  via markitdown conversion:
+  - The pre-rendered four-band tree (cards + inline <svg> connectors) carries
+    the visible diagram.
+  - The Mermaid block (inside <pre class="mermaid-source">) survives HTML->MD
+    as a fenced ```mermaid code block — the export/re-ingestion adjunct.
+  - The embedded JSON body block (inside
+    <pre><code class="language-json" id="opportunity-solution-tree-body">)
+    survives as a fenced ```json code block. This is the load-bearing
+    machine-readable contract — the <script type="application/json"> meta
+    block in <head> is stripped by markitdown and is only used by the
+    drift-detection logic on subsequent inputs-side OST runs.
+  - Inline [SRC: <filename>] markers in card / row content survive as plain
+    text. No [AI-SUGGESTED] markers — OST is extraction, not inference.
+
+  Section order (top-to-bottom):
+    1. Overview (id="overview")               — title, subtitle, meta-grid
+                                                 (Domain, Generated, Manifest
+                                                 SHA-256, Run #, counts).
+    2. TOC (<nav class="toc">)                — sticky top-level anchors.
+    3. Diagrams (id="diagrams")               — {{TREE}} (pre-rendered four-band
+                                                 tree with inline SVG connectors)
+                                                 + {{TREE_MERMAID}} (adjacent
+                                                 collapsed mermaid-source <details>).
+    4. Outcome + candidates (id="outcomes")   — {{OUTCOME_BLOCK}} +
+                                                 {{CANDIDATE_OUTCOMES_BLOCK}}.
+    5. Opportunities (id="opportunities")     — {{OPPORTUNITIES_BLOCK}}.
+    6. Solutions (id="solutions")             — {{SOLUTIONS_BLOCK}}.
+    7. Assumption tests (id="assumption-tests") — {{ASSUMPTION_TESTS_BLOCK}}.
+    8. Candidate requirements (id="candidates") — {{CANDIDATES_BLOCK}}: the
+                                                 per-Opportunity requirement bridge.
+    9. Coverage diagnostics (id="coverage")   — {{COVERAGE_BLOCK}}: orphan /
+                                                 unaddressed / weakly-anchored /
+                                                 contradictions.
+   10. Body (id="opportunity-solution-tree-body-section")
+                                              — {{BODY_JSON_BLOCK}}: the
+                                                 machine-readable JSON model +
+                                                 candidate-requirement seeds.
+                                                 The markitdown-survival contract.
+   11. Diagnostics (id="diagnostics")         — <details> wrapper, collapsed by
+                                                 default. Source roster
+                                                 (consumed/skipped) +
+                                                 manifest-fingerprint + gate
+                                                 results + run history.
+
+  Placeholders the analyser substitutes (string substitution; all text values
+  pre-escaped for HTML; JSON inside <pre><code> escaped as plain text; Mermaid
+  inside <pre class="mermaid-source"> kept literal beyond `<`, `>`, `&` so node
+  syntax survives; SVG <text> XML-escaped):
+
+    {{TITLE}}                       — short title (e.g. "Opportunity Solution Tree (inputs) — Project X").
+    {{DOMAIN}}                      — domain string (from manifest meta if declared, else
+                                      "(not declared in manifest)").
+    {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered.
+    {{MANIFEST_SHA256}}             — sha256 of requirements/source-manifest.json at read time.
+    {{RUN_COUNT}}                   — integer >= 1, increments per run.
+    {{OUTCOME_CLASS}}               — "business-outcome" | "product-outcome" | "traction-metric".
+    {{CANDIDATE_OUTCOME_COUNT}}     — non-primary outcome candidates preserved.
+    {{OPPORTUNITY_COUNT}}           — total Opportunities on the tree.
+    {{SOLUTION_COUNT}}              — total Solutions on the tree.
+    {{ASSUMPTION_TEST_COUNT}}       — total Assumption Tests (0 -> "absent" placeholder).
+    {{ORPHAN_SOLUTION_COUNT}}       — Solutions under the sentinel Op-?.
+    {{UNADDRESSED_OPPORTUNITY_COUNT}} — Opportunities with no source-grounded Solution children.
+    {{WEAKLY_ANCHORED_COUNT}}       — Opportunities with no keyword overlap with primary Outcome.
+    {{CONTRADICTION_COUNT}}         — contradiction pairs flagged.
+    {{CANDIDATE_REQ_COUNT}}         — candidate-requirement lines across all Opportunities.
+    {{CONSUMED_ROW_COUNT}}          — number of manifest rows consumed.
+    {{SKIPPED_ROW_COUNT}}           — number of manifest rows skipped (Unsupported tier).
+    {{TREE}}                        — pre-rendered <section class="tree-wrap">
+                                      containing four <div class="band band-outcome|
+                                      band-opportunity|band-solution|band-assumption">
+                                      plus the inline <svg class="tree-connectors">.
+    {{TREE_MERMAID}}                — pre-rendered <details class="mermaid-block"> containing
+                                      <pre class="mermaid-source"> with the `graph TD`
+                                      tree source (export / re-ingestion adjunct).
+    {{OUTCOME_BLOCK}}               — pre-rendered <article class="outcome-card"> (primary root).
+    {{CANDIDATE_OUTCOMES_BLOCK}}    — pre-rendered candidate-outcome blocks, or empty.
+    {{OPPORTUNITIES_BLOCK}}         — pre-rendered <article class="opportunity-card"> blocks,
+                                      alphabetical by <actor> — <need clause>.
+    {{SOLUTIONS_BLOCK}}             — pre-rendered solution groups (by parent Opportunity +
+                                      sentinel orphan group).
+    {{ASSUMPTION_TESTS_BLOCK}}      — pre-rendered assumption-test groups OR the
+                                      absent-layer placeholder.
+    {{CANDIDATES_BLOCK}}            — pre-rendered per-Opportunity candidate-requirement
+                                      bridge sub-sections.
+    {{COVERAGE_BLOCK}}              — pre-rendered orphan / unaddressed / weakly-anchored /
+                                      contradiction sub-lists.
+    {{BODY_JSON_BLOCK}}             — pre-rendered
+                                      <section id="opportunity-solution-tree-body-section">
+                                      containing a single <pre><code
+                                      class="language-json" id="opportunity-solution-tree-body">.
+    {{DIAGNOSTICS_BLOCK}}           — pre-rendered <section class="diagnostics"> (source
+                                      roster, manifest fingerprint, gate results, run history).
+
+  Output: analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html.
+
+  TREE-BAND SCHEMA — the analyser emits exactly four <div class="band"> rows
+  inside the <section class="tree-wrap"> in this order (the requirement-side
+  twin's tree-SVG approach reused; cards carry [SRC: <filename>] markers in a
+  .card-src line instead of provenance dots). The Assumption band is omitted /
+  replaced with .layer-placeholder when Layer 4 is absent:
+
+      <section class="tree-wrap" aria-label="Opportunity Solution Tree (from inputs)">
+        <svg class="tree-connectors" aria-hidden="true" preserveAspectRatio="none">
+          <!-- one <path class="edge edge-out-opp|edge-opp-sol|edge-sol-asm
+               [edge-orphan]" d="M x1,y1 C x1,my x2,my x2,y2"/> per parent-child
+               link. The analyser computes coordinates against the band-container
+               flow geometry at render time. Paths render under the cards
+               (z-index:0); cards sit above (z-index:1). Orphan edges dashed. -->
+        </svg>
+
+        <div class="band band-outcome" aria-label="Outcome">
+          <h2 class="band-label">Outcome</h2>
+          <article id="out-1" class="card card-outcome outcome-<class>">
+            <header class="card-header">
+              <span class="card-id">Out-1</span>
+              <span class="card-type-badge outcome-<class>">{{outcome_class_label}}</span>
+            </header>
+            <p class="card-body">{{outcome_text}}</p>
+            <p class="card-src"><small class="src-inline">[SRC: {{filename}}]</small></p>
+          </article>
+        </div>
+
+        <div class="band band-opportunity" aria-label="Opportunities">
+          <h2 class="band-label">Opportunities</h2>
+          <article id="op-<NN>" class="card card-opportunity <flag-unaddressed|flag-weakly-anchored>">
+            <header class="card-header">
+              <span class="card-id">Op-NN</span>
+              <span class="actor-tag">{{actor}}</span>
+            </header>
+            <p class="card-body">{{need_or_pain_clause}}</p>
+            <p class="card-flags">
+              <span class="flag flag-unaddressed">UNADDRESSED</span>
+              <span class="flag flag-weakly-anchored">WEAKLY-ANCHORED</span>
+            </p>
+            <p class="card-src"><small class="src-inline">[SRC: {{filename}}]</small></p>
+          </article>
+        </div>
+
+        <div class="band band-solution" aria-label="Solutions">
+          <h2 class="band-label">Solutions</h2>
+          <!-- Sentinel-parent card for orphan Solutions, if any: -->
+          <article id="sentinel-1" class="card card-opportunity card-sentinel">
+            <header class="card-header">
+              <span class="card-id">Op-?</span>
+              <span class="actor-tag">(none stated in inputs)</span>
+            </header>
+            <p class="card-body">Orphan Solutions land here — features the inputs name without a source-grounded customer need.</p>
+          </article>
+          <article id="s-<NN>" class="card card-solution <flag-orphan>">
+            <header class="card-header"><span class="card-id">S-NN</span></header>
+            <p class="card-body">{{solution_text}}</p>
+            <p class="card-flags"><span class="flag flag-orphan">ORPHAN-SOLUTION</span></p>
+            <p class="card-src"><small class="src-inline">[SRC: {{filename}}]</small></p>
+          </article>
+        </div>
+
+        <div class="band band-assumption" aria-label="Assumption Tests">
+          <h2 class="band-label">Assumption Tests</h2>
+          <!-- When the entire layer is absent the analyser emits ONE placeholder: -->
+          <p class="layer-placeholder">(no assumption tests in inputs) — raw consultant inputs rarely carry explicit risk / assumption / open-question phrasing; this layer is expected to be absent.</p>
+          <!-- Otherwise one card per test: -->
+          <article id="a-<NN>" class="card card-assumption category-<desirability|viability|feasibility|usability|ethical> <flag-global>">
+            <header class="card-header">
+              <span class="card-id">A-NN</span>
+              <span class="card-type-badge category-<...>">{{category_label}}</span>
+            </header>
+            <p class="card-body">{{test_description}}</p>
+            <p class="card-flags"><span class="flag flag-global">global-assumption</span></p>
+            <p class="card-src"><small class="src-inline">[SRC: {{filename}}]</small></p>
+          </article>
+        </div>
+      </section>
+
+  TREE MERMAID SCHEMA — {{TREE_MERMAID}} substitutes:
+
+      <details class="mermaid-block">
+        <summary>Opportunity-solution-tree Mermaid source (export / re-ingestion adjunct)</summary>
+        <p class="mermaid-caption">
+          Copy this block into <a href="https://mermaid.live">mermaid.live</a> or run
+          <code>mmdc -i &lt;source.mmd&gt; -o &lt;diagram.svg&gt;</code> to view rendered.
+          The pre-rendered four-band tree above is the in-page diagram; this Mermaid
+          source survives markitdown HTML->MD conversion as a fenced code block so the
+          diagram is available verbatim to /requirements on re-ingestion.
+        </p>
+        <pre class="mermaid-source">{{mermaid-source}}</pre>
+      </details>
+
+  OUTCOME / CANDIDATE-OUTCOMES SCHEMA — {{OUTCOME_BLOCK}} substitutes one
+  <article class="outcome-card"> for the primary root; {{CANDIDATE_OUTCOMES_BLOCK}}
+  substitutes zero or more <article class="candidate-outcome-card"> each carrying a
+  [CANDIDATE-OUTCOME] marker (empty when only one candidate emerged from Round 1).
+
+  OPPORTUNITIES SCHEMA — {{OPPORTUNITIES_BLOCK}} substitutes one
+  <article class="opportunity-card"> per Opportunity, alphabetical, each carrying:
+  the canonical-form sentence, supporting verbatim extracts (each ending in
+  [SRC: <filename>]), a "Provenance: from-inputs" line, a cross-source indicator,
+  and any [UNADDRESSED] / [WEAKLY-ANCHORED] flags.
+
+  SOLUTIONS SCHEMA — {{SOLUTIONS_BLOCK}} substitutes solution groups by parent
+  Opportunity plus a final sentinel group ([ORPHAN-SOLUTION] Under Op-?) collecting
+  orphans (only when orphans exist).
+
+  ASSUMPTION-TESTS SCHEMA — {{ASSUMPTION_TESTS_BLOCK}} substitutes assumption-test
+  groups by parent Solution plus a global group; OR the single absent-layer placeholder.
+
+  CANDIDATES SCHEMA — {{CANDIDATES_BLOCK}} substitutes one sub-section per
+  Opportunity (alphabetical); each is a bullet list of
+  "The system should <verb object> so that <outcome>." lines ending in
+  [SRC: <filename>]; [UNADDRESSED] Opportunities emit the single
+  recommend-elicit-solution advisory bullet.
+
+  COVERAGE SCHEMA — {{COVERAGE_BLOCK}} substitutes four sub-lists (orphan solutions /
+  unaddressed opportunities / weakly-anchored opportunities / contradictions); each
+  empty list emits a single italic "(no entries this run)" line.
+
+  BODY JSON BLOCK SCHEMA — {{BODY_JSON_BLOCK}} substitutes:
+
+      <section id="opportunity-solution-tree-body-section" aria-labelledby="opportunity-solution-tree-body-title">
+        <h2 id="opportunity-solution-tree-body-title">Opportunity solution tree (machine-readable)</h2>
+        <p class="caption">
+          The full tree model in JSON — outcome, opportunities, solutions, assumption
+          tests, laddering edges, candidate-requirement seeds. This block survives
+          markitdown HTML->MD conversion as a fenced <code>```json</code> code block,
+          so when the artefact is copied into <code>input/</code> for /requirements
+          re-ingestion the drafter consumes the complete model (and the
+          candidate-requirements bridge) in one shot.
+        </p>
+        <pre><code class="language-json" id="opportunity-solution-tree-body">{{opportunity_solution_tree_json}}</code></pre>
+      </section>
+
+  JSON SCHEMA — the block carries (minimum): schema_version, generated_at,
+  manifest_sha256, run_count, domain, source_roster {consumed[], skipped[]},
+  primary_outcome, candidate_outcomes[], opportunities[] (id, actor, need_clause,
+  source_filenames, cross_source, flags[]), solutions[] (id, text, parent_opportunity_id,
+  source_filenames, orphan), assumption_tests[] (id, text, category, parent, global),
+  laddering_edges[], candidate_requirements[] (opportunity_id, line, source_filenames),
+  coverage_diagnostics {orphan_solutions[], unaddressed[], weakly_anchored[],
+  contradictions[]}, quality_gates[].
+
+  DIAGNOSTICS SCHEMA — the analyser's {{DIAGNOSTICS_BLOCK}} substitutes a
+  single <section class="diagnostics">. The template wraps the placeholder in a
+  <details class="diagnostics-toggle"> element (collapsed by default). The inner
+  section contains, in order:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>Opportunity solution tree (from inputs) — N Opportunities, M Solutions, K Assumption Tests.</p>
+        <p>Manifest fingerprint: <code>{{MANIFEST_SHA256}}</code> — run #{{RUN_COUNT}}.</p>
+
+        <h3>Source roster — Consumed</h3>
+        <table class="source-table consumed">
+          <thead><tr><th>Filename</th><th>Tier</th><th>SHA-256</th><th>Node-count</th></tr></thead>
+          <tbody><tr><td>{{filename}}</td><td>{{tier}}</td><td class="sha">{{sha256_8}}</td><td class="count">{{n}}</td></tr></tbody>
+        </table>
+
+        <h3>Source roster — Skipped</h3>
+        <table class="source-table skipped">
+          <thead><tr><th>Filename</th><th>Reason</th></tr></thead>
+          <tbody><tr><td>{{filename}}</td><td>{{reason}}</td></tr>
+            <!-- If empty: <tr><td colspan="2" class="empty">(no skipped rows this run)</td></tr> -->
+          </tbody>
+        </table>
+
+        <h3>Quality gates (6)</h3>
+        <ul class="gate-results">
+          <li class="gate-pass|gate-fail">Gate 1 — Citation completeness.</li>
+          ... (all 6 gates listed in order)
+        </ul>
+
+        <h3>Run history</h3>
+        <ul class="run-history">
+          <li><code>{{date}}</code> — run #{{n}} — {{deltas}}.</li>
+        </ul>
+        <!-- Override-only: flagged-items <ul> per failed gate. -->
+      </section>
+
+  CSS classes used by the analyser:
+    .outcome-business-outcome, .outcome-product-outcome, .outcome-traction-metric
+                          — Outcome classification badge + card accent.
+    .category-desirability, .category-viability, .category-feasibility,
+    .category-usability, .category-ethical — Assumption-Test category badge.
+    .flag-orphan, .flag-unaddressed, .flag-weakly-anchored, .flag-global — flag pills.
+    .card-sentinel        — red-bordered sentinel "(none stated in inputs)" parent.
+    .edge-out-opp, .edge-opp-sol, .edge-sol-asm, .edge-orphan — SVG connector classes.
+    .src-inline           — [SRC: <filename>] marker pill.
+    .candidate-outcome-card — [CANDIDATE-OUTCOME] block (not in the tree).
+    .mermaid-block        — <details> wrapping the export Mermaid source.
+
+  Content TBD-able by the analyser:
+    The four band contents, the SVG <path> connectors, the outcome/opportunity/
+    solution/assumption blocks, the bridge, the coverage lists, the JSON body, and
+    the diagnostics block. The CSS below is fixed scaffolding and should not be
+    edited by the analyser — only the {{placeholders}} above are substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <script type="application/json" id="opportunity-solution-tree-meta">
+{
+  "title": "{{TITLE}}",
+  "domain": "{{DOMAIN}}",
+  "generated_at": "{{GENERATED_AT}}",
+  "manifest_sha256": "{{MANIFEST_SHA256}}",
+  "run_count": {{RUN_COUNT}},
+  "outcome_class": "{{OUTCOME_CLASS}}",
+  "candidate_outcome_count": {{CANDIDATE_OUTCOME_COUNT}},
+  "opportunity_count": {{OPPORTUNITY_COUNT}},
+  "solution_count": {{SOLUTION_COUNT}},
+  "assumption_test_count": {{ASSUMPTION_TEST_COUNT}},
+  "orphan_solution_count": {{ORPHAN_SOLUTION_COUNT}},
+  "unaddressed_opportunity_count": {{UNADDRESSED_OPPORTUNITY_COUNT}},
+  "weakly_anchored_count": {{WEAKLY_ANCHORED_COUNT}},
+  "contradiction_count": {{CONTRADICTION_COUNT}},
+  "candidate_requirement_count": {{CANDIDATE_REQ_COUNT}},
+  "consumed_row_count": {{CONSUMED_ROW_COUNT}},
+  "skipped_row_count": {{SKIPPED_ROW_COUNT}}
+}
+  </script>
+
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --col-bg: #ffffff;
+      --card-shadow: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+      --header-bg: #efefef;
+      --code-bg: #f3f4f6;
+
+      /* Layer colors — Outcome indigo, Opportunity amber, Solution blue, Assumption violet */
+      --out-bg: #dbdcf0;    --out-border: #5a5fbf;    --out-fg: #1c1f5c;
+      --opp-bg: #ffe2b3;    --opp-border: #d48a2a;    --opp-fg: #4a2e00;
+      --sol-bg: #b9d7f0;    --sol-border: #4f8fbf;    --sol-fg: #0c2a44;
+      --asm-bg: #d8c7ee;    --asm-border: #8a6ec7;    --asm-fg: #2e1e55;
+
+      --out-biz-fg: #4a1a8a;
+      --out-prod-fg: #1c1f5c;
+      --out-trc-fg: #5a5a8a;
+
+      --cat-des: #c97a92;
+      --cat-via: #7fb069;
+      --cat-fea: #4f8fbf;
+      --cat-usa: #d48a2a;
+      --cat-eth: #8a6ec7;
+
+      --flag-warn-bg: #ffeaea;  --flag-warn-border: #d44a4a;  --flag-warn-fg: #8a1a1a;
+      --flag-info-bg: #e8eaee;  --flag-info-border: #8a8a8a;  --flag-info-fg: #2a2a2a;
+
+      --edge-stroke: #b0b0b0;
+      --edge-stroke-width: 1.5;
+      --not-named-fg: #9a9a9a;
+      --prov-pass: #2a8a2a;
+      --rev-fg: #8a1a1a;
+      --rev-bg: #ffeaea; --rev-border: #d44a4a;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px 0; }
+    h2 { font-size: 16px; margin: 24px 0 8px 0; }
+    h3 {
+      font-size: 13px;
+      margin: 14px 0 6px 0;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    h4 {
+      font-size: 12px;
+      margin: 10px 0 4px 0;
+      color: var(--muted);
+    }
+
+    .subtitle { color: var(--muted); font-size: 13px; margin: 0 0 24px 0; }
+    .caption { color: var(--muted); font-size: 12px; margin: 0 0 12px 0; }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      background: var(--code-bg);
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px 24px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+    .meta-grid dt {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0;
+    }
+    .meta-grid dd { margin: 0 0 6px 0; font-variant-numeric: tabular-nums; }
+
+    .src-inline {
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+      font-size: 11px;
+      background: var(--code-bg);
+      padding: 0 4px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+
+    /* ------- table of contents (sticky) ------- */
+
+    .toc {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      margin: 0 0 24px 0;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .toc ol {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 18px;
+      counter-reset: toc-item;
+    }
+    .toc li { counter-increment: toc-item; }
+    .toc li::before {
+      content: counter(toc-item) ". ";
+      color: var(--muted);
+      margin-right: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .toc a {
+      color: var(--fg);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--border-strong);
+    }
+    .toc a:hover { border-bottom-color: var(--fg); }
+
+    /* ------- tree-wrap (the four-band tree) ------- */
+
+    .tree-wrap {
+      position: relative;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 16px;
+      overflow-x: auto;
+    }
+    .tree-connectors {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .tree-connectors .edge {
+      fill: none;
+      stroke: var(--edge-stroke);
+      stroke-width: var(--edge-stroke-width);
+    }
+    .tree-connectors .edge-out-opp { stroke: var(--out-border); }
+    .tree-connectors .edge-opp-sol { stroke: var(--opp-border); }
+    .tree-connectors .edge-sol-asm { stroke: var(--sol-border); }
+    .tree-connectors .edge-orphan  { stroke: var(--flag-warn-border); stroke-dasharray: 3 3; }
+
+    .band {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      padding: 16px 0;
+      border-bottom: 1px dashed var(--border);
+    }
+    .band:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .band-label {
+      grid-column: 1 / -1;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 4px 0;
+    }
+
+    .band-outcome { background: rgba(91,95,191,0.03); }
+    .band-opportunity { background: rgba(212,138,42,0.03); }
+    .band-solution { background: rgba(79,143,191,0.03); }
+    .band-assumption { background: rgba(138,110,199,0.03); }
+
+    /* ------- cards (one shape, layer-specific accents) ------- */
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px;
+      background: var(--col-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      border-top: 3px solid var(--border-strong);
+      box-shadow: var(--card-shadow);
+    }
+    .card-outcome    { border-top-color: var(--out-border); background: var(--out-bg); color: var(--out-fg); }
+    .card-opportunity{ border-top-color: var(--opp-border); background: var(--opp-bg); color: var(--opp-fg); }
+    .card-solution   { border-top-color: var(--sol-border); background: var(--sol-bg); color: var(--sol-fg); }
+    .card-assumption { border-top-color: var(--asm-border); background: var(--asm-bg); color: var(--asm-fg); }
+
+    .card-sentinel {
+      border: 2px dashed var(--flag-warn-border);
+      background: var(--flag-warn-bg);
+      color: var(--flag-warn-fg);
+    }
+    .card.flag-unaddressed,
+    .card.flag-orphan {
+      border: 2px dashed var(--flag-warn-border);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .card-id {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+    .card-type-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-radius: 3px;
+      border: 1px solid transparent;
+      background: #fff;
+    }
+    .card-type-badge.outcome-business-outcome { color: var(--out-biz-fg); border-color: var(--out-biz-fg); }
+    .card-type-badge.outcome-product-outcome  { color: var(--out-prod-fg); border-color: var(--out-prod-fg); }
+    .card-type-badge.outcome-traction-metric  { color: var(--out-trc-fg); border-color: var(--out-trc-fg); }
+    .card-type-badge.category-desirability { color: var(--cat-des); border-color: var(--cat-des); }
+    .card-type-badge.category-viability    { color: var(--cat-via); border-color: var(--cat-via); }
+    .card-type-badge.category-feasibility  { color: var(--cat-fea); border-color: var(--cat-fea); }
+    .card-type-badge.category-usability    { color: var(--cat-usa); border-color: var(--cat-usa); }
+    .card-type-badge.category-ethical      { color: var(--cat-eth); border-color: var(--cat-eth); }
+
+    .actor-tag {
+      font-size: 11px;
+      font-weight: 600;
+      color: inherit;
+      opacity: 0.85;
+    }
+    .card-body {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.35;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    .card-src { margin: 2px 0 0 0; }
+    .card-flags {
+      margin: 4px 0 0 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .flag {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      border: 1px solid transparent;
+      background: var(--flag-info-bg);
+      border-color: var(--flag-info-border);
+      color: var(--flag-info-fg);
+    }
+    .flag-orphan, .flag-unaddressed, .flag-weakly-anchored {
+      background: var(--flag-warn-bg);
+      border-color: var(--flag-warn-border);
+      color: var(--flag-warn-fg);
+    }
+    .layer-placeholder {
+      grid-column: 1 / -1;
+      margin: 0;
+      padding: 12px 14px;
+      background: var(--col-bg);
+      border: 1px dashed var(--border-strong);
+      border-radius: 6px;
+      color: var(--not-named-fg);
+      font-style: italic;
+      font-size: 13px;
+    }
+
+    /* ------- mermaid export adjunct ------- */
+
+    details.mermaid-block {
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin: 0 0 24px 0;
+      background: #fff;
+    }
+    details.mermaid-block > summary {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.mermaid-block > summary::-webkit-details-marker { display: none; }
+    details.mermaid-block > summary::before {
+      content: "\25B6";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.mermaid-block[open] > summary::before { transform: rotate(90deg); }
+    .mermaid-caption { color: var(--muted); font-size: 12px; margin: 8px 0; }
+    .mermaid-caption code, .mermaid-caption a {
+      font-family: ui-monospace, monospace;
+      font-size: 0.92em;
+    }
+    pre.mermaid-source {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.45;
+      overflow-x: auto;
+      white-space: pre;
+      color: #111827;
+      margin: 0;
+    }
+
+    /* ------- body section cards (outcome / opportunities / solutions / tests) ------- */
+
+    .body-card {
+      padding: 12px 16px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .body-card.outcome-card     { border-left: 4px solid var(--out-border); }
+    .body-card.candidate-outcome-card { border-left: 4px dashed var(--border-strong); }
+    .body-card.opportunity-card { border-left: 4px solid var(--opp-border); }
+    .body-card.solution-group   { border-left: 4px solid var(--sol-border); }
+    .body-card.assumption-group { border-left: 4px solid var(--asm-border); }
+    .body-card h3 {
+      margin: 0 0 6px 0;
+      color: var(--fg);
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 14px;
+    }
+    .body-card .canon { font-style: italic; margin: 6px 0; }
+    .body-card ul { margin: 4px 0 0 0; padding-left: 20px; font-size: 13px; }
+    .body-card li { margin: 3px 0; }
+    .body-card .meta-line { font-size: 12px; color: var(--muted); margin: 4px 0 0 0; }
+    .body-card .flag { vertical-align: 1px; }
+
+    /* ------- candidate requirements ------- */
+
+    .candidate-group {
+      padding: 12px 16px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .candidate-group.unaddressed { border-left: 4px dashed var(--flag-warn-border); }
+    .candidate-group h3 {
+      margin: 0 0 6px 0;
+      color: var(--fg);
+      text-transform: none;
+      letter-spacing: 0;
+      font-size: 13px;
+    }
+    ul.candidate-list { margin: 0; padding-left: 20px; font-size: 13px; }
+    ul.candidate-list li { margin: 4px 0; }
+
+    /* ------- coverage diagnostics ------- */
+
+    .coverage-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .coverage-col {
+      padding: 12px 16px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--flag-warn-border);
+      border-radius: 6px;
+    }
+    .coverage-col h3 { margin-top: 0; }
+    .coverage-col ul { margin: 0; padding-left: 18px; font-size: 13px; }
+    .coverage-col li { margin: 4px 0; }
+    .coverage-col .empty { color: var(--muted); font-style: italic; list-style: none; margin-left: -14px; }
+
+    /* ------- body JSON ------- */
+
+    #opportunity-solution-tree-body-section {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    #opportunity-solution-tree-body-section h2 { margin-top: 0; }
+    #opportunity-solution-tree-body-section pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      overflow-x: auto;
+      white-space: pre;
+      color: #111827;
+      margin: 0;
+      max-height: 480px;
+    }
+
+    /* ------- diagnostics ------- */
+
+    details.diagnostics-toggle { margin-bottom: 24px; }
+    details.diagnostics-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--fg);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before {
+      content: "\25B6";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      display: inline-block;
+    }
+    details.diagnostics-toggle[open] > summary {
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+    details.diagnostics-toggle[open] > summary::before { transform: rotate(90deg); }
+
+    .diagnostics {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+    }
+    details.diagnostics-toggle > .diagnostics {
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      margin-bottom: 0;
+    }
+    details.diagnostics-toggle > .diagnostics > h2 { display: none; }
+    .diagnostics h2 { font-size: 16px; margin: 0 0 8px 0; }
+    .diagnostics p { margin: 4px 0; }
+
+    table.source-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 4px 0 12px 0;
+      font-size: 12px;
+    }
+    table.source-table th,
+    table.source-table td {
+      padding: 6px 8px;
+      border-top: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    table.source-table thead th {
+      background: var(--header-bg);
+      font-weight: 600;
+      border-top: none;
+      border-bottom: 2px solid var(--border-strong);
+    }
+    table.source-table .sha,
+    table.source-table .count {
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, monospace;
+    }
+    table.source-table .empty { color: var(--muted); font-style: italic; text-align: center; }
+
+    .diagnostics ul.gate-results,
+    .diagnostics ul.run-history {
+      margin: 0 0 12px 0;
+      padding-left: 20px;
+      font-size: 13px;
+    }
+    .diagnostics ul.gate-results li.gate-pass::before { content: "PASS "; color: var(--prov-pass); font-weight: 600; }
+    .diagnostics ul.gate-results li.gate-fail::before { content: "FAIL "; color: var(--rev-fg); font-weight: 600; }
+    .diagnostics .flagged-items {
+      margin: 8px 0 0 0;
+      padding: 8px 10px;
+      background: var(--rev-bg);
+      border-left: 3px solid var(--rev-border);
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    .diagnostics .flagged-items strong { color: var(--rev-fg); }
+
+    /* ------- next-steps / footer ------- */
+
+    section.next-steps {
+      margin-top: 24px;
+      padding: 14px 18px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--opp-border);
+      border-radius: 6px;
+    }
+    section.next-steps h2 { margin-top: 0; font-size: 14px; }
+    section.next-steps p { color: var(--muted); margin: 6px 0; font-size: 13px; }
+    section.next-steps code {
+      font-family: ui-monospace, monospace;
+      font-size: 0.92em;
+    }
+
+    footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    footer .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+    }
+    footer .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    footer .legend-swatch {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border-left: 3px solid transparent;
+    }
+    footer .legend-swatch.s-out  { background: var(--out-bg); border-left-color: var(--out-border); }
+    footer .legend-swatch.s-opp  { background: var(--opp-bg); border-left-color: var(--opp-border); }
+    footer .legend-swatch.s-sol  { background: var(--sol-bg); border-left-color: var(--sol-border); }
+    footer .legend-swatch.s-asm  { background: var(--asm-bg); border-left-color: var(--asm-border); }
+    footer .legend-swatch.s-warn { background: var(--flag-warn-bg); border: 2px dashed var(--flag-warn-border); }
+    footer .credit { margin-top: 6px; text-align: right; }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .band { break-inside: avoid; }
+      .card { break-inside: avoid; }
+      .toc { display: none; }
+      details.diagnostics-toggle { display: none; }
+      details.mermaid-block { display: none; }
+      .tree-connectors { display: none; }
+      .body-card, .candidate-group, .coverage-col { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section id="overview">
+      <h1>{{TITLE}}</h1>
+      <p class="subtitle">Opportunity Solution Tree (inputs side) — Teresa Torres forward discovery from raw inputs. Outcome &rarr; Opportunities &rarr; Solutions &rarr; Assumption Tests. Pre-rendered four-band tree (inline SVG connectors) + per-Opportunity candidate-requirements bridge + coverage diagnostics + machine-readable JSON.</p>
+
+      <dl class="meta-grid">
+        <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+        <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+        <div><dt>Manifest SHA-256</dt><dd><code>{{MANIFEST_SHA256}}</code></dd></div>
+        <div><dt>Run #</dt><dd>{{RUN_COUNT}}</dd></div>
+        <div><dt>Outcome class</dt><dd>{{OUTCOME_CLASS}}</dd></div>
+        <div><dt>Candidate outcomes</dt><dd>{{CANDIDATE_OUTCOME_COUNT}}</dd></div>
+        <div><dt>Opportunities</dt><dd>{{OPPORTUNITY_COUNT}}</dd></div>
+        <div><dt>Solutions</dt><dd>{{SOLUTION_COUNT}}</dd></div>
+        <div><dt>Assumption Tests</dt><dd>{{ASSUMPTION_TEST_COUNT}}</dd></div>
+        <div><dt>Candidate requirements</dt><dd>{{CANDIDATE_REQ_COUNT}}</dd></div>
+        <div><dt>Orphan / Unaddressed / Weakly-anchored</dt><dd>{{ORPHAN_SOLUTION_COUNT}} / {{UNADDRESSED_OPPORTUNITY_COUNT}} / {{WEAKLY_ANCHORED_COUNT}}</dd></div>
+        <div><dt>Contradictions</dt><dd>{{CONTRADICTION_COUNT}}</dd></div>
+        <div><dt>Consumed sources</dt><dd>{{CONSUMED_ROW_COUNT}}</dd></div>
+        <div><dt>Skipped sources</dt><dd>{{SKIPPED_ROW_COUNT}}</dd></div>
+      </dl>
+    </section>
+
+    <nav class="toc" aria-label="Sections">
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#diagrams">Tree</a></li>
+        <li><a href="#outcomes">Outcome</a></li>
+        <li><a href="#opportunities">Opportunities</a></li>
+        <li><a href="#solutions">Solutions</a></li>
+        <li><a href="#assumption-tests">Assumption tests</a></li>
+        <li><a href="#candidates">Candidate requirements</a></li>
+        <li><a href="#coverage">Coverage diagnostics</a></li>
+        <li><a href="#opportunity-solution-tree-body-section">Tree model (JSON)</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+      </ol>
+    </nav>
+
+    <section id="diagrams" aria-label="Opportunity Solution Tree">
+      {{TREE}}
+
+      {{TREE_MERMAID}}
+    </section>
+
+    <section id="outcomes" aria-label="Outcome and candidate outcomes">
+      <h2>Outcome</h2>
+      {{OUTCOME_BLOCK}}
+      {{CANDIDATE_OUTCOMES_BLOCK}}
+    </section>
+
+    <section id="opportunities" aria-label="Opportunities">
+      <h2>Opportunities</h2>
+      {{OPPORTUNITIES_BLOCK}}
+    </section>
+
+    <section id="solutions" aria-label="Solutions">
+      <h2>Solutions</h2>
+      {{SOLUTIONS_BLOCK}}
+    </section>
+
+    <section id="assumption-tests" aria-label="Assumption tests">
+      <h2>Assumption tests</h2>
+      {{ASSUMPTION_TESTS_BLOCK}}
+    </section>
+
+    <section id="candidates" aria-label="Candidate requirements">
+      <h2>Candidate requirements</h2>
+      <p class="caption">Solution-agnostic candidate-requirement seeds bridged from each Opportunity. Re-ingested by /requirements as <code>§6</code> starting points; the drafter normalises voice and assigns IDs. <code>[UNADDRESSED]</code> Opportunities emit a single recommend-elicit-solution advisory.</p>
+      {{CANDIDATES_BLOCK}}
+    </section>
+
+    <section id="coverage" aria-label="Coverage diagnostics">
+      <h2>Coverage diagnostics</h2>
+      <p class="caption">Orphan solutions, unaddressed opportunities, weakly-anchored opportunities, and contradictions — the audit value of the artefact. Each drives a consultant-interview prompt; never auto-reconciled.</p>
+      {{COVERAGE_BLOCK}}
+    </section>
+
+    {{BODY_JSON_BLOCK}}
+
+    <details id="diagnostics" class="diagnostics-toggle">
+      <summary>Diagnostics — source roster, manifest fingerprint, 6 quality-gate results, run history</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    <section class="next-steps">
+      <h2>Next steps</h2>
+      <p>
+        To re-ingest this artefact into <code>/requirements</code>, copy this file into <code>input/</code> (e.g. <code>input/opportunity-solution-tree.html</code>) and re-run <code>/requirements</code>. The input-handler classifies it as <code>Supported-via-MCP</code>; markitdown converts it to <code>input/opportunity-solution-tree.html.converted.md</code>. The embedded JSON body block (the <code>language-json</code> code block, carrying the tree model + the candidate-requirement seeds) and the Mermaid tree source survive verbatim as fenced code blocks; <code>[SRC: &lt;filename&gt;]</code> markers survive as plain text. The drafter consumes the converted markdown via the refreshed manifest.
+      </p>
+    </section>
+
+    <footer>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-out" aria-hidden="true"></span> Outcome (Layer 1)</span>
+        <span class="legend-item"><span class="legend-swatch s-opp" aria-hidden="true"></span> Opportunity (Layer 2)</span>
+        <span class="legend-item"><span class="legend-swatch s-sol" aria-hidden="true"></span> Solution (Layer 3)</span>
+        <span class="legend-item"><span class="legend-swatch s-asm" aria-hidden="true"></span> Assumption Test (Layer 4)</span>
+        <span class="legend-item"><span class="legend-swatch s-warn" aria-hidden="true"></span> Orphan / Unaddressed flag</span>
+      </div>
+      <div class="credit">Generated by `framework/agents/analyses-inputs/opportunity-solution-trees-analyser.md`.</div>
+    </footer>
+  </main>
+</body>
+</html>

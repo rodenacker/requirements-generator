@@ -1,0 +1,830 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/reviews/first-principles-reviewer.md.
+
+  Purpose: Self-contained HTML skeleton for the First Principles review. No external
+  CSS / JS / fonts — opens cleanly via file:// for consultant review and prints sensibly
+  to PDF via the browser's native Print dialog. CSS / page chrome (header, dl.meta-grid,
+  sticky nav.toc, section cards, .chip classes, tables, details.diagnostics-toggle,
+  .back-to-top, @media responsive + print) is copied verbatim from
+  framework/assets/reviews-inputs/template-adversarial.html so all review outputs stay
+  consistent siblings; method-specific classes (.score-badge, .q-answer, .ratings-table,
+  .cs-table) are layered on top.
+
+  HTML-rendering contract (the reviewer agent's Step 9):
+    • Every substituted value is HTML-escaped (5 chars: & < > " ').
+    • {{TITLE}}, {{DOMAIN}}, counts, {{VERDICT}}, etc. are simple text substitutions
+      injected as the text content of the elements below.
+    • {{TOP_TEN_BLOCK}}, {{RATINGS_TABLE}}, {{COVERAGE_FINDINGS_BLOCK}},
+      {{CS_FINDINGS_BLOCK}}, {{DIAGNOSTICS_BLOCK}} are PRE-RENDERED HTML fragments — the
+      agent constructs them in memory per the per-block schemas below, then substitutes them in.
+    • The scaffold itself is NEVER edited; section ordering, IDs, ARIA labels, and the
+      TOC list are fixed.
+
+  Placeholders the reviewer substitutes (string substitution, all values pre-escaped):
+
+    {{TITLE}}                       — short title (e.g. "First Principles Review — Project X")
+    {{DOMAIN}}                      — domain string (from requirements §1 if present, else "(not declared in requirements.md)")
+    {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
+    {{REQUIREMENTS_SHA256}}         — sha256 of requirements/requirements.md at read time
+    {{REVIEWER_IDENTITY}}           — fixed string "First Principles Review (Aristotelian decomposition; 7-question defensibility audit)"
+    {{TOTAL_SUBJECTS}}              — count of subjects rated (§4.1 + §4.2 + §6 + §7 numbered items)
+    {{GOALS_COUNT}}                 — count of §4.1 goals rated
+    {{STORIES_COUNT}}               — count of §4.2 stories rated
+    {{REQUIREMENTS_COUNT}}          — count of §6 BR-NN + FR-NN rated
+    {{ENTITIES_COUNT}}              — count of §7 entities rated
+    {{SCORE_HISTOGRAM}}             — pre-rendered one-line histogram: "0: NN · 1: NN · 2: NN · 3: NN · 4: NN · 5: NN · 6: NN"
+    {{TOP_TEN_SCORE_RANGE}}         — "min N/6 … max N/6" across the top-10 entries
+    {{ORPHAN_COUNT}}                — count of Q7 coverage findings (orphans)
+    {{ORPHAN_COUNT_BY_KIND}}        — one-line breakdown: "goal: NN · persona: NN · story: NN · business-rule: NN · entity: NN"
+    {{CS_FINDINGS_COUNT}}           — count of cross-subject findings after Step-6 rescue and after post-scan consolidation (clusters with multiple lens-tags count as 1)
+    {{CS_FINDINGS_BY_SEVERITY}}     — one-line breakdown: "blocking: NN · major: NN · minor: NN"
+    {{CS_FINDINGS_BY_LENS}}         — one-line breakdown: "CS1: NN · CS2: NN · CS3: NN · CS4: NN · CS5: NN" (raw lens hits — sum may exceed CS_FINDINGS_COUNT if consolidation merged multi-lens findings)
+    {{VERDICT}}                     — one of BLOCKED | NEEDS-REVISION | ACCEPTED-WITH-CONCERNS
+                                      (also drives the .verdict-{{VERDICT}} class on the banner)
+    {{TOP_TEN_BLOCK}}               — pre-rendered deep-dive block per TOP-TEN BLOCK SCHEMA below
+    {{RATINGS_TABLE}}               — pre-rendered <tr> rows per RATINGS TABLE SCHEMA below (only <tbody> rows; <thead> is in the scaffold)
+    {{COVERAGE_FINDINGS_BLOCK}}     — pre-rendered orphan findings per COVERAGE BLOCK SCHEMA below
+    {{CS_FINDINGS_BLOCK}}           — pre-rendered cross-subject findings table per CS BLOCK SCHEMA below
+    {{DIAGNOSTICS_BLOCK}}           — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
+
+  Output: review-requirements/FIRST-PRINCIPLES/first-principles-review.html.
+
+  NOTE ON THE VERDICT BANNER CLASSES — this method's verdict set is
+  { BLOCKED | NEEDS-REVISION | ACCEPTED-WITH-CONCERNS }. The donor CSS ships
+  .verdict-BLOCKED and .verdict-NEEDS-REVISION verbatim; this template adds
+  .verdict-ACCEPTED-WITH-CONCERNS (green, matching the donor's accepted hue).
+
+  TOP-TEN BLOCK SCHEMA — {{TOP_TEN_BLOCK}} is one <article class="ttitem"> per entry, in
+  ascending-score order (lowest first), tie-broken by subject-type (entity → requirement →
+  story → goal) then anchor ascending. Each entry:
+
+      <article class="ttitem" id="{SUBJECT_ID}">
+        <h3>{RANK}. <code>{SUBJECT_ID}</code> — <span class="score-badge score-{SCORE}">{SCORE}/6</span> — weakest: {WEAKEST_Q}</h3>
+        <dl class="finding-fields">
+          <dt>Type</dt><dd>{SUBJECT_TYPE}</dd>
+          <dt>Anchor</dt><dd><code>{ANCHOR}</code></dd>
+          <dt>Statement</dt><dd><blockquote class="evidence"><pre>{STATEMENT_VERBATIM html-escaped}</pre></blockquote></dd>
+        </dl>
+        <div class="q-block">
+          <p class="q-head"><strong>Q1 — Why does this exist?</strong> <span class="q-answer q-{ANSWER_CLASS}">{Q1_ANSWER}</span></p>
+          <blockquote class="evidence"><pre>{Q1_EVIDENCE_OR_REASONING html-escaped}</pre></blockquote>
+          ... (Q2..Q6 likewise; Q6 blockquote = consequence sentence + cited quote)
+        </div>
+        <p class="rec-action"><strong>Recommended action:</strong> {ACTION} — {ACTION_RATIONALE}</p>
+      </article>
+
+    Field rules:
+      - {RANK} 1..10; {SUBJECT_ID} = G-NN | US-NN | BR-NN | FR-NN | EN-NN; {SCORE} 0..6;
+        {WEAKEST_Q} ∈ {Q1..Q6}; {SUBJECT_TYPE} ∈ {goal, story, requirement, entity}.
+      - {ANSWER_CLASS} is the kebab form of the answer label: yes-with-evidence | partial | no.
+        For a Step-6 GR-NN/PI-NN rescue, the label reads "yes-with-evidence (GR-NN rescue)"
+        or "yes-with-evidence (PI-NN rescue)" and {ANSWER_CLASS} stays "yes-with-evidence";
+        the blockquote names the active rule.
+      - The <pre> inside blockquote.evidence carries the verbatim quote (yes-with-evidence)
+        or the reasoning line (partial/no). HTML-escape the content; do NOT escape for markdown.
+      - {ACTION} ∈ {re-anchor | re-scope | remove | merge | clarify}; {ACTION_RATIONALE} 1 sentence.
+
+    If |subjects| < 10, the block renders fewer entries (exactly |subjects|).
+    If |subjects| == 0, substitute the single line
+    <p>No subjects to rate — §4–§7 are empty. The First Principles audit has nothing to evaluate.</p>.
+
+  RATINGS TABLE SCHEMA — {{RATINGS_TABLE}} is the <tbody> rows (the <thead> is in the
+  scaffold) listing every subject in the same ascending-score sort order as the Top-10:
+
+      <tr class="score-{SCORE}">
+        <td>{RANK}</td>
+        <td><a href="#{SUBJECT_ID}"><code>{SUBJECT_ID}</code></a></td>
+        <td>{SUBJECT_TYPE}</td>
+        <td><code>{ANCHOR}</code></td>
+        <td><span class="score-badge score-{SCORE}">{SCORE}/6</span></td>
+        <td>{WEAKEST_Q}</td>
+        <td>{STATEMENT_TRUNCATED html-escaped}</td>
+        <td>{RECOMMENDED_ACTION}</td>
+      </tr>
+
+    Field rules:
+      - Rank is the 1-based position in the ascending-score sort (continues past 10 to N).
+      - The href fragment on the SUBJECT_ID links to the matching #{SUBJECT_ID} anchor on a
+        Top-10 <article> when the subject is in the Top-10; for subjects outside the Top-10
+        the anchor may not exist (link is harmless).
+      - Statement (truncated) is the subject's verbatim text trimmed to ≤80 characters with a
+        trailing ellipsis if truncated, HTML-escaped (no markdown pipe escaping — HTML table).
+      - Recommended action ∈ {re-anchor | re-scope | remove | merge | clarify}.
+
+    If |subjects| == 0, render the single row
+    <tr><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>No subjects rated — §4–§7 empty.</td><td>—</td></tr>.
+
+  COVERAGE BLOCK SCHEMA — {{COVERAGE_FINDINGS_BLOCK}} is one <article class="orphan"> per
+  orphan, in coverage-relation order (orphan-goal → orphan-persona → orphan-story →
+  orphan-business-rule → orphan-entity), within each category by anchor ascending. Each finding:
+
+      <article class="orphan">
+        <h3>{ORPHAN_KIND} — <code>{ANCHOR}</code></h3>
+        <dl class="finding-fields">
+          <dt>Severity</dt><dd><span class="chip severity-Blocker">blocking</span></dd>
+          <dt>Anchor</dt><dd><code>{ANCHOR}</code></dd>
+          <dt>Expected counterpart</dt><dd>{EXPECTED_COUNTERPART}</dd>
+          <dt>Consequence</dt><dd>{CONSEQUENCE_SENTENCE}</dd>
+        </dl>
+      </article>
+
+    Field rules:
+      - {ORPHAN_KIND} ∈ {orphan-goal | orphan-persona | orphan-story | orphan-business-rule | orphan-entity}.
+      - All orphans are severity "blocking" (rendered with the donor's .chip.severity-Blocker hue).
+
+    If {{ORPHAN_COUNT}} == 0, substitute the single line
+    <p>No orphans — every goal has a requirement, every persona has a story, every story has a
+    requirement, every business rule has a functional realisation, every entity is used by a requirement.</p>.
+
+    For any coverage relation that is not-applicable (e.g. no §7 entities exist), the
+    diagnostics block records the relation as not-applicable and this section lists no orphans
+    for that relation.
+
+  CS BLOCK SCHEMA — {{CS_FINDINGS_BLOCK}} is a single <table class="cs-table"> with one
+  <tbody> row per finding (or per consolidated cluster), in severity-then-lens-then-anchor
+  order (blocking > major > minor; CS1 → CS2 → CS3 → CS4 → CS5; first anchor ascending). The
+  <thead> is in the scaffold. (This re-expresses the former markdown cross-subject table as an
+  HTML table — per the conversion contract, the rendering changes, the methodology does not.)
+
+      <tr class="severity-{Sev}">
+        <td>{LENS_TAGS}</td>
+        <td><span class="chip severity-{Sev}">{SEVERITY}</span></td>
+        <td>{HEADLINE html-escaped}</td>
+        <td>{ANCHORS_LIST — each anchor as <code>…</code>, joined by <br>}</td>
+        <td>
+          <blockquote class="evidence"><pre>{ANCHOR_1}: {QUOTE_1_VERBATIM html-escaped}
+{ANCHOR_2}: {QUOTE_2_VERBATIM html-escaped}
+…</pre></blockquote>
+        </td>
+        <td>{RELATION_SENTENCE html-escaped}</td>
+        <td>{CONSEQUENCE_SENTENCE html-escaped}</td>
+      </tr>
+
+    Field rules:
+      - {LENS_TAGS} is one or more of CS1..CS5 joined by "+" if the consolidation pass merged
+        multiple lenses on the same anchor set (e.g. CS1+CS3+CS5).
+      - {SEVERITY} ∈ {blocking | major | minor}; for a multi-lens cluster, severity is the
+        max across cluster members (blocking > major > minor). {Sev} (the class suffix) is the
+        capitalised form: Blocker is NOT used here — CS severities are lowercase words, so map
+        blocking→Blocker, major→Major, minor→Minor for the donor chip/row class only.
+      - {HEADLINE} is a short noun-phrase summary (≤8 words, no prescriptive verbs).
+      - Each {ANCHOR_N} is a §-anchor from the Step-2 anchor index. For relational lenses
+        (CS1, CS3) there are ≥2 anchors; for others ≥1.
+      - Each {QUOTE_N_VERBATIM} is a verbatim substring of requirements/requirements.md
+        (≤3 lines per quote). The leading "{ANCHOR_N}: " is reviewer prose, not part of the quote.
+      - For a multi-lens cluster, the Relation and Consequence cells carry one labelled line per
+        lens (e.g. "CS1: …" then a line break "CS3: …").
+      - {CONSEQUENCE_SENTENCE} uses observational verbs only — prescriptive verbs (add, include,
+        specify, define, require, mandate, must, should) fail gate 13.
+
+    If {{CS_FINDINGS_COUNT}} == 0, substitute a single full-width empty-state row so the
+    scaffold's <table> stays well-formed (the scaffold is never edited):
+    <tr><td colspan="7"><em>No cross-subject coherence findings — the doc's §4–§7 subjects,
+    taken together, do not exhibit contradictions, hidden assumptions, system-thinking gaps,
+    operational-reality omissions, or human-cost allocation issues that exceed Step-6
+    GR-NN / PI-NN rescues.</em></td></tr>.
+
+  DIAGNOSTICS SCHEMA — the {{DIAGNOSTICS_BLOCK}} is a single <details class="diagnostics-toggle" open>
+  wrapping the subject-counts table, score-histogram table, weakest-question distribution
+  table, coverage-pass table (5 relations), cross-subject-pass table (5 rows CS1–CS5),
+  filter-drops-and-rescues table, quality-gates table (14 rows), and override log:
+
+    <details class="diagnostics-toggle" open>
+      <summary>Show / hide diagnostics</summary>
+
+      <h4>Subject counts</h4>
+      <table><thead><tr><th>Stat</th><th>Value</th></tr></thead><tbody>
+        <tr><td>Subjects rated (total)</td><td>NN</td></tr>
+        <tr><td>§4.1 goals rated</td><td>NN</td></tr>
+        <tr><td>§4.2 stories rated</td><td>NN</td></tr>
+        <tr><td>§6 requirements rated (BR + FR)</td><td>NN</td></tr>
+        <tr><td>§7 entities rated</td><td>NN</td></tr>
+      </tbody></table>
+
+      <h4>Score histogram</h4>
+      <table><thead><tr><th>Score</th><th>Count</th></tr></thead><tbody>
+        <tr><td>0/6</td><td>NN</td></tr> ... <tr><td>6/6</td><td>NN</td></tr>
+      </tbody></table>
+
+      <h4>Weakest-question distribution</h4>
+      <table><thead><tr><th>Question</th><th>Count</th></tr></thead><tbody>
+        <tr><td>Q1 (Why does this exist?)</td><td>NN</td></tr> ... <tr><td>Q6 (What if we remove it?)</td><td>NN</td></tr>
+      </tbody></table>
+
+      <h4>Coverage pass (Q7)</h4>
+      <table><thead><tr><th>Coverage relation</th><th>Result</th><th>Orphans</th></tr></thead><tbody>
+        <tr><td>Every §4.1 goal has ≥1 §6 requirement</td><td>PASS / FAIL / N-A</td><td>NN</td></tr>
+        ... (5 relation rows)
+      </tbody></table>
+
+      <h4>Cross-subject pass (CS1–CS5)</h4>
+      <table><thead><tr><th>Lens</th><th>Result</th><th>Findings</th><th>Rescued</th><th>Highest severity</th></tr></thead><tbody>
+        <tr><td>CS1 (Contradictory Objectives)</td><td>PASS / FAIL</td><td>NN</td><td>NN</td><td>blocking / major / minor / —</td></tr>
+        ... (5 lens rows)
+      </tbody></table>
+
+      <h4>Filter drops &amp; rescues</h4>
+      <table><thead><tr><th>Filter source</th><th>Q3/Q5 drops</th><th>Q3/Q5 rescues</th><th>CS rescues</th></tr></thead><tbody>
+        <tr><td>GR-NN match (Step 6 rule 1)</td><td>NN</td><td>NN</td><td>NN</td></tr>
+        <tr><td>PI-NN match (Step 6 rule 2)</td><td>NN</td><td>NN</td><td>NN</td></tr>
+      </tbody></table>
+
+      <h4>Quality gates</h4>
+      <table class="diagnostics-gates"><thead><tr><th>Gate</th><th>Result</th><th>Notes</th></tr></thead><tbody>
+        <tr class="gate-{pass|fail}"><td>1. Every §4–§7 subject was rated</td><td><span class="chip gate-{pass|fail}">{PASS|FAIL|WARN}</span></td><td>{notes}</td></tr>
+        ... (14 gate rows; gate 8 may be WARN — render the chip as gate-pass styling with text WARN)
+      </tbody></table>
+
+      <h4>Override log</h4>
+      <p>{If the consultant chose Override at Step 8, or gate 8 fired its warn and the
+          consultant chose to proceed, list each gate by number with the items flagged.
+          Otherwise "All quality gates passed; no override invoked."}</p>
+    </details>
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --fg: #1a1a1a;
+    --muted: #5a5a5a;
+    --border: #d4d4d4;
+    --border-strong: #8a8a8a;
+    --section-bg: #ffffff;
+    --code-bg: #f3f3f3;
+    --shadow-card: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+
+    --sev-blocker: #b91c1c;
+    --sev-blocker-bg: rgba(185, 28, 28, 0.10);
+    --sev-major: #c2410c;
+    --sev-major-bg: rgba(194, 65, 12, 0.10);
+    --sev-minor: #a16207;
+    --sev-minor-bg: rgba(161, 98, 7, 0.10);
+
+    --disp-patch: #15803d;
+    --disp-patch-bg: rgba(21, 128, 61, 0.10);
+    --disp-defer: #1d4ed8;
+    --disp-defer-bg: rgba(29, 78, 216, 0.10);
+    --disp-reject: #b91c1c;
+    --disp-reject-bg: rgba(185, 28, 28, 0.10);
+
+    --verdict-blocked-fg: #ffffff;
+    --verdict-blocked-bg: #991b1b;
+    --verdict-needs-fg: #ffffff;
+    --verdict-needs-bg: #c2410c;
+    --verdict-accepted-fg: #ffffff;
+    --verdict-accepted-bg: #15803d;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 32px 64px;
+  }
+
+  /* Header */
+  header { margin-bottom: 24px; }
+  h1#top {
+    margin: 0 0 12px 0;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px 24px;
+    padding: 14px 18px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-card);
+    margin: 16px 0;
+    font-size: 13px;
+  }
+  .meta-grid > div { display: flex; flex-direction: column; gap: 2px; }
+  .meta-grid dt {
+    margin: 0;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  .meta-grid dd {
+    margin: 0;
+    font-size: 14px;
+    color: var(--fg);
+    word-break: break-all;
+  }
+
+  /* TOC */
+  .toc {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin: 0 0 32px 0;
+    padding: 12px 18px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    box-shadow: var(--shadow-card);
+    font-size: 13px;
+  }
+  .toc-label {
+    display: block;
+    margin: 0 0 6px 0;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  .toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    counter-reset: toc-item;
+  }
+  .toc li {
+    counter-increment: toc-item;
+  }
+  .toc li::before {
+    content: counter(toc-item) ". ";
+    color: var(--muted);
+    margin-right: 4px;
+  }
+  .toc a {
+    color: var(--fg);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--border-strong);
+    padding-bottom: 1px;
+  }
+  .toc a:hover { border-bottom-color: var(--fg); color: #000; }
+
+  /* Sections */
+  section {
+    margin: 32px 0;
+    padding: 20px 24px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-card);
+  }
+  section h2 {
+    margin: 0 0 16px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border-strong);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  section h3 {
+    margin: 20px 0 10px 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  section h4 {
+    margin: 16px 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  section > p.section-intro {
+    margin: 0 0 12px 0;
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+
+  /* Back-to-top */
+  .back-to-top {
+    margin: 24px 0 0 0;
+    text-align: right;
+    font-size: 12px;
+  }
+  .back-to-top a {
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--border-strong);
+    padding-bottom: 1px;
+  }
+  .back-to-top a:hover { color: var(--fg); border-bottom-color: var(--fg); }
+
+  /* Verdict banner */
+  .verdict {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+  }
+  .verdict-BLOCKED { background: var(--verdict-blocked-bg); color: var(--verdict-blocked-fg); }
+  .verdict-NEEDS-REVISION { background: var(--verdict-needs-bg); color: var(--verdict-needs-fg); }
+  .verdict-ACCEPTED-WITH-CONCERNS { background: var(--verdict-accepted-bg); color: var(--verdict-accepted-fg); }
+
+  /* Severity chips */
+  .chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .chip.severity-Blocker { background: var(--sev-blocker-bg); color: var(--sev-blocker); }
+  .chip.severity-Major { background: var(--sev-major-bg); color: var(--sev-major); }
+  .chip.severity-Minor { background: var(--sev-minor-bg); color: var(--sev-minor); }
+  .chip.gate-pass { background: var(--disp-patch-bg); color: var(--disp-patch); }
+  .chip.gate-fail { background: var(--disp-reject-bg); color: var(--disp-reject); }
+
+  /* Score badge — green (high) to red (low) defensibility */
+  .score-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .score-0, .score-1 { background: var(--sev-blocker-bg); color: var(--sev-blocker); }
+  .score-2, .score-3 { background: var(--sev-major-bg); color: var(--sev-major); }
+  .score-4 { background: var(--sev-minor-bg); color: var(--sev-minor); }
+  .score-5, .score-6 { background: var(--disp-patch-bg); color: var(--disp-patch); }
+
+  /* Q-answer label */
+  .q-answer {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .q-yes-with-evidence { background: var(--disp-patch-bg); color: var(--disp-patch); }
+  .q-partial { background: var(--sev-minor-bg); color: var(--sev-minor); }
+  .q-no { background: var(--sev-blocker-bg); color: var(--sev-blocker); }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  table caption {
+    text-align: left;
+    margin-bottom: 8px;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  thead {
+    background: #f3f3f3;
+    border-bottom: 2px solid var(--border-strong);
+  }
+  th {
+    text-align: left;
+    padding: 8px 10px;
+    font-weight: 600;
+    color: var(--fg);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:hover { background: #fafafa; }
+  td code, dd code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+  }
+
+  /* Ratings table — full table */
+  table.ratings-table thead { position: sticky; top: 48px; z-index: 5; }
+  table.ratings-table td:nth-child(7) { min-width: 240px; }
+
+  /* Cross-subject table */
+  table.cs-table tr.severity-Blocker { background: rgba(185, 28, 28, 0.04); }
+  table.cs-table td:nth-child(5) { min-width: 240px; }
+
+  /* Top-10 deep-dive item */
+  article.ttitem {
+    margin: 16px 0;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    background: #fcfcfc;
+    box-shadow: 0 1px 1px rgba(0,0,0,.03);
+  }
+  article.ttitem h3 {
+    margin: 0 0 12px 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  article.ttitem h3 code {
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+  }
+  .q-block { margin: 8px 0 0 0; }
+  .q-head { margin: 12px 0 4px 0; font-size: 14px; }
+  .rec-action {
+    margin: 14px 0 0 0;
+    padding: 8px 12px;
+    background: #f7f7f7;
+    border-left: 3px solid var(--border-strong);
+    border-radius: 0 4px 4px 0;
+    font-size: 13.5px;
+  }
+
+  /* Orphan finding */
+  article.orphan {
+    margin: 16px 0;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--sev-blocker);
+    border-radius: 6px;
+    background: #fcfcfc;
+    box-shadow: 0 1px 1px rgba(0,0,0,.03);
+  }
+  article.orphan h3 {
+    margin: 0 0 12px 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  /* Finding fields (dl-grid) */
+  dl.finding-fields {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 8px 16px;
+    margin: 0;
+    font-size: 14px;
+  }
+  dl.finding-fields dt {
+    margin: 0;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding-top: 2px;
+  }
+  dl.finding-fields dd { margin: 0; word-break: break-word; }
+
+  /* Evidence blockquote */
+  blockquote.evidence {
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border-strong);
+    border-radius: 4px;
+    background: #fbfbfb;
+    overflow: hidden;
+  }
+  blockquote.evidence pre {
+    margin: 0;
+    padding: 10px 12px;
+    font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #333;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 320px;
+    overflow: auto;
+  }
+
+  /* Diagnostics toggle */
+  details.diagnostics-toggle { margin: 0; }
+  details.diagnostics-toggle > summary {
+    cursor: pointer;
+    padding: 0;
+    list-style: none;
+  }
+  details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+  details.diagnostics-toggle > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  details.diagnostics-toggle > summary::before {
+    content: "▶";
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform 0.15s ease;
+    display: inline-block;
+  }
+  details.diagnostics-toggle[open] > summary::before { transform: rotate(90deg); }
+
+  /* Diagnostics table accents */
+  table.diagnostics-gates tr.gate-fail { background: rgba(185, 28, 28, 0.05); }
+
+  /* Verdict legend */
+  .verdict-legend {
+    margin: 12px 0 0 0;
+    padding: 10px 12px;
+    background: #f7f7f7;
+    border-left: 3px solid var(--border-strong);
+    border-radius: 0 4px 4px 0;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  /* Responsive */
+  @media (max-width: 720px) {
+    main { padding: 16px 16px 48px; }
+    h1#top { font-size: 22px; }
+    section { padding: 14px 14px; }
+    section h2 { font-size: 18px; }
+    .meta-grid { grid-template-columns: 1fr; gap: 6px 0; }
+    dl.finding-fields { grid-template-columns: 1fr; gap: 4px 0; }
+    dl.finding-fields dt { padding-top: 6px; }
+    table { font-size: 12px; }
+    th, td { padding: 6px 6px; }
+    .toc { position: static; }
+  }
+  @media (max-width: 480px) {
+    body { font-size: 14px; }
+    h1#top { font-size: 19px; }
+    article.ttitem, article.orphan { padding: 12px 12px; }
+  }
+
+  /* Print */
+  @media print {
+    body { background: white; }
+    main { max-width: none; padding: 0; }
+    .toc, .back-to-top { display: none !important; }
+    section {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      box-shadow: none;
+      border: 1px solid #999;
+      margin: 12px 0;
+    }
+    article.ttitem, article.orphan {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      box-shadow: none;
+    }
+    details.diagnostics-toggle { display: block; }
+    details:not([open]) > *:not(summary) { display: block !important; }
+    blockquote.evidence pre { max-height: none; overflow: visible; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1 id="top">{{TITLE}}</h1>
+  <dl class="meta-grid">
+    <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+    <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+    <div><dt>Source SHA-256</dt><dd><code>{{REQUIREMENTS_SHA256}}</code></dd></div>
+    <div><dt>Reviewer</dt><dd>{{REVIEWER_IDENTITY}}</dd></div>
+    <div><dt>Subjects rated</dt><dd>{{TOTAL_SUBJECTS}}</dd></div>
+    <div><dt>Orphans (Q7)</dt><dd>{{ORPHAN_COUNT}}</dd></div>
+    <div><dt>Cross-subject findings</dt><dd>{{CS_FINDINGS_COUNT}}</dd></div>
+  </dl>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <span class="toc-label">Contents</span>
+  <ol>
+    <li><a href="#executive-summary">Executive Summary</a></li>
+    <li><a href="#top-ten">Top 10 Least Defensible</a></li>
+    <li><a href="#ratings">Full defensibility ratings</a></li>
+    <li><a href="#coverage">Critical missing artefacts</a></li>
+    <li><a href="#cross-subject">Cross-subject coherence findings</a></li>
+    <li><a href="#diagnostics">Diagnostics</a></li>
+  </ol>
+</nav>
+
+<section id="executive-summary">
+  <h2>Executive Summary</h2>
+  <p><strong>Subjects rated:</strong> {{TOTAL_SUBJECTS}} — Goals (§4.1): <strong>{{GOALS_COUNT}}</strong> · Stories (§4.2): <strong>{{STORIES_COUNT}}</strong> · Requirements (§6): <strong>{{REQUIREMENTS_COUNT}}</strong> · Entities (§7): <strong>{{ENTITIES_COUNT}}</strong></p>
+  <p><strong>Score histogram (out of 6):</strong> {{SCORE_HISTOGRAM}}</p>
+  <p><strong>Top 10 score range:</strong> {{TOP_TEN_SCORE_RANGE}}</p>
+  <p><strong>Orphans (Q7 coverage):</strong> <strong>{{ORPHAN_COUNT}}</strong> — {{ORPHAN_COUNT_BY_KIND}}</p>
+  <p><strong>Cross-subject findings (CS1–CS5):</strong> <strong>{{CS_FINDINGS_COUNT}}</strong> — {{CS_FINDINGS_BY_SEVERITY}} — by lens: {{CS_FINDINGS_BY_LENS}}</p>
+  <p><span class="verdict verdict-{{VERDICT}}">Verdict: {{VERDICT}}</span></p>
+  <p class="verdict-legend">
+    <strong>Verdict legend.</strong>
+    <code>BLOCKED</code> — at least one orphan-goal, at least one <code>0/6</code> score, three-plus <code>≤2/6</code> scores, or at least one <code>blocking</code> cross-subject finding.
+    <code>NEEDS-REVISION</code> — Top-10 contains any <code>≤3/6</code> score but no blocking triggers.
+    <code>ACCEPTED-WITH-CONCERNS</code> — Top-10 minimum <code>≥4/6</code>, zero orphans, and no <code>blocking</code> cross-subject findings. Major and minor cross-subject findings do not block this verdict. First Principles never accepts unconditionally — the Top-10 always merits a look.
+  </p>
+  <p class="verdict-legend">
+    Source: <code>requirements/requirements.md</code> only. Subjects: every numbered item in §4.1, §4.2, §6, §7. Questions: Q1 <em>Why does this exist?</em> · Q2 <em>Which business goal?</em> · Q3 <em>Which problem?</em> · Q4 <em>What operational outcome?</em> · Q5 <em>Simplest valid way?</em> · Q6 <em>What if we remove it?</em> · Q7 <em>Anything critical missing?</em> (coverage pass). Scoring: count of <code>yes-with-evidence</code> answers across Q1–Q6 (0–6 integer). Cross-subject lenses CS1–CS5 audit collective coherence; findings carry severity, not score.
+  </p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="top-ten">
+  <h2>Top 10 Least Defensible</h2>
+  <p class="section-intro">Subjects with the weakest evidence-grounded justification chain, in ascending-score order (lowest first). Each entry deep-dives every Q1–Q6 answer with the verbatim evidence (or absence-reasoning) that produced the score.</p>
+  {{TOP_TEN_BLOCK}}
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="ratings">
+  <h2>Full defensibility ratings</h2>
+  <p class="section-intro">Every rated subject, in the same ascending-score sort order. Use this table to see the full distribution and to spot-check whether the entries just outside the Top-10 are clustered close to the cut.</p>
+  <table class="ratings-table">
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>ID</th>
+        <th>Type</th>
+        <th>Anchor</th>
+        <th>Score</th>
+        <th>Weakest</th>
+        <th>Statement (truncated)</th>
+        <th>Recommended action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{RATINGS_TABLE}}
+    </tbody>
+  </table>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="coverage">
+  <h2>Critical missing artefacts</h2>
+  <p class="section-intro">Q7 coverage findings. Each is a <code>blocking</code> orphan: an artefact that exists at one layer of the doc and should have a counterpart at another but doesn't.</p>
+  {{COVERAGE_FINDINGS_BLOCK}}
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="cross-subject">
+  <h2>Cross-subject coherence findings</h2>
+  <p class="section-intro">CS1–CS5 findings. Each cites ≥1 anchor in the doc and observes a relation the subjects collectively cannot satisfy: a contradiction between objectives, a hidden assumption or false constraint, a system-thinking or architectural-consequence gap, a missing operational reality, or a human-cost allocation problem. Findings carry severity (blocking / major / minor) rather than a per-subject score, and consequence sentences observe what the doc as written cannot deliver — they never prescribe what to add.</p>
+  <table class="cs-table">
+    <thead>
+      <tr>
+        <th>Lenses</th>
+        <th>Severity</th>
+        <th>Headline</th>
+        <th>Anchors</th>
+        <th>Evidence</th>
+        <th>Relation</th>
+        <th>Consequence</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{CS_FINDINGS_BLOCK}}
+    </tbody>
+  </table>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="diagnostics">
+  <h2>Diagnostics</h2>
+  {{DIAGNOSTICS_BLOCK}}
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+</main>
+</body>
+</html>

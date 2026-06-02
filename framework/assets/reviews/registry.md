@@ -7,50 +7,50 @@ methodologies:
   - name: adversarial
     status: mvp
     group: Document integrity
-    description: Choose this when you want the requirements stress-tested for defects so design starts from a patched document rather than inherited weaknesses. It produces a Markdown critique flagging contradictions, gaps, ambiguities, and risky assumptions across the document. Work the flagged defects back into requirements.md before design or estimation begins.
-    output_path: review-requirements/ADVERSARIAL/adversarial-review.md
+    description: Choose this when you want the requirements stress-tested for defects so design starts from a patched document rather than inherited weaknesses. It produces a self-contained HTML critique flagging contradictions, gaps, ambiguities, and risky assumptions across the document. Work the flagged defects back into requirements.md before design or estimation begins.
+    output_path: review-requirements/ADVERSARIAL/adversarial-review.html
     reference_asset: framework/assets/reviews/adversarial-reference.md
-    template_asset: framework/assets/reviews/template-adversarial.md
+    template_asset: framework/assets/reviews/template-adversarial.html
     map_skill: null
     reviewer_agent: framework/agents/reviews/adversarial-reviewer.md
     character: framework/assets/characters/adversarial-review.md
   - name: first-principles
     status: mvp
     group: Document integrity
-    description: Choose this when you suspect some requirements were carried over by habit and want each tested against its business rationale. It produces a Markdown review judging whether each requirement is defensible from first principles, marking the weak ones. Cut or strengthen the flagged items before they reach design.
-    output_path: review-requirements/FIRST-PRINCIPLES/first-principles-review.md
+    description: Choose this when you suspect some requirements were carried over by habit and want each tested against its business rationale. It produces a self-contained HTML review judging whether each requirement is defensible from first principles, marking the weak ones. Cut or strengthen the flagged items before they reach design.
+    output_path: review-requirements/FIRST-PRINCIPLES/first-principles-review.html
     reference_asset: framework/assets/reviews/first-principles-reference.md
-    template_asset: framework/assets/reviews/template-first-principles.md
+    template_asset: framework/assets/reviews/template-first-principles.html
     map_skill: null
     reviewer_agent: framework/agents/reviews/first-principles-reviewer.md
     character: framework/assets/characters/first-principles-review.md
   - name: ten-ba-questions
     status: mvp
     group: Stakeholder & BA gaps
-    description: Choose this before design or estimation when you want the most consequential business-analysis gaps named rather than a full critique. It produces a Markdown list of the ten most pressing stakeholder questions the requirements leave unanswered. Take the ten questions to your stakeholders and fold the answers back into the document.
-    output_path: review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md
+    description: Choose this before design or estimation when you want the most consequential business-analysis gaps named rather than a full critique. It produces a self-contained HTML list of the ten most pressing stakeholder questions the requirements leave unanswered. Take the ten questions to your stakeholders and fold the answers back into the document.
+    output_path: review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.html
     reference_asset: framework/assets/reviews/ten-ba-questions-reference.md
-    template_asset: framework/assets/reviews/template-ten-ba-questions.md
+    template_asset: framework/assets/reviews/template-ten-ba-questions.html
     map_skill: null
     reviewer_agent: framework/agents/reviews/ten-ba-questions-reviewer.md
     character: framework/assets/characters/ten-ba-questions-review.md
   - name: ten-ux-questions
     status: mvp
     group: UX gaps
-    description: Choose this before designing screens when you want the sharpest UX unknowns surfaced so you don't design against gaps. It produces a Markdown list of the ten most pressing UX questions the requirements leave unanswered. Resolve the ten questions before wireframing, or carry them into design as explicit assumptions.
-    output_path: review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.md
+    description: Choose this before designing screens when you want the sharpest UX unknowns surfaced so you don't design against gaps. It produces a self-contained HTML list of the ten most pressing UX questions the requirements leave unanswered. Resolve the ten questions before wireframing, or carry them into design as explicit assumptions.
+    output_path: review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.html
     reference_asset: framework/assets/reviews/ten-ux-questions-reference.md
-    template_asset: framework/assets/reviews/template-ten-ux-questions.md
+    template_asset: framework/assets/reviews/template-ten-ux-questions.html
     map_skill: null
     reviewer_agent: framework/agents/reviews/ten-ux-questions-reviewer.md
     character: framework/assets/characters/ten-ux-questions-review.md
   - name: user-stories
     status: mvp
     group: Backlog readiness
-    description: Choose this when you need to know which user stories aren't ready for design or estimation before they enter the backlog. It produces a Markdown review judging each story against readiness criteria and flagging the ones that fall short. Rework the flagged stories until they're ready, then admit them to the backlog.
-    output_path: review-requirements/USER-STORIES/user-stories-review.md
+    description: Choose this when you need to know which user stories aren't ready for design or estimation before they enter the backlog. It produces a self-contained HTML review judging each story against readiness criteria and flagging the ones that fall short. Rework the flagged stories until they're ready, then admit them to the backlog.
+    output_path: review-requirements/USER-STORIES/user-stories-review.html
     reference_asset: framework/assets/reviews/user-stories-reference.md
-    template_asset: framework/assets/reviews/template-user-stories.md
+    template_asset: framework/assets/reviews/template-user-stories.html
     map_skill: null
     reviewer_agent: framework/agents/reviews/user-stories-reviewer.md
     character: framework/assets/characters/user-stories-review.md

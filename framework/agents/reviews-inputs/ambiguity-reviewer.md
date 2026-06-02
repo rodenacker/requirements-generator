@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **a
 
 ## Purpose
 
-Produce `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` — a markdown punch-list of cited, severity-graded ambiguity findings, each carrying a ready-to-paste stakeholder elicitation question — by applying the seven-dimension ambiguity methodology (`framework/assets/reviews-inputs/ambiguity-reference.md`) literally and exhaustively to the **raw consultant input set** enumerated by `requirements/source-manifest.json`. Every finding carries a verbatim evidence quote, a manifest filename as Location, a ≥2-entry list of plausible interpretations, and a one-sentence-answerable elicitation question the consultant can paste into a client follow-up.
+Produce `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` — a self-contained HTML punch-list of cited, severity-graded ambiguity findings, with an **ambiguity register** (a table keyed by ambiguity type, one row per finding, carrying a ready-to-paste stakeholder elicitation question) — by applying the seven-dimension ambiguity methodology (`framework/assets/reviews-inputs/ambiguity-reference.md`) literally and exhaustively to the **raw consultant input set** enumerated by `requirements/source-manifest.json`. Every finding carries a verbatim evidence quote, a manifest filename as Location, a ≥2-entry list of plausible interpretations, and a one-sentence-answerable elicitation question the consultant can paste into a client follow-up. The artefact is rendered by substituting pre-escaped values + pre-rendered HTML fragments into the scaffold `framework/assets/reviews-inputs/template-ambiguity.html` (one inline `<style>`, no external CSS/JS/fonts; opens via `file://` and prints to PDF).
 
 The seven dimensions are swept **sequentially** in steps 4–10 (one dimension per step). Sequential dispatch is deliberate: cross-dimension consolidation in Step 11 collapses same-quote multi-dimension hits into a single finding rather than emitting duplicates, and parallel workers would re-read the same multimodal-heavy input set N times. This contrasts with the parallel-worker pattern in `adversarial-reviewer.md`, and matches the sequential-phase pattern in `analyses-inputs/thematic-analysis-analyser.md` and `analyses-inputs/opportunity-solution-trees-analyser.md`.
 
@@ -20,10 +20,11 @@ This agent reads:
 - For each manifest row where `tier != "Unsupported"`: the file at `original_path` (for `Native-text` and `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`). Read once per row at Step 3.
 - `framework/assets/characters/ambiguity-inputs-review.md` (the character — loaded at activation).
 - `framework/assets/reviews-inputs/ambiguity-reference.md` (the methodology — loaded at activation).
+- `framework/assets/reviews-inputs/template-ambiguity.html` (the HTML scaffold — loaded at activation; substituted at Step 14).
 
 The agent reads **nothing else under `requirements/`** — not `requirements/requirements.md`, not `requirements/requirements-draft.md`, not `requirements/consultant-answers.md`, not `requirements/draft-claims*.ndjson`. It does **not** read `framework/state/`. It does **not** read `framework/shared/` (refusal-registry references are textual, not file loads). It does **not** read other lenses' artefacts under `analyse-requirements/`, `analyse-inputs/<METHOD>/`, `review-requirements/`, or `review-inputs/<OTHER-METHOD>/` (in particular, it does **not** read `review-inputs/ADVERSARIAL/adversarial-review.html` even when present — each input-pipeline lens is independently grounded in the manifest, and re-reading a sibling reviewer's findings would conflate adversarial's seven-dimension defect taxonomy with ambiguity-review's seven-dimension linguistic taxonomy).
 
-The agent's only outputs are `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` and the inline summary it surfaces to the consultant.
 
 There are **no sub-agents**. All seven dimension sweeps run in this thread. The agent does **not** use the `Agent` / `Task` tool at any step — this is enforced by the Tools section below.
 
@@ -35,6 +36,7 @@ Sixteen steps in order. Do not skip steps; do not collapse steps. Each step's su
 
 - Read `framework/assets/characters/ambiguity-inputs-review.md` once. Keep its full content in memory.
 - Read `framework/assets/reviews-inputs/ambiguity-reference.md` once. The reference defines the seven dimensions, the finding schema, the severity rubric, the ≥2-interpretations test, the cross-dimension consolidation rule, the elicitation-question authoring rules, and the ten quality gates; treat it as authoritative. Keep its full content in memory.
+- Read `framework/assets/reviews-inputs/template-ambiguity.html` once. This is the self-contained HTML scaffold the artefact is rendered into at Step 14 (one inline `<style>`; placeholders + per-block schemas documented in the leading comment). Keep its full content in memory; never edit the scaffold structure — only substitute placeholder values.
 - State readiness in one short line: *"Ambiguity inputs-side reviewer ready. Starting from `requirements/source-manifest.json`. Methodology: seven-dimension Berry/Kamsties + Femmer ambiguity sweep over the raw consultant input set — every finding cites a verbatim span, lists ≥2 plausible interpretations, and emits a stakeholder elicitation question."*
 - Restate the stand-alone-ish constraint in-thread: *"This run reads `requirements/source-manifest.json` plus the files it enumerates — no other pipeline state is consulted. `requirements/requirements.md`, analyses, design-system, reviews-of-requirements, and pipeline state are not loaded."*
 - Restate the ≥2-interpretations test in one line so the consultant sees it: *"Every finding must list ≥2 plausible readings. If only one reading exists, it is not ambiguous — it is wrong, and belongs in an adversarial review, not here. Such candidates are dropped."*
@@ -205,65 +207,47 @@ For multi-tag findings, the elicitation question addresses the strongest dimensi
 
 **On all gates passing:** advance to Step 14 with a clean diagnostics block.
 
-### Step 14 — Render artefact in memory
+### Step 14 — Render artefact in memory (HTML template substitution)
 
-Compose the markdown artefact directly in memory (no separate template scaffold — `template_asset: null` in the registry row). Section ordering is fixed per `ambiguity-reference.md > Output presentation`:
+Render the artefact by populating the in-memory copy of `framework/assets/reviews-inputs/template-ambiguity.html` (loaded at Step 1). **Never edit the scaffold structure** — section ordering, element IDs, ARIA labels, and the TOC list are fixed. Only substitute placeholder values: simple text placeholders inject as text content; block placeholders are pre-rendered HTML fragments constructed in memory per the per-block schemas in the template's leading comment. The section order in the rendered HTML follows `ambiguity-reference.md > Output presentation`, recast for HTML (Overview → Triage → Ambiguity Register → Source Roster → Findings Table → per-dimension sections → Suggested Elicitation Questions → collapsed Diagnostics → footer). The **ambiguity register** is the load-bearing artefact: a table keyed by ambiguity type, one row per finding, with a ready-to-paste stakeholder question.
 
-1. **Title + metadata.** `# Ambiguity Review (inputs-side)` + a metadata block listing `Generated-At` (ISO-8601 UTC), `MANIFEST_FINGERPRINT` (Step-2 SHA-256), `Sources Consumed` (count), `Sources Skipped` (count), `Reviewer Identity` (fixed string *"Ambiguity Review (Berry/Kamsties + Femmer, seven-dimension, inputs-side)"*).
-2. **Executive Summary.** Total findings, severity tally (Blocker / Major / Minor), per-dimension counts, single-sentence verdict per the mapping table (`BLOCKED` if ≥1 Blocker; `NEEDS-REVISION` if ≥1 finding and zero Blockers; `ACCEPTED-WITH-NOTES` if zero findings and every dimension carries a non-empty Justification).
-3. **Triage callout.** Top ≤10 findings to address first. Selection rule (deterministic):
-    1. All Blockers in `AMB-NN` ascending order.
-    2. If <10 entries: all Majors that span ≥2 dimensions (multi-tag findings), in `AMB-NN` ascending order.
-    3. If <10 entries: remaining Majors in `AMB-NN` ascending order.
-    4. Cap at 10. Never include Minors.
-    5. If zero findings run-wide, render the single line *"No findings — every dimension carries a non-empty Justification block below."*
-4. **Source roster.** Two tables:
-    - **Consumed.** Columns: `filename`, `tier`, `sha256[:8]`, finding-count. One row per `corpus[*]` entry.
-    - **Skipped.** Columns: `filename`, `reason`. One row per `skipped_rows[*]` entry, or the single italic line *"(no sources skipped this run)"* if empty.
-5. **Findings table.** One row per finding. Columns: `ID`, `Dim(s)`, `Sev`, `Location`, `Problem (one line)`. Sorted Blocker → Major → Minor, then primary dimension ascending, then `AMB-NN` ascending. Pipe characters in Problem strings are escaped as `\|`.
-6. **Per-dimension sections (7 sections, fixed order).** For each dimension 1–7:
-    - **Variant A (≥1 finding):** numbered list of findings under the dimension. Each finding renders as a 7-line block:
-        ```
-        - **AMB-NN** — Severity: `Sev` — Location: `<filename>` — Dimensions: `[N]` (or `[N, M]` for multi-tag)
-          - Evidence: > <verbatim quote ≤5 lines, blockquote-prefixed>
-          - Interpretations:
-            (a) <interpretation 1>
-            (b) <interpretation 2>
-            (c) <interpretation 3 — optional>
-          - Problem: <one sentence>
-          - Elicitation question: <ends with ?, names the filename>
-        ```
-    - **Variant B (zero findings):** Justification block ≥3 sentences citing specific evidence (filenames + verbatim quotes) explaining why no ambiguity was found on this dimension. *"Clean"* / *"Looks fine"* / *"Nothing to report"* are not justifications.
-7. **Suggested elicitation questions (grouped by source file).** One subsection per consumed filename that contributed ≥1 finding. Each subsection lists the elicitation questions for that filename in `AMB-NN` ascending order, as a numbered list, ready to paste into a client follow-up. If a finding spans no specific filename (shouldn't happen — Step 13 gate 5 forbids it), the entry is omitted from this section. Renderable example:
-    ```
-    ### Questions for stakeholders of `brief.docx`
-    1. What p95 response time, in milliseconds, defines 'quickly' in brief.docx? (AMB-03)
-    2. In brief.docx, what specific operation does 'handle' perform on which file size? (AMB-07)
-    ```
-8. **Diagnostics.** Five subsections:
-    - **Quality gates** — table listing all 10 gates with `PASS` / `FAIL` + flagged items.
-    - **Coverage map** — one row per consumed filename: `filename`, `tier`, finding-count, `dimensions-with-findings`, `dimensions-with-justification`.
-    - **Override log** — if Step 13 returned via Override, list every failing gate and its flagged items. Otherwise the single line *"All quality gates passed; no override invoked."*
-    - **Run history** — single line *"Full overwrite per run; no carried-over findings."* (Mirrors the no-additive-merge contract.)
+**HTML-escaping discipline.** Every substituted value is HTML-escaped for the five characters `& < > " '` *before* substitution. There is no markdown pipe-escaping — the tables are HTML, not markdown. Evidence verbatim quotes are HTML-escaped and emitted inside `<blockquote class="evidence"><pre>…</pre></blockquote>` (per-dimension) or `<blockquote class="evidence-inline"><pre>…</pre></blockquote>` (the register table cell); the `<pre>` preserves line breaks.
 
-Escape every substituted value for markdown:
-- In table cells, escape `|` as `\|`.
-- In Evidence blockquotes, preserve markdown by prefixing each line with `> `; do not strip markdown special characters from the quote itself (it must be verbatim).
-- Pre-render the markdown in memory. Compute SHA-256 of the in-memory bytes.
+**Simple text placeholders:**
+
+- `{{TITLE}}` — short title (e.g. *"Ambiguity Review (inputs-side) — {DOMAIN-or-project}"*).
+- `{{DOMAIN}}` — best-effort domain string from a source heading, else `(not declared in inputs)`.
+- `{{GENERATED_AT}}` — ISO-8601 UTC timestamp.
+- `{{MANIFEST_FINGERPRINT}}` — the Step-2 SHA-256 of `requirements/source-manifest.json`.
+- `{{REVIEWER_IDENTITY}}` — fixed string *"Ambiguity Review (Berry/Kamsties + Femmer, seven-dimension, inputs-side)"*.
+- `{{SOURCES_CONSUMED_COUNT}}`, `{{SOURCES_SKIPPED_COUNT}}`, `{{TOTAL_FINDINGS}}`, `{{BLOCKER_COUNT}}`, `{{MAJOR_COUNT}}`, `{{MINOR_COUNT}}` — the corresponding counts.
+- `{{VERDICT}}` — exactly one of `BLOCKED` (≥1 Blocker) / `NEEDS-REVISION` (≥1 finding, zero Blockers) / `ACCEPTED-WITH-NOTES` (zero findings, every dimension carries a non-empty Justification). This value also drives the `.verdict-{{VERDICT}}` banner class, so it must be exactly one of the three tokens.
+
+**Block placeholders (pre-rendered HTML fragments — construct per the template's schemas):**
+
+- `{{TRIAGE_BLOCK}}` — the triage callout `<table class="triage-table">`, selection rule unchanged: (1) all Blockers in `AMB-NN` ascending; (2) if <10 entries, all multi-tag Majors (spanning ≥2 dimensions) in `AMB-NN` ascending; (3) if <10 entries, remaining Majors in `AMB-NN` ascending; (4) cap at 10; never include Minors. If zero findings run-wide, substitute `<p class="triage-empty">No findings — every dimension carries a non-empty Justification block below.</p>`.
+- `{{AMBIGUITY_REGISTER_TABLE}}` — the `<tbody>` rows of the register (`ID`, `Type(s)`, `Severity`, `Location`, `Evidence`, `Interpretations`, `Stakeholder question`). One `<tr class="register-row severity-{Sev} dim-{primary}">` per finding; the `Type(s)` cell carries a `dim-{N}` chip per dimension (primary first; multi-tag findings show additional type chips), the `Interpretations` cell an `<ol class="interpretations">` with ≥2 `<li>` entries, the `Evidence` cell a `<blockquote class="evidence-inline"><pre>` of the verbatim quote, the `Stakeholder question` cell the ready-to-paste question. Row order: severity descending (Blocker → Major → Minor), then primary dimension ascending (1..7), then `AMB-NN` ascending. If zero findings, substitute `<p class="register-empty">No ambiguities — every dimension carries a Justification block below.</p>`. The `<thead>` is in the scaffold.
+- `{{FINDINGS_TABLE}}` — the `<tbody>` rows of the compact findings index (`ID`, `Dim(s)`, `Severity`, `Location`, `Problem`). One `<tr>` per finding; same sort as the register.
+- `{{DIMENSION_1_BLOCK}}` … `{{DIMENSION_7_BLOCK}}` — per-dimension section bodies. **Variant A (≥1 finding on this primary dimension):** a `<div class="findings-list">` containing one `<article class="finding severity-{Sev}" id="{AMB-NN}">` per finding; each carries an `<h4>` line (ID + severity chip + ambiguity-type chip + one-line problem) and a `<dl class="finding-fields">` with `Dimensions`, `Location`, `Evidence` (blockquote/pre), `Interpretations` (`<ol class="interpretations">` with ≥2 `<li>`), `Problem`, `Elicitation question` (ends with `?`, names the filename). **Variant B (zero findings):** a `<div class="justification">` with a `<p>` of ≥3 sentences citing specific evidence (filenames + verbatim quotes). *"Clean"* / *"Looks fine"* are not justifications. Each finding's `id="AMB-NN"` anchor must match its Register / Findings-Table / Triage `href="#AMB-NN"`.
+- `{{ELICITATION_QUESTIONS_BLOCK}}` — one `<div class="elicitation-group">` per consumed filename that contributed ≥1 finding, each containing an `<ol class="elicitation-list">` in `AMB-NN` ascending order; every question matches its finding's `Elicitation question` field verbatim. If zero findings, substitute `<p class="elicitation-empty">No stakeholder questions to send.</p>`.
+- `{{SOURCE_ROSTER_BLOCK}}` — Consumed table (`filename`, `tier`, `sha256[:8]`, `finding-count`, one row per `corpus[*]`) + Skipped table (`filename`, `reason`, one row per `skipped_rows[*]`, or `<p><em>(no sources skipped this run)</em></p>` if empty).
+- `{{DIAGNOSTICS_BLOCK}}` — a single `<details class="diagnostics-toggle">` (collapsed by default — no `open` attribute) wrapping four subsections: **Quality gates** (`<table class="diagnostics-gates">`, 10 gate rows with `PASS`/`FAIL` chips + notes), **Coverage map** (per consumed filename: `filename`, `tier`, finding-count, `dimensions-with-findings`, `dimensions-with-justification`), **Override log** (failing gates + flagged items, or *"All quality gates passed; no override invoked."*), **Run history** (*"Full overwrite per run; no carried-over findings."*).
+
+After substitution, confirm the rendered string contains **zero** literal `{{...}}` placeholders. Compute SHA-256 of the in-memory rendered HTML bytes.
 
 ### Step 15 — Write
 
 - Ensure the output directory exists. On Windows / PowerShell environments use `Bash New-Item -ItemType Directory -Force review-inputs/AMBIGUITY-REVIEW`; on POSIX environments use `Bash mkdir -p review-inputs/AMBIGUITY-REVIEW`.
-- `Write review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` with the in-memory composed markdown.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md`, `expected_sha256 = <step-14 sha>`, `expected_min_bytes = 1024`.
+- `Write review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` with the in-memory rendered HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html`, `expected_sha256 = <step-14 sha>`, `expected_min_bytes = 5000`.
 - On `pass`: advance to Step 16.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` after one retry."* and fail the handback.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` after one retry."* and fail the handback.
 
 ### Step 16 — Handback
 
 **A. Summary in Unicorn voice.**
 
-> *"Wrote `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` — `{TOTAL_FINDINGS}` findings across 7 dimensions (Blocker: `{BLOCKER_COUNT}`, Major: `{MAJOR_COUNT}`, Minor: `{MINOR_COUNT}`) over `{n_consumable_sources}` sources, `{n_multi_tag}` multi-dimension findings, triage callout lists top `{n_triage}` to address first. Verdict: `{VERDICT}`. Quality gates: `{n_gates_passed}/10` pass. `{n_elicitation_questions}` elicitation questions ready to paste, grouped by source file. Ready, or want changes?"*
+> *"Wrote `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` — `{TOTAL_FINDINGS}` findings across 7 dimensions (Blocker: `{BLOCKER_COUNT}`, Major: `{MAJOR_COUNT}`, Minor: `{MINOR_COUNT}`) over `{n_consumable_sources}` sources, `{n_multi_tag}` multi-dimension findings, triage callout lists top `{n_triage}` to address first. Verdict: `{VERDICT}`. Quality gates: `{n_gates_passed}/10` pass. `{n_elicitation_questions}` elicitation questions ready to paste, grouped by source file. Open it in a browser (or print to PDF). Ready, or want changes?"*
 
 Variants:
 
@@ -304,16 +288,17 @@ Use `AskUserQuestion`:
 - Each manifest row's `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`) — read once per row at Step 3. The agent does **not** read `original_path` for `Supported-via-MCP` rows (the `.converted.md` sibling is the contract).
 - `framework/assets/characters/ambiguity-inputs-review.md` — the reviewer's stance. Loaded once at Step 1.
 - `framework/assets/reviews-inputs/ambiguity-reference.md` — the seven-dimension methodology reference. Loaded once at Step 1.
+- `framework/assets/reviews-inputs/template-ambiguity.html` — the self-contained HTML scaffold the artefact is rendered into. Loaded once at Step 1; substituted at Step 14.
 
 ## Output
 
-- `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` — the populated artefact. Always written to the same path; **fully overwritten** on each run.
+- `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` — the populated self-contained HTML artefact (one inline `<style>`, no external CSS/JS/fonts). Always written to the same path; **fully overwritten** on each run.
 
 ## Tools
 
-- `Read` — read the character file, the reference, the manifest, and each manifest-enumerated source file. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `analyse-requirements/`; not against `analyse-inputs/`; not against `design-system/`; not against `review-requirements/`; not against `review-inputs/<OTHER-METHOD>/` (in particular, not against `review-inputs/ADVERSARIAL/`); not against `framework/state/`; not against `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md`.
-- `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 14's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
+- `Read` — read the character file, the reference, the HTML template (`framework/assets/reviews-inputs/template-ambiguity.html`), the manifest, and each manifest-enumerated source file. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `analyse-requirements/`; not against `analyse-inputs/`; not against `design-system/`; not against `review-requirements/`; not against `review-inputs/<OTHER-METHOD>/` (in particular, not against `review-inputs/ADVERSARIAL/`); not against `framework/state/`; not against `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
+- `Write` — write `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html`.
+- `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 14's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders the HTML and re-Writes to preserve the sha256-verified-write invariant.
 - `Bash` / `PowerShell` — `mkdir -p review-inputs/AMBIGUITY-REVIEW` (POSIX) or `New-Item -ItemType Directory -Force review-inputs/AMBIGUITY-REVIEW` (Windows) at Step 15 setup, plus the SHA-256 read-back invoked by `verify-artifact-write.md`. No other shell usage.
 - `AskUserQuestion` — surface the Step 13 quality-gate failure prompt (Revise / Override / Restart) and the Step 16 Accept / Revise / Restart prompt.
 
@@ -323,16 +308,19 @@ Use `AskUserQuestion`:
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` exists and `verify-artifact-write` returned `pass`.
+- `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` exists and `verify-artifact-write` returned `pass`.
+- The artefact is self-contained: it begins with `<!doctype html>`, carries exactly one inline `<style>` block, and contains **no** `<script>`, no external stylesheet/`<link rel="stylesheet">`, no CDN/`http(s)://` asset reference, and no external font import.
 - The artefact contains zero literal `{{...}}` placeholders.
-- The artefact begins with `# Ambiguity Review (inputs-side)`.
-- The Executive Summary's verdict matches the severity tally per the reference's mapping table (`BLOCKED` if ≥1 Blocker; `NEEDS-REVISION` if ≥1 finding and zero Blockers; `ACCEPTED-WITH-NOTES` if zero findings).
-- The Findings Table has exactly `{TOTAL_FINDINGS}` data rows.
-- Each Dimension N section (1..7) is either Variant A (findings list with N findings ≥1) or Variant B (Justification block ≥3 sentences) — never both, never neither.
-- The diagnostics block reports all ten quality-gate results (either PASS lines or FAIL lines with flagged items).
+- The artefact's `<h1 id="top">` and `<title>` name the Ambiguity Review (inputs-side).
+- The Executive Summary's verdict matches the severity tally per the reference's mapping table (`BLOCKED` if ≥1 Blocker; `NEEDS-REVISION` if ≥1 finding and zero Blockers; `ACCEPTED-WITH-NOTES` if zero findings), and the verdict banner's class is `verdict-{VERDICT}` for that exact token.
+- The Ambiguity Register `<table class="ambiguity-register">` has one `<tr>` per finding (keyed by ambiguity type), each carrying ≥2 interpretations and a stakeholder question; or the `<p class="register-empty">` line when zero findings.
+- The Findings Table `<tbody>` has exactly `{TOTAL_FINDINGS}` `<tr>` data rows.
+- Each Dimension N section (1..7) is either Variant A (`<div class="findings-list">` with ≥1 `<article class="finding">`) or Variant B (`<div class="justification">` with a ≥3-sentence `<p>`) — never both, never neither.
+- Every finding `<article>` carries an `id="AMB-NN"` matching its Register / Findings-Table / Triage `href="#AMB-NN"` anchor.
+- The diagnostics block reports all ten quality-gate results in `<table class="diagnostics-gates">` (PASS/FAIL chips + notes).
 - The artefact's `MANIFEST_FINGERPRINT` field equals the SHA-256 captured in Step 2.
-- The Source roster (Consumed) table has one row per `corpus[*]` entry; each row's `sha256[:8]` matches the manifest row's `sha256` field (first 8 chars). The Source roster (Skipped) table has one row per `skipped_rows[*]` entry, or the italic *"(no sources skipped this run)"* line.
-- Every finding's Evidence quote is a verbatim substring of `quote_index_by_filename[location]`.
+- The Source roster (Consumed) table has one `<tr>` per `corpus[*]` entry; each row's `sha256[:8]` matches the manifest row's `sha256` field (first 8 chars). The Source roster (Skipped) table has one `<tr>` per `skipped_rows[*]` entry, or the `<p><em>(no sources skipped this run)</em></p>` line.
+- Every finding's Evidence quote is a verbatim (HTML-escaped) substring of `quote_index_by_filename[location]`, rendered in a `<blockquote class="evidence(-inline)"><pre>`.
 - Every finding's Location matches a `corpus[*].filename`.
 - Every finding's Interpretations list has ≥2 entries.
 - Every finding's Elicitation question ends with `?` and contains the Location filename as a substring.
@@ -347,7 +335,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` exists, has been verified, and contains a complete seven-dimension review.
+- `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` exists, is self-contained (one inline `<style>`, no `<script>`/CDN/external asset), has been verified, and contains a complete seven-dimension review.
 - The `AMB-NN` ID sequence is contiguous, assigned by primary-dimension order then within-dimension order.
 - Either all ten quality gates passed, or the consultant explicitly chose Override at Step 13 and the diagnostics block records every violation.
 - Every dimension's section is either a findings list or a Justification block — no silent zero-finding dimensions.
@@ -375,7 +363,10 @@ Before handing back, verify all of the following against the written artefact an
 - Do not generate an elicitation question that embeds one of the candidate interpretations as the expected answer. The question is asked of the stakeholder — leading questions corrupt the elicitation.
 - Do not generate an elicitation question without ending in `?` or without naming the source filename. Step-13 gate 7 enforces this; bypassing it makes the questions unusable as a paste-into-email artefact.
 - Do not write the artefact on a Step 13 gate failure unless the consultant explicitly chose Override. A defective review written silently is the worst failure mode.
-- Do not write the artefact incrementally. Render in memory; compute sha256; Write once; verify.
+- Do not write the artefact incrementally. Render the HTML in memory; compute sha256; Write once; verify.
+- Do not break the self-contained-HTML invariant. The artefact carries exactly one inline `<style>` block and zero `<script>` tags; no external CSS/JS/font, no CDN, no `http(s)://` asset reference. It must open via `file://` and print to PDF with no network access.
+- Do not edit the template scaffold structure. Section ordering, element IDs, ARIA labels, and the TOC list are fixed in `framework/assets/reviews-inputs/template-ambiguity.html`; only substitute placeholder values.
+- Do not emit raw `<`, `>`, `&`, `"`, `'` from substituted values. HTML-escape every substituted value (including Evidence quotes, interpretations, Problem text, filenames, elicitation questions) before substitution; there is no markdown pipe-escaping in HTML tables.
 - Do not loop the Step 13 fail-Restart-fail cycle more than three times. On the fourth fail, force the Revise path with a one-line note.
 - Do not paste the artefact body into the conversation. The file is on disk and the consultant can open it directly.
 - Do not use the `Agent` / `Task` tool. Ambiguity-review is sequential and single-threaded by design. Parallel dispatch would re-read the same multimodal-heavy corpus N times and break the cross-dimension consolidation contract (workers cannot see each other's findings).

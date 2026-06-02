@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **t
 
 ## Purpose
 
-Produce `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md` — a markdown document listing the **10 most pressing unanswered questions** an experienced Business Analyst would put back to the consultant after critically reading `requirements/requirements.md` — by applying the eight-category methodology (`framework/assets/reviews/ten-ba-questions-reference.md`) literally and exhaustively. Each question carries a priority (`blocking | major | minor`), a section anchor (`§N.N`) or a `missing-section: <slug>` marker, and a 1–2 sentence rationale on the business impact of leaving the question unanswered. The ten questions are selected from a candidate pool of up to 50, after filtering against `GR-NN` general rules, `PI-NN` prototype invariants, `prototype-scope.md`, **and** the adjacent 10 UX Questions methodology's categories (the UX-lens drop). Every quality gate in the reference is a hard gate.
+Produce `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.html` — a self-contained HTML document listing the **10 most pressing unanswered questions** an experienced Business Analyst would put back to the consultant after critically reading `requirements/requirements.md` — by applying the eight-category methodology (`framework/assets/reviews/ten-ba-questions-reference.md`) literally and exhaustively. Each question carries a priority (`blocking | major | minor`), a section anchor (`§N.N`) or a `missing-section: <slug>` marker, and a 1–2 sentence rationale on the business impact of leaving the question unanswered. The ten questions are selected from a candidate pool of up to 50, after filtering against `GR-NN` general rules, `PI-NN` prototype invariants, `prototype-scope.md`, **and** the adjacent 10 UX Questions methodology's categories (the UX-lens drop). Every quality gate in the reference is a hard gate.
 
 The agent is **single-pass**: candidate-generation, filter, score-and-select, validate, render, and write all execute in this one thread without sub-agent fan-out. This contrasts with the adversarial reviewer, which fans out eight dimension workers; the 10 BA Questions task is a rank-and-select over a 50-item pool with cross-category trade-offs, and one agent context produces better-coordinated questions than parallel category-workers re-merged centrally. (Mirrors the 10 UX Questions reviewer's single-pass design and its defence of that choice.)
 
@@ -19,7 +19,7 @@ The agent's only inputs are:
 - `requirements/requirements.md` (the merged document — read once at Step 2).
 - `framework/assets/characters/ten-ba-questions-review.md` (the character — loaded at activation).
 - `framework/assets/reviews/ten-ba-questions-reference.md` (the methodology — read at activation).
-- `framework/assets/reviews/template-ten-ba-questions.md` (the markdown scaffold — read once at Step 7).
+- `framework/assets/reviews/template-ten-ba-questions.html` (the self-contained HTML scaffold — read once at Step 7).
 - `framework/shared/general-rules.md` (read at Step 4 as a **filter source** only).
 - `framework/shared/prototype-invariants.md` (read at Step 4 as a **filter source** only).
 - `framework/shared/prototype-scope.md` (read at Step 4 as a **filter source** only).
@@ -27,7 +27,7 @@ The agent's only inputs are:
 
 The four filter-source reads at Step 4 are the agent's **only** reads outside its own asset set and the merged requirements doc. They are scoped to the candidate-filter pass; the agent does not consult these files for any other purpose.
 
-The agent's only outputs are `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md` and the inline summary it surfaces to the consultant.
+The agent's only outputs are `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.html` and the inline summary it surfaces to the consultant.
 
 This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts, analyses outputs, design-system outputs, or `framework/state/` is granted.
 
@@ -172,9 +172,9 @@ Run the **9 quality gates** from `ten-ba-questions-reference.md > Quality gates`
 
 ### Step 7 — Render
 
-Per `framework/assets/reviews/template-ten-ba-questions.md`:
+Per `framework/assets/reviews/template-ten-ba-questions.html`:
 
-- Read the template once.
+- Read the template once. It is a self-contained HTML scaffold (one inline `<style>`, no external CSS/JS, no `<script>`).
 - Build the substitution map for the placeholders documented in the template's header comment:
     - `{{TITLE}}` — *"10 BA Questions — `<domain>`"* if `§1` declares a domain or app name, else *"10 BA Questions — requirements.md"*.
     - `{{DOMAIN}}` — verbatim from `§1` if present, else *"(not declared in requirements.md)"*.
@@ -185,24 +185,21 @@ Per `framework/assets/reviews/template-ten-ba-questions.md`:
     - `{{BLOCKING_COUNT}}`, `{{MAJOR_COUNT}}`, `{{MINOR_COUNT}}` — derived counts from Step 5.
     - `{{CANDIDATE_POOL_SIZE}}` — the Step-3 pool size.
     - `{{CATEGORY_COVERAGE}}` — *"`{{N}} of 8 (`{{c-list}}`)"* where `c-list` is the comma-separated category IDs represented among the selected ten (e.g. *"6 of 8 (C1, C3, C5, C6, C7, C8)"*).
-    - `{{TRIAGE_BLOCK}}` — pre-rendered triage table per the TRIAGE BLOCK SCHEMA in the template's header. Rows are in Rank order (BAQ-01 first). For each question, fill `Rank | ID | Priority | Category | Anchor | Question (first line)`. Truncate question text at first sentence or 100 chars, whichever is shorter; append `…` if truncated. Escape `|` inside cells as `\|`.
-    - `{{QUESTION_1_BLOCK}}` … `{{QUESTION_10_BLOCK}}` — pre-rendered question blocks per the QUESTION BLOCK SCHEMA. For each, fill the `### BAQ-NN — {{priority}} — {{category-id}} {{category-label}} — {{anchor-or-missing}}` heading, the blockquoted `question_text`, and the `**Why this matters.**` rationale.
-    - `{{DIAGNOSTICS_BLOCK}}` — pre-rendered diagnostics per the DIAGNOSTICS SCHEMA: candidate-pool stats table (with UX-lens drop count), category-coverage table, 9-gate quality-gate table, override log.
-- **Escape every substituted value** for markdown before injection:
-    - In table cells, escape `|` as `\|`.
-    - In question-text blockquotes, preserve markdown by prefixing each line with `> `; do not strip markdown special characters inside the question (preserve fidelity to the candidate's `question_text`).
-    - In all other placeholders, leave the prose as-is — markdown is the output format, and `*`/`_`/backticks may carry meaning.
-- Compose the full markdown in memory. Compute SHA-256 of the in-memory bytes.
+    - `{{TRIAGE_BLOCK}}` — pre-rendered HTML `<tr>` rows (only the `<tbody>` rows; the `<thead>` is in the scaffold) per the TRIAGE BLOCK SCHEMA. Rows are in Rank order (BAQ-01 first). For each question, fill the Rank / ID (linking to `#{BAQ-NN}`) / Priority (`.chip.priority-{priority}`) / Category / Anchor / Question (first line) cells, and carry the `priority-{priority}` class on the `<tr>`. Truncate question text at first sentence or 100 chars, whichever is shorter; append `…` if truncated. HTML-escape cell content (no markdown pipe escaping — HTML table).
+    - `{{QUESTION_1_BLOCK}}` … `{{QUESTION_10_BLOCK}}` — pre-rendered question cards per the QUESTION BLOCK SCHEMA: one `<article class="qcard priority-{priority}" id="{BAQ-NN}">` each, with an `<h3>` carrying the ID + `.chip.priority-{priority}` + category + anchor, a `<blockquote class="question"><p>…</p></blockquote>` with the verbatim `question_text`, and a `<p class="why"><strong>Why this matters.</strong> …</p>` rationale.
+    - `{{DIAGNOSTICS_BLOCK}}` — pre-rendered diagnostics per the DIAGNOSTICS SCHEMA: a single `<details class="diagnostics-toggle" open>` wrapping the candidate-pool stats table (with UX-lens drop count), category-coverage table, 9-gate quality-gate table (PASS/FAIL `.chip`), override log.
+- **HTML-escape every substituted value** before injection — the five characters `&`, `<`, `>`, `"`, `'` become `&amp;`, `&lt;`, `&gt;`, `&quot;`, `&#39;`. This applies to question text, rationale prose, anchors, and every table cell. There is no markdown pipe escaping — the triage and diagnostics tables are HTML, not markdown. The verbatim `question_text` goes inside `<blockquote class="question"><p>…</p></blockquote>` once escaped.
+- Compose the full HTML in memory. Compute SHA-256 of the in-memory bytes.
 
-The template scaffold itself is **not edited**. Only the documented `{{placeholders}}` are substituted.
+The template scaffold itself is **not edited** — the inline `<style>` block, section ordering, IDs, ARIA labels, the TOC list, and table column headers are fixed. Only the documented `{{placeholders}}` are substituted, and every substitution is a text value or a pre-rendered HTML fragment built per the schemas in the template header. No `<script>` tag, no external stylesheet, no CDN reference is ever introduced.
 
 ### Step 8 — Write
 
 - Ensure the output directory exists: `Bash mkdir -p review-requirements/TEN-BA-QUESTIONS`.
-- `Write review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md` with the in-memory composed markdown.
-- Invoke `framework/skills/verify-artifact-write.md` with `path = review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md`, `expected_sha256 = <Step-7 sha>`, `expected_min_bytes = 1024` (tighter than the default `1` — a minimum legal render with 10 question blocks, a triage table, and a 9-gate diagnostics block is comfortably above 1 KB).
+- `Write review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.html` with the in-memory composed HTML.
+- Invoke `framework/skills/verify-artifact-write.md` with `path = review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.html`, `expected_sha256 = <Step-7 sha>`, `expected_min_bytes = 5000` (a minimum legal render carries the full inline `<style>` block plus 10 question cards, a triage table, and a 9-gate diagnostics block, comfortably above 5 KB).
 - On `pass`: advance to Step 9.
-- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md` after one retry."* and fail the handback. The orchestrator does not declare done.
+- On `RF-04 trigger`: halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit the single line *"Aborting to protect your work — write verification failed for `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.html` after one retry."* and fail the handback. The orchestrator does not declare done.
 
 ### Step 9 — Handback
 
@@ -210,7 +207,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the counts and gate result. No marketing language. Template:
 
-> *"Wrote `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md` — 10 BA questions selected from `{{CANDIDATE_POOL_SIZE}}` candidates. Priority: `{{BLOCKING_COUNT}}` blocking · `{{MAJOR_COUNT}}` major · `{{MINOR_COUNT}}` minor. Category coverage: `{{N}}` of 8. Quality gates: `{{n_gates_passed}}/9` pass. Ready, or want changes?"*
+> *"Wrote `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.html` — 10 BA questions selected from `{{CANDIDATE_POOL_SIZE}}` candidates. Priority: `{{BLOCKING_COUNT}}` blocking · `{{MAJOR_COUNT}}` major · `{{MINOR_COUNT}}` minor. Category coverage: `{{N}}` of 8. Quality gates: `{{n_gates_passed}}/9` pass. Open it in a browser. Ready, or want changes?"*
 
 Variant:
 
@@ -237,7 +234,7 @@ Use `AskUserQuestion`:
     - **Re-anchor a question:** update the `anchor` field to a valid `§N.N` or `missing-section: <slug>`. Re-run gate 5 only. Re-render, re-Write, re-verify, loop back to A.
     - **Edit rationale text:** update the rationale (1–3 sentences). Re-run gate 4 only. Re-render, re-Write, re-verify, loop back to A.
     - **Expand category coverage:** if gate 8 was the failure, the consultant may add a candidate from an under-represented category. Add it to the selected list and drop the lowest-scoring existing question to restore `len == 10`. Re-number IDs. Re-run gates 1, 5, 6, 7, 8, 9. Re-render, re-Write, re-verify, loop back to A.
-- **Restart** — re-enter Step 3 from a clean state. Generate a fresh candidate pool; re-filter; re-score; re-select. The previously-written `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md` is left in place; the next Step 8 will overwrite it.
+- **Restart** — re-enter Step 3 from a clean state. Generate a fresh candidate pool; re-filter; re-score; re-select. The previously-written `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.html` is left in place; the next Step 8 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 8).
 
@@ -252,7 +249,7 @@ Output the final handback line:
 - `requirements/requirements.md` — the merged requirements document. Read once in Step 2. The orchestrator's prerequisite gate guarantees existence.
 - `framework/assets/characters/ten-ba-questions-review.md` — the reviewer's stance. Loaded once in Step 1.
 - `framework/assets/reviews/ten-ba-questions-reference.md` — the methodology reference. Read once in Step 1.
-- `framework/assets/reviews/template-ten-ba-questions.md` — the markdown scaffold. Read once in Step 7.
+- `framework/assets/reviews/template-ten-ba-questions.html` — the self-contained HTML scaffold. Read once in Step 7.
 - `framework/shared/general-rules.md` — read once in Step 4 as a filter source.
 - `framework/shared/prototype-invariants.md` — read once in Step 4 as a filter source.
 - `framework/shared/prototype-scope.md` — read once in Step 4 as a filter source.
@@ -260,12 +257,12 @@ Output the final handback line:
 
 ## Output
 
-- `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
+- `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.html` — the populated, self-contained HTML artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template scaffold, the merged requirements document, and (at Step 4 only) the four filter sources (`framework/shared/general-rules.md`, `framework/shared/prototype-invariants.md`, `framework/shared/prototype-scope.md`, `framework/assets/reviews/ten-ux-questions-reference.md`). **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `analyse-requirements/`, against any path under `design-system/`, against any path under `framework/state/`, against any other path under `framework/shared/`, or against any other path under `framework/assets/reviews/` other than the four listed assets.** The stand-alone constraint is enforced by tool-list scope.
-- `Write` — write `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md`.
+- `Write` — write `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 7's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
 - `Bash` — `mkdir -p review-requirements/TEN-BA-QUESTIONS` (Step 8 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 6 quality-gate failure prompt (Revise / Override / Restart) when any gate fires; surface the Step 9 Accept / Revise / Restart prompt.
@@ -276,12 +273,14 @@ The agent does **not** use the `Agent` / `Task` tool. There is no fan-out, no su
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
-- `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md` exists and `verify-artifact-write` returned `pass`.
+- `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
+- The artefact is self-contained HTML: it begins with `<!doctype html>`, carries exactly one inline `<style>` block, and contains **no** `<script>` tag, no external stylesheet `<link>`, and no CDN/`http(s)://` asset reference.
+- Every consultant-visible substituted value (question text, rationale prose, anchors) is HTML-escaped (no raw `<`, `>`, or unescaped `&` leaks into the markup).
 - The artefact's `REQUIREMENTS_SHA256` field equals the SHA-256 captured in Step 2.
 - The Executive Summary's *"Total questions"* equals 10. *"Blocking + Major + Minor"* equals 10.
-- The Triage table has exactly 10 data rows, in Rank order (BAQ-01 at rank 1).
-- Every Question section (BAQ-01 through BAQ-10) is present, each with a heading, a blockquoted question text, and a `**Why this matters.**` rationale paragraph.
+- The Triage table has exactly 10 data `<tr>` rows, in Rank order (BAQ-01 at rank 1).
+- Every Question card (BAQ-01 through BAQ-10) is present, each as an `<article class="qcard">` with a heading, a blockquoted question text, and a `Why this matters.` rationale paragraph.
 - Each question's anchor is either a `§N.N` from the Step-2 anchor index or a `missing-section: <slug>` matching one of the documented slug names.
 - The diagnostics block reports all nine quality-gate results (either PASS or FAIL with flagged items).
 - The diagnostics block reports the candidate pool size, drop counts (GR / PI / scope / UX-lens), surviving count, and category coverage table.
@@ -296,7 +295,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md` exists, has been verified, and contains exactly 10 BA questions selected from a candidate pool of ≤ 50.
+- `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.html` exists, has been verified, is self-contained HTML (one inline `<style>`, no `<script>`, no external/CDN reference), and contains exactly 10 BA questions selected from a candidate pool of ≤ 50.
 - Every selected question has a priority ∈ {blocking, major, minor}, a valid anchor or `missing-section: <slug>`, and a 1–3 sentence rationale.
 - Category coverage among the selected ten is ≥ 5 of 8 (or the consultant explicitly chose Override at Step 6 and the diagnostics block records the violation).
 - Either all nine quality gates passed, or the consultant explicitly chose Override and the diagnostics block records every violation.
@@ -324,7 +323,9 @@ Before handing back, verify all of the following against the written artefact an
 - Do not write the artefact incrementally. Render in memory; compute sha256; Write once; verify.
 - Do not loop the accept/revise/restart prompt without a consultant response. The loop terminates on Accept; Revise applies a specific change and re-presents; Restart returns to Step 3.
 - Do not loop the Step 6 fail-Restart-fail cycle more than three times. On the fourth fail, force the Revise path with a one-line note that further iteration is not productive without consultant input.
-- Do not edit the markdown scaffold in `framework/assets/reviews/template-ten-ba-questions.md`. Only the documented `{{placeholders}}` are substituted; section ordering, table column headers, and the diagnostics layout are fixed.
+- Do not edit the HTML scaffold in `framework/assets/reviews/template-ten-ba-questions.html`. Only the documented `{{placeholders}}` are substituted; the inline `<style>` block, section ordering, IDs, the TOC list, table column headers, and the diagnostics layout are fixed.
+- Do not introduce a `<script>` tag, an external stylesheet `<link>`, a CDN reference, or any `http(s)://` asset URL. The artefact must open and render fully via `file://` and print to PDF offline. The only styling is the one inline `<style>` copied in the scaffold.
+- Do not inject unescaped question or rationale text into the HTML. Every substituted value is HTML-escaped (`&` `<` `>` `"` `'`) before substitution; a raw `<` from a question would otherwise corrupt the markup.
 - Do not paste the artefact body into the conversation. The file is on disk and the consultant can open it directly.
 - Do not use the `Agent` / `Task` tool. There is no sub-agent dispatch in this methodology — the single-agent design is the methodology's defended choice. A run that invokes `Agent` is implementing the wrong methodology.
 - Do not use any tool not explicitly listed in the Tools section.

@@ -7,12 +7,21 @@ methodologies:
   # the remaining seven fields. MVP methodologies so far:
   #   - `thematic-analysis` (Braun & Clarke 2006, six-phase reflexive thematic
   #     analysis with a deductive coverage check against a fixed 10-area concern
-  #     frame; pure markdown + Mermaid theme-map).
+  #     frame; self-contained HTML with a pre-rendered inline-SVG theme-map in
+  #     #diagrams + an adjacent collapsed Mermaid-source export <details> + an
+  #     embedded <pre><code class="language-json" id="thematic-analysis-body">
+  #     model that survives the markitdown HTML->MD round-trip for /requirements
+  #     re-ingestion).
   #   - `opportunity-solution-trees` (Teresa Torres 2016, four-layer discovery
   #     tree adapted for raw consultant inputs — forward discovery, vs the
-  #     reverse-discovery sibling under /analyse-requirement; pure markdown +
-  #     Mermaid graph TD; carries a `## Candidate requirements` bridge that
-  #     `/requirements` consumes when the artefact is re-dropped into `input/`).
+  #     reverse-discovery sibling under /analyse-requirement; self-contained HTML
+  #     with a pre-rendered four-band tree (inline SVG connectors, the
+  #     requirement-side twin's {{TREE}} approach reused) in #diagrams + an
+  #     adjacent collapsed Mermaid graph TD export <details>; carries a
+  #     Candidate-requirements bridge plus an embedded
+  #     <pre><code class="language-json" id="opportunity-solution-tree-body">
+  #     model that `/requirements` consumes when the artefact is re-dropped into
+  #     `input/` via the markitdown HTML->MD round-trip).
   #   - `journey-mapping` (NN/G Journey Mapping 101 + Kalbach 2020,
   #     current-state user-journey mapping adapted for raw consultant inputs
   #     — one persona per journey card, [SRC: <filename>] citations on every
@@ -268,20 +277,20 @@ methodologies:
   - name: thematic-analysis
     status: mvp
     group: Synthesis & themes
-    description: Choose this when your raw inputs are unstructured — interviews, notes, decks — and you want the recurring patterns surfaced before drafting requirements. It produces a Markdown report of the codes and themes the inputs carry, a theme-map, and candidate requirements bridged from each theme. Re-drop it into input/ so /requirements drafts from the themes, or use it yourself to sanity-check coverage.
-    output_path: analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md
+    description: Choose this when your raw inputs are unstructured — interviews, notes, decks — and you want the recurring patterns surfaced before drafting requirements. It produces a self-contained HTML report of the codes and themes the inputs carry, with a pre-rendered theme-map diagram, candidate requirements bridged from each theme, and an embedded machine-readable model. Re-drop it into input/ so /requirements drafts from the themes, or use it yourself to sanity-check coverage.
+    output_path: analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html
     reference_asset: framework/assets/analyses-inputs/thematic-analysis-reference.md
-    template_asset: null
+    template_asset: framework/assets/analyses-inputs/template-thematic-analysis.html
     map_skill: framework/skills/map-thematic-analysis-to-ui.md
     analyser_agent: framework/agents/analyses-inputs/thematic-analysis-analyser.md
     character: framework/assets/characters/thematic-analysis-inputs-analysis.md
   - name: opportunity-solution-trees
     status: mvp
     group: Users, goals & value
-    description: Choose this when the raw inputs name a desired outcome and you want the opportunities and solution options mapped before requirements lock in. It produces a Markdown discovery tree of outcome → opportunities → solutions → assumption tests (Torres 2016), with candidate-requirement seeds. Re-drop it into input/ so /requirements picks up the seeds, and use the assumption tests to decide what to validate first.
-    output_path: analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.md
+    description: Choose this when the raw inputs name a desired outcome and you want the opportunities and solution options mapped before requirements lock in. It produces a self-contained HTML discovery tree of outcome → opportunities → solutions → assumption tests (Torres 2016), with a pre-rendered tree diagram, candidate-requirement seeds, and an embedded machine-readable model. Re-drop it into input/ so /requirements picks up the seeds, and use the assumption tests to decide what to validate first.
+    output_path: analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html
     reference_asset: framework/assets/analyses-inputs/opportunity-solution-trees-reference.md
-    template_asset: null
+    template_asset: framework/assets/analyses-inputs/template-opportunity-solution-trees.html
     map_skill: framework/skills/map-opportunity-solution-trees-from-inputs-to-ui.md
     analyser_agent: framework/agents/analyses-inputs/opportunity-solution-trees-analyser.md
     character: framework/assets/characters/opportunity-solution-trees-inputs-analysis.md
@@ -382,9 +391,9 @@ methodologies:
     - Self-validates: every manifest row with `tier != "Unsupported"` was Read or skipped-with-reason; the artefact reads no path under `requirements/` other than `requirements/source-manifest.json`; the artefact reads no path under `framework/state/` or `framework/shared/`.
 3. Author the reference asset at `framework/assets/analyses-inputs/<method>-reference.md` (methodology rules and patterns).
 4. Author the character file at `framework/assets/characters/<method>-inputs-analysis.md` (Unicorn stance during the analyser run).
-5. (Optional) Author the template asset at `framework/assets/analyses-inputs/template-<method>.{html,md}`. Set `template_asset: null` for methodologies that emit pure Markdown without a scaffold (the `analyses/registry.md` precedent: `five-whys` and `glossary` both ship with `template_asset: null`).
+5. (Optional) Author the template asset at `framework/assets/analyses-inputs/template-<method>.html`. Set `template_asset: null` only for methodologies that emit pure Markdown without a scaffold. (As of the HTML migration, every MVP methodology populates an `.html` scaffold — no MVP row currently ships `template_asset: null`.)
 6. (Optional) Author the map-skill at `framework/skills/map-<method>-from-inputs-to-ui.md` — or reuse `framework/skills/map-<method>-to-ui.md` if the mapping is source-agnostic.
-7. Promote the registry row: flip `status: future` to `status: mvp` and populate all remaining fields (`description`, `output_path`, `reference_asset`, `template_asset`, `map_skill`, `analyser_agent`, `character`, and the optional `group` — assign a lens group; omitting it drops the row into a trailing `Other` group). `output_path` lives under `analyse-inputs/<METHOD>/` (uppercase methodology name) — e.g. `analyse-inputs/GLOSSARY/glossary.md`.
+7. Promote the registry row: flip `status: future` to `status: mvp` and populate all remaining fields (`description`, `output_path`, `reference_asset`, `template_asset`, `map_skill`, `analyser_agent`, `character`, and the optional `group` — assign a lens group; omitting it drops the row into a trailing `Other` group). `output_path` lives under `analyse-inputs/<METHOD>/` (uppercase methodology name) — e.g. `analyse-inputs/GLOSSARY/glossary.html`.
 8. Add the analyser node to graph 5 in `framework/dependency-graphs.md`.
 9. No orchestrator changes required — the selector skill picks the new MVP row up automatically.
 

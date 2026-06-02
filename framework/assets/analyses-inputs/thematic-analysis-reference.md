@@ -4,7 +4,7 @@
 
 > **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json`, generate per-source observations (Phase 1), transform them into codes anchored to verbatim extracts (Phase 2), cluster the codes into candidate themes (Phase 3), refine the themes against their underlying codes (Phase 4), define and name the final themes (Phase 5), then produce the report — including a bridge from each theme to candidate-requirement seeds and a deductive coverage check against a fixed 10-area concern frame (Phase 6). Every code, theme-definition, and candidate-requirement carries one or more `[SRC: <filename>]` markers naming a manifest row. Coverage gaps surface as `[GAP-DEDUCTIVE: <concern>]` markers in a diagnostics section — **never** as invented themes. Across re-runs the artefact is **additive**: prior theme headings, code lists, and candidate-requirements are preserved; new manifest content extends them.
 
-**Output file:** `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md` — a self-contained markdown document with an inline Mermaid theme-map diagram. **No template scaffold:** Thematic Analysis is the first MVP analyser of `/analyse-inputs` to exercise the registry's `template_asset: null` clause (pure markdown + Mermaid, no HTML).
+**Output file:** `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` — a self-contained HTML document rendered via `framework/assets/analyses-inputs/template-thematic-analysis.html`. The theme-map is a **pre-rendered inline SVG** in a `#diagrams` section, with an adjacent collapsed `<details class="mermaid-source">` block carrying the Mermaid source (validated by `framework/skills/mermaid-validator.md` before write). A `language-json` `thematic-analysis-body` block carries the structured model (themes + codes) and the candidate-requirement seeds, so the artefact survives a markitdown HTML→Markdown conversion for re-ingestion by `/requirements`.
 
 **Analyser agent:** `framework/agents/analyses-inputs/thematic-analysis-analyser.md`
 
@@ -35,11 +35,11 @@ Consultants drop briefs, decks, screenshots, interview notes, and meeting transc
 
 Thematic analysis is the **right first methodology** for `/analyse-inputs` because qualitative-research TA was designed for transcripts, interview notes, and source documents — exactly the shape of raw consultant material. By contrast, the merged `requirements/requirements.md` that `/analyse-requirement` lenses has already normalised the consultant's phrasing into *"the system shall …"* statements; TA on that document would surface themes about the normaliser, not about the consultant's inputs.
 
-### Why this analyser uses Markdown + Mermaid, not HTML
+### Why HTML with embedded Mermaid source + JSON body
 
-- **Re-ingestibility.** The artefact must be droppable back into `input/` as a fresh source for a later `/requirements` run. A `.md` file classifies as `Native-text` per `framework/skills/classify-input-tier.md` and the drafter reads it directly. An HTML alternative also classifies as `Native-text` (UTF-8 passes the sniff) but the drafter would have to parse HTML in-context — lossy and noisy.
-- **Diagram parity for free.** The framework already uses Mermaid for diagrammatic analyses (`SEQUENCE-DIAGRAM`, `STATE-DIAGRAM`, `ACTIVITY-DIAGRAM`) and ships `framework/skills/mermaid-validator.md` for pre-write validation. The theme-map is one fenced block; no template asset is needed.
-- **Smaller ship surface.** No HTML scaffold, no CSS contracts, no `{{placeholder}}` substitution discipline, no schema-comment blocks. The analyser composes a markdown string in memory, validates the embedded Mermaid block, then writes — the same shape as `glossary` and `five-whys`.
+- **Self-contained, diagram-first.** The artefact is a single HTML file the consultant can open in a browser with the theme-map at the top as a pre-rendered inline SVG — no Mermaid runtime, no external assets. This matches the framework's HTML-output, diagrams-first convention shared by the other analysers.
+- **Re-ingestibility via embedded fenced blocks.** The artefact must still be droppable back into `input/` as a fresh source for a later `/requirements` run. The embedded `language-json` `thematic-analysis-body` block (themes + codes + candidate-requirement seeds) and the collapsed `mermaid-source` block survive a markitdown HTML→Markdown conversion, so the structured model round-trips cleanly; the drafter reads the candidate-requirement seeds without having to parse presentational HTML.
+- **Diagram validation retained.** The Mermaid source is kept in an adjacent collapsed `<details class="mermaid-source">` block and validated by `framework/skills/mermaid-validator.md` before the inline SVG is rendered into the template — the same pre-write validation the other diagrammatic analyses use.
 
 ---
 
@@ -55,7 +55,7 @@ The artefact has a fixed top-to-bottom shape:
    - 1–2-sentence definition.
    - Supporting codes: bulleted list of `{code_label}` — *"{verbatim extract ≤ 200 chars}"* `[SRC: <filename>]` — one bullet per code.
    - Cross-source: `Cross-source: yes (3 sources)` or `Cross-source: no (single source)`.
-5. **Theme-map** (Mermaid `graph TD` block). The diagram lives in a fenced ` ```mermaid ` block; the analyser invokes `framework/skills/mermaid-validator.md` against the in-memory rendered artefact before writing.
+5. **Theme-map** (a `graph TD` diagram). Rendered as a **pre-rendered inline SVG** in the `#diagrams` section, with the Mermaid source kept in an adjacent collapsed `<details class="mermaid-source">` block; the analyser invokes `framework/skills/mermaid-validator.md` against that source before rendering the SVG and writing.
 6. **Theme-to-requirement-candidates.** One sub-section per final theme; each sub-section is a bullet list of candidate-requirement lines of shape *"The system should `<verb> <object>` so that `<outcome>`"*, citing the parent theme's `[SRC: <filename>]` set.
 7. **Coverage gaps and silent areas.** Three sub-lists:
    - **Covered** (no markers; just the concern name + the theme(s) covering it).
@@ -304,7 +304,7 @@ The analysis is complete when:
 - `final_themes` is non-empty (or the consultant Override'd a zero-theme run with a recorded reason).
 - All 6 hard gates pass, or the consultant chose Override and the failures are recorded in Diagnostics.
 - The Mermaid theme-map validated `valid`.
-- `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md` has been written and `verify-artifact-write` returned `pass`.
+- `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` has been written and `verify-artifact-write` returned `pass`.
 - The consultant chose Accept in the handback loop.
 
 ---

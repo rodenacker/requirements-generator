@@ -8,7 +8,7 @@
 
 - `framework/agents/reviews-inputs/ambiguity-reviewer.md` — drives the agent's seven-dimension sequential sweep plus the quality-gate sweep.
 
-**Output produced by the reviewer:** `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md` — a markdown punch-list of cited, severity-graded findings, each carrying a ready-to-paste stakeholder elicitation question.
+**Output produced by the reviewer:** `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` — a self-contained HTML punch-list of cited, severity-graded findings, with an ambiguity register (a table keyed by ambiguity type, one row per finding) carrying a ready-to-paste stakeholder elicitation question per finding. The reviewer renders it by substituting into the scaffold `framework/assets/reviews-inputs/template-ambiguity.html`.
 
 **Sibling lens:** The `/review-inputs` adversarial reviewer (`framework/assets/reviews-inputs/adversarial-reference.md`) sweeps a broader seven-dimension critique (stakeholder coverage, workflow coverage, ambiguity & vague language, provenance & conflict, quantitative signal, scope & MVP, bias & sampling). Adversarial's Dimension 3 (Ambiguity & Vague Language) overlaps this reference, but at a coarser grain: adversarial reports "vague verb in load-bearing position" as a single finding; this reviewer decomposes that into the specific linguistic taxonomy class (lexical / syntactic / referential / vague-predicate / subjective / weak-verb / optionality-passive), produces ≥2 plausible interpretations per finding, and emits a ready-to-paste elicitation question. The two reviewers are complementary: run adversarial when you want the broad coverage punch-list; run this one when you have a draft of the requirements thinking and need to flush specific ambiguities before drafting.
 
@@ -468,18 +468,19 @@ Ten gates. All are hard. If any gate fails, the reviewer does **not** write the 
 
 ## Output presentation
 
-The artefact renders as a structured markdown report. The fixed section ordering is:
+The artefact renders as a self-contained HTML report (the reviewer substitutes pre-escaped values + pre-rendered HTML fragments into `framework/assets/reviews-inputs/template-ambiguity.html`; one inline `<style>`, no external CSS/JS/fonts). The per-block HTML schemas (triage table, ambiguity register, findings table, per-dimension finding `<article>`s, elicitation groups, source roster, diagnostics `<details>`) live in the template's leading comment. The fixed section ordering is:
 
-1. **Header** — title, generated-at timestamp, manifest fingerprint, reviewer identity, sources-consumed/skipped counts.
-2. **Executive Summary** — total findings, severity tally, per-dimension counts, single-sentence verdict.
+1. **Header (Overview)** — title (`<h1 id="top">` + `<title>`) + a `dl.meta-grid`: Domain, Generated-at timestamp, Manifest SHA-256, sources-consumed/skipped counts, reviewer identity.
+2. **Executive Summary** — total findings, severity tally, single-sentence verdict (a `<span class="verdict verdict-{VERDICT}">` banner).
 3. **Triage** — *"Top issues to address first"* callout (≤10 entries: every Blocker plus highest-impact Majors per the deterministic selection rule).
-4. **Source roster** — Consumed + Skipped tables.
-5. **Findings Table** — compact tabular view of every finding (ID, Dim(s), Sev, Location, one-line problem), sorted Blocker → Major → Minor.
-6. **Per-Dimension Sections (1–7)** — full findings for each dimension, or a Justification block if zero findings + ≥3-sentence justification provided.
-7. **Suggested elicitation questions** — grouped by source filename, one numbered list per filename. This is the section the consultant pastes into the client follow-up.
-8. **Diagnostics** — quality-gate results, coverage map, override log, run history.
+4. **Ambiguity Register** — the load-bearing table, keyed by ambiguity type (the seven dimensions): one row per finding carrying ID, Type(s), Severity, Location, Evidence, ≥2 Interpretations, and a ready-to-paste stakeholder question. Sorted Blocker → Major → Minor, then ambiguity type ascending, then AMB-NN.
+5. **Source roster** — Consumed + Skipped tables.
+6. **Findings Table** — compact tabular view of every finding (ID, Dim(s), Sev, Location, one-line problem), sorted Blocker → Major → Minor.
+7. **Per-Dimension Sections (1–7)** — full findings for each dimension (finding `<article>`s), or a Justification block if zero findings + ≥3-sentence justification provided.
+8. **Suggested elicitation questions** — grouped by source filename, one `<ol>` per filename. This is the section the consultant pastes into the client follow-up.
+9. **Diagnostics** — a collapsed `<details>`: quality-gate results, coverage map, override log, run history.
 
-The artefact is a punch-list + action list, not a narrative. Prose between findings is minimised; the consultant should be able to read the Triage callout in under two minutes, jump to the per-dimension section for context on any finding, and copy the elicitation-questions section into a client email in one selection.
+The artefact is a punch-list + action list, not a narrative. Prose between findings is minimised; the consultant should be able to read the Triage callout in under two minutes, scan the ambiguity register keyed by type, jump to the per-dimension section for context on any finding, and copy the elicitation-questions section into a client email in one selection.
 
 ---
 

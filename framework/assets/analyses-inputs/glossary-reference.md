@@ -4,7 +4,7 @@
 
 > **Purpose — establish a common understanding, not just audit it.** Walk the raw consultant inputs enumerated in `requirements/source-manifest.json`, surface the significant terms, classify each as **domain-specific** (problem space) or **application-specific** (solution space), define each term **from the inputs** (cited `[SRC: <filename>]`), and **rate the shared-understanding maturity** of each term on a 0–4 scale. Then **drive convergence**: where the inputs leave a term undefined, weak, synonymous, or conflicting, the analyser PROPOSES the agreed understanding — a candidate definition, a refinement, or a canonical-term resolution — in a clearly-fenced, marked, blocking, anchored block the consultant confirms. The end state the method works toward is one agreed vocabulary downstream (`/requirements` and design) can use consistently: the project's **ubiquitous language**.
 
-**Output file:** `analyse-inputs/GLOSSARY/glossary.html` — a self-contained, readability-optimised HTML document that reads as a lookup reference, carrying an embedded machine-readable JSON term model for re-ingestion. (Contrast the requirements-side sibling, which is pure markdown.)
+**Output file:** `analyse-inputs/GLOSSARY/glossary.html` — a self-contained, readability-optimised HTML document that reads as a lookup reference, carrying an embedded machine-readable JSON term model for re-ingestion. (The requirements-side sibling is also self-contained HTML; the two differ in source and primary axis, not format — see the comparison table below.)
 
 **Analyser agent:** `framework/agents/analyses-inputs/glossary-analyser.md`
 
@@ -31,7 +31,7 @@ A glossary is a venerable artefact of requirements work, and its purpose is alig
 |---|---|---|
 | Source | one synthesised `requirements/requirements.md` | many raw inputs via `source-manifest.json` |
 | Citation | `§N.M` section refs | `[SRC: <filename>]` (manifest row `filename`) |
-| Output | pure markdown | self-contained HTML + embedded JSON |
+| Output | self-contained HTML + embedded JSON | self-contained HTML + embedded JSON |
 | Primary axis | scope tiers (nouns→acronyms→verbs→fields) | **classification: domain vs application** |
 | Rating | binary (defined / used-without-definition) | **0–4 shared-understanding maturity** |
 | Inference | **forbidden** — extraction-only, no `[AI-SUGGESTED]` | **convergence engine** — proposals via the sanctioned, fenced, blocking `[AI-SUGGESTED]` channel |
@@ -39,7 +39,7 @@ A glossary is a venerable artefact of requirements work, and its purpose is alig
 
 The relaxation of the requirements-side's hard no-`[AI-SUGGESTED]` rule is deliberate and bounded: proposals are the *only* authoring-adjacent act, they are always fenced, marked, blocking, technique-named, and source-anchored, and on a `/requirements` round-trip they become mandatory resolver confirmations. This reuses the exact channel `task-analysis`, `user-goal-analysis`, and `business-context-definition` already use; it does not widen the framework-wide `[AI-SUGGESTED]` invariant.
 
-This analyser **never** reads `framework/assets/glossary.md` (the cross-agent BA/UX vocabulary reference — a different artefact) nor the requirements-side `analyse-requirements/GLOSSARY/glossary.md`.
+This analyser **never** reads `framework/assets/glossary.md` (the cross-agent BA/UX vocabulary reference — a different artefact) nor the requirements-side `analyse-requirements/GLOSSARY/glossary.html`.
 
 ---
 
@@ -250,7 +250,7 @@ On Revise → `failed-handback`. On Override → record violations in the Run-hi
 - **Do not pad the glossary with general vocabulary.** Discard non-risky general English (logged); route vague qualifiers to the ambiguity register. (G4.)
 - **Do not collapse two referents into one canonical term without evidence,** and do not split a single concept into two canonical entries. Synonym/conflict resolution is a *proposal* the consultant confirms. (G7.)
 - **Do not inflate a maturity level to dodge a finding.** A weak definition is L2 with the violation recorded; a contradiction is L4. Sparsity and conflict are signals, not defects.
-- **Do not read `framework/assets/glossary.md` or `analyse-requirements/GLOSSARY/glossary.md`.** This method is input-grounded and stand-alone; loading either conflates artefacts.
+- **Do not read `framework/assets/glossary.md` or `analyse-requirements/GLOSSARY/glossary.html`.** This method is input-grounded and stand-alone; loading either conflates artefacts.
 - **Do not bundle external JS / CSS / Mermaid / fonts / CDN.** Self-contained HTML only; the embedded JSON lives in `<pre><code class="language-json">`, never a `<script>` (markitdown strips `<script>`).
 - **Do not paste the artefact body into the conversation.** It is on disk; the consultant opens it in a browser.
 

@@ -4,7 +4,7 @@
 
 > **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json`, extract a single root **Outcome** (Round 1; multi-outcome candidates surface an interactive picker), inductively surface customer-perspective **Opportunities** (Round 2), inductively surface candidate **Solutions** (Round 3), best-effort extract **Assumption Tests** (Round 4), **ladder** the four layers into a tree (Round 5), then produce the report — including a **bridge** from each Opportunity to candidate-requirement seeds the `/requirements` drafter can pick up when the artefact is re-ingested (Round 6). Every node carries one or more `[SRC: <filename>]` markers naming a manifest row whose `filename` field equals the marker payload. Across re-runs the artefact is **additive**: prior tree nodes, ladder edges, and candidate-requirement lines are preserved; new manifest content extends them.
 
-**Output file:** `analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.md` — a self-contained markdown document with an inline Mermaid `graph TD` tree diagram. **No template scaffold:** OST follows the `thematic-analysis` precedent (pure markdown + Mermaid, `template_asset: null`).
+**Output file:** `analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` — a self-contained HTML document rendered via `framework/assets/analyses-inputs/template-opportunity-solution-trees.html`. The tree is a **pre-rendered inline SVG** in a `#diagrams` section (reusing the requirements-side twin's `{{TREE}}` SVG approach), with an adjacent collapsed `<details class="mermaid-source">` block carrying the `graph TD` source (validated by `framework/skills/mermaid-validator.md` before write). A `language-json` `opportunity-solution-tree-body` block carries the tree model and the candidate-requirement seeds, so the artefact survives a markitdown HTML→Markdown conversion for re-ingestion by `/requirements`.
 
 **Analyser agent:** `framework/agents/analyses-inputs/opportunity-solution-trees-analyser.md`
 
@@ -42,13 +42,13 @@ The artefact's load-bearing addition versus the reverse-discovery sibling is the
 
 OST complements `thematic-analysis`: TA emphasises *what* themes recur across sources; OST emphasises *why* (the outcome the work serves) and *how* (the candidate solutions the inputs hint at). A consultant may run both and re-ingest both into `input/` for a richer `/requirements` run.
 
-### Why this analyser uses Markdown + Mermaid (not HTML + SVG like the sibling)
+### Why HTML with embedded SVG tree + Mermaid source + JSON body
 
-- **Re-ingestibility is the load-bearing constraint.** A `.md` file classifies as `Native-text` per `framework/skills/classify-input-tier.md`. The consultant re-drops the artefact into `input/` and the drafter reads it directly. The HTML + SVG sibling artefact (the requirements-side OST audit) cannot round-trip into `/requirements` without a lossy HTML-parsing pass.
-- **Diagram parity for free.** The framework already ships `framework/skills/mermaid-validator.md` and `thematic-analysis` already invokes it inline at Step 10 sub-step C. The OST tree gets the same wiring; no new validator code.
-- **Smaller ship surface.** No HTML scaffold, no CSS contract, no `{{placeholder}}` template, no schema-comment block. The analyser composes a string in memory, validates the Mermaid block, then writes — the same shape as `thematic-analysis`, `five-whys`, and `glossary` (the three pure-markdown precedents in the framework).
+- **Self-contained, diagram-first.** The artefact is a single HTML file the consultant can open in a browser with the Opportunity Solution Tree at the top as a pre-rendered inline SVG — reusing the requirements-side twin's `{{TREE}}` SVG approach. No Mermaid runtime, no external assets. This matches the framework's HTML-output, diagrams-first convention.
+- **Re-ingestibility via embedded fenced blocks.** Re-ingestion is still load-bearing: the consultant re-drops the artefact into `input/` to feed `/requirements`. The embedded `language-json` `opportunity-solution-tree-body` block (tree model + candidate-requirement seeds) and the collapsed `mermaid-source` block survive a markitdown HTML→Markdown conversion, so the model round-trips cleanly and the drafter reads the candidate-requirement seeds without parsing presentational HTML. The "HTML cannot round-trip into `/requirements`" rationale that previously justified staying in markdown is therefore obsolete — the embedded JSON body block is what makes the HTML round-trip cleanly now.
+- **Diagram validation retained.** The `graph TD` source is kept in an adjacent collapsed `<details class="mermaid-source">` block and validated by `framework/skills/mermaid-validator.md` before the inline SVG is rendered — the same pre-write validation `thematic-analysis` invokes.
 
-The sibling's HTML + SVG choice is correct for that pipeline (the artefact is a final audit deliverable). The inputs-side choice differs because the use case differs.
+The requirements-side twin already produced HTML + SVG as a final audit deliverable; the inputs-side variant now produces the same self-contained HTML shape while keeping its load-bearing candidate-requirements bridge re-ingestible through the embedded body block.
 
 ---
 
@@ -72,7 +72,7 @@ The artefact has a fixed top-to-bottom shape:
     - Verbatim text (`<verb> <object>` or `<feature name>`).
     - Source extract + `[SRC: <filename>]`.
 8. **Assumption Tests.** Grouped by parent Solution (sub-heading `### For S-NN`). When Layer 4 is entirely absent, render the single placeholder line: *"`(no assumption tests in inputs)` — raw consultant inputs rarely carry explicit risk / assumption / open-question phrasing; this layer is expected to be absent. Add risk / assumption material to `input/` and re-run to populate it."*
-9. **Opportunity Solution Tree.** Heading `## Opportunity Solution Tree`. Fenced Mermaid `graph TD` block per the diagram spec below.
+9. **Opportunity Solution Tree.** A `#diagrams` section with the tree as a pre-rendered inline SVG (per the diagram spec below), and the `graph TD` source kept in an adjacent collapsed `<details class="mermaid-source">` block.
 10. **Candidate requirements (bridge to `/requirements`).** Heading `## Candidate requirements`. One sub-section per Opportunity (`### From Op-NN`); each sub-section a bullet list of *"The system should `<verb> <object>` so that `<outcome>`."* lines, each ending in `[SRC: <filename>]` inherited from the parent Opportunity. Opportunities flagged `[UNADDRESSED]` render a single bullet: *"`(no source-grounded solutions; recommend-elicit-solution)` — the inputs name this opportunity but commit no solution to it. Add elicitation material naming candidate solutions to `input/` and re-run, or accept as out-of-scope."*
 11. **Coverage diagnostics.** Heading `## Coverage diagnostics`. Four sub-lists (each emits an italic *"(no entries this run)"* line when empty):
     - **Orphan solutions** — solutions under sentinel `Op-?`.
@@ -351,7 +351,7 @@ The analyser **never** reads:
 - Any path under `requirements/` other than `requirements/source-manifest.json`.
 - Any path under `framework/state/`.
 - Any path under `framework/shared/` (textual references to `RF-NN` / `GR-NN` are links for the reader, not file loads).
-- Other analyses' artefacts (`analyse-requirements/<OTHER-METHOD>/...`, `analyse-inputs/<OTHER-METHOD>/...`) — including `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md`, even though both lenses operate on the same inputs.
+- Other analyses' artefacts (`analyse-requirements/<OTHER-METHOD>/...`, `analyse-inputs/<OTHER-METHOD>/...`) — including `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html`, even though both lenses operate on the same inputs.
 - Any pattern-catalogue or design-system file.
 
 ---
@@ -412,7 +412,7 @@ The analysis is complete when:
 - A primary root Outcome exists (Round 1 produced ≥ 1 candidate, and the consultant picked one on multi-candidate runs).
 - All 6 hard gates pass, or the consultant chose Override and the failures are recorded in Diagnostics.
 - The Mermaid tree validated `valid`.
-- `analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.md` has been written and `verify-artifact-write` returned `pass`.
+- `analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` has been written and `verify-artifact-write` returned `pass`.
 - The consultant chose Accept in the handback loop.
 
 ---

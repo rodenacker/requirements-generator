@@ -74,7 +74,7 @@ This agent reads:
 - `framework/assets/analyses-inputs/glossary-reference.md` (the methodology — read once in Step 1).
 - `framework/assets/analyses-inputs/template-glossary.html` (the template — read once in Step 1 or lazily in Step 10 sub-step B).
 
-The agent reads **nothing else under `requirements/`** — not `requirements/requirements.md`, not `requirements/requirements-draft.md`, not `requirements/consultant-answers.md`, not `requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry references are textual, not file loads). It does not read other analyses' artefacts under `analyse-requirements/` or `analyse-inputs/<OTHER-METHOD>/` — **including, explicitly, `analyse-requirements/GLOSSARY/glossary.md`** (the requirements-side sibling) **and `framework/assets/glossary.md`** (the cross-agent vocabulary reference). The two GLOSSARY methods never load each other; conflating them risks circular-reasoning failures.
+The agent reads **nothing else under `requirements/`** — not `requirements/requirements.md`, not `requirements/requirements-draft.md`, not `requirements/consultant-answers.md`, not `requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry references are textual, not file loads). It does not read other analyses' artefacts under `analyse-requirements/` or `analyse-inputs/<OTHER-METHOD>/` — **including, explicitly, `analyse-requirements/GLOSSARY/glossary.html`** (the requirements-side sibling) **and `framework/assets/glossary.md`** (the cross-agent vocabulary reference). The two GLOSSARY methods never load each other; conflating them risks circular-reasoning failures.
 
 The agent's only outputs are `analyse-inputs/GLOSSARY/glossary.html` and the inline summary it surfaces to the consultant. This invariant is enforced by the agent's `Tools` list — no read path into pipeline-internal artefacts is granted; no MCP tool is granted.
 
@@ -88,7 +88,7 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 - Read `framework/assets/analyses-inputs/glossary-reference.md` once. The reference defines what to do in each round; treat it as authoritative.
 - (Optional, may defer to Step 10) Read `framework/assets/analyses-inputs/template-glossary.html` once for substitution.
 - State readiness in one short line: *"Glossary analyser (input-analysis variant) ready. Starting from `requirements/source-manifest.json`. Purpose: establish one agreed vocabulary (ubiquitous language) for the spec and design — surface significant terms, classify domain vs application, define from the inputs (cited), rate shared-understanding maturity 0–4, and drive convergence by PROPOSING definitions/refinements/canonical resolutions where the inputs leave a term undefined, weak, synonymous, or conflicting. Methodology: DDD ubiquitous language + ISO 704 definition principles + Berry & Kamsties ambiguity + termhood/unithood extraction adapted for small heterogeneous corpora. Cited definitions are verbatim `[SRC: <filename>]`; proposals carry `[AI-SUGGESTED: AI-NNN | blocking]` with a named technique and a source anchor — never anchorless, never on a settled term. Five rounds; ten hard gates; no definition fabricated from world knowledge."*
-- Restate the stand-alone-ish constraint in-thread: *"This run reads the manifest plus the files it enumerates — no other pipeline state is consulted; `requirements/requirements.md`, `framework/state/`, `framework/shared/`, `framework/assets/glossary.md`, and the requirements-side `analyse-requirements/GLOSSARY/glossary.md` are not loaded."*
+- Restate the stand-alone-ish constraint in-thread: *"This run reads the manifest plus the files it enumerates — no other pipeline state is consulted; `requirements/requirements.md`, `framework/state/`, `framework/shared/`, `framework/assets/glossary.md`, and the requirements-side `analyse-requirements/GLOSSARY/glossary.html` are not loaded."*
 
 ### Step 2 — Read manifest & per-tier file ingest
 
@@ -368,7 +368,7 @@ The loop continues until the consultant chooses Accept (or hand-back fails on a 
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the template, the manifest, each manifest-enumerated source file (via `original_path` or `converted_sibling`), and (if present) the prior artefact. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against `framework/assets/glossary.md`; not against `analyse-requirements/GLOSSARY/glossary.md` or any other analysis artefact.** The stand-alone-ish constraint is enforced by tool-list scope.
+- `Read` — read the character file, the reference asset, the template, the manifest, each manifest-enumerated source file (via `original_path` or `converted_sibling`), and (if present) the prior artefact. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against `framework/assets/glossary.md`; not against `analyse-requirements/GLOSSARY/glossary.html` or any other analysis artefact.** The stand-alone-ish constraint is enforced by tool-list scope.
 - `Write` — write `analyse-inputs/GLOSSARY/glossary.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 10's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
 - `Bash` — `mkdir -p analyse-inputs/GLOSSARY` (or PowerShell `New-Item -ItemType Directory -Force` — Step 11 setup). No other Bash usage.
@@ -395,7 +395,7 @@ Before handing back, verify all of the following against the written artefact an
 - The Diagnostics block contains the summary, proposal-by-kind, and technique `<p>`s; the discard log; the Consumed + Skipped source rosters; the 10-gate `<ul>`; and the Run history `<ul>` with `run_count` bullets.
 - Empty registers are reported via honest empty-state copy and are **not** padded with invented entries.
 - Every consumed manifest row is reflected in the Consumed roster (with term counts or an `irrelevant-to-glossary` reason); every skipped row is in the Skipped roster (G9).
-- No file under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files was read. No file under `framework/state/` or `framework/shared/`, not `framework/assets/glossary.md`, and not `analyse-requirements/GLOSSARY/glossary.md`, was read.
+- No file under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files was read. No file under `framework/state/` or `framework/shared/`, not `framework/assets/glossary.md`, and not `analyse-requirements/GLOSSARY/glossary.html`, was read.
 - The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, with Accept still required to declare done).
 
 ## Definition of Done
@@ -416,7 +416,7 @@ Before handing back, verify all of the following against the written artefact an
 - **Do not pad the glossary with general vocabulary.** Discard non-risky general English (logged in Diagnostics); route vague qualifiers to the ambiguous-general register; never coerce a term into a bucket to fill the page. (G4.)
 - **Do not inflate a maturity level to dodge a finding.** A weak definition is L2 with the ISO-704 violation recorded; a contradiction is L4. Sparsity and conflict are signals, not defects.
 - **Do not collapse two referents into one canonical term without evidence, or split one concept into two canonical entries.** Synonym/conflict resolution is a *proposal* the consultant confirms. (G7.)
-- **Do not read `framework/assets/glossary.md` or `analyse-requirements/GLOSSARY/glossary.md`.** This method is input-grounded and stand-alone; loading either conflates artefacts and risks circular reasoning.
+- **Do not read `framework/assets/glossary.md` or `analyse-requirements/GLOSSARY/glossary.html`.** This method is input-grounded and stand-alone; loading either conflates artefacts and risks circular reasoning.
 - **Do not read any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files.** There is no requirements-doc sibling for this method.
 - **Do not read `framework/state/` or `framework/shared/`.** Other agents' state and shared rules are not glossary inputs.
 - **Do not re-invoke `markitdown-mcp`.** Conversions are the input-handler's responsibility; the manifest's `converted_sibling` path is the contract.

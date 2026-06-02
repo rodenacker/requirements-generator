@@ -1,0 +1,591 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses/five-whys-analyser.md.
+
+  Purpose: HTML/CSS skeleton for the Five Whys Justification Analysis (Toyota
+  Production System; Sakichi Toyoda 1930s / Taiichi Ohno 1950s — applied here to
+  requirement justification, not pain analysis). Self-contained (`<!doctype html>`
+  + ONE inlined `<style>` + `<body>`). NO external CSS/JS, NO Mermaid, NO CDN,
+  NO `<script>`; viewable by opening `file://` in a browser; prints to PDF;
+  shareable with clients without tooling. CSS lineage copied from the sibling
+  framework/assets/analyses/template-opportunity-solution-trees.html so the
+  analysis outputs read as consistent siblings.
+
+  This method is NOT re-ingested — the blueprint-architect treats five-whys as
+  `upstream-only` (ignores it). So there is NO machine-readable JSON body block;
+  the artefact is human-facing only.
+
+  Section order (top-to-bottom):
+    1. Overview (id="overview")          — title, subtitle, meta-grid
+                                           (Domain, Generated, Requirements SHA-256,
+                                           + method counts).
+    2. TOC (<nav class="toc">)           — static top-level anchors (sticky).
+    3. Diagrams (id="diagrams")          — {{DIAGRAMS}}: one pre-rendered inline
+                                           <svg> per requirement, each drawing that
+                                           requirement's causal "why" chain as a
+                                           vertical linked chain (cards joined by
+                                           SVG <path> connectors with explicit
+                                           coordinates the analyser computes at
+                                           render time). Sits ABOVE the textual
+                                           drill-down. Branched chains fork into
+                                           parallel sub-columns below the branch row.
+    4. Scoring (id="scoring")            — {{SCORING_TABLE}}: the Round 1 priority
+                                           scoring table (one row per auto-extracted
+                                           candidate; the full auditable breakdown).
+    5. Drill-down (id="drilldown")       — {{REQUIREMENT_SECTIONS}}: one
+                                           <section class="req-block"> per requirement
+                                           in the analysis set, each carrying the
+                                           source/category/statement lines, the why-chain
+                                           <table>, the termination row, and the
+                                           coverage row. Branched requirements emit one
+                                           sub-chain table per branch.
+    6. Diagnostics (id="diagnostics")    — <details> wrapper, collapsed by default;
+                                           {{DIAGNOSTICS_BLOCK}}.
+    7. footer                            — legend + credit.
+
+  Placeholders the analyser substitutes (string substitution, all values
+  pre-escaped for HTML):
+
+    {{TITLE}}                       — short title (e.g. "Five Whys Justification Analysis — Project X")
+    {{DOMAIN}}                      — domain string (from requirements §1 if present, else "(not declared in requirements.md)")
+    {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
+    {{REQUIREMENTS_SHA256}}         — sha256 of requirements/requirements.md at read time
+    {{AUTO_EXTRACTED_COUNT}}        — candidate requirements auto-extracted (≤ 5)
+    {{ANALYSED_COUNT}}              — total requirements analysed (selected-extracted + consultant-stated)
+    {{WHY_LEVEL_COUNT}}             — total why-levels across all chains + sub-chains
+    {{PASS_COUNT}}                  — chains/branches terminating PASS (Sufficiency Test)
+    {{INCOMPLETE_COUNT}}            — chains/branches terminating INCOMPLETE or CAP
+    {{COVERAGE_GAP_COUNT}}          — coverage rows marked `gap`
+    {{AI_SUGGESTED_DENSITY}}        — e.g. "32% (8/25)"
+    {{DIAGRAMS}}                    — pre-rendered set of <figure class="chain-figure"> blocks
+                                      (one per requirement), each containing a
+                                      <svg class="chain-svg"> per the CHAIN-SVG SCHEMA. When the
+                                      analysis set is empty, a single muted placeholder.
+    {{SCORING_TABLE}}               — pre-rendered <table class="scoring-table"> per SCORING SCHEMA.
+    {{REQUIREMENT_SECTIONS}}        — pre-rendered set of <section class="req-block"> per
+                                      REQUIREMENT-BLOCK SCHEMA. Empty analysis set → empty string.
+    {{DIAGNOSTICS_BLOCK}}           — pre-rendered <section class="diagnostics"> per DIAGNOSTICS SCHEMA.
+
+  ----------------------------------------------------------------------------------------------
+  CHAIN-SVG SCHEMA — {{DIAGRAMS}} is one <figure> per requirement. The analyser draws
+  the why-chain as a vertical column of node-rects joined by SVG connector <path>s with
+  explicit coordinates computed at render time (the OST `{{TREE}}` mechanism: paths under
+  the nodes, nodes above). The Requirement node sits at the top; each Why level below it;
+  the terminator (PASS / INCOMPLETE / CAP) badge on the final node. Branched chains: after
+  the branch row, the analyser splits into N parallel sub-columns (cap 3), each laddering
+  to its own terminator. Provenance is encoded by node fill class. NO <script>; geometry is
+  baked into the emitted SVG markup:
+
+      <figure class="chain-figure" id="fig-R<n>">
+        <figcaption class="chain-caption">
+          <span class="chain-id">R<n></span>
+          <span class="chain-title">{{short_title}}</span>
+          <span class="cat-badge cat-<business-goal|op-capability|workflow-constraint|policy-driven|no-category>">{{PRIMARY-CATEGORY}}</span>
+          <span class="term-badge term-<pass|incomplete|cap>">{{PASS|INCOMPLETE|CAP}}</span>
+        </figcaption>
+        <svg class="chain-svg" viewBox="0 0 {{W}} {{H}}" width="{{W}}" height="{{H}}"
+             role="img" aria-label="Why chain for requirement R<n>" preserveAspectRatio="xMidYMin meet">
+          <!-- connectors first (drawn under the nodes) -->
+          <path class="edge prov-<from-requirements|from-section|derived|ai-suggested>"
+                d="M x1,y1 C x1,my x2,my x2,y2" />
+          <!-- one <g class="node ..."> per chain level, drawn after the paths -->
+          <g class="node node-requirement">
+            <rect x="{{x}}" y="{{y}}" width="{{w}}" height="{{h}}" rx="6" />
+            <text class="node-level" x="{{tx}}" y="{{t1}}">Requirement</text>
+            <text class="node-text"  x="{{tx}}" y="{{t2}}"><tspan>…wrapped lines…</tspan></text>
+          </g>
+          <g class="node node-why prov-<...>">
+            <rect .../>
+            <text class="node-level" ...>Why N</text>
+            <text class="node-text"  ...><tspan>…</tspan></text>
+          </g>
+          <!-- final node carries .node-root (PASS) or .node-incomplete (INCOMPLETE/CAP) -->
+        </svg>
+      </figure>
+
+      Empty analysis set → <p class="diagram-empty">No requirements were selected for
+      rationale analysis — see the scoring table below for the auto-extracted candidates.</p>
+
+  SCORING SCHEMA — {{SCORING_TABLE}} is one <table class="scoring-table">. Columns mirror the
+  methodology's Round 1 breakdown exactly (Rank | Requirement | Source | Detected categories |
+  §5 anchors | §4 anchors | Modal | Other refs | Depth | Impl-detail penalty | Score):
+
+      <table class="scoring-table" aria-label="Rationale-analysis priority scoring (Round 1)">
+        <thead><tr>
+          <th>Rank</th><th>Requirement</th><th>Source</th><th>Detected categories</th>
+          <th>§5 anchors</th><th>§4 anchors</th><th>Modal</th><th>Other refs</th>
+          <th>Depth</th><th>Impl penalty</th><th>Score</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td class="num">1</td>
+            <td>{{short_title}}<span class="no-cat-stamp">[NO-CATEGORY-MATCH — Five Whys may yield a shallow chain]</span></td>
+            <td><span class="ref-chip">§6.N</span></td>
+            <td><span class="cat-pill cat-workflow-constraint">[WORKFLOW-CONSTRAINT]</span> <span class="cat-pill cat-policy-driven">[POLICY-DRIVEN]</span></td>
+            <td class="num">2 (§5.1, §5.3)</td>
+            <td class="num">1 (§4.2)</td>
+            <td><span class="modal-chip">must</span></td>
+            <td class="num">1 (§1)</td>
+            <td class="num">1</td>
+            <td class="num">0</td>
+            <td class="num score">15</td>
+          </tr>
+        </tbody>
+      </table>
+
+  REQUIREMENT-BLOCK SCHEMA — {{REQUIREMENT_SECTIONS}} is one <section> per analysed requirement:
+
+      <section class="req-block" id="R<n>" aria-label="Requirement R<n>">
+        <h3 class="req-heading"><span class="chain-id">R<n></span> {{short_title}}
+            <span class="cat-badge cat-<...>">{{PRIMARY-CATEGORY}}</span></h3>
+        <dl class="req-meta">
+          <div><dt>Source</dt><dd><span class="ref-chip">§6.N</span> (from-§6 — auto-extracted)</dd></div>
+          <div><dt>Detected categories</dt><dd>{{primary}}, {{others}}</dd></div>
+          <div><dt>Statement</dt><dd class="verbatim">&ldquo;{{requirement quote}}&rdquo;</dd></div>
+        </dl>
+
+        <table class="why-chain" aria-label="Why chain R<n>">
+          <thead><tr><th>Level</th><th>Why?</th><th>Answer</th><th>Evidence</th><th>Provenance</th></tr></thead>
+          <tbody>
+            <tr class="row-requirement"><td>Requirement</td><td>&mdash;</td><td>{{requirement text}}</td><td>§6.N</td>
+                <td><span class="prov-chip prov-from-section">from-§6</span></td></tr>
+            <tr><td>Why 1</td><td>Why does this requirement exist?</td><td>{{answer 1}}</td>
+                <td>§4.X &ldquo;…&rdquo;</td><td><span class="prov-chip prov-from-requirements">from-requirements</span></td></tr>
+            <tr class="row-ai"><td>Why 2</td><td>Why {{prior}}?</td>
+                <td><span class="ai-marker">[AI-SUGGESTED]</span> {{answer 2}}. <em class="rationale">Rationale: {{one-line}}</em></td>
+                <td>§1 (no business-driver text for this level)</td>
+                <td><span class="prov-chip prov-ai-suggested">ai-suggested</span></td></tr>
+            <tr class="row-root"><td>Why k</td><td>Why {{prior}}?</td>
+                <td><strong>Root justification: {{answer k}}</strong></td>
+                <td>§1.X &ldquo;…&rdquo;</td><td><span class="prov-chip prov-from-requirements">from-requirements</span></td></tr>
+          </tbody>
+        </table>
+        <p class="termination term-pass">PASS — Justification Sufficiency Test satisfied: root names an axiomatic driver (§1.X).</p>
+        <!-- or term-incomplete / term-cap variants -->
+        <p class="coverage cov-cited"><span class="cov-label">Coverage</span> Root justification &ldquo;{{label}}&rdquo; — cited (anchored in §1.X: &ldquo;{{quote}}&rdquo;).</p>
+        <!-- or cov-gap / cov-na variants -->
+
+        <!-- Branched requirement: one extra block per sub-chain after the primary chain -->
+        <h4 class="branch-heading">Why chain R<n>.B<m></h4>
+        <table class="why-chain branch"> … </table>
+        <p class="termination …">…</p>
+        <p class="coverage …">…</p>
+      </section>
+
+  DIAGNOSTICS SCHEMA — {{DIAGNOSTICS_BLOCK}} substitutes a single <section class="diagnostics">.
+  The template wraps it in a <details class="diagnostics-toggle"> (collapsed by default). The
+  analyser does NOT emit the <details>/<summary> wrapper. Inner section, in order:
+
+      <section class="diagnostics">
+        <h2>Diagnostics</h2>
+        <p>Quality checks: {{n_pass}}/10 pass.</p>
+        <ul>
+          <li class="check-pass|check-fail">Check 1 — Every analysed requirement statement is sourced.</li>
+          ... (all 10 hard checks listed in order; FAIL lines append flagged items)
+        </ul>
+        <p>AI-suggested density: {{pct}}% ({{A}}/{{L}}).</p>
+        <!-- the following sub-blocks only when non-empty: -->
+        <h3>Cross-requirement links</h3>
+        <ul><li>R{{a}} and R{{b}} share root justification &ldquo;{{label}}&rdquo; — consider consolidation in §6 or anchor in §1.</li></ul>
+        <h3>Dropped requirements (zero-why-rows)</h3>
+        <ul><li>R{{x}}: {{note}}</li></ul>
+        <h3>Cap notes</h3>
+        <ul><li>Chain R{{n}} capped at 7 levels.</li>
+            <li>Requirement R{{m}} had {{N}} enumerated drivers at level {{k}}; surfaced first 3 ({{labels}}); excluded: {{rest}}.</li></ul>
+        <!-- Override-only: -->
+        <p class="override-note">Quality-check violations accepted as known. Flagged items: …</p>
+      </section>
+
+  CSS classes used by the analyser:
+    .cat-business-goal / .cat-op-capability / .cat-workflow-constraint / .cat-policy-driven / .cat-no-category
+      — category badge + scoring pill colours.
+    .term-pass / .term-incomplete / .term-cap — terminator badge + termination-line accent.
+    .prov-from-requirements / .prov-from-section / .prov-derived / .prov-ai-suggested
+      — provenance chip + SVG edge stroke.
+    .node-requirement / .node-why / .node-root / .node-incomplete — SVG node fill by role.
+    .cov-cited / .cov-gap / .cov-na — coverage-line accent.
+    .ai-marker — the [AI-SUGGESTED] prefix span. .rationale — the inline rationale italic.
+    .ref-chip / .modal-chip / .chain-id / .no-cat-stamp / .score / .num — inline tokens.
+
+  The CSS below is fixed scaffolding and should not be edited by the analyser — only the
+  {{placeholders}} above are substituted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{TITLE}}</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #5a5a5a;
+      --border: #d4d4d4;
+      --border-strong: #8a8a8a;
+      --col-bg: #ffffff;
+      --card-shadow: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+      --header-bg: #efefef;
+
+      /* Five-Whys-fitness categories — four hues */
+      --cat-biz-bg:  #dbdcf0; --cat-biz-border:  #5a5fbf; --cat-biz-fg:  #1c1f5c;
+      --cat-op-bg:   #b9d7f0; --cat-op-border:   #4f8fbf; --cat-op-fg:   #0c2a44;
+      --cat-wf-bg:   #ffe2b3; --cat-wf-border:   #d48a2a; --cat-wf-fg:   #4a2e00;
+      --cat-pol-bg:  #d8c7ee; --cat-pol-border:  #8a6ec7; --cat-pol-fg:  #2e1e55;
+      --cat-none-bg: #f3cdc6; --cat-none-border: #c0573f; --cat-none-fg: #5a1e10;
+
+      /* Terminators — PASS green, INCOMPLETE/CAP amber-red */
+      --term-pass-bg: #c8e6b2; --term-pass-border: #5e9a3e; --term-pass-fg: #1f3d12;
+      --term-inc-bg:  #f3cdc6; --term-inc-border:  #c0573f; --term-inc-fg:  #5a1e10;
+
+      /* Provenance — sourced (green), section (blue), derived (amber), ai (red) */
+      --prov-req:     #2a8a2a;
+      --prov-section: #4f8fbf;
+      --prov-derived: #b86a00;
+      --prov-ai:      #c0573f;
+
+      /* Coverage */
+      --cov-cited-fg: #1f3d12; --cov-cited-border: #5e9a3e;
+      --cov-gap-fg:   #5a1e10; --cov-gap-border:   #c0573f;
+      --cov-na-fg:    #5a5a5a; --cov-na-border:    #8a8a8a;
+
+      /* SVG node fills */
+      --node-req-bg:  #efefef; --node-req-border: #8a8a8a;
+      --node-why-bg:  #ffffff; --node-why-border: #b0b0b0;
+      --node-root-bg: #c8e6b2; --node-root-border: #5e9a3e;
+      --node-inc-bg:  #f3cdc6; --node-inc-border:  #c0573f;
+      --edge-stroke:  #b0b0b0;
+      --edge-stroke-width: 1.5;
+
+      --not-named-fg: #9a9a9a;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px 0; }
+    .subtitle { color: var(--muted); font-size: 13px; margin: 0 0 24px 0; }
+
+    section[id] { scroll-margin-top: 64px; }
+    .section-title { font-size: 17px; font-weight: 600; margin: 28px 0 12px 0; }
+    .section-caption { font-size: 12px; color: var(--muted); margin: 0 0 12px 0; }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px 24px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+    .meta-grid dt { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; margin: 0; }
+    .meta-grid dd { margin: 0 0 6px 0; font-variant-numeric: tabular-nums; word-break: break-word; }
+
+    /* ------- table of contents (sticky) ------- */
+    .toc {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      margin: 0 0 24px 0;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .toc ol { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 18px; counter-reset: toc-item; }
+    .toc li { counter-increment: toc-item; }
+    .toc li::before { content: counter(toc-item) ". "; color: var(--muted); margin-right: 4px; font-variant-numeric: tabular-nums; }
+    .toc a { color: var(--fg); text-decoration: none; border-bottom: 1px dotted var(--border-strong); }
+    .toc a:hover { border-bottom-color: var(--fg); }
+
+    /* ------- diagrams (the per-requirement why-chain SVGs) ------- */
+    .diagrams-wrap {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+    figure.chain-figure {
+      margin: 0;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: var(--card-shadow);
+      overflow-x: auto;
+    }
+    .chain-caption {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    .chain-id {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: var(--muted);
+    }
+    .chain-title { font-weight: 600; flex: 1 1 auto; }
+
+    svg.chain-svg { display: block; width: 100%; height: auto; max-width: 100%; }
+    svg.chain-svg .edge {
+      fill: none;
+      stroke: var(--edge-stroke);
+      stroke-width: var(--edge-stroke-width);
+    }
+    svg.chain-svg .edge.prov-from-requirements { stroke: var(--prov-req); }
+    svg.chain-svg .edge.prov-from-section       { stroke: var(--prov-section); }
+    svg.chain-svg .edge.prov-derived            { stroke: var(--prov-derived); }
+    svg.chain-svg .edge.prov-ai-suggested       { stroke: var(--prov-ai); stroke-dasharray: 4 3; }
+
+    svg.chain-svg .node rect { stroke-width: 1.5; }
+    svg.chain-svg .node-requirement rect { fill: var(--node-req-bg);  stroke: var(--node-req-border); }
+    svg.chain-svg .node-why rect          { fill: var(--node-why-bg);  stroke: var(--node-why-border); }
+    svg.chain-svg .node-root rect         { fill: var(--node-root-bg); stroke: var(--node-root-border); stroke-width: 2; }
+    svg.chain-svg .node-incomplete rect   { fill: var(--node-inc-bg);  stroke: var(--node-inc-border); stroke-width: 2; stroke-dasharray: 5 3; }
+    svg.chain-svg .node-level {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; fill: var(--muted);
+    }
+    svg.chain-svg .node-text { font-size: 11px; fill: var(--fg); }
+
+    /* ------- badges & pills ------- */
+    .cat-badge, .term-badge {
+      display: inline-block; padding: 2px 7px; font-size: 10px; font-weight: 700;
+      letter-spacing: 0.05em; border-radius: 3px; border: 1px solid transparent;
+    }
+    .cat-badge.cat-business-goal      { background: var(--cat-biz-bg);  border-color: var(--cat-biz-border);  color: var(--cat-biz-fg); }
+    .cat-badge.cat-op-capability      { background: var(--cat-op-bg);   border-color: var(--cat-op-border);   color: var(--cat-op-fg); }
+    .cat-badge.cat-workflow-constraint{ background: var(--cat-wf-bg);   border-color: var(--cat-wf-border);   color: var(--cat-wf-fg); }
+    .cat-badge.cat-policy-driven      { background: var(--cat-pol-bg);  border-color: var(--cat-pol-border);  color: var(--cat-pol-fg); }
+    .cat-badge.cat-no-category        { background: var(--cat-none-bg); border-color: var(--cat-none-border); color: var(--cat-none-fg); }
+
+    .term-badge.term-pass       { background: var(--term-pass-bg); border-color: var(--term-pass-border); color: var(--term-pass-fg); }
+    .term-badge.term-incomplete,
+    .term-badge.term-cap        { background: var(--term-inc-bg);  border-color: var(--term-inc-border);  color: var(--term-inc-fg); }
+
+    /* ------- scoring table ------- */
+    .table-wrap {
+      margin-bottom: 8px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      overflow-x: auto;
+    }
+    table.scoring-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    table.scoring-table th, table.scoring-table td {
+      border: 1px solid var(--border); padding: 6px 8px; vertical-align: top; text-align: left;
+    }
+    table.scoring-table thead th {
+      background: var(--header-bg); font-weight: 700; font-size: 11px;
+      letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted);
+    }
+    table.scoring-table td.num { font-variant-numeric: tabular-nums; }
+    table.scoring-table td.score { font-weight: 700; }
+    table.scoring-table tbody tr:nth-child(even) { background: #fafafa; }
+    .no-cat-stamp { display: block; margin-top: 3px; font-size: 10px; font-style: italic; color: var(--cat-none-fg); }
+
+    .cat-pill, .modal-chip {
+      display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 10px;
+      font-weight: 700; letter-spacing: 0.03em; border: 1px solid transparent; margin: 1px 2px 1px 0;
+    }
+    .cat-pill.cat-business-goal      { background: var(--cat-biz-bg);  border-color: var(--cat-biz-border);  color: var(--cat-biz-fg); }
+    .cat-pill.cat-op-capability      { background: var(--cat-op-bg);   border-color: var(--cat-op-border);   color: var(--cat-op-fg); }
+    .cat-pill.cat-workflow-constraint{ background: var(--cat-wf-bg);   border-color: var(--cat-wf-border);   color: var(--cat-wf-fg); }
+    .cat-pill.cat-policy-driven      { background: var(--cat-pol-bg);  border-color: var(--cat-pol-border);  color: var(--cat-pol-fg); }
+    .cat-pill.cat-no-category        { background: var(--cat-none-bg); border-color: var(--cat-none-border); color: var(--cat-none-fg); }
+    .modal-chip { background: var(--header-bg); border-color: var(--border-strong); color: var(--fg); }
+
+    .ref-chip {
+      display: inline-block; padding: 0 5px; border-radius: 3px;
+      background: var(--header-bg); border: 1px solid var(--border);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px; color: var(--fg); white-space: nowrap;
+    }
+
+    /* ------- per-requirement drill-down blocks ------- */
+    section.req-block {
+      margin-bottom: 24px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+    }
+    .req-heading { font-size: 15px; font-weight: 600; margin: 0 0 10px 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    dl.req-meta { margin: 0 0 12px 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; font-size: 13px; }
+    dl.req-meta dt { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; margin: 0; padding-top: 2px; }
+    dl.req-meta dd { margin: 0; }
+    dl.req-meta dd.verbatim { font-style: italic; }
+
+    table.why-chain { width: 100%; border-collapse: collapse; font-size: 12px; margin: 0 0 8px 0; }
+    table.why-chain th, table.why-chain td { border: 1px solid var(--border); padding: 6px 8px; vertical-align: top; text-align: left; }
+    table.why-chain thead th {
+      background: var(--header-bg); font-weight: 700; font-size: 11px;
+      letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted);
+    }
+    table.why-chain tr.row-requirement { background: #f4f4f4; font-weight: 600; }
+    table.why-chain tr.row-root td { background: rgba(94,154,62,0.08); }
+    table.why-chain tr.row-ai td { background: rgba(192,87,63,0.05); }
+    table.why-chain.branch { border-left: 3px solid var(--border-strong); }
+    .ai-marker {
+      display: inline-block; padding: 0 5px; border-radius: 3px; font-size: 10px; font-weight: 700;
+      background: var(--cat-none-bg); border: 1px solid var(--cat-none-border); color: var(--cat-none-fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    .rationale { color: var(--muted); font-size: 11px; }
+
+    .branch-heading { font-size: 13px; font-weight: 600; margin: 14px 0 6px 0; color: var(--muted); }
+
+    .termination, .coverage {
+      margin: 0 0 6px 0; padding: 7px 10px; border-radius: 4px;
+      font-size: 12px; border: 1px solid var(--border); border-left-width: 3px;
+    }
+    .termination.term-pass       { border-left-color: var(--term-pass-border); background: rgba(94,154,62,0.06); color: var(--term-pass-fg); }
+    .termination.term-incomplete,
+    .termination.term-cap        { border-left-color: var(--term-inc-border);  background: rgba(192,87,63,0.06);  color: var(--term-inc-fg); }
+    .coverage .cov-label, .termination::before {
+      font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; font-size: 10px; margin-right: 6px;
+    }
+    .coverage .cov-label { display: inline-block; color: var(--muted); }
+    .coverage.cov-cited  { border-left-color: var(--cov-cited-border); color: var(--cov-cited-fg); }
+    .coverage.cov-gap    { border-left-color: var(--cov-gap-border);   color: var(--cov-gap-fg); }
+    .coverage.cov-na     { border-left-color: var(--cov-na-border);    color: var(--cov-na-fg); }
+
+    /* ------- diagnostics ------- */
+    details.diagnostics-toggle { margin-bottom: 24px; }
+    details.diagnostics-toggle > summary {
+      cursor: pointer; padding: 10px 14px; background: #fff; border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong); border-radius: 6px; font-weight: 600;
+      font-size: 14px; list-style: none; display: flex; align-items: center; gap: 8px; user-select: none;
+    }
+    details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+    details.diagnostics-toggle > summary::before { content: "\25B6"; font-size: 10px; color: var(--muted); transition: transform 0.15s ease; display: inline-block; }
+    details.diagnostics-toggle[open] > summary { border-radius: 6px 6px 0 0; border-bottom: none; }
+    details.diagnostics-toggle[open] > summary::before { transform: rotate(90deg); }
+    .diagnostics { padding: 16px; border: 1px solid var(--border); border-left: 4px solid var(--border-strong); border-radius: 6px; background: #fff; margin-bottom: 24px; }
+    details.diagnostics-toggle > .diagnostics { border-top: none; border-radius: 0 0 6px 6px; margin-bottom: 0; }
+    details.diagnostics-toggle > .diagnostics > h2 { display: none; }
+    .diagnostics h2 { font-size: 16px; margin: 0 0 8px 0; }
+    .diagnostics h3 { font-size: 13px; margin: 16px 0 6px 0; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .diagnostics > p { margin: 4px 0; }
+    .diagnostics > ul { margin: 8px 0 12px 0; padding-left: 20px; }
+    .diagnostics .check-pass::before { content: "PASS "; color: var(--prov-req); font-weight: 700; }
+    .diagnostics .check-fail::before { content: "FAIL "; color: var(--cov-gap-fg); font-weight: 700; }
+    .diagnostics .override-note { color: var(--cov-gap-fg); font-weight: 600; }
+
+    .diagram-empty {
+      margin: 0; padding: 16px; border: 1px dashed var(--border-strong); border-radius: 6px;
+      background: #fff; color: var(--not-named-fg); font-style: italic; font-size: 13px;
+    }
+
+    /* ------- footer / legend ------- */
+    footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 11px; }
+    footer .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+    footer .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    footer .legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid transparent; }
+    footer .legend-swatch.s-pass    { background: var(--node-root-bg); border-color: var(--node-root-border); }
+    footer .legend-swatch.s-inc     { background: var(--node-inc-bg);  border: 1px dashed var(--node-inc-border); }
+    footer .legend-dot { display: inline-block; width: 12px; height: 0; border-top: 2px solid var(--prov-req); }
+    footer .legend-dot.d-ai { border-top: 2px dashed var(--prov-ai); }
+    footer .credit { margin-top: 6px; text-align: right; }
+
+    @media print {
+      body { background: #fff; }
+      main { padding: 0; }
+      .toc { display: none; }
+      figure.chain-figure { break-inside: avoid; }
+      section.req-block { break-inside: avoid; }
+      table.why-chain { break-inside: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section id="overview">
+      <h1>{{TITLE}}</h1>
+      <p class="subtitle">Five Whys justification audit of the merged requirements document. Each selected requirement is drilled level by level toward the underlying user goal, business driver, or external mandate — terminating at the Justification Sufficiency Test (an axiomatic / immutable driver), at three consecutive inferred rows (INCOMPLETE), or at the 7-level depth cap (CAP). Toyota Production System (Sakichi Toyoda 1930s / Taiichi Ohno 1950s), applied to requirement justification.</p>
+
+      <dl class="meta-grid">
+        <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+        <div><dt>Generated</dt><dd>{{GENERATED_AT}}</dd></div>
+        <div><dt>Requirements SHA-256</dt><dd>{{REQUIREMENTS_SHA256}}</dd></div>
+        <div><dt>Auto-extracted candidates</dt><dd>{{AUTO_EXTRACTED_COUNT}}</dd></div>
+        <div><dt>Requirements analysed</dt><dd>{{ANALYSED_COUNT}}</dd></div>
+        <div><dt>Total why-levels</dt><dd>{{WHY_LEVEL_COUNT}}</dd></div>
+        <div><dt>Root justifications (PASS)</dt><dd>{{PASS_COUNT}}</dd></div>
+        <div><dt>Incomplete / capped</dt><dd>{{INCOMPLETE_COUNT}}</dd></div>
+        <div><dt>Coverage gaps</dt><dd>{{COVERAGE_GAP_COUNT}}</dd></div>
+        <div><dt>AI-suggested density</dt><dd>{{AI_SUGGESTED_DENSITY}}</dd></div>
+      </dl>
+    </section>
+
+    <nav class="toc" aria-label="Sections">
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#diagrams">Why-chain diagrams</a></li>
+        <li><a href="#scoring">Priority scoring</a></li>
+        <li><a href="#drilldown">Drill-down</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+      </ol>
+    </nav>
+
+    <section id="diagrams" aria-label="Why-chain diagrams">
+      <h2 class="section-title">Why-chain diagrams</h2>
+      <p class="section-caption">One causal &ldquo;why&rdquo; chain per analysed requirement, top (the requirement) to bottom (its root justification). Green node = PASS (axiomatic driver reached); dashed red node = INCOMPLETE / CAP. Edge colour encodes the provenance of each step; a dashed edge is an inferred (ai-suggested) link.</p>
+      <div class="diagrams-wrap">
+        {{DIAGRAMS}}
+      </div>
+    </section>
+
+    <section id="scoring" class="table-wrap" aria-label="Rationale-analysis priority scoring (Round 1)">
+      <h2 class="section-title">Rationale-analysis priority scoring (Round 1)</h2>
+      <p class="section-caption">Auditing record of the auto-extraction. One row per candidate from §6 Requirements, with the full score breakdown. The consultant selected from this list; the table is a frozen Round 1 record, not a recommendation.</p>
+      {{SCORING_TABLE}}
+    </section>
+
+    <section id="drilldown" aria-label="Per-requirement drill-down">
+      <h2 class="section-title">Per-requirement drill-down</h2>
+      <p class="section-caption">The textual why-chains behind the diagrams above. Each requirement carries its source, detected categories, verbatim statement, why-chain table, a single termination row (PASS / INCOMPLETE / CAP), and a single coverage row (cited / gap / n/a). Branched requirements emit one sub-chain per driver.</p>
+      {{REQUIREMENT_SECTIONS}}
+    </section>
+
+    <details id="diagnostics" class="diagnostics-toggle">
+      <summary>Diagnostics</summary>
+      {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    <footer>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-pass" aria-hidden="true"></span> PASS — root justification reached</span>
+        <span class="legend-item"><span class="legend-swatch s-inc" aria-hidden="true"></span> INCOMPLETE / CAP</span>
+        <span class="legend-item"><span class="legend-dot" aria-hidden="true"></span> sourced / derived edge</span>
+        <span class="legend-item"><span class="legend-dot d-ai" aria-hidden="true"></span> inferred (ai-suggested) edge</span>
+      </div>
+      <div class="credit">Generated by <code>framework/agents/analyses/five-whys-analyser.md</code> — Five Whys (Toyota Production System) applied to requirement justification.</div>
+    </footer>
+  </main>
+</body>
+</html>

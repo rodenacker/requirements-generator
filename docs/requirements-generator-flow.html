@@ -717,7 +717,7 @@
         <div class="role">BA-canon sweep</div>
         <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>. Measures against the BA literature canon (IEEE 29148, Volere, BABOK, Wiegers, INCOSE, ISO 25010) across ten coverage dimensions.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">Pick this when you need a broad, authority-grounded gap punch-list to drive client follow-up elicitation. Complementary to <em>gap-analysis</em>.</div></div>
-        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-inputs/COMPLETENESS-REVIEW/completeness-review.md</code> — disposition-classified findings (Needs-Clarification / Standard-Rule-Applies / Out-of-Scope) plus per-source elicitation questions.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-inputs/COMPLETENESS-REVIEW/completeness-review.html</code> — disposition-classified findings (Needs-Clarification / Standard-Rule-Applies / Out-of-Scope) plus per-source elicitation questions.</div></div>
         <div class="field"><span class="field-label">How to use</span><div class="field-body">Use the elicitation questions to chase the client; once you receive answers, add them as new files under <code>input/</code> and re-run <code>/requirements</code>.</div></div>
       </div>
 
@@ -726,7 +726,7 @@
         <div class="role">Berry/Kamsties + Femmer taxonomy</div>
         <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the input set reads "soft" — vague verbs, weak modals, optional language, undefined pronouns — and you want to nail down each ambiguity before the drafter inherits it.</div></div>
-        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-inputs/AMBIGUITY-REVIEW/ambiguity-review.md</code> — every lexical / syntactic / referential / vague / subjective / weak-verb / optionality finding with a ready-to-paste stakeholder elicitation question.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html</code> — every lexical / syntactic / referential / vague / subjective / weak-verb / optionality finding with a ready-to-paste stakeholder elicitation question.</div></div>
         <div class="field"><span class="field-label">How to use</span><div class="field-body">Run the questions past the client; capture answers in <code>input/</code> (or rewrite the ambiguous source if you have the authority) and re-run <code>/requirements</code>.</div></div>
       </div>
 
@@ -771,7 +771,7 @@
         <div class="role">Braun &amp; Clarke six-phase</div>
         <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs are heavy on qualitative material (interview notes, open-ended survey responses, stakeholder narratives) and you want to surface latent patterns before drafting.</div></div>
-        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.md</code> — codes, themes, theme-map (Mermaid), and a Candidate-Requirements bridge linking each theme to draftable scope.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html</code> — codes, themes, theme-map (Mermaid), and a Candidate-Requirements bridge linking each theme to draftable scope.</div></div>
         <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>input/</code></strong>; the drafter picks the candidate-requirement bridge up like any other source.</div></div>
       </div>
 
@@ -780,7 +780,7 @@
         <div class="role">Teresa Torres 2016 (forward discovery)</div>
         <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs name a desired outcome and you want to ladder it down through opportunities and solutions before the drafter commits to feature scope.</div></div>
-        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.md</code> — four-layer discovery tree (Outcome → Opportunities → Solutions → Assumption-tests) with a Candidate-Requirements bridge.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html</code> — four-layer discovery tree (Outcome → Opportunities → Solutions → Assumption-tests) with a Candidate-Requirements bridge.</div></div>
         <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>input/</code></strong>; the drafter consumes the bridge section to seed scope. Use the assumption-tests to drive validation work in parallel.</div></div>
       </div>
 
@@ -942,7 +942,7 @@
         <div class="role">Eight-dimension critique</div>
         <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">Before handing the spec to design or engineering — flush out defects so downstream work starts from a patched doc, not inherited weaknesses.</div></div>
-        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/ADVERSARIAL/adversarial-review.md</code> — eight-dimension findings (clarity, completeness, consistency, testability, feasibility, risk, scope, traceability).</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/ADVERSARIAL/adversarial-review.html</code> — eight-dimension findings (clarity, completeness, consistency, testability, feasibility, risk, scope, traceability).</div></div>
         <div class="field"><span class="field-label">How to use</span><div class="field-body">Manually edit <code>requirements/requirements.md</code> to address each finding, or feed corrections back as new files in <code>input/</code> and re-run <code>/requirements</code>.</div></div>
       </div>
 
@@ -951,7 +951,7 @@
         <div class="role">Rationale stress-test</div>
         <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the requirement set feels like a list of features without a defensible "why" — test whether each requirement is grounded in business rationale.</div></div>
-        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/FIRST-PRINCIPLES/first-principles-review.md</code> — per-requirement defensibility verdict with rework / strengthen / cut recommendations.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/FIRST-PRINCIPLES/first-principles-review.html</code> — per-requirement defensibility verdict with rework / strengthen / cut recommendations.</div></div>
         <div class="field"><span class="field-label">How to use</span><div class="field-body">Manually rework, strengthen, or cut requirements in <code>requirements.md</code> per the verdicts. Use cut decisions to scope out features before they reach wireframing.</div></div>
       </div>
 
@@ -960,7 +960,7 @@
         <div class="role">BA elicitation gaps</div>
         <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">Before design or estimation — surface the ten most pressing stakeholder questions the doc has left unanswered.</div></div>
-        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.md</code> — ten ranked elicitation questions, each tied to a doc section.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.html</code> — ten ranked elicitation questions, each tied to a doc section.</div></div>
         <div class="field"><span class="field-label">How to use</span><div class="field-body">Ask the client; capture answers as a new file in <code>input/</code> and re-run <code>/requirements</code> to fold them in.</div></div>
       </div>
 
@@ -969,7 +969,7 @@
         <div class="role">UX elicitation gaps</div>
         <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">Before designing screens — surface the ten most pressing UX questions the doc has left unanswered, so wireframes don't lock decisions against gaps.</div></div>
-        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.md</code> — ten ranked UX questions tied to user goals and screen-level decisions.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.html</code> — ten ranked UX questions tied to user goals and screen-level decisions.</div></div>
         <div class="field"><span class="field-label">How to use</span><div class="field-body">Ask the client (or make defensible defaults), capture as new files in <code>input/</code>, re-run <code>/requirements</code> before running <code>/wireframe</code>.</div></div>
       </div>
 
@@ -978,7 +978,7 @@
         <div class="role">Backlog-readiness check</div>
         <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code> — specifically the §3 user-story rows.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">Before stories enter the backlog or estimation — find which aren't ready for design or estimation so you can rework them first.</div></div>
-        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/USER-STORIES/user-stories-review.md</code> — per-story readiness verdict (INVEST-style) with specific defects called out.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/USER-STORIES/user-stories-review.html</code> — per-story readiness verdict (INVEST-style) with specific defects called out.</div></div>
         <div class="field"><span class="field-label">How to use</span><div class="field-body">Manually rework the flagged stories in <code>requirements/requirements.md</code> — split, sharpen acceptance criteria, add missing personas — before passing to engineering or wireframing.</div></div>
       </div>
 
@@ -1095,7 +1095,7 @@
         <div class="role">Rationale chain</div>
         <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When you suspect rationale is thin — drill each requirement down to a user goal, business driver, or external mandate.</div></div>
-        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/FIVE-WHYS/five-whys.md</code> — per-requirement why-chain, flagging thin or speculative justifications for consultant follow-up.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/FIVE-WHYS/five-whys.html</code> — per-requirement why-chain, flagging thin or speculative justifications for consultant follow-up.</div></div>
         <div class="field"><span class="field-label">How to use</span><div class="field-body">Use flagged thin-rationale rows as interview prompts with the client; capture answers in <code>input/</code> and re-run <code>/requirements</code>.</div></div>
       </div>
 
@@ -1104,7 +1104,7 @@
         <div class="role">Vocabulary inventory</div>
         <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">Before copy, labels, status pills, or role surfaces are designed — produce an alphabetical citation-bound vocabulary.</div></div>
-        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/GLOSSARY/glossary.md</code> — alphabetical glossary with definitions and source citations.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/GLOSSARY/glossary.html</code> — alphabetical glossary with definitions and source citations.</div></div>
         <div class="field"><span class="field-label">How to use</span><div class="field-body">Adopt as canonical terminology for wireframe copy, design-system tokens (status pill names), and stakeholder communication. Surface synonym collisions back into <code>requirements.md</code> for resolution.</div></div>
       </div>
 

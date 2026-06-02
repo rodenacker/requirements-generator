@@ -4,7 +4,7 @@
 
 > **Method:** Auto-extract the **5 highest-priority candidate requirements for rationale analysis** from `requirements/requirements.md > §6 Requirements`, scored by Five-Whys-fitness category match (business goal / operational capability / workflow constraint / policy-driven behaviour) plus secondary signals (workflow anchors, modal strength, depth, implementation-detail penalty). Present the 5 to the consultant as a `multiSelect: true` prompt; let the consultant add additional requirements via the built-in Other input; anchor each consultant-stated requirement back to its `§6` source clause before analysing. For every requirement in the final analysis set, build a why-chain that interrogates **"why does this requirement exist?"** — drilling level by level toward the underlying user goal, business driver, or external mandate.
 
-**Output file:** `analyse-requirements/FIVE-WHYS/five-whys.md` — a self-contained markdown document containing the scoring table, per-requirement why-chains, coverage checks, and diagnostics. **No template scaffold:** Five Whys is the first MVP analyser to exercise the registry's `template_asset: null` clause (pure markdown, no HTML / SVG / Mermaid).
+**Output file:** `analyse-requirements/FIVE-WHYS/five-whys.html` — a self-contained HTML document (`<!doctype html>` + ONE inline `<style>`; no external CSS/JS, no CDN, no `<script>`, no Mermaid runtime) containing a `#diagrams` section of pre-rendered inline-SVG why-chain figures (one per requirement, rendered first), the scoring table, per-requirement drill-down blocks (why-chains, coverage checks), and diagnostics. **Template scaffold:** `framework/assets/analyses/template-five-whys.html` — the analyser substitutes its `{{PLACEHOLDER}}` slots; the why-chain diagrams are baked into inline SVG markup with explicit coordinates (no Mermaid, no script). Five-whys is not re-ingested (the blueprint-architect treats it as `upstream-only`), so the artefact carries no machine-readable JSON body.
 
 **Analyser agent:** `framework/agents/analyses/five-whys-analyser.md`
 
@@ -40,9 +40,9 @@ Canonical Five Whys interrogates *pains* / *incidents* / *decisions*. The consul
 
 The other nine analyses decompose *what* the requirements describe. Five Whys is the first analyser whose primary output is a *justification audit*: it surfaces requirements with thin justification chains (a clause with no traceable driver), requirements whose root justification is named but not anchored in `§1` (coverage gaps), and requirements that share root justifications (consolidation opportunities).
 
-### Why this analyser uses markdown, not HTML
+### Why this analyser emits HTML with a diagram-first layout
 
-Five Whys is causal-tabular text. There is no diagram component (no SVG, no Mermaid, no figure-pair structure). HTML scaffolding adds ceremony without value. The registry's `template_asset: null` clause exists precisely for this case — pure-markdown analyses compose the artefact as a string and write it directly, retaining the SHA-256 + min-bytes verify discipline that every analyser shares.
+Five Whys is causal: each requirement's "why" chain is a small tree from the requirement down to its root justification. That structure reads far more clearly as a **pre-rendered inline-SVG chain diagram** than as a flat table, so the artefact leads with a `#diagrams` section (one `<svg>` per requirement, geometry computed at render time and baked into the markup) above the textual drill-down — the same self-contained, script-free SVG approach the OST analyser uses. The HTML scaffold also makes the outputs consistent siblings of the other analysis HTML reports (shared `:root` token + chrome lineage) and prints cleanly to PDF. The artefact stays self-contained (no external CSS/JS, no CDN, no `<script>`, no Mermaid runtime) and retains the SHA-256 + min-bytes verify discipline every analyser shares.
 
 ---
 
@@ -313,12 +313,12 @@ Soft note, **not a merge**. Each chain is rendered independently in the artefact
 
 Every row in every why-chain table carries exactly one of:
 
-| Marker | Markdown rendering | When |
+| Marker | HTML rendering (Provenance cell + SVG edge) | When |
 |---|---|---|
-| `from-requirements` | `from-requirements` | The why-answer is justified by an explicit rationale phrase in `§1`, `§4`, or `§6` (*"to ensure ..."*, *"because ..."*, *"in order to ..."*, *"so that ..."*). Quote verbatim into Evidence. |
-| `from-§N` | `from-§N` (literal section number) | The why-answer is a verbatim *Objective* / context statement / business driver text in `§N` (typically the Requirement-row entry itself or the terminal-driver row). Quote verbatim into Evidence. |
-| `derived-from-§N` | `derived-from-§N` (literal section number) | The why-answer is logically implied by `§N` but not verbatim. Evidence carries a one-line derivation note explaining the inference. |
-| `ai-suggested` | `ai-suggested` | The why-answer was inferred by the analyser. Row text prefixed with `[AI-SUGGESTED]`. Evidence column carries the analyser's Rationale explanation. |
+| `from-requirements` | `<span class="prov-chip prov-from-requirements">from-requirements</span>`; SVG edge class `prov-from-requirements` | The why-answer is justified by an explicit rationale phrase in `§1`, `§4`, or `§6` (*"to ensure ..."*, *"because ..."*, *"in order to ..."*, *"so that ..."*). Quote verbatim into Evidence. |
+| `from-§N` | `<span class="prov-chip prov-from-section">from-§N</span>` (literal section number); SVG edge class `prov-from-section` | The why-answer is a verbatim *Objective* / context statement / business driver text in `§N` (typically the Requirement-row entry itself or the terminal-driver row). Quote verbatim into Evidence. |
+| `derived-from-§N` | `<span class="prov-chip prov-derived">derived-from-§N</span>` (literal section number); SVG edge class `prov-derived` | The why-answer is logically implied by `§N` but not verbatim. Evidence carries a one-line derivation note explaining the inference. |
+| `ai-suggested` | `<span class="prov-chip prov-ai-suggested">ai-suggested</span>`; SVG edge class `prov-ai-suggested` (dashed) | The why-answer was inferred by the analyser. Answer cell prefixed with `<span class="ai-marker">[AI-SUGGESTED]</span>`. Evidence column carries the analyser's Rationale explanation. |
 
 Every coverage row carries exactly one of `{cited, gap, n/a}` (Round 6 invariant — never `ai-suggested`).
 
@@ -328,7 +328,7 @@ No fifth provenance marker. No row unmarked. Honours the framework-wide `feedbac
 
 ## Quality checks (10 hard gates + 1 soft warning)
 
-Run after Round 7. All hard checks operate on the in-memory analysis set — they are independent of the markdown rendering step.
+Run after Round 7. All hard checks operate on the in-memory analysis set — they are independent of the HTML rendering step.
 
 ### Hard checks
 
@@ -386,11 +386,11 @@ Richer inputs (rationale-rich `§1`, explicit *Objective* clauses in `§4`, regu
 
 ---
 
-## Output shape (markdown)
+## Output shape (logical content)
 
-The artefact is a single self-contained markdown file at `analyse-requirements/FIVE-WHYS/five-whys.md`. No template scaffold — the analyser composes the markdown string directly from in-memory tables. Top-to-bottom section order is fixed.
+The artefact is a single self-contained HTML file at `analyse-requirements/FIVE-WHYS/five-whys.html`, produced by substituting `framework/assets/analyses/template-five-whys.html`. The sketches below describe the **logical content** of each section (the data the analyser carries and the order it renders in); the canonical HTML structure — the `{{PLACEHOLDER}}` slots, the inline-SVG CHAIN-SVG / SCORING / REQUIREMENT-BLOCK / DIAGNOSTICS schemas, and the CSS — lives in the template's header comment and is the source of truth for markup. The analyser HTML-escapes every requirements-derived string before substitution and emits the `#diagrams` SVG figures **first**, above the textual drill-down. Top-to-bottom section order is fixed (Overview → Diagrams → Scoring → Drill-down → Diagnostics).
 
-### Header block
+### Header / Overview block
 
 ```markdown
 # Five Whys Justification Analysis — {domain}

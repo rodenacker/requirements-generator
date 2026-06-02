@@ -8,9 +8,9 @@
 
 - `framework/agents/reviews/ten-ux-questions-reviewer.md` — drives the agent's candidate-generation, filter, score-and-select, validate, render, and write workflow.
 
-**Output produced by the reviewer:** `review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.md` — a markdown document listing the ten most pressing unanswered UX questions an experienced UX designer would ask after reading `requirements/requirements.md`, each tagged `blocking | major | minor`, each anchored to a section or marked as a missing-section gap, each with a 1–2 sentence rationale on the design impact of leaving the question unanswered. Selection is from a candidate pool of up to 50.
+**Output produced by the reviewer:** `review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.html` — a self-contained HTML report listing the ten most pressing unanswered UX questions an experienced UX designer would ask after reading `requirements/requirements.md`, each tagged `blocking | major | minor`, each anchored to a section or marked as a missing-section gap, each with a 1–2 sentence rationale on the design impact of leaving the question unanswered. Selection is from a candidate pool of up to 50.
 
-The scaffold for the artefact is `framework/assets/reviews/template-ten-ux-questions.md`.
+The scaffold for the artefact is `framework/assets/reviews/template-ten-ux-questions.html`.
 
 ---
 
@@ -47,7 +47,7 @@ The reviewer reads **only** the following:
 - `requirements/requirements.md` — the merged requirements document. Read once at Step 2. This is the critique target.
 - `framework/assets/characters/ten-ux-questions-review.md` — the character file. Read once at Step 1.
 - `framework/assets/reviews/ten-ux-questions-reference.md` — this document. Read once at Step 1.
-- `framework/assets/reviews/template-ten-ux-questions.md` — the markdown scaffold. Read once at Step 7 (render).
+- `framework/assets/reviews/template-ten-ux-questions.html` — the HTML scaffold. Read once at Step 7 (render).
 - `framework/shared/general-rules.md` — read at Step 4 as a **filter source**. The reviewer scans each candidate question against the `GR-NN` rule list and drops candidates whose topic is deterministically answered. The character file's voice rules and the filter-list table later in this reference both refer to this file.
 - `framework/shared/prototype-invariants.md` — read at Step 4 as a **filter source**. The reviewer drops candidates whose underlying premise contradicts a `PI-NN` invariant.
 - `framework/shared/prototype-scope.md` — read at Step 4 as a **filter source**. The reviewer drops candidates whose topic is out-of-scope for prototype mode.
@@ -353,7 +353,7 @@ There is no fourth priority. *"Could-be-clearer"* is not a priority — either t
 
 ## Output presentation
 
-The artefact renders as a structured markdown report following `framework/assets/reviews/template-ten-ux-questions.md`. The fixed section ordering is:
+The artefact renders as a self-contained HTML report following `framework/assets/reviews/template-ten-ux-questions.html`. The fixed section ordering is:
 
 1. **Header** — title, generated-at timestamp, requirements SHA-256, reviewer identity, priority counts (blocking / major / minor), category coverage summary.
 2. **Triage** — single ordered table listing all 10 questions with rank, ID, priority, category, anchor, and the question's first line.
