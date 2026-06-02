@@ -62,7 +62,7 @@ The ten commands:
 - **`/generate-prd`** — produce a human-audience PRD from the same inputs: problem, success metrics, hypotheses, MVP phasing, risks, stakeholders.
 - **`/design-system`** — get a complete brand-token brief (colours, typography, effects) for a designer, optionally extracted from a reference URL.
 - **`/analyse-inputs`** — go **deeper into the raw inputs before drafting** by re-expressing them through a chosen lens — thematic map, journey, jobs-to-be-done, object map, swim-lane process, affinity map, task analysis, opportunity-solution tree, ubiquitous-language glossary, user-goal analysis, or business-context definition.
-- **`/analyse-requirement`** — go **deeper into what the spec already contains** by re-expressing it through a chosen lens — object map, data model, use cases, sequence/state/activity diagram, user journeys, task flows, five-whys, glossary, CRUD coverage matrix, opportunity-solution tree, or trade-off-dimension matrix.
+- **`/analyse-requirement`** — go **deeper into what the spec already contains** by re-expressing it through a chosen lens — object map, data model, use cases, sequence/state/activity diagram, user journeys, task flows, five-whys, glossary, CRUD coverage matrix, opportunity-solution tree, MVP user-story map, or trade-off-dimension matrix.
 - **`/review-inputs`** — **find what's missing or wrong in the raw inputs** before drafting — adversarial six-dimension critique, completeness sweep, ambiguity catalogue, or template-bijection gap analysis.
 - **`/review-requirement`** — **find what's missing or wrong in the spec** before handoff — adversarial critique, first-principles check, user-story review, or ten BA / UX questions.
 - **`/wireframe`** — produce 2–3 parallel low-fi HTML wireframe variants for a scope of the spec, each adopting a divergent UX position, with full requirement-ID traceability.
@@ -275,6 +275,7 @@ flowchart LR
 | The **user's experience phases** with pain-points and opportunities at each step                                               | `user-journeys`                 | _user journey map_              |
 | The **goal-decomposition and step-by-step paths** users take, ready for wizards / form sequences                               | `task-flows`                    | _task flows_                    |
 | Whether the doc's **features ladder up to its outcomes**, and where unaddressed opportunities or missing assumption-tests sit  | `opportunity-solution-trees`    | _opportunity-solution tree_     |
+| **Where to draw the MVP line** — what ships first and what waits — as a user-story map with a proposed release slice, paired with a MoSCoW priority board | `mvp-slicing`                   | _user-story map + MoSCoW board_ |
 | Whether each requirement's **rationale chain** drills down to a user goal, business driver, or external mandate                | `five-whys`                     | _five-whys_                     |
 | An alphabetical, **citation-bound vocabulary inventory** before designing copy, labels, status pills, or role surfaces         | `glossary`                      | _glossary_                      |
 | Each user goal scored against **UX trade-off dimensions** (Speed vs Accuracy, Simplicity vs Power, Automation vs Control, …)   | `trade-off-dimension-analysis`  | _trade-off-dimension matrix_    |
