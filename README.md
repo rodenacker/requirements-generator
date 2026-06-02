@@ -34,10 +34,14 @@
     - [3.9 `/wireframe`](#39-wireframe)
         - [3.9.1 How it works](#391-how-it-works)
         - [3.9.2 What you get](#392-what-you-get)
+    - [3.10 `/prototype`](#310-prototype)
+        - [3.10.1 How it works](#3101-how-it-works)
+        - [3.10.2 What you get](#3102-what-you-get)
 - [4. Setup](#4-setup)
     - [4.1 First-time install (one-off)](#41-first-time-install-one-off)
     - [4.2 To handle Word, Excel, PowerPoint, and PDF inputs](#42-to-handle-word-excel-powerpoint-and-pdf-inputs)
     - [4.3 To extract design tokens from a reference URL](#43-to-extract-design-tokens-from-a-reference-url)
+    - [4.4 To generate clickable prototypes](#44-to-generate-clickable-prototypes)
 
 ## 1. Overview
 
@@ -48,21 +52,23 @@ A Claude Code workspace for consultants and business analysts. Drop the client m
 - a **brand-token brief** for the designer,
 - deeper **models** of what your raw inputs or the spec already contain (theme maps, journeys, object maps, data models, sequence/state/activity diagrams…),
 - **critiques** that surface what's still missing or wrong — in the raw inputs *or* in the spec,
-- and **low-fi wireframe variants** to compare screen options before mocking.
+- **low-fi wireframe variants** to compare screen options before mocking,
+- and a **clickable hi-fi prototype** the client can click through before you commit to a build.
 
-The nine commands:
+The ten commands:
 
 - **`/start`** — pick which command to run.
 - **`/requirements`** — turn the loose pile of briefs, decks, screenshots, spreadsheets and PDFs the client gave you into a clean, structured `requirements.md`.
 - **`/generate-prd`** — produce a human-audience PRD from the same inputs: problem, success metrics, hypotheses, MVP phasing, risks, stakeholders.
 - **`/design-system`** — get a complete brand-token brief (colours, typography, effects) for a designer, optionally extracted from a reference URL.
-- **`/analyse-inputs`** — go **deeper into the raw inputs before drafting** by re-expressing them through a chosen lens — thematic map, journey, jobs-to-be-done, object map, swim-lane process, affinity map, task analysis, or opportunity-solution tree.
-- **`/analyse-requirement`** — go **deeper into what the spec already contains** by re-expressing it through a chosen lens — object map, data model, use cases, sequence/state/activity diagram, user journeys, task flows, five-whys, glossary, opportunity-solution tree, or trade-off-dimension matrix.
+- **`/analyse-inputs`** — go **deeper into the raw inputs before drafting** by re-expressing them through a chosen lens — thematic map, journey, jobs-to-be-done, object map, swim-lane process, affinity map, task analysis, opportunity-solution tree, ubiquitous-language glossary, user-goal analysis, or business-context definition.
+- **`/analyse-requirement`** — go **deeper into what the spec already contains** by re-expressing it through a chosen lens — object map, data model, use cases, sequence/state/activity diagram, user journeys, task flows, five-whys, glossary, CRUD coverage matrix, opportunity-solution tree, or trade-off-dimension matrix.
 - **`/review-inputs`** — **find what's missing or wrong in the raw inputs** before drafting — adversarial six-dimension critique, completeness sweep, ambiguity catalogue, or template-bijection gap analysis.
 - **`/review-requirement`** — **find what's missing or wrong in the spec** before handoff — adversarial critique, first-principles check, user-story review, or ten BA / UX questions.
 - **`/wireframe`** — produce 2–3 parallel low-fi HTML wireframe variants for a scope of the spec, each adopting a divergent UX position, with full requirement-ID traceability.
+- **`/prototype`** — produce one clickable, client-side hi-fi React/Next.js prototype for a scope of the spec, accumulating in a single shared app; the brand look is fixed across all prototypes while a selectable UX posture diverges the layout and workflows.
 
-`/analyse-requirement`, `/review-requirement`, and `/wireframe` read `requirements/requirements.md` — run `/requirements` first. `/analyse-inputs` and `/review-inputs` read the raw `input/` files via a shared manifest. `/start`, `/requirements`, `/generate-prd`, and `/design-system` are stand-alone.
+`/analyse-requirement`, `/review-requirement`, `/wireframe`, and `/prototype` read `requirements/requirements.md` — run `/requirements` first. `/analyse-inputs` and `/review-inputs` read the raw `input/` files via a shared manifest. `/start`, `/requirements`, `/generate-prd`, and `/design-system` are stand-alone.
 
 ## 2. When to use which command
 
@@ -74,10 +80,12 @@ The nine commands:
 | You sense the raw inputs are thin, ambiguous, or contradictory                    | `/review-inputs` → `completeness-review` or `gap-analysis`                     | Authority-grounded or template-aligned punch-list before drafting.               |
 | Designer is waiting on a brand brief                                              | `/design-system`                                                               | One run produces a complete colour + typography + effects brief.                 |
 | About to brief a developer on data structure                                      | `/analyse-requirement` → `data-model`                                          | Surfaces the entities, fields, and relationships the spec already implies.       |
+| Worried a CRUD-heavy spec has forgotten operations or ungranted rights            | `/analyse-requirement` → `crud-coverage`                                       | Matrix flagging missing create/read/update/delete paths and lifecycle holes.     |
 | About to brief a designer on screens and navigation                               | `/analyse-requirement` → `ooux` or `use-cases`                                 | Surfaces the objects + CTAs, or the actor goals + flows.                         |
 | You sense something is missing in the spec but can't articulate it                | `/review-requirement` → `ten-ba-questions` or `ten-ux-questions`               | Surfaces the unasked questions in the consultant's blind spot.                   |
 | You need to defend the spec to a sceptical stakeholder                            | `/review-requirement` → `adversarial`                                          | Strict critique with a Patch / Defer / Reject decision per finding.              |
 | You want to show 2–3 divergent screen options before committing to a high-fi mock | `/wireframe`                                                                   | Low-fi HTML variants tied to requirement IDs; compare side-by-side via tabs.     |
+| You want something the client can actually click through, not just look at        | `/prototype`                                                                   | Hi-fi client-side React app on fixture data; brand-locked, UX diverges by posture. |
 
 ## 3. Commands
 
@@ -218,6 +226,9 @@ flowchart LR
 | A **hierarchical task decomposition** of user goals — sub-goals, operations, Plans, and per-terminal data nouns                    | `task-analysis`               | _Hierarchical Task Analysis (HTA)_ |
 | An **outcome → opportunity → solution → assumption-test tree** seeded with candidate-requirement bridges                           | `opportunity-solution-trees`  | _Teresa Torres OST_               |
 | A **bottom-up affinity map** — atomic notes clustered into super-themes via a two-pass re-cluster with drift detection             | `affinity-mapping`            | _KJ-method affinity diagram_      |
+| One **agreed vocabulary** for the engagement — terms classified domain vs application, defined from the inputs, maturity-rated, with proposed definitions for the loose ones | `glossary`                    | _ubiquitous-language glossary_    |
+| The **actor and end-user goals** behind the request — stated and inferred — as a goal register with an AND/OR refinement tree, an actor map, and a conflicts table | `user-goal-analysis`          | _Goal-Oriented Requirements (GORE)_ |
+| The **enterprise motivation** behind the request — business problem → need → goal → problem-statement in one causal chain (the strategic *why*, not actor-level goals) | `business-context-definition` | _OMG BMM / BABOK business context_ |
 
 #### 3.5.3 What you get
 
@@ -257,6 +268,7 @@ flowchart LR
 | What **users are actually trying to get done** — their jobs and the outcomes they want                                         | `jtbd`                          | _jobs-to-be-done_               |
 | **Each user's goals** and the step-by-step flows they take to reach them                                                       | `use-cases`                     | _use cases_                     |
 | The **data structure** — what records exist, what fields they have, how they relate, plus optional ERDs                        | `data-model`                    | _logical data model_            |
+| Whether **every entity has create / read / update / delete coverage** — a matrix flagging forgotten operations, lifecycle holes, and rights granted but never delivered | `crud-coverage`                 | _CRUD coverage matrix_          |
 | **How the parts of the system talk** to each other across a scenario (front-end ↔ back-end ↔ external services)                | `sequence-diagram`              | _UML sequence diagram_          |
 | The **lifecycle of a record** — what statuses it moves through and what triggers each transition                               | `state-diagram`                 | _UML state diagram_             |
 | A **multi-actor process flow** with branches, parallel paths, and who does what                                                | `activity-diagram`              | _UML activity diagram_          |
@@ -384,6 +396,41 @@ Open `index.html` in your browser, then **click a screen link in §2 — it open
 
 Re-running `/wireframe` for the same scope offers **Regenerate variants only**, **Add a variant** (up to 3 total), or **Overwrite** — the prior set is committed to git first.
 
+### 3.10 `/prototype`
+
+Produce **one clickable, client-side hi-fi prototype** of a scope of `requirements.md` per run. Every prototype accumulates in a **single shared React/Next.js app** under `prototypes/`, reachable from one landing page. The look and feel is **brand-locked and identical across every prototype** (one theme, taken from `/design-system` if you've run it, otherwise from defaults you confirm); what differs between prototypes is **pure UX** — a named UX posture plus trade-off positions reshape the layout and workflows. Every data-bound element traces back to a requirement.
+
+Use it when low-fi wireframes aren't enough — when you want something a client can actually click through, with realistic (simulated) data and working navigation, before committing to a build. It runs entirely in the browser against fixture data; there is no backend.
+
+#### 3.10.1 How it works
+
+`/prototype` requires `requirements/requirements.md` to exist. You scope the run and name the prototype, optionally select supporting material you've already produced (an analysis, a wireframe variant, or raw input docs), pick a UX posture and its trade-off positions, then the pipeline drafts a design spec, scaffolds the shared app once, generates the prototype surface-by-surface in parallel, verifies it builds, and lists it on the landing page.
+
+```mermaid
+flowchart LR
+    A[Prerequisite check<br/>requirements.md exists] --> B[Scope + name<br/>+ optional inputs]
+    B --> C[Pick UX posture<br/>+ trade-off positions]
+    C --> D[Design spec<br/>draft → resolve → merge]
+    D --> E[Scaffold shared app<br/>first run only]
+    E --> F[Generate prototype<br/>surfaces in parallel]
+    F --> G[Verify<br/>lint + typecheck + build + smoke]
+    G --> H([Listed on the<br/>single landing page])
+```
+
+The design-spec stage mirrors `/requirements` and `/generate-prd` — draft, resolve the open questions, merge, accept — and on the posture- or wireframe-seeded path there are often no questions to resolve. If you pick a wireframe variant as the basis, the posture and trade-off positions are pre-filled from that variant for you to confirm or tweak. The first run scaffolds the shared app and runs `npm install` once; later runs reuse it, so adding a second or third prototype is much faster than the first.
+
+#### 3.10.2 What you get
+
+A single shared Next.js app under **`prototypes/`** containing:
+
+- **`src/app/page.tsx`** — one landing page listing every prototype you've generated, grouped by scope.
+- **`src/app/<name-slug>/**`** — the routes for this prototype's screens, clickable and navigable.
+- shared **`src/components/**`** (UI primitives + composed components), **`src/styles/theme.css`** (the one brand, identical for every prototype), and fixture data under **`src/data`** / **`src/stores`** — all grow additively as you add prototypes.
+
+Run it locally with `npm run dev` inside `prototypes/` (the one-time `npm install` already happened during the first generation) and open the landing page in your browser. Because it's client-side only against fixture data, you can hand the running app to a client to click through directly — a role switcher and a data-reset control are built into the chrome.
+
+Re-running `/prototype` adds another prototype to the same app. Naming an existing prototype offers to **overwrite** it (the prior version is committed to git first); an interrupted run is detected and offers to **continue** where it left off.
+
 ## 4. Setup
 
 Install once on your workstation. Versions below are floors — newer is fine.
@@ -423,3 +470,17 @@ Restart Claude Code afterwards so the browser driver registers.
 Without it, `/design-system` still works — you just skip the reference URL when asked, and every token gets inferred from the domain string. If you do supply a URL without Playwright installed, the command offers a lower-fidelity web-fetch fallback or a clean exit while you install.
 
 Setup notes and troubleshooting: `framework/shared/setup-instructions/playwright.md`.
+
+### 4.4 To generate clickable prototypes
+
+Needed only for `/prototype`, which scaffolds and builds a real Next.js app under `prototypes/`. Install **Node.js 20+** (<https://nodejs.org/>; verify with `node --version`) — the prototype app targets Next.js 16 / React 19, which need Node 20 or newer.
+
+```
+winget install OpenJS.NodeJS.LTS
+```
+
+The first `/prototype` run installs the app's dependencies (`npm install`) once inside `prototypes/`; the cost is amortised across every prototype you generate afterwards. The build-and-verify step also runs a Playwright smoke check — if the browser binaries aren't present, the command tells you what to install and offers to skip the smoke check with a warning or pause while you install.
+
+If Node.js is missing when you launch `/prototype`, the command tells you exactly what to install and resumes at the scaffold step after you do.
+
+Setup notes and troubleshooting: `framework/shared/setup-instructions/node-toolchain.md`.
