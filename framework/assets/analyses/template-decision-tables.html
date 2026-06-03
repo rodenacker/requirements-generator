@@ -1,0 +1,305 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses/decision-tables-analyser.md.
+
+  Purpose: HTML/CSS skeleton for a Decision Tables / Business-Rules Catalogue (DMN)
+  artefact — one DMN decision table per decision found in requirements/requirements.md
+  (condition columns -> a conclusion, with an explicit hit policy), plus a completeness
+  register (unhandled condition-value combinations), a consistency register (overlapping
+  rules with conflicting conclusions + hit-policy violations), and a flat business-rules
+  catalogue.
+
+  Self-contained (`<!doctype html>` + ONE inlined `<style>` + `<body>`). NO external
+  CSS/JS, NO Mermaid runtime, NO CDN, NO `<script>`; viewable by opening `file://` in a
+  browser; prints to PDF; shareable with clients without tooling. CSS lineage from the
+  sibling framework/assets/analyses/template-crud-coverage.html and template-five-whys.html
+  so the analysis outputs read as consistent siblings.
+
+  Re-ingestion: this method IS re-ingestible by /requirements. The machine-readable model
+  lives in a `<pre><code class="language-json" id="decision-tables-body">` block inside the
+  (non-collapsed) `#body` section — this form survives the markitdown HTML->MD round-trip as
+  a fenced ```json block (a `<script type="application/json">` block would NOT). Every
+  completeness gap marked `[AI-SUGGESTED: AI-NNN | blocking]` reaches the /requirements
+  resolver as a mandatory confirmation when the artefact is re-dropped into input/.
+
+  Section order (top-to-bottom) — DIAGRAMS FIRST:
+    1. Overview (id="overview")        — title, subtitle, meta-grid.
+    2. TOC (<nav class="toc">)         — static top-level anchors.
+    3. Diagrams (id="diagrams")        — {{HEALTH_STRIP_BLOCK}} (per-decision health cards,
+       the value front-loaded) followed by {{DRD_BLOCK}} (the Decision Requirements Diagram:
+       a pre-rendered inline <svg> of decision + input-data nodes and dependency edges, plus
+       a collapsed <details class="mermaid-source"> flowchart-TD export).
+    4. Tables (id="tables")            — {{DECISION_TABLES_BLOCK}} (one DMN table per decision)
+       + {{COMPLETENESS_REGISTER_BLOCK}} + {{CONSISTENCY_REGISTER_BLOCK}} + {{CATALOGUE_BLOCK}}.
+    5. Machine-readable model (id="body") — {{BODY_JSON}} inside <pre class="body-json"><code
+       class="language-json" id="decision-tables-body">. NOT collapsed (round-trip safety).
+    6. Diagnostics (id="diagnostics")  — <details>, collapsed by default; counts, check
+       results, density warning, excluded-guard + size-cap notes. Bottom of page.
+
+  Placeholders the analyser substitutes (string substitution; all values pre-escaped for
+  HTML before injection):
+
+    {{TITLE}}                       — e.g. "Decision Tables — <domain>".
+    {{DOMAIN}}                      — domain string (from requirements §1), or
+                                      "(not declared in requirements.md)".
+    {{GENERATED_AT}}                — ISO-8601 UTC timestamp at render time.
+    {{REQUIREMENTS_SHA256}}         — sha256 of requirements/requirements.md at read time.
+    {{DECISION_COUNT}}              — number of decision tables.
+    {{RULE_COUNT}}                  — total rules across all tables.
+    {{GAP_COUNT}}                   — total completeness-register rows.
+    {{BLOCKING_GAP_COUNT}}          — gaps marked [AI-SUGGESTED … | blocking].
+    {{CONFLICT_COUNT}}              — total consistency-register rows (conflicts + hit-policy violations).
+    {{AI_SUGGESTED_COUNT}}          — total [AI-SUGGESTED] markers (= GAP_COUNT).
+    {{HEALTH_STRIP_BLOCK}}          — pre-rendered <div class="health-strip"> of per-decision cards.
+    {{DRD_BLOCK}}                   — pre-rendered <figure class="drd-figure"> (inline <svg class="drd">)
+                                      + a collapsed <details class="mermaid-source">. Empty model →
+                                      <p class="diagram-empty">.
+    {{DECISION_TABLES_BLOCK}}       — pre-rendered set of <section class="decision card"> blocks,
+                                      one per decision, each with a <table class="decision-table">.
+    {{COMPLETENESS_REGISTER_BLOCK}} — pre-rendered <section class="register card"> with .completeness-table.
+    {{CONSISTENCY_REGISTER_BLOCK}}  — pre-rendered <section class="register card"> with .consistency-table.
+    {{CATALOGUE_BLOCK}}             — pre-rendered <section class="catalogue card"> with .catalogue-table.
+    {{BODY_JSON}}                   — entity-escaped JSON ({decisions[],inputs[],rules[],hit_policy,
+                                      completeness_gaps[],conflicts[]}); rendered inert inside <pre><code>.
+    {{DIAGNOSTICS_BLOCK}}           — pre-rendered <section class="diagnostics"> (the analyser does NOT
+                                      emit the <details>/<summary> wrapper; the template owns it).
+
+  CSS class contract used by the analyser (the template owns these; the analyser emits HTML
+  using them and does not edit the CSS):
+    - Health card status: .health-card.ok / .warn / .bad ; .health-metric.
+    - DRD nodes: svg.drd .drd-decision rect, .drd-input rect (rx large = stadium), .drd-label.
+    - DRD edges: svg.drd .drd-edge.prov-{from-requirements|from-section|derived|ai-suggested}
+      (ai-suggested = dashed).
+    - Decision table: .decision-table, th.cond-col, th.concl-col, .hit-badge (hit-policy pill),
+      td.dontcare ("-"), tr.otherwise, td.gap-cell (glyph ✕ + word), .rule-id, .src-chip.
+    - Registers: .completeness-table, .consistency-table; verdict pills .v-blocking / .v-nonblocking
+      / .v-conflict / .v-hitpolicy ; tr.provenance-ai-suggested ; .ai-suggested (italic+dim cell).
+    - Catalogue: .catalogue-table ; provenance chips .prov-cited / .prov-inferred.
+    - Diagnostics: .check-pass / .check-fail ; .density-warning ; .note-line ; .hidden.
+    - Machine-readable: pre.body-json > code.language-json#decision-tables-body.
+  Verdict / gap signalling is always glyph + word — colour is never the sole signal.
+  Only the documented {{placeholders}} are substituted; CSS, layout, and class names are fixed.
+
+  Output: analyse-requirements/DECISION-TABLES/decision-tables.html.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root {
+    --bg: #fbfbfd; --surface: #ffffff; --ink: #1d1d1f; --muted: #6e6e73;
+    --line: #d2d2d7; --line-soft: #e8e8ed; --accent: #0a5ad6;
+    --ok-bg: #e6f4ea; --ok-ink: #137333; --ok-line: #a8d5b5;
+    --warn-bg: #fef3e0; --warn-ink: #9a5b00; --warn-line: #f3cf94;
+    --bad-bg: #fde7e7; --bad-ink: #b3261e; --bad-line: #f2b2ae;
+    --neutral-bg: #eef0f2; --neutral-ink: #5f6368; --neutral-line: #d6dade;
+    /* DMN node / edge */
+    --node-dec-bg: #dbe6fb; --node-dec-border: #4f7fbf; --node-dec-ink: #102a52;
+    --node-in-bg: #eef0f2; --node-in-border: #b0b6bd; --node-in-ink: #3a3d42;
+    --prov-req: #2a8a2a; --prov-section: #4f8fbf; --prov-derived: #b86a00; --prov-ai: #c0573f;
+    --radius: 10px; --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans);
+         line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  main { max-width: 1180px; margin: 0 auto; padding: 32px 24px 96px; }
+  h1 { font-size: 1.7rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+  h2 { font-size: 1.25rem; margin: 40px 0 12px; padding-top: 8px; letter-spacing: -0.01em; }
+  h3 { font-size: 1.02rem; margin: 22px 0 8px; }
+  p { margin: 8px 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, .mono { font-family: var(--mono); font-size: 0.86em; }
+
+  /* Overview */
+  .subtitle { color: var(--muted); margin: 0 0 16px; }
+  .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+               gap: 10px; margin: 16px 0 4px; }
+  .meta-cell { background: var(--surface); border: 1px solid var(--line-soft);
+               border-radius: var(--radius); padding: 10px 12px; }
+  .meta-cell .k { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+  .meta-cell .v { font-size: 1.1rem; font-weight: 600; }
+  .meta-cell .v.mono { font-size: 0.78rem; font-weight: 500; word-break: break-all; }
+
+  /* TOC */
+  .toc { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 18px 0 8px;
+         padding: 10px 14px; background: var(--surface); border: 1px solid var(--line-soft);
+         border-radius: var(--radius); font-size: 0.9rem; }
+  .toc a { color: var(--muted); } .toc a:hover { color: var(--accent); }
+
+  section[id] { scroll-margin-top: 64px; }
+  section.card { background: var(--surface); border: 1px solid var(--line-soft);
+                 border-radius: var(--radius); padding: 16px 18px; margin: 12px 0; }
+  .section-caption { font-size: 0.82rem; color: var(--muted); margin: 0 0 12px; }
+
+  /* Tables (shared) */
+  table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+  th, td { border: 1px solid var(--line-soft); padding: 7px 10px; text-align: left; vertical-align: top; }
+  thead th { background: #f5f5f7; font-weight: 600; }
+  .scroll-x { overflow-x: auto; }
+
+  /* Decision-health strip (diagrams, top) */
+  .health-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                  gap: 10px; margin: 4px 0 8px; }
+  .health-card { border: 1px solid var(--line); border-left-width: 4px; border-radius: var(--radius);
+                 padding: 10px 12px; background: var(--surface); }
+  .health-card.ok   { border-left-color: var(--ok-ink); }
+  .health-card.warn { border-left-color: var(--warn-ink); }
+  .health-card.bad  { border-left-color: var(--bad-ink); }
+  .health-card .dname { font-weight: 600; font-size: 0.95rem; margin-bottom: 6px; }
+  .health-card .health-metric { display: block; font-size: 0.78rem; color: var(--muted);
+                 font-variant-numeric: tabular-nums; }
+  .health-card .health-metric.bad-metric { color: var(--bad-ink); font-weight: 600; }
+  .health-card .health-metric.warn-metric { color: var(--warn-ink); font-weight: 600; }
+
+  /* DRD (inline SVG) */
+  figure.drd-figure { margin: 12px 0; padding: 12px; border: 1px solid var(--line-soft);
+                      border-radius: var(--radius); background: var(--surface); overflow-x: auto; }
+  svg.drd { display: block; width: 100%; height: auto; max-width: 100%; }
+  svg.drd .drd-decision rect { fill: var(--node-dec-bg); stroke: var(--node-dec-border); stroke-width: 1.5; }
+  svg.drd .drd-input rect    { fill: var(--node-in-bg);  stroke: var(--node-in-border);  stroke-width: 1.5; }
+  svg.drd .drd-label    { font-size: 11px; fill: var(--ink); }
+  svg.drd .drd-label.in { fill: var(--node-in-ink); }
+  svg.drd .drd-kind { font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+                      text-transform: uppercase; fill: var(--muted); }
+  svg.drd .drd-edge { fill: none; stroke: #b0b0b0; stroke-width: 1.5; }
+  svg.drd .drd-edge.prov-from-requirements { stroke: var(--prov-req); }
+  svg.drd .drd-edge.prov-from-section       { stroke: var(--prov-section); }
+  svg.drd .drd-edge.prov-derived            { stroke: var(--prov-derived); }
+  svg.drd .drd-edge.prov-ai-suggested       { stroke: var(--prov-ai); stroke-dasharray: 4 3; }
+  details.mermaid-source { margin: 8px 0 0; }
+  details.mermaid-source > summary { cursor: pointer; font-size: 0.82rem; color: var(--muted); }
+  details.mermaid-source pre { background: #f5f5f7; border-radius: 8px; padding: 12px;
+                      overflow-x: auto; font-size: 0.76rem; margin: 8px 0 0; }
+
+  /* Decision tables */
+  .decision .dec-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .hit-badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.72rem;
+               font-weight: 700; border: 1px solid var(--node-dec-border); background: var(--node-dec-bg);
+               color: var(--node-dec-ink); }
+  .decision-table th.cond-col { background: #eef4ff; }
+  .decision-table th.concl-col { background: #f3eefe; }
+  .decision-table td.dontcare { text-align: center; color: var(--muted); }
+  .decision-table tr.otherwise td { background: #fafafa; font-style: italic; }
+  .decision-table td.gap-cell { background: var(--bad-bg); color: var(--bad-ink); }
+  .decision-table td.gap-cell .glyph { font-weight: 700; margin-right: 4px; }
+  .rule-id { font-family: var(--mono); font-size: 0.74rem; color: var(--muted); }
+  .src-chip { display: inline-block; padding: 0 5px; border-radius: 3px; background: #f5f5f7;
+              border: 1px solid var(--line); font-family: var(--mono); font-size: 0.72rem;
+              white-space: nowrap; }
+
+  /* Registers */
+  .completeness-table .v-blocking, .completeness-table .v-nonblocking,
+  .consistency-table .v-conflict, .consistency-table .v-hitpolicy {
+    display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 0.7rem; font-weight: 600;
+    border: 1px solid transparent; }
+  .v-blocking   { background: var(--bad-bg);  color: var(--bad-ink);  border-color: var(--bad-line); }
+  .v-nonblocking{ background: var(--warn-bg); color: var(--warn-ink); border-color: var(--warn-line); }
+  .v-conflict   { background: var(--bad-bg);  color: var(--bad-ink);  border-color: var(--bad-line); }
+  .v-hitpolicy  { background: var(--warn-bg); color: var(--warn-ink); border-color: var(--warn-line); }
+  .ai-suggested { font-style: italic; background: #fffaf0; }
+  tr.provenance-ai-suggested td:first-child { border-left: 3px solid var(--bad-ink); }
+
+  /* Catalogue */
+  .catalogue-table .prov-cited   { color: var(--prov-req); font-weight: 600; }
+  .catalogue-table .prov-inferred{ color: var(--prov-ai); font-weight: 600; }
+
+  /* Machine-readable model */
+  section#body { margin-top: 28px; }
+  pre.body-json { margin: 8px 0 0; padding: 14px 16px; background: #1e1e1e; color: #e8e8e8;
+                  border-radius: 8px; overflow-x: auto; font-size: 0.72rem; line-height: 1.45;
+                  font-family: var(--mono); }
+
+  /* Diagnostics */
+  details.diagnostics-toggle { margin-top: 28px; }
+  details.diagnostics-toggle > summary { cursor: pointer; padding: 10px 14px; background: var(--surface);
+    border: 1px solid var(--line); border-left: 4px solid var(--muted); border-radius: var(--radius);
+    font-weight: 600; color: var(--muted); list-style: none; }
+  details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+  details.diagnostics-toggle[open] > summary { border-radius: var(--radius) var(--radius) 0 0; border-bottom: none; }
+  .diagnostics { padding: 16px 18px; border: 1px solid var(--line); border-left: 4px solid var(--muted);
+                 border-radius: 0 0 var(--radius) var(--radius); background: var(--surface); }
+  .diagnostics > h2 { display: none; }
+  .diagnostics .check-pass::before { content: "PASS "; color: var(--ok-ink); font-family: var(--mono); font-size: 0.78rem; }
+  .diagnostics .check-fail::before { content: "FAIL "; color: var(--bad-ink); font-family: var(--mono); font-size: 0.78rem; }
+  .diagnostics .density-warning { color: var(--warn-ink); }
+  .diagnostics .note-line { color: var(--muted); }
+  .hidden { display: none; }
+
+  @media print {
+    body { background: #fff; } section.card { break-inside: avoid; }
+    .toc { display: none; } figure.drd-figure { break-inside: avoid; }
+    pre.body-json { white-space: pre-wrap; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <!-- 1. Overview -->
+  <header id="overview">
+    <h1>{{TITLE}}</h1>
+    <p class="subtitle">Every conditional business rule in the requirements, re-cast as DMN decision tables — condition columns to a conclusion, with a hit policy per table — then checked for completeness (unhandled condition combinations) and consistency (conflicting rules). Diagrams first; the decision tables and registers follow; the machine-readable model is re-ingestible by <code>/requirements</code>.</p>
+    <div class="meta-grid">
+      <div class="meta-cell"><div class="k">Domain</div><div class="v">{{DOMAIN}}</div></div>
+      <div class="meta-cell"><div class="k">Decisions</div><div class="v">{{DECISION_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">Rules</div><div class="v">{{RULE_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">Completeness gaps</div><div class="v">{{GAP_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">Blocking gaps</div><div class="v">{{BLOCKING_GAP_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">Conflicts</div><div class="v">{{CONFLICT_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">AI-suggested</div><div class="v">{{AI_SUGGESTED_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">Generated</div><div class="v mono">{{GENERATED_AT}}</div></div>
+      <div class="meta-cell"><div class="k">requirements.md sha256</div><div class="v mono">{{REQUIREMENTS_SHA256}}</div></div>
+    </div>
+  </header>
+
+  <!-- 2. TOC -->
+  <nav class="toc">
+    <a href="#diagrams">Decision health &amp; DRD</a>
+    <a href="#tables">Decision tables</a>
+    <a href="#completeness">Completeness</a>
+    <a href="#consistency">Consistency</a>
+    <a href="#catalogue">Rules catalogue</a>
+    <a href="#body">Machine-readable model</a>
+    <a href="#diagnostics">Diagnostics</a>
+  </nav>
+
+  <!-- 3. Diagrams (top of document) -->
+  <h2 id="diagrams">Decision health &amp; requirements diagram</h2>
+  <p class="section-caption">One card per decision — rule count, completeness, consistency, hit policy. The Decision Requirements Diagram below shows how decisions read input data and feed one another.</p>
+  {{HEALTH_STRIP_BLOCK}}
+  {{DRD_BLOCK}}
+
+  <!-- 4. Tabular information -->
+  <h2 id="tables">Decision tables</h2>
+  <p class="section-caption">One DMN table per decision: condition columns to a conclusion, one rule per row, hit policy badged. A cell of "-" is don't-care; a red ✕ cell is an unhandled combination; an <em>otherwise</em> row is a stated catch-all.</p>
+  {{DECISION_TABLES_BLOCK}}
+
+  <h2 id="completeness">Completeness register</h2>
+  {{COMPLETENESS_REGISTER_BLOCK}}
+
+  <h2 id="consistency">Consistency register</h2>
+  {{CONSISTENCY_REGISTER_BLOCK}}
+
+  <h2 id="catalogue">Business-rules catalogue</h2>
+  {{CATALOGUE_BLOCK}}
+
+  <!-- 5. Machine-readable model (NOT collapsed — survives markitdown round-trip for /requirements) -->
+  <section id="body" aria-label="Machine-readable decision model">
+    <h2>Machine-readable model</h2>
+    <p class="section-caption">The full rule model for <code>/requirements</code> re-ingestion. Re-drop this HTML into <code>input/</code>; the drafter reads this block as fenced JSON, and every <code>[AI-SUGGESTED&hellip;blocking]</code> gap reaches the resolver.</p>
+    <pre class="body-json"><code class="language-json" id="decision-tables-body">{{BODY_JSON}}</code></pre>
+  </section>
+
+  <!-- 6. Diagnostics -->
+  <details id="diagnostics" class="diagnostics-toggle">
+    <summary>Diagnostics</summary>
+    {{DIAGNOSTICS_BLOCK}}
+  </details>
+
+</main>
+</body>
+</html>

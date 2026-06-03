@@ -50,6 +50,7 @@ The skill stamps an `architect_roles` array into every `selections[]` row, drawn
 | `glossary` | `copy-vocabulary` |
 | `opportunity-solution-trees` | `feature-presence`, `variant-philosophy` |
 | `crud-coverage` | `screen-inventory-entity-bijection`, `per-screen-cta-set` |
+| `decision-tables` | `upstream-only` |
 | `five-whys` | `upstream-only` |
 | `mvp-slicing` | `upstream-only` |
 

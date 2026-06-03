@@ -116,13 +116,14 @@ deltas:
 
 ---
 
-## 4. analyse-requirement-orch.md · 22 nodes / 26 edges / depth 3
+## 4. analyse-requirement-orch.md · 23 nodes / 27 edges / depth 3
 
 ```
 orch → analysis-selector, check-context-bloat, refusal-registry,
-       + 13 analysers: ooux, jtbd, use-cases, data-model, user-journeys,
+       + 14 analysers: ooux, jtbd, use-cases, data-model, user-journeys,
          sequence-diagram, state-diagram, activity-diagram, task-flows,
-         five-whys, glossary, opportunity-solution-trees, crud-coverage
+         five-whys, glossary, opportunity-solution-trees, crud-coverage,
+         decision-tables
 analysis-selector → analyses/registry.md
 
 task-flows-analyser → characters/task-flows-analysis.md, analyses/task-flows-reference.md,
@@ -132,7 +133,7 @@ state-diagram-analyser → svg-overlap-check.md
 ```
 
 **Notes (unique):**
-- Only task-flows' full 4-asset shape is drawn; the other 11 analysers fan out identically (reference + template + character + map-skill) — omitted for readability. `five-whys` + `glossary` now carry HTML templates: `five-whys` renders a pre-rendered inline-SVG why-chain; `glossary` embeds a `language-json` body block.
+- Only task-flows' full 4-asset shape is drawn; the other 12 analysers fan out identically (reference + template + character + map-skill) — omitted for readability. `five-whys` + `glossary` + `decision-tables` now carry HTML templates: `five-whys` renders a pre-rendered inline-SVG why-chain; `glossary` embeds a `language-json` body block; `decision-tables` renders a pre-rendered inline-SVG DRD (no `svg-overlap-check` — baked geometry, like five-whys) and embeds a `language-json` body block (re-ingestible by `/requirements`).
 - `svg-overlap-check.md` is called from the write step of the 3 SVG-heavy analysers (task-flows, data-model, state-diagram) only **after** `verify-artifact-write` passes and only when ≥1 inline SVG was emitted; writes `state/svg-overlap-<pipeline>.ndjson`.
 - map-skills are **registry metadata** (for a future design-spec-drafter), not loaded by the analyser → no edge.
 

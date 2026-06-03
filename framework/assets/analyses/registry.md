@@ -134,6 +134,16 @@ methodologies:
     map_skill: framework/skills/map-crud-coverage-to-ui.md
     analyser_agent: framework/agents/analyses/crud-coverage-analyser.md
     character: framework/assets/characters/crud-coverage-analysis.md
+  - name: decision-tables
+    status: mvp
+    group: Objects, data & lifecycle
+    description: Choose this when your requirements are dense with conditional logic — validation, conditional fields, eligibility, status-and-role-driven enable/disable — and you want it pulled into structured rule tables and checked for gaps before building. It produces an HTML set of DMN decision tables (condition columns to a conclusion, with a hit policy per table), a completeness check flagging unhandled condition combinations, and a consistency check flagging conflicting rules, with the rule model embedded for re-ingestion. Use the tables as the form-validation, conditional-visibility, and action-enablement spec your screens enforce, chase the flagged gaps and conflicts before wireframing, and re-drop the HTML into input/ so /requirements turns each blocking gap into a question.
+    output_path: analyse-requirements/DECISION-TABLES/decision-tables.html
+    reference_asset: framework/assets/analyses/decision-tables-reference.md
+    template_asset: framework/assets/analyses/template-decision-tables.html
+    map_skill: framework/skills/map-decision-tables-to-ui.md
+    analyser_agent: framework/agents/analyses/decision-tables-analyser.md
+    character: framework/assets/characters/decision-tables-analysis.md
   - name: task-flows
     status: mvp
     group: Processes & flows
