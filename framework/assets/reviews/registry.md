@@ -54,6 +54,26 @@ methodologies:
     map_skill: null
     reviewer_agent: framework/agents/reviews/user-stories-reviewer.md
     character: framework/assets/characters/user-stories-review.md
+  - name: requirements-quality
+    status: mvp
+    group: Document integrity
+    description: Choose this before design or estimation when you want every requirement scored against the ISO/IEC/IEEE 29148 well-formedness standard (singular, unambiguous, verifiable, conforming, complete) with the four judgment characteristics fenced separately, rather than a freeform critique. It produces a self-contained HTML requirement-by-characteristic heatmap with a risk-tier distribution, a set-level consistency and redundancy register, and a fix list that rewrites the ambiguous and compound requirements into EARS form. Work the Red-tier requirements up to standard before they reach design, and read the per-characteristic tally to see which weakness dominates.
+    output_path: review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html
+    reference_asset: framework/assets/reviews/requirements-quality-reference.md
+    template_asset: framework/assets/reviews/template-requirements-quality.html
+    map_skill: null
+    reviewer_agent: framework/agents/reviews/requirements-quality-reviewer.md
+    character: framework/assets/characters/requirements-quality-review.md
+  - name: requirements-traceability
+    status: mvp
+    group: Document integrity
+    description: Choose this before the requirements feed design or code-gen when you want to know which facts trace back to a real input source or an accepted AI-suggestion — and which trace to nothing. It produces a self-contained HTML audit that leads with the untraceable result (orphans, broken citations, and content the consultant dropped that leaked through), backed by a deterministic citation check and a requirement-by-trace-target heatmap. Resolve the flagged orphans and broken citations — supply the missing source, re-confirm the dropped value, or remove the claim — before the document is trusted downstream.
+    output_path: review-requirements/REQUIREMENTS-TRACEABILITY/requirements-traceability.html
+    reference_asset: framework/assets/reviews/requirements-traceability-reference.md
+    template_asset: framework/assets/reviews/template-requirements-traceability.html
+    map_skill: null
+    reviewer_agent: framework/agents/reviews/requirements-traceability-reviewer.md
+    character: framework/assets/characters/requirements-traceability-review.md
 ---
 
 # reviews/registry.md

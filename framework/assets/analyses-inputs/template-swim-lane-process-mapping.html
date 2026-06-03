@@ -12,16 +12,18 @@
   and a diagnostics block.
 
   Self-contained: `<!doctype html>` + inline `<style>` + `<body>`. No
-  external CSS / JS / fonts / CDN dependencies. No inline Mermaid runtime —
-  Mermaid source is embedded as `<pre class="mermaid-source">` text; visual
-  rendering is out-of-band (mmdc or https://mermaid.live). The artefact is
-  re-ingestible into `input/` for the /requirements drafter via markitdown
-  conversion — the structured YAML model lives in a <pre><code> block
-  (which survives the HTML→MD round-trip as a fenced code block, unlike
-  <script type="application/json"> which is stripped). Inline
-  [SRC: <filename>] markers are plain text inside cell / row / node
-  content and survive the round-trip cleanly. Mermaid source blocks survive
-  as plain `<pre>` text.
+  external CSS / JS / fonts / CDN dependencies, no `<script>` behaviour, no
+  inline Mermaid runtime. Each process diagram is a **pre-rendered inline
+  `<svg>`** swim-lane (geometry computed by the analyser at render time, no
+  client-side Mermaid runtime); the Mermaid `flowchart TD` source is kept as a
+  collapsed `<pre class="mermaid-source">` export adjunct beneath each diagram.
+  The artefact is re-ingestible into `input/` for the /requirements drafter via
+  markitdown conversion — the structured YAML model lives in a <pre><code>
+  block (which survives the HTML→MD round-trip as a fenced code block, unlike
+  <script type="application/json"> which is stripped); the inline <svg> carries
+  the visible diagram; the Mermaid source survives as a fenced ```mermaid block
+  (the export / re-ingestion adjunct). Inline [SRC: <filename>] markers are
+  plain text inside cell / row / node content and survive the round-trip cleanly.
 
   Section order (top-to-bottom):
     1. Compact overview (id="overview")           — title, counts caption,
@@ -29,9 +31,11 @@
     2. Process gallery (id="processes")           — {{PROCESS_BLOCKS}}.
                                                     One <article class="process-block">
                                                     per discrete process:
-                                                    Mermaid source +
-                                                    Steps table + Decisions
-                                                    table.
+                                                    pre-rendered inline-SVG
+                                                    swim-lane diagram +
+                                                    collapsed Mermaid export
+                                                    adjunct + Steps table +
+                                                    Decisions table.
     3. Actor inventory (id="actors")              — {{ACTOR_TABLE_BODY}}.
                                                     Global table: every lane
                                                     discovered across all
@@ -60,7 +64,8 @@
     7. Diagnostics (id="diagnostics")             — <details> wrapper, collapsed
                                                     by default. Counts summary,
                                                     9 gate results, source
-                                                    roster, Mermaid validation
+                                                    roster, per-process diagram
+                                                    validity (svg-overlap)
                                                     results, run history.
     8. Next-steps banner (after diagnostics)      — instructions to copy the
                                                     artefact into input/ for
@@ -128,11 +133,20 @@
           <br/>Trigger: {{trigger-event}} [SRC: {{filename}}]
         </p>
 
-        <details class="mermaid-block" open>
-          <summary>Mermaid source (flowchart TD with swim-lane subgraphs)</summary>
+        <figure class="swimlane-diagram" aria-labelledby="process-{process-slug}-title">
+          <figcaption>Swim-lane process diagram — one horizontal lane per actor; steps left-to-right by sequence; lane-crossing edges are handoffs.</figcaption>
+          <svg viewBox="0 0 W H" role="img" aria-label="Swim-lane diagram for {{process-display-name}}">
+            <!-- edges first (under nodes); then lane bands + labels + dividers; then step / decision / start / end nodes. See SWIM-LANE SVG SCHEMA below. -->
+          </svg>
+        </figure>
+
+        <details class="mermaid-block">
+          <summary>Mermaid source (flowchart TD with swim-lane subgraphs — export / re-ingestion adjunct)</summary>
           <p class="mermaid-caption">
-            Copy this block into <a href="https://mermaid.live">mermaid.live</a> or run
-            <code>mmdc -i &lt;source.mmd&gt; -o &lt;diagram.svg&gt;</code> to view rendered.
+            The pre-rendered SVG above is the in-page diagram. Copy this block into
+            <a href="https://mermaid.live">mermaid.live</a> or run
+            <code>mmdc -i &lt;source.mmd&gt; -o &lt;diagram.svg&gt;</code> to view it rendered elsewhere;
+            it survives markitdown HTML→MD as a fenced ```mermaid code block for /requirements re-ingestion.
           </p>
           <pre class="mermaid-source">{{mermaid-source}}</pre>
         </details>
@@ -187,6 +201,21 @@
         </section>
       </article>
 
+  SWIM-LANE SVG SCHEMA — the <figure class="swimlane-diagram"> per process contains ONE
+  inline <svg>. The analyser computes geometry at render time (a shared `lane_height`
+  across all process figures so lanes align). Conventions (one horizontal band per actor
+  lane; steps placed left-to-right by sequence position; all <text> XML-escaped):
+    - viewBox "0 0 W H" — W = lane_label_width + n_columns * column_width + padding;
+      H = padding + n_lanes * lane_height + padding.
+    - role="img" + aria-label on every <svg>.
+    - Edges first (drawn under nodes), then lane bands, then nodes.
+    - lane bands: <rect class="sl-lane sl-lane-{role|system|external}"/> + <text class="sl-lane-label"/> per lane; <line class="sl-divider"/> between bands.
+    - step nodes: <rect class="sl-node sl-{process|start|end|data-store|external-system}" rx="6"/> + <text class="sl-label"/> per non-decision step.
+    - decision nodes: <polygon class="sl-decision"/> (diamond) + <text class="sl-label"/>.
+    - edges: <path class="sl-edge" marker-end="url(#sl-arrow-{process-slug})"/> per sequence/handoff edge (Manhattan routing; a lane-crossing handoff also carries class `sl-edge-handoff`).
+    - decision-branch guards: <rect class="sl-guard-bg"/> (opaque) under <text class="sl-guard"/> at the edge midpoint.
+    - one <defs><marker id="sl-arrow-{process-slug}"> arrowhead per <svg>.
+
   STRUCTURED YAML SCHEMA — the <pre><code class="language-yaml"> block contains the
   schema defined in framework/assets/analyses-inputs/swim-lane-process-mapping-reference.md
   > "Structured-model YAML schema".
@@ -220,13 +249,18 @@
       1. <ul class="gate-results"> — 9 hard-gate result lines, each:
          <li class="gate-{pass|fail}">Gate N: <name> — PASS|FAIL [: flagged item summary]</li>
       2. <section class="source-roster"> — Consumed and Skipped tables.
-      3. <section class="mermaid-results"> — per-process Mermaid validator outcome.
+      3. <section class="diagram-results"> — per-process diagram-validity outcome (svg-overlap-check: pass | overlap-warning).
       4. <section class="run-history"> — append-only bullet list, one per run:
          <li>Run N — ISO-date — N processes, N actors, N handoffs, N disconnects
            (N follow-up); inferred N (N blocking, N non-blocking)
            [; Override: <gate list> if applicable].</li>
 
   CSS contract:
+  - figure.swimlane-diagram     → per-process inline-SVG wrapper
+  - SVG: .sl-lane .sl-lane-role|.sl-lane-system|.sl-lane-external (lane bands);
+         .sl-lane-label .sl-divider; .sl-node .sl-process|.sl-start|.sl-end|.sl-data-store|.sl-external-system (step boxes);
+         .sl-decision (diamond); .sl-label; .sl-edge .sl-edge-handoff (edges);
+         .sl-guard .sl-guard-bg (decision-branch guard label + opaque bg)
   - .dc-pill-clean              → green
   - .dc-pill-ambiguous-trigger  → amber
   - .dc-pill-missing-actor      → red
@@ -451,6 +485,52 @@
       margin: 0.5rem 0 0;
     }
 
+    /* Per-process swim-lane diagram (pre-rendered inline SVG) */
+    figure.swimlane-diagram {
+      margin: 0.75rem 0 1rem;
+      padding: 0.75rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    figure.swimlane-diagram figcaption {
+      color: var(--fg-muted);
+      font-size: 0.82rem;
+      margin-bottom: 0.5rem;
+    }
+    figure.swimlane-diagram svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #fcfdff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    figure.swimlane-diagram svg text {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    /* lane bands */
+    figure.swimlane-diagram svg .sl-lane          { stroke: none; }
+    figure.swimlane-diagram svg .sl-lane-role     { fill: #f3f7fc; }
+    figure.swimlane-diagram svg .sl-lane-system   { fill: #f5faf7; }
+    figure.swimlane-diagram svg .sl-lane-external { fill: #fffaeb; }
+    figure.swimlane-diagram svg .sl-lane-label    { fill: var(--fg); font-weight: 700; font-size: 11px; }
+    figure.swimlane-diagram svg .sl-divider       { stroke: var(--border-strong); stroke-width: 1; }
+    /* step nodes */
+    figure.swimlane-diagram svg .sl-node                    { fill: #fff; stroke: #5a5a5a; stroke-width: 1.2; }
+    figure.swimlane-diagram svg .sl-node.sl-process         { fill: #eaf1fd; }
+    figure.swimlane-diagram svg .sl-node.sl-start           { fill: #e6f6ec; }
+    figure.swimlane-diagram svg .sl-node.sl-end             { fill: #eef0f2; }
+    figure.swimlane-diagram svg .sl-node.sl-data-store      { fill: #e6f5f3; }
+    figure.swimlane-diagram svg .sl-node.sl-external-system { fill: #f3eafd; }
+    figure.swimlane-diagram svg .sl-decision                { fill: #fff7e6; stroke: #5a5a5a; stroke-width: 1.2; }
+    figure.swimlane-diagram svg .sl-label              { fill: var(--fg); font-size: 11px; text-anchor: middle; }
+    /* edges + guards */
+    figure.swimlane-diagram svg .sl-edge         { fill: none; stroke: #2a2a2a; stroke-width: 1.3; }
+    figure.swimlane-diagram svg .sl-edge-handoff { stroke: var(--color-process); stroke-dasharray: 5 3; }
+    figure.swimlane-diagram svg .sl-guard-bg     { fill: #ffffff; }
+    figure.swimlane-diagram svg .sl-guard        { fill: var(--color-decision); font-size: 10px; font-style: italic; text-anchor: middle; }
+
     /* Tables (steps, decisions, actor inventory, disconnect register) */
     table {
       border-collapse: collapse;
@@ -580,7 +660,8 @@
     section.next-steps p { color: var(--fg-muted); margin: 0.4rem 0; }
 
     @media print {
-      details.mermaid-block { page-break-inside: avoid; }
+      figure.swimlane-diagram { page-break-inside: avoid; }
+      details.mermaid-block { display: none; }
       article.process-block { page-break-inside: avoid; }
       details#diagnostics { display: none; }
     }
@@ -664,7 +745,7 @@
 {{GAPS_BLOCK}}
 
 <details id="diagnostics">
-  <summary>Diagnostics — gate results, source roster, Mermaid validation, run history</summary>
+  <summary>Diagnostics — gate results, source roster, diagram validity, run history</summary>
   {{DIAGNOSTICS_BLOCK}}
 </details>
 

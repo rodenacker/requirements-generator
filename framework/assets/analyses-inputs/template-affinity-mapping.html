@@ -7,15 +7,21 @@
   Jaccard-similarity drift detection.
 
   Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`). No
-  external CSS/JS dependencies; viewable by opening `file://` in a browser;
-  shareable with clients without tooling. Mermaid source is embedded as
-  text inside `<pre class="mermaid-source">`; rendered visual is out-of-band
-  via `mmdc` or mermaid.live — no inline runtime, no CDN.
+  external CSS/JS dependencies, no CDN, no `<script>` behaviour, no inline
+  Mermaid runtime; viewable by opening `file://` in a browser; shareable with
+  clients without tooling. The two diagrams (primary mindmap + conditional
+  cross-cluster tensions graph) are pre-rendered inline `<svg>` — geometry
+  computed by the analyser at render time. The Mermaid source is embedded as
+  text inside `<pre class="mermaid-source">` for export only (collapsed
+  `<details>`); the rendered visual is the inline `<svg>`.
 
   The artefact is re-ingestible into `input/` for the /requirements drafter
   via markitdown conversion:
+  - The pre-rendered inline <svg> mindmap (+ optional tensions graph) carry
+    the visible diagrams.
   - The Mermaid `mindmap` and conditional `flowchart TD` blocks (inside
-    `<pre class="mermaid-source">`) survive as fenced code blocks.
+    `<pre class="mermaid-source">`) survive as fenced ```mermaid code blocks —
+    the export / re-ingestion adjunct.
   - The embedded JSON body block (inside `<pre><code class="language-json">`)
     survives as a fenced ```json code block. This is the load-bearing
     machine-readable contract — the `<script type="application/json">` meta
@@ -33,17 +39,20 @@
                                                 counts), jump-links to the
                                                 diagrams and downstream
                                                 sections.
-    2. Primary mindmap (id="diagram-primary") — `<pre class="mermaid-source">`
-                                                with the Mermaid mindmap
-                                                source. The diagram-first
-                                                deliverable. Out-of-band
-                                                render via mmdc or
-                                                mermaid.live.
-    3. Tensions diagram (id="diagram-tensions") — conditional secondary
-                                                Mermaid `flowchart TD`
-                                                rendered only when
-                                                tensions.length >= 1;
-                                                otherwise emits a
+    2. Primary mindmap (id="diagram-primary") — {{PRIMARY_MINDMAP_SVG}}
+                                                (pre-rendered inline-SVG
+                                                hub-and-spoke: root → L3
+                                                super-themes → L2 clusters)
+                                                above {{PRIMARY_MINDMAP_MERMAID}}
+                                                (adjacent collapsed
+                                                mermaid-source <details>).
+                                                The diagram-first deliverable.
+    3. Tensions diagram (id="diagram-tensions") — {{TENSIONS_BLOCK}}: when
+                                                tensions.length >= 1, a
+                                                pre-rendered inline-SVG
+                                                directed graph above a
+                                                collapsed Mermaid `flowchart
+                                                TD` <details>; otherwise a
                                                 deterministic "no tensions"
                                                 copy so the section header
                                                 is always present.
@@ -101,12 +110,20 @@
     {{CONSUMED_ROW_COUNT}}          — manifest rows consumed.
     {{SKIPPED_ROW_COUNT}}           — manifest rows skipped (Unsupported tier).
     {{IRRELEVANT_ROW_COUNT}}        — consumed rows marked irrelevant-to-domain (Gate 8).
-    {{PRIMARY_MERMAID}}             — Mermaid `mindmap` source (raw text inside
-                                      `<pre class="mermaid-source">`; literal pipes,
-                                      brackets, parens preserved).
-    {{TENSIONS_MERMAID_BLOCK}}      — pre-rendered block. When tension_count >= 1,
-                                      a `<details class="mermaid-block">` with the
-                                      secondary `flowchart TD` source. When 0,
+    {{PRIMARY_MINDMAP_SVG}}         — pre-rendered <figure class="affinity-mindmap">
+                                      containing ONE inline <svg> (root → L3
+                                      super-theme → L2 cluster hub-and-spoke).
+                                      The "MUST contain a diagram" deliverable.
+                                      See MINDMAP SVG SCHEMA below.
+    {{PRIMARY_MINDMAP_MERMAID}}     — pre-rendered collapsed <details class="mermaid-block">
+                                      containing <pre class="mermaid-source"> with the
+                                      `mindmap` source (export / re-ingestion adjunct;
+                                      literal pipes, brackets, parens preserved).
+    {{TENSIONS_BLOCK}}              — pre-rendered block. When tension_count >= 1,
+                                      a <figure class="affinity-tensions"> inline <svg>
+                                      (directed graph; see TENSIONS SVG SCHEMA below)
+                                      above a collapsed `<details class="mermaid-block">`
+                                      with the secondary `flowchart TD` source. When 0,
                                       `<p class="no-tensions">No cross-cluster
                                       tensions surfaced in the corpus.</p>`.
     {{SOURCE_ROSTER_BLOCK}}         — pre-rendered <section id="source-roster">
@@ -131,6 +148,43 @@
                                       per DIAGNOSTICS SCHEMA.
 
   Output: analyse-inputs/AFFINITY-MAPPING/affinity-map.html.
+
+  MINDMAP SVG SCHEMA — {{PRIMARY_MINDMAP_SVG}} substitutes a single
+  <figure class="affinity-mindmap"> containing ONE inline <svg>. The analyser
+  computes geometry at render time: a top-down three-tier column layout — root
+  at top centre; one column per L3 super-theme in a left-to-right row beneath
+  the root; the super-theme's L2 clusters stacked vertically inside its column.
+  Node-level leaves (notes) are NOT drawn (≤ 34 nodes: 1 root + ≤ 8 super-themes
+  + ≤ 25 clusters). All <text> XML-escaped. Conventions:
+    - viewBox "0 0 W H" — W = PAD*2 + COL_W*S (S = super-theme count); H from the
+      tallest column (root + super row + max clusters-in-any-column).
+    - role="img" + aria-label on the <svg>.
+    - Edges first (drawn under nodes), then node <g> groups.
+    - root: <g class="node"><rect class="am-node am-root" rx="14"/> + <text class="am-text am-root-label">.
+    - super-theme: <g class="node"><rect class="am-node am-super" rx="6"/> + <text class="am-text am-super-label"> (label wraps ≤ 2 lines via <tspan>).
+    - cluster: <g class="node"><rect class="am-node am-cluster" rx="4"/> + <text class="am-text am-cluster-label"> (label wraps ≤ 2 lines via <tspan>).
+    - root→super edge: <path class="am-edge am-edge-rs" d="M … C …"/> (one per super-theme, cubic from root bottom to super top).
+    - super→cluster edges: a left-gutter bus per column — one vertical <path class="am-edge am-edge-sc"> spine just LEFT of the column's node boxes (so it crosses no node), with a short horizontal connector from the spine into each cluster's left edge (endpoint-anchored). Never route a super→cluster line straight down the column centre through the stacked cluster boxes.
+
+      <figure class="affinity-mindmap" aria-labelledby="affinity-mindmap-cap">
+        <figcaption id="affinity-mindmap-cap">Affinity mindmap — root → super-themes (L3) → clusters (L2).</figcaption>
+        <svg viewBox="0 0 W H" role="img" aria-label="Affinity mindmap of the inputs">
+          <!-- edges first (under nodes), then node <g> groups -->
+        </svg>
+      </figure>
+
+  TENSIONS SVG SCHEMA — when tension_count >= 1, {{TENSIONS_BLOCK}} leads with a
+  single <figure class="affinity-tensions"> containing ONE inline <svg>: a small
+  directed graph of the L2 clusters involved in any tension, laid out in a single
+  horizontal row, with one curved edge per tension (description label centred on
+  the edge over an opaque background rect). All <text> XML-escaped. Conventions:
+    - viewBox "0 0 W H" — W from the tension-node count; H fixed (row + arc band).
+    - role="img" + aria-label on the <svg>.
+    - tension node: <g class="node"><rect class="am-node at-node" rx="4"/> + <text class="at-text at-node-label"> (truncated insight statement). The `am-node` marker is the svg-overlap-check node class (shared with the mindmap rects); `at-node` carries the tension styling.
+    - tension edge: <path class="at-edge" d="M … C …"/> (one per tension; arc above the row).
+    - edge label: <rect class="at-label-bg"/> (opaque) under a <text class="at-label"> at the arc apex.
+  When tension_count == 0, {{TENSIONS_BLOCK}} is the
+  `<p class="no-tensions">No cross-cluster tensions surfaced in the corpus.</p>` literal.
 
   CLUSTER CARD SCHEMA — {{CLUSTER_CARDS}} substitutes a concatenation of
   L3 super-theme sections; each super-theme contains one cluster card per
@@ -350,10 +404,11 @@
           <!-- If empty: <li class="empty">(no follow-up questions surfaced by this run)</li> -->
         </ul>
 
-        <h3>Mermaid validation</h3>
-        <p class="mermaid-status">
-          Primary mindmap: {{pass|pass-with-drops|fail}}.
-          Tensions flowchart: {{n/a|pass|pass-with-drops|fail}}.
+        <h3>Diagram validity</h3>
+        <p class="diagram-status">
+          Mindmap SVG: {{pass|overlap-warning}} — {{n_super_themes}} super-themes
+          + {{n_clusters}} clusters rendered as nodes.
+          Tensions SVG: {{n/a|pass|overlap-warning}}.
         </p>
 
         <h3>Run history</h3>
@@ -372,6 +427,14 @@
       </section>
 
   CSS classes used by the analyser:
+    figure.affinity-mindmap            — <figure> wrapping the pre-rendered inline mindmap SVG.
+    figure.affinity-tensions           — <figure> wrapping the pre-rendered inline tensions SVG.
+    details.mermaid-block              — <details> wrapping a <pre class="mermaid-source"> export adjunct (collapsed).
+    SVG mindmap: .am-node .am-root .am-super .am-cluster (node rects);
+                 .am-edge .am-edge-rs .am-edge-sc (edges);
+                 .am-text .am-root-label .am-super-label .am-cluster-label (labels).
+    SVG tensions: .am-node + .at-node (node rects — `am-node` is the shared svg-overlap node marker); .at-edge (edges);
+                  .at-label-bg (opaque label background); .at-text .at-node-label .at-label (labels).
     .super-theme                       — wrapper for an L3 group of clusters.
     .cluster-card                      — wrapper for a single L2 cluster.
     .cluster-notes                     — ordered list of member notes.
@@ -386,8 +449,9 @@
     .cluster-size-distribution         — diagnostics table of cluster sizes.
 
   Content TBD-able by the analyser:
-    The Mermaid mindmap source, the tensions diagram source (or "no tensions"
-    deterministic copy), the source roster, the cluster card content, the
+    The inline-SVG mindmap + its Mermaid export source, the inline-SVG tensions
+    graph + its Mermaid export source (or the "no tensions" deterministic
+    copy), the source roster, the cluster card content, the
     orphans table, the JSON body, and the diagnostics block are fully driven
     by the analyser. The CSS below is fixed scaffolding and should not be
     edited by the analyser — only the {{placeholders}} above are substituted.
@@ -572,20 +636,68 @@
       margin-left: 4px;
     }
 
-    /* ------- mermaid block (primary + tensions) ------- */
+    /* ------- diagrams: inline SVG (mindmap + tensions) ------- */
 
-    details.mermaid-block,
     section#diagram-primary,
     section#diagram-tensions {
+      margin: 0 0 24px 0;
+    }
+    section#diagram-primary > h2,
+    section#diagram-tensions > h2 {
+      margin-top: 0;
+    }
+    figure.affinity-mindmap,
+    figure.affinity-tensions {
+      margin: 8px 0 12px 0;
+      padding: 16px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    figure.affinity-mindmap figcaption,
+    figure.affinity-tensions figcaption {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+    figure.affinity-mindmap svg,
+    figure.affinity-tensions svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #fcfcfc;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+    figure.affinity-mindmap svg text,
+    figure.affinity-tensions svg text {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    /* mindmap nodes + edges */
+    figure.affinity-mindmap svg .am-edge { fill: none; stroke: #9aa0a0; stroke-width: 1.4; }
+    figure.affinity-mindmap svg .am-edge-rs { stroke: var(--super-theme-border); }
+    figure.affinity-mindmap svg .am-edge-sc { stroke: var(--cluster-border); }
+    figure.affinity-mindmap svg .am-root    { fill: var(--super-theme-bg); stroke: var(--super-theme-border); stroke-width: 1.5; }
+    figure.affinity-mindmap svg .am-super   { fill: var(--super-theme-bg); stroke: var(--super-theme-border); stroke-width: 1.3; }
+    figure.affinity-mindmap svg .am-cluster { fill: var(--cluster-bg);     stroke: var(--cluster-border);     stroke-width: 1.2; }
+    figure.affinity-mindmap svg .am-root-label    { fill: var(--super-theme-fg); font-size: 13px; font-weight: 700; text-anchor: middle; }
+    figure.affinity-mindmap svg .am-super-label   { fill: var(--super-theme-fg); font-size: 12px; font-weight: 600; text-anchor: middle; }
+    figure.affinity-mindmap svg .am-cluster-label { fill: var(--cluster-fg);     font-size: 11px; text-anchor: middle; }
+    /* tensions nodes + edges */
+    figure.affinity-tensions svg .at-edge { fill: none; stroke: var(--tension-border); stroke-width: 1.5; }
+    figure.affinity-tensions svg .at-node { fill: var(--cluster-bg); stroke: var(--cluster-border); stroke-width: 1.2; }
+    figure.affinity-tensions svg .at-node-label { fill: var(--cluster-fg); font-size: 11px; text-anchor: middle; }
+    figure.affinity-tensions svg .at-label-bg { fill: #ffffff; opacity: 0.92; }
+    figure.affinity-tensions svg .at-label { fill: var(--tension-fg); font-size: 11px; font-weight: 600; text-anchor: middle; }
+
+    /* ------- mermaid export adjunct (collapsed) ------- */
+
+    details.mermaid-block {
       border: 1px solid var(--border-strong);
       border-radius: 6px;
       padding: 10px 14px;
       margin: 0 0 24px 0;
       background: #fff;
-    }
-    section#diagram-primary > h2,
-    section#diagram-tensions > h2 {
-      margin-top: 0;
     }
     details.mermaid-block > summary {
       cursor: pointer;
@@ -1019,7 +1131,7 @@
       font-family: ui-monospace, monospace;
       font-variant-numeric: tabular-nums;
     }
-    .mermaid-status { font-size: 13px; margin: 0 0 12px 0; }
+    .diagram-status { font-size: 13px; margin: 0 0 12px 0; }
 
     /* ------- next-steps + footer ------- */
 
@@ -1093,6 +1205,8 @@
       main { padding: 0; }
       section.super-theme { break-inside: avoid; }
       article.cluster-card { break-inside: avoid; }
+      figure.affinity-mindmap, figure.affinity-tensions { break-inside: avoid; }
+      details.mermaid-block { display: none; }
       details.diagnostics-toggle { display: none; }
       .jump-links { display: none; }
     }
@@ -1135,23 +1249,26 @@
     <section id="diagram-primary" aria-labelledby="diagram-primary-title">
       <h2 id="diagram-primary-title">Affinity mindmap</h2>
       <p class="caption">
-        Mermaid <code>mindmap</code> — root → super-themes (L3) → clusters (L2).
+        Pre-rendered inline SVG — root → super-themes (L3) → clusters (L2).
         Note-level leaves excluded to keep the diagram legible (≤ 34 nodes).
-        Full notes live in the cluster cards below. Out-of-band render via
-        <a href="https://mermaid.live">mermaid.live</a> or <code>mmdc -i source.mmd -o map.svg</code>.
+        Full notes live in the cluster cards below. The Mermaid source is the
+        collapsed export adjunct beneath the diagram.
       </p>
-      <pre class="mermaid-source">{{PRIMARY_MERMAID}}</pre>
+      {{PRIMARY_MINDMAP_SVG}}
+
+      {{PRIMARY_MINDMAP_MERMAID}}
     </section>
 
     <section id="diagram-tensions" aria-labelledby="diagram-tensions-title">
       <h2 id="diagram-tensions-title">Cross-cluster tensions</h2>
       <p class="caption">
-        Conditional secondary Mermaid <code>flowchart TD</code>. Rendered only
-        when at least one cross-cluster tension was surfaced; otherwise emits
-        a deterministic "no tensions" note so the section header is always
+        Conditional inline-SVG directed graph (Mermaid <code>flowchart TD</code>
+        kept as a collapsed export adjunct beneath it). Rendered only when at
+        least one cross-cluster tension was surfaced; otherwise emits a
+        deterministic "no tensions" note so the section header is always
         structurally present.
       </p>
-      {{TENSIONS_MERMAID_BLOCK}}
+      {{TENSIONS_BLOCK}}
     </section>
 
     {{SOURCE_ROSTER_BLOCK}}

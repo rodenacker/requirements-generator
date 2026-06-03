@@ -11,8 +11,7 @@
 
 **Output produced by the analyser:** `analyse-inputs/OOUX/ooux-object-map.html` — self-contained HTML object-map artefact carrying:
 - A source-roster section (consumed + skipped manifest rows).
-- A Mermaid `erDiagram` block embedded in `<pre class="mermaid-source">` (the "MUST contain a diagram" deliverable — survives markitdown round-trip as a fenced code block).
-- The canonical OOUX sticky-note column-board (one column per object).
+- The canonical OOUX sticky-note column-board (one column per object) — the object map, the rendered "MUST contain a diagram" deliverable.
 - A relationship matrix (tabular fallback).
 - An embedded `<pre><code class="language-json" id="ooux-object-map-body">` block carrying the full machine-readable object model (survives markitdown round-trip as fenced JSON; the load-bearing `/requirements` re-ingestion contract).
 - A small `<script type="application/json" id="ooux-object-map-meta">` block in `<head>` carrying counts and the manifest fingerprint (consumed by the drift-detection logic on subsequent runs; not relied on by `/requirements` since markitdown strips `<script>` blocks).
@@ -95,7 +94,7 @@ No fourth marker is allowed. No object is unmarked.
 
 For every pair of objects, ask: *"Does an instance of A meaningfully relate to an instance of B per the inputs?"* Record only relationships that the consultant's users will navigate or reason about, **and** that at least one consumed source provides evidence for. Skip relationships that only exist in implementation (e.g. *"`User` has an audit trail through `AuditLog`"* is not a user-facing relationship unless audit trails are part of the UX).
 
-**Declare cardinality** for every relationship: `1:1`, `1:N`, `N:M`. A nested relationship (an object referenced inside another object's attribute set) must carry its cardinality explicitly — the relationship matrix, the nested reference, and the Mermaid `erDiagram` must agree.
+**Declare cardinality** for every relationship: `1:1`, `1:N`, `N:M`. A nested relationship (an object referenced inside another object's attribute set) must carry its cardinality explicitly — the relationship matrix and the nested reference must agree.
 
 Each relationship:
 
@@ -157,21 +156,19 @@ For every object, mark a small subset of attributes — typically 2 to 5 — as 
 
 ## Output presentation
 
-The artefact has four visual surfaces, in this rendered order:
+The artefact has three visual surfaces, in this rendered order:
 
 1. **Source roster** (`<section id="source-roster">`) — table of consumed manifest rows (`filename`, `tier`, `sha256[:8]`, `nouns_contributed`) and table of skipped rows (`filename`, `reason`). The first thing the consultant sees after the header — establishes the audit trail.
 
-2. **Mermaid `erDiagram`** (`<details class="mermaid-block">` containing `<pre class="mermaid-source">`) — the relationship graph. Entities = objects; attributes shown with `PK` marker on the primary CCP; relationships labelled with verb phrase and cardinality. **This is the "MUST contain a diagram" deliverable.** Renders out-of-band via `mmdc` or [mermaid.live](https://mermaid.live) — no inline runtime, no CDN. The Mermaid source survives markitdown HTML→MD conversion as a fenced code block, so the consultant can re-feed the artefact into `input/` and `/requirements` will see the relationship graph in the converted markdown.
+2. **Sticky-note column-board** (`<section id="diagrams">` with `<div class="object-board">`) — the canonical OOUX visual and the rendered **"MUST contain a diagram" deliverable**. One `<section class="object-column">` per object. Five sticky stacks per column in fixed order: CTAs (green) → Object header with provenance dot (blue) → Core Content / CCP (yellow) → Metadata / non-CCP (pink) → Nested references (blue, dashed border). Empty stacks render with `hidden`. The column-board does not survive markitdown round-trip layout-wise — its text content survives as enumerated list items, but the visual grid is lost. The embedded JSON block (item 4 below) is the primary structural carrier through round-trip; the column-board is supplementary for direct HTML viewing.
 
-3. **Sticky-note column-board** (`<section id="diagrams">` with `<div class="object-board">`) — the canonical OOUX visual. One `<section class="object-column">` per object. Five sticky stacks per column in fixed order: CTAs (green) → Object header with provenance dot (blue) → Core Content / CCP (yellow) → Metadata / non-CCP (pink) → Nested references (blue, dashed border). Empty stacks render with `hidden`. The column-board does not survive markitdown round-trip layout-wise — its text content survives as enumerated list items, but the visual grid is lost. The Mermaid erDiagram (item 2) and the embedded JSON block (item 4 below) are the primary structural carriers through round-trip; the column-board is supplementary for direct HTML viewing.
-
-4. **Relationship matrix** (`<section id="tables">` with `<table class="rel-matrix">`) — tabular fallback. One row per recorded relationship. Source / label / target / cardinality / nested?. Mirrors the requirements-side template's §4. Survives markitdown round-trip as an MD table.
+3. **Relationship matrix** (`<section id="tables">` with `<table class="rel-matrix">`) — tabular fallback. One row per recorded relationship. Source / label / target / cardinality / nested?. Mirrors the requirements-side template's §4. Survives markitdown round-trip as an MD table.
 
 After the visual surfaces, in this DOM order:
 
-5. **Machine-readable body block** (`<section id="object-map-body">` with `<pre><code class="language-json" id="ooux-object-map-body">`) — the full machine-readable object model in JSON. See the JSON schema below. **This is the load-bearing markitdown-survival contract.** When the consultant copies the HTML into `input/` and reruns `/requirements`, this block converts to a fenced ```json code block in `.converted.md` and the drafter consumes the full model in one shot.
+4. **Machine-readable body block** (`<section id="object-map-body">` with `<pre><code class="language-json" id="ooux-object-map-body">`) — the full machine-readable object model in JSON. See the JSON schema below. **This is the load-bearing markitdown-survival contract.** When the consultant copies the HTML into `input/` and reruns `/requirements`, this block converts to a fenced ```json code block in `.converted.md` and the drafter consumes the full model in one shot.
 
-6. **Diagnostics** (`<details id="diagnostics">`) — collapsed by default. Synonym-merge log, 8 quality-gate results (PASS/FAIL), flagged items (Override-only), `irrelevant-to-domain` source rows (Gate 8 emissions).
+5. **Diagnostics** (`<details id="diagnostics">`) — collapsed by default. Synonym-merge log, 8 quality-gate results (PASS/FAIL), flagged items (Override-only), `irrelevant-to-domain` source rows (Gate 8 emissions).
 
 Plus the `<head>` carries a small `<script type="application/json" id="ooux-object-map-meta">` block with counts + manifest fingerprint + run number. This block is consulted by the drift-detection logic on subsequent runs but is **stripped by markitdown** and so is not relied on by `/requirements`.
 
@@ -244,41 +241,7 @@ Colour contract for the column-board follows the canonical Prater/OOUX vocabular
 }
 ```
 
-The JSON is **the canonical machine-readable surface**. The rendered column-board, the Mermaid erDiagram, and the relationship matrix are presentations of the same data. They must agree (Gate 7 checks this).
-
----
-
-## Mermaid `erDiagram` emission shape
-
-For each round-2 object, emit one entity. For each round-3 relationship, emit one relationship line. Use `||--o{` for `1:N`, `||--||` for `1:1`, `}o--o{` for `N:M`. Label every relationship with the verb phrase from Round 3. Cardinality is doubled-up by Mermaid's notation; the verb phrase carries the human-readable label.
-
-```mermaid
-erDiagram
-  CUSTOMER ||--o{ ORDER : "places"
-  ORDER ||--|{ ORDER_LINE : "contains"
-  PRODUCT ||--o{ ORDER_LINE : "appears in"
-  CUSTOMER {
-    string customer_id PK
-    string display_name
-    string email
-    string status
-  }
-  ORDER {
-    string order_number PK
-    date placed_at
-    decimal total
-  }
-```
-
-Rules:
-
-- **Entity names** are the canonical object names from Round 2, uppercased per Mermaid's `erDiagram` convention. The original-case canonical name is preserved in the JSON body block.
-- **PK marker** on the primary CCP (first CCP) of each object. Other CCPs render without modifier.
-- **Attribute lines** include all CCPs first (PK on first), then non-CCP attributes. Type column uses generic types: `string`, `int`, `decimal`, `date`, `datetime`, `bool`, `enum`. The inputs rarely name types — use `string` as the default when no signal is present.
-- **Relationship verbs** are the Round 3 `label` value, quoted to allow spaces.
-- **Inferred objects** (`provenance = inferred-from-<filename>`) render with a `<<inferred>>` notation appended to the entity label in a separate `note` block beneath the diagram if Mermaid syntax constrains entity labels — alternative is to surface inferred objects only in the diagnostics and exclude them from the erDiagram.
-
-The Mermaid source is validated by `framework/skills/mermaid-validator.md` post-Write. On validator failure after 3 retries, drop the erDiagram (replace the `<pre class="mermaid-source">` content with a `<!-- Mermaid source rejected after 3 retries — see Diagnostics -->` comment) and record `[GAP-MERMAID-INVALID]` in diagnostics rather than failing the artefact write.
+The JSON is **the canonical machine-readable surface**. The rendered column-board and the relationship matrix are presentations of the same data. They must agree (Gate 7 checks this).
 
 ---
 
@@ -290,11 +253,11 @@ Gates 1–7 are inherited verbatim from the requirements-side OOUX reference. Ga
 
 1. **Every Object has ≥ 1 CTA.** Objects without CTAs are either incomplete or candidates for demotion. Flag the list.
 2. **Every CTA attaches to exactly one Object.** Multi-object CTAs are a methodology violation. Flag the offending CTAs by name.
-3. **Every nested Relationship declares cardinality.** A nested reference without an explicit `1:1` / `1:N` / `N:M` annotation breaks the relationship matrix and the Mermaid erDiagram. Flag the offending relationships by source-target pair.
+3. **Every nested Relationship declares cardinality.** A nested reference without an explicit `1:1` / `1:N` / `N:M` annotation breaks the relationship matrix. Flag the offending relationships by source-target pair.
 4. **Every Object has ≥ 1 CCP attribute.** Without at least one CCP, the object has no defined snippet view. Flag the list.
 5. **No orphan Attributes.** An attribute attached to an object that does not appear in the final object list is a data error. Flag the orphans.
 6. **Object provenance markers are exhaustive.** Every object has exactly one of `from-source-<filename>`, `synonym-merged-from-[<filenames>]`, or `inferred-from-<filename>`. No unmarked objects; no fourth marker. The filenames inside the markers must equal `consumed_rows[*].filename` exactly.
-7. **Relationship matrix, nested references, and Mermaid erDiagram agree.** If `Order` nests `Customer` with `N:1`, the matrix row `Order → Customer` must also say `N:1` and the erDiagram line must also encode `N:1`. Flag mismatches.
+7. **Relationship matrix and nested references agree.** If `Order` nests `Customer` with `N:1`, the matrix row `Order → Customer` must also say `N:1`. Flag mismatches.
 8. **Every consumed manifest row contributes ≥ 1 candidate noun OR is marked `irrelevant-to-domain` in diagnostics with a one-line reason.** Without this gate, the analyser could silently ingest a manifest row and produce nothing from it, leaving the consultant unable to tell whether the file was scanned thoroughly or skipped under the hood. The gate forces every silent skip to be explicit. The `irrelevant-to-domain_rows` list in the JSON body block is the machine-readable surface for the rows that triggered the explicit-skip path.
 
 ---
@@ -310,7 +273,6 @@ Gates 1–7 are inherited verbatim from the requirements-side OOUX reference. Ga
 - **Collapsing rounds.** Do not write objects and CTAs in the same pass. The round-by-round structure is what makes the map reviewable — collapsing rounds hides reasoning and breaks the quality-check sweep.
 - **Editorialising.** The analyser is a literal lens onto the consumed inputs. It does not propose new product features; it surfaces structure the consultants already documented.
 - **Silently skipping a manifest row.** Gate 8 catches this. Every consumed row either contributes ≥ 1 candidate noun in Round 1 or is recorded in `irrelevant_to_domain_rows` with a reason.
-- **Skipping the Mermaid diagram.** The user's brief mandates "MUST contain a diagram". A missing erDiagram is a methodology violation, not an aesthetic choice. The graceful-degradation path (`[GAP-MERMAID-INVALID]`) is reserved for `mmdc` syntax failure after 3 validator retries — not for "I didn't bother".
 
 ---
 

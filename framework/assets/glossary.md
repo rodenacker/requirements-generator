@@ -198,8 +198,8 @@ Canonical source: `framework/assets/prototypes/app-shell-spec.md`.
 A single asserted fact or design decision in a draft, recorded in an NDJSON sidecar with its source so it can be verified before it reaches a final artefact.
 
 ### Citation (`[SRC: …]`)
-The inline marker grounding a claim in a source: `[SRC: C-NNN]` (requirements draft, sidecar-backed), `[SRC: <filename>]` (analyse/review-inputs, a manifest row), or design-spec refs to requirement IDs / `LS-NN` / wireframe variants. Stripped from clean final docs by the merger.
-Canonical source: marker legend in `CLAUDE.md §3` (Naming patterns).
+The inline marker grounding a claim in a source: `[SRC: C-NNN]` (requirements draft + final doc, sidecar-backed by `draft-claims.ndjson`), `[SRC: <filename>]` (analyse/review-inputs, a manifest row), or design-spec refs to requirement IDs / `LS-NN` / wireframe variants. **Retained** in the final `requirements.md` by the merger as inline provenance for downstream LLM consumers — only the resolution markers (`[AI-SUGGESTED]`/`[STANDARD-RULE]`/`[OUT-OF-SCOPE]`) are stripped; the `draft-claims.ndjson` sidecar stays the authoritative store of the verbatim source quotes.
+Canonical source: marker legend in `CLAUDE.md §3` (Naming patterns); retention rule in `framework/agents/requirements-merger.md`.
 
 ### Grounding
 The act of linking a claim to a real source. A grounded claim cites an input (`[SRC]`) or a named provenance marker; an ungrounded fabricated fact is a self-validation failure.
@@ -207,6 +207,10 @@ The act of linking a claim to a real source. A grounded claim cites an input (`[
 ### Traceability
 The end-state property that every fact in a final artefact can be followed back to a citation or provenance marker. The system optimises for traceability + auditability over speed.
 Canonical source: `CLAUDE.md §1`.
+
+### Orphan (traceability)
+A fact or requirement in a final artefact that traces back to no legitimate provenance class — no `[SRC: C-NNN]` citation, no accepted `[AI-SUGGESTED]`, no `[STANDARD-RULE]`, no `[OUT-OF-SCOPE]` default. The headline defect surfaced by the `/review-requirement` REQUIREMENTS-TRACEABILITY lens; reported as "no antecedent found", never "fabricated".
+Canonical source: `framework/assets/reviews/requirements-traceability-reference.md`.
 
 ### Anti-fabrication
 The rule that no data-bound element may invent object properties: every bound element carries a `data-prop` naming a member of the blueprint's **Properties closed set**. Properties outside the set are an `RF-04`-class failure.

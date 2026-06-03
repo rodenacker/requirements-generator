@@ -27,7 +27,7 @@ The methodology is **multi-actor, not single-actor.** A journey map follows one 
 
 ## Eight-round discipline
 
-Each round produces a distinct, named output. The analyser does not write the artefact until Round 8 is complete, the 9-gate sweep passes (or is Override'd), every Mermaid block parses cleanly via the validator, the rendered HTML's SHA-256 matches the verified write, and the consultant chose Accept. Specifically:
+Each round produces a distinct, named output. The analyser does not write the artefact until Round 8 is complete, the 9-gate sweep passes (or is Override'd), every process renders a pre-rendered inline-SVG swim-lane that passes `svg-overlap-check` (or records a layout warning), the rendered HTML's SHA-256 matches the verified write, and the consultant chose Accept. Specifically:
 
 - **Round 1 — Process discovery.** Walk every consumable manifest row per its tier. Enumerate candidate processes (workflows with ≥ 2 actors and ≥ 1 handoff). If candidates > 5, surface `AskUserQuestion` to scope. **No invented processes.**
 - **Round 2 — Actor extraction.** For each process, enumerate the actors (named subjects of verb actions). Classify `role` / `system` / `external-service`. Cross-process naming consistency. **No invented named actors from passive-voice.**
@@ -36,7 +36,7 @@ Each round produces a distinct, named output. The analyser does not write the ar
 - **Round 5 — Disconnect classification.** The analytical core. Every handoff classified via the conjunctive four-element cleanliness rubric. Five categories; `clean` is the explicit pass, never the silent default.
 - **Round 6 — Gap classification.** Every `inferred: true` node gets `blocking | non-blocking` and an `AI-NNN` id in the shared namespace.
 - **Round 7 — Self-validate.** 9 hard gates + 4 structural integrity checks.
-- **Round 8 — Render + write + verify.** Populate template, validate every Mermaid block, write, sha256-verify, handback.
+- **Round 8 — Render + write + verify.** Compute per-process swim-lane SVG geometry, populate template (Mermaid source kept as a collapsed export adjunct), write, sha256-verify, svg-overlap-check, handback.
 
 If a later round invalidates an earlier round (e.g., Round 5 reveals that a Round 3 step was assigned to the wrong lane — its actor was mis-extracted in Round 2), loop back to the earlier round and revise — do not paper over the inconsistency.
 
@@ -45,7 +45,7 @@ If a later round invalidates an earlier round (e.g., Round 5 reveals that a Roun
 The 9 hard gates in `framework/assets/analyses-inputs/swim-lane-process-mapping-reference.md > Quality gates` are **hard gates**, not advisory. The two most load-bearing:
 
 - **Gate 6 — Every handoff has a disconnect entry.** This is the methodology's analytical-bite gate. A swim-lane diagram without disconnect classification degrades the methodology to "here is a flowchart" and provides almost none of the value Rummler-Brache claims. Override-able only in extremis; the right move is almost always to do the classification work properly — `clean` requires positive evidence, not absence of evidence.
-- **Gate 9 — Mermaid validity.** Every embedded Mermaid block parses cleanly. The validator auto-fix loop handles syntax issues; if a process's Mermaid cannot be made valid in three retries, drop the diagram (emit `[GAP-MERMAID-INVALID]`) rather than write un-renderable HTML. An artefact whose diagrams don't render erodes consultant trust in the analyser entirely.
+- **Gate 9 — Diagram validity.** Every process renders a pre-rendered inline-SVG swim-lane in which every step is a node and every actor a lane; `svg-overlap-check` returns `total: 0` (or records a diagnostics layout warning). There is no `mmdc` / Mermaid-render dependency — the SVG renders in-page with no tooling; the Mermaid source beneath it is a copy-paste / re-ingestion export adjunct only.
 
 If any check fails:
 
@@ -106,7 +106,7 @@ The conservative bar exists because spurious disconnects waste consultant attent
   - `external-service` = third-party / external named with a service noun (Payment Gateway, Identity Provider, Email Service, SMS Service, third-party API).
 - **No invented named actors from passive-voice subjects.** "The request is approved" does not become "Approver" without independent naming in the source. Surface the step's lane as `inferred: true` with `[AI-SUGGESTED: AI-NNN | blocking]` and the corresponding handoff (if any) as `missing-actor`.
 - **Cross-process naming consistency.** "Finance" in process A and "Finance Admin" in process B must be reconciled — pick one canonical name (longest verbatim match across the inputs) and alias the other in notes. If reconciliation is ambiguous, do not merge silently — surface as a `[GAP-ACTOR-CONFLATION]` diagnostic and let the consultant decide.
-- **Lane cap.** If a single process has > 8 actors, flag a soft layout warning in diagnostics (*"Process `onboard-customer` has 11 actors — Mermaid diagram height will be tall; consider decomposing the process"*). Not a hard fail.
+- **Lane cap.** If a single process has > 8 actors, flag a soft layout warning in diagnostics (*"Process `onboard-customer` has 11 actors — swim-lane SVG height will be tall; consider decomposing the process"*). Not a hard fail.
 
 ## Step-discipline
 
@@ -145,8 +145,9 @@ The artefact carries a `<script type="application/json" id="swim-lane-process-ma
 The analyser does **not** halt the orchestrator on a quality-gate failure — it surfaces the violation and lets the consultant decide (Revise / Override / Restart). The hard halt paths are reserved for:
 
 - **`verify-artifact-write` mismatch** → RF-04.
-- **Mermaid validator reports `not-installed`** → halt with the install-mmdc message per the validator's own contract.
 - **Empty manifest with zero consumable rows** → structured halt analogous to RF-03 (no process map possible without sources).
+
+The swim-lane diagrams are pre-rendered inline `<svg>` (no `mmdc` / Mermaid-render dependency); a geometric overlap from `svg-overlap-check` is recorded as a diagnostics layout warning, never a halt.
 - **Zero candidate processes** (no consumed source describes a workflow with ≥ 2 actors and ≥ 1 handoff) → halt with the structured error: *"Cannot produce a swim-lane process map without any cross-functional process named in the inputs. If the inputs describe a single-actor workflow, consider `/analyse-inputs` → `task-analysis`. If they describe persona-shaped emotion, consider `journey-mapping`. Add a brief, interview note, or process description that names ≥ 2 actors with a handoff between them, then re-invoke `/analyse-inputs`."*
 
 A thin manifest — one with few sources, many `Unsupported` rows, or sources lacking trigger-event language — is **not** a failure mode of the analyser; it is a **signal** the analyser is built to surface in the Disconnect Register and Diagnostics section. The right consultant action is to enrich `input/` and re-run, or to bring the open disconnects to the next elicitation conversation.

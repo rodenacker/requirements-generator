@@ -12,8 +12,8 @@
 **Output produced by the analyser:** `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` — self-contained HTML artefact carrying:
 
 - A compact overview header with jump-links and a meta-grid (counts + manifest fingerprint).
-- A primary Mermaid `mindmap` block embedded in `<pre class="mermaid-source">` (the diagram-first deliverable — survives markitdown round-trip as a fenced code block).
-- A conditional secondary Mermaid `flowchart TD` block surfacing cross-cluster tensions (rendered only when `tensions.length >= 1`; otherwise emits a deterministic "no tensions" copy so the section header is always present).
+- A primary **pre-rendered inline-SVG mindmap** (the diagram-first deliverable — geometry computed by the analyser at render time, no client-side Mermaid runtime) with the `mindmap` source kept as a collapsed `<pre class="mermaid-source">` export adjunct (survives markitdown round-trip as a fenced code block).
+- A conditional secondary **inline-SVG directed graph** surfacing cross-cluster tensions, with its `flowchart TD` source as a collapsed export adjunct (rendered only when `tensions.length >= 1`; otherwise emits a deterministic "no tensions" copy so the section header is always present).
 - A source-roster section (consumed + skipped manifest rows).
 - Cluster cards — one `<article class="cluster-card">` per L2 cluster, grouped under L3 super-theme headings, each card listing every member note verbatim with `[SRC: <filename>]` citations and a `confidence: stable | drifted` chip carrying the Jaccard value.
 - An orphan parking-lot table (notes that fit no cluster, with reason).
@@ -52,8 +52,8 @@ Affinity mapping is the right tool when the corpus is messy enough that the cons
 ### Why an HTML artefact with embedded JSON, not pure Markdown
 
 - **Re-ingestibility into `/requirements`.** The full hierarchy survives markitdown HTML→MD as a fenced ` ```json ` code block inside `<pre><code class="language-json">`, so the drafter consumes the complete cluster + super-theme + orphan + tension model in one shot when the consultant copies the artefact into `input/`.
-- **Diagram-first ordering.** The Mermaid `mindmap` source lives in `<pre class="mermaid-source">` immediately after the overview; consultants reviewing the artefact via `file://` see the hierarchical synthesis first, full notes second.
-- **Conditional secondary diagram.** A second Mermaid `flowchart TD` block surfaces cross-cluster tensions only when they exist; a deterministic "no tensions" copy keeps the section header structurally present.
+- **Diagram-first ordering.** The pre-rendered inline-SVG mindmap lives immediately after the overview (with the `mindmap` source as a collapsed export adjunct beneath it); consultants reviewing the artefact via `file://` see the rendered hierarchical synthesis first, full notes second — no external tooling required.
+- **Conditional secondary diagram.** A second inline-SVG directed graph (with its `flowchart TD` source as a collapsed export adjunct) surfaces cross-cluster tensions only when they exist; a deterministic "no tensions" copy keeps the section header structurally present.
 
 ---
 
@@ -229,7 +229,7 @@ Identify contradictions / trade-offs between L2 clusters. **Bounded search algor
 }
 ```
 
-The tensions diagram (secondary Mermaid `flowchart TD`) renders only if `tensions.length >= 1`. Otherwise the artefact emits a deterministic `<p class="no-tensions">No cross-cluster tensions surfaced in the corpus.</p>` so the section header is always present.
+The tensions diagram (inline-SVG directed graph, with a collapsed `flowchart TD` Mermaid export adjunct beneath it) renders only if `tensions.length >= 1`. Otherwise the artefact emits a deterministic `<p class="no-tensions">No cross-cluster tensions surfaced in the corpus.</p>` so the section header is always present.
 
 **Round 6 output:** orphans + tensions.
 
@@ -239,11 +239,11 @@ The tensions diagram (secondary Mermaid `flowchart TD`) renders only if `tension
 
 ## Output presentation
 
-The artefact has the following sections in DOM order. Compact overview + the Mermaid mindmap source fit above the fold on a 1080p screen.
+The artefact has the following sections in DOM order. Compact overview + the inline-SVG mindmap fit above the fold on a 1080p screen.
 
 1. **Compact overview** (`<header id="overview">`) — title, one-line caption, counts bar, jump-links to `#diagram-primary`, `#clusters`, `#orphans`, `#tensions`, `#diagnostics`.
-2. **Primary mindmap** (`<section id="diagram-primary">`) — Mermaid `mindmap` inside `<pre class="mermaid-source">`. **Diagram-first deliverable.** Out-of-band render via `mmdc` or [mermaid.live](https://mermaid.live).
-3. **Tensions diagram** (`<section id="diagram-tensions">`) — conditional secondary Mermaid `flowchart TD`. Rendered only when `tensions.length >= 1`; otherwise emits `<p class="no-tensions">No cross-cluster tensions surfaced in the corpus.</p>`.
+2. **Primary mindmap** (`<section id="diagram-primary">`) — pre-rendered inline-SVG hub-and-spoke (`<figure class="affinity-mindmap">`) above a collapsed `<details class="mermaid-block">` holding the `mindmap` export source. **Diagram-first deliverable**, rendered in-page (no `mmdc` / Mermaid runtime).
+3. **Tensions diagram** (`<section id="diagram-tensions">`) — conditional inline-SVG directed graph (`<figure class="affinity-tensions">`) above a collapsed `flowchart TD` export `<details>`. Rendered only when `tensions.length >= 1`; otherwise emits `<p class="no-tensions">No cross-cluster tensions surfaced in the corpus.</p>`.
 4. **Source roster** (`<section id="source-roster">`) — Consumed + Skipped tables. Consumed rows: `filename · tier · sha256[:8] · note_count contributed`. Skipped rows: `filename · reason`.
 5. **Cluster cards** (`<section id="clusters">`) — one `<article class="cluster-card">` per L2 cluster, grouped under `<section class="super-theme">` headings for L3. Each cluster card carries:
     - The full insight-statement label.
@@ -339,9 +339,15 @@ The JSON is **the canonical machine-readable surface**. The rendered cluster car
 
 ---
 
-## Mermaid `mindmap` emission shape
+## Diagram rendering — inline SVG + Mermaid export shape
 
-Mermaid `mindmap` is the only diagram type purpose-built for radial single-root hierarchies. Stable since `mmdc` v10.x.
+Both diagrams are **pre-rendered inline `<svg>`** by the analyser (geometry computed at render time; no client-side Mermaid runtime, no `mmdc`):
+
+- **Mindmap SVG** — a top-down three-tier column hub-and-spoke: root at top centre; one column per L3 super-theme; that super-theme's L2 clusters stacked in its column; root→super cubic edges and a left-gutter bus for super→cluster edges. Note-level leaves are excluded (≤ 34 nodes). Full geometry + CSS classes (`am-root` / `am-super` / `am-cluster`, `am-edge-rs` / `am-edge-sc`) live in `framework/assets/analyses-inputs/template-affinity-mapping.html > MINDMAP SVG SCHEMA` and the analyser's Step 11 Sub-step B1.
+- **Tensions SVG** — a small directed graph of the tension-involved clusters in a row, one curved labelled edge per tension. Classes `at-node` / `at-edge` / `at-label` / `at-label-bg`. See the template's TENSIONS SVG SCHEMA and the analyser's Sub-step B2.
+- Geometry is verified by `framework/skills/svg-overlap-check.md` after write (Gate 9); overlaps are recorded as diagnostics layout warnings, never a halt.
+
+The **Mermaid sources below** are kept verbatim as collapsed `<pre class="mermaid-source">` **export / re-ingestion adjuncts** (they survive markitdown HTML→MD as fenced ```mermaid blocks). They are NOT rendered in-page and NOT validated. Mermaid `mindmap` is the type purpose-built for radial single-root hierarchies:
 
 ```mermaid
 mindmap
@@ -370,7 +376,7 @@ flowchart TD
   TH-03 <--> |Auditability vs speed of capture| TH-12
 ```
 
-Both diagrams are validated by `framework/skills/mermaid-validator.md` post-Write. On validator unavailability (`mmdc` not on PATH), the analyser surfaces `RF-07 mermaid_render_dependency_missing` per `framework/shared/refusal-registry.md`. On validator syntax-failure after the validator's own retry loop, the analyser drops the failing block (replacing the `<pre class="mermaid-source">` content with a `<!-- Mermaid <block-name> was rejected by the validator after retries — see Diagnostics > Mermaid results -->` comment) and records the drop in diagnostics rather than failing the artefact write.
+These Mermaid sources are **not validated** — they are the collapsed copy-paste / re-ingestion export adjunct only. The visible, authoritative diagrams are the pre-rendered inline SVGs above each `<details>`; there is no `mmdc` dependency and no `RF-07`. (The special-character escaping rule still applies so the export source is syntactically clean for a consultant who later pastes it into mermaid.live.)
 
 ---
 
@@ -386,7 +392,7 @@ Every check is a hard gate unless explicitly labelled `warn`. On gate failure, t
 6. **Two-pass drift transparency.** Every `confidence: drifted` note is listed in the diagnostics drift log with Pass-1 cluster label, Pass-2 cluster label, and Jaccard value. The count of drifted notes in the meta block matches the count rendered in cluster cards.
 7. **Label form.** Every L2 and L3 label is an **insight statement** — verb-bearing or first-person assertion or "X cannot Y" / "Y is Z" form. Pure noun labels ("Reporting", "Search") are flagged with a suggested rewrite. **Warn-level** if every cluster label passes but ≥ 1 super-theme label is a category noun (the asymmetry is documented).
 8. **Manifest-row coverage.** Every manifest row with `tier != "Unsupported"` contributes ≥ 1 note OR is recorded in diagnostics with reason `irrelevant-to-domain` (mirrors OOUX Gate 8 — surfaces silent skips).
-9. **Mermaid validity.** Primary `mindmap` block passes `framework/skills/mermaid-validator.md`; secondary `flowchart TD` (when present) passes too. **Node count ≤ 34** (1 root + ≤ 8 super-themes + ≤ 25 clusters). **Node labels truncated at last word boundary ≤ 60 chars** with `…` only if truncated. `RF-07` fires if `mmdc` is not on PATH.
+9. **Diagram validity.** Every L3 super-theme and every L2 cluster appears as a node in the pre-rendered inline mindmap SVG (and in the `mindmap` export source); no dangling references. **Node count ≤ 34** (1 root + ≤ 8 super-themes + ≤ 25 clusters). **Node labels truncated at last word boundary ≤ 60 chars** with `…` only if truncated. `framework/skills/svg-overlap-check.md` returns `total: 0` (or any overlap is recorded as a diagnostics layout warning). No `mmdc` / Mermaid-render dependency; no `RF-07`.
 10. **Re-ingestion-block schema validity.** JSON inside `<pre><code class="language-json" id="affinity-map-body">` parses; satisfies the schema above; `notes[].cluster_id` references a valid cluster id or is `null` (orphan); `clusters[].super_theme_id` references a valid super-theme id; `tensions[].from_cluster_id` and `to_cluster_id` reference valid cluster ids and differ; `clusters[].confidence_distribution` sums to `note_count`.
 
 ---
@@ -416,7 +422,7 @@ If the consultant chooses *Revise* at Step 12, the agent prompts which round(s) 
 | Round 6 (orphans + tensions) | Round 6 only |
 | Specific cluster IDs | Re-evaluate listed clusters in-place (labels, member-notes, tensions); upstream notes and L3 super-themes preserved |
 
-The accept/revise/restart loop continues until the consultant chooses *Accept* (or hand-back fails on a Revise-introduced `RF-04` or `RF-07`, which propagates per Step 11).
+The accept/revise/restart loop continues until the consultant chooses *Accept* (or hand-back fails on a Revise-introduced `RF-04`, which propagates per Step 11).
 
 ---
 
@@ -437,7 +443,7 @@ The analyser's stance is defined in `framework/assets/characters/affinity-mappin
 - **Semantic-equivalence drift judgement.** Comparing Pass-1 vs Pass-2 cluster *labels* for equivalence requires LLM judgement; it is subjective, non-reproducible, and itself anchored. The Jaccard similarity rule on cluster *memberships* is the deterministic mechanism — no semantic judgement required.
 - **Compound notes.** Notes joined by " and " / " / " spanning two ideas; each must be atomised in Round 1. Gate 2 enforces this.
 - **Fabricating notes.** Every note must trace to an input file. Multimodal transcription (extracting visible text + structurally significant observations from screenshots / diagrams per OOUX Step 2 precedent) is permitted and not "fabrication" — but extrapolation is. The boundary: a note's text must be supported by what is literally visible / written in the source, not extrapolated from surrounding context the source does not contain.
-- **Skipping the mindmap.** The diagram-first ordering is the hard requirement. The graceful-degradation path (mermaid-validator drop after retries) is reserved for `mmdc` syntax failure — not for "I didn't bother". On `mmdc` unavailability the analyser surfaces `RF-07`; it does not proceed silently without a diagram.
+- **Skipping the mindmap.** The diagram-first ordering is the hard requirement. The mindmap is a pre-rendered inline `<svg>` — there is no `mmdc` / Mermaid-render dependency and no `RF-07`; the diagram is always produced. The only sanctioned degradation is `svg-overlap-check` recording a geometric overlap as a diagnostics layout warning.
 - **Including note-level leaves in the mindmap.** Caps at 34 nodes (1 root + 8 super-themes + 25 clusters). Mindmaps with note-level leaves are illegible.
 - **Silently merging the inputs side's classification of a row as irrelevant.** Gate 8 forces every consumed manifest row to either contribute ≥ 1 note or appear in the `irrelevant-to-domain` log with a reason.
 - **Collapsing the six rounds into a single pass.** Each round produces a distinct in-memory output; the round-by-round structure is what makes the analysis reviewable and what enables the sub-agent isolation in Round 3.

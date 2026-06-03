@@ -11,7 +11,7 @@ Produce `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` — a self-con
 - An **Overview** (`<h1 id="top">` + `dl.meta-grid`: Domain, Generated timestamp, **Manifest SHA-256**, run count, counts).
 - A **`<script type="application/json" id="thematic-analysis-meta">`** head block carrying the additive-merge cursor (`manifest_sha256`, `run_count`) — the markitdown-stripped drift cursor (the HTML analogue of the former `<!-- thematic-meta: ... -->` line).
 - A sticky **TOC** (`<nav class="toc">`).
-- A **Diagrams** section (`#diagrams`): the **pre-rendered inline `<svg>` theme-map** (geometry computed at render time — root → theme structure plus optional code nodes and dashed cross-theme proximity edges; the "MUST contain a diagram" deliverable) **above** the body sections, with an **adjacent collapsed `<details class="mermaid-block">`** holding the `graph TD` Mermaid source as an export / re-ingestion adjunct (validated before embed, not rendered in-page).
+- A **Diagrams** section (`#diagrams`): the **pre-rendered inline `<svg>` theme-map** (geometry computed at render time — root → theme structure plus optional code nodes and dashed cross-theme proximity edges; the "MUST contain a diagram" deliverable) **above** the body sections, with an **adjacent collapsed `<details class="mermaid-block">`** holding the `graph TD` Mermaid source as an export / re-ingestion adjunct (embedded as text, not rendered in-page and not validated by `mmdc`).
 - A **Themes** section — one `.theme-card` per final theme, alphabetical by label, with the 1–2-sentence definition, the supporting-codes bullet list (verbatim extracts + `[SRC: <filename>]`), and a cross-source indicator.
 - A **Theme-to-requirement-candidates** section — one sub-section per theme; each sub-section a bullet list of *"The system should ___ so that ___"* candidate-requirement lines, citing the parent theme's `[SRC: <filename>]` set.
 - A **Coverage gaps and silent areas** section — three sub-lists: covered concerns (with the theme(s) touching them); gap-deductive concerns (with `[GAP-DEDUCTIVE: <concern>]` markers and source citations); silent concerns (no source mention).
@@ -54,7 +54,7 @@ The Braun & Clarke (2006) six phases map to twelve workflow steps. The mapping i
 | **Phase 4 — Reviewing themes** | Step 7 | Split / merge / drop candidates against codes |
 | **Phase 5 — Defining and naming themes** | Step 8 | Close `final_themes`; 3–6-word labels; 1–2-sentence definitions |
 | **Phase 6 — Producing the report + bridge + deductive coverage check** | Step 9 | Theme-to-requirement-candidates bridge; 10-area frame coverage check |
-| (operational) | Step 10 — Validate + Render + Mermaid-validate + SHA-256 | 6 hard gates, in-memory HTML render (template substitution + pre-rendered SVG), Mermaid-source validation, sha256 |
+| (operational) | Step 10 — Validate + Render + SHA-256 | 6 hard gates, in-memory HTML render (template substitution + pre-rendered SVG), sha256 |
 | (operational) | Step 11 — Write + verify-artifact-write | Write the artefact; verify; RF-04 on mismatch |
 | (operational) | Step 12 — Handback | Accept / Revise / Restart loop |
 
@@ -251,7 +251,7 @@ State the coverage shape aloud:
 
 > *"Phase 6 sub-B (Deductive coverage check): 10-area frame — 8 covered (`Functional`, `Data`, `Workflow`, `UX`, `Permission` ↔ Security partial, `Manual data entry` ↔ Operations partial, `Audit trail` ↔ Compliance partial, `Status disambiguation` ↔ Reporting partial), 2 gap-deductive (`NFR` mentioned in `brief.docx` but no theme; `Integration` mentioned in `slack-export.md` but no theme), 0 silent."*
 
-### Step 10 — Validate + Render + Mermaid-validate + SHA-256
+### Step 10 — Validate + Render + SHA-256
 
 **Sub-step A — Quality-gate sweep.**
 
@@ -260,11 +260,11 @@ Run all 6 hard gates from `framework/assets/analyses-inputs/thematic-analysis-re
 1. **Citation completeness.** Every code, theme-definition, candidate-requirement carries ≥ 1 `[SRC: <filename>]`; every payload matches a `consumed_rows[*].filename` exactly.
 2. **Theme support.** Every theme in `final_themes` is supported by ≥ 2 codes.
 3. **No generic theme names.** No theme label is *Other / Misc / Miscellaneous / General / Various / Additional / Etc.* (unless a prior gate failure was Override'd).
-4. **Diagram completeness + validity.** Every theme appears as a node in **both** the pre-rendered inline `<svg>` theme-map **and** the adjacent `graph TD` Mermaid source; neither has dangling references; `mermaid-validator.md` returned `valid` against the Mermaid source (this gate is finalised in Sub-step C after the validator runs). The visible diagram is the SVG; the Mermaid source is the export / re-ingestion adjunct.
+4. **Diagram completeness.** Every theme appears as a node in **both** the pre-rendered inline `<svg>` theme-map **and** the adjacent `graph TD` Mermaid export source; neither has dangling references. The visible diagram is the SVG; the Mermaid source is the export / re-ingestion adjunct, embedded as text (not validated by `mmdc`).
 5. **Deductive coverage gaps recorded.** Every `coverage_results` entry appears in its correct sub-list (Covered / Gap-deductive / Silent); no entry is dropped.
 6. **Manifest fingerprint + source roster.** The artefact carries exactly one `<script type="application/json" id="thematic-analysis-meta">` head block; its `manifest_sha256` equals Step 2's value, and the same value appears in the Overview `dl.meta-grid` "Manifest SHA-256" cell; both Source-roster tables (in the Diagnostics `<details>`) enumerate the expected rows.
 
-**On any gate failure (excluding gate 4, which finalises in Sub-step C):**
+**On any gate failure:**
 
 Surface `AskUserQuestion` with three options:
 
@@ -298,7 +298,7 @@ Read `framework/assets/analyses-inputs/template-thematic-analysis.html` (loaded 
   - Cross-theme proximity edges `T<i> -.-> T<j>` for pairs with Jaccard overlap ∈ [0.30, 0.50].
   - Code nodes `c<j>((<code_label>))` + `T<i> --> c<j>` only when `include-codes` is toggled on.
   - If a theme label contains characters Mermaid treats specially (`[`, `]`, `"`, `(`, `)`), wrap the label in double quotes: `T1["Theme: <label>"]`.
-  This source is **not** rendered in-page; it is validated in Sub-step C and embedded as text.
+  This source is **not** rendered in-page; it is embedded as text — an export / re-ingestion adjunct, not validated by `mmdc`.
 
 **D. Themes (`{{THEMES_BLOCK}}`).** One `<article class="theme-card">` per entry in `final_themes`, alphabetical by label, per the THEMES BLOCK SCHEMA: an `<h3>` label, a `<span class="cross-source-tag cross-yes|cross-no">` indicator, a `<p class="theme-def">` 1–2-sentence definition (containing ≥ 1 `[SRC: <filename>]` wrapped in `<small class="src-inline">`), and a `<ul class="code-list">` of supporting codes — each `<li>` carrying the code label, the verbatim extract in `<em class="extract">`, and the `[SRC: <filename>]` marker. If a theme was preserved from a prior run via the additive merge, its codes list may include both prior-run codes and new codes appended this run; order alphabetically by `code_label`.
 
@@ -310,18 +310,11 @@ Read `framework/assets/analyses-inputs/template-thematic-analysis.html` (loaded 
 
 **H. Diagnostics (`{{DIAGNOSTICS_BLOCK}}`).** The `<section class="diagnostics">` per the DIAGNOSTICS SCHEMA: a one-line summary, `Manifest fingerprint: <code>…</code> — run #N`, the **Consumed** source-roster table (`filename` / `tier` / `sha256[:8]` / code-count — one row per `consumed_rows` entry), the **Skipped** table (`filename` / reason — one row per `skipped_rows` entry, or a single `(no skipped rows this run)` row), a `<ul class="gate-results">` of the 6 gate results (`gate-pass` / `gate-fail`), and a `<ul class="run-history">` with prior-run bullets preserved verbatim then a new bullet for this run (`<code>{ISO date}</code> — run #N — {n_new_codes} new codes; {n_new_themes} new themes; total themes: {len(final_themes)}; coverage: {n_covered}/{n_gap}/{n_silent}{; Override: <gate list> if applicable}`). On Override, append a `.flagged-items` block per failed gate.
 
-After substitution, verify no literal `{{...}}` token remains, then compute the composed string's SHA-256 and store it for Sub-step C and Step 11.
+After substitution, verify no literal `{{...}}` token remains, then compute the composed string's SHA-256 and carry it into Step 11.
 
-**Sub-step C — Mermaid-validate (the export-adjunct source).**
+**Sub-step C — Final SHA-256.**
 
-- Extract the `graph TD` source from the `<pre class="mermaid-source">` block in the composed HTML. Write it to a temporary `.mmd` (or `.md` with a fenced ```mermaid block) and invoke `framework/skills/mermaid-validator.md` against that path. The skill runs `mmdc -i <path> -o /tmp/mermaid-validation.svg 2>&1`. (The validator runs against the **Mermaid source**, not the in-page SVG — the SVG is the analyser's own pre-rendered geometry.)
-- **On `valid`:** finalise gate 4 (pass). Advance to Sub-step D.
-- **On `invalid` (syntax error):** self-fix the offending Mermaid source (rename a node, escape a character, simplify a label), **and** the corresponding inline SVG if the same label/structure error applies there, re-render the HTML string, recompute its SHA-256, and re-invoke the validator. Maximum **3 fix-attempts**. On attempt 4 with the validator still reporting invalid, halt with: *"Could not produce a valid theme-map diagram after 3 fix-attempts. Last validator output: `<error>`. Failing handback."* and hand back with `failed-handback`. The artefact is not written.
-- **On `mmdc not installed`:** halt with the validator's own surface copy: *"Mermaid validator could not run because `mmdc` is not installed. Install it manually with `npm i -g @mermaid-js/mermaid-cli` and re-invoke `/analyse-inputs`."* Fail handback. The artefact is not written.
-
-**Sub-step D — Final SHA-256.**
-
-The SHA-256 captured at the end of Sub-step B is final unless Sub-step C re-rendered. After Sub-step C returns `valid`, the in-memory HTML string is final; the stored SHA-256 corresponds to those exact bytes. Carry both into Step 11.
+The SHA-256 computed at the end of Sub-step B is final — the theme-map is a pre-rendered inline SVG and the Mermaid source is embedded as an unvalidated export adjunct, so there is no validate-and-re-render step. Carry the in-memory HTML string and its SHA-256 into Step 11.
 
 ### Step 11 — Write + verify-artifact-write
 
@@ -364,15 +357,15 @@ Use `AskUserQuestion`:
 
 - **Accept** — declare done; hand back to the orchestrator.
 - **Revise** — accept the consultant's revision instructions in their next message. Apply the changes:
-  - **Drop a theme** ("drop `Status-disambiguation`"): remove the theme from `final_themes`, return its codes to unthemed, re-run Step 9 sub-B coverage check (the dropped theme may have been the only thing touching a concern), re-render, re-Mermaid-validate, re-Write, re-verify; loop back to A. If the dropped theme was preserved from a prior run, gate 6 may have a preservation note — surface and confirm the consultant wants to break the additive contract.
-  - **Rename a theme** ("rename `Manual-data-entry` to `Manual data capture friction`"): update the label, regenerate the candidate-requirement lines if their phrasing referenced the old label, re-render, re-Mermaid-validate, re-Write, re-verify; loop back to A.
-  - **Refresh candidate-requirements for a theme** ("re-bridge `Approval-bottleneck`"): re-run Step 9 sub-A for that single theme; re-render; re-Mermaid-validate; re-Write; re-verify; loop back to A.
-  - **Drop a coverage gap** ("the `NFR` gap is out of scope — accept as silent"): re-classify the entry from `gap-deductive` to `silent` (with a Run-history note that the consultant explicitly accepted this gap); re-render; re-Mermaid-validate; re-Write; re-verify; loop back to A. Note: the consultant cannot **invent** coverage — they may only re-classify a `gap-deductive` to `silent`, never the reverse.
-  - **Toggle code nodes in the theme-map** ("include codes in the theme-map"): set the `include-codes` flag; re-render **both** the inline-SVG theme-map (add `node-code` circles + `edge-theme-code` paths) **and** the adjacent Mermaid source (`c<j>((<code_label>))` nodes + `T<i> --> c<j>` edges); re-Mermaid-validate; re-Write; re-verify; loop back to A.
+  - **Drop a theme** ("drop `Status-disambiguation`"): remove the theme from `final_themes`, return its codes to unthemed, re-run Step 9 sub-B coverage check (the dropped theme may have been the only thing touching a concern), re-render, re-Write, re-verify; loop back to A. If the dropped theme was preserved from a prior run, gate 6 may have a preservation note — surface and confirm the consultant wants to break the additive contract.
+  - **Rename a theme** ("rename `Manual-data-entry` to `Manual data capture friction`"): update the label, regenerate the candidate-requirement lines if their phrasing referenced the old label, re-render, re-Write, re-verify; loop back to A.
+  - **Refresh candidate-requirements for a theme** ("re-bridge `Approval-bottleneck`"): re-run Step 9 sub-A for that single theme; re-render; re-Write; re-verify; loop back to A.
+  - **Drop a coverage gap** ("the `NFR` gap is out of scope — accept as silent"): re-classify the entry from `gap-deductive` to `silent` (with a Run-history note that the consultant explicitly accepted this gap); re-render; re-Write; re-verify; loop back to A. Note: the consultant cannot **invent** coverage — they may only re-classify a `gap-deductive` to `silent`, never the reverse.
+  - **Toggle code nodes in the theme-map** ("include codes in the theme-map"): set the `include-codes` flag; re-render **both** the inline-SVG theme-map (add `node-code` circles + `edge-theme-code` paths) **and** the adjacent Mermaid source (`c<j>((<code_label>))` nodes + `T<i> --> c<j>` edges); re-Write; re-verify; loop back to A.
   - **Add an Override note** for a previously-failed gate: append the note to the Run-history bullet for this run; re-render; re-Write; re-verify; loop back to A.
 - **Restart** — re-enter Step 4 (Phase 1). The previously-written `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` is left in place; the next Step 11 will overwrite it.
 
-The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04 / mermaid-validator halt, which propagates per Step 10 / Step 11).
+The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 10 / Step 11).
 
 **C. Hand back.**
 
@@ -398,14 +391,14 @@ Output the final handback line:
 ## Tools
 
 - `Read` — read the character file, the reference asset, the HTML template scaffold (`framework/assets/analyses-inputs/template-thematic-analysis.html`), the manifest, each manifest-enumerated source file (via `original_path` or `converted_sibling`), and (if present) the prior thematic-analysis artefact. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` (and, transiently, the temporary `.mmd`/`.md` file passed to the mermaid-validator at Step 10 sub-C).
+- `Write` — write `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 10's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
 - `Bash` — `mkdir -p analyse-inputs/THEMATIC-ANALYSIS` (Step 11 setup). No other Bash usage.
 - `AskUserQuestion` — surface the Step 3 prior-run reconciliation prompt (only if the prior meta header is unparseable, or for the drift gate when the manifest fingerprint changed); surface the Step 10 quality-check failure prompt (Revise / Override / Restart); surface the Step 12 Accept / Revise / Restart prompt.
 
-The mermaid-validator skill at Step 10 sub-C is invoked **inline as a procedure** (the agent reads its workflow and executes the `mmdc` invocation directly via `Bash`). It is not a delegated sub-agent.
+The theme-map is a pre-rendered inline SVG composed by the analyser; the Mermaid source is embedded as an unvalidated export adjunct. There is no `mmdc` / Mermaid-render dependency and no external rendering pipeline.
 
-**No MCP tools.** No Agent / Task delegation. The analyser substitutes the HTML template, pre-renders the theme-map SVG, and validates the Mermaid export source directly; there is no external rendering pipeline and no client-side Mermaid runtime.
+**No MCP tools.** No Agent / Task delegation. The analyser substitutes the HTML template and pre-renders the theme-map SVG; the Mermaid export source is embedded as unvalidated text. There is no external rendering pipeline, no `mmdc` dependency, and no client-side Mermaid runtime.
 
 ## Self-validation (run before declaring done)
 
@@ -419,7 +412,7 @@ Before handing back, verify all of the following against the written artefact an
 - The artefact contains, in order: an `#overview` section, a sticky `nav.toc`, a `#diagrams` section (with the inline-SVG theme-map `figure.theme-map` **above** the `details.mermaid-block`), a `#themes` section, a `#candidates` (Theme-to-requirement candidates) section, a `#coverage` section with `.covered` / `.gap` / `.silent` columns, the JSON body section `#thematic-analysis-body-section`, and the collapsed `#diagnostics` `<details>` (containing the Consumed + Skipped source-roster tables and the run-history list).
 - Every `.theme-card` under `#themes` carries an `<h3>` label, a 1–2-sentence `p.theme-def` (containing ≥ 1 `[SRC: <filename>]`), a `ul.code-list` (each `<li>` ending in `[SRC: <filename>]`), and a `.cross-source-tag`.
 - Every theme in `final_themes` appears as a node in **both** the inline `<svg>` theme-map **and** the `graph TD` Mermaid source; every theme node beyond the root in either corresponds to a theme in `final_themes` (no dangling references).
-- The Mermaid validator returned `valid` against the export source at Step 10 sub-C (no halt occurred).
+- Every theme appears as a node in both the pre-rendered inline SVG theme-map and the `graph TD` Mermaid export source (the Mermaid source is embedded as text, not validated by `mmdc`).
 - Every `<li>` under `#candidates` matches the shape *"The system should ___ so that ___"* and ends in `[SRC: <filename>]`.
 - The `#coverage` section accounts for every entry in the 10-area frame: 10 entries total split across the `.covered` / `.gap` / `.silent` columns.
 - Every `[GAP-DEDUCTIVE: <concern>]` marker payload is one of the 10 concern names from the reference frame.
@@ -435,7 +428,7 @@ Before handing back, verify all of the following against the written artefact an
 
 - `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` exists, has been verified, and contains a complete thematic analysis: Overview (with Manifest SHA-256), TOC, Diagrams (pre-rendered inline-SVG theme-map above the Mermaid-source export `<details>`), Themes (≥ 1), Theme-to-requirement candidates, Coverage (10 entries across covered/gap/silent), the `language-json` body block (model + candidate-requirements), and the Diagnostics `<details>` (source roster + run history).
 - Either all 6 hard quality gates passed, or the consultant explicitly chose Override and the run-history bullet for this run records every violation.
-- The Mermaid theme-map export source validated `valid`, and every theme appears as a node in the pre-rendered inline SVG.
+- Every theme appears as a node in the pre-rendered inline SVG theme-map and in the `graph TD` Mermaid export source (embedded as an unvalidated export adjunct).
 - Additive-merge contract honoured: every prior-run theme card is present in the new artefact (unless the consultant explicitly dropped it via Revise or the `re-extract-everything` drift branch re-clustered it away with a run-history note).
 - The consultant has accepted the artefact in the Step 12 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.
@@ -448,12 +441,12 @@ Before handing back, verify all of the following against the written artefact an
 - **Do not author codes from world knowledge.** Every code carries ≥ 1 `[SRC: <filename>]` and an extract that is verbatim from the source. Paraphrasing the extract is not allowed; if the source phrasing is unclear, the code label can be cleaner than the extract, but the extract is a verbatim lift.
 - **Do not collapse the six phases into a single pass.** Each phase produces a distinct in-memory artefact; the phase-by-phase structure is what makes the analysis reviewable and what enables additive merges across runs.
 - **Do not label themes *Other / Misc / Miscellaneous / General / Various / Additional / Etc.*** These names hide structural deficits — either the cluster is two themes inadequately split, or it has < 2 codes and should not be a theme.
-- **Do not embed an invalid Mermaid export source.** The validator's `valid` return against the `graph TD` source is a hard precondition to write. If after 3 fix-attempts the source is still invalid, halt and fail handback — a corrupt export source poisons the re-ingestion adjunct. (The visible in-page diagram is the analyser's own pre-rendered inline SVG; keep the SVG and the Mermaid source in agreement — every theme is a node in both.)
+- **Keep the Mermaid export source in agreement with the SVG.** The visible in-page diagram is the analyser's own pre-rendered inline SVG; the `graph TD` Mermaid source is embedded as plain text — an export / re-ingestion adjunct, **not validated by `mmdc`** (there is no Mermaid-render dependency). Every theme must be a node in both the SVG and the export source.
 - **Do not re-invoke `markitdown-mcp`.** Conversions are the input-handler's responsibility; the manifest's `converted_sibling` path is the contract. Re-converting would produce drift between the analyser's reads and the manifest's recorded `sha256` field.
 - **Do not write the artefact on a Step 10 gate failure unless the consultant explicitly chose Override.** A silently defective thematic analysis propagates fabricated themes into requirements seeds — the worst failure mode for this analyser.
 - **Do not loop the Step 10 fail-Restart-fail cycle more than three times.** On the fourth fail, force the Revise path with a one-line note that further iteration is not productive without consultant input.
 - **Do not paste the artefact body into the conversation.** The file is on disk; the consultant opens the HTML in a browser (file://) or prints it to PDF.
-- **Do not use the Agent or Task tool to delegate any step.** All work happens in this thread. The mermaid-validator skill is a procedure invoked inline via `Bash`, not a delegated sub-agent. No MCP tools are authorised.
+- **Do not use the Agent or Task tool to delegate any step.** All work happens in this thread. The theme-map is a pre-rendered inline SVG; there is no Mermaid validation, no `mmdc` dependency, and no MCP tools are authorised.
 - **Do not emit any `[AI-SUGGESTED]` marker.** Thematic analysis is extraction, not inference. Codes, themes, and candidate-requirements all trace to `[SRC: <filename>]` markers; the `[AI-SUGGESTED]` namespace is reserved for the `/requirements`-drafter's inferences and must not be widened into analyser territory.
 - **Do not let Phase 6 add themes.** `final_themes` is closed at the end of Phase 5 (Step 8). The deductive coverage check (Step 9 sub-B) emits markers, never themes. If a coverage gap feels "obvious" enough to warrant a theme, the right action is to add inductive material to `input/` and re-run — not to elevate the gap to a theme.
 - **Do not bundle external JS / CSS / fonts / CDN references.** The artefact is self-contained HTML: one inline `<style>`, no `<script src=…>`, no external stylesheet `<link>`, no CDN URL, no client-side Mermaid runtime. The only `<script>` permitted is the head `application/json` data block. It must open via `file://` and print to PDF with no network access.

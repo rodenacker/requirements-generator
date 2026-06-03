@@ -2,20 +2,17 @@
   ROLE: asset (HTML template). Populated by framework/agents/analyses-inputs/ooux-analyser.md.
 
   Purpose: HTML/CSS skeleton for the inputs-side OOUX object map. Combines the
-  canonical OOUX sticky-note column-board (one column per object) with a
-  Mermaid erDiagram block (the relationship-graph "diagram" deliverable) and
-  an embedded JSON body block (the machine-readable model that survives
-  markitdown HTML→MD conversion for /requirements re-ingestion).
+  canonical OOUX sticky-note column-board (one column per object — the object
+  map, the rendered "diagram" deliverable) with an embedded JSON body block
+  (the machine-readable model that survives markitdown HTML→MD conversion for
+  /requirements re-ingestion).
 
   Self-contained (`<!doctype html>` + inlined `<style>` + `<body>`). No
   external CSS/JS dependencies; viewable by opening `file://` in a browser;
-  shareable with clients without tooling. Mermaid source is embedded as text
-  inside `<pre class="mermaid-source">`; rendered visual is out-of-band via
-  `mmdc` or mermaid.live — no inline runtime, no CDN.
+  shareable with clients without tooling.
 
   The artefact is re-ingestible into `input/` for the /requirements drafter
   via markitdown conversion:
-  - The Mermaid block (inside <pre>) survives as a fenced code block.
   - The embedded JSON body block (inside <pre><code class="language-json">)
     survives as a fenced ```json code block. This is the load-bearing
     machine-readable contract — the <script type="application/json"> meta
@@ -32,27 +29,21 @@
     2. TOC (<nav class="toc">)               — static top-level anchors.
     3. Source roster (id="source-roster")    — {{SOURCE_ROSTER_BLOCK}}:
                                                 Consumed + Skipped tables.
-    4. Object relationship diagram (id="diagram")
-                                              — Mermaid erDiagram in
-                                                {{ER_DIAGRAM_MERMAID}}.
-    5. Diagrams / column-board (id="diagrams") — {{OBJECT_COLUMNS}} inside
+    4. Diagrams / column-board (id="diagrams") — {{OBJECT_COLUMNS}} inside
                                                  the sticky-note .object-board.
-    6. Tabular information (id="tables")     — {{REL_MATRIX_BLOCK}}:
+    5. Tabular information (id="tables")     — {{REL_MATRIX_BLOCK}}:
                                                 relationship matrix table.
-    7. Object map body (id="object-map-body") — {{OBJECT_MAP_JSON_BLOCK}}:
+    6. Object map body (id="object-map-body") — {{OBJECT_MAP_JSON_BLOCK}}:
                                                 <pre><code class="language-json">
                                                 with the full machine-readable
                                                 object model. The load-bearing
                                                 markitdown-survival contract.
-    8. Diagnostics (id="diagnostics")        — <details> wrapper, collapsed
+    7. Diagnostics (id="diagnostics")        — <details> wrapper, collapsed
                                                 by default. Synonym-merge log,
                                                 8 gate results, flagged items.
 
   Placeholders the analyser substitutes (string substitution, all values
-  pre-escaped for HTML; JSON inside <pre><code> escaped as plain text;
-  Mermaid inside <pre class="mermaid-source"> is NOT HTML-escaped beyond
-  the standard `<`, `>`, `&`, `"`, `'` set — Mermaid pipe `|`, bracket `[`,
-  `]`, brace `{`, `}`, and `||--o{` syntax must remain literal):
+  pre-escaped for HTML; JSON inside <pre><code> escaped as plain text):
 
     {{TITLE}}                  — short title (e.g. "OOUX Object Map (inputs) — Project X").
     {{DOMAIN}}                 — domain string (from manifest meta if declared, else
@@ -73,9 +64,6 @@
                                  (Gate 8 emissions).
     {{SOURCE_ROSTER_BLOCK}}    — pre-rendered <section id="source-roster"> containing
                                  Consumed and Skipped tables per SOURCE ROSTER SCHEMA.
-    {{ER_DIAGRAM_MERMAID}}     — pre-rendered <details class="mermaid-block"> containing
-                                 <pre class="mermaid-source"> with the erDiagram source.
-                                 The "MUST contain a diagram" deliverable.
     {{OBJECT_COLUMNS}}         — pre-rendered <section class="object-column"> blocks
                                  per the OBJECT COLUMN SCHEMA. One per object.
     {{REL_MATRIX_BLOCK}}       — pre-rendered <section class="rel-matrix-block"> per
@@ -173,20 +161,6 @@
         </table>
       </section>
 
-  ER DIAGRAM SCHEMA — {{ER_DIAGRAM_MERMAID}} substitutes:
-
-      <details class="mermaid-block" open>
-        <summary>Object relationship diagram (Mermaid erDiagram)</summary>
-        <p class="mermaid-caption">
-          Copy this block into <a href="https://mermaid.live">mermaid.live</a> or run
-          <code>mmdc -i &lt;source.mmd&gt; -o &lt;diagram.svg&gt;</code> to view rendered.
-          The Mermaid source survives markitdown HTML→MD conversion as a fenced code
-          block, so this diagram is available verbatim to /requirements when the
-          artefact is copied into input/ for re-ingestion.
-        </p>
-        <pre class="mermaid-source">{{mermaid-source}}</pre>
-      </details>
-
   REL MATRIX SCHEMA — {{REL_MATRIX_BLOCK}} substitutes a single
   <section class="rel-matrix-block"> containing the relationship matrix:
 
@@ -269,7 +243,7 @@
     .provenance-inferred            — provenance dot, implied not verbatim.
 
   Content TBD-able by the analyser:
-    The source roster, the erDiagram source, the column count, the per-column
+    The source roster, the column count, the per-column
     sticky content, the relationship matrix, the JSON body, and the diagnostics
     block are fully driven by the analyser. The CSS below is fixed scaffolding
     and should not be edited by the analyser — only the {{placeholders}} above
@@ -449,58 +423,6 @@
       color: var(--muted);
       font-style: italic;
       text-align: center;
-    }
-
-    /* ------- mermaid block ------- */
-
-    details.mermaid-block {
-      border: 1px solid var(--border-strong);
-      border-radius: 6px;
-      padding: 10px 14px;
-      margin: 0 0 24px 0;
-      background: #fff;
-    }
-    details.mermaid-block > summary {
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 14px;
-      color: var(--fg);
-      list-style: none;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      user-select: none;
-    }
-    details.mermaid-block > summary::-webkit-details-marker { display: none; }
-    details.mermaid-block > summary::before {
-      content: "▶";
-      font-size: 10px;
-      color: var(--muted);
-      transition: transform 0.15s ease;
-      display: inline-block;
-    }
-    details.mermaid-block[open] > summary::before { transform: rotate(90deg); }
-    .mermaid-caption {
-      color: var(--muted);
-      font-size: 12px;
-      margin: 8px 0 8px 0;
-    }
-    .mermaid-caption code, .mermaid-caption a {
-      font-family: ui-monospace, monospace;
-      font-size: 0.92em;
-    }
-    pre.mermaid-source {
-      background: var(--code-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 12px 14px;
-      font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace;
-      font-size: 12px;
-      line-height: 1.45;
-      overflow-x: auto;
-      white-space: pre;
-      color: #111827;
-      margin: 0;
     }
 
     /* ------- relationship matrix (own section) ------- */
@@ -873,7 +795,6 @@
       .toc { display: none; }
       details.diagnostics-toggle { display: none; }
       .rel-matrix-block { break-inside: avoid; }
-      details.mermaid-block { break-inside: avoid; }
     }
   </style>
 </head>
@@ -881,7 +802,7 @@
   <main>
     <section id="overview">
       <h1>{{TITLE}}</h1>
-      <p class="subtitle">OOUX object map (inputs side) — Mermaid erDiagram + sticky-board (one column per object: CTAs · Object · Core content · Metadata · Nested refs) + machine-readable JSON.</p>
+      <p class="subtitle">OOUX object map (inputs side) — sticky-board (one column per object: CTAs · Object · Core content · Metadata · Nested refs) + machine-readable JSON.</p>
 
       <dl class="meta-grid">
         <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
@@ -905,7 +826,6 @@
       <ol>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#source-roster">Source roster</a></li>
-        <li><a href="#diagram">Relationship diagram</a></li>
         <li><a href="#diagrams">Object column-board</a></li>
         <li><a href="#tables">Relationship matrix</a></li>
         <li><a href="#object-map-body">Object map (JSON)</a></li>
@@ -914,12 +834,6 @@
     </nav>
 
     {{SOURCE_ROSTER_BLOCK}}
-
-    <section id="diagram" aria-label="Object relationship diagram">
-      <h2>Object relationship diagram</h2>
-      <p class="caption">Mermaid <code>erDiagram</code> — entities are canonical OOUX objects; PK marks the primary CCP; relationships labelled with verb phrase and cardinality.</p>
-      {{ER_DIAGRAM_MERMAID}}
-    </section>
 
     <section id="diagrams" class="object-board" aria-label="OOUX object map column-board">
       {{OBJECT_COLUMNS}}
@@ -942,7 +856,7 @@
         <strong>Audit the synonym-merge log</strong> in Diagnostics before treating the object set as final — every cross-source merge is an interpretive decision the consultant should confirm or correct via the analyser's Revise loop.
       </p>
       <p>
-        To re-ingest this artefact into <code>/requirements</code>, copy this file into <code>input/</code> (e.g. <code>input/ooux-object-map.html</code>) and re-run <code>/requirements</code>. The input-handler classifies it as <code>Supported-via-MCP</code>; markitdown converts it to <code>input/ooux-object-map.html.converted.md</code>. The embedded JSON body block (the <code>language-json</code> code block) and the Mermaid <code>erDiagram</code> source survive verbatim as fenced code blocks; <code>[SRC: &lt;filename&gt;]</code> markers survive as plain text. The drafter consumes the converted markdown via the refreshed manifest.
+        To re-ingest this artefact into <code>/requirements</code>, copy this file into <code>input/</code> (e.g. <code>input/ooux-object-map.html</code>) and re-run <code>/requirements</code>. The input-handler classifies it as <code>Supported-via-MCP</code>; markitdown converts it to <code>input/ooux-object-map.html.converted.md</code>. The embedded JSON body block (the <code>language-json</code> code block) survives verbatim as a fenced code block; <code>[SRC: &lt;filename&gt;]</code> markers survive as plain text. The drafter consumes the converted markdown via the refreshed manifest.
       </p>
     </section>
 

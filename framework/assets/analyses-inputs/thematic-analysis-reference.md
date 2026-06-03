@@ -4,7 +4,7 @@
 
 > **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json`, generate per-source observations (Phase 1), transform them into codes anchored to verbatim extracts (Phase 2), cluster the codes into candidate themes (Phase 3), refine the themes against their underlying codes (Phase 4), define and name the final themes (Phase 5), then produce the report — including a bridge from each theme to candidate-requirement seeds and a deductive coverage check against a fixed 10-area concern frame (Phase 6). Every code, theme-definition, and candidate-requirement carries one or more `[SRC: <filename>]` markers naming a manifest row. Coverage gaps surface as `[GAP-DEDUCTIVE: <concern>]` markers in a diagnostics section — **never** as invented themes. Across re-runs the artefact is **additive**: prior theme headings, code lists, and candidate-requirements are preserved; new manifest content extends them.
 
-**Output file:** `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` — a self-contained HTML document rendered via `framework/assets/analyses-inputs/template-thematic-analysis.html`. The theme-map is a **pre-rendered inline SVG** in a `#diagrams` section, with an adjacent collapsed `<details class="mermaid-source">` block carrying the Mermaid source (validated by `framework/skills/mermaid-validator.md` before write). A `language-json` `thematic-analysis-body` block carries the structured model (themes + codes) and the candidate-requirement seeds, so the artefact survives a markitdown HTML→Markdown conversion for re-ingestion by `/requirements`.
+**Output file:** `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` — a self-contained HTML document rendered via `framework/assets/analyses-inputs/template-thematic-analysis.html`. The theme-map is a **pre-rendered inline SVG** in a `#diagrams` section, with an adjacent collapsed `<details class="mermaid-block">` block carrying the Mermaid source as an export / re-ingestion adjunct (embedded as text, not validated by `mmdc`). A `language-json` `thematic-analysis-body` block carries the structured model (themes + codes) and the candidate-requirement seeds, so the artefact survives a markitdown HTML→Markdown conversion for re-ingestion by `/requirements`.
 
 **Analyser agent:** `framework/agents/analyses-inputs/thematic-analysis-analyser.md`
 
@@ -39,7 +39,7 @@ Thematic analysis is the **right first methodology** for `/analyse-inputs` becau
 
 - **Self-contained, diagram-first.** The artefact is a single HTML file the consultant can open in a browser with the theme-map at the top as a pre-rendered inline SVG — no Mermaid runtime, no external assets. This matches the framework's HTML-output, diagrams-first convention shared by the other analysers.
 - **Re-ingestibility via embedded fenced blocks.** The artefact must still be droppable back into `input/` as a fresh source for a later `/requirements` run. The embedded `language-json` `thematic-analysis-body` block (themes + codes + candidate-requirement seeds) and the collapsed `mermaid-source` block survive a markitdown HTML→Markdown conversion, so the structured model round-trips cleanly; the drafter reads the candidate-requirement seeds without having to parse presentational HTML.
-- **Diagram validation retained.** The Mermaid source is kept in an adjacent collapsed `<details class="mermaid-source">` block and validated by `framework/skills/mermaid-validator.md` before the inline SVG is rendered into the template — the same pre-write validation the other diagrammatic analyses use.
+- **Diagram as inline SVG.** The theme-map is a pre-rendered inline `<svg>`; the Mermaid source is kept in an adjacent collapsed `<details class="mermaid-block">` block as an export / re-ingestion adjunct, embedded as text and **not** validated by `mmdc` (the inline SVG is the visible diagram — matching the other inline-SVG analyses; no `mmdc` dependency).
 
 ---
 
@@ -55,7 +55,7 @@ The artefact has a fixed top-to-bottom shape:
    - 1–2-sentence definition.
    - Supporting codes: bulleted list of `{code_label}` — *"{verbatim extract ≤ 200 chars}"* `[SRC: <filename>]` — one bullet per code.
    - Cross-source: `Cross-source: yes (3 sources)` or `Cross-source: no (single source)`.
-5. **Theme-map** (a `graph TD` diagram). Rendered as a **pre-rendered inline SVG** in the `#diagrams` section, with the Mermaid source kept in an adjacent collapsed `<details class="mermaid-source">` block; the analyser invokes `framework/skills/mermaid-validator.md` against that source before rendering the SVG and writing.
+5. **Theme-map** (a `graph TD` diagram). Rendered as a **pre-rendered inline SVG** in the `#diagrams` section, with the Mermaid source kept in an adjacent collapsed `<details class="mermaid-block">` block as an export / re-ingestion adjunct (embedded as text, not validated by `mmdc`).
 6. **Theme-to-requirement-candidates.** One sub-section per final theme; each sub-section is a bullet list of candidate-requirement lines of shape *"The system should `<verb> <object>` so that `<outcome>`"*, citing the parent theme's `[SRC: <filename>]` set.
 7. **Coverage gaps and silent areas.** Three sub-lists:
    - **Covered** (no markers; just the concern name + the theme(s) covering it).
@@ -234,7 +234,7 @@ For each concern:
 - **Edges:** `root --> T1` for every theme. With codes included: `T1 --> c1` for every theme-code link.
 - **Cross-theme proximity:** when two themes shared ≥ 30% of codes at Phase 7 but were kept distinct (the analyst's clustering judgement), render a dashed edge `T1 -.-> T2` to surface the proximity. The 30% threshold is computed as the Jaccard overlap of the two themes' code sets.
 - **Placement in the artefact:** after `## Themes`, before `## Theme-to-requirement-candidates`. Readers build the picture from the body's theme definitions, anchor it visually via the diagram, then see how each theme bridges to candidate requirements.
-- **Validation:** the analyser invokes `framework/skills/mermaid-validator.md` against the fully-rendered markdown (with the Mermaid block embedded) before writing. On `invalid` → up to 3 self-fix attempts; on attempt 4 fail or `not-installed` → halt and fail handback.
+- **No Mermaid validation:** the theme-map is a pre-rendered inline SVG; the Mermaid source beneath it is embedded as an unvalidated export adjunct (no `mmdc` dependency). Keep the SVG and the Mermaid source in agreement — every theme is a node in both.
 
 ---
 
@@ -277,7 +277,7 @@ Run at Phase 6 close, before render. Each check operates on the in-memory state.
 1. **Citation completeness.** Every code, every theme-definition, every candidate-requirement carries at least one `[SRC: <filename>]` marker, and every marker payload matches a manifest row's `filename` field exactly. Mismatch fails.
 2. **Theme support.** Every theme in `final_themes` is supported by ≥ 2 codes. If the manifest contains ≥ 2 consumable sources, every theme has codes drawn from ≥ 1 source — but single-source themes are permitted because a manifest may have only one source. A theme with < 2 codes fails (the Phase 3 / Phase 4 discipline should have dropped it; this gate is a structural safety net).
 3. **No generic theme names.** No theme or sub-theme label is *Other*, *Misc*, *Miscellaneous*, *General*, *Various*, *Additional*, or *Etc.* — unless the consultant explicitly chose `Override` at a prior fail of this gate (recorded in Diagnostics).
-4. **Diagram completeness + validity.** Every theme in `final_themes` appears as a node in the Mermaid `graph TD`; the diagram does not reference theme IDs that no longer exist; the `mermaid-validator.md` skill returned `valid` against the rendered diagram block.
+4. **Diagram completeness.** Every theme in `final_themes` appears as a node in **both** the pre-rendered inline SVG theme-map **and** the `graph TD` Mermaid export source; neither references theme IDs that no longer exist. (The Mermaid source is an unvalidated export adjunct — no `mmdc`.)
 5. **Deductive coverage gaps recorded.** Every `coverage_results` entry with status `gap-deductive` appears in the `Coverage gaps and silent areas > Gap-deductive` sub-list as a `[GAP-DEDUCTIVE: <concern>]` line; every `silent` entry appears in the `Silent` sub-list; every `covered` entry appears in the `Covered` sub-list. No coverage result is dropped from the artefact.
 6. **Manifest fingerprint + source roster.** The artefact carries exactly one `<!-- thematic-meta: ... -->` line; its `manifest_fingerprint` value equals the Phase 1 sha256; the `Source roster > Consumed` table enumerates every manifest row whose `tier != "Unsupported"` (with `filename`, `tier`, `sha256[:8]`, code-count); the `Source roster > Skipped` table enumerates every manifest row whose `tier == "Unsupported"` (with `filename`, reason).
 
@@ -303,7 +303,7 @@ The analysis is complete when:
 
 - `final_themes` is non-empty (or the consultant Override'd a zero-theme run with a recorded reason).
 - All 6 hard gates pass, or the consultant chose Override and the failures are recorded in Diagnostics.
-- The Mermaid theme-map validated `valid`.
+- Every theme is a node in both the pre-rendered inline SVG theme-map and the Mermaid export source (embedded as unvalidated text).
 - `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` has been written and `verify-artifact-write` returned `pass`.
 - The consultant chose Accept in the handback loop.
 

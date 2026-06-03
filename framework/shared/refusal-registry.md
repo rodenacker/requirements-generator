@@ -98,7 +98,9 @@ Add new predicates by appending; never renumber.
 
 **Severity:** pause.
 
-**Trigger:** Gate 9 of an MVP analyser whose methodology emits Mermaid source (initially `framework/agents/analyses-inputs/affinity-mapping-analyser.md` Step 10 Gate 9; future analysers may register here when they also surface this predicate) requires `mmdc` (Mermaid CLI) on PATH to validate the emitted Mermaid `mindmap` or `flowchart TD` source via `framework/skills/mermaid-validator.md`. `mmdc` not found on PATH. Distinct from `RF-01` because the methodology-level rendering dependency is independent of the input-handler's markitdown MCP dependency, and distinct from the validator skill's own internal `not-installed` halt because the analyser exposes a three-way choice rather than a hard halt.
+**Trigger:** Gate 9 of an MVP analyser whose methodology emits Mermaid source requires `mmdc` (Mermaid CLI) on PATH to validate the emitted Mermaid `mindmap` or `flowchart TD` source via `framework/skills/mermaid-validator.md`. `mmdc` not found on PATH. Distinct from `RF-01` because the methodology-level rendering dependency is independent of the input-handler's markitdown MCP dependency, and distinct from the validator skill's own internal `not-installed` halt because the analyser exposes a three-way choice rather than a hard halt.
+
+> **No active caller as of the analyse-inputs inline-SVG conversion.** `affinity-mapping` was the original surfacer (its Step 10 Gate 9); it — and `swim-lane-process-mapping` — now **pre-render their diagrams as inline `<svg>`** and no longer validate Mermaid, so this predicate currently has no surfacing analyser. It remains defined (stable IDs are append-only — never renumber/delete) for any future Mermaid-render-dependent methodology that chooses to surface it.
 
 **Surface:** `AskUserQuestion` with the choice set `{ install-and-retry, skip-mermaid-validation-with-warning, abort }` plus an "Other" override. The question text must include the install instructions path (`advice_path`) and the verbatim warning for the skip option.
 

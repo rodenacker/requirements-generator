@@ -1,0 +1,505 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/reviews/requirements-traceability-reviewer.md.
+
+  Purpose: Self-contained HTML skeleton for the Requirements Traceability (backward / pre-RS
+  provenance-integrity audit) review. No external CSS / JS / fonts — opens cleanly via file://
+  for consultant review and prints sensibly to PDF. The artefact is re-ingestible by /requirements
+  via the embedded <script type="application/json"> block, which survives markitdown HTML→MD as
+  fenced ```json code.
+
+  Sibling templates under /review-requirements:
+    framework/assets/reviews/template-adversarial.html
+    framework/assets/reviews/template-first-principles.html
+    framework/assets/reviews/template-ten-ba-questions.html
+    framework/assets/reviews/template-ten-ux-questions.html
+    framework/assets/reviews/template-user-stories.html
+    framework/assets/reviews/template-requirements-quality.html
+
+  HTML-rendering contract (the reviewer agent's Step 8):
+    • Every substituted value is HTML-escaped (5 chars: & < > " ').
+    • Simple text placeholders (counts, timestamps, fingerprints, tallies, tier) inject as text.
+    • Block placeholders ({{CAPABILITY_BANNER}}, {{UNTRACEABLE_DIAGRAM_SVG}}, {{UNTRACEABLE_BLOCK}},
+      {{PROVENANCE_HEATMAP_SVG}}, {{PROVENANCE_LEDGER_TABLE}}, {{FIX_LIST_BLOCK}},
+      {{DIAGNOSTICS_BLOCK}}, {{STRUCTURED_JSON_BLOCK}}) are PRE-RENDERED HTML fragments built in
+      memory per the schemas below; substituted as-is.
+    • The scaffold itself is NEVER edited; section ordering (UNTRACEABLE-FIRST), IDs, ARIA labels,
+      and the TOC list are fixed.
+    • No <script> beyond the trailing {{STRUCTURED_JSON_BLOCK}} JSON carrier; no external <link>;
+      no http(s):// asset reference.
+
+  Untraceable-first ordering (fixed — the headline result is what traces to NOTHING):
+    header → capability banner + verdict + untraceable distribution diagram (the diagram)
+    → UNTRACEABLE REQUIREMENTS block (the main result: orphans / broken citations / dropped-but-present)
+    → requirement × trace-target heatmap → full provenance ledger → drift & dead-provenance fix list
+    → diagnostics → embedded JSON.
+
+  Placeholders the reviewer substitutes (string substitution, all values pre-escaped):
+
+    {{TITLE}}                   — e.g. "Requirements Traceability Review — Project X"
+    {{DOMAIN}}                  — domain string from §1, else "(not declared in requirements.md)"
+    {{GENERATED_AT}}            — ISO-8601 UTC timestamp
+    {{REQUIREMENTS_SHA256}}     — sha256 of requirements/requirements.md at Step 2
+    {{REVIEWER_IDENTITY}}       — fixed "Requirements Traceability (backward / pre-RS provenance-integrity audit)"
+    {{CAPABILITY_TIER}}         — TIER-2 | TIER-1b | TIER-1 | TIER-0
+    {{UNTRACED_COUNT}}          — total units in the Untraceable Set (the lead headline number)
+    {{TRACED_COUNT}} {{TOTAL_UNITS}}  — units that trace / total units
+    {{VERDICT}}                 — BLOCKED | NEEDS-REVISION | ACCEPTED-WITH-CONCERNS
+                                  (also drives the .verdict-{{VERDICT}} class on the banner)
+    {{UNTRACEABLE_COUNT_TALLY}} — "Orphan: N · Broken-citation: N · Dropped-but-present: N · Not-alignable: N · Unattributed: N"
+    {{TRACE_COVERAGE_TALLY}}    — "Sourced: N · Accepted-inference: N · Standard-rule: N · Out-of-scope: N (of M)"
+    {{WARN_TALLY}}              — "Drifted: N · Dead-provenance: N"
+    {{CAPABILITY_BANNER}}       — pre-rendered banner per CAPABILITY SCHEMA below
+    {{UNTRACEABLE_DIAGRAM_SVG}} — pre-rendered inline <svg> per DISTRIBUTION SCHEMA below
+    {{UNTRACEABLE_BLOCK}}       — pre-rendered <article> cards per UNTRACEABLE SCHEMA below
+    {{PROVENANCE_HEATMAP_SVG}}  — pre-rendered inline <svg> per HEATMAP SCHEMA below
+    {{PROVENANCE_LEDGER_TABLE}} — pre-rendered <tr> rows per LEDGER SCHEMA below (only <tbody>; <thead> in scaffold)
+    {{FIX_LIST_BLOCK}}          — pre-rendered <article> cards per FIX-LIST SCHEMA below
+    {{DIAGNOSTICS_BLOCK}}       — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
+    {{STRUCTURED_JSON_BLOCK}}   — the <script type="application/json" id="requirements-traceability-meta">…</script> carrier
+
+  CAPABILITY SCHEMA — {{CAPABILITY_BANNER}} is a <div class="capability-banner tier-{TIER}">:
+      • States the capability tier, which trace layers were checked, and the confidence ceiling.
+      • TIER-2: "Full audit — [SRC] quotes re-verified live against the input files; AI-suggestions
+        attributed via the draft + resolver ledger."
+      • TIER-1b: "Source files absent — [SRC] validity taken from the draft-time grounding record
+        (draft-claims-verification.ndjson); traces NOT re-verified live."
+      • TIER-1: "No draft / resolver ledger — citation integrity only; uncited facts reported as
+        UNATTRIBUTED, not classified."
+      • TIER-0: "Syntactic-only — provenance ledger absent; [SRC]-tag well-formedness + orphan-surface
+        census only; trace integrity NOT established." (verdict capped at NEEDS-REVISION)
+
+  DISTRIBUTION SCHEMA — {{UNTRACEABLE_DIAGRAM_SVG}} is a single inline <svg class="prov-distribution">:
+      • A horizontal stacked bar of all units by provenance class, in fixed order:
+        Sourced | Accepted-inference | Standard-rule | Out-of-scope | (gap) | Not-alignable |
+        Orphan | Dropped-but-present | Broken-citation | Unattributed.
+      • The UNTRACEABLE segment (Not-alignable…Unattributed) is rendered with class prov-seg-untraced
+        and a bracket/label "UNTRACEABLE — N" above it (the highlighted slice).
+      • Segment classes: prov-seg-sourced | prov-seg-accepted | prov-seg-rule | prov-seg-oos |
+        prov-seg-untraced (the five "untraced" classes share the red family with slightly varied hue).
+      • A legend <g class="prov-legend"> names every class + count.
+      • viewBox width 1080; height ~140; class caps max-width:100%.
+
+  UNTRACEABLE SCHEMA — one {{UNTRACEABLE_BLOCK}} <article> per untraceable unit (Orphan, Not-alignable,
+    Broken-citation, Dropped-but-present, Unattributed), ordered: Broken-citation → Dropped-but-present
+    → Orphan → Not-alignable → Unattributed, then by req_type, then req_id:
+      <article class="untraced-card verdict-{verdict-slug}" id="untraced-{unit_id}">
+        <h3><code>{unit_id}</code> · <code>{anchor}</code> · <span class="chip prov-{verdict-slug}">{VERDICT}</span></h3>
+        <dl class="untraced-fields">
+          <dt>What it says</dt>
+          <dd><blockquote class="evidence"><pre>{offending_text_escaped}</pre></blockquote></dd>
+          <dt>Why it fails to trace</dt>
+          <dd>{reason_escaped — e.g. "[SRC: C-031] has no entry in draft-claims.ndjson",
+               "no antecedent found in the draft or any ledger",
+               "resolver marked AI-012 dropped, yet the value is present"}</dd>
+          <dt>Recommended action</dt>
+          <dd>{action_escaped — observational/imperative remediation, e.g. "supply the source quote or
+               remove the citation", "re-confirm with the consultant or remove", "point the citation at
+               the correct file"}</dd>
+        </dl>
+      </article>
+    If zero untraceable units, substitute
+      <p class="untraced-empty">No untraceable units — every scored requirement and every citation traces to a real source, an accepted suggestion, a standard rule, or a declared scope default.</p>
+    (still subject to the capability-tier ceiling stated in the banner).
+
+  HEATMAP SCHEMA — {{PROVENANCE_HEATMAP_SVG}} is a single inline <svg class="trace-heatmap">:
+      • Rows = ID-bearing requirements (tier-then-type order; or grouped by req_type when large).
+        Row label = the req_id.
+      • Columns = the four backward-trace targets (a requirement lights exactly ONE):
+        Input source | Consultant answer | Standard rule / scope | UNTRACED
+        (a group divider <line class="hm-group-divider"> before the UNTRACED column).
+      • Lit cell classes: hm-cell hm-trace-source | hm-trace-consultant | hm-trace-rule | hm-trace-untraced.
+        Unlit cells: hm-cell hm-cell-empty.
+      • A legend <g class="hm-legend"> names the four targets.
+      • viewBox width 1080; height computed by the agent from the row count; class caps max-width:100%.
+
+  LEDGER SCHEMA — each {{PROVENANCE_LEDGER_TABLE}} row (every [SRC: C-NNN] tag incl. prose, every
+    draft AI-NNN / GR-NN / OUT-OF-SCOPE marker, and DEAD-PROVENANCE entries):
+      <tr class="ledger-row prov-{verdict-slug}" id="ledger-{unit_id}">
+        <td><code>{unit_id}</code></td>           <!-- req_id, or C-NNN / AI-NNN for prose/marker rows -->
+        <td><code>{anchor}</code></td>
+        <td><span class="chip prov-{verdict-slug}">{VERDICT}</span></td>
+        <td>{trace_target}</td>                    <!-- "input source: input/brief.md" | "consultant: AI-007 corrected" | "GR-04" | "—" -->
+        <td>{evidence_escaped}</td>                <!-- C-NNN + reason, or AI-NNN + resolver status, or "tag well-formed (TIER-0)" -->
+      </tr>
+    Order: untraceable verdicts first (Broken → Dropped → Orphan → Not-alignable → Unattributed),
+    then Drifted, then traced (Sourced → Accepted-inference → Standard-rule → Out-of-scope),
+    then Dead-provenance; ties by req_type then unit_id.
+
+  FIX-LIST SCHEMA — {{FIX_LIST_BLOCK}}: the warn-level register (NOT the headline). One <article> per
+    DRIFTED or DEAD-PROVENANCE unit:
+      <article class="fix-card prov-{drifted|dead-provenance}" id="fix-{unit_id}">
+        <h3><code>{unit_id}</code> · <code>{anchor}</code> · <span class="chip prov-{slug}">{VERDICT}</span></h3>
+        <dl class="fix-fields">
+          <dt>Antecedent</dt><dd><blockquote class="evidence"><pre>{antecedent_escaped}</pre></blockquote></dd>
+          <dt>Current value</dt><dd><blockquote class="evidence"><pre>{current_escaped}</pre></blockquote></dd>  <!-- drift only -->
+          <dt>Observation</dt><dd>{observation_escaped — e.g. "value changed post-merge, not explained by a correction", "ledger entry C-022 has no tag in the final doc"}</dd>
+        </dl>
+      </article>
+    If zero, substitute <p class="fix-empty">No drift or dead-provenance — every retained value matches its antecedent and every ledger entry is present in the final doc.</p>
+
+  DIAGNOSTICS SCHEMA — {{DIAGNOSTICS_BLOCK}}: one <details class="diagnostics-toggle" open> wrapping:
+      <h4>Capability tier</h4> table (tier + which assets present/absent + confidence ceiling)
+      <h4>Quality gates</h4> table (10 rows, PASS/FAIL/WARN chip + notes)
+      <h4>Citation-verification run</h4> (grounding-verifier summary line: total / passed / failed; or
+        "not run — TIER-0" / "draft-time record used — TIER-1b")
+      <h4>Provenance-class counts</h4> (every class × count)
+      <h4>Alignment confidence</h4> (count of confident vs not-alignable alignments)
+      <h4>Override log</h4> (if Step-7 Override was chosen, list each failed gate; else "All quality gates passed; no override invoked.")
+
+  Style invariants baked into the CSS:
+    • :root drives all colour: traced classes (sourced/accepted/rule/oos — green/indigo/teal/slate),
+      untraced classes (orphan/broken/dropped/not-alignable/unattributed — red family + amber for the
+      fenced ones), warn classes (drifted/dead-provenance — amber/grey), capability tiers, and the
+      three verdict-banner colours.
+    • Ledger table uses position: sticky; top:0 on <thead>.
+    • Heatmaps render at viewBox width 1080; max-width:100% so they scale on narrow viewports.
+    • @media (max-width:720px) collapses the meta-grid; @media print expands <details>, hides toc/back-to-top.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --fg: #1a1a1a;
+    --muted: #5a5a5a;
+    --border: #d4d4d4;
+    --border-strong: #8a8a8a;
+    --section-bg: #ffffff;
+    --code-bg: #f3f3f3;
+    --shadow-card: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+
+    /* Traced provenance classes */
+    --prov-sourced: #15803d;
+    --prov-sourced-bg: rgba(21, 128, 61, 0.10);
+    --prov-accepted: #4338ca;
+    --prov-accepted-bg: rgba(67, 56, 202, 0.10);
+    --prov-rule: #0f766e;
+    --prov-rule-bg: rgba(15, 118, 110, 0.10);
+    --prov-oos: #475569;
+    --prov-oos-bg: rgba(71, 85, 105, 0.10);
+
+    /* Untraced provenance classes (the headline — red family; amber for the fenced ones) */
+    --prov-broken: #b91c1c;
+    --prov-broken-bg: rgba(185, 28, 28, 0.12);
+    --prov-dropped: #7f1d1d;
+    --prov-dropped-bg: rgba(127, 29, 29, 0.12);
+    --prov-orphan: #dc2626;
+    --prov-orphan-bg: rgba(220, 38, 38, 0.12);
+    --prov-notalignable: #a16207;
+    --prov-notalignable-bg: rgba(161, 98, 7, 0.12);
+    --prov-unattributed: #9a3412;
+    --prov-unattributed-bg: rgba(154, 52, 18, 0.12);
+
+    /* Warn classes */
+    --prov-drifted: #c2410c;
+    --prov-drifted-bg: rgba(194, 65, 12, 0.10);
+    --prov-dead: #6b7280;
+    --prov-dead-bg: rgba(107, 114, 128, 0.10);
+
+    /* Heatmap fills */
+    --hm-source: #86efac;
+    --hm-consultant: #c7d2fe;
+    --hm-rule: #99f6e4;
+    --hm-untraced: #fca5a5;
+    --hm-empty: #eef0f2;
+
+    /* Distribution-bar fills */
+    --seg-sourced: #22c55e;
+    --seg-accepted: #6366f1;
+    --seg-rule: #14b8a6;
+    --seg-oos: #64748b;
+    --seg-untraced: #ef4444;
+
+    /* Capability-tier accents */
+    --tier2: #15803d;
+    --tier1b: #a16207;
+    --tier1: #c2410c;
+    --tier0: #b91c1c;
+
+    /* Misc chips */
+    --chip-neutral: #334155;
+    --chip-neutral-bg: rgba(51, 65, 85, 0.10);
+
+    /* Verdict banner colours */
+    --verdict-blocked-fg: #ffffff;
+    --verdict-blocked-bg: #991b1b;
+    --verdict-needs-fg: #ffffff;
+    --verdict-needs-bg: #c2410c;
+    --verdict-accepted-fg: #ffffff;
+    --verdict-accepted-bg: #15803d;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px; line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 1180px; margin: 0 auto; padding: 24px 32px 64px; }
+
+  /* Header */
+  header { margin-bottom: 24px; }
+  h1#top { margin: 0 0 12px 0; font-size: 28px; font-weight: 700; letter-spacing: -0.01em; }
+  .reviewer-identity { margin: 0 0 8px 0; color: var(--muted); }
+  .meta-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px 24px; padding: 14px 18px;
+    background: var(--section-bg); border: 1px solid var(--border);
+    border-radius: 8px; box-shadow: var(--shadow-card); margin: 16px 0; font-size: 13px;
+  }
+  .meta-grid > div { display: flex; flex-direction: column; gap: 2px; }
+  .meta-grid dt { margin: 0; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .meta-grid dd { margin: 0; font-size: 14px; color: var(--fg); word-break: break-all; }
+
+  /* TOC */
+  .toc {
+    position: sticky; top: 0; z-index: 10;
+    margin: 0 0 32px 0; padding: 12px 18px;
+    background: var(--section-bg); border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong); border-radius: 6px;
+    box-shadow: var(--shadow-card); font-size: 13px;
+  }
+  .toc-label { display: block; margin: 0 0 6px 0; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  .toc ol { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 4px 18px; counter-reset: toc-item; }
+  .toc li { counter-increment: toc-item; }
+  .toc li::before { content: counter(toc-item) ". "; color: var(--muted); margin-right: 4px; }
+  .toc a { color: var(--fg); text-decoration: none; border-bottom: 1px dotted var(--border-strong); padding-bottom: 1px; }
+  .toc a:hover { border-bottom-color: var(--fg); color: #000; }
+
+  /* Sections */
+  section {
+    margin: 32px 0; padding: 20px 24px;
+    background: var(--section-bg); border: 1px solid var(--border);
+    border-radius: 8px; box-shadow: var(--shadow-card);
+  }
+  section h2 { margin: 0 0 16px 0; padding-bottom: 8px; border-bottom: 2px solid var(--border-strong); font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+  section h3 { margin: 20px 0 10px 0; font-size: 16px; font-weight: 600; }
+  section h4 { margin: 16px 0 8px 0; font-size: 14px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+  /* Back-to-top */
+  .back-to-top { margin: 24px 0 0 0; text-align: right; font-size: 12px; }
+  .back-to-top a { color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--border-strong); padding-bottom: 1px; }
+  .back-to-top a:hover { color: var(--fg); border-bottom-color: var(--fg); }
+
+  /* Verdict banner */
+  .verdict { display: inline-block; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 14px; letter-spacing: 0.04em; }
+  .verdict-BLOCKED { background: var(--verdict-blocked-bg); color: var(--verdict-blocked-fg); }
+  .verdict-NEEDS-REVISION { background: var(--verdict-needs-bg); color: var(--verdict-needs-fg); }
+  .verdict-ACCEPTED-WITH-CONCERNS { background: var(--verdict-accepted-bg); color: var(--verdict-accepted-fg); }
+
+  /* Capability banner */
+  .capability-banner { padding: 12px 16px; border: 1px solid var(--border); border-left: 5px solid var(--border-strong); border-radius: 6px; margin: 12px 0; font-size: 13px; background: #fcfcfc; }
+  .capability-banner .tier-label { font-weight: 700; letter-spacing: 0.04em; }
+  .capability-banner.tier-TIER-2 { border-left-color: var(--tier2); }
+  .capability-banner.tier-TIER-1b { border-left-color: var(--tier1b); }
+  .capability-banner.tier-TIER-1 { border-left-color: var(--tier1); }
+  .capability-banner.tier-TIER-0 { border-left-color: var(--tier0); background: rgba(185,28,28,0.04); }
+
+  /* Headline untraced number */
+  .headline-untraced { font-size: 15px; margin: 10px 0; }
+  .headline-untraced strong { font-size: 22px; color: var(--prov-broken); }
+
+  /* Chips */
+  .chip { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: 0.02em; }
+  .chip.prov-sourced { background: var(--prov-sourced-bg); color: var(--prov-sourced); }
+  .chip.prov-accepted-inference { background: var(--prov-accepted-bg); color: var(--prov-accepted); }
+  .chip.prov-standard-rule { background: var(--prov-rule-bg); color: var(--prov-rule); }
+  .chip.prov-out-of-scope-default { background: var(--prov-oos-bg); color: var(--prov-oos); }
+  .chip.prov-broken-citation { background: var(--prov-broken-bg); color: var(--prov-broken); }
+  .chip.prov-dropped-but-present { background: var(--prov-dropped-bg); color: var(--prov-dropped); }
+  .chip.prov-orphan { background: var(--prov-orphan-bg); color: var(--prov-orphan); }
+  .chip.prov-not-alignable { background: var(--prov-notalignable-bg); color: var(--prov-notalignable); }
+  .chip.prov-unattributed { background: var(--prov-unattributed-bg); color: var(--prov-unattributed); }
+  .chip.prov-drifted { background: var(--prov-drifted-bg); color: var(--prov-drifted); }
+  .chip.prov-dead-provenance { background: var(--prov-dead-bg); color: var(--prov-dead); }
+  .chip.gate-pass { background: var(--prov-sourced-bg); color: var(--prov-sourced); }
+  .chip.gate-fail { background: var(--prov-broken-bg); color: var(--prov-broken); }
+  .chip.gate-warn { background: var(--prov-notalignable-bg); color: var(--prov-notalignable); }
+
+  /* Distribution bar */
+  .prov-distribution { display: block; width: 100%; max-width: 100%; height: auto; margin: 12px 0; }
+  .prov-distribution .prov-seg-sourced { fill: var(--seg-sourced); }
+  .prov-distribution .prov-seg-accepted { fill: var(--seg-accepted); }
+  .prov-distribution .prov-seg-rule { fill: var(--seg-rule); }
+  .prov-distribution .prov-seg-oos { fill: var(--seg-oos); }
+  .prov-distribution .prov-seg-untraced { fill: var(--seg-untraced); }
+  .prov-distribution .prov-bracket { stroke: var(--prov-broken); stroke-width: 2; fill: none; }
+  .prov-distribution .prov-bracket-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; font-weight: 700; fill: var(--prov-broken); letter-spacing: 0.04em; }
+  .prov-distribution .prov-legend text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: var(--muted); }
+  .prov-distribution .prov-seg-label { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: #ffffff; font-weight: 600; }
+
+  /* Trace heatmap */
+  .trace-heatmap { display: block; width: 100%; max-width: 100%; height: auto; margin: 12px 0; background: var(--section-bg); border: 1px solid var(--border); border-radius: 6px; }
+  .trace-heatmap .hm-col-header, .trace-heatmap .hm-row-label {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; fill: var(--fg);
+  }
+  .trace-heatmap .hm-col-header { font-weight: 600; }
+  .trace-heatmap .hm-cell { stroke: #ffffff; stroke-width: 1.5; }
+  .trace-heatmap .hm-trace-source { fill: var(--hm-source); }
+  .trace-heatmap .hm-trace-consultant { fill: var(--hm-consultant); }
+  .trace-heatmap .hm-trace-rule { fill: var(--hm-rule); }
+  .trace-heatmap .hm-trace-untraced { fill: var(--hm-untraced); }
+  .trace-heatmap .hm-cell-empty { fill: var(--hm-empty); }
+  .trace-heatmap .hm-group-divider { stroke: var(--border-strong); stroke-width: 2; stroke-dasharray: 4 3; }
+  .trace-heatmap .hm-legend text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 11px; fill: var(--muted); }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  thead { background: #f3f3f3; border-bottom: 2px solid var(--border-strong); }
+  th { text-align: left; padding: 8px 10px; font-weight: 600; color: var(--fg); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody tr:hover { background: #fafafa; }
+  td code, dd code { background: var(--code-bg); padding: 1px 5px; border-radius: 3px; font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace; font-size: 12.5px; }
+  table.ledger thead { position: sticky; top: 0; z-index: 5; background: #f3f3f3; }
+
+  /* Evidence blockquotes */
+  blockquote.evidence { margin: 4px 0; padding: 6px 10px; background: #fcfcfc; border-left: 3px solid var(--border-strong); border-radius: 4px; }
+  blockquote.evidence pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace; font-size: 12.5px; }
+
+  /* Untraceable cards (headline) */
+  article.untraced-card { margin: 12px 0; padding: 12px 14px; border: 1px solid var(--border); border-left: 4px solid var(--prov-broken); border-radius: 6px; background: #fefcfc; }
+  article.untraced-card.verdict-broken-citation { border-left-color: var(--prov-broken); }
+  article.untraced-card.verdict-dropped-but-present { border-left-color: var(--prov-dropped); }
+  article.untraced-card.verdict-orphan { border-left-color: var(--prov-orphan); }
+  article.untraced-card.verdict-not-alignable { border-left-color: var(--prov-notalignable); }
+  article.untraced-card.verdict-unattributed { border-left-color: var(--prov-unattributed); }
+  article.untraced-card h3 { margin: 0 0 10px 0; font-size: 14px; font-weight: 600; }
+
+  /* Fix-list + finding cards */
+  article.fix-card { margin: 12px 0; padding: 12px 14px; border: 1px solid var(--border); border-left: 4px solid var(--border-strong); border-radius: 6px; background: #fcfcfc; }
+  article.fix-card.prov-drifted { border-left-color: var(--prov-drifted); }
+  article.fix-card.prov-dead-provenance { border-left-color: var(--prov-dead); }
+  article.fix-card h3 { margin: 0 0 10px 0; font-size: 14px; font-weight: 600; }
+  dl.untraced-fields, dl.fix-fields { display: grid; grid-template-columns: 170px 1fr; gap: 6px 14px; margin: 0; font-size: 13px; }
+  dl.untraced-fields dt, dl.fix-fields dt { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+  dl.untraced-fields dd, dl.fix-fields dd { margin: 0; }
+  p.untraced-empty, p.fix-empty { font-style: italic; color: var(--muted); padding: 8px 0; }
+
+  /* Diagnostics */
+  details.diagnostics-toggle { background: var(--section-bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 14px; margin: 12px 0; }
+  details.diagnostics-toggle summary { cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 6px 0; }
+  details.diagnostics-toggle[open] summary { border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+  details.diagnostics-toggle h4 { margin: 14px 0 6px 0; }
+
+  /* Responsive */
+  @media (max-width: 720px) {
+    main { padding: 16px 18px 48px; }
+    .meta-grid { grid-template-columns: 1fr; }
+    dl.untraced-fields, dl.fix-fields { grid-template-columns: 1fr; }
+    dl.untraced-fields dt, dl.fix-fields dt { margin-top: 6px; }
+  }
+  @media print {
+    body { background: #ffffff; }
+    main { max-width: 100%; padding: 0; }
+    .toc, .back-to-top { display: none; }
+    details.diagnostics-toggle[open], details.diagnostics-toggle { padding: 0; border: none; }
+    details.diagnostics-toggle > * { display: block !important; }
+    details.diagnostics-toggle summary { display: none; }
+    section { box-shadow: none; border: 1px solid #cccccc; page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <header>
+    <h1 id="top">{{TITLE}}</h1>
+    <p class="reviewer-identity"><em>{{REVIEWER_IDENTITY}}</em></p>
+    <div class="meta-grid">
+      <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>
+      <div><dt>Generated at</dt><dd>{{GENERATED_AT}}</dd></div>
+      <div><dt>Capability tier</dt><dd>{{CAPABILITY_TIER}}</dd></div>
+      <div><dt>Units traced</dt><dd>{{TRACED_COUNT}} of {{TOTAL_UNITS}}</dd></div>
+      <div><dt>Requirements fingerprint</dt><dd><code>{{REQUIREMENTS_SHA256}}</code></dd></div>
+    </div>
+  </header>
+
+  <nav class="toc" aria-label="Table of contents">
+    <span class="toc-label">On this page</span>
+    <ol>
+      <li><a href="#executive-summary">Executive summary</a></li>
+      <li><a href="#untraceable">Untraceable requirements</a></li>
+      <li><a href="#heatmap">Trace-target heatmap</a></li>
+      <li><a href="#ledger">Provenance ledger</a></li>
+      <li><a href="#fix-list">Drift &amp; dead-provenance</a></li>
+      <li><a href="#diagnostics">Diagnostics</a></li>
+    </ol>
+  </nav>
+
+  <section id="executive-summary">
+    <h2>Executive summary</h2>
+    <p><strong>Verdict:</strong> <span class="verdict verdict-{{VERDICT}}">{{VERDICT}}</span></p>
+    {{CAPABILITY_BANNER}}
+    <p class="headline-untraced">Untraceable units: <strong>{{UNTRACED_COUNT}}</strong> — the requirements and citations that trace back to nothing. This is the result; everything that traces is supporting detail below.</p>
+    <h3>Untraceable breakdown</h3>
+    <p>{{UNTRACEABLE_COUNT_TALLY}}</p>
+    <h3>Trace coverage (what does trace)</h3>
+    <p>{{TRACE_COVERAGE_TALLY}}</p>
+    <h3>Warnings (lower severity)</h3>
+    <p>{{WARN_TALLY}}</p>
+    <h3>Provenance-class distribution</h3>
+    <p>Every unit by provenance class. The bracketed <strong>UNTRACEABLE</strong> slice is the headline; the green/indigo/teal/slate segments trace to an input source, an accepted suggestion, a standard rule, or a declared scope default.</p>
+    {{UNTRACEABLE_DIAGRAM_SVG}}
+    <p><em>No vanity "percent traced" headline is reported — a mostly-traced document with orphans is reported by its untraceable count, not a passing score.</em></p>
+    <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+  </section>
+
+  <section id="untraceable">
+    <h2>Untraceable requirements <span class="chip prov-broken-citation">the main result</span></h2>
+    <p>Every requirement or citation that traces to nothing — broken citations (a source that cannot be quoted), dropped-but-present content (the consultant rejected it, yet it survived the merge), orphans (no antecedent in the draft or any ledger), not-alignable units (an antecedent may exist but was reworded past confident matching), and — at TIER-1 — unattributed facts. Each names what it says, why it fails to trace, and a recommended action. <em>An orphan is reported as "no antecedent found," never as "fabricated."</em></p>
+    {{UNTRACEABLE_BLOCK}}
+    <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+  </section>
+
+  <section id="heatmap">
+    <h2>Trace-target heatmap</h2>
+    <p>One row per ID-bearing requirement. Each requirement lights exactly one backward-trace target — <strong>Input source</strong> · <strong>Consultant answer</strong> · <strong>Standard rule / scope</strong> — or, past the dashed divider, <strong>UNTRACED</strong> (red). A requirement with even one broken citation reads UNTRACED here and is itemised in the ledger.</p>
+    {{PROVENANCE_HEATMAP_SVG}}
+    <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+  </section>
+
+  <section id="ledger">
+    <h2>Provenance ledger</h2>
+    <p>The exhaustive audit: one row per <code>[SRC: C-NNN]</code> tag found anywhere in the document (including prose), per draft <code>AI-NNN</code> / <code>GR-NN</code> / out-of-scope marker, and per dead-provenance entry. Untraceable rows are listed first.</p>
+    <table class="ledger">
+      <thead>
+        <tr>
+          <th>Unit</th>
+          <th>Anchor</th>
+          <th>Provenance</th>
+          <th>Trace target</th>
+          <th>Evidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{PROVENANCE_LEDGER_TABLE}}
+      </tbody>
+    </table>
+    <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+  </section>
+
+  <section id="fix-list">
+    <h2>Drift &amp; dead-provenance</h2>
+    <p>Lower-severity warnings, not part of the untraceable headline. <strong>Drift</strong> — a retained value changed post-merge in a way not explained by a correction (a possible hand-edit off its source). <strong>Dead-provenance</strong> — a ledger entry whose content is no longer in the final doc (often a legitimate merge drop). The consultant adjudicates.</p>
+    {{FIX_LIST_BLOCK}}
+    <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+  </section>
+
+  <section id="diagnostics">
+    <h2>Diagnostics</h2>
+    {{DIAGNOSTICS_BLOCK}}
+    <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+  </section>
+
+  {{STRUCTURED_JSON_BLOCK}}
+
+</main>
+</body>
+</html>

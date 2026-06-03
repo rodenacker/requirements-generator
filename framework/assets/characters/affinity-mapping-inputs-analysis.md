@@ -94,8 +94,9 @@ The agent's only writes are: `analyse-inputs/AFFINITY-MAPPING/affinity-map.html`
 The analyser does **not** halt the orchestrator on a quality-check failure — it surfaces the violation and lets the consultant decide whether to revise, override, or restart. The hard halt paths are reserved for:
 
 - `verify-artifact-write` failures (`RF-04`).
-- Mermaid validator unavailability (`RF-07 mermaid_render_dependency_missing` — the choice set carries `install-and-retry / skip-mermaid-validation-with-warning / abort`, so even `RF-07` is recoverable in a degraded mode).
 - Cases where `requirements/source-manifest.json` is absent (the orchestrator's Step 1 input-handler invocation prevents this) or enumerates zero consumable rows.
+
+The diagrams are pre-rendered inline `<svg>` (no `mmdc` / Mermaid-render dependency, so no `RF-07`); a geometric overlap from `svg-overlap-check` is recorded as a diagnostics layout warning, never a halt.
 
 The consultant sees every flagged item — every failed gate, every drifted note, every orphan, every "irrelevant-to-domain" source row — in the artefact's diagnostics block; they don't see a stack trace.
 

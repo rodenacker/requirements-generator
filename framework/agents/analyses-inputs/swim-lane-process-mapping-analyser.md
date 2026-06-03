@@ -6,19 +6,19 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **s
 
 ## Purpose
 
-Produce `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` — a self-contained HTML5 Rummler-Brache cross-functional process map + Disconnect Analysis (Rummler & Brache 1990; framed under BABOK 10.35 Process Modelling) of every discrete process the raw consultant inputs evidence — by applying the swim-lane-process-mapping reference (`framework/assets/analyses-inputs/swim-lane-process-mapping-reference.md`) literally and exhaustively to the consumable files enumerated in `requirements/source-manifest.json`. The artefact has **eight sections in order**: a compact overview header with summary counts, a process gallery (one `<article class="process-block">` per discrete process, each containing a Mermaid `flowchart TD` source block with `subgraph` swim-lanes per actor, a Steps table, and a Decisions table), a global Actor inventory table, a global **Disconnect Register** (the analytical core — every lane-to-lane handoff classified `clean | ambiguous-trigger | missing-actor | unstated-exception | conflicting-source`), a `<pre><code class="language-yaml">` machine-readable structured process model (the downstream `/requirements` re-ingestion contract), a Gaps section listing every inferred node with blocking/non-blocking classification, a collapsed diagnostics block with the 9 hard-gate results and Mermaid validation results, and a trailing **Next steps** banner. Every actor, every step, every handoff, every disconnect carries either `[SRC: <filename>]` (matching a manifest row) or `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` (inferred lane assignments + inferred routing steps + inferred payloads only). **Inferred disconnect trigger events are forbidden** (a fabricated trigger would propagate a fabricated integration requirement downstream). Every quality check in the reference is a hard gate; the conservative four-element cleanliness rubric is the methodology's load-bearing analytical posture.
+Produce `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` — a self-contained HTML5 Rummler-Brache cross-functional process map + Disconnect Analysis (Rummler & Brache 1990; framed under BABOK 10.35 Process Modelling) of every discrete process the raw consultant inputs evidence — by applying the swim-lane-process-mapping reference (`framework/assets/analyses-inputs/swim-lane-process-mapping-reference.md`) literally and exhaustively to the consumable files enumerated in `requirements/source-manifest.json`. The artefact has **eight sections in order**: a compact overview header with summary counts, a process gallery (one `<article class="process-block">` per discrete process, each containing a pre-rendered inline-SVG swim-lane diagram — one horizontal lane per actor, geometry computed by the analyser at render time, no client-side Mermaid runtime — with the Mermaid `flowchart TD` source as a collapsed export adjunct beneath it, a Steps table, and a Decisions table), a global Actor inventory table, a global **Disconnect Register** (the analytical core — every lane-to-lane handoff classified `clean | ambiguous-trigger | missing-actor | unstated-exception | conflicting-source`), a `<pre><code class="language-yaml">` machine-readable structured process model (the downstream `/requirements` re-ingestion contract), a Gaps section listing every inferred node with blocking/non-blocking classification, a collapsed diagnostics block with the 9 hard-gate results and per-process diagram-validity (svg-overlap) results, and a trailing **Next steps** banner. Every actor, every step, every handoff, every disconnect carries either `[SRC: <filename>]` (matching a manifest row) or `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` (inferred lane assignments + inferred routing steps + inferred payloads only). **Inferred disconnect trigger events are forbidden** (a fabricated trigger would propagate a fabricated integration requirement downstream). Every quality check in the reference is a hard gate; the conservative four-element cleanliness rubric is the methodology's load-bearing analytical posture.
 
 ## Output section order
 
 The rendered artefact is laid out top-to-bottom as:
 
 1. **Compact overview** (`<header id="overview">`) — title, one-line caption (process / actor / step / handoff / disconnect counts + target-mode + run number + generated-at), meta-grid (disconnect category counts + inferred counts), and a `<nav class="toc-processes">` with jump-links to per-process sections.
-2. **Process gallery** (`<section id="processes">`) — `{{PROCESS_BLOCKS}}` (one `<article class="process-block">` per discrete process; each contains: goal/trigger paragraph, Mermaid source `<details class="mermaid-block">`, Steps table, Decisions table).
+2. **Process gallery** (`<section id="processes">`) — `{{PROCESS_BLOCKS}}` (one `<article class="process-block">` per discrete process; each contains: goal/trigger paragraph, a pre-rendered inline-SVG swim-lane `<figure class="swimlane-diagram">`, a collapsed Mermaid-source `<details class="mermaid-block">` export adjunct, Steps table, Decisions table).
 3. **Actor inventory** (`<section id="actors">`) — `{{ACTOR_TABLE_BODY}}` (global table; every lane discovered across all processes; kind pill `role` / `system` / `external-service`).
 4. **Disconnect Register** (`<section id="disconnects">`) — `{{DISCONNECT_SUMMARY}}` (category counts) + `{{DISCONNECT_TABLE_BODY}}` (one row per handoff; five category pills; consultant-follow-up flag; suggested question). The analytical core.
 5. **Structured model** (`<section id="structured-model">`) — `{{STRUCTURED_YAML_BLOCK}}` (a single `<pre><code class="language-yaml">` block carrying the full machine-readable process model per the reference's YAML schema).
 6. **Gaps and inferred nodes** (`<section id="gaps">`) — two sub-lists: blocking, non-blocking. (Disconnects already classified in §4; this section classifies inferred nodes / lanes / payloads.)
-7. **Diagnostics** (`<details id="diagnostics">`) — collapsed by default; 9 gate-result lines, source roster (Consumed + Skipped tables), per-process Mermaid validation results, run history.
+7. **Diagnostics** (`<details id="diagnostics">`) — collapsed by default; 9 gate-result lines, source roster (Consumed + Skipped tables), per-process diagram-validity (svg-overlap) results, run history.
 8. **Next steps** (`<section class="next-steps">`) — instructions to bring open disconnects to the next consultant conversation; reminder of the copy-into-`input/` pathway for `/requirements` re-ingestion.
 
 Section order lives in `framework/assets/analyses-inputs/template-swim-lane-process-mapping.html`, not in this analyser. The analyser emits the same placeholder blocks regardless; the template decides where they land.
@@ -38,8 +38,8 @@ The methodology has eight rounds (per the reference); the workflow has twelve st
 | **Round 4 — Edge labelling + handoff identification** | Step 7 | Per process: build flow + handoff edges; decision branches with guards |
 | **Round 5 — Disconnect classification** | Step 8 | The analytical core. Apply the conjunctive four-element cleanliness rubric to every handoff; classify into the five categories; allocate DC-NNN ids |
 | **Round 6 — Gap classification** | Step 9 | Every `inferred: true` node / lane / payload → blocking/non-blocking with AI-NNN ids |
-| **Round 7 — Self-validate** | Step 10 | 9 hard gates + 4 structural integrity checks; per-process Mermaid validation |
-| **Round 8 — Render + write + verify** | Step 11 | Template substitution; SHA-256; Write; verify-artifact-write |
+| **Round 7 — Self-validate** | Step 10 | 9 hard gates + 4 structural integrity checks; per-process diagram validity deferred to Step 11 |
+| **Round 8 — Render + write + verify** | Step 11 | Compute per-process swim-lane SVG geometry; emit `flowchart TD` Mermaid export adjuncts; template substitution; SHA-256; Write; verify-artifact-write; svg-overlap-check |
 | (operational) | Step 12 — Handback | Accept / Revise / Restart loop |
 
 The in-memory `model` (every process, actor, step, handoff, disconnect, gap entry) is **closed** at the end of Round 6 (Step 9). Steps 10–11 must not add processes, steps, handoffs, or disconnects; they only validate and render.
@@ -54,8 +54,8 @@ This agent reads:
 - `framework/assets/characters/swim-lane-process-mapping-inputs-analysis.md` (the character — loaded once in Step 1).
 - `framework/assets/analyses-inputs/swim-lane-process-mapping-reference.md` (the methodology — read once in Step 1).
 - `framework/assets/analyses-inputs/template-swim-lane-process-mapping.html` (the HTML scaffold — read once at render time in Step 11).
-- `framework/skills/mermaid-validator.md` (read once before first invocation in Step 11 sub-step C).
-- `framework/skills/verify-artifact-write.md` (read once before invocation in Step 11 sub-step D).
+- `framework/skills/verify-artifact-write.md` (read once before invocation in Step 11 sub-step E).
+- `framework/skills/svg-overlap-check.md` (read once before invocation in Step 11 sub-step E).
 
 The agent reads **nothing else under `requirements/`** — not `requirements/requirements.md`, not `requirements/requirements-draft.md`, not `requirements/consultant-answers.md`, not `requirements/draft-claims*.ndjson`. It does not read `framework/state/`. It does not read `framework/shared/` (refusal-registry and general-rules references in this file and the reference are textual links, not file loads). It does not read other analyses' artefacts under `analyse-requirements/` or `analyse-inputs/<OTHER-METHOD>/`.
 
@@ -342,7 +342,7 @@ Run all 9 hard gates from `framework/assets/analyses-inputs/swim-lane-process-ma
 6. **Every handoff has a corresponding disconnect entry.** 1:1 mapping. `clean` requires positive evidence (all four elements present), not absence of evidence.
 7. **Every process has ≥ 1 step with `type: start` and ≥ 1 step with `type: end`.**
 8. **Manifest fingerprint + source roster.** The embedded `<script type="application/json" id="swim-lane-process-mapping-meta">` block carries `manifest_sha256` equal to the Step 2 value; the diagnostics source-roster `Consumed` table enumerates every manifest row whose `tier != "Unsupported"`.
-9. **Mermaid validity.** Every embedded Mermaid block parses cleanly via `framework/skills/mermaid-validator.md`. Deferred to Step 11 sub-step C — see "Mermaid validation timing" below.
+9. **Diagram validity.** Every process renders a pre-rendered inline-SVG swim-lane in which every step appears as a node and every actor as a lane (and the `flowchart TD` export source carries the same nodes); no dangling references. `framework/skills/svg-overlap-check.md` returns `total: 0` per figure (or any overlap is recorded as a diagnostics layout warning). Deferred to Step 11 — see "Diagram-validity timing" below.
 
 Plus four **structural integrity checks**:
 
@@ -351,7 +351,7 @@ Plus four **structural integrity checks**:
 - Every `handoff_id` in every disconnect exists in the process's `handoffs` set; the mapping is 1:1.
 - The 5-category disconnect distribution sums to `len(handoffs)`.
 
-**Mermaid validation timing.** Gate 9 runs in Step 11 sub-step C (after Mermaid composition), not in Step 10 — because Mermaid source isn't built until Step 11 sub-step B. Step 10 captures `gate_9_status: deferred-to-step-11c`. The other 8 gates run in Step 10 and gate Step 11 in their entirety: if any of gates 1–8 fail, do not proceed to Step 11 without Override.
+**Diagram-validity timing.** Gate 9 runs in Step 11 (node/lane coverage in sub-step C; geometric overlap via `svg-overlap-check` in sub-step E, after the artefact is on disk), not in Step 10 — because the SVG isn't composed until Step 11 sub-step B. Step 10 captures `gate_9_status: deferred-to-step-11`. The other 8 gates run in Step 10 and gate Step 11 in their entirety: if any of gates 1–8 fail, do not proceed to Step 11 without Override.
 
 **On any gate failure (1–8)** (excluding gate 6 — which is `Override`-able only in extremis since it is the methodology's analytical-bite gate):
 
@@ -373,11 +373,19 @@ On **Restart**: re-enter Step 4. Cap at three fail-Restart cycles; on the fourth
 
 `Read framework/assets/analyses-inputs/template-swim-lane-process-mapping.html` once.
 
-**Sub-step B — Build substitution map and compose Mermaid source per process.**
+**Sub-step B — Compose per-process diagrams (inline SVG + Mermaid export) and build the substitution map.**
 
-Every consultant-supplied string is **HTML-escaped** before injection (`<`, `>`, `&`, `"`, `'`). **Exception:** Mermaid source inside `<pre class="mermaid-source">` is NOT escaped beyond the standard set — Mermaid pipe (`|`), bracket (`[`, `]`), brace (`{`, `}`), and `-->` syntax must remain literal. The YAML inside `<pre><code>` is rendered as plain text within the block — do not double-escape inside YAML.
+Every consultant-supplied string is **HTML-escaped** before injection (`<`, `>`, `&`, `"`, `'`); inside `<svg><text>` apply XML escaping. **Exception:** Mermaid source inside `<pre class="mermaid-source">` is NOT escaped beyond the standard set — Mermaid pipe (`|`), bracket (`[`, `]`), brace (`{`, `}`), and `-->` syntax must remain literal. The YAML inside `<pre><code>` is rendered as plain text within the block — do not double-escape inside YAML.
 
-**Mermaid emission per process** — build the `flowchart TD` source following the reference's "Mermaid emission shape":
+**B1 — Per-process swim-lane SVG (`<figure class="swimlane-diagram">`).** For each process, compute the geometry of a horizontal-lane swim-lane diagram per the template's SWIM-LANE SVG SCHEMA and emit one inline `<svg viewBox="0 0 W H" role="img" aria-label="…">` (this mirrors `framework/agents/analyses/activity-diagram-analyser.md` Step 9's swimlane renderer):
+- **Shared lane grid.** Compute `lane_height = max(64, longest_lane_label_px + 28)` once across all process figures so lanes align across processes. `column_width = 200` (fixed); `lane_label_width = 150`; `pad = 20`.
+- Per process, order its lanes: `role` first, then `system`, then `external-service` (stable within kind by first appearance). Lane `k` band spans the full width at `y = pad + k*lane_height`, height `lane_height`; emit `<rect class="sl-lane sl-lane-{role|system|external}"/>`, a `<text class="sl-lane-label"/>` in the left gutter, and a `<line class="sl-divider"/>` after every band except the last.
+- Place each step at `x = lane_label_width + col(step)*column_width + column_width/2` (col = 0-indexed sequence position within the process), `y = lane_centre(step.lane)`. Non-decision steps → `<rect class="sl-node sl-{process|start|end|data-store|external-system}" rx="6"/>` + `<text class="sl-label"/>` (label truncated ≤ 28 chars, with a `<title>` carrying the full label); decision steps → `<polygon class="sl-decision"/>` diamond + label. Inferred nodes append the `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` marker to the `<title>`.
+- `W = lane_label_width + max_columns*column_width + pad`; `H = pad + n_lanes*lane_height + pad`.
+- **Edges first** (drawn under nodes): per flow / handoff / decision-branch edge, one Manhattan `<path class="sl-edge"/>` from the source node's right edge to the target node's left edge (vertical segment at the column boundary for lane crossings), `marker-end="url(#sl-arrow-{process-slug})"`; lane-crossing handoffs also carry class `sl-edge-handoff`. Decision-branch guards: a `<text class="sl-guard"/>` over an opaque `<rect class="sl-guard-bg"/>` at the edge midpoint. One `<defs><marker id="sl-arrow-{process-slug}">` arrowhead per `<svg>`.
+- All `<text>` XML-escaped. Gate 9 requires every step to appear as a node and every actor as a lane here.
+
+**B2 — Per-process Mermaid export source** — build the `flowchart TD` source following the reference's "Mermaid emission shape". This is the collapsed export / re-ingestion adjunct embedded in `<pre class="mermaid-source">` (survives markitdown HTML→MD as a fenced ```mermaid block); it is **not rendered in-page and not validated** — the inline SVG above is the visible diagram:
 
 - Header line: `flowchart TD`.
 - One `subgraph lane_<actor-kebab-id>["<actor-display-name>"]` per actor in this process. Inside the subgraph: every step whose `lane` matches that actor, in evidenced order.
@@ -411,7 +419,7 @@ Every consultant-supplied string is **HTML-escaped** before injection (`<`, `>`,
 - `{{DISCONNECT_SUMMARY}}` — `<dl class="dc-summary">` with five `<div><dt>` / `<dd>` pairs per disconnect category counts.
 - `{{STRUCTURED_YAML_BLOCK}}` — single `<section id="structured-model"><pre><code class="language-yaml">…</code></pre></section>`. YAML body matches the reference's schema exactly. **Critical:** lives in `<pre><code>`, NOT `<script type="application/json">`, so it survives markitdown HTML→MD conversion.
 - `{{GAPS_BLOCK}}` — single `<section id="gaps">` with `<h2>` + blocking-list + non-blocking-list. If a sub-list is empty, emit `<p class="empty">(no entries this run)</p>` instead of an empty `<ul>`.
-- `{{DIAGNOSTICS_BLOCK}}` — `<ul class="gate-results">` (9 lines including gate 9 once validated in sub-step C) + `<section class="source-roster">` (Consumed + Skipped tables) + `<section class="mermaid-results">` (per-process validator outcome) + `<section class="run-history">` (append-only bullet list — prior runs verbatim if any, plus a new bullet for the current run).
+- `{{DIAGNOSTICS_BLOCK}}` — `<ul class="gate-results">` (9 lines including gate 9 once finalised in sub-step E) + `<section class="source-roster">` (Consumed + Skipped tables) + `<section class="diagram-results">` (per-process diagram-validity / `svg-overlap-check` outcome: `pass` | `overlap-warning`) + `<section class="run-history">` (append-only bullet list — prior runs verbatim if any, plus a new bullet for the current run).
 
 Run-history bullet shape:
 
@@ -421,17 +429,9 @@ Run-history bullet shape:
   inferred {{n_inferred}} ({{n_blocking}} blocking, {{n_non_blocking}} non-blocking){{; Override: <gate list> if applicable}}.</li>
 ```
 
-**Sub-step C — Mermaid validation (gate 9).**
+**Sub-step C — Diagram validity: node/lane coverage (gate 9, part 1).**
 
-For each process's composed Mermaid source:
-
-- Save the Mermaid source to a temporary file (per the validator skill's contract — `mmdc` reads from a file). Use a Bash `mkdir -p /tmp/sw-lane-vd` followed by writing the source to `/tmp/sw-lane-vd/<process_slug>.mmd` (or the PowerShell equivalent on Windows-only environments).
-- Invoke `framework/skills/mermaid-validator.md` with `file_path: /tmp/sw-lane-vd/<process_slug>.mmd`.
-- On `not-installed` (mmdc unavailable): halt and surface the install message from the validator skill: *"Mermaid validator (`mmdc`) is not installed. Install: `npm i -g @mermaid-js/mermaid-cli`. Then re-invoke `/analyse-inputs`."* Hand back with `failed-handback`.
-- On syntax errors: apply the validator's auto-fix loop (the skill itself iterates). If the diagram cannot be made valid in three retries, drop the Mermaid for that process: emit a `[GAP-MERMAID-INVALID]` diagnostic naming the process; replace the `<pre class="mermaid-source">` content with `<!-- Mermaid source for {{process-id}} was rejected by the validator after 3 retries — see Diagnostics > Mermaid results -->`; do not let one bad diagram block the artefact.
-- On `pass`: record `mermaid_results[<process_id>] = "pass"`.
-
-After all processes are validated, update gate 9's status: `pass` if every process is `pass`; `pass-with-drops` if ≥ 1 was dropped (the artefact still writes but the diagnostics surface the drop); `fail` if mmdc was unavailable (handback already triggered above).
+For each process, confirm against the composed inline SVG (and its `flowchart TD` export source) that every step appears as a node and every actor as a lane, and that no edge references a non-existent node. On a mismatch, fix the SVG / export source before write and re-check. There is **no `mmdc` / Mermaid-render dependency**: the diagrams are pre-rendered inline SVG, so nothing is validated by `mmdc`. The geometric half of gate 9 (`svg-overlap-check`) runs in sub-step E after the artefact is on disk; record `gate_9_status: deferred-to-step-11e` until then.
 
 **Sub-step D — Compute SHA-256.**
 
@@ -439,10 +439,12 @@ Compose the full HTML in memory (with all substitutions applied and Mermaid vali
 
 **Sub-step E — Write + verify.**
 
-- Ensure the output directory exists. On POSIX shells: `Bash mkdir -p analyse-inputs/SWIM-LANE-PROCESS-MAPPING`. On Windows-only environments: `PowerShell New-Item -ItemType Directory -Force -Path analyse-inputs/SWIM-LANE-PROCESS-MAPPING`. The orchestrator's environment determines which shell.
+- Ensure the output + scratch directories exist. On POSIX shells: `Bash mkdir -p analyse-inputs/SWIM-LANE-PROCESS-MAPPING /tmp/sw-lane-vd`. On Windows-only environments: the `PowerShell New-Item -ItemType Directory -Force` equivalents. The orchestrator's environment determines which shell.
 - `Write analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` with the in-memory composed HTML.
 - Invoke `framework/skills/verify-artifact-write.md` with `path = analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html`, `expected_sha256 = <Step 11 sha>`, `expected_min_bytes = 4096`. A minimum legal render (template scaffold + overview + one process-block with ≥ 2 actors and ≥ 1 handoff + actor table + disconnect register + structured YAML + diagnostics + next-steps banner) clears 4 KB.
-- **On `pass`:** advance to Step 12.
+- **On `pass`:** invoke `framework/skills/svg-overlap-check.md` with `artefact_path = analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html`, `report_path = /tmp/sw-lane-vd/svg-overlap.ndjson` (POSIX) or the `$env:TEMP\sw-lane-vd\svg-overlap.ndjson` equivalent (Windows) — kept in scratch so the no-`framework/state/`-write invariant holds. Allowlists: `node_class_allowlist = ["sl-node", "sl-decision"]` (NOT `sl-lane` — lanes are containers), `edge_class_allowlist = ["sl-edge"]`, `label_bg_class_suffix = "-bg"`.
+  - On `pass` (`total: 0`): finalise `gate_9_status: pass`; advance to Step 12.
+  - On `fail` (`total > 0`): finalise `gate_9_status: overlap-warning`; record one diagnostics layout-warning line per overlap (template *"SVG overlap — `<kind>` in process `<figure_id>`: `<a_class>` ↔ `<b_class>`"*), then re-render + re-Write + re-verify **once** so the warning lands in the artefact, and advance to Step 12. The Disconnect Register + Steps/Decisions tables + YAML model are the canonical deliverables; the swim-lane SVG is an additive visual and the Mermaid export is the clean fallback — an overlap is a recorded warning, not a halt. Do not re-run the overlap check (no reflow loop).
 - **On `RF-04 trigger`:** halt per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`. Emit *"Aborting to protect your work — write verification failed for `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` after one retry."* and fail handback.
 
 ### Step 12 — Handback (Accept / Revise / Restart)
@@ -451,13 +453,13 @@ Compose the full HTML in memory (with all substitutions applied and Mermaid vali
 
 Output one short, concrete line:
 
-> *"Wrote `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` (run #{run_count}) — {process_count} processes, {actor_count} actors, {step_count} steps, {handoff_count} handoffs, {disconnect_count} disconnects ({dc_clean} clean / {follow_up_count} need follow-up). Disconnect categories: {dc_clean} clean, {dc_ambiguous_trigger} ambiguous-trigger, {dc_missing_actor} missing-actor, {dc_unstated_exception} unstated-exception, {dc_conflicting_source} conflicting-source. Inferred nodes: {inferred_count} ({blocking_gap_count} blocking, {non_blocking_gap_count} non-blocking). Quality gates: {n_pass}/9 pass. Mermaid: {n_mermaid_pass}/{process_count} diagrams validated. Ready, or want changes?"*
+> *"Wrote `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` (run #{run_count}) — {process_count} processes, {actor_count} actors, {step_count} steps, {handoff_count} handoffs, {disconnect_count} disconnects ({dc_clean} clean / {follow_up_count} need follow-up). Disconnect categories: {dc_clean} clean, {dc_ambiguous_trigger} ambiguous-trigger, {dc_missing_actor} missing-actor, {dc_unstated_exception} unstated-exception, {dc_conflicting_source} conflicting-source. Inferred nodes: {inferred_count} ({blocking_gap_count} blocking, {non_blocking_gap_count} non-blocking). Quality gates: {n_pass}/9 pass. Diagrams: {process_count} inline-SVG swim-lanes ({n_overlap_clean}/{process_count} overlap-clean). Ready, or want changes?"*
 
 Variants:
 
 - If Step 10 was Override'd, prepend: *"Quality-gate violations accepted as known — diagnostics block records every flagged item."* If gate 6 was overridden specifically, add: *"GATE 6 OVERRIDE: handoffs exist without disconnect entries. The Disconnect Register is incomplete; consultant follow-up surface degraded."*
 - If `follow_up_count > 0`, append: *"{follow_up_count} disconnects need consultant follow-up — these are the elicitation surface for the next consultant conversation. The Disconnect Register surfaces each with a suggested question."*
-- If sub-step C dropped any Mermaid diagram, append: *"Mermaid: {n_dropped} diagram(s) dropped after 3 retries — see Diagnostics > Mermaid results for the failing source."*
+- If `svg-overlap-check` reported overlaps, append: *"Diagram: {n} SVG overlap(s) recorded as layout warnings in Diagnostics — the Disconnect Register + Steps/Decisions tables + YAML remain the canonical deliverables and the Mermaid export is the clean fallback."*
 - If `drift_mode == "re-extract"`, append: *"Drift handling: Rounds 1–7 re-run from scratch on the current manifest; {n_preserved} prior ids preserved through re-extraction, {n_dropped} dropped (recorded in Run-history)."*
 - If `drift_mode == "append-only"`, append: *"Drift handling: prior processes preserved verbatim; only new content from new manifest rows was appended this run."*
 - If `prior_run == null`, append: *"This is the first run; re-run after enriching `input/` to extend the process map additively."*
@@ -482,13 +484,13 @@ Use `AskUserQuestion`:
   - **Drop a process** ("drop `resolve-dispute`"): remove the process + its actors / steps / handoffs / disconnects from the model; re-run gates 1, 3; re-render; re-Write; re-verify; loop back to A.
   - **Close a disconnect** ("DC-002 is clean — finance polls a status queue, that's in slack-export.md line 47"): update the disconnect's `category` to `clean`, `consultant_follow_up: no`, append the new `[SRC: <filename>]` citation; re-render; re-Write; re-verify; loop back to A.
   - **Reclassify a disconnect**: similar to close, but new category. Update `description` and `suggested_question` accordingly.
-  - **Add a step to a process**: extend the steps list with the new step in evidenced order; update handoffs (new handoff created if the new step is in a different lane than its neighbours); update the disconnect register (new handoff → new DC-NNN); re-render Mermaid (re-validate via mermaid-validator); re-Write; re-verify; loop back to A.
-  - **Rename an actor** ("rename `finance` to `finance-admin` everywhere"): update the actor display name + propagate to every step's `lane`, every handoff, every disconnect; re-render Mermaid (the `subgraph` label updates); re-validate; re-Write; re-verify; loop back to A.
+  - **Add a step to a process**: extend the steps list with the new step in evidenced order; update handoffs (new handoff created if the new step is in a different lane than its neighbours); update the disconnect register (new handoff → new DC-NNN); re-render the swim-lane SVG + Mermaid export; re-Write; re-verify (incl. svg-overlap-check); loop back to A.
+  - **Rename an actor** ("rename `finance` to `finance-admin` everywhere"): update the actor display name + propagate to every step's `lane`, every handoff, every disconnect; re-render the swim-lane SVG + Mermaid export (the lane label + `subgraph` label update); re-Write; re-verify; loop back to A.
   - **Confirm an inferred lane** ("the AI-001 inferred lane is correct — the brief at line 23 says 'compliance reviews'"): flip `inferred: false`; add the new `[SRC: <filename>]`; drop AI-001 from gaps; re-render; re-Write; re-verify; loop back to A.
   - **Add an Override note** for a previously-failed gate: append to the Run-history bullet for this run; re-render; re-Write; re-verify; loop back to A.
 - **Restart** — re-enter Step 4 (Round 1). The previously-written `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` is left in place; the next Step 11 will overwrite it.
 
-The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04 or mmdc-not-installed, which propagates per Step 11).
+The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 11).
 
 **C. Hand back.**
 
@@ -504,23 +506,23 @@ Output the final handback line:
 - `framework/assets/characters/swim-lane-process-mapping-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/swim-lane-process-mapping-reference.md` — the methodology reference. Read once in Step 1.
 - `framework/assets/analyses-inputs/template-swim-lane-process-mapping.html` — the HTML scaffold. Read once at render time in Step 11.
-- `framework/skills/mermaid-validator.md` — invoked per process in Step 11 sub-step C.
 - `framework/skills/verify-artifact-write.md` — invoked once in Step 11 sub-step E.
+- `framework/skills/svg-overlap-check.md` — invoked in Step 11 sub-step E (after verify-artifact-write `pass`).
 
 ## Output
 
 - `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` — the populated artefact. Always written to the same path; **additively merged** with the prior run's contents (prior processes / actors / handoffs / disconnects preserved verbatim unless the consultant chose the `re-extract` drift branch).
-- Transient: `/tmp/sw-lane-vd/<process_slug>.mmd` per process during Step 11 sub-step C. Cleaned up implicitly at session end; not part of the deliverable.
+- Transient: `/tmp/sw-lane-vd/svg-overlap.ndjson` (the `svg-overlap-check` report) during Step 11 sub-step E. Not part of the deliverable.
 
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template scaffold, the manifest, each manifest-enumerated source file, and (if present) the prior swim-lane-process-mapping artefact. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.**
 - `Write` — write `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html`. Also write the transient Mermaid source files under `/tmp/sw-lane-vd/`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 11's re-render path. The agent does not `Edit` the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` — `mkdir -p analyse-inputs/SWIM-LANE-PROCESS-MAPPING` and `mkdir -p /tmp/sw-lane-vd` (Step 11 setup); the `mmdc` invocation is performed inside `framework/skills/mermaid-validator.md`, not directly by this agent. On Windows-only environments, use the PowerShell `New-Item` equivalent.
+- `Bash` — `mkdir -p analyse-inputs/SWIM-LANE-PROCESS-MAPPING /tmp/sw-lane-vd` (Step 11 setup; the scratch dir holds the `svg-overlap-check` report). On Windows-only environments, use the PowerShell `New-Item` equivalent. No `mmdc` / Mermaid-render dependency — the diagrams are pre-rendered inline SVG.
 - `AskUserQuestion` — surface the Step 4 multi-process disambiguation prompt (only if > 5 candidates); surface the Step 3 prior-run reconciliation prompt (only if the prior meta-block is unparseable, or for the drift gate when the manifest fingerprint changed); surface the Step 10 quality-gate failure prompt (Revise / Override / Restart); surface the Step 12 Accept / Revise / Restart prompt.
 
-**No MCP tools.** No Agent / Task delegation. Every step runs in the foreground in this thread. Mermaid validation is via the `mermaid-validator` skill (which uses the `mmdc` CLI through `Bash`), not an MCP tool.
+**No MCP tools.** No Agent / Task delegation. Every step runs in the foreground in this thread. The per-process swim-lane diagrams are pre-rendered inline SVG by the analyser directly — no `mmdc`, no Mermaid runtime, no external rendering pipeline.
 
 ## Self-validation (run before declaring done)
 
@@ -532,11 +534,11 @@ Before handing back, verify all of the following against the written artefact an
 - The artefact contains exactly one `<script type="application/json" id="swim-lane-process-mapping-meta">` block. Its `manifest_sha256` equals the Step 2 value; its `run_count` equals `prior.run_count + 1` (or `1` on first run); its `process_count`, `actor_count`, `step_count`, `handoff_count`, `disconnect_count_total` match the rendered tables.
 - The artefact contains exactly one `<header id="overview">`, one `<section id="processes">`, one `<section id="actors">`, one `<section id="disconnects">`, one `<section id="structured-model">`, one `<section id="gaps">`, one `<details id="diagnostics">`, and one trailing `<section class="next-steps">`. DOM order is overview → processes → actors → disconnects → structured-model → gaps → diagnostics → next-steps.
 - The `<section id="structured-model">` contains exactly one `<pre><code class="language-yaml">…</code></pre>` block (NOT a `<script type="application/json">` — this is the load-bearing markitdown-survival contract). The YAML inside parses as valid YAML; the top-level key is `swim_lane_process_mapping`.
-- Every `<article class="process-block">` has `id="process-{process-slug}"`, an `<h2>` carrying the process id + name, a `<p class="process-goal">` with goal + trigger, a `<details class="mermaid-block">` with a `<pre class="mermaid-source">`, a `<section class="steps-section">` with a `<table class="steps-table">`, and a `<section class="decisions-section">` with a `<table class="decisions-table">`.
-- Every `<pre class="mermaid-source">` contains a `flowchart TD` declaration, ≥ 1 `subgraph` block, ≥ 1 edge. The Mermaid validator returned `pass` for each (or the diagram was dropped with a `[GAP-MERMAID-INVALID]` diagnostic if mmdc-validation failed after 3 retries).
+- Every `<article class="process-block">` has `id="process-{process-slug}"`, an `<h2>` carrying the process id + name, a `<p class="process-goal">` with goal + trigger, a `<figure class="swimlane-diagram">` with one inline `<svg>` (carrying `role="img"` + a non-empty `aria-label`), a **collapsed** `<details class="mermaid-block">` with a `<pre class="mermaid-source">`, a `<section class="steps-section">` with a `<table class="steps-table">`, and a `<section class="decisions-section">` with a `<table class="decisions-table">`.
+- Every `<figure class="swimlane-diagram">` inline `<svg>` renders every step of its process as a node and every actor as a lane; `svg-overlap-check` returned `total: 0` for the artefact (or overlaps were recorded as diagnostics layout warnings). Every `<pre class="mermaid-source">` (the export adjunct) contains a `flowchart TD` declaration, ≥ 1 `subgraph` block, ≥ 1 edge — it is **not** validated by `mmdc`.
 - The disconnect table has exactly `len(handoffs)` rows. Every row carries one of the five `.dc-pill-*` classes; the `follow-up` cell is `yes` for non-`clean` rows and `no` for `clean` rows; the `suggested question` cell is non-empty for non-`clean` rows and either empty or `—` for `clean` rows.
 - Every consultant-supplied string in HTML body content is HTML-escaped (`<` → `&lt;`, `&` → `&amp;`, etc.). **Exception:** Mermaid syntax inside `<pre class="mermaid-source">` retains literal `|`, `[`, `]`, `{`, `}`, `-->`.
-- The `<details id="diagnostics">` contains a `<section class="diagnostics">` with all 9 gate-result lines (PASS / FAIL) in the documented order, a source-roster `<section class="source-roster">` with `consumed` and `skipped` tables, a `<section class="mermaid-results">` with per-process validator outcome, and a `<section class="run-history">` with `run_count` bullets.
+- The `<details id="diagnostics">` contains a `<section class="diagnostics">` with all 9 gate-result lines (PASS / FAIL) in the documented order, a source-roster `<section class="source-roster">` with `consumed` and `skipped` tables, a `<section class="diagram-results">` with per-process diagram-validity (svg-overlap) outcome, and a `<section class="run-history">` with `run_count` bullets.
 - The `<nav class="toc-processes">` contains exactly `process_count` `<a>` anchors, each pointing to `#process-{slug}` for an existing process-block.
 - The trailing `<section class="next-steps">` contains the Disconnect-Register-as-elicitation message and the copy-to-input instruction.
 - **No occurrence of `[AI-SUGGESTED]` on any disconnect trigger event description.** Search the rendered artefact: every `tr.dc-row` `description` cell is `[AI-SUGGESTED]`-free; the description names the missing element, not a fabricated guess.
@@ -547,8 +549,8 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` exists, has been verified, and contains a complete Rummler-Brache process map: overview, ≥ 1 process-block per process (each with Mermaid source, Steps table, Decisions table), Actor inventory table, Disconnect Register with one row per handoff (5-category classification), exactly one `<pre><code class="language-yaml">` structured model, Gaps section, collapsed diagnostics with run history, and the Next-steps banner.
-- Either all 9 hard quality gates passed (with gate 9 = pass or pass-with-drops), or the consultant explicitly chose Override and the Run-history bullet for this run records every violation (with a stronger acknowledgement on gate 6 overrides).
+- `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` exists, has been verified, and contains a complete Rummler-Brache process map: overview, ≥ 1 process-block per process (each with a pre-rendered inline-SVG swim-lane diagram, a collapsed Mermaid export, Steps table, Decisions table), Actor inventory table, Disconnect Register with one row per handoff (5-category classification), exactly one `<pre><code class="language-yaml">` structured model, Gaps section, collapsed diagnostics with run history, and the Next-steps banner.
+- Either all 9 hard quality gates passed (with gate 9 = pass or overlap-warning), or the consultant explicitly chose Override and the Run-history bullet for this run records every violation (with a stronger acknowledgement on gate 6 overrides).
 - DOM order is overview → processes → actors → disconnects → structured-model → gaps → diagnostics → next-steps.
 - The structured-model YAML is parseable and matches the reference's schema (`swim_lane_process_mapping` top-level; per-actor / per-process / per-step / per-handoff / per-disconnect entries with citations).
 - Additive-merge contract honoured: every prior-run process is present in the new artefact (unless the consultant explicitly dropped it via Revise or the `re-extract` drift branch).
@@ -567,11 +569,11 @@ Before handing back, verify all of the following against the written artefact an
 - **Do not inflate the disconnect register.** Spurious disconnects waste consultant attention and erode trust. The cleanliness rubric is the gate; apply it strictly and uniformly. `clean` is the explicit pass — supported by positive evidence — never the silent default.
 - **Do not auto-copy the artefact to `input/`.** The `/analyse-inputs` write-isolation rule (CLAUDE.md §"Stand-alone constraints") forbids it. The trailing Next-steps banner instructs the consultant to copy manually.
 - **Do not re-invoke `markitdown-mcp`.** Conversions are the input-handler's responsibility; the manifest's `converted_sibling` is the contract. Re-converting would drift the analyser's reads from the manifest's recorded `sha256`.
-- **Do not skip Mermaid validation.** Gate 9. An artefact whose diagrams don't render erodes consultant trust entirely. If `mmdc` is unavailable → halt per the validator's contract; do not proceed without validation.
+- **Do not skip the per-process diagram.** Gate 9 requires every process to render a pre-rendered inline `<svg>` swim-lane in which every step is a node and every actor a lane. There is no `mmdc` / Mermaid-render dependency; `svg-overlap-check` records any geometric overlap as a diagnostics layout warning (never a halt). Do not bundle a Mermaid renderer or require `mmdc` — the `<pre class="mermaid-source">` blocks are copy-paste / re-ingestion text only.
 - **Do not loop the Step 10 fail-Restart-fail cycle more than three times.** On the fourth fail, force the Revise path with a one-line note that further iteration is not productive without consultant input.
 - **Do not paste the artefact body into the conversation.** The file is on disk; the consultant opens it in a browser via `file://`.
 - **Do not use the Agent or Task tool to delegate any step.** All work runs in the foreground in this thread. No MCP tools authorised.
 - **Do not collapse the eight rounds into a single pass.** Each round produces a distinct in-memory output; the round-by-round structure is what makes the analysis reviewable and what enables additive merges across runs.
-- **Do not bundle external JS / CSS / CDN / fonts.** The artefact is self-contained — inline `<style>`, no `<script>` beyond the metadata block, no fonts, no external resources. `file://` openable, network-isolated, no console errors. Mermaid source is embedded as text inside `<pre>`; rendered visual is out-of-band.
+- **Do not bundle external JS / CSS / CDN / fonts.** The artefact is self-contained — inline `<style>`, no `<script>` beyond the metadata block, no fonts, no external resources. `file://` openable, network-isolated, no console errors. The swim-lane diagrams are pre-rendered inline `<svg>`; the Mermaid source is embedded as copy-paste text inside `<pre>`.
 - **Do not write the artefact on a Step 10 gate failure unless the consultant explicitly chose Override.** A silently defective swim-lane process map propagates fabricated processes / actors / disconnects into requirements seeds — the worst failure mode for this analyser.
 - **Do not edit the HTML template scaffold.** Only the documented `{{placeholders}}` are substituted; CSS classes, layout, and colour variables are fixed.

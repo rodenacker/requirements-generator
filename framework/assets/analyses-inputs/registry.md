@@ -76,12 +76,11 @@ methodologies:
   #     / `inferred-from-<filename>` on every object — never an unmarked
   #     object, never a fourth marker; every CTA, attribute, CCP, and
   #     relationship carries `[SRC: <filename>]` matching a manifest row's
-  #     `filename` field exactly; the artefact ships three visual surfaces
-  #     plus a machine-readable body block: Mermaid `erDiagram` (entities +
-  #     relationships + cardinality + PK on primary CCP — the "MUST contain
-  #     a diagram" deliverable; survives markitdown HTML→MD as a fenced code
-  #     block), canonical OOUX sticky-note column-board (CTAs, header, CCPs,
-  #     metadata, nested refs), relationship matrix table, and a
+  #     `filename` field exactly; the artefact ships two visual surfaces
+  #     plus a machine-readable body block: the canonical OOUX sticky-note
+  #     column-board (CTAs, header, CCPs, metadata, nested refs — the object
+  #     map, the rendered "MUST contain a diagram" deliverable), relationship
+  #     matrix table, and a
   #     `<pre><code class="language-json" id="ooux-object-map-body">` block
   #     carrying the full object model in JSON for `/requirements`
   #     re-ingestion via markitdown round-trip — the load-bearing
@@ -90,7 +89,7 @@ methodologies:
   #     reference (every Object has ≥1 CTA; every CTA attaches to exactly
   #     one Object; every nested Relationship declares cardinality; every
   #     Object has ≥1 CCP; no orphan Attributes; provenance markers
-  #     exhaustive; matrix + nested refs + Mermaid agree) plus Gate 8
+  #     exhaustive; matrix + nested refs agree) plus Gate 8
   #     specific to the inputs side: every consumed manifest row contributes
   #     ≥1 candidate noun in Round 1 OR is marked `irrelevant-to-domain`
   #     in diagnostics with a one-line reason — surfacing silent skips the
@@ -106,8 +105,9 @@ methodologies:
   #     Organization Chart*; framed under BABOK 10.35 Process
   #     Modelling; adapted for raw consultant inputs as a multi-actor,
   #     handoff-shaped, document-only extraction; one or more discrete
-  #     processes per artefact, each rendered as a Mermaid `flowchart
-  #     TD` source block with one `subgraph` swim-lane per actor
+  #     processes per artefact, each rendered as a pre-rendered
+  #     inline-SVG swim-lane (one lane per actor) with the Mermaid
+  #     `flowchart TD` source kept as a collapsed export adjunct
   #     (kind: role / system / external-service); steps typed
   #     `start` / `end` / `process` / `decision` / `data-store` /
   #     `external-system`; every lane-to-lane handoff (the lane-
@@ -127,9 +127,10 @@ methodologies:
   #     blocking|non-blocking] markers in the shared namespace;
   #     inferred disconnect trigger events forbidden — the
   #     description names the missing element, not the guess;
-  #     self-contained HTML with embedded `<pre class="mermaid-source">`
-  #     blocks (rendered visual is out-of-band via mmdc or
-  #     mermaid.live; no inline Mermaid runtime, no CDN), an
+  #     self-contained HTML with a pre-rendered inline-SVG swim-lane
+  #     per process (Mermaid `flowchart TD` source kept as a collapsed
+  #     `<pre class="mermaid-source">` export adjunct; no Mermaid
+  #     runtime, no CDN), an
   #     embedded `<pre><code class="language-yaml">` structured
   #     process model that survives markitdown HTML→MD conversion
   #     as a fenced code block (the load-bearing re-ingestion
@@ -316,7 +317,7 @@ methodologies:
   - name: ooux
     status: mvp
     group: Vocabulary & objects
-    description: Choose this when your raw inputs span many sources and you need one reconciled object model — merging synonyms like Customer, Client, and Account holder — before requirements. It produces an HTML object map combining a sticky-note column-board, a Mermaid entity-relationship diagram, and an embedded machine-readable object model, with every object tagged by source. Re-drop it into input/ so /requirements ingests the full object model in one pass, and review the synonym-merge log to confirm the cross-source identity calls.
+    description: Choose this when your raw inputs span many sources and you need one reconciled object model — merging synonyms like Customer, Client, and Account holder — before requirements. It produces an HTML object map combining a sticky-note column-board and an embedded machine-readable object model, with every object tagged by source. Re-drop it into input/ so /requirements ingests the full object model in one pass, and review the synonym-merge log to confirm the cross-source identity calls.
     output_path: analyse-inputs/OOUX/ooux-object-map.html
     reference_asset: framework/assets/analyses-inputs/ooux-reference.md
     template_asset: framework/assets/analyses-inputs/template-ooux.html

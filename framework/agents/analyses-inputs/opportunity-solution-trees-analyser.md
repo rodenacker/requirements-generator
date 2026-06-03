@@ -11,7 +11,7 @@ Produce `analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.htm
 - An **Overview** (`<h1 id="top">` + `dl.meta-grid`: Domain, Generated timestamp, **Manifest SHA-256**, run count, counts).
 - A **`<script type="application/json" id="opportunity-solution-tree-meta">`** head block carrying the additive-merge cursor (`manifest_sha256`, `run_count`) — the markitdown-stripped drift cursor (the HTML analogue of the former `<!-- ost-meta: ... -->` line).
 - A sticky **TOC** (`<nav class="toc">`).
-- A **Diagrams** section (`#diagrams`): the **pre-rendered four-band discovery tree** (the requirement-side twin's `{{TREE}}` approach reused — four `.band` rows of cards with an inline `<svg class="tree-connectors">` overlay whose `<path>` connectors are geometry computed at render time; the "MUST contain a diagram" deliverable) **above** the body sections, with an **adjacent collapsed `<details class="mermaid-block">`** holding the `graph TD` Mermaid source as an export / re-ingestion adjunct (validated before embed, not rendered in-page).
+- A **Diagrams** section (`#diagrams`): the **pre-rendered four-band discovery tree** (the requirement-side twin's `{{TREE}}` approach reused — four `.band` rows of cards with an inline `<svg class="tree-connectors">` overlay whose `<path>` connectors are geometry computed at render time; the "MUST contain a diagram" deliverable) **above** the body sections, with an **adjacent collapsed `<details class="mermaid-block">`** holding the `graph TD` Mermaid source as an export / re-ingestion adjunct (embedded as text, not rendered in-page and not validated by `mmdc`).
 - An **Outcome** section — a single `.outcome-card` for the primary root — plus a **candidate-outcomes** block: zero or more `.candidate-outcome-card` blocks each with a `[CANDIDATE-OUTCOME]` marker (omitted entirely when only one outcome candidate emerged from Round 1).
 - An **Opportunities** section — alphabetical by `<actor> — <need clause>`; each `.opportunity-card` carries the canonical-form sentence, verbatim extracts with `[SRC: <filename>]`, a `from-inputs` provenance line, a cross-source indicator, and flags (`[UNADDRESSED]` / `[WEAKLY-ANCHORED]`).
 - A **Solutions** section — grouped by parent Opportunity, plus a sentinel `[ORPHAN-SOLUTION] Under Op-?: (none stated in inputs)` group collecting orphans.
@@ -60,7 +60,7 @@ The Torres OST six-stage discipline (Outcome → Opportunities → Solutions →
 | **Round 4 — Assumption-Test extraction** | Step 7 | Best-effort walk for risk / assumption / open-question phrasing; layer-absent flag set when zero candidates |
 | **Round 5 — Laddering** | Step 8 | Solutions → Opportunities (actor + semantic); Opportunities → primary Outcome (keyword overlap); flag orphan / unaddressed / weakly-anchored |
 | **Round 6 — Bridge + diagnostics** | Step 9 | Per-Opportunity candidate-requirement seeds; coverage-diagnostics population |
-| (operational) | Step 10 — Validate + Render + Mermaid-validate + SHA-256 | 6 hard gates, in-memory HTML render (template substitution + pre-rendered four-band tree SVG), Mermaid-source validation, sha256 |
+| (operational) | Step 10 — Validate + Render + SHA-256 | 6 hard gates, in-memory HTML render (template substitution + pre-rendered four-band tree SVG), sha256 |
 | (operational) | Step 11 — Write + verify-artifact-write | Write the artefact; verify; RF-04 on mismatch |
 | (operational) | Step 12 — Handback | Accept / Revise / Restart loop |
 
@@ -316,7 +316,7 @@ State the Round 6 result aloud:
 
 > *"Round 6 sub-A (Bridge): derived 17 candidate-requirement lines across 9 Opportunities (Op-1: 3, Op-2: 2, …, Op-7 [UNADDRESSED]: 1 recommend-elicit-solution advisory). Sub-B (Coverage diagnostics): 2 orphan solutions, 1 unaddressed opportunity, 1 weakly-anchored opportunity, 1 contradiction pair."*
 
-### Step 10 — Validate + Render + Mermaid-validate + SHA-256
+### Step 10 — Validate + Render + SHA-256
 
 **Sub-step A — Quality-gate sweep.**
 
@@ -325,11 +325,11 @@ Run all 6 hard gates from `framework/assets/analyses-inputs/opportunity-solution
 1. **Citation completeness.** Every outcome / candidate outcome / opportunity / solution / assumption test / candidate-requirement line carries ≥ 1 `[SRC: <filename>]`; every payload matches a `consumed_rows[*].filename` exactly.
 2. **Customer-perspective Opportunities.** No Opportunity *need / pain* clause contains `we`, `our`, `the business`, `the company`, `the team`.
 3. **No solution-leak in Opportunities.** No Opportunity *need / pain* clause contains UI-affordance tokens (`dashboard`, `screen`, `page`, `button`, `dialog`, `modal`, `dropdown`, `field`, `widget`, `report`, `export`) or building verbs (`add`, `build`, `implement`, `create`, `provide`).
-4. **Diagram completeness + validity.** Every primary Outcome / Opportunity / Solution / Assumption Test in the in-memory tree appears as a node in **both** the pre-rendered four-band tree (a `.card` in the matching `.band`) **and** the adjacent `graph TD` Mermaid source; neither has dangling references; `mermaid-validator.md` returned `valid` against the Mermaid source (this gate is finalised in Sub-step C after the validator runs). The visible diagram is the four-band tree; the Mermaid source is the export / re-ingestion adjunct.
+4. **Diagram completeness.** Every primary Outcome / Opportunity / Solution / Assumption Test in the in-memory tree appears as a node in **both** the pre-rendered four-band tree (a `.card` in the matching `.band`) **and** the adjacent `graph TD` Mermaid export source; neither has dangling references. The visible diagram is the four-band tree; the Mermaid source is the export / re-ingestion adjunct, embedded as text (not validated by `mmdc`).
 5. **Bridge completeness.** Every Opportunity in the tree has ≥ 1 line under the `#candidates` (Candidate requirements) section (a *"The system should ___ so that ___"* line, or the `recommend-elicit-solution` advisory for `[UNADDRESSED]`).
 6. **Manifest fingerprint + source roster.** The artefact carries exactly one `<script type="application/json" id="opportunity-solution-tree-meta">` head block; its `manifest_sha256` equals Step 2's value, and the same value appears in the Overview `dl.meta-grid` "Manifest SHA-256" cell; both Source-roster tables (in the Diagnostics `<details>`) enumerate the expected rows.
 
-**On any gate failure (excluding gate 4, which finalises in Sub-step C):**
+**On any gate failure:**
 
 Surface `AskUserQuestion` with three options:
 
@@ -363,7 +363,7 @@ Read `framework/assets/analyses-inputs/template-opportunity-solution-trees.html`
   - Edges: `O --> Op<N>`, `Op<N> --> S<N>`, `OpX -.-> S<orphan-N>`, `S<N> --> A<N>`, `O --> A<global-N>` (for global-assumption tests).
   - Candidate outcomes are **not** rendered in the Mermaid tree.
   - Wrap labels in double quotes when they contain `[`, `]`, `(`, `)`, `"`, `{`, `}`, `|`.
-  This source is **not** rendered in-page; it is validated in Sub-step C and embedded as text.
+  This source is **not** rendered in-page; it is embedded as text — an export / re-ingestion adjunct, not validated by `mmdc`.
 
 **D. Outcome + candidate outcomes (`{{OUTCOME_BLOCK}}`, `{{CANDIDATE_OUTCOMES_BLOCK}}`).** One `<article class="body-card outcome-card">` for the primary root: an `<h3>` `Out-1 — {classification}`, the outcome text, supporting extracts as a `<ul>` of `<li>` each carrying a verbatim extract + `[SRC: <filename>]`. `{{CANDIDATE_OUTCOMES_BLOCK}}` substitutes zero or more `<article class="body-card candidate-outcome-card">` each carrying a `[CANDIDATE-OUTCOME]` marker (its text, classification, supporting extracts); empty when `candidate_outcomes` is empty.
 
@@ -381,18 +381,11 @@ Read `framework/assets/analyses-inputs/template-opportunity-solution-trees.html`
 
 **K. Diagnostics (`{{DIAGNOSTICS_BLOCK}}`).** The `<section class="diagnostics">` per the DIAGNOSTICS SCHEMA: a one-line summary, `Manifest fingerprint: <code>…</code> — run #N`, the **Consumed** source-roster table (`filename` / `tier` / `sha256[:8]` / `node-count` — one row per `consumed_rows` entry; `node-count` = outcomes + opportunities + solutions + assumption tests that cite this row), the **Skipped** table (`filename` / reason — one row per `skipped_rows` entry, or a single `(no skipped rows this run)` row), a `<ul class="gate-results">` of the 6 gate results (`gate-pass` / `gate-fail`), and a `<ul class="run-history">` with prior-run bullets preserved verbatim then a new bullet for this run (`<code>{ISO date}</code> — run #N — {n_new_opportunities} new opportunities; {n_new_solutions} new solutions; {n_new_candidate_requirements} new candidate-requirements; total: {n_opportunities}/{n_solutions}/{n_assumption_tests}; flags: {n_unaddressed} unaddressed / {n_weakly_anchored} weakly-anchored / {n_orphan} orphan / {n_contradictions} contradictions{; Override: <gate list> if applicable}`). On Override, append a `.flagged-items` block per failed gate.
 
-After substitution, verify no literal `{{...}}` token remains, then compute the composed string's SHA-256 and store it for Sub-step C and Step 11.
+After substitution, verify no literal `{{...}}` token remains, then compute the composed string's SHA-256 and carry it into Step 11.
 
-**Sub-step C — Mermaid-validate (the export-adjunct source).**
+**Sub-step C — Final SHA-256.**
 
-- Extract the `graph TD` source from the `<pre class="mermaid-source">` block in the composed HTML. Write it to a temporary `.mmd` (or `.md` with a fenced ```mermaid block) and invoke `framework/skills/mermaid-validator.md` against that path. The skill runs `mmdc -i <path> -o /tmp/mermaid-validation.svg 2>&1`. (The validator runs against the **Mermaid source**, not the in-page four-band tree — the tree is the analyser's own pre-rendered geometry.)
-- **On `valid`:** finalise gate 4 (pass). Advance to Sub-step D.
-- **On `invalid` (syntax error):** self-fix the offending Mermaid source (escape special characters in labels, simplify wording, rename a node id, truncate an oversized label), **and** the corresponding four-band tree card/connector if the same label/structure error applies there, re-render the HTML string, recompute its SHA-256, and re-invoke the validator. Maximum **3 fix-attempts**. On attempt 4 with the validator still reporting invalid, halt with: *"Could not produce a valid OST diagram after 3 fix-attempts. Last validator output: `<error>`. Failing handback."* and hand back with `failed-handback`. The artefact is not written.
-- **On `mmdc not installed`:** halt with the validator's own surface copy: *"Mermaid validator could not run because `mmdc` is not installed. Install it manually with `npm i -g @mermaid-js/mermaid-cli` and re-invoke `/analyse-inputs`."* Fail handback. The artefact is not written.
-
-**Sub-step D — Final SHA-256.**
-
-The SHA-256 captured at the end of Sub-step B is final unless Sub-step C re-rendered. After Sub-step C returns `valid`, the in-memory HTML string is final; the stored SHA-256 corresponds to those exact bytes. Carry both into Step 11.
+The SHA-256 computed at the end of Sub-step B is final — the four-band tree is a pre-rendered inline SVG and the Mermaid source is embedded as an unvalidated export adjunct, so there is no validate-and-re-render step. Carry the in-memory HTML string and its SHA-256 into Step 11.
 
 ### Step 11 — Write + verify-artifact-write
 
@@ -438,15 +431,15 @@ Use `AskUserQuestion`:
 
 - **Accept** — declare done; hand back to the orchestrator.
 - **Revise** — accept the consultant's revision instructions in their next message. Apply the changes:
-  - **Re-pick primary outcome** ("promote `Out-2` to primary"): swap `Out-1` ↔ `Out-2`, re-ladder every Opportunity against the new primary's measurement clause (re-run Step 8 A only), regenerate candidate-requirements (re-run Step 9 sub-A), re-render, re-Mermaid-validate, re-Write, re-verify; loop back to A.
-  - **Drop an Opportunity** ("drop `Op-7`"): remove from `final_tree`, re-ladder its Solutions (orphan or re-attach), re-run Step 9 (bridge + diagnostics), re-render, re-Mermaid-validate, re-Write, re-verify; loop back to A.
-  - **Rename an Opportunity** ("rename `Op-4` to `Finance Manager cannot reconcile single-step approval`"): update `need_clause`, re-run Step 8 E (contradiction detection — the rename may resolve or introduce a contradiction), re-run Step 9 sub-A for this Opportunity, re-render, re-Mermaid-validate, re-Write, re-verify; loop back to A.
-  - **Refresh candidate-requirements for an Opportunity** ("re-bridge `Op-1`"): re-run Step 9 sub-A for that single Opportunity; re-render; re-Mermaid-validate; re-Write; re-verify; loop back to A.
+  - **Re-pick primary outcome** ("promote `Out-2` to primary"): swap `Out-1` ↔ `Out-2`, re-ladder every Opportunity against the new primary's measurement clause (re-run Step 8 A only), regenerate candidate-requirements (re-run Step 9 sub-A), re-render, re-Write, re-verify; loop back to A.
+  - **Drop an Opportunity** ("drop `Op-7`"): remove from `final_tree`, re-ladder its Solutions (orphan or re-attach), re-run Step 9 (bridge + diagnostics), re-render, re-Write, re-verify; loop back to A.
+  - **Rename an Opportunity** ("rename `Op-4` to `Finance Manager cannot reconcile single-step approval`"): update `need_clause`, re-run Step 8 E (contradiction detection — the rename may resolve or introduce a contradiction), re-run Step 9 sub-A for this Opportunity, re-render, re-Write, re-verify; loop back to A.
+  - **Refresh candidate-requirements for an Opportunity** ("re-bridge `Op-1`"): re-run Step 9 sub-A for that single Opportunity; re-render; re-Write; re-verify; loop back to A.
   - **Accept an orphan / unaddressed / weakly-anchored as expected** ("the orphan `S-8 supplier-self-service portal` is out of scope — accept"): append a consultant-accepted note to the corresponding Run-history bullet; the flag remains on the tree (the consultant cannot un-flag the structural finding — they can only annotate it as accepted); re-render; re-Write; re-verify; loop back to A.
   - **Add an Override note** for a previously-failed gate: append the note to the Run-history bullet for this run; re-render; re-Write; re-verify; loop back to A.
 - **Restart** — re-enter Step 4 (Round 1). The previously-written `analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` is left in place; the next Step 11 will overwrite it.
 
-The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04 / mermaid-validator halt, which propagates per Step 10 / Step 11).
+The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced RF-04, which propagates per Step 10 / Step 11).
 
 **C. Hand back.**
 
@@ -472,14 +465,14 @@ Output the final handback line:
 ## Tools
 
 - `Read` — read the character file, the reference asset, the HTML template scaffold (`framework/assets/analyses-inputs/template-opportunity-solution-trees.html`), the manifest, each manifest-enumerated source file (via `original_path` or `converted_sibling`), and (if present) the prior OST artefact. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.** The stand-alone-ish constraint is enforced by tool-list scope.
-- `Write` — write `analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` (and, transiently, the temporary `.mmd`/`.md` file passed to the mermaid-validator at Step 10 sub-C).
+- `Write` — write `analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 10's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
-- `Bash` / `PowerShell` — `mkdir -p analyse-inputs/OPPORTUNITY-SOLUTION-TREES` (POSIX) or `New-Item -ItemType Directory -Force analyse-inputs/OPPORTUNITY-SOLUTION-TREES` (Windows) at Step 11 setup; `mmdc` invocation at Step 10 sub-C per the mermaid-validator skill. No other shell usage.
+- `Bash` / `PowerShell` — `mkdir -p analyse-inputs/OPPORTUNITY-SOLUTION-TREES` (POSIX) or `New-Item -ItemType Directory -Force analyse-inputs/OPPORTUNITY-SOLUTION-TREES` (Windows) at Step 11 setup. No other shell usage; no `mmdc` invocation.
 - `AskUserQuestion` — surface the Step 3 prior-run reconciliation prompt (only if the prior meta header is unparseable, or for the drift gate when the manifest fingerprint changed); surface the Step 4 multi-outcome primary picker; surface the Step 10 quality-check failure prompt (Revise / Override / Restart); surface the Step 12 Accept / Revise / Restart prompt.
 
-The mermaid-validator skill at Step 10 sub-C is invoked **inline as a procedure** (the agent reads its workflow and executes the `mmdc` invocation directly via `Bash` / `PowerShell`). It is not a delegated sub-agent.
+The four-band tree is a pre-rendered inline SVG composed by the analyser; the Mermaid source is embedded as an unvalidated export adjunct. There is no `mmdc` / Mermaid-render dependency.
 
-**No MCP tools.** No Agent / Task delegation. The analyser substitutes the HTML template, pre-renders the four-band tree SVG connectors, and validates the Mermaid export source directly; there is no external rendering pipeline and no client-side Mermaid runtime.
+**No MCP tools.** No Agent / Task delegation. The analyser substitutes the HTML template and pre-renders the four-band tree SVG connectors; the Mermaid export source is embedded as unvalidated text. There is no external rendering pipeline and no client-side Mermaid runtime.
 
 ## Self-validation (run before declaring done)
 
@@ -495,7 +488,7 @@ Before handing back, verify all of the following against the written artefact an
 - Every `.opportunity-card` under `#opportunities` carries an `<h3>` `Op-NN — actor — need head`, the canonical-form sentence (`.canon`), a supporting-extracts `<ul>` (each `<li>` ending in `[SRC: <filename>]`), a `Provenance: from-inputs.` meta-line, a `Cross-source:` meta-line, and any flag pills.
 - Every Opportunity in the tree appears under `#opportunities`, and every Opportunity card id corresponds to an in-memory Opportunity.
 - Every primary Outcome / Opportunity / Solution / Assumption Test in the in-memory tree appears as a card in the four-band tree **and** as a node in the Mermaid export source; every node in either (except the `OpX`/`Op-?` sentinel) corresponds to an in-memory entity.
-- The Mermaid validator returned `valid` against the export source at Step 10 sub-C (no halt occurred).
+- Every primary node appears as a card in the pre-rendered four-band tree and as a node in the `graph TD` Mermaid export source (the Mermaid source is embedded as text, not validated by `mmdc`).
 - Every `<li>` under `#candidates` matches the shape *"The system should ___ so that ___"* and ends in `[SRC: <filename>]`, **OR** is the literal `recommend-elicit-solution` advisory line for an `[UNADDRESSED]` Opportunity.
 - The `#coverage` section contains four `.coverage-col` columns; each column either has ≥ 1 entry matching the structure documented in Step 10 Sub-step B-I, or emits the single italic `(no entries this run)` placeholder.
 - The embedded `<pre><code class="language-json" id="opportunity-solution-tree-body">` block is present, parses as JSON, and carries the tree model (outcome / opportunities / solutions / assumption tests / laddering edges) **plus** the candidate-requirement seeds (the markitdown-survival re-ingestion contract).
@@ -510,7 +503,7 @@ Before handing back, verify all of the following against the written artefact an
 
 - `analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` exists, has been verified, and contains a complete OST: Overview (with Manifest SHA-256), TOC, Diagrams (pre-rendered four-band tree above the Mermaid-source export `<details>`), Outcome (1), Candidate outcomes (optional), Opportunities (≥ 1), Solutions (≥ 0 — sparsity permitted), Assumption Tests (≥ 0 — absent-layer placeholder permitted), Candidate requirements (≥ 1 line per Opportunity), Coverage diagnostics (4 columns), the `language-json` body block (tree model + candidate-requirement seeds), and the Diagnostics `<details>` (source roster + run history).
 - Either all 6 hard quality gates passed, or the consultant explicitly chose Override and the run-history bullet for this run records every violation.
-- The Mermaid tree export source validated `valid`, and every node appears as a card in the pre-rendered four-band tree.
+- Every node appears as a card in the pre-rendered four-band tree and as a node in the `graph TD` Mermaid export source (embedded as an unvalidated export adjunct).
 - Additive-merge contract honoured: every prior-run Outcome / Opportunity / Solution / Assumption Test is present in the new artefact (unless the consultant explicitly dropped it via Revise, or the `re-extract-everything` drift branch re-extracted it away with a run-history note).
 - The consultant has accepted the artefact in the Step 12 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.
@@ -530,12 +523,12 @@ Before handing back, verify all of the following against the written artefact an
 - **Do not render `[CANDIDATE-OUTCOME]` nodes in the four-band tree or the Mermaid source.** Only the primary Outcome anchors the tree; the candidate outcomes live in the `#outcomes` candidate-outcomes block as `.candidate-outcome-card` text blocks. Rendering them in the diagram would imply multi-root laddering, which collapses Torres's discipline.
 - **Do not allow UI-affordance leak in Opportunity clauses.** Gate 3 enforces this; Round 2 filtering must catch it before the gate sweep. An "Opportunity" with `button` / `dashboard` / `export` in the need clause is a disguised Solution.
 - **Do not allow company-perspective leak in Opportunity clauses.** Gate 2 enforces this; Round 2 filtering must catch it. Opportunities are framed from the customer's perspective, period.
-- **Do not embed an invalid Mermaid export source.** The validator's `valid` return against the `graph TD` source is a hard precondition to write. If after 3 fix-attempts the source is still invalid, halt and fail handback — a corrupt export source poisons the re-ingestion adjunct. (The visible in-page diagram is the analyser's own pre-rendered four-band tree; keep the tree and the Mermaid source in agreement — every node is a card in one and a node in the other.)
+- **Keep the Mermaid export source in agreement with the four-band tree.** The visible in-page diagram is the analyser's own pre-rendered four-band tree; the `graph TD` Mermaid source is embedded as plain text — an export / re-ingestion adjunct, **not validated by `mmdc`** (there is no Mermaid-render dependency). Every node must be a card in the tree and a node in the export source.
 - **Do not re-invoke `markitdown-mcp`.** Conversions are the input-handler's responsibility; the manifest's `converted_sibling` path is the contract. Re-converting would produce drift between the analyser's reads and the manifest's recorded `sha256` field.
 - **Do not write the artefact on a Step 10 gate failure unless the consultant explicitly chose Override.** A silently defective OST propagates fabricated requirements seeds into `/requirements` — the worst failure mode for this analyser.
 - **Do not loop the Step 10 fail-Restart-fail cycle more than three times.** On the fourth fail, force the Revise path with a one-line note that further iteration is not productive without consultant input.
 - **Do not paste the artefact body into the conversation.** The file is on disk; the consultant opens the HTML in a browser (file://) or prints it to PDF.
-- **Do not use the Agent or Task tool to delegate any step.** All work happens in this thread. The mermaid-validator skill is a procedure invoked inline via shell, not a delegated sub-agent. No MCP tools are authorised.
+- **Do not use the Agent or Task tool to delegate any step.** All work happens in this thread. The four-band tree is a pre-rendered inline SVG; there is no Mermaid validation, no `mmdc` dependency, and no MCP tools are authorised.
 - **Do not emit any `[AI-SUGGESTED]` marker.** OST is extraction, not inference. Outcomes, Opportunities, Solutions, Assumption Tests, and candidate-requirements all trace to `[SRC: <filename>]` markers; the `[AI-SUGGESTED]` namespace is reserved for the `/requirements`-drafter's inferences and must not be widened into analyser territory.
 - **Do not bundle external JS / CSS / fonts / CDN references.** The artefact is self-contained HTML: one inline `<style>`, no `<script src=…>`, no external stylesheet `<link>`, no CDN URL, no client-side Mermaid runtime. The only `<script>` permitted is the head `application/json` data block. It must open via `file://` and print to PDF with no network access.
 - **Do not edit the CSS scaffolding in the template.** Substitute only the `{{PLACEHOLDER}}` blocks in `framework/assets/analyses-inputs/template-opportunity-solution-trees.html`; the fixed `<style>` chrome is owned by the template and must not be rewritten by the analyser.

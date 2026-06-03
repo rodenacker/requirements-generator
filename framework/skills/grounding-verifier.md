@@ -16,6 +16,9 @@ The skill itself does not surface refusal predicates. The drafter consumes the o
 
 **Used by:**
 - `framework/agents/requirements-drafter.md` — at workflow step 7b, after writing `draft-claims.ndjson`. Run repeatedly until `failed: 0`.
+- `framework/agents/reviews/requirements-traceability-reviewer.md` — at its Band-A citation-integrity step, invoked with `draft_path = requirements/requirements.md` (the **final, merged** doc — whose retained `[SRC: C-NNN]` tags are the body under audit) and `verification_path` under `review-requirements/REQUIREMENTS-TRACEABILITY/.workspace/`. Run **once** (not to convergence — this is a read-only audit, not a remediation loop). The reviewer consumes the NDJSON, not the pass/fail exit signal.
+
+**Final-doc caller note (the traceability reviewer):** This skill is artefact-neutral — `draft_path` may be the draft *or* the merged `requirements/requirements.md`. The Pass-2 reasons mean the same thing mechanically, but the **traceability reviewer re-interprets `sidecar_entry_without_tag` as a warn (DEAD-PROVENANCE), not a failure**: against the final doc, a sidecar entry with no tag means the merger legitimately dropped a cited field (e.g. a `dropped` resolution removed a cited row), which is informational, not an ungrounded fact. `tag_without_sidecar_entry`, `quote_not_found`, and `source_not_in_manifest` remain hard BROKEN-CITATION signals. When the input source files have been deleted post-generation (the merger permits this), the reviewer skips Pass 1 and substitutes the draft-time record in `requirements/draft-claims-verification.ndjson`; the skill itself is unchanged.
 
 ## Procedure
 

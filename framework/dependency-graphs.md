@@ -89,12 +89,12 @@ preflight-mcp → refusal-registry
 
 ---
 
-## 3. review-requirement-orch.md · 32 nodes / 45 edges / depth 3
+## 3. review-requirement-orch.md · 50 nodes / 70 edges / depth 3
 
 ```
 orch → analysis-selector, check-context-bloat, refusal-registry,
-       + 5 reviewers: adversarial, first-principles, ten-ux-questions,
-         ten-ba-questions, user-stories
+       + 7 reviewers: adversarial, first-principles, ten-ux-questions,
+         ten-ba-questions, user-stories, requirements-quality, requirements-traceability
 analysis-selector → reviews/registry.md  [shared selector, review labels; Globs each row's output_path for ✓/★ marks]
 
 Each reviewer → characters/<r>-review.md, reviews/<r>-reference.md,
@@ -106,10 +106,19 @@ deltas:
   ten-ba-questions +general-rules, prototype-invariants, prototype-scope,
                    +reviews/ten-ux-questions-reference.md  [one-way UX-drop filter, step 4]
   user-stories     +general-rules, prototype-invariants
+  requirements-quality +general-rules, prototype-invariants  [judgment-band Necessary/Appropriate/Feasible rescue, step 6],
+                   +topics-requirements, template-requirements  [Conforming (C9) target, step 2]
+  requirements-traceability +grounding-verifier  [Band-A citation integrity, step 4; invoked draft_path=requirements.md, run once],
+                   +requirements-draft, draft-claims, draft-claims-verification,
+                    state/resolver-answers, consultant-answers, source-manifest + input files
+                      [provenance asset family, READ-ONLY, steps 2–5; capability-tier-guarded]
+grounding-verifier → draft-claims, source-manifest, <input source files>  [Pass-1 quote check, fixed-string Grep]
 ```
 
 **Notes (unique):**
 - adversarial is the only sub-agent dispatch here (8 parallel read-only dimension workers, step 3); all others single-pass, no fan-out.
+- requirements-traceability is the **only non-stand-alone reviewer** — it reads the provenance asset family (draft + draft-claims + draft-claims-verification + state/resolver-answers + consultant-answers + source-manifest + input files) **read-only**, because backward (pre-RS) provenance cannot be audited without the provenance evidence (the documented, bounded exception; mirrors the drafter's and grounding-verifier's read scope). Its Band-A citation integrity **reuses the `grounding-verifier` skill** against the **final** `requirements.md` (the skill's 2nd caller, run once not to convergence); `sidecar_entry_without_tag` is re-read as a DEAD-PROVENANCE warn rather than a fail. Capability-tier-guarded reads **degrade (TIER-2 → TIER-1b → TIER-1 → TIER-0) rather than halt** on missing assets. It writes only under `review-requirements/REQUIREMENTS-TRACEABILITY/**` (incl. a `.workspace/citation-verification.ndjson` scratch file). `state/resolver-answers.ndjson` is the only `framework/state/` read; it is never written.
+- requirements-quality is single-pass (nine-characteristic ISO 29148 scorecard); it is the only reviewer that reads the **conforming target** (`topics-requirements.md` + `template-requirements.md`, step 2) — to score the Conforming characteristic (C9) against the project's house style (GR-20/21/23). Its GR/PI step-6 read rescues only the judgment band (Necessary/Appropriate/Feasible); the five decidable characteristics are never rescued.
 - Shared-policy reads are **filter sources only** — reviewers drop candidate questions already answered by an active `GR-NN`/`PI-NN` or out-of-scope per `prototype-scope.md`. (adversarial reads none — its task is defect-citation, not gap-filtering.)
 - ba→ux-reference is **one-way** (ux never reads ba) — orthogonality enforced by a filter-time read, not a circular dep.
 - first-principles / user-stories omit `prototype-scope.md` (their subjects are in-scope by construction); user-stories also omits the ux-reference (story-quality criteria are orthogonal to UX/BA framing) and applies no top-N cap.
@@ -156,9 +165,14 @@ deltas:
      journey-mapping, task-analysis, jtbd,
      ooux, swim-lane-process-mapping, affinity-mapping, user-goal-analysis,
      business-context-definition, glossary
-  +mermaid-validator: thematic-analysis, opportunity-solution-trees, ooux,
-     swim-lane-process-mapping, affinity-mapping
-  +setup-instructions/mmdc.md: affinity-mapping only
+  +svg-overlap-check: affinity-mapping, swim-lane-process-mapping
+     (post-write geometric check on the pre-rendered inline-SVG diagrams; report kept in /tmp
+      scratch, NOT framework/state — preserves the no-state-write invariant)
+  (NO analyse-inputs analyser depends on mermaid-validator or mmdc: every diagram-emitting
+     analyser — thematic-analysis, opportunity-solution-trees, affinity-mapping,
+     swim-lane-process-mapping — pre-renders inline SVG; their Mermaid sources are unvalidated
+     export adjuncts. The `mermaid-validator` skill + `setup-instructions/mmdc.md` are retained for
+     any future methodology but currently have no analyse-inputs caller.)
   (user-goal-analysis is intentionally dependency-free: HTML template, NO mermaid-validator,
      NO mmdc — its goal-refinement hierarchy renders as a CSS-only nested AND/OR tree)
   (business-context-definition is likewise dependency-free: HTML template, NO mermaid-validator,
@@ -175,8 +189,8 @@ deltas:
 - 11 MVP input analysers; `glossary` is `mvp`. (The inputs-side `five-whys` stub was retired — the requirement-side `five-whys` is a separate MVP method in graph 4.)
 - input-handler create/refresh writes are the only writes outside `analyse-inputs/<METHOD>/`.
 - map-skills are registry metadata → no edges (mirrors graph 4).
-- **mermaid-validator behaviour:** on `not-installed`, thematic-analysis / opportunity-solution-trees / ooux / swim-lane halt; affinity-mapping surfaces `RF-07` with a 3-way `{install-and-retry, skip-with-warning, abort}` choice (degraded path). swim-lane / ooux / affinity-mapping implement drop-on-3-retry-failure (artefact still writes; block replaced with `[GAP-MERMAID-INVALID]`).
-- affinity-mapping is the **only `mindmap`-emitting** analyser (+ conditional `flowchart TD` for tensions) → the only edge to `setup-instructions/mmdc.md`.
+- **Diagram rendering:** every diagram-emitting analyse-inputs analyser — `thematic-analysis`, `opportunity-solution-trees`, `affinity-mapping`, `swim-lane-process-mapping` — pre-renders its diagram as inline `<svg>`. No `mmdc`, no `mermaid-validator`, no `RF-07`. `affinity-mapping` + `swim-lane-process-mapping` additionally run `svg-overlap-check` post-write (overlaps → diagnostics layout warnings, never a halt).
+- The `mindmap` / `flowchart TD` / `graph TD` Mermaid sources are export / re-ingestion adjuncts (collapsed `<details class="mermaid-block">`), embedded as unvalidated text — not the visible diagram (which is the inline SVG).
 - affinity-mapping is the **only sub-agent-invoking** analyser: step-6 Round-3 `general-purpose` sub-agent receives the Round-1 notes JSON only (no Pass-1 labels) — documented "no sub-agents" exception (purely computational anti-anchoring KJ discipline; not drawn — one-shot tool call).
 - Methodology rationale (KJ/ORCA/Rummler-Brache provenance, sibling comparisons, re-ingestibility) lives in each analyser + `*-reference.md`, not here.
 

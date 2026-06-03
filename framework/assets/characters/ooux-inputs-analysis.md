@@ -75,6 +75,6 @@ The agent's only inputs are: the manifest, the enumerated source files (text via
 
 ## Failure posture
 
-The analyser does **not** halt the orchestrator on a quality-check failure — it surfaces the violation and lets the consultant decide whether to revise the inputs, override the check, or restart. The hard halt paths are reserved for `verify-artifact-write` failures (RF-04), Mermaid validator unavailability (mmdc-not-installed), and cases where `requirements/source-manifest.json` is absent or enumerates zero consumable rows.
+The analyser does **not** halt the orchestrator on a quality-check failure — it surfaces the violation and lets the consultant decide whether to revise the inputs, override the check, or restart. The hard halt paths are reserved for `verify-artifact-write` failures (RF-04) and cases where `requirements/source-manifest.json` is absent or enumerates zero consumable rows.
 
 The consultant sees every flagged item — every failed gate, every synonym merge, every inferred object, every `irrelevant-to-domain` source row — in the artefact's diagnostics block; they don't see a stack trace.

@@ -18,7 +18,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Build target | Per-manifest output mode: prototype (fixtures) vs application (backend). | `prototype-invariants.md` PI-06 |
 | Character | Persona file giving an agent its stance/voice; not a product persona. | `assets/characters/` |
 | Checkpoint | Preserved partial state (often a git commit) before a destructive step. | — |
-| Citation (`[SRC: …]`) | Inline marker grounding a claim in an input source; stripped from clean finals. | `CLAUDE.md §3` |
+| Citation (`[SRC: …]`) | Inline marker grounding a claim in an input source; retained in the final `requirements.md` as downstream provenance (only resolution markers are stripped). | `CLAUDE.md §3` |
 | Claim | One asserted fact/decision recorded with its source in an NDJSON sidecar. | — |
 | Command | Slash-command shim under `.claude/commands/` that names its orchestrator. | `CLAUDE.md §1` |
 | Consultant | The human operating the system; answers prompts in-thread, accepts artefacts. | `CLAUDE.md §1` |
@@ -39,6 +39,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Merger | Third triplet agent: strips markers, validates, writes the clean final artefact. | — |
 | Methodology | A named analysis/critique method (OOUX, ADVERSARIAL, GLOSSARY …); "lens" = its alias. | registries |
 | Orchestrator | Pipeline control-flow owner; sequences agents, owns state/gates; no content edits. | `CLAUDE.md §2` |
+| Orphan (traceability) | A final-doc fact/requirement that traces to no provenance class; the headline defect of the REQUIREMENTS-TRACEABILITY review. | `reviews/requirements-traceability-reference.md` |
 | Physical screen | A concrete screen produced by realizing a logical surface (`S-NN`). | `realization-strategies.md` |
 | Position | Signed `-2..+2` stance on one trade-off dimension; labelled, never shown as notation. | `position-vocabulary.md` |
 | Preflight gate | Orchestrator check before any agent runs (prereqs, bloat, prior progress). | orchestrators |

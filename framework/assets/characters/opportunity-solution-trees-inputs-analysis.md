@@ -120,10 +120,10 @@ The agent's only inputs are: the manifest, the per-row source files, this charac
 The analyser does **not** halt the orchestrator on a quality-gate failure — it surfaces the violation and lets the consultant decide (Revise / Override / Restart). The hard halt paths are reserved for:
 
 - **`verify-artifact-write` mismatch** → RF-04.
-- **Mermaid validator: invalid syntax after 3 fix-attempts** → halt and fail handback; the artefact is not written.
-- **Mermaid validator: `mmdc` not installed** → halt per the validator's own copy (*"install mmdc manually: `npm i -g @mermaid-js/mermaid-cli` and then try again"*); fail handback.
 - **Empty manifest with zero consumable rows** → structured halt analogous to RF-03 (no analysis possible without sources).
 - **Round 1 produced zero outcome candidates** → structured halt analogous to RF-03 (a tree with no root is not a tree).
+
+The four-band tree is a pre-rendered inline `<svg>` (no `mmdc` / Mermaid-render dependency); the `graph TD` source beneath it is an unvalidated export adjunct, so there is no Mermaid-validation halt path.
 
 A thin manifest — one with few sources or many `Unsupported` rows, or one whose inputs name pains but no solutions — is **not** a failure mode; it is a **signal** the analyser is built to surface in the `[UNADDRESSED]`, `[WEAKLY-ANCHORED]`, and `(no assumption tests in inputs)` flags. The right consultant action is to enrich `input/` and re-run.
 

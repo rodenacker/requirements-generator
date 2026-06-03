@@ -1,8 +1,8 @@
 # Mermaid CLI (`mmdc`) — Setup Instructions
 
-Install copy referenced by `RF-07 mermaid_render_dependency_missing` in `framework/shared/refusal-registry.md`. Surfaced to the consultant by `framework/agents/analyses-inputs/affinity-mapping-analyser.md` (Step 10, Gate 9) when `mmdc` is not on PATH and the analyser cannot validate its Mermaid `mindmap` and conditional `flowchart TD` source blocks via `framework/skills/mermaid-validator.md`.
+Install copy referenced by `RF-07 mermaid_render_dependency_missing` in `framework/shared/refusal-registry.md`. **`RF-07` has no active surfacer, and no `/analyse-inputs` analyser depends on `mmdc`, as of the inline-SVG conversion.** Every diagram-emitting `/analyse-inputs` analyser — `thematic-analysis`, `opportunity-solution-trees`, `affinity-mapping`, `swim-lane-process-mapping` — now pre-renders its diagram as inline `<svg>` and embeds the Mermaid source as an unvalidated export adjunct. This doc + the `mermaid-validator.md` skill are retained as the canonical install reference for any **future** methodology that chooses to validate a Mermaid source.
 
-Other Mermaid-emitting analysers across `/analyse-inputs` (`thematic-analysis`, `opportunity-solution-trees`, `ooux`, `swim-lane-process-mapping`) and `/analyse-requirement` (`sequence-diagram`, `state-diagram`, `activity-diagram`, `data-model`) also depend on this binary indirectly through the same `mermaid-validator.md` skill, which has its own "install mmdc manually" message. RF-07 is the canonical refusal surface — same install instructions apply.
+(Other pipelines outside `/analyse-inputs` still use the validator — e.g. the `/requirements` drafter for the `requirements.md` §2 domain-model Mermaid diagram. Same install instructions apply there. The inputs-side `ooux` no longer emits a diagram at all.)
 
 ## Install
 
@@ -28,7 +28,7 @@ After installation:
 
    (PowerShell syntax; on POSIX shells use `/tmp/` paths and `\n` line breaks.) Expected output: `$env:TEMP\mmdc-smoke.svg` exists and contains valid SVG (open in a browser to confirm).
 
-3. Re-invoke `/analyse-inputs` and select the methodology that fired `RF-07`. The agent's Step 10 Gate 9 will re-run `framework/skills/mermaid-validator.md`, which now finds `mmdc` on PATH and proceeds.
+3. No current `/analyse-inputs` methodology validates Mermaid — they all pre-render inline SVG — so this step applies only to a future Mermaid-validating methodology or an `/analyse-requirement` analyser that uses `mermaid-validator.md`: its invocation now finds `mmdc` on PATH and proceeds.
 
 ## Troubleshooting
 
@@ -44,7 +44,7 @@ After installation:
 npm uninstall -g @mermaid-js/mermaid-cli
 ```
 
-After uninstall, re-running `/analyse-inputs` with the affinity-mapping methodology (or any other Mermaid-emitting analyser) will fire `RF-07` again.
+After uninstall, no `/analyse-inputs` analyser is affected — they all pre-render inline SVG with no `mmdc` dependency. Only a future methodology (or an `/analyse-requirement` analyser) that validates a Mermaid source via `mermaid-validator.md` would halt on the validator's `not-installed` path until `mmdc` is reinstalled.
 
 ## Alternative — mermaid.live (no install required)
 
