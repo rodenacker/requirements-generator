@@ -64,12 +64,6 @@ methodologies:
     map_skill: framework/skills/map-user-journeys-to-ui.md
     analyser_agent: framework/agents/analyses/user-journeys-analyser.md
     character: framework/assets/characters/user-journeys-analysis.md
-  # Future — stub-only; no analyser agent on disk. Promote by flipping status, populating
-  # the remaining fields, and authoring the analyser + reference + character + template.
-  - { name: user-stories, status: future }
-  - { name: quality-signals-analysis, status: future }
-  - { name: personas, status: future }
-  - { name: thematic-analysis, status: future }
   - name: opportunity-solution-trees
     status: mvp
     group: Users, goals & value
@@ -90,7 +84,6 @@ methodologies:
     map_skill: framework/skills/map-mvp-slicing-to-ui.md
     analyser_agent: framework/agents/analyses/mvp-slicing-analyser.md
     character: framework/assets/characters/mvp-slicing-analysis.md
-  - { name: storytelling-narrative-synthesis, status: future }
   - name: five-whys
     status: mvp
     group: Users, goals & value
@@ -111,11 +104,6 @@ methodologies:
     map_skill: framework/skills/map-glossary-to-ui.md
     analyser_agent: framework/agents/analyses/glossary-analyser.md
     character: framework/assets/characters/glossary-analysis.md
-  - { name: double-diamond, status: future }
-  - { name: card-sorting, status: future }
-  - { name: highest-value-paths, status: future }
-  - { name: storyboarding, status: future }
-  - { name: scenarios, status: future }
   - name: activity-diagram
     status: mvp
     group: Processes & flows
@@ -146,7 +134,6 @@ methodologies:
     map_skill: framework/skills/map-crud-coverage-to-ui.md
     analyser_agent: framework/agents/analyses/crud-coverage-analyser.md
     character: framework/assets/characters/crud-coverage-analysis.md
-  - { name: decision-matrix, status: future }
   - name: task-flows
     status: mvp
     group: Processes & flows
@@ -185,8 +172,8 @@ methodologies:
 
 **Adding a new methodology:**
 
-1. Append a row to the frontmatter (or flip an existing `future` row to `mvp`).
-2. Populate the fields: `name`, `status`, `description`, `output_path`, `reference_asset`, `template_asset` (may be `null`), `map_skill`, `analyser_agent`, `character`, and the optional `group` (assign a lens group; omitting it drops the row into a trailing `Other` group). Place the row at its best-practice position within its group so the selector's `★ suggested next` flag stays sensible.
+1. Pick a candidate from `plans/` (see `plans/README.md` for the roadmap) and follow its build checklist — its "Turning this into a plan" section mirrors these steps — or author a brand-new methodology not yet in `plans/`.
+2. Append the row to the frontmatter with `status: mvp` and populate the fields: `name`, `status`, `description`, `output_path`, `reference_asset`, `template_asset` (may be `null`), `map_skill`, `analyser_agent`, `character`, and the optional `group` (assign a lens group; omitting it drops the row into a trailing `Other` group). Place the row at its best-practice position within its group so the selector's `★ suggested next` flag stays sensible.
 3. Author the analyser agent, the reference asset, the character file, and (if needed) the template asset.
 4. Implement sidecar emission in the analyser per `framework/assets/analyses/sidecar-schema.md` — write the structured JSON to `<dirname(output_path)>/<name>.sidecar.json`, populating only the `architect_projection[<role>]` entries for roles the method actually exposes per the `select-supporting-analyses.md` static mapping. Verify the write via `framework/skills/verify-artifact-write.md`. Skipping this step is permitted only as a temporary migration measure — the analyser will trigger the `RF-09` legacy-fallback path on selection in `/wireframe`.
 5. Append a row to the static `architect_roles` mapping in `framework/skills/select-supporting-analyses.md > Static method → architect_roles mapping`.
@@ -195,7 +182,7 @@ methodologies:
 **Field semantics:**
 
 - `name` — kebab-case slug. Used as the subdirectory name under `analyse-requirements/` and as the path component in the analyser agent file.
-- `status` — `mvp` (selectable now) or `future` (not yet built).
+- `status` — currently always `mvp`. The selector filters to `status == mvp` defensively (discarding any row whose status is absent or non-`mvp`); planned, not-yet-built methodologies live in `plans/`, not as registry rows.
 - `group` — optional lens-group label (e.g. `Objects, data & lifecycle`, `Processes & flows`). The selector clusters MVP rows by this value (groups in first-appearance order, registry order preserved within each group) and renders it as a header. Rows with no `group` fall into a trailing `Other` group. Consultant-facing — keep it short and human-readable.
 - `description` — short consultant-facing blurb surfaced in the selector's printed list, written as three succinct sentences (why/when to choose it → what it produces → how to use the output).
 - `output_path` — relative path of the artefact the analyser writes. Drives the prior-artefact gate in the orchestrator.

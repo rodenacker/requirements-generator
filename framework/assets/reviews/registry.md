@@ -54,21 +54,6 @@ methodologies:
     map_skill: null
     reviewer_agent: framework/agents/reviews/user-stories-reviewer.md
     character: framework/assets/characters/user-stories-review.md
-  # Future — stub-only; no reviewer agent on disk. Promote by flipping status, populating
-  # the remaining fields, and authoring the reviewer + reference + character + template.
-  - { name: stakeholder-review, status: future }
-  - { name: compliance-review, status: future }
-  - { name: mvp-scope-review, status: future }
-  - { name: feasibility-review, status: future }
-  - { name: accessibility-review, status: future }
-  - { name: security-review, status: future }
-  - { name: testability-review, status: future }
-  - { name: data-model-review, status: future }
-  - { name: rbac-review, status: future }
-  - { name: premortem, status: future }
-  - { name: six-thinking-hats, status: future }
-  - { name: wiegers-inspection, status: future }
-  - { name: invest-story-review, status: future }
 ---
 
 # reviews/registry.md
@@ -85,15 +70,15 @@ This registry is structurally identical to `framework/assets/analyses/registry.m
 
 **Adding a new methodology:**
 
-1. Append a row to the frontmatter (or flip an existing `future` row to `mvp`).
-2. Populate the fields: `name`, `status`, `description`, `output_path`, `reference_asset`, `template_asset` (may be `null`), `map_skill` (typically `null` for reviews — reviews don't feed UI inventory), `reviewer_agent`, `character`, and the optional `group` (assign a lens group; omitting it drops the row into a trailing `Other` group). Place the row at its best-practice position within its group so the selector's `★ suggested next` flag stays sensible.
+1. Pick a candidate from `plans/` (see `plans/README.md` for the roadmap) and follow its build checklist — its "Turning this into a plan" section mirrors these steps — or author a brand-new methodology not yet in `plans/`.
+2. Append the row to the frontmatter with `status: mvp` and populate the fields: `name`, `status`, `description`, `output_path`, `reference_asset`, `template_asset` (may be `null`), `map_skill` (typically `null` for reviews — reviews don't feed UI inventory), `reviewer_agent`, `character`, and the optional `group` (assign a lens group; omitting it drops the row into a trailing `Other` group). Place the row at its best-practice position within its group so the selector's `★ suggested next` flag stays sensible.
 3. Author the reviewer agent, the reference asset, the character file, and (if needed) the template asset.
 4. No orchestrator changes required — the selector skill picks the new row up automatically.
 
 **Field semantics:**
 
 - `name` — kebab-case slug. Used as the basis for the subdirectory name under `review-requirements/` (uppercased, e.g. `adversarial` → `review-requirements/ADVERSARIAL/`) and as the path component in the reviewer agent file.
-- `status` — `mvp` (selectable now) or `future` (not yet built).
+- `status` — currently always `mvp`. The selector filters to `status == mvp` defensively (discarding any row whose status is absent or non-`mvp`); planned, not-yet-built methodologies live in `plans/`, not as registry rows.
 - `group` — optional lens-group label (e.g. `Document integrity`, `UX gaps`). The selector clusters MVP rows by this value (groups in first-appearance order, registry order preserved within each group) and renders it as a header. Rows with no `group` fall into a trailing `Other` group. Consultant-facing — keep it short and human-readable.
 - `description` — short consultant-facing blurb surfaced in the selector's printed list, written as three succinct sentences (why/when to choose it → what it produces → how to use the output).
 - `output_path` — relative path of the artefact the reviewer writes. Drives the prior-artefact gate in the orchestrator.

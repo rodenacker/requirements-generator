@@ -171,7 +171,7 @@ deltas:
 ```
 
 **Notes (unique):**
-- 11 MVP analysers; `five-whys` is `status: future` (file absent) → omitted; `glossary` is now `mvp`.
+- 11 MVP input analysers; `glossary` is `mvp`. (The inputs-side `five-whys` stub was retired — the requirement-side `five-whys` is a separate MVP method in graph 4.)
 - input-handler create/refresh writes are the only writes outside `analyse-inputs/<METHOD>/`.
 - map-skills are registry metadata → no edges (mirrors graph 4).
 - **mermaid-validator behaviour:** on `not-installed`, thematic-analysis / opportunity-solution-trees / ooux / swim-lane halt; affinity-mapping surfaces `RF-07` with a 3-way `{install-and-retry, skip-with-warning, abort}` choice (degraded path). swim-lane / ooux / affinity-mapping implement drop-on-3-retry-failure (artefact still writes; block replaced with `[GAP-MERMAID-INVALID]`).
@@ -207,7 +207,7 @@ deltas:
 - `analysis-selector.md` shared with graphs 4 + 5; here it gets `list_label:"reviews"` + `verb_label:"review"`.
 - adversarial fans out 6 parallel **tool-less** workers (parent inlines a frozen evidence bundle + quote indices, so workers need no disk access). adversarial + ambiguity are full-overwrite per run (no additive merge), unlike graph-5 analysers.
 - `gap-analysis → topics-requirements.md` is the **only graph-6 edge** touching that file (otherwise read only by drafter + completeness-gap-pass in graph 1); the `Dimension` column is read verbatim. gap-analysis emits a drafter-ingestible `Candidate Requirement` column.
-- completeness is now a self-contained HTML report whose 10×N coverage matrix is an HTML table (no heatmap); gap-analysis adds an inline-SVG coverage heatmap. All four reviewers carry `map_skill: null`. `reviews-inputs/registry.md` has no remaining `future` rows.
+- completeness is now a self-contained HTML report whose 10×N coverage matrix is an HTML table (no heatmap); gap-analysis adds an inline-SVG coverage heatmap. All four reviewers carry `map_skill: null`. `reviews-inputs/registry.md` has no `future` rows (the stub roadmap was retired — planned methods live in `plans/`).
 
 ---
 

@@ -60,13 +60,13 @@ The synthesis is this reference's own contribution: integrate INVEST's quality a
 
 ### Why not adopt INVEST directly?
 
-The registry has a `future` row `invest-story-review` that would adopt INVEST verbatim. The consultant chose to add this methodology alongside (not in place of) that future row because:
+A dedicated strict-INVEST review is kept as a candidate at `plans/BA/invest-story-review.md` (it would adopt INVEST verbatim). The consultant chose to add this methodology alongside (not in place of) that candidate because:
 
 - INVEST's *Independent* and *Negotiable* are backlog-management properties, not single-story-quality properties. Auditing them story-by-story produces false positives.
 - This methodology adds *Coherent* (internal consistency of role/intent/benefit and consistency with §3 personas and §4.1 goals) — a property INVEST does not name explicitly but that prototype reviews need.
 - This methodology folds *Valuable* into two finer criteria (*Meaningful* — the story expresses real user value, and *Outcome-aligned* — the `so that` clause states a measurable outcome) because, in practice, a story can be meaningful with a vague benefit clause or shallow with a sharp one, and the two fail modes need different fixes.
 
-If the consultant wants strict INVEST later, the `invest-story-review` row is still available for promotion as a distinct fourth methodology.
+If the consultant wants strict INVEST later, the `invest-story-review` candidate (`plans/BA/invest-story-review.md`) is ready to build as a distinct fourth methodology.
 
 ---
 

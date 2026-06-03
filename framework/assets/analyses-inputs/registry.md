@@ -2,9 +2,9 @@
 role: asset
 kind: registry
 methodologies:
-  # Planned methodologies for /analyse-inputs. Each methodology lands in its own
-  # follow-up development, promoting `status: future` to `status: mvp` and filling in
-  # the remaining seven fields. MVP methodologies so far:
+  # Methodologies for /analyse-inputs. Each methodology lands in its own follow-up
+  # development that authors its agent/reference/character/template and appends the row
+  # with `status: mvp`. See `plans/` for the candidate roadmap. MVP methodologies so far:
   #   - `thematic-analysis` (Braun & Clarke 2006, six-phase reflexive thematic
   #     analysis with a deductive coverage check against a fixed 10-area concern
   #     frame; self-contained HTML with a pre-rendered inline-SVG theme-map in
@@ -263,7 +263,6 @@ methodologies:
     map_skill: null
     analyser_agent: framework/agents/analyses-inputs/glossary-analyser.md
     character: framework/assets/characters/glossary-inputs-analysis.md
-  - { name: five-whys, status: future }
   - name: task-analysis
     status: mvp
     group: Process & tasks
@@ -380,7 +379,7 @@ methodologies:
 
 **Adding a new methodology (per-PR steps):**
 
-1. Pick a planned row (e.g. `{ name: glossary, status: future }`) or append a new one.
+1. Pick a candidate from `plans/` (see `plans/README.md` for the roadmap) and follow its build checklist, or author a brand-new methodology. The row is appended with `status: mvp` at step 7.
 2. Author the analyser agent at `framework/agents/analyses-inputs/<method>-analyser.md`. Each analyser:
     - Reads `requirements/source-manifest.json` once at Step 2 to enumerate sources.
     - For each manifest row where `tier != "Unsupported"`: Read the file at `original_path` (for `Native-text` and `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`). For `Native-multimodal`, the Read tool surfaces image bytes as multimodal input automatically.
@@ -393,14 +392,14 @@ methodologies:
 4. Author the character file at `framework/assets/characters/<method>-inputs-analysis.md` (Unicorn stance during the analyser run).
 5. (Optional) Author the template asset at `framework/assets/analyses-inputs/template-<method>.html`. Set `template_asset: null` only for methodologies that emit pure Markdown without a scaffold. (As of the HTML migration, every MVP methodology populates an `.html` scaffold — no MVP row currently ships `template_asset: null`.)
 6. (Optional) Author the map-skill at `framework/skills/map-<method>-from-inputs-to-ui.md` — or reuse `framework/skills/map-<method>-to-ui.md` if the mapping is source-agnostic.
-7. Promote the registry row: flip `status: future` to `status: mvp` and populate all remaining fields (`description`, `output_path`, `reference_asset`, `template_asset`, `map_skill`, `analyser_agent`, `character`, and the optional `group` — assign a lens group; omitting it drops the row into a trailing `Other` group). `output_path` lives under `analyse-inputs/<METHOD>/` (uppercase methodology name) — e.g. `analyse-inputs/GLOSSARY/glossary.html`.
+7. Append the registry row with `status: mvp` and populate all remaining fields (`description`, `output_path`, `reference_asset`, `template_asset`, `map_skill`, `analyser_agent`, `character`, and the optional `group` — assign a lens group; omitting it drops the row into a trailing `Other` group). `output_path` lives under `analyse-inputs/<METHOD>/` (uppercase methodology name) — e.g. `analyse-inputs/GLOSSARY/glossary.html`.
 8. Add the analyser node to graph 5 in `framework/dependency-graphs.md`.
 9. No orchestrator changes required — the selector skill picks the new MVP row up automatically.
 
 **Field semantics:**
 
 - `name` — kebab-case slug. Used as the subdirectory name under `analyse-inputs/` (uppercased to `analyse-inputs/<METHOD>/`) and as the path component in the analyser agent file. Methodology slugs are shared across registries (a row named `glossary` can exist in both `analyses/registry.md` and `analyses-inputs/registry.md`); the artefacts do not clobber because the output paths differ (`analyse-requirements/GLOSSARY/...` vs `analyse-inputs/GLOSSARY/...`).
-- `status` — `mvp` (selectable now) or `future` (not yet built; this is the default state for every row on framework first-ship).
+- `status` — currently always `mvp`. The selector filters to `status == mvp` defensively; planned, not-yet-built methodologies live in `plans/`, not as registry rows.
 - `group` — optional lens-group label (e.g. `Users, goals & value`, `Process & tasks`). The selector clusters MVP rows by this value (groups in first-appearance order, registry order preserved within each group) and renders it as a header. Rows with no `group` fall into a trailing `Other` group. Consultant-facing — keep it short and human-readable.
 - `description` — short consultant-facing blurb surfaced in the selector's printed list, written as three succinct sentences (why/when to choose it → what it produces → how to use the output). Required only when `status: mvp`.
 - `output_path` — relative path of the artefact the analyser writes. Drives the prior-artefact gate in the orchestrator. **Must** live under `analyse-inputs/` for write-isolation. Required only when `status: mvp`.
@@ -410,4 +409,4 @@ methodologies:
 - `analyser_agent` — the foreground agent invoked by the orchestrator. Required only when `status: mvp`.
 - `character` — stance the Unicorn adopts while running the analyser. Required only when `status: mvp`.
 
-**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. This was the expected steady state on framework first-ship; with `task-analysis`, `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, `jtbd`, `ooux`, `swim-lane-process-mapping`, `affinity-mapping`, `user-goal-analysis`, `business-context-definition`, and `glossary` now at `status: mvp`, the selector presents eleven options to the consultant. If every MVP row is removed in the future, the empty-registry behaviour resumes — it is not an error.
+**Empty-MVP behaviour:** when the registry has no `status: mvp` rows the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input analyses available yet" message and exits cleanly. With `task-analysis`, `thematic-analysis`, `opportunity-solution-trees`, `journey-mapping`, `jtbd`, `ooux`, `swim-lane-process-mapping`, `affinity-mapping`, `user-goal-analysis`, `business-context-definition`, and `glossary` at `status: mvp`, the selector presents eleven options to the consultant. This is a defensive guard; were every MVP row removed it would resume — it is not an error.

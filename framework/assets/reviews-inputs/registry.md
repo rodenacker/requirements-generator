@@ -2,19 +2,17 @@
 role: asset
 kind: registry
 methodologies:
-  # Methodologies for /review-inputs. Each methodology ships as a separate development,
-  # promoting `status: future` to `status: mvp` and filling in the remaining eight fields.
-  # The `adversarial` row is the first MVP — a BMAD-style six-dimension critique of
-  # the raw consultant input set operating under the *corpus IS the voice* principle
-  # (the corpus is the stakeholder voice, not evidence-of-elicitation; recommendations
-  # propose corpus-handling actions, never new elicitation). Paralleling the eight-
-  # dimension /review-requirement adversarial reviewer with dimensions tuned for input-
-  # set defects (stakeholder & role coverage — voice authenticity a narrow secondary lens,
-  # workflow coverage, ambiguity, cross-source conflict, quantitative signal, scope
-  # signal). Additional `status: future` rows below become
-  # operational only when their reviewer / reference / character / template files are
-  # authored and the row's status is flipped to `mvp`. If every MVP row were removed,
-  # the selector returns `empty-registry` and the orchestrator surfaces a friendly
+  # Methodologies for /review-inputs. Each methodology ships as a separate development
+  # that authors its reviewer/reference/character/template and appends the row with
+  # `status: mvp`; see `plans/` for the candidate roadmap. The `adversarial` row was the
+  # first MVP — a BMAD-style six-dimension critique of the raw consultant input set
+  # operating under the *corpus IS the voice* principle (the corpus is the stakeholder
+  # voice, not evidence-of-elicitation; recommendations propose corpus-handling actions,
+  # never new elicitation). Paralleling the eight-dimension /review-requirement adversarial
+  # reviewer with dimensions tuned for input-set defects (stakeholder & role coverage —
+  # voice authenticity a narrow secondary lens, workflow coverage, ambiguity, cross-source
+  # conflict, quantitative signal, scope signal). If every MVP row were removed, the
+  # selector returns `empty-registry` and the orchestrator surfaces a friendly
   # "no input reviews available yet" message and exits cleanly.
   #
   # Slug-collision note: methodology slugs are shared across registries (a row named
@@ -84,7 +82,7 @@ Folding input-reviews into the analyses-inputs registry would muddy the consulta
 
 **Adding a new methodology (per-PR steps):**
 
-1. Pick a planned row (e.g. `{ name: completeness-review, status: future }`) or append a new one.
+1. Pick a candidate from `plans/` (see `plans/README.md` for the roadmap) and follow its build checklist, or author a brand-new methodology. The row is appended with `status: mvp` at step 6.
 2. Author the reviewer agent at `framework/agents/reviews-inputs/<method>-reviewer.md`. Each reviewer:
     - Reads `requirements/source-manifest.json` once at its source-enumeration step.
     - For each manifest row where `tier != "Unsupported"`: Read the file at `original_path` (for `Native-text` and `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`). For `Native-multimodal`, the Read tool surfaces image bytes as multimodal input automatically.
@@ -96,14 +94,14 @@ Folding input-reviews into the analyses-inputs registry would muddy the consulta
 3. Author the reference asset at `framework/assets/reviews-inputs/<method>-reference.md` (methodology rules and patterns).
 4. Author the character file at `framework/assets/characters/<method>-inputs-review.md` (Unicorn stance during the reviewer run).
 5. (Optional) Author the template asset at `framework/assets/reviews-inputs/template-<method>.{html,md}`. Set `template_asset: null` for methodologies that emit pure Markdown without a scaffold.
-6. Promote the registry row: flip `status: future` to `status: mvp` and populate all remaining fields (`description`, `output_path`, `reference_asset`, `template_asset`, `map_skill`, `reviewer_agent`, `character`, and the optional `group` — assign a lens group; omitting it drops the row into a trailing `Other` group). `output_path` lives under `review-inputs/<METHOD>/` (uppercase methodology name) — e.g. `review-inputs/COMPLETENESS-REVIEW/completeness-review.html`.
+6. Append the registry row with `status: mvp` and populate all remaining fields (`description`, `output_path`, `reference_asset`, `template_asset`, `map_skill`, `reviewer_agent`, `character`, and the optional `group` — assign a lens group; omitting it drops the row into a trailing `Other` group). `output_path` lives under `review-inputs/<METHOD>/` (uppercase methodology name) — e.g. `review-inputs/COMPLETENESS-REVIEW/completeness-review.html`.
 7. Add the reviewer node to graph 6 in `framework/dependency-graphs.md`.
 8. No orchestrator changes required — the selector skill picks the new MVP row up automatically.
 
 **Field semantics:**
 
 - `name` — kebab-case slug. Used as the subdirectory name under `review-inputs/` (uppercased to `review-inputs/<METHOD>/`) and as the path component in the reviewer agent file. Methodology slugs are shared across registries; the artefacts do not clobber because the output paths differ.
-- `status` — `mvp` (selectable now) or `future` (not yet built; reviewer / reference / character / template files do not exist on disk).
+- `status` — currently always `mvp`. The selector filters to `status == mvp` defensively; planned, not-yet-built methodologies live in `plans/`, not as registry rows.
 - `group` — optional lens-group label (e.g. `Completeness & gaps`, `Clarity`). The selector clusters MVP rows by this value (groups in first-appearance order, registry order preserved within each group) and renders it as a header. Rows with no `group` fall into a trailing `Other` group. Consultant-facing — keep it short and human-readable.
 - `description` — short consultant-facing blurb surfaced in the selector's printed list, written as three succinct sentences (why/when to choose it → what it produces → how to use the output). Required only when `status: mvp`.
 - `output_path` — relative path of the artefact the reviewer writes. Drives the prior-artefact gate in the orchestrator. **Must** live under `review-inputs/` for write-isolation. Required only when `status: mvp`.
@@ -113,7 +111,7 @@ Folding input-reviews into the analyses-inputs registry would muddy the consulta
 - `reviewer_agent` — the foreground agent invoked by the orchestrator. Required only when `status: mvp`.
 - `character` — stance the Unicorn adopts while running the reviewer. Required only when `status: mvp`.
 
-**Empty-MVP behaviour:** when every row has `status: future` the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input reviews available yet" message and exits cleanly. With four rows at `status: mvp` (`adversarial`, `completeness-review`, `ambiguity-review`, `gap-analysis`), the selector presents four options to the consultant. If every MVP row is later removed, the empty-registry behaviour resumes — it is not an error.
+**Empty-MVP behaviour:** when the registry has no `status: mvp` rows the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input reviews available yet" message and exits cleanly. With four rows at `status: mvp` (`adversarial`, `completeness-review`, `ambiguity-review`, `gap-analysis`), the selector presents four options to the consultant. This is a defensive guard; were every MVP row removed it would resume — it is not an error.
 
 **Sibling relationship: `completeness-review` vs `gap-analysis`.** Both lenses produce "what's missing" findings about the raw inputs, but they diverge on three load-bearing axes:
 
