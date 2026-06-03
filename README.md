@@ -140,7 +140,7 @@ Find what's missing or wrong in the raw inputs *before* you draft — a punch-li
 
 | If you want to see…                                                                                                                                                                  | Pick                  |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------- |
-| A **six-dimension critique** of the raw input set — voice authenticity, ambiguity, cross-source conflict, silence-with-downstream-impact, quantitative and scope signals             | `adversarial`         |
+| A **six-dimension critique** of the raw input set — stakeholder & role coverage, ambiguity, cross-source conflict, silence-with-downstream-impact, quantitative and scope signals     | `adversarial`         |
 | An **authority-grounded completeness sweep** (IEEE 29148 / Volere / BABOK / Wiegers / ISO 25010) across ten dimensions, with stakeholder elicitation questions per finding           | `completeness-review` |
 | The **lexical, syntactic, referential, vague, subjective, weak-verb, and optionality ambiguities** (Berry/Kamsties + Femmer) with ready-to-paste elicitation questions per finding   | `ambiguity-review`    |
 | A **template-bijection gap delta** measured against the drafter's own template, with a shall-form Candidate Requirement per Must/Should gap ready for `/requirements` re-ingestion   | `gap-analysis`        |

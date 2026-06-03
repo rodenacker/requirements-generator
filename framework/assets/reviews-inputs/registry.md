@@ -9,7 +9,7 @@ methodologies:
   # (the corpus is the stakeholder voice, not evidence-of-elicitation; recommendations
   # propose corpus-handling actions, never new elicitation). Paralleling the eight-
   # dimension /review-requirement adversarial reviewer with dimensions tuned for input-
-  # set defects (stakeholder coverage incl. first-hand vs second-hand voice authenticity,
+  # set defects (stakeholder & role coverage — voice authenticity a narrow secondary lens,
   # workflow coverage, ambiguity, cross-source conflict, quantitative signal, scope
   # signal). Additional `status: future` rows below become
   # operational only when their reviewer / reference / character / template files are
@@ -24,7 +24,7 @@ methodologies:
   - name: adversarial
     status: mvp
     group: Corpus integrity
-    description: Choose this when you want the raw input corpus itself stress-tested — voice authenticity, ambiguity, cross-source contradiction, and consequential silence — before /requirements drafts from it. It produces an HTML adversarial review flagging each defect across six dimensions, treating the corpus as the stakeholder voice, so it recommends how to handle the existing material rather than new elicitation. Apply each flagged defect's corpus-handling recommendation to your input set so the requirements draft starts from material whose weaknesses are already accounted for.
+    description: Choose this when you want the raw input corpus itself stress-tested — stakeholder & role coverage, ambiguity, cross-source contradiction, and consequential silence — before /requirements drafts from it. It produces an HTML adversarial review flagging each defect across six dimensions, treating the corpus as the stakeholder voice, so it recommends how to handle the existing material rather than new elicitation. Apply each flagged defect's corpus-handling recommendation to your input set so the requirements draft starts from material whose weaknesses are already accounted for.
     output_path: review-inputs/ADVERSARIAL/adversarial-review.html
     reference_asset: framework/assets/reviews-inputs/adversarial-reference.md
     template_asset: framework/assets/reviews-inputs/template-adversarial.html

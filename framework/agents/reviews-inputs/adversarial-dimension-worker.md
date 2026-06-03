@@ -75,7 +75,7 @@ The parent treats any `error_kind: bundle_mismatch` from any worker as a run-wid
 
 Apply Dimension `N`'s checks per the supplied dimension section. Iterate the bundle:
 
-- For Dimensions 1 and 4: cross-source analysis is meaningful — compare attributes (named roles, attribution metadata, first-hand vs second-hand voice provenance) across multiple bundle entries.
+- For Dimensions 1 and 4: cross-source analysis is meaningful — compare attributes (named roles, attribution metadata) across multiple bundle entries. For Dimension 1 the load-bearing check is **role coverage** (does each named role have *any* supporting material, first- or second-hand); first-hand vs second-hand provenance is a **narrow secondary lens** that fires only on the four-part load-bearing case (see the inlined Dimension 1 section) — never a finding merely because a role's material is second-hand.
 - For Dimensions 2, 3, 5, 6: per-source analysis is the dominant mode — scan each bundle entry's `text_or_transcription` for the dimension's signals.
 
 Emit findings using the schema (omitting the `ID` field). Every finding must have:
@@ -92,7 +92,7 @@ Emit findings using the schema (omitting the `ID` field). Every finding must hav
     1. **Reconcile in-corpus** — name which contradicting source the consultant treats as canonical and which as superseded (Dim 4).
     2. **Label / annotate** — in-corpus annotation: mark mockup as aspirational, attribute anonymous brief, add glossary entry.
     3. **Treat as silence** — instruct downstream to apply a `GR-NN` default or mark `[OUT-OF-SCOPE: domain-default]` / `[AI-SUGGESTED]` (Dim 1 / 2 / 5 / 6 silences).
-    4. **Treat as second-hand** — for a stakeholder voice present only via consultant-authored material, instruct downstream to mark as BA-interpretation, not stakeholder position (Dim 1 voice-authenticity findings).
+    4. **Treat as second-hand** — for a *load-bearing* claim attributed to a role with no first-hand corroboration, instruct downstream to mark as BA-interpretation to confirm, not established stakeholder position (the **narrow** Dim 1 voice-authenticity case only — second-hand voice in general is the corpus norm, not a defect).
     5. **Resolve at draft time** — surface the defect in the `/requirements` consultant-answers loop (Dim 3 load-bearing ambiguity that no default can cover).
 
   **Forbidden Recommendation forms** (worker self-validation failure under quality gate 13): *"interview"*, *"elicit"*, *"workshop"*, *"schedule"*, *"go ask"*, *"contact the"*, *"add an interview transcript"*, or any phrasing that proposes new elicitation. The corpus IS the voice; there is no second visit.

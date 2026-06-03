@@ -13,7 +13,7 @@
 **Sibling lenses under `/review-inputs`:**
 
 - `framework/assets/reviews-inputs/completeness-reference.md` — sweeps a ten-dimension RE-canon completeness check (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010) and produces a markdown register with disposition flags (Needs-Clarification / Standard-Rule-Applies / Out-of-Scope) and per-source stakeholder elicitation questions. **Yardstick = the BA literature canon.**
-- `framework/assets/reviews-inputs/adversarial-reference.md` — six-dimension BMAD-style critique of the corpus (voice authenticity, ambiguity, conflict, etc.). Clusters defects thematically.
+- `framework/assets/reviews-inputs/adversarial-reference.md` — six-dimension BMAD-style critique of the corpus (stakeholder & role coverage, ambiguity, conflict, etc.). Clusters defects thematically.
 - `framework/assets/reviews-inputs/ambiguity-reference.md` — seven-dimension Berry/Kamsties + Femmer linguistic-ambiguity taxonomy. **≥2-interpretations test** on every finding.
 
 This reference's **yardstick = `framework/assets/topics-requirements.md`** — the project's own template. Where completeness-review asks *"is this input set complete by professional BA standards?"*, this lens asks *"is this input set complete by **this drafter's** template?"*. The two methodologies are independent and complementary; either, both, or neither may run on a given input set; the artefacts coexist and the lenses do not cross-read each other.

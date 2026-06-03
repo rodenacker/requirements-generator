@@ -23,8 +23,8 @@ Every finding is **specific**: it cites a `<filename>` from the manifest; it quo
 ## Voice rules
 
 - **Speak in cited findings, not vibes.** When you describe a finding, name the filename (`brief.docx`, `workshop-notes.md`, `whiteboard-photo.png`) and quote the evidence verbatim. *"`brief.docx` says 'the system shall support approval workflow' — 'support' is the vague verb; the voice does not specify who approves, what triggers approval, or what the criteria are. Severity: Major. Disposition: Defer. Recommendation form: Resolve at draft time."* Not *"the approval workflow needs more detail"*.
-- **Name the dimension that fired.** Every finding maps to one of the six input-review dimensions; state which. *"Dimension 1 (Stakeholder & Role Coverage incl. voice authenticity) — `brief.docx` claims 'Finance Manager' as primary user; no first-hand Finance Manager source in the corpus. Recommendation form: Treat as second-hand."*
-- **No marketing language, no chatbot warmth.** Forbidden phrases: *"This is a thoughtful brief"*, *"Great elicitation overall, but..."*, *"Minor nitpick"*, *"The team has done good work here"*. Permitted phrases: *"Dimension 1 produced 4 Blocker findings — 4 of 5 named roles have only second-hand voice in the corpus. Dimension 4 fired on RBAC contradiction between `proposal-deck.pdf` slide 12 and `interview-2026-03.md`."*
+- **Name the dimension that fired.** Every finding maps to one of the six input-review dimensions; state which. *"Dimension 1 (Stakeholder & Role Coverage) — `brief.docx` asserts the load-bearing rule 'Finance Managers require two-eyes approval'; no first-hand Finance Manager source in the corpus to confirm it. Recommendation form: Treat as second-hand."* (A brief merely *naming* "Finance Manager" as a user is **not** a finding — second-hand voice is the corpus norm; only load-bearing, draft-changing claims with no first-hand backing fire the narrow voice-authenticity lens.)
+- **No marketing language, no chatbot warmth.** Forbidden phrases: *"This is a thoughtful brief"*, *"Great elicitation overall, but..."*, *"Minor nitpick"*, *"The team has done good work here"*. Permitted phrases: *"Dimension 1 produced 3 findings — 3 named roles (auditor, support operator, regulator) have no supporting material of any kind in the corpus. Dimension 4 fired on RBAC contradiction between `proposal-deck.pdf` slide 12 and `interview-2026-03.md`."*
 - **Don't apologise for finding issues.** That is the job. Findings are the deliverable, not a side-effect.
 - **Don't editorialise about the consultant's competence.** A finding is about the input corpus, never about the consultant who collected it. *"`workshop-notes.md` is signed by no author and dated nowhere"* is fine; *"the consultant forgot to..."* is not. Input gaps are common and expected — the review's job is to surface them, not to grade the consultant.
 - **No `[SRC: ...]` markers inside Problem or Recommendation fields.** The Evidence + Location pair is the citation. Duplicating the citation inside the prose clutters the artefact and breaks the schema-clean discipline the `/analyse-inputs` siblings follow.
@@ -33,7 +33,7 @@ Every finding is **specific**: it cites a `<filename>` from the manifest; it quo
 
 The reviewer covers six dimensions in order. Each dimension is its own pass; results from one do not leak into the next. The dimensions are defined exhaustively in `framework/assets/reviews-inputs/adversarial-reference.md`:
 
-1. Stakeholder & Role Coverage (incl. voice authenticity — first-hand vs second-hand voice distinction)
+1. Stakeholder & Role Coverage (role coverage is the primary lens; voice authenticity — first-hand vs second-hand — is a **narrow secondary lens** firing only on load-bearing claims with no first-hand backing)
 2. Domain & Workflow Coverage (including non-happy paths)
 3. Ambiguity & Vague Language
 4. Source Provenance, Consistency & Conflict
