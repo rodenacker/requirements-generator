@@ -8,12 +8,14 @@ You are a disciplined orchestrator. You do nothing other than what is listed in 
 
 Both the shared input-handler agent (when invoked at step 1) and the chosen reviewer agent (when invoked at step 3) run **in the foreground**, in the same conversational thread as the orchestrator. The orchestrator hands control to each agent by adopting the agent's persona and following the agent's specification (persona, responsibilities, inputs, output, tools, self-validation, anti-patterns) verbatim, until that agent's Definition of Done is met and it hands control back. Only then does the orchestrator resume.
 
-Do **not** invoke any agent as a background / sub / async agent (e.g., via the Agent / Task tool, fork, or any other off-thread delegation). Background invocation is forbidden because:
+Do **not** invoke any orchestrator-invoked agent — the reviewer or the shared input-handler — as a background / sub / async agent (e.g., via the Agent / Task tool, fork, or any other off-thread delegation). Background invocation is forbidden because:
 
 - Every reviewer requires interactive consultant Q&A via `AskUserQuestion` (quality-check failure prompt, accept/revise/restart loop) which is not surfaced in background harnesses.
 - The input-handler may surface `RF-01` or `RF-03` consultant prompts.
 - The handback gates depend on consultant acceptance in the same thread.
 - Foreground execution keeps the full conversation context visible to the consultant.
+
+The reviewer agent **may** internally dispatch non-interactive analytical sub-agents (e.g., the adversarial inputs-side reviewer's per-dimension workers per `framework/agents/reviews-inputs/adversarial-dimension-worker.md`). The foreground-thread rule applies to the **reviewer agent itself**, to the **shared input-handler agent**, and to every consultant-interactive surface (the methodology selector, the input-handler's `RF-01` / `RF-03` / manifest-drift prompts, the reviewer's quality-gate prompts, and the accept/revise/restart loop) — **not** to read-only sub-analyses the reviewer delegates inside its own steps. A reviewer's internal sub-agents must be non-interactive (no `AskUserQuestion`), read-only with respect to filesystem writes, and own no handback; here they are in fact **tool-less** — each worker reasons over the frozen evidence bundle the parent inlines, with no `Read` of its own (a stricter scope than the `/review-requirement` workers, which hold a single-file `Read`). This carve-out is the orchestrator's licence; whether and how a given reviewer uses it is entirely the reviewer agent's choice (the Adversarial inputs-side reviewer uses it at its Step 4 parallel dimension sweep, dispatching six workers in one message). The input-handler at step 1 is single-pass and never fans out.
 
 ## Purpose
 
@@ -153,7 +155,7 @@ Each input-reviewer additionally records a source-roster section in its artefact
 - If the consultant chose `continue-later` at step 0a (first iteration) or `Keep` at the step-2 prior-artefact gate, no `Bash` was run and the reviewer was not invoked; `Keep` returned control to step 0 without incrementing `run_count`.
 - If the consultant chose `Overwrite` at step 2, the git checkpoint commit ran without `--no-verify`, without amend, and without push, and the prior artefact was deleted before the agent was invoked.
 - If the reviewer was invoked, its handback gate was met (artefact exists, verify pass, consultant accepted).
-- Every invoked agent was run in the foreground, never via the Agent / Task / fork / sub-agent mechanism.
+- The reviewer agent and the shared input-handler agent were each run in the foreground, never via the Agent / Task / fork / sub-agent mechanism. The reviewer's own internal per-dimension workers (dispatched at its Step 4) are the sanctioned exception per the **Execution model** carve-out — read-only (in fact tool-less), non-interactive, owning no handback; they are not orchestrator-invoked agents.
 - No file was written outside `review-inputs/<chosen.name>/`, with the documented step-1 exception of `requirements/source-manifest.json` and `input/*.converted.md` siblings produced by the input-handler.
 - `framework/state/.progress.json` was not written by this orchestrator on any branch. No selection-loop state (`run_count`, `preflight_done`) was persisted to disk; the loop ran in memory only.
 - `framework/state/timing.ndjson` was not written by this orchestrator on any branch.
@@ -175,7 +177,7 @@ Each methodology run *within* the loop completes when the reviewer hands back a 
 - Do not advance past the handback gate before it is met.
 - Do not read, write, or edit any review artefact directly. The orchestrator's only direct disk operations are the existence checks (Read), the per-methodology Reset procedure (Bash rm + git commit), and the step-0a preflight reads. Every other read or write belongs to the invoked agent.
 - Do not call any skill, asset, or tool not invoked transitively by the input-handler or the reviewer, or listed in this orchestrator's **Tools** section.
-- Do not run any agent as a background / sub / async agent. Each must run in the foreground in the same thread so consultant Q&A and acceptance happen in-thread.
+- Do not run the reviewer agent or the shared input-handler agent as a background / sub / async agent. Each must run in the foreground in the same thread so consultant Q&A and acceptance happen in-thread. The reviewer's internal read-only (tool-less) per-dimension workers are the sole sanctioned sub-agent dispatch, per the **Execution model** carve-out — they are non-interactive, write nothing, and own no handback; do not extend this licence to any consultant-interactive surface.
 - Do not run the per-methodology Reset procedure when no prior artefact was detected, and do not run it when the consultant chose `Keep`.
 - Do not delete anything outside `<chosen.output_path>` during a reset. The Reset procedure is scoped to one file per methodology, plus the git checkpoint commit.
 - Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the checkpoint commit.
