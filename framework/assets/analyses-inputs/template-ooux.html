@@ -27,10 +27,15 @@
     1. Overview (id="overview")              — title, subtitle, meta-grid
                                                 (manifest sha + counts).
     2. TOC (<nav class="toc">)               — static top-level anchors.
-    3. Source roster (id="source-roster")    — {{SOURCE_ROSTER_BLOCK}}:
-                                                Consumed + Skipped tables.
-    4. Diagrams / column-board (id="diagrams") — {{OBJECT_COLUMNS}} inside
-                                                 the sticky-note .object-board.
+    3. Legend (.legend-bar)                  — colour key for the sticky kinds
+                                                + provenance dots. Sits directly
+                                                under the TOC, above the column-
+                                                board, so the reader has the key
+                                                before the diagram. (Moved here
+                                                from the footer.)
+    4. Diagrams / column-board (id="diagrams") — an <h2> heading followed by
+                                                 {{OBJECT_COLUMNS}} inside the
+                                                 sticky-note <div class="object-board">.
     5. Tabular information (id="tables")     — {{REL_MATRIX_BLOCK}}:
                                                 relationship matrix table.
     6. Object map body (id="object-map-body") — {{OBJECT_MAP_JSON_BLOCK}}:
@@ -38,7 +43,11 @@
                                                 with the full machine-readable
                                                 object model. The load-bearing
                                                 markitdown-survival contract.
-    7. Diagnostics (id="diagnostics")        — <details> wrapper, collapsed
+    7. Source roster (id="source-roster")    — {{SOURCE_ROSTER_BLOCK}}:
+                                                Consumed + Skipped tables. Sits
+                                                below the object-map body — it is
+                                                an audit trail, not the headline.
+    8. Diagnostics (id="diagnostics")        — <details> wrapper, collapsed
                                                 by default. Synonym-merge log,
                                                 8 gate results, flagged items.
 
@@ -594,6 +603,8 @@
 
     /* ------- column-board layout ------- */
 
+    #diagrams > h2 { margin: 0 0 8px 0; }
+
     .object-board {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -751,6 +762,43 @@
       border-radius: 3px;
     }
 
+    /* ------- legend (colour key, directly under the TOC) ------- */
+
+    .legend-bar {
+      margin: 0 0 24px 0;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend-swatch {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border-left: 3px solid transparent;
+    }
+    .legend-swatch.s-cta    { background: var(--cta-bg);    border-left-color: var(--cta-border); }
+    .legend-swatch.s-obj    { background: var(--obj-bg);    border-left-color: var(--obj-border); }
+    .legend-swatch.s-core   { background: var(--core-bg);   border-left-color: var(--core-border); }
+    .legend-swatch.s-meta   { background: var(--meta-bg);   border-left-color: var(--meta-border); }
+    .legend-swatch.s-nested { background: var(--nested-bg); border: 1px dashed var(--nested-border); border-left: 3px dashed var(--nested-border); }
+    .legend .provenance { vertical-align: -1px; }
+
     /* ------- footer ------- */
 
     footer {
@@ -760,31 +808,7 @@
       color: var(--muted);
       font-size: 11px;
     }
-    footer .legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px 14px;
-      align-items: center;
-    }
-    footer .legend-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    footer .legend-swatch {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      border-left: 3px solid transparent;
-    }
-    footer .legend-swatch.s-cta    { background: var(--cta-bg);    border-left-color: var(--cta-border); }
-    footer .legend-swatch.s-obj    { background: var(--obj-bg);    border-left-color: var(--obj-border); }
-    footer .legend-swatch.s-core   { background: var(--core-bg);   border-left-color: var(--core-border); }
-    footer .legend-swatch.s-meta   { background: var(--meta-bg);   border-left-color: var(--meta-border); }
-    footer .legend-swatch.s-nested { background: var(--nested-bg); border: 1px dashed var(--nested-border); border-left: 3px dashed var(--nested-border); }
-    footer .provenance { vertical-align: -1px; }
-    footer .credit { margin-top: 6px; text-align: right; }
+    footer .credit { margin-top: 0; text-align: right; }
 
     @media print {
       body { background: #fff; }
@@ -825,18 +849,32 @@
     <nav class="toc" aria-label="Sections">
       <ol>
         <li><a href="#overview">Overview</a></li>
-        <li><a href="#source-roster">Source roster</a></li>
         <li><a href="#diagrams">Object column-board</a></li>
         <li><a href="#tables">Relationship matrix</a></li>
         <li><a href="#object-map-body">Object map (JSON)</a></li>
+        <li><a href="#source-roster">Source roster</a></li>
         <li><a href="#diagnostics">Diagnostics</a></li>
       </ol>
     </nav>
 
-    {{SOURCE_ROSTER_BLOCK}}
+    <section class="legend-bar" aria-label="Legend">
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-cta" aria-hidden="true"></span> CTA (verb)</span>
+        <span class="legend-item"><span class="legend-swatch s-obj" aria-hidden="true"></span> Object</span>
+        <span class="legend-item"><span class="legend-swatch s-core" aria-hidden="true"></span> Core content (CCP)</span>
+        <span class="legend-item"><span class="legend-swatch s-meta" aria-hidden="true"></span> Metadata</span>
+        <span class="legend-item"><span class="legend-swatch s-nested" aria-hidden="true"></span> Nested object reference</span>
+        <span class="legend-item"><span class="provenance provenance-from-source" aria-hidden="true"></span> from-source</span>
+        <span class="legend-item"><span class="provenance provenance-synonym-merged" aria-hidden="true"></span> synonym-merged</span>
+        <span class="legend-item"><span class="provenance provenance-inferred" aria-hidden="true"></span> inferred</span>
+      </div>
+    </section>
 
-    <section id="diagrams" class="object-board" aria-label="OOUX object map column-board">
-      {{OBJECT_COLUMNS}}
+    <section id="diagrams" aria-label="OOUX object map column-board">
+      <h2>Object column-board</h2>
+      <div class="object-board">
+        {{OBJECT_COLUMNS}}
+      </div>
     </section>
 
     <section id="tables" aria-label="Tabular information">
@@ -844,6 +882,8 @@
     </section>
 
     {{OBJECT_MAP_JSON_BLOCK}}
+
+    {{SOURCE_ROSTER_BLOCK}}
 
     <details id="diagnostics" class="diagnostics-toggle">
       <summary>Diagnostics — synonym merges, 8 quality-gate results, irrelevant-to-domain rows</summary>
@@ -861,16 +901,6 @@
     </section>
 
     <footer>
-      <div class="legend">
-        <span class="legend-item"><span class="legend-swatch s-cta" aria-hidden="true"></span> CTA (verb)</span>
-        <span class="legend-item"><span class="legend-swatch s-obj" aria-hidden="true"></span> Object</span>
-        <span class="legend-item"><span class="legend-swatch s-core" aria-hidden="true"></span> Core content (CCP)</span>
-        <span class="legend-item"><span class="legend-swatch s-meta" aria-hidden="true"></span> Metadata</span>
-        <span class="legend-item"><span class="legend-swatch s-nested" aria-hidden="true"></span> Nested object reference</span>
-        <span class="legend-item"><span class="provenance provenance-from-source" aria-hidden="true"></span> from-source</span>
-        <span class="legend-item"><span class="provenance provenance-synonym-merged" aria-hidden="true"></span> synonym-merged</span>
-        <span class="legend-item"><span class="provenance provenance-inferred" aria-hidden="true"></span> inferred</span>
-      </div>
       <div class="credit">Generated by `framework/agents/analyses-inputs/ooux-analyser.md`.</div>
     </footer>
   </main>

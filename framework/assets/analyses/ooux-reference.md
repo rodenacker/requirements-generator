@@ -107,7 +107,7 @@ The artefact renders as the canonical OOUX **sticky-note column-board**: one col
 | Metadata           | pink                | Round 5 attributes NOT marked CCP                                              |
 | Nested object ref  | blue, dashed border | Round 3 relationships where `also_nested = true`, with cardinality chip        |
 
-Pure (non-nested) relationships are recorded in the diagnostics block as a small relationship matrix; the column-board itself does not draw edge-lines between columns (canonical Prater templates omit them and rely on the nested stickies plus the matrix for audit).
+All recorded relationships are listed in a relationship matrix in its own **Tabular information** section (`<section id="tables">`) — one row per relationship (source, label, target, cardinality), each flagged nested (yes/no); the column-board itself does not draw edge-lines between columns (canonical Prater templates omit them and rely on the nested stickies plus the matrix for audit).
 
 ---
 

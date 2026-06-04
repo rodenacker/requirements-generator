@@ -10,10 +10,11 @@
 - `framework/skills/map-ooux-from-inputs-to-ui.md` — uses the object-map structure (specifically the embedded JSON body block) to derive UI inventory entries (downstream consumer; stub).
 
 **Output produced by the analyser:** `analyse-inputs/OOUX/ooux-object-map.html` — self-contained HTML object-map artefact carrying:
-- A source-roster section (consumed + skipped manifest rows).
-- The canonical OOUX sticky-note column-board (one column per object) — the object map, the rendered "MUST contain a diagram" deliverable.
+- A colour-key legend bar directly under the TOC, above the column-board.
+- The canonical OOUX sticky-note column-board (one column per object), under an `<h2>` heading — the object map, the rendered "MUST contain a diagram" deliverable.
 - A relationship matrix (tabular fallback).
 - An embedded `<pre><code class="language-json" id="ooux-object-map-body">` block carrying the full machine-readable object model (survives markitdown round-trip as fenced JSON; the load-bearing `/requirements` re-ingestion contract).
+- A source-roster section (consumed + skipped manifest rows), placed below the object-map body.
 - A small `<script type="application/json" id="ooux-object-map-meta">` block in `<head>` carrying counts and the manifest fingerprint (consumed by the drift-detection logic on subsequent runs; not relied on by `/requirements` since markitdown strips `<script>` blocks).
 - A collapsed diagnostics block (synonym-merge log, 8 gate results, source roster).
 
@@ -156,17 +157,15 @@ For every object, mark a small subset of attributes — typically 2 to 5 — as 
 
 ## Output presentation
 
-The artefact has three visual surfaces, in this rendered order:
+The artefact's surfaces, in rendered (DOM) order — a colour-key legend bar sits directly under the TOC, above the column-board:
 
-1. **Source roster** (`<section id="source-roster">`) — table of consumed manifest rows (`filename`, `tier`, `sha256[:8]`, `nouns_contributed`) and table of skipped rows (`filename`, `reason`). The first thing the consultant sees after the header — establishes the audit trail.
+1. **Sticky-note column-board** (`<section id="diagrams">` — an `<h2>` "Object column-board" heading followed by `<div class="object-board">`) — the canonical OOUX visual and the rendered **"MUST contain a diagram" deliverable**. One `<section class="object-column">` per object. Five sticky stacks per column in fixed order: CTAs (green) → Object header with provenance dot (blue) → Core Content / CCP (yellow) → Metadata / non-CCP (pink) → Nested references (blue, dashed border). Empty stacks render with `hidden`. The column-board does not survive markitdown round-trip layout-wise — its text content survives as enumerated list items, but the visual grid is lost. The embedded JSON block (item 3 below) is the primary structural carrier through round-trip; the column-board is supplementary for direct HTML viewing.
 
-2. **Sticky-note column-board** (`<section id="diagrams">` with `<div class="object-board">`) — the canonical OOUX visual and the rendered **"MUST contain a diagram" deliverable**. One `<section class="object-column">` per object. Five sticky stacks per column in fixed order: CTAs (green) → Object header with provenance dot (blue) → Core Content / CCP (yellow) → Metadata / non-CCP (pink) → Nested references (blue, dashed border). Empty stacks render with `hidden`. The column-board does not survive markitdown round-trip layout-wise — its text content survives as enumerated list items, but the visual grid is lost. The embedded JSON block (item 4 below) is the primary structural carrier through round-trip; the column-board is supplementary for direct HTML viewing.
+2. **Relationship matrix** (`<section id="tables">` with `<table class="rel-matrix">`) — tabular fallback. One row per recorded relationship. Source / label / target / cardinality / nested?. Mirrors the requirements-side template's §4. Survives markitdown round-trip as an MD table.
 
-3. **Relationship matrix** (`<section id="tables">` with `<table class="rel-matrix">`) — tabular fallback. One row per recorded relationship. Source / label / target / cardinality / nested?. Mirrors the requirements-side template's §4. Survives markitdown round-trip as an MD table.
+3. **Machine-readable body block** (`<section id="object-map-body">` with `<pre><code class="language-json" id="ooux-object-map-body">`) — the full machine-readable object model in JSON. See the JSON schema below. **This is the load-bearing markitdown-survival contract.** When the consultant copies the HTML into `input/` and reruns `/requirements`, this block converts to a fenced ```json code block in `.converted.md` and the drafter consumes the full model in one shot.
 
-After the visual surfaces, in this DOM order:
-
-4. **Machine-readable body block** (`<section id="object-map-body">` with `<pre><code class="language-json" id="ooux-object-map-body">`) — the full machine-readable object model in JSON. See the JSON schema below. **This is the load-bearing markitdown-survival contract.** When the consultant copies the HTML into `input/` and reruns `/requirements`, this block converts to a fenced ```json code block in `.converted.md` and the drafter consumes the full model in one shot.
+4. **Source roster** (`<section id="source-roster">`) — table of consumed manifest rows (`filename`, `tier`, `sha256[:8]`, `nouns_contributed`) and table of skipped rows (`filename`, `reason`). Sits below the object-map body — the audit trail establishing which sources fed the map, not the headline.
 
 5. **Diagnostics** (`<details id="diagnostics">`) — collapsed by default. Synonym-merge log, 8 quality-gate results (PASS/FAIL), flagged items (Override-only), `irrelevant-to-domain` source rows (Gate 8 emissions).
 
