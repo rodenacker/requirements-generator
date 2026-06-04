@@ -44,9 +44,9 @@ OST complements `thematic-analysis`: TA emphasises *what* themes recur across so
 
 ### Why HTML with embedded SVG tree + Mermaid source + JSON body
 
-- **Self-contained, diagram-first.** The artefact is a single HTML file the consultant can open in a browser with the Opportunity Solution Tree at the top as a pre-rendered inline SVG — reusing the requirements-side twin's `{{TREE}}` SVG approach. No Mermaid runtime, no external assets. This matches the framework's HTML-output, diagrams-first convention.
+- **Self-contained, diagram-first.** The artefact is a single HTML file the consultant can open in a browser with the Opportunity Solution Tree at the top as a pre-rendered, self-contained layered SVG — one `<svg class="tree-svg">` in which the analyser places every node and every edge in a single `viewBox` coordinate space, so edges meet their nodes by construction at any node count. No Mermaid runtime, no external assets. This matches the framework's HTML-output, diagrams-first convention.
 - **Re-ingestibility via embedded fenced blocks.** Re-ingestion is still load-bearing: the consultant re-drops the artefact into `input/` to feed `/requirements`. The embedded `language-json` `opportunity-solution-tree-body` block (tree model + candidate-requirement seeds) and the collapsed `mermaid-source` block survive a markitdown HTML→Markdown conversion, so the model round-trips cleanly and the drafter reads the candidate-requirement seeds without parsing presentational HTML. The "HTML cannot round-trip into `/requirements`" rationale that previously justified staying in markdown is therefore obsolete — the embedded JSON body block is what makes the HTML round-trip cleanly now.
-- **Diagram as inline SVG.** The four-band tree is a pre-rendered inline `<svg>`; the `graph TD` source is kept in an adjacent collapsed `<details class="mermaid-block">` block as an export / re-ingestion adjunct, embedded as text and **not** validated by `mmdc` (the inline tree is the visible diagram — matching the other inline-SVG analyses; no `mmdc` dependency).
+- **Diagram as inline SVG.** The layered tree diagram is a pre-rendered, self-contained inline `<svg class="tree-svg">` (nodes + edges in one `viewBox` coordinate space); the `graph TD` source is kept in an adjacent collapsed `<details class="mermaid-block">` block as an export / re-ingestion adjunct, embedded as text and **not** validated by `mmdc` (the inline tree is the visible diagram — matching the other inline-SVG analyses; no `mmdc` dependency).
 
 The requirements-side twin already produced HTML + SVG as a final audit deliverable; the inputs-side variant now produces the same self-contained HTML shape while keeping its load-bearing candidate-requirements bridge re-ingestible through the embedded body block.
 
@@ -331,7 +331,7 @@ The diagnostics block is the audit value of the artefact — the consultant read
 
 - **Truncation rule.** Mermaid labels exceeding 80 chars truncate to 77 chars + `…`; the full verbatim text lives in the corresponding body section anyway. The Mermaid diagram is a visual index, not the authoritative content.
 
-- **No Mermaid validation.** The four-band tree is a pre-rendered inline SVG; the `graph TD` source beneath it is embedded as an unvalidated export adjunct (no `mmdc` dependency). Keep the tree and the Mermaid source in agreement — every node is a card in the tree and a node in the source.
+- **No Mermaid validation.** The layered tree diagram is a pre-rendered, self-contained inline SVG (nodes + edges in one `viewBox`); the `graph TD` source beneath it is embedded as an unvalidated export adjunct (no `mmdc` dependency). Keep the SVG and the Mermaid source in agreement — every node is a `<g class="node …">` in the SVG and a node in the source.
 
 ---
 
@@ -377,7 +377,7 @@ Run at Round 6 close, before render. Each check operates on the in-memory state.
 1. **Citation completeness.** Every outcome / candidate outcome / opportunity / solution / assumption test / candidate-requirement line carries at least one `[SRC: <filename>]` marker, and every marker payload matches a manifest row's `filename` field exactly. Mismatch fails.
 2. **Customer-perspective Opportunities.** No Opportunity's *need / pain* clause contains forbidden company-perspective tokens (`we`, `our`, `the business`, `the company`, `the team` — case-insensitive substring match). Flag offending Opportunities by id + offending text.
 3. **No solution-leak in Opportunities.** No Opportunity *need / pain* clause contains UI-affordance tokens (`dashboard`, `screen`, `page`, `button`, `dialog`, `modal`, `dropdown`, `field`, `widget`, `report`, `export`) or building verbs (`add`, `build`, `implement`, `create`, `provide`). Flag offending Opportunities.
-4. **Diagram completeness.** Every primary Outcome / Opportunity / Solution / Assumption Test in the in-memory tree appears as a node in **both** the pre-rendered four-band tree (a card in its band) **and** the `graph TD` Mermaid export source; neither has dangling references. (The Mermaid source is an unvalidated export adjunct — no `mmdc`.)
+4. **Diagram completeness.** Every primary Outcome / Opportunity / Solution / Assumption Test in the in-memory tree appears as a node (`<g class="node …">`) in **both** the pre-rendered layered SVG tree diagram **and** the `graph TD` Mermaid export source; neither has dangling references, and every SVG edge `<path>` connects two node centres present in the SVG. (The Mermaid source is an unvalidated export adjunct — no `mmdc`.)
 5. **Bridge completeness.** Every Opportunity in the tree has at least one corresponding line under `## Candidate requirements` — either a *"The system should ___ so that ___"* candidate-requirement seed, or (for `[UNADDRESSED]` Opportunities) the `recommend-elicit-solution` advisory bullet. No Opportunity disappears silently from the bridge.
 6. **Manifest fingerprint + source roster.** The artefact carries exactly one `<!-- ost-meta: ... -->` line; its `manifest_fingerprint` value equals the Round 1 sha256; the `Source roster > Consumed` table enumerates every manifest row whose `tier != "Unsupported"`; the `Source roster > Skipped` table enumerates every manifest row whose `tier == "Unsupported"`; together they account for every manifest row.
 
@@ -411,7 +411,7 @@ The analysis is complete when:
 
 - A primary root Outcome exists (Round 1 produced ≥ 1 candidate, and the consultant picked one on multi-candidate runs).
 - All 6 hard gates pass, or the consultant chose Override and the failures are recorded in Diagnostics.
-- Every node is a card in the pre-rendered four-band tree and a node in the `graph TD` Mermaid export source (embedded as unvalidated text).
+- Every node is a `<g class="node …">` in the pre-rendered layered SVG tree diagram and a node in the `graph TD` Mermaid export source (embedded as unvalidated text).
 - `analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` has been written and `verify-artifact-write` returned `pass`.
 - The consultant chose Accept in the handback loop.
 

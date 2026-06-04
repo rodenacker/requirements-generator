@@ -3,25 +3,32 @@
 
   Purpose: HTML/CSS skeleton for the inputs-side Opportunity Solution Tree
   (Teresa Torres, "Continuous Discovery Habits", forward discovery from raw
-  consultant inputs). Combines a pre-rendered four-band discovery-tree (the
-  "MUST contain a diagram" deliverable — geometry + inline SVG <path>
-  connectors computed by the analyser at render time, the requirement-side
-  twin's {{TREE}} approach reused; NO client-side Mermaid runtime) with the
-  candidate-requirements bridge, the coverage diagnostics, and an embedded
-  JSON body block (the machine-readable model that survives markitdown
+  consultant inputs). Combines a pre-rendered self-contained layered SVG
+  discovery-tree diagram (the "MUST contain a diagram" deliverable — ONE inline
+  <svg> in which the analyser places every node AND every edge in a single
+  coordinate space, computed at render time; NO client-side Mermaid runtime)
+  with the candidate-requirements bridge, the coverage diagnostics, and an
+  embedded JSON body block (the machine-readable model that survives markitdown
   HTML->MD conversion for /requirements re-ingestion).
+
+  Why one self-contained SVG (not an absolute SVG overlay on flowed cards): an
+  overlay's hand-authored coordinates cannot align with CSS-flowed cards in a
+  no-JS document (the analyser cannot know the render-time viewport width, so
+  it cannot predict card wrapping or container height) — so the edges drift off
+  their nodes. Drawing the nodes and edges in the SAME <svg> coordinate space
+  makes every edge meet its node by construction, at any node count; small
+  arithmetic slips merely nudge a node, they never detach an edge.
 
   Self-contained (`<!doctype html>` + ONE inlined `<style>` + `<body>`). No
   external CSS/JS dependencies, no CDN, no `<script>` behaviour, no inline
   Mermaid runtime; viewable by opening `file://` in a browser; prints to PDF;
   shareable with clients without tooling. The Mermaid source is embedded as
   text inside `<pre class="mermaid-source">` for export only; the rendered
-  visual is the pre-rendered inline four-band <svg>-connected tree in #diagrams.
+  visual is the pre-rendered inline layered SVG tree diagram in #diagrams.
 
   The artefact is re-ingestible into `input/` for the /requirements drafter
   via markitdown conversion:
-  - The pre-rendered four-band tree (cards + inline <svg> connectors) carries
-    the visible diagram.
+  - The pre-rendered layered SVG tree diagram carries the visible diagram.
   - The Mermaid block (inside <pre class="mermaid-source">) survives HTML->MD
     as a fenced ```mermaid code block — the export/re-ingestion adjunct.
   - The embedded JSON body block (inside
@@ -40,8 +47,9 @@
     2. TOC (<nav class="toc">)                — sticky top-level anchors.
     2b. Legend (.legend-bar)                  — colour key, directly under the
                                                  TOC (first item after the nav).
-    3. Diagrams (id="diagrams")               — {{TREE}} (pre-rendered four-band
-                                                 tree with inline SVG connectors)
+    3. Diagrams (id="diagrams")               — {{TREE}} (pre-rendered layered
+                                                 SVG tree diagram: nodes + edges
+                                                 in one coordinate space)
                                                  + {{TREE_MERMAID}} (adjacent
                                                  collapsed mermaid-source <details>).
     4. Outcome + candidates (id="outcomes")   — {{OUTCOME_BLOCK}} +
@@ -89,9 +97,10 @@
     {{CONSUMED_ROW_COUNT}}          — number of manifest rows consumed.
     {{SKIPPED_ROW_COUNT}}           — number of manifest rows skipped (Unsupported tier).
     {{TREE}}                        — pre-rendered <section class="tree-wrap">
-                                      containing four <div class="band band-outcome|
-                                      band-opportunity|band-solution|band-assumption">
-                                      plus the inline <svg class="tree-connectors">.
+                                      containing ONE inline <svg class="tree-svg">
+                                      whose <path class="edge …"> connectors and
+                                      <g class="node …"> node boxes share a single
+                                      viewBox coordinate space (see TREE SVG SCHEMA).
     {{TREE_MERMAID}}                — pre-rendered <details class="mermaid-block"> containing
                                       <pre class="mermaid-source"> with the `graph TD`
                                       tree source (export / re-ingestion adjunct).
@@ -116,83 +125,87 @@
 
   Output: analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html.
 
-  TREE-BAND SCHEMA — the analyser emits exactly four <div class="band"> rows
-  inside the <section class="tree-wrap"> in this order (the requirement-side
-  twin's tree-SVG approach reused; cards carry [SRC: <filename>] markers in a
-  .card-src line instead of provenance dots). The Assumption band is omitted /
-  replaced with .layer-placeholder when Layer 4 is absent:
+  TREE SVG SCHEMA — the analyser emits ONE inline <svg class="tree-svg"> inside
+  the <section class="tree-wrap">. Nodes and edges live in the SAME viewBox
+  coordinate space (this is the whole point: an edge cannot drift off its node
+  because both are placed in the same space). Edges are emitted FIRST so they
+  paint under the node boxes. Full text / [SRC: <filename>] / extracts / flags
+  for every node live in the #outcomes / #opportunities / #solutions /
+  #assumption-tests body sections below; the SVG node labels are terse (id +
+  short label). Layout is a four-row layered tree (three rows when Layer 4 is
+  absent): row 0 Outcome, row 1 Opportunities (+ the orphan sentinel last, if
+  orphans exist), row 2 Solutions, row 3 Assumption Tests.
+
+  DETERMINISTIC LAYOUT (the analyser computes these in render Step 10-B; exact
+  pixel values may vary, alignment does not — edges are computed from the same
+  node centres they connect):
+    boxW=170  boxH=52  hGap=18  vGap=72  marginX=24  marginY=20
+    For each row k with n_k node boxes: rowW_k = n_k*boxW + (n_k-1)*hGap
+    inner   = max(rowW_k over all rows)
+    W (viewBox width)  = inner + 2*marginX
+    H (viewBox height) = numRows*boxH + (numRows-1)*vGap + 2*marginY   // numRows = 3 or 4
+    Row k start x = marginX + (inner - rowW_k)/2                       // centre each row
+    Node i in row k: nx = rowStartX + i*(boxW+hGap);  ny = marginY + k*(boxH+vGap)
+    Node centre cx = nx + boxW/2;  node bottom = ny + boxH;  node top = ny
+    Edge parent->child: d="M {p.cx} {p.ny+boxH} C {p.cx} {my} {c.cx} {my} {c.cx} {c.ny}"
+      where my = (p.ny+boxH + c.ny) / 2   (a vertical-S cubic; never crosses sideways into garbage)
+  The <svg> carries width="{W}" height="{H}" viewBox="0 0 {W} {H}" (natural px,
+  default preserveAspectRatio) so the .tree-wrap scrolls horizontally for wide
+  trees rather than distorting; @media print scales it to page width.
 
       <section class="tree-wrap" aria-label="Opportunity Solution Tree (from inputs)">
-        <svg class="tree-connectors" aria-hidden="true" preserveAspectRatio="none">
-          <!-- one <path class="edge edge-out-opp|edge-opp-sol|edge-sol-asm
-               [edge-orphan]" d="M x1,y1 C x1,my x2,my x2,y2"/> per parent-child
-               link. The analyser computes coordinates against the band-container
-               flow geometry at render time. Paths render under the cards
-               (z-index:0); cards sit above (z-index:1). Orphan edges dashed. -->
+        <svg class="tree-svg" role="img" width="{W}" height="{H}" viewBox="0 0 {W} {H}"
+             aria-label="Opportunity solution tree: 1 outcome, {N} opportunities, {M} solutions, {K} assumption tests">
+
+          <!-- 1. EDGES first (paint under nodes). One <path> per laddering edge: -->
+          <path class="edge edge-out-opp" d="M … C …"/>   <!-- Outcome -> Opportunity -->
+          <path class="edge edge-opp-sol" d="M … C …"/>   <!-- Opportunity -> Solution -->
+          <path class="edge edge-opp-sol edge-orphan" d="M … C …"/> <!-- sentinel -> orphan Solution (dashed) -->
+          <path class="edge edge-sol-asm" d="M … C …"/>   <!-- Solution -> Assumption Test -->
+          <path class="edge edge-sol-asm edge-orphan" d="M … C …"/> <!-- Outcome -> global Assumption Test (dashed) -->
+
+          <!-- 2. LEFT-MARGIN row labels (optional, one per present row), at x=4: -->
+          <text class="layer-label" x="4" y="{row0.ny + boxH/2}">Outcome</text>
+          <text class="layer-label" x="4" y="{row1.ny + boxH/2}">Opportunities</text>
+          <text class="layer-label" x="4" y="{row2.ny + boxH/2}">Solutions</text>
+          <text class="layer-label" x="4" y="{row3.ny + boxH/2}">Assumption Tests</text>
+
+          <!-- 3. NODES. One <g class="node node-<layer> [flagged]"> per node.
+               Geometry as attributes; fill/stroke via the .node-<layer> classes.
+               node-id = the stable id (Out-1 / Op-NN / S-NN / A-NN);
+               node-label = up to 2 <tspan> lines, each truncated to ~24 chars + … -->
+          <g class="node node-outcome">
+            <rect x="{nx}" y="{ny}" width="170" height="52" rx="6"/>
+            <text class="node-id"    x="{nx+8}" y="{ny+15}">Out-1</text>
+            <text class="node-label" x="{nx+8}" y="{ny+31}"><tspan>{outcome head line 1}</tspan><tspan x="{nx+8}" dy="14">{line 2}</tspan></text>
+          </g>
+          <g class="node node-opportunity flagged">   <!-- .flagged only if UNADDRESSED or WEAKLY-ANCHORED -->
+            <rect x="{nx}" y="{ny}" width="170" height="52" rx="6"/>
+            <text class="node-id"    x="{nx+8}" y="{ny+15}">Op-NN</text>
+            <text class="node-label" x="{nx+8}" y="{ny+31}"><tspan>{actor — need head}</tspan></text>
+          </g>
+          <g class="node node-sentinel">              <!-- orphan-Solutions parent; only when orphans exist -->
+            <rect x="{nx}" y="{ny}" width="170" height="52" rx="6"/>
+            <text class="node-id"    x="{nx+8}" y="{ny+15}">Op-?</text>
+            <text class="node-label" x="{nx+8}" y="{ny+31}"><tspan>(none stated in inputs)</tspan></text>
+          </g>
+          <g class="node node-solution flagged">       <!-- .flagged only if ORPHAN-SOLUTION -->
+            <rect x="{nx}" y="{ny}" width="170" height="52" rx="6"/>
+            <text class="node-id"    x="{nx+8}" y="{ny+15}">S-NN</text>
+            <text class="node-label" x="{nx+8}" y="{ny+31}"><tspan>{solution head}</tspan></text>
+          </g>
+          <g class="node node-assumption">
+            <rect x="{nx}" y="{ny}" width="170" height="52" rx="6"/>
+            <text class="node-id"    x="{nx+8}" y="{ny+15}">A-NN</text>
+            <text class="node-label" x="{nx+8}" y="{ny+31}"><tspan>{test head} ({category})</tspan></text>
+          </g>
         </svg>
-
-        <div class="band band-outcome" aria-label="Outcome">
-          <h2 class="band-label">Outcome</h2>
-          <article id="out-1" class="card card-outcome outcome-<class>">
-            <header class="card-header">
-              <span class="card-id">Out-1</span>
-              <span class="card-type-badge outcome-<class>">{{outcome_class_label}}</span>
-            </header>
-            <p class="card-body">{{outcome_text}}</p>
-            <p class="card-src"><small class="src-inline">[SRC: {{filename}}]</small></p>
-          </article>
-        </div>
-
-        <div class="band band-opportunity" aria-label="Opportunities">
-          <h2 class="band-label">Opportunities</h2>
-          <article id="op-<NN>" class="card card-opportunity <flag-unaddressed|flag-weakly-anchored>">
-            <header class="card-header">
-              <span class="card-id">Op-NN</span>
-              <span class="actor-tag">{{actor}}</span>
-            </header>
-            <p class="card-body">{{need_or_pain_clause}}</p>
-            <p class="card-flags">
-              <span class="flag flag-unaddressed">UNADDRESSED</span>
-              <span class="flag flag-weakly-anchored">WEAKLY-ANCHORED</span>
-            </p>
-            <p class="card-src"><small class="src-inline">[SRC: {{filename}}]</small></p>
-          </article>
-        </div>
-
-        <div class="band band-solution" aria-label="Solutions">
-          <h2 class="band-label">Solutions</h2>
-          <!-- Sentinel-parent card for orphan Solutions, if any: -->
-          <article id="sentinel-1" class="card card-opportunity card-sentinel">
-            <header class="card-header">
-              <span class="card-id">Op-?</span>
-              <span class="actor-tag">(none stated in inputs)</span>
-            </header>
-            <p class="card-body">Orphan Solutions land here — features the inputs name without a source-grounded customer need.</p>
-          </article>
-          <article id="s-<NN>" class="card card-solution <flag-orphan>">
-            <header class="card-header"><span class="card-id">S-NN</span></header>
-            <p class="card-body">{{solution_text}}</p>
-            <p class="card-flags"><span class="flag flag-orphan">ORPHAN-SOLUTION</span></p>
-            <p class="card-src"><small class="src-inline">[SRC: {{filename}}]</small></p>
-          </article>
-        </div>
-
-        <div class="band band-assumption" aria-label="Assumption Tests">
-          <h2 class="band-label">Assumption Tests</h2>
-          <!-- When the entire layer is absent the analyser emits ONE placeholder: -->
-          <p class="layer-placeholder">(no assumption tests in inputs) — raw consultant inputs rarely carry explicit risk / assumption / open-question phrasing; this layer is expected to be absent.</p>
-          <!-- Otherwise one card per test: -->
-          <article id="a-<NN>" class="card card-assumption category-<desirability|viability|feasibility|usability|ethical> <flag-global>">
-            <header class="card-header">
-              <span class="card-id">A-NN</span>
-              <span class="card-type-badge category-<...>">{{category_label}}</span>
-            </header>
-            <p class="card-body">{{test_description}}</p>
-            <p class="card-flags"><span class="flag flag-global">global-assumption</span></p>
-            <p class="card-src"><small class="src-inline">[SRC: {{filename}}]</small></p>
-          </article>
-        </div>
       </section>
+
+  When Layer 4 is absent the analyser emits only rows 0–2 (numRows=3) and no
+  node-assumption groups; the absent-layer placeholder line is rendered by the
+  #assumption-tests body section (<p class="layer-placeholder">), NOT inside the
+  SVG. Candidate outcomes are NEVER nodes in this SVG (one root only).
 
   TREE MERMAID SCHEMA — {{TREE_MERMAID}} substitutes:
 
@@ -201,9 +214,9 @@
         <p class="mermaid-caption">
           Copy this block into <a href="https://mermaid.live">mermaid.live</a> or run
           <code>mmdc -i &lt;source.mmd&gt; -o &lt;diagram.svg&gt;</code> to view rendered.
-          The pre-rendered four-band tree above is the in-page diagram; this Mermaid
-          source survives markitdown HTML->MD conversion as a fenced code block so the
-          diagram is available verbatim to /requirements on re-ingestion.
+          The pre-rendered layered SVG tree diagram above is the in-page diagram; this
+          Mermaid source survives markitdown HTML->MD conversion as a fenced code block
+          so the diagram is available verbatim to /requirements on re-ingestion.
         </p>
         <pre class="mermaid-source">{{mermaid-source}}</pre>
       </details>
@@ -298,22 +311,28 @@
       </section>
 
   CSS classes used by the analyser:
-    .outcome-business-outcome, .outcome-product-outcome, .outcome-traction-metric
-                          — Outcome classification badge + card accent.
-    .category-desirability, .category-viability, .category-feasibility,
-    .category-usability, .category-ethical — Assumption-Test category badge.
-    .flag-orphan, .flag-unaddressed, .flag-weakly-anchored, .flag-global — flag pills.
-    .card-sentinel        — red-bordered sentinel "(none stated in inputs)" parent.
-    .edge-out-opp, .edge-opp-sol, .edge-sol-asm, .edge-orphan — SVG connector classes.
-    .src-inline           — [SRC: <filename>] marker pill.
+    .tree-svg             — the single self-contained tree-diagram <svg>.
+    .node, .node-outcome, .node-opportunity, .node-solution, .node-assumption,
+    .node-sentinel        — SVG node groups (one <g> each); fill/stroke by layer.
+    .node.flagged         — dashed warn stroke on UNADDRESSED / WEAKLY-ANCHORED /
+                            ORPHAN-SOLUTION nodes.
+    .node-id, .node-label, .layer-label — SVG text styles.
+    .edge-out-opp, .edge-opp-sol, .edge-sol-asm, .edge-orphan — SVG edge <path>
+                            classes (edge-orphan = dashed; combine with the layer
+                            class, e.g. "edge edge-opp-sol edge-orphan").
+    .flag-orphan, .flag-unaddressed, .flag-weakly-anchored, .flag-global — flag
+                            pills (used in the body sections, not in the SVG).
+    .layer-placeholder    — absent-Layer-4 placeholder line in #assumption-tests.
+    .src-inline           — [SRC: <filename>] marker pill (body sections).
     .candidate-outcome-card — [CANDIDATE-OUTCOME] block (not in the tree).
     .mermaid-block        — <details> wrapping the export Mermaid source.
 
   Content TBD-able by the analyser:
-    The four band contents, the SVG <path> connectors, the outcome/opportunity/
-    solution/assumption blocks, the bridge, the coverage lists, the JSON body, and
-    the diagnostics block. The CSS below is fixed scaffolding and should not be
-    edited by the analyser — only the {{placeholders}} above are substituted.
+    The tree-diagram SVG (its node <g> groups and edge <path> connectors), the
+    outcome/opportunity/solution/assumption blocks, the bridge, the coverage
+    lists, the JSON body, and the diagnostics block. The CSS below is fixed
+    scaffolding and should not be edited by the analyser — only the
+    {{placeholders}} above are substituted.
 -->
 <!doctype html>
 <html lang="en">
@@ -495,141 +514,53 @@
     }
     .toc a:hover { border-bottom-color: var(--fg); }
 
-    /* ------- tree-wrap (the four-band tree) ------- */
+    /* ------- tree diagram (self-contained layered SVG) ------- */
 
     .tree-wrap {
-      position: relative;
       padding: 16px;
       border: 1px solid var(--border);
       border-radius: 6px;
       background: #fff;
       margin-bottom: 16px;
-      overflow-x: auto;
+      overflow-x: auto;        /* wide trees scroll horizontally; never distorted */
     }
-    .tree-connectors {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 0;
-    }
-    .tree-connectors .edge {
+    /* The diagram is ONE self-contained <svg> whose nodes and edges share a
+       single coordinate space, so edges always meet their nodes regardless of
+       node count or viewport width. The analyser sizes the <svg> width/height
+       to its viewBox (natural pixels) so labels stay legible and .tree-wrap
+       scrolls when the widest layer exceeds the page — no preserveAspectRatio
+       stretching, no CSS-grid card overlay. */
+    .tree-svg { display: block; max-width: none; }
+    .tree-svg .edge {
       fill: none;
       stroke: var(--edge-stroke);
       stroke-width: var(--edge-stroke-width);
     }
-    .tree-connectors .edge-out-opp { stroke: var(--out-border); }
-    .tree-connectors .edge-opp-sol { stroke: var(--opp-border); }
-    .tree-connectors .edge-sol-asm { stroke: var(--sol-border); }
-    .tree-connectors .edge-orphan  { stroke: var(--flag-warn-border); stroke-dasharray: 3 3; }
+    .tree-svg .edge-out-opp { stroke: var(--out-border); }
+    .tree-svg .edge-opp-sol { stroke: var(--opp-border); }
+    .tree-svg .edge-sol-asm { stroke: var(--sol-border); }
+    .tree-svg .edge-orphan  { stroke: var(--flag-warn-border); stroke-dasharray: 4 3; }
 
-    .band {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
-      padding: 16px 0;
-      border-bottom: 1px dashed var(--border);
-    }
-    .band:last-child { border-bottom: none; padding-bottom: 0; }
+    .tree-svg .node rect { stroke-width: 1.5; }
+    .tree-svg .node-outcome     rect { fill: var(--out-bg); stroke: var(--out-border); }
+    .tree-svg .node-opportunity rect { fill: var(--opp-bg); stroke: var(--opp-border); }
+    .tree-svg .node-solution    rect { fill: var(--sol-bg); stroke: var(--sol-border); }
+    .tree-svg .node-assumption  rect { fill: var(--asm-bg); stroke: var(--asm-border); }
+    .tree-svg .node-sentinel    rect { fill: var(--flag-warn-bg); stroke: var(--flag-warn-border); stroke-dasharray: 4 3; }
+    .tree-svg .node.flagged     rect { stroke: var(--flag-warn-border); stroke-width: 2; stroke-dasharray: 4 3; }
 
-    .band-label {
-      grid-column: 1 / -1;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
+    .tree-svg .node-outcome     text { fill: var(--out-fg); }
+    .tree-svg .node-opportunity text { fill: var(--opp-fg); }
+    .tree-svg .node-solution    text { fill: var(--sol-fg); }
+    .tree-svg .node-assumption  text { fill: var(--asm-fg); }
+    .tree-svg .node-sentinel    text { fill: var(--flag-warn-fg); }
+    .tree-svg .node-id    { font: 700 10px ui-monospace, SFMono-Regular, Consolas, monospace; opacity: 0.8; }
+    .tree-svg .node-label { font: 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .tree-svg .layer-label {
+      font: 700 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      fill: var(--muted);
       text-transform: uppercase;
-      color: var(--muted);
-      margin: 0 0 4px 0;
-    }
-
-    .band-outcome { background: rgba(91,95,191,0.03); }
-    .band-opportunity { background: rgba(212,138,42,0.03); }
-    .band-solution { background: rgba(79,143,191,0.03); }
-    .band-assumption { background: rgba(138,110,199,0.03); }
-
-    /* ------- cards (one shape, layer-specific accents) ------- */
-
-    .card {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding: 10px;
-      background: var(--col-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      border-top: 3px solid var(--border-strong);
-      box-shadow: var(--card-shadow);
-    }
-    .card-outcome    { border-top-color: var(--out-border); background: var(--out-bg); color: var(--out-fg); }
-    .card-opportunity{ border-top-color: var(--opp-border); background: var(--opp-bg); color: var(--opp-fg); }
-    .card-solution   { border-top-color: var(--sol-border); background: var(--sol-bg); color: var(--sol-fg); }
-    .card-assumption { border-top-color: var(--asm-border); background: var(--asm-bg); color: var(--asm-fg); }
-
-    .card-sentinel {
-      border: 2px dashed var(--flag-warn-border);
-      background: var(--flag-warn-bg);
-      color: var(--flag-warn-fg);
-    }
-    .card.flag-unaddressed,
-    .card.flag-orphan {
-      border: 2px dashed var(--flag-warn-border);
-    }
-
-    .card-header {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .card-id {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      color: var(--muted);
-    }
-    .card-type-badge {
-      display: inline-block;
-      padding: 2px 6px;
-      font-size: 10px;
-      font-weight: 700;
       letter-spacing: 0.06em;
-      text-transform: uppercase;
-      border-radius: 3px;
-      border: 1px solid transparent;
-      background: #fff;
-    }
-    .card-type-badge.outcome-business-outcome { color: var(--out-biz-fg); border-color: var(--out-biz-fg); }
-    .card-type-badge.outcome-product-outcome  { color: var(--out-prod-fg); border-color: var(--out-prod-fg); }
-    .card-type-badge.outcome-traction-metric  { color: var(--out-trc-fg); border-color: var(--out-trc-fg); }
-    .card-type-badge.category-desirability { color: var(--cat-des); border-color: var(--cat-des); }
-    .card-type-badge.category-viability    { color: var(--cat-via); border-color: var(--cat-via); }
-    .card-type-badge.category-feasibility  { color: var(--cat-fea); border-color: var(--cat-fea); }
-    .card-type-badge.category-usability    { color: var(--cat-usa); border-color: var(--cat-usa); }
-    .card-type-badge.category-ethical      { color: var(--cat-eth); border-color: var(--cat-eth); }
-
-    .actor-tag {
-      font-size: 11px;
-      font-weight: 600;
-      color: inherit;
-      opacity: 0.85;
-    }
-    .card-body {
-      margin: 0;
-      font-size: 13px;
-      line-height: 1.35;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-    }
-    .card-src { margin: 2px 0 0 0; }
-    .card-flags {
-      margin: 4px 0 0 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
     }
     .flag {
       display: inline-block;
@@ -955,12 +886,11 @@
     @media print {
       body { background: #fff; }
       main { padding: 0; }
-      .band { break-inside: avoid; }
-      .card { break-inside: avoid; }
       .toc { display: none; }
       details.diagnostics-toggle { display: none; }
       details.mermaid-block { display: none; }
-      .tree-connectors { display: none; }
+      .tree-wrap { overflow: visible; break-inside: avoid; }
+      .tree-svg { width: 100%; height: auto; }   /* scale-to-fit page; viewBox keeps aspect ratio */
       .body-card, .candidate-group, .coverage-col { break-inside: avoid; }
     }
   </style>
@@ -969,7 +899,7 @@
   <main>
     <section id="overview">
       <h1>{{TITLE}}</h1>
-      <p class="subtitle">Opportunity Solution Tree (inputs side) — Teresa Torres forward discovery from raw inputs. Outcome &rarr; Opportunities &rarr; Solutions &rarr; Assumption Tests. Pre-rendered four-band tree (inline SVG connectors) + per-Opportunity candidate-requirements bridge + coverage diagnostics + machine-readable JSON.</p>
+      <p class="subtitle">Opportunity Solution Tree (inputs side) — Teresa Torres forward discovery from raw inputs. Outcome &rarr; Opportunities &rarr; Solutions &rarr; Assumption Tests. Pre-rendered layered SVG tree diagram (nodes + edges in one coordinate space) + per-Opportunity candidate-requirements bridge + coverage diagnostics + machine-readable JSON.</p>
 
       <dl class="meta-grid">
         <div><dt>Domain</dt><dd>{{DOMAIN}}</dd></div>

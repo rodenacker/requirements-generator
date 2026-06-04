@@ -15,8 +15,8 @@ methodologies:
   #   - `opportunity-solution-trees` (Teresa Torres 2016, four-layer discovery
   #     tree adapted for raw consultant inputs — forward discovery, vs the
   #     reverse-discovery sibling under /analyse-requirement; self-contained HTML
-  #     with a pre-rendered four-band tree (inline SVG connectors, the
-  #     requirement-side twin's {{TREE}} approach reused) in #diagrams + an
+  #     with a pre-rendered layered SVG tree diagram (one <svg class="tree-svg">,
+  #     nodes + edges in one viewBox coordinate space) in #diagrams + an
   #     adjacent collapsed Mermaid graph TD export <details>; carries a
   #     Candidate-requirements bridge plus an embedded
   #     <pre><code class="language-json" id="opportunity-solution-tree-body">
