@@ -15,6 +15,8 @@
   Section order (top-to-bottom):
     1. Overview (id="overview")        — title, subtitle, meta-grid, counts bar.
     2. TOC (<nav class="toc">)         — static top-level anchors.
+    2b. Legend (.legend-bar)           — colour / provenance key, directly under
+                                          the TOC (first item after the nav).
     3. Matrix (id="matrix")            — goal × dimension matrix (the main
                                           artefact — promoted to the top so
                                           the most useful result is visible
@@ -26,6 +28,7 @@
                                           (muted), with raw scores + reasons.
     6. Diagnostics (id="diagnostics")  — <details> wrapper, collapsed by
                                           default. Bottom of page.
+    7. footer                          — credit.
 
   Placeholders the analyser substitutes (string substitution, all values
   pre-escaped for HTML except {{*_BLOCK}} which are pre-rendered HTML and
@@ -683,8 +686,34 @@
       font-weight: 600;
     }
 
-    /* ------- footer / legend ------- */
+    /* ------- legend (colour key, directly under the TOC) ------- */
+    .legend-bar { margin: 16px 0 24px; padding: 10px 14px; background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--border-strong); border-radius: 6px; color: var(--muted); font-size: 11px; }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend-swatch {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+    }
+    .legend-swatch.s-strong-a  { background: var(--score-strong-a-bg);  }
+    .legend-swatch.s-lean-a    { background: var(--score-lean-a-bg);    }
+    .legend-swatch.s-no-signal { background: var(--score-no-signal-bg); }
+    .legend-swatch.s-balanced  { background: var(--score-balanced-bg);  }
+    .legend-swatch.s-lean-b    { background: var(--score-lean-b-bg);    }
+    .legend-swatch.s-strong-b  { background: var(--score-strong-b-bg);  }
 
+    /* ------- footer ------- */
     footer {
       margin-top: 24px;
       padding-top: 16px;
@@ -692,30 +721,6 @@
       color: var(--muted);
       font-size: 11px;
     }
-    footer .legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px 14px;
-      align-items: center;
-    }
-    footer .legend-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    footer .legend-swatch {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      border: 1px solid var(--border);
-    }
-    footer .legend-swatch.s-strong-a  { background: var(--score-strong-a-bg);  }
-    footer .legend-swatch.s-lean-a    { background: var(--score-lean-a-bg);    }
-    footer .legend-swatch.s-no-signal { background: var(--score-no-signal-bg); }
-    footer .legend-swatch.s-balanced  { background: var(--score-balanced-bg);  }
-    footer .legend-swatch.s-lean-b    { background: var(--score-lean-b-bg);    }
-    footer .legend-swatch.s-strong-b  { background: var(--score-strong-b-bg);  }
     footer .credit {
       margin-top: 6px;
       text-align: right;
@@ -771,6 +776,17 @@
       </ol>
     </nav>
 
+    <section class="legend-bar" aria-label="Legend">
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-strong-a" aria-hidden="true"></span> −2 strong A</span>
+        <span class="legend-item"><span class="legend-swatch s-lean-a" aria-hidden="true"></span> −1 lean A</span>
+        <span class="legend-item"><span class="legend-swatch s-no-signal" aria-hidden="true"></span> 0 no signal</span>
+        <span class="legend-item"><span class="legend-swatch s-balanced" aria-hidden="true"></span> 0 balanced</span>
+        <span class="legend-item"><span class="legend-swatch s-lean-b" aria-hidden="true"></span> +1 lean B</span>
+        <span class="legend-item"><span class="legend-swatch s-strong-b" aria-hidden="true"></span> +2 strong B</span>
+      </div>
+    </section>
+
     <section id="matrix" aria-label="Trade-off matrix">
       <h2>Goal × Dimension matrix</h2>
       <p class="subtitle">Each cell scores the goal's lean on that dimension. Hover for evidence quotes.</p>
@@ -799,14 +815,6 @@
     </details>
 
     <footer>
-      <div class="legend">
-        <span class="legend-item"><span class="legend-swatch s-strong-a" aria-hidden="true"></span> −2 strong A</span>
-        <span class="legend-item"><span class="legend-swatch s-lean-a" aria-hidden="true"></span> −1 lean A</span>
-        <span class="legend-item"><span class="legend-swatch s-no-signal" aria-hidden="true"></span> 0 no signal</span>
-        <span class="legend-item"><span class="legend-swatch s-balanced" aria-hidden="true"></span> 0 balanced</span>
-        <span class="legend-item"><span class="legend-swatch s-lean-b" aria-hidden="true"></span> +1 lean B</span>
-        <span class="legend-item"><span class="legend-swatch s-strong-b" aria-hidden="true"></span> +2 strong B</span>
-      </div>
       <div class="credit">Generated by `framework/agents/analyses/trade-off-dimension-analyser.md`.</div>
     </footer>
 

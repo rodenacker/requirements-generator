@@ -12,12 +12,15 @@
     2. How to read (id="how-to-read")  — <details> wrapper, collapsed by
        default. Explains the reversal framing for consultants new to OST.
     3. TOC (<nav class="toc">)         — static top-level anchors.
+    3b. Legend (.legend-bar)           — colour / provenance key, directly under
+                                         the TOC (first item after the nav).
     4. Diagrams (id="diagrams")        — {{TREE}} (the four-band tree
        with inline SVG connectors).
     5. Tabular information (id="tables") — {{LADDER_TABLE}}
        (Outcome × Opportunity × Solution × Assumption-Test rows).
     6. Diagnostics (id="diagnostics")  — <details> wrapper, collapsed
        by default. Bottom of page; position alone signals auxiliary.
+    7. footer                          — credit.
 
   Layout: a single top-to-bottom tree with four horizontal bands. Each band
   is a CSS Grid row. Cards in a band auto-wrap. Parent-child connections
@@ -775,8 +778,33 @@
       margin: 6px 0;
     }
 
-    /* ------- footer / legend ------- */
+    /* ------- legend (colour key, directly under the TOC) ------- */
+    .legend-bar { margin: 16px 0 24px; padding: 10px 14px; background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--border-strong); border-radius: 6px; color: var(--muted); font-size: 11px; }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend-swatch {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border-left: 3px solid transparent;
+    }
+    .legend-swatch.s-out { background: var(--out-bg); border-left-color: var(--out-border); }
+    .legend-swatch.s-opp { background: var(--opp-bg); border-left-color: var(--opp-border); }
+    .legend-swatch.s-sol { background: var(--sol-bg); border-left-color: var(--sol-border); }
+    .legend-swatch.s-asm { background: var(--asm-bg); border-left-color: var(--asm-border); }
+    .legend-swatch.s-warn { background: var(--flag-warn-bg); border: 2px dashed var(--flag-warn-border); }
 
+    /* ------- footer ------- */
     footer {
       margin-top: 24px;
       padding-top: 16px;
@@ -784,29 +812,6 @@
       color: var(--muted);
       font-size: 11px;
     }
-    footer .legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px 14px;
-      align-items: center;
-    }
-    footer .legend-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    footer .legend-swatch {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      border-left: 3px solid transparent;
-    }
-    footer .legend-swatch.s-out { background: var(--out-bg); border-left-color: var(--out-border); }
-    footer .legend-swatch.s-opp { background: var(--opp-bg); border-left-color: var(--opp-border); }
-    footer .legend-swatch.s-sol { background: var(--sol-bg); border-left-color: var(--sol-border); }
-    footer .legend-swatch.s-asm { background: var(--asm-bg); border-left-color: var(--asm-border); }
-    footer .legend-swatch.s-warn { background: var(--flag-warn-bg); border: 2px dashed var(--flag-warn-border); }
     footer .credit { margin-top: 6px; text-align: right; }
 
     @media print {
@@ -858,6 +863,18 @@
       </ol>
     </nav>
 
+    <section class="legend-bar" aria-label="Legend">
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-out" aria-hidden="true"></span> Outcome (Layer 1)</span>
+        <span class="legend-item"><span class="legend-swatch s-opp" aria-hidden="true"></span> Opportunity (Layer 2)</span>
+        <span class="legend-item"><span class="legend-swatch s-sol" aria-hidden="true"></span> Solution (Layer 3)</span>
+        <span class="legend-item"><span class="legend-swatch s-asm" aria-hidden="true"></span> Assumption Test (Layer 4)</span>
+        <span class="legend-item"><span class="legend-swatch s-warn" aria-hidden="true"></span> Orphan / Unaddressed flag</span>
+        <span class="legend-item"><span class="provenance provenance-from-success-metrics" aria-hidden="true"></span> canonical source</span>
+        <span class="legend-item"><span class="provenance provenance-from-pains" aria-hidden="true"></span> derived source</span>
+      </div>
+    </section>
+
     <section id="diagrams" aria-label="Opportunity Solution Tree">
       {{TREE}}
     </section>
@@ -874,15 +891,6 @@
     </details>
 
     <footer>
-      <div class="legend">
-        <span class="legend-item"><span class="legend-swatch s-out" aria-hidden="true"></span> Outcome (Layer 1)</span>
-        <span class="legend-item"><span class="legend-swatch s-opp" aria-hidden="true"></span> Opportunity (Layer 2)</span>
-        <span class="legend-item"><span class="legend-swatch s-sol" aria-hidden="true"></span> Solution (Layer 3)</span>
-        <span class="legend-item"><span class="legend-swatch s-asm" aria-hidden="true"></span> Assumption Test (Layer 4)</span>
-        <span class="legend-item"><span class="legend-swatch s-warn" aria-hidden="true"></span> Orphan / Unaddressed flag</span>
-        <span class="legend-item"><span class="provenance provenance-from-success-metrics" aria-hidden="true"></span> canonical source</span>
-        <span class="legend-item"><span class="provenance provenance-from-pains" aria-hidden="true"></span> derived source</span>
-      </div>
       <div class="credit">Generated by `framework/agents/analyses/opportunity-solution-trees-analyser.md`.</div>
     </footer>
   </main>

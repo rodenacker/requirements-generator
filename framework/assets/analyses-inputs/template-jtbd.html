@@ -34,6 +34,8 @@
   Section order (top-to-bottom):
     1. Overview (id="overview")        — title, subtitle, meta-grid.
     2. TOC (<nav class="toc">)         — static top-level anchors.
+    2b. Legend (.legend-bar)           — colour key, directly under the TOC
+                                         (first item after the nav).
     3. Diagrams (id="diagrams")        — {{JOB_CLUSTERS}}.
     4. Tabular information (id="tables") — {{OPPORTUNITY_MATRIX}}.
     5. Round-trip footer               — static paragraph above diagnostics.
@@ -791,33 +793,46 @@
       color: var(--muted);
       font-size: 11px;
     }
-    footer .legend {
+    footer .credit { margin-top: 6px; text-align: right; }
+
+    /* ------- legend (colour key, directly under the TOC) ------- */
+
+    .legend-bar {
+      margin: 16px 0 24px;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .legend {
       display: flex;
       flex-wrap: wrap;
       gap: 6px 14px;
       align-items: center;
     }
-    footer .legend-item {
+    .legend-item {
       display: inline-flex;
       align-items: center;
       gap: 6px;
     }
-    footer .legend-swatch {
+    .legend-swatch {
       display: inline-block;
       width: 14px;
       height: 14px;
       border-radius: 3px;
       border-left: 3px solid transparent;
     }
-    footer .legend-swatch.s-when  { background: var(--when-bg);  border-left-color: var(--when-border); }
-    footer .legend-swatch.s-want  { background: var(--want-bg);  border-left-color: var(--want-border); }
-    footer .legend-swatch.s-so    { background: var(--so-bg);    border-left-color: var(--so-border); }
-    footer .legend-swatch.s-fn    { background: var(--type-fn-bg); border: 1px solid var(--type-fn-border); }
-    footer .legend-swatch.s-em    { background: var(--type-em-bg); border: 1px solid var(--type-em-border); }
-    footer .legend-swatch.s-so-t  { background: var(--type-so-bg); border: 1px solid var(--type-so-border); }
-    footer .legend-swatch.s-opp   { background: var(--opp-zone-bg); border: 1px solid var(--opp-zone-border); }
-    footer .legend-swatch.s-src   { background: var(--src-chip-bg); border: 1px solid var(--src-chip-border); }
-    footer .credit { margin-top: 6px; text-align: right; }
+    .legend-swatch.s-when  { background: var(--when-bg);  border-left-color: var(--when-border); }
+    .legend-swatch.s-want  { background: var(--want-bg);  border-left-color: var(--want-border); }
+    .legend-swatch.s-so    { background: var(--so-bg);    border-left-color: var(--so-border); }
+    .legend-swatch.s-fn    { background: var(--type-fn-bg); border: 1px solid var(--type-fn-border); }
+    .legend-swatch.s-em    { background: var(--type-em-bg); border: 1px solid var(--type-em-border); }
+    .legend-swatch.s-so-t  { background: var(--type-so-bg); border: 1px solid var(--type-so-border); }
+    .legend-swatch.s-opp   { background: var(--opp-zone-bg); border: 1px solid var(--opp-zone-border); }
+    .legend-swatch.s-src   { background: var(--src-chip-bg); border: 1px solid var(--src-chip-border); }
 
     /* ------- table of contents ------- */
 
@@ -896,6 +911,19 @@
       </ol>
     </nav>
 
+    <section class="legend-bar" aria-label="Legend">
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-when" aria-hidden="true"></span> WHEN (situation)</span>
+        <span class="legend-item"><span class="legend-swatch s-want" aria-hidden="true"></span> WANT-TO (motivation)</span>
+        <span class="legend-item"><span class="legend-swatch s-so" aria-hidden="true"></span> SO I CAN (outcome)</span>
+        <span class="legend-item"><span class="legend-swatch s-fn" aria-hidden="true"></span> Functional</span>
+        <span class="legend-item"><span class="legend-swatch s-em" aria-hidden="true"></span> Emotional</span>
+        <span class="legend-item"><span class="legend-swatch s-so-t" aria-hidden="true"></span> Social</span>
+        <span class="legend-item"><span class="legend-swatch s-opp" aria-hidden="true"></span> Opportunity zone</span>
+        <span class="legend-item"><span class="legend-swatch s-src" aria-hidden="true"></span> [SRC: filename] source chip</span>
+      </div>
+    </section>
+
     <section id="diagrams" class="job-board" aria-label="JTBD job map">
       {{JOB_CLUSTERS}}
     </section>
@@ -916,16 +944,6 @@
     </details>
 
     <footer>
-      <div class="legend">
-        <span class="legend-item"><span class="legend-swatch s-when" aria-hidden="true"></span> WHEN (situation)</span>
-        <span class="legend-item"><span class="legend-swatch s-want" aria-hidden="true"></span> WANT-TO (motivation)</span>
-        <span class="legend-item"><span class="legend-swatch s-so" aria-hidden="true"></span> SO I CAN (outcome)</span>
-        <span class="legend-item"><span class="legend-swatch s-fn" aria-hidden="true"></span> Functional</span>
-        <span class="legend-item"><span class="legend-swatch s-em" aria-hidden="true"></span> Emotional</span>
-        <span class="legend-item"><span class="legend-swatch s-so-t" aria-hidden="true"></span> Social</span>
-        <span class="legend-item"><span class="legend-swatch s-opp" aria-hidden="true"></span> Opportunity zone</span>
-        <span class="legend-item"><span class="legend-swatch s-src" aria-hidden="true"></span> [SRC: filename] source chip</span>
-      </div>
       <div class="credit">Generated by <code>framework/agents/analyses-inputs/jtbd-analyser.md</code>.</div>
     </footer>
   </main>

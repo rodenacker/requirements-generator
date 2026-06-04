@@ -18,6 +18,8 @@
   it leads so the reader sees how the four artefacts connect before the detail cards):
     1. Overview (id="overview")             — title, subtitle, meta-grid.
     2. TOC (<nav class="toc">)              — static top-level anchors.
+    2b. Legend (.legend-bar)               — colour key, directly under the TOC
+                                              (first item after the nav).
     3. Causal-chain map (id="causal-map")   — {{CAUSAL_MAP}} — CSS-only 4-stage grid. THE DIAGRAM; first content item.
     4. Business Needs Assessment (id="needs")           — {{NEEDS_BLOCK}}            — artefact #1.
     5. Business Problem Statement (id="problems")       — {{PROBLEMS_BLOCK}}         — artefact #2 (Five-Whys ladders).
@@ -564,16 +566,20 @@
     table.source-roster td.sha { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; color: var(--muted); }
 
     footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 11px; }
-    footer .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
-    footer .legend-item { display: inline-flex; align-items: center; gap: 6px; }
-    footer .legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid transparent; }
-    footer .legend-swatch.s-problem { background: var(--stage-problem-bg); border-color: var(--stage-problem-border); }
-    footer .legend-swatch.s-need    { background: var(--stage-need-bg);    border-color: var(--stage-need-border); }
-    footer .legend-swatch.s-goal    { background: var(--stage-goal-bg);    border-color: var(--stage-goal-border); }
-    footer .legend-swatch.s-ps      { background: var(--stage-ps-bg);      border-color: var(--stage-ps-border); }
-    footer .legend-swatch.s-expl    { background: var(--expl-bg); border-color: var(--expl-border); }
-    footer .legend-swatch.s-ai      { background: var(--ai-bg);   border-color: var(--ai-border); }
     footer .credit { margin-top: 6px; text-align: right; }
+
+    /* ------- legend (colour key, directly under the TOC) ------- */
+
+    .legend-bar { margin: 16px 0 24px; padding: 10px 14px; background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--border-strong); border-radius: 6px; color: var(--muted); font-size: 11px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid transparent; }
+    .legend-swatch.s-problem { background: var(--stage-problem-bg); border-color: var(--stage-problem-border); }
+    .legend-swatch.s-need    { background: var(--stage-need-bg);    border-color: var(--stage-need-border); }
+    .legend-swatch.s-goal    { background: var(--stage-goal-bg);    border-color: var(--stage-goal-border); }
+    .legend-swatch.s-ps      { background: var(--stage-ps-bg);      border-color: var(--stage-ps-border); }
+    .legend-swatch.s-expl    { background: var(--expl-bg); border-color: var(--expl-border); }
+    .legend-swatch.s-ai      { background: var(--ai-bg);   border-color: var(--ai-border); }
 
     @media print {
       body { background: #fff; }
@@ -628,6 +634,17 @@
         <li><a href="#diagnostics">Diagnostics</a></li>
       </ol>
     </nav>
+
+    <section class="legend-bar" aria-label="Legend">
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-problem" aria-hidden="true"></span> Business problem</span>
+        <span class="legend-item"><span class="legend-swatch s-need" aria-hidden="true"></span> Business need</span>
+        <span class="legend-item"><span class="legend-swatch s-goal" aria-hidden="true"></span> Goal / objective</span>
+        <span class="legend-item"><span class="legend-swatch s-ps" aria-hidden="true"></span> Problem statement</span>
+        <span class="legend-item"><span class="legend-swatch s-expl" aria-hidden="true"></span> Explicit (cited)</span>
+        <span class="legend-item"><span class="legend-swatch s-ai" aria-hidden="true"></span> Inferred (anchored)</span>
+      </div>
+    </section>
 
     <section id="causal-map" aria-label="Problem to need to goal to problem-statement causal chain">
       <h2 class="section-title">Causal-chain map</h2>
@@ -696,14 +713,6 @@
     </details>
 
     <footer>
-      <div class="legend">
-        <span class="legend-item"><span class="legend-swatch s-problem" aria-hidden="true"></span> Business problem</span>
-        <span class="legend-item"><span class="legend-swatch s-need" aria-hidden="true"></span> Business need</span>
-        <span class="legend-item"><span class="legend-swatch s-goal" aria-hidden="true"></span> Goal / objective</span>
-        <span class="legend-item"><span class="legend-swatch s-ps" aria-hidden="true"></span> Problem statement</span>
-        <span class="legend-item"><span class="legend-swatch s-expl" aria-hidden="true"></span> Explicit (cited)</span>
-        <span class="legend-item"><span class="legend-swatch s-ai" aria-hidden="true"></span> Inferred (anchored)</span>
-      </div>
       <div class="credit">Generated by <code>framework/agents/analyses-inputs/business-context-definition-analyser.md</code> — BMM Ends · BABOK Business Need · Five-Whys root cause · Design-Thinking POV/HMW · KAOS AND/OR refinement.</div>
     </footer>
   </main>

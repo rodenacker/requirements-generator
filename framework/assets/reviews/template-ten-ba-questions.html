@@ -437,7 +437,17 @@
   /* Diagnostics table accents */
   table.diagnostics-gates tr.gate-fail { background: rgba(185, 28, 28, 0.05); }
 
-  /* Legend */
+  /* Legend bar (colour/provenance key, directly under the TOC) */
+  .legend-bar {
+    margin: 16px 0 24px;
+    padding: 10px 14px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 12.5px;
+  }
   .legend {
     margin: 12px 0 0 0;
     padding: 10px 12px;
@@ -514,6 +524,18 @@
   </ol>
 </nav>
 
+<section class="legend-bar" aria-label="Legend">
+  <p class="legend">
+    <strong>Priority legend.</strong>
+    <strong>blocking</strong> — without an answer, design / estimation / scope cannot proceed (two or more plausible interpretations would yield fundamentally different implementations).
+    <strong>major</strong> — an answer materially changes direction; the team can proceed with a stated default while the stakeholder decides, at documented risk.
+    <strong>minor</strong> — answer affects refinement only; a reasonable default produces an acceptable solution.
+  </p>
+  <p class="legend">
+    Source: <code>requirements/requirements.md</code> only. Categories: C1 Problem &amp; justification · C2 Stakeholders &amp; users · C3 Success &amp; acceptance criteria · C4 Scope &amp; MVP boundaries · C5 Business rules &amp; decisions · C6 Data, entities &amp; integrations · C7 Edge cases &amp; exception flows · C8 Assumptions, dependencies &amp; sequencing.
+  </p>
+</section>
+
 <section id="executive-summary">
   <h2>Executive Summary</h2>
   <p><strong>Total questions:</strong> {{TOTAL_QUESTIONS}}</p>
@@ -525,15 +547,6 @@
   </p>
   <p><strong>Candidate pool size:</strong> {{CANDIDATE_POOL_SIZE}} (≤ 50)</p>
   <p><strong>Category coverage:</strong> {{CATEGORY_COVERAGE}}</p>
-  <p class="legend">
-    <strong>Priority legend.</strong>
-    <strong>blocking</strong> — without an answer, design / estimation / scope cannot proceed (two or more plausible interpretations would yield fundamentally different implementations).
-    <strong>major</strong> — an answer materially changes direction; the team can proceed with a stated default while the stakeholder decides, at documented risk.
-    <strong>minor</strong> — answer affects refinement only; a reasonable default produces an acceptable solution.
-  </p>
-  <p class="legend">
-    Source: <code>requirements/requirements.md</code> only. Categories: C1 Problem &amp; justification · C2 Stakeholders &amp; users · C3 Success &amp; acceptance criteria · C4 Scope &amp; MVP boundaries · C5 Business rules &amp; decisions · C6 Data, entities &amp; integrations · C7 Edge cases &amp; exception flows · C8 Assumptions, dependencies &amp; sequencing.
-  </p>
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
 

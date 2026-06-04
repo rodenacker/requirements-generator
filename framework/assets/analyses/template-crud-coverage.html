@@ -14,6 +14,8 @@
   Section order (top-to-bottom) — DIAGRAMS FIRST:
     1. Overview (id="overview")        — title, subtitle, meta-grid.
     2. TOC (<nav class="toc">)         — static top-level anchors.
+    2b. Legend (.legend-bar)           — colour / provenance key, directly under
+                                         the TOC (first item after the nav).
     3. Diagrams (id="diagrams")        — {{HEATMAP_BLOCK}} (coverage heatmap,
        the centrepiece) followed by {{ROLE_VIEW_BLOCK}} (role grid + SoD flags,
        or the single-actor note).
@@ -137,6 +139,7 @@
   .cov-intentional{ background: var(--intentional-bg);color: var(--intentional-ink); }
 
   /* Legend */
+  .legend-bar { margin: 16px 0 24px; padding: 10px 14px; background: #fff; border: 1px solid var(--line-soft); border-left: 4px solid var(--line); border-radius: 6px; color: var(--muted); font-size: 0.8rem; }
   .legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 12px 0 4px;
             font-size: 0.78rem; }
   .legend .lg { display: inline-flex; align-items: center; gap: 6px;
@@ -216,14 +219,18 @@
     <a href="#diagnostics">Diagnostics</a>
   </nav>
 
+  <!-- 2b. Legend -->
+  <section class="legend-bar" aria-label="Legend">
+    <div class="legend">
+      <span class="lg"><span class="sw" style="background:var(--delivered-bg);border:1px solid var(--delivered-line)"></span> ● delivered — a function delivers it</span>
+      <span class="lg"><span class="sw" style="background:var(--granted-bg);border:1px solid var(--granted-line)"></span> △ granted-not-delivered — §6.5 grants it, nothing delivers it</span>
+      <span class="lg"><span class="sw" style="background:var(--forgotten-bg);border:1px solid var(--forgotten-line)"></span> ✕ forgotten — expected, absent</span>
+      <span class="lg"><span class="sw" style="background:var(--intentional-bg);border:1px solid var(--intentional-line)"></span> ○ intentional — deliberately narrow</span>
+    </div>
+  </section>
+
   <!-- 3. Diagrams (top of document) -->
   <h2 id="diagrams">Coverage heatmap</h2>
-  <div class="legend">
-    <span class="lg"><span class="sw" style="background:var(--delivered-bg);border:1px solid var(--delivered-line)"></span> ● delivered — a function delivers it</span>
-    <span class="lg"><span class="sw" style="background:var(--granted-bg);border:1px solid var(--granted-line)"></span> △ granted-not-delivered — §6.5 grants it, nothing delivers it</span>
-    <span class="lg"><span class="sw" style="background:var(--forgotten-bg);border:1px solid var(--forgotten-line)"></span> ✕ forgotten — expected, absent</span>
-    <span class="lg"><span class="sw" style="background:var(--intentional-bg);border:1px solid var(--intentional-line)"></span> ○ intentional — deliberately narrow</span>
-  </div>
   {{HEATMAP_BLOCK}}
 
   <h2 id="role-view">Role view (BABOK #39 — Roles &amp; Permissions)</h2>

@@ -9,6 +9,8 @@
   Section order (top-to-bottom):
     1. Overview (id="overview")        — title, subtitle, meta-grid.
     2. TOC (<nav class="toc">)         — static top-level anchors.
+    2b. Legend (.legend-bar)           — colour / provenance key, directly under
+                                         the TOC (first item after the nav).
     3. UML diagrams (id="uml-diagrams") — {{UML_SVG_BLOCK}} + {{UML_MERMAID_BLOCK}}.
        One always-on System overview <figure> (actors as stick figures,
        UCs as ovals inside a system-boundary rect, association lines,
@@ -21,6 +23,7 @@
     5. Tabular information (id="tables") — {{UC_INDEX_TABLE}}.
     6. Diagnostics (id="diagnostics")  — <details> wrapper, collapsed
        by default. Bottom of page; position alone signals auxiliary.
+    7. footer                          — credit.
 
   Layout: one `<section class="uc-level-block">` per sea-level (summary →
   user-goal → subfunction). Inside each block, UCs render as
@@ -1107,8 +1110,36 @@
       white-space: pre;
     }
 
-    /* ------- footer ------- */
+    /* ------- legend (colour key, directly under the TOC) ------- */
+    .legend-bar { margin: 16px 0 24px; padding: 10px 14px; background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--border-strong); border-radius: 6px; color: var(--muted); font-size: 11px; }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      align-items: center;
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend-swatch {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border-left: 3px solid transparent;
+    }
+    .legend-swatch.s-summary  { background: var(--level-sum-bg); border: 1px solid var(--level-sum-border); }
+    .legend-swatch.s-ug       { background: var(--level-ug-bg);  border: 1px solid var(--level-ug-border); }
+    .legend-swatch.s-sub      { background: var(--level-sub-bg); border: 1px solid var(--level-sub-border); }
+    .legend-swatch.s-actor    { background: var(--step-actor-bg); border: 1px solid var(--border); }
+    .legend-swatch.s-system   { background: var(--step-system-bg); border: 1px solid var(--border); }
+    .legend-swatch.s-alt      { background: var(--ext-alt-bg); border-left-color: var(--ext-alt-border); border: 1px solid var(--ext-alt-border); }
+    .legend-swatch.s-exception{ background: var(--ext-exception-bg); border-left-color: var(--ext-exception-border); border: 1px solid var(--ext-exception-border); }
+    .legend .provenance { vertical-align: -1px; }
 
+    /* ------- footer ------- */
     footer {
       margin-top: 24px;
       padding-top: 16px;
@@ -1116,32 +1147,6 @@
       color: var(--muted);
       font-size: 11px;
     }
-    footer .legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px 14px;
-      align-items: center;
-    }
-    footer .legend-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    footer .legend-swatch {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
-      border-left: 3px solid transparent;
-    }
-    footer .legend-swatch.s-summary  { background: var(--level-sum-bg); border: 1px solid var(--level-sum-border); }
-    footer .legend-swatch.s-ug       { background: var(--level-ug-bg);  border: 1px solid var(--level-ug-border); }
-    footer .legend-swatch.s-sub      { background: var(--level-sub-bg); border: 1px solid var(--level-sub-border); }
-    footer .legend-swatch.s-actor    { background: var(--step-actor-bg); border: 1px solid var(--border); }
-    footer .legend-swatch.s-system   { background: var(--step-system-bg); border: 1px solid var(--border); }
-    footer .legend-swatch.s-alt      { background: var(--ext-alt-bg); border-left-color: var(--ext-alt-border); border: 1px solid var(--ext-alt-border); }
-    footer .legend-swatch.s-exception{ background: var(--ext-exception-bg); border-left-color: var(--ext-exception-border); border: 1px solid var(--ext-exception-border); }
-    footer .provenance { vertical-align: -1px; }
     footer .credit { margin-top: 6px; text-align: right; }
 
     /* ------- table of contents ------- */
@@ -1222,6 +1227,20 @@
       </ol>
     </nav>
 
+    <section class="legend-bar" aria-label="Legend">
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-summary" aria-hidden="true"></span> Summary (kite)</span>
+        <span class="legend-item"><span class="legend-swatch s-ug" aria-hidden="true"></span> User-Goal (sea)</span>
+        <span class="legend-item"><span class="legend-swatch s-sub" aria-hidden="true"></span> Subfunction (fish)</span>
+        <span class="legend-item"><span class="legend-swatch s-actor" aria-hidden="true"></span> Actor step</span>
+        <span class="legend-item"><span class="legend-swatch s-system" aria-hidden="true"></span> System step</span>
+        <span class="legend-item"><span class="legend-swatch s-alt" aria-hidden="true"></span> Extension — alt</span>
+        <span class="legend-item"><span class="legend-swatch s-exception" aria-hidden="true"></span> Extension — exception</span>
+        <span class="legend-item"><span class="provenance provenance-from-personas" aria-hidden="true"></span> from §Personas</span>
+        <span class="legend-item"><span class="provenance provenance-derived" aria-hidden="true"></span> derived actor</span>
+      </div>
+    </section>
+
     <section id="uml-diagrams" aria-label="UML use case diagrams">
       <h2>UML use case diagrams</h2>
       <p class="uml-section-caption">System overview is always emitted. Per-actor focus diagrams render only when the consultant selected them. Inline SVG + copy-pasteable Mermaid <code>flowchart</code> source.</p>
@@ -1248,17 +1267,6 @@
     </details>
 
     <footer>
-      <div class="legend">
-        <span class="legend-item"><span class="legend-swatch s-summary" aria-hidden="true"></span> Summary (kite)</span>
-        <span class="legend-item"><span class="legend-swatch s-ug" aria-hidden="true"></span> User-Goal (sea)</span>
-        <span class="legend-item"><span class="legend-swatch s-sub" aria-hidden="true"></span> Subfunction (fish)</span>
-        <span class="legend-item"><span class="legend-swatch s-actor" aria-hidden="true"></span> Actor step</span>
-        <span class="legend-item"><span class="legend-swatch s-system" aria-hidden="true"></span> System step</span>
-        <span class="legend-item"><span class="legend-swatch s-alt" aria-hidden="true"></span> Extension — alt</span>
-        <span class="legend-item"><span class="legend-swatch s-exception" aria-hidden="true"></span> Extension — exception</span>
-        <span class="legend-item"><span class="provenance provenance-from-personas" aria-hidden="true"></span> from §Personas</span>
-        <span class="legend-item"><span class="provenance provenance-derived" aria-hidden="true"></span> derived actor</span>
-      </div>
       <div class="credit">Generated by `framework/agents/analyses/use-cases-analyser.md`.</div>
     </footer>
   </main>

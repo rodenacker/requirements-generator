@@ -14,6 +14,8 @@
   compact overview, then the prominent diagram, then the rest):
     1. Overview (id="overview")        — title, subtitle, meta-grid.
     2. TOC (<nav class="toc">)         — static top-level anchors.
+    2b. Legend (.legend-bar)           — colour key, directly under the TOC
+                                         (first item after the nav).
     3. Goal hierarchy (id="hierarchy") — {{GOAL_HIERARCHY}} — CSS-only nested AND/OR tree. THE DIAGRAM; first content item.
     4. Goal register (id="register")   — {{GOAL_REGISTER}} — Cooper-type sub-sections of goal cards.
     5. Actor map (id="actor-map")      — {{ACTOR_MAP}} — actor × held/depended goals table.
@@ -435,16 +437,20 @@
     table.source-roster td.sha { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; color: var(--muted); }
 
     footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 11px; }
-    footer .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
-    footer .legend-item { display: inline-flex; align-items: center; gap: 6px; }
-    footer .legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid transparent; }
-    footer .legend-swatch.s-life { background: var(--type-life-bg); border-color: var(--type-life-border); }
-    footer .legend-swatch.s-end  { background: var(--type-end-bg);  border-color: var(--type-end-border); }
-    footer .legend-swatch.s-exp  { background: var(--type-exp-bg);  border-color: var(--type-exp-border); }
-    footer .legend-swatch.s-expl { background: var(--expl-bg); border-color: var(--expl-border); }
-    footer .legend-swatch.s-ai   { background: var(--ai-bg);   border-color: var(--ai-border); }
-    footer .legend-swatch.s-src  { background: var(--src-chip-bg); border-color: var(--src-chip-border); }
     footer .credit { margin-top: 6px; text-align: right; }
+
+    /* ------- legend (colour key, directly under the TOC) ------- */
+
+    .legend-bar { margin: 16px 0 24px; padding: 10px 14px; background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--border-strong); border-radius: 6px; color: var(--muted); font-size: 11px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid transparent; }
+    .legend-swatch.s-life { background: var(--type-life-bg); border-color: var(--type-life-border); }
+    .legend-swatch.s-end  { background: var(--type-end-bg);  border-color: var(--type-end-border); }
+    .legend-swatch.s-exp  { background: var(--type-exp-bg);  border-color: var(--type-exp-border); }
+    .legend-swatch.s-expl { background: var(--expl-bg); border-color: var(--expl-border); }
+    .legend-swatch.s-ai   { background: var(--ai-bg);   border-color: var(--ai-border); }
+    .legend-swatch.s-src  { background: var(--src-chip-bg); border-color: var(--src-chip-border); }
 
     @media print {
       body { background: #fff; }
@@ -496,6 +502,17 @@
       </ol>
     </nav>
 
+    <section class="legend-bar" aria-label="Legend">
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-life" aria-hidden="true"></span> Life goal</span>
+        <span class="legend-item"><span class="legend-swatch s-end" aria-hidden="true"></span> End goal</span>
+        <span class="legend-item"><span class="legend-swatch s-exp" aria-hidden="true"></span> Experience goal</span>
+        <span class="legend-item"><span class="legend-swatch s-expl" aria-hidden="true"></span> Explicit (cited)</span>
+        <span class="legend-item"><span class="legend-swatch s-ai" aria-hidden="true"></span> Inferred (anchored)</span>
+        <span class="legend-item"><span class="legend-swatch s-src" aria-hidden="true"></span> [SRC: filename] source chip</span>
+      </div>
+    </section>
+
     <section id="hierarchy" aria-label="Goal refinement hierarchy">
       <h2 class="section-title">Goal hierarchy</h2>
       <p class="section-caption">KAOS-style refinement: each parent goal refines into children via <span class="refine-badge refine-and">AND</span> (all required) or <span class="refine-badge refine-or">OR</span> (alternatives). Leaves are operationalisable goals. Inferred goals (amber) are marked inline.</p>
@@ -538,14 +555,6 @@
     </details>
 
     <footer>
-      <div class="legend">
-        <span class="legend-item"><span class="legend-swatch s-life" aria-hidden="true"></span> Life goal</span>
-        <span class="legend-item"><span class="legend-swatch s-end" aria-hidden="true"></span> End goal</span>
-        <span class="legend-item"><span class="legend-swatch s-exp" aria-hidden="true"></span> Experience goal</span>
-        <span class="legend-item"><span class="legend-swatch s-expl" aria-hidden="true"></span> Explicit (cited)</span>
-        <span class="legend-item"><span class="legend-swatch s-ai" aria-hidden="true"></span> Inferred (anchored)</span>
-        <span class="legend-item"><span class="legend-swatch s-src" aria-hidden="true"></span> [SRC: filename] source chip</span>
-      </div>
       <div class="credit">Generated by <code>framework/agents/analyses-inputs/user-goal-analysis-analyser.md</code> — Cooper goal types · KAOS AND/OR refinement · means-end laddering · i*-lite actor map.</div>
     </footer>
   </main>

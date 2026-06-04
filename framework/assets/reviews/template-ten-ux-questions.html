@@ -436,7 +436,17 @@
   /* Diagnostics table accents */
   table.diagnostics-gates tr.gate-fail { background: rgba(185, 28, 28, 0.05); }
 
-  /* Legend */
+  /* Legend bar (colour/provenance key, directly under the TOC) */
+  .legend-bar {
+    margin: 16px 0 24px;
+    padding: 10px 14px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 12.5px;
+  }
   .legend {
     margin: 12px 0 0 0;
     padding: 10px 12px;
@@ -513,6 +523,18 @@
   </ol>
 </nav>
 
+<section class="legend-bar" aria-label="Legend">
+  <p class="legend">
+    <strong>Priority legend.</strong>
+    <strong>blocking</strong> — without an answer, the design cannot proceed (two or more plausible interpretations yield contradictory designs).
+    <strong>major</strong> — an answer materially changes design direction; design can proceed with a stated default at the cost of re-design risk.
+    <strong>minor</strong> — answer affects refinement only; a reasonable default produces an acceptable design.
+  </p>
+  <p class="legend">
+    Source: <code>requirements/requirements.md</code> only. Categories: C1 Users &amp; segmentation · C2 Context of use · C3 Goals &amp; success signals · C4 Tasks, flows, decision points · C5 Data &amp; content for decisions · C6 Errors, edge cases, recovery · C7 Collaboration &amp; concurrency · C8 Trust, transparency, audit.
+  </p>
+</section>
+
 <section id="executive-summary">
   <h2>Executive Summary</h2>
   <p><strong>Total questions:</strong> {{TOTAL_QUESTIONS}}</p>
@@ -524,15 +546,6 @@
   </p>
   <p><strong>Candidate pool size:</strong> {{CANDIDATE_POOL_SIZE}} (≤ 50)</p>
   <p><strong>Category coverage:</strong> {{CATEGORY_COVERAGE}}</p>
-  <p class="legend">
-    <strong>Priority legend.</strong>
-    <strong>blocking</strong> — without an answer, the design cannot proceed (two or more plausible interpretations yield contradictory designs).
-    <strong>major</strong> — an answer materially changes design direction; design can proceed with a stated default at the cost of re-design risk.
-    <strong>minor</strong> — answer affects refinement only; a reasonable default produces an acceptable design.
-  </p>
-  <p class="legend">
-    Source: <code>requirements/requirements.md</code> only. Categories: C1 Users &amp; segmentation · C2 Context of use · C3 Goals &amp; success signals · C4 Tasks, flows, decision points · C5 Data &amp; content for decisions · C6 Errors, edge cases, recovery · C7 Collaboration &amp; concurrency · C8 Trust, transparency, audit.
-  </p>
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
 

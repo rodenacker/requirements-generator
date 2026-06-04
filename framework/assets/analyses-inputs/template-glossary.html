@@ -19,6 +19,8 @@
   Section order (top-to-bottom):
     1. Overview (id="overview")              — title, subtitle, meta-grid.
     2. TOC (<nav class="toc">)               — static top-level anchors.
+    2b. Legend (.legend-bar)                 — colour key, directly under the TOC
+                                               (first item after the nav).
     3. Canonical glossary — domain (id="domain-glossary")        — {{DOMAIN_GLOSSARY_BLOCK}} — primary content.
     4. Canonical glossary — application (id="application-glossary")— {{APPLICATION_GLOSSARY_BLOCK}}.
     5. Open items (work toward agreement):
@@ -422,16 +424,20 @@
     table.source-roster td.sha { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; color: var(--muted); }
 
     footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 11px; }
-    footer .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
-    footer .legend-item { display: inline-flex; align-items: center; gap: 6px; }
-    footer .legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid transparent; }
-    footer .legend-swatch.s-domain { background: var(--cls-domain-bg); border-color: var(--cls-domain-border); }
-    footer .legend-swatch.s-application { background: var(--cls-application-bg); border-color: var(--cls-application-border); }
-    footer .legend-swatch.s-m0 { background: var(--m0-bg); border-color: var(--m0-border); }
-    footer .legend-swatch.s-m3 { background: var(--m3-bg); border-color: var(--m3-border); }
-    footer .legend-swatch.s-m4 { background: var(--m4-bg); border-color: var(--m4-border); }
-    footer .legend-swatch.s-ai { background: var(--ai-bg); border-color: var(--ai-border); }
     footer .credit { margin-top: 6px; text-align: right; }
+
+    /* ------- legend (colour key, directly under the TOC) ------- */
+
+    .legend-bar { margin: 16px 0 24px; padding: 10px 14px; background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--border-strong); border-radius: 6px; color: var(--muted); font-size: 11px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .legend-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid transparent; }
+    .legend-swatch.s-domain { background: var(--cls-domain-bg); border-color: var(--cls-domain-border); }
+    .legend-swatch.s-application { background: var(--cls-application-bg); border-color: var(--cls-application-border); }
+    .legend-swatch.s-m0 { background: var(--m0-bg); border-color: var(--m0-border); }
+    .legend-swatch.s-m3 { background: var(--m3-bg); border-color: var(--m3-border); }
+    .legend-swatch.s-m4 { background: var(--m4-bg); border-color: var(--m4-border); }
+    .legend-swatch.s-ai { background: var(--ai-bg); border-color: var(--ai-border); }
 
     @media print {
       body { background: #fff; }
@@ -488,6 +494,17 @@
         <li><a href="#diagnostics">Diagnostics</a></li>
       </ol>
     </nav>
+
+    <section class="legend-bar" aria-label="Legend">
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch s-domain" aria-hidden="true"></span> Domain term</span>
+        <span class="legend-item"><span class="legend-swatch s-application" aria-hidden="true"></span> Application term</span>
+        <span class="legend-item"><span class="legend-swatch s-m0" aria-hidden="true"></span> L0 undefined</span>
+        <span class="legend-item"><span class="legend-swatch s-m3" aria-hidden="true"></span> L3 settled</span>
+        <span class="legend-item"><span class="legend-swatch s-m4" aria-hidden="true"></span> L4 conflicting</span>
+        <span class="legend-item"><span class="legend-swatch s-ai" aria-hidden="true"></span> Proposed (unverified)</span>
+      </div>
+    </section>
 
     <section id="domain-glossary" aria-label="Canonical glossary — domain terms">
       <h2 class="section-title">Domain terms</h2>
@@ -551,14 +568,6 @@
     </details>
 
     <footer>
-      <div class="legend">
-        <span class="legend-item"><span class="legend-swatch s-domain" aria-hidden="true"></span> Domain term</span>
-        <span class="legend-item"><span class="legend-swatch s-application" aria-hidden="true"></span> Application term</span>
-        <span class="legend-item"><span class="legend-swatch s-m0" aria-hidden="true"></span> L0 undefined</span>
-        <span class="legend-item"><span class="legend-swatch s-m3" aria-hidden="true"></span> L3 settled</span>
-        <span class="legend-item"><span class="legend-swatch s-m4" aria-hidden="true"></span> L4 conflicting</span>
-        <span class="legend-item"><span class="legend-swatch s-ai" aria-hidden="true"></span> Proposed (unverified)</span>
-      </div>
       <div class="credit">Generated by <code>framework/agents/analyses-inputs/glossary-analyser.md</code> — DDD ubiquitous language · ISO 704 definition principles · Berry &amp; Kamsties ambiguity · term-extraction termhood/unithood.</div>
     </footer>
   </main>

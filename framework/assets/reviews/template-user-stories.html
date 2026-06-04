@@ -478,7 +478,17 @@
   /* Diagnostics table accents */
   table.diagnostics-gates tr.gate-fail { background: rgba(185, 28, 28, 0.05); }
 
-  /* Legend */
+  /* Legend bar (colour/provenance key, directly under the TOC) */
+  .legend-bar {
+    margin: 16px 0 24px;
+    padding: 10px 14px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 12.5px;
+  }
   .legend {
     margin: 12px 0 0 0;
     padding: 10px 12px;
@@ -557,6 +567,18 @@
   </ol>
 </nav>
 
+<section class="legend-bar" aria-label="Legend">
+  <p class="legend">
+    <strong>Priority legend.</strong>
+    <strong>blocking</strong> — the story cannot be built, tested, or accepted as written.
+    <strong>major</strong> — the story is buildable but ambiguous; multiple correct implementations are possible.
+    <strong>minor</strong> — refinement opportunity; a reasonable interpretation produces an acceptable story.
+  </p>
+  <p class="legend">
+    Source: <code>requirements/requirements.md &gt; §4.2 Stories by persona</code> only. Criteria: Meaningful · Implementable · Testable · Coherent · Appropriately scoped · Outcome-aligned. Ready stories are recorded in Diagnostics but not surfaced in the body.
+  </p>
+</section>
+
 <section id="executive-summary">
   <h2>Executive Summary</h2>
   <p><strong>Stories evaluated:</strong> {{TOTAL_STORIES}}</p>
@@ -570,15 +592,6 @@
   </p>
   <p><strong>Personas covered:</strong> {{PERSONA_LIST}}</p>
   <p><strong>Criterion coverage:</strong> {{CRITERION_COVERAGE}}</p>
-  <p class="legend">
-    <strong>Priority legend.</strong>
-    <strong>blocking</strong> — the story cannot be built, tested, or accepted as written.
-    <strong>major</strong> — the story is buildable but ambiguous; multiple correct implementations are possible.
-    <strong>minor</strong> — refinement opportunity; a reasonable interpretation produces an acceptable story.
-  </p>
-  <p class="legend">
-    Source: <code>requirements/requirements.md &gt; §4.2 Stories by persona</code> only. Criteria: Meaningful · Implementable · Testable · Coherent · Appropriately scoped · Outcome-aligned. Ready stories are recorded in Diagnostics but not surfaced in the body.
-  </p>
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
 
