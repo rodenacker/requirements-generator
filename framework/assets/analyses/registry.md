@@ -164,6 +164,16 @@ methodologies:
     map_skill: framework/skills/map-trade-off-dimension-to-ui.md
     analyser_agent: framework/agents/analyses/trade-off-dimension-analyser.md
     character: framework/assets/characters/trade-off-dimension-analysis.md
+  - name: faceted-classification
+    status: mvp
+    group: Objects, data & lifecycle
+    description: Choose this when your app is list-heavy and you need to specify how users filter, sort, and search records before wireframing those list surfaces. It produces an HTML facet map of the orthogonal dimensions records can be sliced along — status, type, owner, date-range — each with its value set and the §7 data property it filters on, an orthogonality check, a per-surface filter/sort scaffolding note, and a facet-value-scoped controlled vocabulary. Use the facets as the filter-chip, facet-rail, and sort-axis specification your list surfaces are designed against, and re-drop it into input/ so /requirements hardens the filter/sort UI requirements.
+    output_path: analyse-requirements/FACETED-CLASSIFICATION/facet-map.html
+    reference_asset: framework/assets/analyses/faceted-classification-reference.md
+    template_asset: framework/assets/analyses/template-faceted-classification.html
+    map_skill: framework/skills/map-faceted-classification-to-ui.md
+    analyser_agent: framework/agents/analyses/faceted-classification-analyser.md
+    character: framework/assets/characters/faceted-classification-analysis.md
 ---
 
 # analyses/registry.md

@@ -53,6 +53,7 @@ The skill stamps an `architect_roles` array into every `selections[]` row, drawn
 | `decision-tables` | `upstream-only` |
 | `five-whys` | `upstream-only` |
 | `mvp-slicing` | `upstream-only` |
+| `faceted-classification` | `upstream-only` |
 
 Role semantics (closed enum, consumed by `blueprint-architect.md`):
 
@@ -220,7 +221,7 @@ Role semantics (closed enum, consumed by `blueprint-architect.md`):
 - Do not surface methodologies whose `output_path` does not resolve on disk. The completed-on-disk filter at step 3 is the **load-bearing rule**; appending "(not yet run)" suffixes, "Run /analyse-requirement first" hints, or "coming soon" annotations to absent rows defeats the rule. The consultant is selecting *from what they have produced*, not browsing the methodology catalogue.
 - Do not record absent methodologies anywhere in the JSON. No `skipped_absent` field, no `available_to_run` field, no audit trail of "what the consultant didn't pick because they hadn't produced it." The on-disk subset is the universe; absent rows are out of scope.
 - Do not hardcode methodology names or paths. The registry is canonical; the static `architect_roles` table keys on the registry's `name` slug.
-- Do not invoke `AskUserQuestion` for the multi-select itself. The list cardinality (13 mvp rows in the registry today, ≤ that many on disk) exceeds the 4-option cap. Print-and-parse handles arbitrary cardinality in one prompt; the `AskUserQuestion` calls in this skill are limited to (a) post-parse Confirm/Edit/Cancel, and (b) the optional context-bloat re-check.
+- Do not invoke `AskUserQuestion` for the multi-select itself. The list cardinality (17 mvp rows in the registry today, ≤ that many on disk) exceeds the 4-option cap. Print-and-parse handles arbitrary cardinality in one prompt; the `AskUserQuestion` calls in this skill are limited to (a) post-parse Confirm/Edit/Cancel, and (b) the optional context-bloat re-check.
 - Do not surface an `AskUserQuestion` on the zero-on-disk branch. Zero analyses is not a decision — auto-proceed with a printed notice and return `selected-none`. The Cancel affordance lives at the architect's conditional gate (Stage 2) and the orchestrator's Stage-4b accept gate, not here.
 - Do not omit the confirmation step. The print-and-parse step accepts comma-separated text; the `AskUserQuestion` confirmation is the consultant's structured chance to verify the parse landed correctly.
 - Do not write the JSON before confirmation. The confirmation step is the commit point; an Edit response must not leave a stale JSON on disk.

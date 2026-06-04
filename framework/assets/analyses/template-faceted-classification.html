@@ -1,0 +1,295 @@
+<!--
+  ROLE: asset (HTML template). Populated by framework/agents/analyses/faceted-classification-analyser.md.
+
+  Purpose: HTML/CSS skeleton for a Faceted Classification & Controlled Vocabulary artefact —
+  the orthogonal facets (slicing dimensions) of each list-bearing / collection surface in
+  requirements/requirements.md, each with its kind, value set, and a backing §7 data property,
+  plus an orthogonality matrix, a filter/sort scaffolding note per surface, a facet-value-scoped
+  controlled vocabulary, and a non-orthogonality register (dependent facet pairs to collapse).
+
+  Self-contained (`<!doctype html>` + ONE inlined `<style>` + `<body>`). NO external CSS/JS,
+  NO Mermaid runtime, NO CDN, NO `<script>`; viewable by opening `file://` in a browser; prints
+  to PDF; shareable with clients without tooling. CSS lineage from the sibling
+  framework/assets/analyses/template-decision-tables.html so the analysis outputs read as
+  consistent siblings. The "diagrams" are CSS-only (facet-coverage cards + an orthogonality
+  matrix table) — NO inline SVG, NO svg-overlap-check.
+
+  Re-ingestion: this method IS re-ingestible by /requirements. The machine-readable model lives
+  in a `<pre><code class="language-json" id="faceted-classification-body">` block inside the
+  (non-collapsed) `#body` section — this form survives the markitdown HTML->MD round-trip as a
+  fenced ```json block (a `<script type="application/json">` block would NOT). Every facet/value-set
+  marked `[AI-SUGGESTED: AI-NNN | blocking]` reaches the /requirements resolver as a mandatory
+  confirmation when the artefact is re-dropped into input/ — the path that hardens §6.4 filter/sort
+  UI requirements.
+
+  Section order (top-to-bottom) — DIAGRAMS FIRST:
+    1. Overview (id="overview")        — title, subtitle, meta-grid, standing disclaimer banner.
+    2. TOC (<nav class="toc">)         — static top-level anchors.
+    3. Diagrams (id="diagrams")        — {{FACET_CARDS_BLOCK}} (per-collection facet-coverage cards,
+       the value front-loaded) followed by {{ORTHOGONALITY_MATRIX_BLOCK}} (per-collection facets ×
+       facets independence matrix).
+    4. Tables (id="tables")            — {{SCAFFOLDING_NOTE_BLOCK}} (per-surface filter/sort/search
+       scaffolding) + {{CONTROLLED_VOCAB_BLOCK}} + {{NON_ORTHOGONALITY_REGISTER_BLOCK}}.
+    5. Machine-readable model (id="body") — {{BODY_JSON}} inside <pre class="body-json"><code
+       class="language-json" id="faceted-classification-body">. NOT collapsed (round-trip safety).
+    6. Diagnostics (id="diagnostics")  — <details>, collapsed by default; counts, check results,
+       thin-slice / no-slice / un-banded notes, repeated disclaimer, honest-skip note. Bottom of page.
+
+  Placeholders the analyser substitutes (string substitution; all values pre-escaped for HTML
+  before injection):
+
+    {{TITLE}}                          — e.g. "Faceted Classification — <domain>".
+    {{DOMAIN}}                         — domain string (from requirements §1), or
+                                         "(not declared in requirements.md)".
+    {{GENERATED_AT}}                   — ISO-8601 UTC timestamp at render time.
+    {{REQUIREMENTS_SHA256}}            — sha256 of requirements/requirements.md at read time.
+    {{COLLECTION_COUNT}}               — number of list-bearing / collection surfaces analysed.
+    {{FACET_COUNT}}                    — total facets across all collections.
+    {{NON_ORTHOGONAL_COUNT}}           — total non-orthogonality-register rows (dependent pairs).
+    {{AI_SUGGESTED_COUNT}}             — total [AI-SUGGESTED] markers (inferred facets/value-sets + inferred dependency judgements).
+    {{UNBANDED_COUNT}}                 — facets flagged needs-a-threshold.
+    {{FACET_CARDS_BLOCK}}              — pre-rendered <div class="facet-coverage"> of per-collection cards.
+    {{ORTHOGONALITY_MATRIX_BLOCK}}     — pre-rendered set of <figure class="ortho-figure"> matrix tables (one per collection). Empty model → <p class="diagram-empty">.
+    {{SCAFFOLDING_NOTE_BLOCK}}         — pre-rendered <section class="card"> with .scaffolding-table.
+    {{CONTROLLED_VOCAB_BLOCK}}         — pre-rendered <section class="card"> with .vocab-table (or a one-line "no label drift" note).
+    {{NON_ORTHOGONALITY_REGISTER_BLOCK}} — pre-rendered <section class="card"> with .nonortho-table (or a one-line "all facet pairs independent" note).
+    {{BODY_JSON}}                      — entity-escaped JSON ({collections[],facets[],value_sets,
+                                         orthogonality_matrix,non_orthogonal_pairs[],controlled_vocabulary[]});
+                                         rendered inert inside <pre><code>.
+    {{DIAGNOSTICS_BLOCK}}              — pre-rendered <section class="diagnostics"> (the analyser does NOT
+                                         emit the <details>/<summary> wrapper; the template owns it).
+
+  CSS class contract used by the analyser (the template owns these; the analyser emits HTML using
+  them and does not edit the CSS):
+    - Facet-coverage cards: .facet-coverage ; .collection-card (.thin / .no-slice variants) ; .cname ;
+      .facet-chip ; .facet-chip .fkind (kind pill) ; .facet-chip.inferred (italic+dim, [AI-SUGGESTED]) ;
+      .facet-chip.flagged (needs-a-threshold) ; .backing (mono backing-property ref) ; .no-slice-note.
+    - Orthogonality matrix: figure.ortho-figure ; table.ortho-matrix ; td.ortho-independent (✓) ;
+      td.ortho-dependent (✕ + direction) ; td.ortho-self (diagonal, dimmed) ; .ortho-trivial (one-facet note).
+    - Scaffolding: .scaffolding-table.
+    - Controlled vocabulary: .vocab-table.
+    - Non-orthogonality register: .nonortho-table ; verdict pills .v-blocking / .v-nonblocking /
+      .v-structural ; tr.provenance-ai-suggested ; .ai-suggested (italic+dim cell).
+    - Provenance chips: .prov-cited / .prov-inferred / .prov-standard.
+    - Disclaimer: .disclaimer-banner.
+    - Diagnostics: .check-pass / .check-fail ; .thin-slice-warning ; .note-line ; .hidden.
+    - Machine-readable: pre.body-json > code.language-json#faceted-classification-body.
+  Dependency / flag signalling is always glyph + word — colour is never the sole signal.
+  Only the documented {{placeholders}} are substituted; CSS, layout, and class names are fixed.
+
+  Output: analyse-requirements/FACETED-CLASSIFICATION/facet-map.html.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root {
+    --bg: #fbfbfd; --surface: #ffffff; --ink: #1d1d1f; --muted: #6e6e73;
+    --line: #d2d2d7; --line-soft: #e8e8ed; --accent: #0a5ad6;
+    --ok-bg: #e6f4ea; --ok-ink: #137333; --ok-line: #a8d5b5;
+    --warn-bg: #fef3e0; --warn-ink: #9a5b00; --warn-line: #f3cf94;
+    --bad-bg: #fde7e7; --bad-ink: #b3261e; --bad-line: #f2b2ae;
+    --neutral-bg: #eef0f2; --neutral-ink: #5f6368; --neutral-line: #d6dade;
+    --facet-bg: #dbe6fb; --facet-border: #4f7fbf; --facet-ink: #102a52;
+    --kind-bg: #eef0f2; --kind-ink: #3a3d42;
+    --prov-cited: #2a8a2a; --prov-inferred: #c0573f; --prov-standard: #4f8fbf;
+    --radius: 10px; --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans);
+         line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  main { max-width: 1180px; margin: 0 auto; padding: 32px 24px 96px; }
+  h1 { font-size: 1.7rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+  h2 { font-size: 1.25rem; margin: 40px 0 12px; padding-top: 8px; letter-spacing: -0.01em; }
+  h3 { font-size: 1.02rem; margin: 22px 0 8px; }
+  p { margin: 8px 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, .mono { font-family: var(--mono); font-size: 0.86em; }
+
+  /* Overview */
+  .subtitle { color: var(--muted); margin: 0 0 16px; }
+  .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+               gap: 10px; margin: 16px 0 4px; }
+  .meta-cell { background: var(--surface); border: 1px solid var(--line-soft);
+               border-radius: var(--radius); padding: 10px 12px; }
+  .meta-cell .k { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+  .meta-cell .v { font-size: 1.1rem; font-weight: 600; }
+  .meta-cell .v.mono { font-size: 0.78rem; font-weight: 500; word-break: break-all; }
+
+  /* Standing disclaimer banner */
+  .disclaimer-banner { margin: 16px 0 4px; padding: 12px 14px; background: var(--warn-bg);
+    border: 1px solid var(--warn-line); border-left: 4px solid var(--warn-ink);
+    border-radius: var(--radius); color: var(--warn-ink); font-size: 0.86rem; }
+  .disclaimer-banner strong { color: var(--warn-ink); }
+
+  /* TOC */
+  .toc { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 18px 0 8px;
+         padding: 10px 14px; background: var(--surface); border: 1px solid var(--line-soft);
+         border-radius: var(--radius); font-size: 0.9rem; }
+  .toc a { color: var(--muted); } .toc a:hover { color: var(--accent); }
+
+  section[id] { scroll-margin-top: 64px; }
+  section.card { background: var(--surface); border: 1px solid var(--line-soft);
+                 border-radius: var(--radius); padding: 16px 18px; margin: 12px 0; }
+  .section-caption { font-size: 0.82rem; color: var(--muted); margin: 0 0 12px; }
+  .diagram-empty { color: var(--muted); font-style: italic; padding: 12px; }
+
+  /* Tables (shared) */
+  table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+  th, td { border: 1px solid var(--line-soft); padding: 7px 10px; text-align: left; vertical-align: top; }
+  thead th { background: #f5f5f7; font-weight: 600; }
+  .scroll-x { overflow-x: auto; }
+
+  /* Facet-coverage cards (diagrams, top) */
+  .facet-coverage { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                    gap: 10px; margin: 4px 0 8px; }
+  .collection-card { border: 1px solid var(--line); border-left-width: 4px; border-left-color: var(--facet-border);
+                     border-radius: var(--radius); padding: 12px 14px; background: var(--surface); }
+  .collection-card.thin { border-left-color: var(--warn-ink); }
+  .collection-card.no-slice { border-left-color: var(--neutral-ink); }
+  .collection-card .cname { font-weight: 600; font-size: 0.98rem; margin-bottom: 8px; }
+  .collection-card .cname .csrc { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); font-weight: 500; }
+  .facet-chip { display: block; margin: 6px 0; padding: 6px 8px; border: 1px solid var(--facet-border);
+                background: var(--facet-bg); color: var(--facet-ink); border-radius: 8px; font-size: 0.8rem; }
+  .facet-chip .fname { font-weight: 600; }
+  .facet-chip .fkind { display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 999px;
+                background: var(--kind-bg); color: var(--kind-ink); font-family: var(--mono);
+                font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .facet-chip .values { display: block; color: var(--muted); font-size: 0.76rem; margin-top: 2px; }
+  .facet-chip .backing { font-family: var(--mono); font-size: 0.72rem; color: var(--prov-cited); }
+  .facet-chip.inferred { background: #fffaf0; border-style: dashed; font-style: italic; }
+  .facet-chip.inferred .backing { color: var(--prov-inferred); }
+  .facet-chip.flagged { background: var(--warn-bg); border-color: var(--warn-line); }
+  .no-slice-note { color: var(--muted); font-style: italic; font-size: 0.82rem; }
+
+  /* Orthogonality matrix */
+  figure.ortho-figure { margin: 12px 0; padding: 12px; border: 1px solid var(--line-soft);
+                        border-radius: var(--radius); background: var(--surface); overflow-x: auto; }
+  figure.ortho-figure figcaption { font-weight: 600; font-size: 0.92rem; margin-bottom: 8px; }
+  table.ortho-matrix { width: auto; font-size: 0.82rem; }
+  table.ortho-matrix th { background: #eef4ff; font-weight: 600; text-align: center; }
+  table.ortho-matrix th.row-head { text-align: left; background: #f5f5f7; }
+  table.ortho-matrix td { text-align: center; }
+  table.ortho-matrix td.ortho-independent { background: var(--ok-bg); color: var(--ok-ink); }
+  table.ortho-matrix td.ortho-dependent { background: var(--bad-bg); color: var(--bad-ink); font-weight: 600; }
+  table.ortho-matrix td.ortho-self { background: #f5f5f7; color: var(--muted); }
+  .ortho-trivial { color: var(--muted); font-style: italic; font-size: 0.82rem; padding: 4px 0; }
+
+  /* Scaffolding + vocab tables */
+  .scaffolding-table th, .vocab-table th { white-space: nowrap; }
+
+  /* Non-orthogonality register */
+  .nonortho-table .v-blocking, .nonortho-table .v-nonblocking, .nonortho-table .v-structural {
+    display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 0.7rem; font-weight: 600;
+    border: 1px solid transparent; }
+  .v-blocking   { background: var(--bad-bg);  color: var(--bad-ink);  border-color: var(--bad-line); }
+  .v-nonblocking{ background: var(--warn-bg); color: var(--warn-ink); border-color: var(--warn-line); }
+  .v-structural { background: var(--neutral-bg); color: var(--neutral-ink); border-color: var(--neutral-line); }
+  .ai-suggested { font-style: italic; background: #fffaf0; }
+  tr.provenance-ai-suggested td:first-child { border-left: 3px solid var(--bad-ink); }
+
+  /* Provenance chips */
+  .prov-cited   { color: var(--prov-cited); font-weight: 600; }
+  .prov-inferred{ color: var(--prov-inferred); font-weight: 600; }
+  .prov-standard{ color: var(--prov-standard); font-weight: 600; }
+
+  /* Machine-readable model */
+  section#body { margin-top: 28px; }
+  pre.body-json { margin: 8px 0 0; padding: 14px 16px; background: #1e1e1e; color: #e8e8e8;
+                  border-radius: 8px; overflow-x: auto; font-size: 0.72rem; line-height: 1.45;
+                  font-family: var(--mono); }
+
+  /* Diagnostics */
+  details.diagnostics-toggle { margin-top: 28px; }
+  details.diagnostics-toggle > summary { cursor: pointer; padding: 10px 14px; background: var(--surface);
+    border: 1px solid var(--line); border-left: 4px solid var(--muted); border-radius: var(--radius);
+    font-weight: 600; color: var(--muted); list-style: none; }
+  details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+  details.diagnostics-toggle[open] > summary { border-radius: var(--radius) var(--radius) 0 0; border-bottom: none; }
+  .diagnostics { padding: 16px 18px; border: 1px solid var(--line); border-left: 4px solid var(--muted);
+                 border-radius: 0 0 var(--radius) var(--radius); background: var(--surface); }
+  .diagnostics > h2 { display: none; }
+  .diagnostics .check-pass::before { content: "PASS "; color: var(--ok-ink); font-family: var(--mono); font-size: 0.78rem; }
+  .diagnostics .check-fail::before { content: "FAIL "; color: var(--bad-ink); font-family: var(--mono); font-size: 0.78rem; }
+  .diagnostics .thin-slice-warning { color: var(--warn-ink); }
+  .diagnostics .note-line { color: var(--muted); }
+  .hidden { display: none; }
+
+  @media print {
+    body { background: #fff; } section.card { break-inside: avoid; }
+    .toc { display: none; } figure.ortho-figure { break-inside: avoid; }
+    .collection-card { break-inside: avoid; }
+    pre.body-json { white-space: pre-wrap; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <!-- 1. Overview -->
+  <header id="overview">
+    <h1>{{TITLE}}</h1>
+    <p class="subtitle">The orthogonal dimensions each list surface's records can be sliced along — status, type, owner, date-range — each with its kind, value set, and the §7 data property it filters on, plus an orthogonality check, a per-surface filter/sort scaffolding note, and a facet-value-scoped controlled vocabulary. Diagrams first; the scaffolding and registers follow; the machine-readable model is re-ingestible by <code>/requirements</code>.</p>
+    <div class="meta-grid">
+      <div class="meta-cell"><div class="k">Domain</div><div class="v">{{DOMAIN}}</div></div>
+      <div class="meta-cell"><div class="k">Collections</div><div class="v">{{COLLECTION_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">Facets</div><div class="v">{{FACET_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">Non-orthogonal pairs</div><div class="v">{{NON_ORTHOGONAL_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">AI-suggested</div><div class="v">{{AI_SUGGESTED_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">Un-banded flags</div><div class="v">{{UNBANDED_COUNT}}</div></div>
+      <div class="meta-cell"><div class="k">Generated</div><div class="v mono">{{GENERATED_AT}}</div></div>
+      <div class="meta-cell"><div class="k">requirements.md sha256</div><div class="v mono">{{REQUIREMENTS_SHA256}}</div></div>
+    </div>
+    <p class="disclaimer-banner"><strong>Facet design without empirical sort validation.</strong> Orthogonality is derived from the data model and verified here. But <em>which</em> facets users actually reach for — their genuine usefulness and priority — is normally validated by live card-sorting / tree-testing, which this document-only analysis cannot run. Treat the facet set as a <strong>hypothesis to test</strong>, not a settled spec.</p>
+  </header>
+
+  <!-- 2. TOC -->
+  <nav class="toc">
+    <a href="#diagrams">Facet coverage &amp; orthogonality</a>
+    <a href="#scaffolding">Filter/sort scaffolding</a>
+    <a href="#vocab">Controlled vocabulary</a>
+    <a href="#nonortho">Non-orthogonality register</a>
+    <a href="#body">Machine-readable model</a>
+    <a href="#diagnostics">Diagnostics</a>
+  </nav>
+
+  <!-- 3. Diagrams (top of document) -->
+  <h2 id="diagrams">Facet coverage &amp; orthogonality</h2>
+  <p class="section-caption">One card per collection — its facets as chips (name, kind, value-set preview, backing §7 property). The orthogonality matrix below shows, per collection, which facet pairs are genuinely independent and which are one dimension wearing two hats.</p>
+  {{FACET_CARDS_BLOCK}}
+  {{ORTHOGONALITY_MATRIX_BLOCK}}
+
+  <!-- 4. Tabular information -->
+  <h2 id="scaffolding">Filter/sort scaffolding</h2>
+  <p class="section-caption">Per list surface: which facets become filter chips, which become a facet rail, which become sort axes, and which fields the search box covers — the UI-control specification the wireframe <code>data-prop</code> rule leaves exempt-but-undesigned.</p>
+  {{SCAFFOLDING_NOTE_BLOCK}}
+
+  <h2 id="vocab">Controlled vocabulary</h2>
+  <p class="section-caption">Facet-value-scoped only: preferred value label, variant labels, scope note — reconciling label drift in the values <em>within</em> a facet. Entity/term synonyms belong to the GLOSSARY analysis.</p>
+  {{CONTROLLED_VOCAB_BLOCK}}
+
+  <h2 id="nonortho">Non-orthogonality register</h2>
+  <p class="section-caption">Facet pairs that are not independent — one predicts the other. Each is one dimension expressed twice; collapse or re-derive before shipping two filters.</p>
+  {{NON_ORTHOGONALITY_REGISTER_BLOCK}}
+
+  <!-- 5. Machine-readable model (NOT collapsed — survives markitdown round-trip for /requirements) -->
+  <section id="body" aria-label="Machine-readable facet model">
+    <h2>Machine-readable model</h2>
+    <p class="section-caption">The full facet model for <code>/requirements</code> re-ingestion. Re-drop this HTML into <code>input/</code>; the drafter reads this block as fenced JSON, and every <code>[AI-SUGGESTED&hellip;blocking]</code> facet/value-set reaches the resolver — hardening the §6.4 filter/sort UI requirements.</p>
+    <pre class="body-json"><code class="language-json" id="faceted-classification-body">{{BODY_JSON}}</code></pre>
+  </section>
+
+  <!-- 6. Diagnostics -->
+  <details id="diagnostics" class="diagnostics-toggle">
+    <summary>Diagnostics</summary>
+    {{DIAGNOSTICS_BLOCK}}
+  </details>
+
+</main>
+</body>
+</html>

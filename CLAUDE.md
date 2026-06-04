@@ -20,7 +20,7 @@
 | `/requirements` | LLM-audience FE spec (`requirements/requirements.md`). |
 | `/generate-prd` | Human-audience PRD (`prd/prd.md`) — strategic framing, success metrics, hypotheses, MVP phasing, risks, stakeholders. Independent of `/requirements`; can run before/after/alongside. |
 | `/design-system` | Brand-token brief (`design-system/design-system.html`). |
-| `/analyse-requirement` | Lens-transforms `requirements/requirements.md` (16 lens methods; list: `framework/assets/analyses/registry.md`). |
+| `/analyse-requirement` | Lens-transforms `requirements/requirements.md` (17 lens methods; list: `framework/assets/analyses/registry.md`). |
 | `/analyse-inputs` | Lens-transforms raw `input/` material (`framework/assets/analyses-inputs/registry.md`). |
 | `/review-requirement` | Critiques `requirements/requirements.md` (7 methods; `framework/assets/reviews/registry.md`). |
 | `/review-inputs` | Critiques raw `input/` material (`framework/assets/reviews-inputs/registry.md`). |
