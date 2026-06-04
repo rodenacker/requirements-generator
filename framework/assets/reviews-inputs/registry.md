@@ -22,7 +22,7 @@ methodologies:
   - name: adversarial
     status: mvp
     group: Corpus integrity
-    description: Choose this when you want the raw input corpus itself stress-tested — stakeholder & role coverage, ambiguity, cross-source contradiction, and consequential silence — before /requirements drafts from it. It produces an HTML adversarial review flagging each defect across six dimensions, treating the corpus as the stakeholder voice, so it recommends how to handle the existing material rather than new elicitation. Apply each flagged defect's corpus-handling recommendation to your input set so the requirements draft starts from material whose weaknesses are already accounted for.
+    description: Choose this when you want the raw input corpus itself stress-tested — stakeholder & role coverage, ambiguity, cross-source contradiction, and consequential silence — before /requirements drafts from it. It produces an HTML adversarial review flagging each defect across six dimensions, treating the corpus as the stakeholder voice and rating each finding against the frontend-spec purpose (backend-only corpus gaps are raised but capped, never blocking), so it recommends how to handle the existing material rather than new elicitation. Apply each flagged defect's corpus-handling recommendation to your input set so the requirements draft starts from material whose weaknesses are already accounted for.
     output_path: review-inputs/ADVERSARIAL/adversarial-review.html
     reference_asset: framework/assets/reviews-inputs/adversarial-reference.md
     template_asset: framework/assets/reviews-inputs/template-adversarial.html

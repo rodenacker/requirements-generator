@@ -39,3 +39,50 @@ Topics that belong to backend, infrastructure, or implementation domains and can
 - **Security implementation details** — encryption, input sanitization, CORS policies.
 - **Third-party service integration internals** — SDK configuration, webhook handlers, API keys.
 - **Server-side business logic implementation** — calculation engines, rule processors, scheduling. UI surfaces of derived values (§7.X Derivations) remain in scope as business-language rules.
+
+## Finding-scope classification
+
+The two lists above answer *"should this topic be discovered / designed for the prototype?"*. A
+second, derived question arises when a **review** (e.g. the ADVERSARIAL reviewers) raises a defect:
+*"how relevant is this finding to a **frontend** deliverable?"*. This section defines the canonical
+**finding-scope classes** that operationalise the in-scope / out-of-scope lists above into a
+three-way rating lens. It is a **definition only** — the procedure that consumes it (classify each
+finding, then cap the rating of out-of-scope findings) lives in
+`framework/skills/recalibrate-scope-severity.md`.
+
+Every review finding is exactly one of three classes:
+
+- **`fe-relevant`** — the finding's subject **and** its corrective action live in the UI layer: any
+  item in the **Prototypable (In Scope)** list above — screens, navigation, form fields, validation
+  **feedback** (inline messages, field highlighting), data **display**, status indicators, modals,
+  loading/empty/error **states**, role-gated **screen states**, and the **UI surface** of a backend
+  event (a retry banner, a preserved draft, a "save failed" toast). A finding is `fe-relevant`
+  **regardless of how backend the topic sounds**, as long as what would satisfy its recommendation is
+  a change to the UI.
+
+- **`fe-facing-contract`** — the finding is about a backend **contract the FE consumes** rather than a
+  UI element directly: the §6.10 contract surface ("the FE consumes the backend only as contracts"),
+  the **shape/enum/failure-mode** the UI must render against, and **POPIA / PII handling** (which is
+  not pure backend — it surfaces as consent banners, on-screen redaction/masking, regional UI
+  variants, and retention notices, per §6.6.4). The frontend genuinely depends on these being
+  defined *somewhere*, so their severity is preserved; only their disposition is bounded (see the
+  skill).
+
+- **`backend-only`** — the finding's subject **and** its corrective action live entirely in the
+  backend / infrastructure / server-side-implementation domain: any item in the **Not Prototypable
+  (Filter Out)** list above — endpoint logic, persistence / DB schema, server-side computation,
+  queues, DevOps / CI-CD, monitoring / alerting / backups / disaster-recovery, caching /
+  query-optimisation, at-rest encryption / sanitisation / CORS, ETL / data-migration, and third-party
+  SDK / webhook internals. A `backend-only` finding has **no UI surface** — nothing in the prototype
+  or the frontend spec would change to resolve it. This is the class whose rating the recalibration
+  procedure caps.
+
+**The load-bearing disambiguation (key on the corrective action, not the topic):** classify by *what
+would satisfy the finding's recommendation*. If the fix lands in the UI → `fe-relevant`. If the fix
+is "define the contract / shape / compliance surface the UI renders against" → `fe-facing-contract`.
+Only if the fix can *exclusively* be satisfied by backend/infra work → `backend-only`. When a finding
+is **genuinely dual** — its happy-path UI surface is in scope but its mechanism is backend (e.g. a
+network-failure finding: the retry **banner** is `fe-relevant` framing, the retry **mechanism** is
+backend) — classify it as `fe-facing-contract`, **never** `backend-only`. The bias is always toward
+*not* suppressing: when in doubt between `fe-facing-contract` and `backend-only`, choose
+`fe-facing-contract`.

@@ -89,7 +89,13 @@ Every finding carries one of three dispositions:
 - **Defer** — real defect, but addressable in a later iteration without blocking the current scope. Often paired with Recommendation form *Treat as silence* (downstream applies a `GR-NN` default) or *Treat as second-hand* (downstream marks as BA-interpretation). Example: missing role voice for a phase-2 persona.
 - **Reject** — blocking, but **narrowly** under the *corpus IS the voice* principle. Reserved for three concrete patterns: (a) cross-source factual contradiction on a load-bearing concept (Dim 4) — the consultant must reconcile in-corpus; (b) POPIA / legal scope claim with no in-corpus enumeration (Dim 5) — defaults cannot substitute for legally-required enumeration; (c) load-bearing ambiguity unresolvable at draft time (Dim 3) — neither defaults nor consultant-answers can cover it. **Silences are NOT Reject** (they are Patch or Defer); a Reject demands consultant in-corpus reconciliation.
 
-The disposition drives the artefact's verdict line: any `Reject` → verdict is `BLOCKED`; only `Patch`/`Defer` → `NEEDS-REVISION`; rare clean dimension justifications → `ACCEPTED-WITH-FIXES`. Because Reject is narrow under the principle, `BLOCKED` is rare and meaningful when it fires.
+The disposition drives the artefact's verdict line: any `Reject` → verdict is `BLOCKED`; only `Patch`/`Defer` → `NEEDS-REVISION`; rare clean dimension justifications → `ACCEPTED-WITH-FIXES`. Because Reject is narrow under the principle, `BLOCKED` is rare and meaningful when it fires. The tally is read **after** the Step-4s scope recalibration.
+
+## Purpose-aware rating
+
+`/requirements` drafts a **frontend** spec from this corpus. So when a finding bears only on a backend / infra / operational concern with no UI surface — server-side compute, persistence design, infra capacity, monitoring — **raise it, never suppress it**, but rate it for what it is: a note that does not block frontend drafting. A `backend-only` finding is capped at Step 4s (`Major`, never `Blocker`/`Reject`) per `framework/skills/recalibrate-scope-severity.md`; this pipeline has no build target, so the conservative `Major` cap is always used. The cap and its reason are recorded in the Scope recalibration log.
+
+This sits cleanly under the *corpus IS the voice* principle: "load-bearing" already means *drives a (frontend) requirement*, so the load-bearing checks that fire `Reject` (RBAC / workflow / field-type contradictions; POPIA enumeration) inherently bear on `fe-relevant` / `fe-facing-contract` concerns. A purely backend concern lands as a silence (`Treat as silence` → `Defer`), already non-blocking. Classify by whether the frontend draft would encode the concern; when undecided, do not suppress. This is honesty about severity-against-purpose, not rubber-stamping — nothing is dropped, and the strict-BMAD halt rule is untouched.
 
 ## Quality-gate posture
 

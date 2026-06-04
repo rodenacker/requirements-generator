@@ -7,7 +7,7 @@ methodologies:
   - name: adversarial
     status: mvp
     group: Document integrity
-    description: Choose this when you want the requirements stress-tested for defects so design starts from a patched document rather than inherited weaknesses. It produces a self-contained HTML critique flagging contradictions, gaps, ambiguities, and risky assumptions across the document. Work the flagged defects back into requirements.md before design or estimation begins.
+    description: Choose this when you want the requirements stress-tested for defects so design starts from a patched document rather than inherited weaknesses. It produces a self-contained HTML critique flagging contradictions, gaps, ambiguities, and risky assumptions across the document, with each finding rated against the system's frontend purpose so backend-only concerns are still raised but never block a frontend spec. Work the flagged defects back into requirements.md before design or estimation begins.
     output_path: review-requirements/ADVERSARIAL/adversarial-review.html
     reference_asset: framework/assets/reviews/adversarial-reference.md
     template_asset: framework/assets/reviews/template-adversarial.html

@@ -49,7 +49,8 @@
     {{DIMENSION_6_BLOCK}}
     {{DIAGNOSTICS_BLOCK}}      — pre-rendered diagnostics per DIAGNOSTICS SCHEMA below
                                  (Quality gates, Coverage map, Strict-BMAD re-run log,
-                                  Override log, Corpus Shape, Source roster Consumed + Skipped tables)
+                                  Scope recalibration log, Override log, Corpus Shape,
+                                  Source roster Consumed + Skipped tables)
 
   Output: review-inputs/ADVERSARIAL/adversarial-review.html.
 
@@ -162,6 +163,7 @@
               <code>{ID}</code> —
               <span class="chip severity-{Sev}">{Sev}</span> ·
               <span class="chip disposition-{Disp}">{Disp}</span> ·
+              <span class="chip scope-{ScopeClass}">{ScopeClass}</span> ·
               {one-line-problem}
             </h4>
             <dl class="finding-fields">
@@ -177,6 +179,12 @@
           ... (repeat per finding within this dimension)
         </div>
 
+      where {ScopeClass} is the Step-4s finding-scope class — one of
+      fe-relevant | fe-facing-contract | backend-only — driving the .chip.scope-{ScopeClass}
+      colour. backend-only findings are capped at Step 4s (Major, never Blocker/Reject; this
+      pipeline has no target so the conservative Major cap is used); see the Scope recalibration
+      log in Diagnostics for each adjustment.
+
       The Dimension-1-only sanctioned skipped-placeholder form for Evidence is:
 
         <blockquote class="evidence skipped-placeholder"><em>(file skipped — tier: Unsupported; reason: {reason_html_escaped})</em></blockquote>
@@ -191,8 +199,9 @@
         </div>
 
   DIAGNOSTICS SCHEMA — the {{DIAGNOSTICS_BLOCK}} is a single <details class="diagnostics-toggle" open>
-  wrapping SIX subsections. The enclosing section's <h2>Diagnostics</h2> is in the
-  scaffold; the <summary> below is the collapse/expand affordance.
+  wrapping the subsections below (quality gates, coverage map, strict-BMAD re-run log, scope
+  recalibration log, override log, corpus shape, source rosters). The enclosing section's
+  <h2>Diagnostics</h2> is in the scaffold; the <summary> below is the collapse/expand affordance.
 
     <details class="diagnostics-toggle" open>
       <summary>Show / hide diagnostics</summary>
@@ -218,6 +227,27 @@
       <h4>Strict-BMAD re-run log</h4>
       <p>{One line per dimension where the strict-BMAD halt rule fired, OR
           "No dimensions triggered the strict-BMAD re-run rule."}</p>
+
+      <h4>Scope recalibration log</h4>
+      <p>{One line declaring the Step-4s target and cap, e.g.
+          "Target: null (inputs pipeline carries no build target) — backend-only cap: Major."}</p>
+      <table class="recalibration-log">
+        <thead><tr><th>ID</th><th>Scope class</th><th>Original</th><th>Adjusted</th><th>Foreclosing authority</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><a href="#{ID}"><code>{ID}</code></a></td>
+            <td><span class="chip scope-{ScopeClass}">{ScopeClass}</span></td>
+            <td>{OrigSev} / {OrigDisp}</td>
+            <td>{AdjSev} / {AdjDisp}</td>
+            <td>{authority}</td>
+          </tr>
+          ... (one row per finding whose rating was recalibrated or consultant-overridden;
+               {authority} is "prototype-scope.md Not-Prototypable" for a backend-only cap,
+               or "consultant-overridden" for a Revise-loop override)
+        </tbody>
+      </table>
+      <p>{If no finding required recalibration, render instead the single line
+          "No findings required scope recalibration."}</p>
 
       <h4>Override log</h4>
       <p>{If the consultant chose Override at the Step-10 quality-gate sweep, list each
@@ -306,6 +336,13 @@
     --disp-defer-bg: rgba(29, 78, 216, 0.10);
     --disp-reject: #b91c1c;
     --disp-reject-bg: rgba(185, 28, 28, 0.10);
+
+    --scope-fe: #0f766e;
+    --scope-fe-bg: rgba(15, 118, 110, 0.10);
+    --scope-contract: #6d28d9;
+    --scope-contract-bg: rgba(109, 40, 217, 0.10);
+    --scope-backend: #57534e;
+    --scope-backend-bg: rgba(87, 83, 78, 0.12);
 
     --verdict-blocked-fg: #ffffff;
     --verdict-blocked-bg: #991b1b;
@@ -490,6 +527,9 @@
   .chip.disposition-Patch { background: var(--disp-patch-bg); color: var(--disp-patch); }
   .chip.disposition-Defer { background: var(--disp-defer-bg); color: var(--disp-defer); }
   .chip.disposition-Reject { background: var(--disp-reject-bg); color: var(--disp-reject); }
+  .chip.scope-fe-relevant { background: var(--scope-fe-bg); color: var(--scope-fe); }
+  .chip.scope-fe-facing-contract { background: var(--scope-contract-bg); color: var(--scope-contract); }
+  .chip.scope-backend-only { background: var(--scope-backend-bg); color: var(--scope-backend); }
   .chip.gate-pass { background: var(--disp-patch-bg); color: var(--disp-patch); }
   .chip.gate-fail { background: var(--disp-reject-bg); color: var(--disp-reject); }
 

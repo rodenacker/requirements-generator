@@ -89,7 +89,7 @@ preflight-mcp → refusal-registry
 
 ---
 
-## 3. review-requirement-orch.md · 50 nodes / 70 edges / depth 3
+## 3. review-requirement-orch.md · 51 nodes / 71 edges / depth 3
 
 ```
 orch → analysis-selector, check-context-bloat, refusal-registry,
@@ -100,7 +100,8 @@ analysis-selector → reviews/registry.md  [shared selector, review labels; Glob
 Each reviewer → characters/<r>-review.md, reviews/<r>-reference.md,
                 reviews/template-<r>.html, verify-artifact-write
 deltas:
-  adversarial      +adversarial-dimension-worker.md  [parallel ×8, read-only, step 3]
+  adversarial      +adversarial-dimension-worker.md  [parallel ×8, read-only, step 3],
+                   +recalibrate-scope-severity  [purpose-aware scope recalibration, step 3s; target from in-doc PI-block]
   first-principles +general-rules, prototype-invariants            [Q3/Q5 rescue, step 6]
   ten-ux-questions +general-rules, prototype-invariants, prototype-scope   [step-4 filter]
   ten-ba-questions +general-rules, prototype-invariants, prototype-scope,
@@ -119,7 +120,7 @@ grounding-verifier → draft-claims, source-manifest, <input source files>  [Pas
 - adversarial is the only sub-agent dispatch here (8 parallel read-only dimension workers, step 3); all others single-pass, no fan-out.
 - requirements-traceability is the **only non-stand-alone reviewer** — it reads the provenance asset family (draft + draft-claims + draft-claims-verification + state/resolver-answers + consultant-answers + source-manifest + input files) **read-only**, because backward (pre-RS) provenance cannot be audited without the provenance evidence (the documented, bounded exception; mirrors the drafter's and grounding-verifier's read scope). Its Band-A citation integrity **reuses the `grounding-verifier` skill** against the **final** `requirements.md` (the skill's 2nd caller, run once not to convergence); `sidecar_entry_without_tag` is re-read as a DEAD-PROVENANCE warn rather than a fail. Capability-tier-guarded reads **degrade (TIER-2 → TIER-1b → TIER-1 → TIER-0) rather than halt** on missing assets. It writes only under `review-requirements/REQUIREMENTS-TRACEABILITY/**` (incl. a `.workspace/citation-verification.ndjson` scratch file). `state/resolver-answers.ndjson` is the only `framework/state/` read; it is never written.
 - requirements-quality is single-pass (nine-characteristic ISO 29148 scorecard); it is the only reviewer that reads the **conforming target** (`topics-requirements.md` + `template-requirements.md`, step 2) — to score the Conforming characteristic (C9) against the project's house style (GR-20/21/23). Its GR/PI step-6 read rescues only the judgment band (Necessary/Appropriate/Feasible); the five decidable characteristics are never rescued.
-- Shared-policy reads are **filter sources only** — reviewers drop candidate questions already answered by an active `GR-NN`/`PI-NN` or out-of-scope per `prototype-scope.md`. (adversarial reads none — its task is defect-citation, not gap-filtering.)
+- Shared-policy reads are **filter sources only** — reviewers drop candidate questions already answered by an active `GR-NN`/`PI-NN` or out-of-scope per `prototype-scope.md`. adversarial reads none of those (its task is defect-citation, not gap-filtering); it instead reads the `recalibrate-scope-severity` skill at step 3s, which **raises-and-recalibrates** (caps `backend-only` ratings, never drops) rather than filtering — a distinct mechanism from the GR/PI gap-drop the other reviewers use. The skill embeds the `prototype-scope.md` finding-scope-class glosses, so adversarial still reads no `framework/shared/` file directly.
 - ba→ux-reference is **one-way** (ux never reads ba) — orthogonality enforced by a filter-time read, not a circular dep.
 - first-principles / user-stories omit `prototype-scope.md` (their subjects are in-scope by construction); user-stories also omits the ux-reference (story-quality criteria are orthogonal to UX/BA framing) and applies no top-N cap.
 
@@ -196,7 +197,7 @@ deltas:
 
 ---
 
-## 6. review-inputs-orch.md · 33 nodes / 43 edges / depth 4
+## 6. review-inputs-orch.md · 34 nodes / 44 edges / depth 4
 
 ```
 orch → analysis-selector, check-context-bloat, input-handler, refusal-registry,
@@ -208,7 +209,8 @@ Each reviewer → characters/<r>-inputs-review.md, reviews-inputs/<r>-reference.
                 verify-artifact-write
 deltas:
   adversarial    +reviews-inputs/template-adversarial.html,
-                 +adversarial-dimension-worker.md  [parallel ×6, NO tools, step 4]
+                 +adversarial-dimension-worker.md  [parallel ×6, NO tools, step 4],
+                 +recalibrate-scope-severity  [purpose-aware scope recalibration, step 4s; target=null → Major cap]
   ambiguity      +reviews-inputs/template-ambiguity.html
   completeness   +reviews-inputs/template-completeness.html,
                  +general-rules                          [step-15 disposition]

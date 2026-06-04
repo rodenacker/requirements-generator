@@ -75,9 +75,15 @@ Every finding carries one of three dispositions:
 
 - **Patch** — auto-fixable; the consultant can correct the requirements doc in <15 minutes. Example: rename a field, tighten a vague verb, add a missing acceptance criterion line.
 - **Defer** — real defect, but addressable in a later iteration without blocking the current scope. Logged for the next requirements revision. Example: missing edge-case coverage that affects a post-MVP feature.
-- **Reject** — blocking; requirements doc cannot be consumed downstream until this is resolved. Example: two requirements that directly contradict; an absent role-permission section that gates `/design-system`.
+- **Reject** — blocking; the requirements doc cannot be consumed by a **frontend** consumer until this is resolved. Example: two requirements that directly contradict; an absent role-permission section that gates `/design-system`. A **backend-only** gap is never `Reject` (see *Purpose-aware rating* below).
 
-The disposition drives the artefact's verdict line: any `Reject` → verdict is `BLOCKED`; only `Patch`/`Defer` → `NEEDS-REVISION`; rare clean dimension justifications → `ACCEPTED-WITH-FIXES`.
+The disposition drives the artefact's verdict line: any `Reject` → verdict is `BLOCKED`; only `Patch`/`Defer` → `NEEDS-REVISION`; rare clean dimension justifications → `ACCEPTED-WITH-FIXES`. The tally is read **after** the Step-3s scope recalibration.
+
+## Purpose-aware rating
+
+This framework generates **frontend** requirements, and every downstream consumer of `requirements/requirements.md` is a frontend pipeline. So when a finding names a backend / infra / operational concern with no UI surface — monitoring, backups, server-side computation, persistence design — **raise it, never suppress it**, but rate it for what it is: a note that does not block a frontend deliverable. A `backend-only` finding is capped (never `Blocker`, never `Reject`) at Step 3s per `framework/skills/recalibrate-scope-severity.md`; the cap and its reason are recorded in the Scope recalibration log.
+
+This is not rubber-stamping. The reviewer still finds everything the eight dimensions surface; the strict-BMAD halt rule is untouched; nothing is dropped. The change is honesty about *severity against purpose* — a missing monitoring requirement is real, but it cannot hold a correctly-frontend-scoped spec hostage. Classify by the corrective action: if the fix lands in the UI (an error state, a validation message, a role-gated screen), it is `fe-relevant` and keeps its severity, however backend the topic sounds. When in doubt, do not suppress.
 
 ## Quality-gate posture
 

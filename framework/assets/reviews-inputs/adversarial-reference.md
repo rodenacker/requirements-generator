@@ -193,6 +193,8 @@ When all four hold, emit **one Minor finding** with Recommendation form *Treat a
 - A project with a go-live mentioned ("Q3 next year") and no source naming what "go-live" means (MVP? phase 1? phase 2?).
 - An engagement scoped without any team-size or budget signal — making feasibility findings unanchored.
 
+**Scope note.** Many signals here are `backend-only` (peak load, infra capacity, scaling targets, infra budget) — raise them, but they are capped at Step 4s (`Major`, never `Blocker`). Signals with a UI surface stay higher: a missing latency budget that gates a *user-visible* "real-time" expectation is `fe-facing-contract`; POPIA / accessibility scope is `fe-facing-contract` (consent UI, WCAG-driven states). Classify by whether the frontend draft would encode the signal.
+
 ### Dimension 6 — Scope & MVP Signal
 
 **Question:** Do the inputs distinguish in-scope from out-of-scope, MVP from post-MVP, must-have from nice-to-have?
@@ -281,7 +283,8 @@ Identical to the `/review-requirement` adversarial rubric — the rubric is abou
     2. **POPIA / legal scope claim with no in-corpus enumeration** (Dim 5). A source claims POPIA / GDPR / PCI-DSS / HIPAA compliance but no source enumerates which fields are personal information, which retention applies, which consent flow exists. Legal frameworks that genuinely require explicit enumeration cannot be defaulted via `GR-NN`.
     3. **Load-bearing ambiguity unresolvable at draft time** (Dim 3). An ambiguous claim that downstream consultant-answers cannot resolve without external information (which the principle forbids), AND for which no `GR-NN` default can substitute. Rare — most ambiguities resolve via Recommendation form *Resolve at draft time*.
 - **Silences are NOT Reject.** Missing role voice (Dim 1), missing workflow detail (Dim 2), missing latency budget (Dim 5), unbounded scope (Dim 6) — these are **Patch** (in-corpus annotation, label as aspirational, attribute brief) or **Defer** (downstream handles via *Treat as silence* or *Treat as second-hand* Recommendation form). Reject demands consultant in-corpus reconciliation; silence does not — downstream has a default.
-- Any single Reject finding makes the overall verdict `BLOCKED`. This verdict is meaningful precisely because Reject is narrow.
+- **A `backend-only` finding is never `Reject`** (and never `Blocker`). Per *Purpose-aware scope recalibration*, a defect bearing only on backend / infra / server-side concerns cannot block a **frontend** draft. The three Reject patterns above inherently fire on `fe-relevant` / `fe-facing-contract` concerns (a load-bearing contradiction is load-bearing *for a frontend requirement*; POPIA is `fe-facing-contract`). Should a worker mark a `backend-only` finding `Reject`, Step 4s caps it to `Defer` and re-expresses its Recommendation to *Treat as silence*.
+- Any single Reject finding makes the overall verdict `BLOCKED`. This verdict is meaningful precisely because Reject is narrow. (The tally is read **after** Step 4s scope recalibration.)
 
 ### Disposition → Verdict mapping
 
@@ -294,6 +297,28 @@ The artefact's Executive Summary states one verdict:
 | `ACCEPTED-WITH-FIXES` | Zero findings on all six dimensions, **and** every dimension carries a non-empty Justification block. (Rare — strict-BMAD rule below makes this expensive.) |
 
 There is no fourth verdict. "Looks good" is not a verdict.
+
+The disposition and severity tallies that drive this mapping are read **after** the purpose-aware scope recalibration below: a `backend-only` finding can never carry `Blocker` or `Reject`, so it cannot force `BLOCKED` — but it still counts toward `NEEDS-REVISION`.
+
+---
+
+## Purpose-aware scope recalibration
+
+`/requirements` drafts a **frontend** spec from this corpus, and every consumer of that spec is a frontend pipeline. A corpus defect about a backend / infra / operational concern with no UI surface should be **raised, not suppressed**, but rated for what it is: a note that does not block frontend drafting. After the six-dimension sweep merges (Step 4b), the reviewer classifies every finding by its **finding-scope class** (`framework/shared/prototype-scope.md > Finding-scope classification`) and recalibrates the rating of `backend-only` findings, per `framework/skills/recalibrate-scope-severity.md`. The procedure runs at **Step 4s** of `framework/agents/reviews-inputs/adversarial-reviewer.md`.
+
+**The three finding-scope classes** (canonical definitions in `prototype-scope.md`):
+
+- **`fe-relevant`** — the corpus defect bears on something the frontend spec will encode (a role-gated screen, a workflow the UI drives, a field the UI displays, a validation message, an error/empty state). No recalibration.
+- **`fe-facing-contract`** — a backend **contract the FE consumes** or **POPIA / PII handling** (which surfaces as consent banners, on-screen masking, retention notices). Severity preserved; `Reject` preserved where the enumeration genuinely gates frontend drafting.
+- **`backend-only`** — the defect bears only on backend / infra / server-side concerns the frontend spec never encodes (server-side compute, persistence design, infra capacity, monitoring, queues). **This is the recalibration target.**
+
+**No target signal here.** Unlike the `/review-requirement` sibling, this pipeline has **no build target** — the corpus carries no PI-block and `/review-inputs` leaves `source-manifest.json > target` `null`. So the skill is invoked with `target: null`, which applies the **conservative cap**: a `backend-only` finding's severity is capped at **`Major`** (never `Blocker`). The conservative cap preserves more signal — the fail-safe choice when scope cannot be confirmed.
+
+**Strong alignment with the corpus-IS-the-voice principle.** Under this methodology "load-bearing" means *drives a requirement* — and `/requirements` drafts a **frontend** requirement. So the load-bearing checks that fire `Reject` (cross-source contradiction on RBAC / workflow steps / field types; POPIA enumeration) inherently bear on `fe-relevant` or `fe-facing-contract` concerns; a purely `backend-only` concern is by definition **not** load-bearing for a frontend draft, so it lands as a silence (`Treat as silence` → `Defer`), which is already non-blocking. Recalibration therefore mostly (a) caps any `backend-only` finding a worker over-rated to `Blocker` severity, and (b) tags `scope_class` for every finding.
+
+**The disposition ↔ Recommendation coupling.** This methodology couples disposition to the five sanctioned Recommendation forms (`Reject` ↔ *Reconcile in-corpus* / *Resolve at draft time*; `Defer` ↔ *Treat as silence* / *Treat as second-hand*; `Patch` ↔ *Label / annotate*). The skill is Recommendation-agnostic and only changes severity/disposition; so in the rare case it demotes a `backend-only` finding's disposition away from `Reject`, **the reviewer re-expresses that finding's Recommendation to the coupled non-Reject form (`Treat as silence`)** at Step 4s as a methodology-specific normalization (logged in the Scope recalibration log). Every other finding's Recommendation is untouched, so the five sanctioned forms remain intact.
+
+Every recalibration is recorded in the artefact's **Scope recalibration log** (Diagnostics) and is reversible by the consultant in the Revise loop.
 
 ---
 
@@ -331,8 +356,8 @@ The artefact renders as a self-contained HTML report following `framework/assets
 3. **Triage** — "Top issues to address first" callout (≤10 entries: every Reject and Blocker plus cluster-lead Majors). Lets the consultant chase the highest-impact missing material before scanning the full table.
 4. **Clusters** — findings sharing a root cause grouped under a `CL-NN` cluster ID. Each cluster lists its member ADV-NNs and a one-line theme; the full detail for each finding still appears in the per-dimension sections below.
 5. **Findings Table** — compact tabular view of every finding (ID, Dim, Sev, Disp, Cluster, Location, one-line problem), sorted Blocker → Major → Minor.
-6. **Per-Dimension Sections (1–6)** — full findings for each dimension, or a Justification block if zero findings + strict-BMAD re-run passed.
-7. **Diagnostics** — quality-gate results, coverage map (which sources each dimension touched), strict-BMAD re-run log, override log, **Corpus Shape** (source count, distinct-author count, time-window span, tier distribution — the observability data that the dropped Dim 7 used to surface, now reported as descriptive shape, never as findings), **Source roster (Consumed)** and **Source roster (Skipped)** tables.
+6. **Per-Dimension Sections (1–6)** — full findings for each dimension, or a Justification block if zero findings + strict-BMAD re-run passed. Each finding card carries a `scope_class` chip (`fe-relevant | fe-facing-contract | backend-only`) alongside its severity and disposition chips.
+7. **Diagnostics** — quality-gate results, coverage map (which sources each dimension touched), strict-BMAD re-run log, the **Scope recalibration log** (`target: null` declared, then every finding whose rating was recalibrated, original → adjusted, with foreclosing authority), override log, **Corpus Shape** (source count, distinct-author count, time-window span, tier distribution — the observability data that the dropped Dim 7 used to surface, now reported as descriptive shape, never as findings), **Source roster (Consumed)** and **Source roster (Skipped)** tables.
 
 The artefact is a punch-list, not a narrative. Prose between findings is minimised; the consultant should be able to read the Triage callout in under two minutes, scan the Clusters block to see which findings share a root cause, and jump straight to the per-dimension section for context on any finding. The Source-roster tables in Diagnostics tell the consultant which files were consumed (so findings can be traced back to source) and which files were skipped (so the consultant knows what coverage was unavailable).
 
@@ -340,7 +365,7 @@ The artefact is a punch-list, not a narrative. Prose between findings is minimis
 
 ## Consolidation & Triage
 
-After the six-dimension sweep merges and IDs are assigned (Step 3b of `adversarial-reviewer.md`), one consolidation pass (Step 3c) annotates findings with **cluster IDs** and computes a **triage list**. The pass is a reader-aid: no finding is dropped, no finding's fields are rewritten, no `ADV-NN` is renumbered.
+After the six-dimension sweep merges and IDs are assigned (Step 4b of `adversarial-reviewer.md`) and the purpose-aware scope recalibration runs (Step 4s — see *Purpose-aware scope recalibration*), one consolidation pass (Step 4c) annotates findings with **cluster IDs** and computes a **triage list**. Because triage selection keys on `Reject` / `Blocker` membership, it runs **after** Step 4s so it reflects the recalibrated ratings. The pass is a reader-aid: no finding is dropped, no finding's fields are rewritten, no `ADV-NN` is renumbered.
 
 **Cluster rule.** Two or more findings cluster when they share a root cause — detected from a combination of cited filename, shared concept keywords in their `problem` field, and shared cross-source membership when applicable. Concept-keyword signals tuned for input-set defects:
 
@@ -362,7 +387,7 @@ A cluster has ≥2 members; singletons are never clustered. Each finding belongs
 4. Remaining Major findings in `ADV-NN` ascending order.
 5. Hard cap at 10. Never includes Minor findings.
 
-**What this preserves.** Every quality gate is unaffected — `cluster_id` is metadata, not a 9th required schema field; the Findings Table row count still equals the sum of per-dimension counts (clustering does not drop, merge, or duplicate findings). The per-dimension sections render unchanged, in their original within-dimension order; the severity-driven sort applies only to the Findings Table. The deterministic ID assignment from Step 3b is final; Step 3c only annotates and selects.
+**What this preserves.** Every quality gate is unaffected — `cluster_id` is metadata, not a 9th required schema field; the Findings Table row count still equals the sum of per-dimension counts (clustering does not drop, merge, or duplicate findings). The per-dimension sections render unchanged, in their original within-dimension order; the severity-driven sort applies only to the Findings Table. The deterministic ID assignment from Step 4b is final; Step 4s recalibrates ratings and Step 4c only annotates and selects.
 
 **Why it exists.** A run with 60+ findings is correct but un-scannable. The Triage callout lets a consultant prioritise the must-resolve-now list (typically 5–10 entries) in one sitting; the Clusters block lets them see that nine separate findings citing "no Finance Manager voice" share one underlying gap, so the elicitation list is shorter than the finding count. Both are navigation aids over the audit-grade detail that remains in the per-dimension sections.
 
@@ -370,21 +395,23 @@ A cluster has ≥2 members; singletons are never clustered. Each finding belongs
 
 ## Quality gates (run after Dimension 6, before write)
 
-Eleven gates. All are hard. If any gate fails, the reviewer does **not** write the artefact — it surfaces a structured error and halts. (See `framework/agents/reviews-inputs/adversarial-reviewer.md > Step 10 — Validate` for the halt contract.)
+Thirteen gates. All are hard. If any gate fails, the reviewer does **not** write the artefact — it surfaces a structured error and halts. (See `framework/agents/reviews-inputs/adversarial-reviewer.md > Step 10 — Validate` for the halt contract.)
 
 1. **Every finding has all eight schema fields populated.** Missing-field findings are invalid.
 2. **Every finding's Dimension is exactly one integer 1–6.** Multi-dimension findings must be decomposed.
-3. **Every finding's Severity is exactly one of `Blocker | Major | Minor`.**
-4. **Every finding's Disposition is exactly one of `Patch | Defer | Reject`.**
+3. **Every finding's Severity is exactly one of `Blocker | Major | Minor`** — AND every `backend-only` finding's Severity is at or below the conservative cap (`Major`); a `backend-only` finding is never `Blocker`.
+4. **Every finding's Disposition is exactly one of `Patch | Defer | Reject`** — AND no `backend-only` finding's Disposition is `Reject`.
 5. **Every finding's Evidence field is verbatim (≤5 lines) and exists in the per-source quote index for the cited filename** — OR the finding cites an `Unsupported`-tier filename and Evidence is the literal `*(file skipped — tier: Unsupported; reason: <reason>)*` placeholder. Paraphrased or fabricated evidence is a gate failure.
 6. **Every finding's Location matches a `consumed_rows[*].filename` or a `skipped_rows[*].filename`** (the latter only when Evidence is the skipped-placeholder form). Citations to non-manifest filenames are a gate failure.
 7. **Every dimension reports either ≥1 finding or a non-empty Justification block.** Silent zero-finding dimensions are a methodology violation.
 8. **Every Justification block (if any) cites specific evidence and is ≥3 sentences.** Stub justifications are a gate failure.
-9. **The verdict line is consistent with the disposition tally** (any Reject or Blocker → `BLOCKED`; otherwise findings present → `NEEDS-REVISION`; zero findings everywhere → `ACCEPTED-WITH-FIXES`).
+9. **The verdict line is consistent with the post-recalibration disposition/severity tally** (any Reject or Blocker → `BLOCKED`; otherwise findings present → `NEEDS-REVISION`; zero findings everywhere → `ACCEPTED-WITH-FIXES`). The tally is read **after** Step 4s scope recalibration, so no `backend-only` finding contributes a Reject/Blocker.
 10. **The Findings Table row count equals the sum of per-dimension finding counts.** Drift is a render bug.
 11. **The artefact's `MANIFEST_FINGERPRINT` field matches the SHA-256 of `requirements/source-manifest.json` captured at Step 2, AND every Source-roster (Consumed) `sha256[:8]` column matches its manifest row's `sha256` field.** Mismatch means the artefact analysed one version of the input set and reports against another.
 12. **The Corpus Shape subsection in Diagnostics is populated with non-empty values for source count, distinct-author count, time-window span, and tier distribution.** This preserves the observability that the dropped Dim 7 used to provide; an empty shape block is a render bug.
 13. **Every finding's Recommendation matches one of the five sanctioned forms** (`Reconcile in-corpus`, `Label / annotate`, `Treat as silence`, `Treat as second-hand`, `Resolve at draft time`). Recommendations containing the substrings *"interview"*, *"elicit"*, *"workshop"*, *"schedule"*, *"go ask"*, *"contact the"*, or otherwise proposing new elicitation are a gate failure under the *corpus IS the voice* principle.
+
+Beyond the thirteen numbered gates, the reviewer's self-validation also verifies that **every finding carries a `scope_class`** (`fe-relevant | fe-facing-contract | backend-only`) and that **every recalibrated finding has a matching entry in the Scope recalibration log** (rendered in the Diagnostics block). `scope_class` is metadata, not a 9th schema field, so it does not affect gate 1. Any `backend-only` finding whose disposition Step 4s demoted away from `Reject` also has its Recommendation normalised to the coupled `Treat as silence` form, so gate 13 still passes.
 
 ---
 
@@ -396,7 +423,9 @@ Eleven gates. All are hard. If any gate fails, the reviewer does **not** write t
 - **Treating second-hand voice as first-hand.** A BA-authored brief stating *"Finance Managers want X"* is the brief author's voice about Finance Managers, not Finance Manager voice. Dim 1 findings should distinguish: a role for whom only second-hand voice exists is a voice-authenticity defect with Recommendation form *Treat as second-hand* (downstream marks as BA-interpretation). Treating the brief's claim as if it were the Finance Manager's own utterance erases the consultant's authorial layer — a real audit signal.
 - **Generic findings.** *"The inputs could be clearer"* is not a finding. Cite the specific source, quote the specific sentence (or its absence), state the specific defect of the voice, propose a specific corpus-handling Recommendation in one of the five sanctioned forms.
 - **Severity inflation.** Calling every finding a Blocker dilutes the signal. Reserve Blocker for findings that genuinely prevent `/requirements` from drafting.
-- **Disposition collapse.** Disposition (Patch / Defer / Reject) is orthogonal to severity. A Minor finding can be a Reject (e.g., a small but blocking POPIA gap); a Major finding can be a Defer (e.g., a significant role-voice gap for a phase-2 persona).
+- **Disposition collapse.** Disposition (Patch / Defer / Reject) is orthogonal to severity. A Minor finding can be a Reject (e.g., a small but blocking POPIA gap — `fe-facing-contract`); a Major finding can be a Defer (e.g., a significant role-voice gap for a phase-2 persona).
+- **Dropping a backend-only finding.** Scope recalibration (Step 4s) *raises and re-rates*; it never drops. A defect bearing only on backend / infra concerns is still a finding — capped at `Major` (never `Blocker`/`Reject`) and logged in the Scope recalibration log, not deleted.
+- **Mis-classing a UI-actionable finding as `backend-only`.** Classify by whether the frontend draft would encode the concern. A workflow the UI drives, a field the UI displays, a role-gated screen, POPIA consent UI is `fe-relevant` / `fe-facing-contract` and keeps its severity. When undecided, choose `fe-facing-contract` — bias toward not suppressing.
 - **Collapsing dimensions.** Each dimension is its own pass with its own gate. Running them in a single combined sweep hides reasoning and breaks the diagnostics block. The parent reviewer dispatches six parallel workers; collapsing into a single agent pass defeats per-dimension auditability.
 - **Reviewing against the synthesised requirements doc.** Do not consult `requirements/requirements.md` or any other `/requirements`-pipeline derivative. The review's contract is to critique the **raw inputs**; `/requirements` has not run yet (or if it has, that run's correctness is downstream and out of scope here).
 - **Reviewing against parallel analyses.** Do not consult `analyse-inputs/<METHOD>/*` outputs to triangulate findings. Each input-pipeline lens is independently grounded in the manifest; cross-reading creates implicit dependencies and conflates source material with derived structures.
