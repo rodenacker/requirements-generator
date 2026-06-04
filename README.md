@@ -23,7 +23,7 @@
 
 ## 1. Overview
 
-A Claude Code workspace for consultants and business analysts. Drop the client material you've been given into `input/`, run a slash command, and get back a handoff-ready artefact. The ten commands:
+A Claude Code workspace for consultants and business analysts. Drop the client material you've been given into `input/`, run a slash command, and get back a handoff-ready artefact — a structured spec, a PRD, a lens analysis or review, low-fi wireframes, or a clickable prototype. Used together, the commands turn a loose pile of client material into a comprehensive, traceable set of **frontend requirements** for building internal, enterprise-level **data-management applications**. The ten commands:
 
 - **`/start`** — pick which command to run.
 - **`/requirements`** — turn the loose pile of briefs, decks, screenshots, spreadsheets and PDFs into a clean, structured `requirements.md`.
