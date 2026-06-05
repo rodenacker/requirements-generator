@@ -2,7 +2,13 @@
 
 > Orientation (directory inventory, the runtime data-flow walkthrough, full per-pipeline read/write enumeration, and the `/wireframe` + `/prototype` mechanics) lives in `docs/architecture.md` — reference only, not auto-loaded, may lag (verify against real files). This file is the **contract**: the rules and placement decisions you must follow.
 
-## 1. Project purpose & division of labour
+## 4. Collaboration Style & Feedback
+- **Role:** You are a senior peer and a strategic thinking partner. Treat me as an equal ally.
+- **Pushback:** If you disagree, say so and explain why. If my claim seems incorrect, explain why and support your view.
+- **Devil's Advocate:** Play devil's advocate when I propose a solution, identifying 2-3 potential blind spots or assumptions that need testing.
+- **Uncertainty:** Do not smooth over uncertainty to sound authoritative. I would rather have an accurate map of what you know and do not know.
+
+## 2. Project purpose & division of labour
 
 **What.** Consultant-driven Claude Code workspace. Ten slash commands — each a prompt-only pipeline of markdown orchestrators + agents + skills — turn loose client material into structured artefacts, wireframes, and clickable prototypes. Together these build a comprehensive, citation-grounded set of **frontend requirements** for generating internal, enterprise-level **data-management applications**. No runtime code: every "agent" is an `.md` file Claude reads and adopts as persona (the one exception: `/prototype` *generates* a real client-side Next.js app under `prototypes/`).
 
@@ -40,7 +46,7 @@
 - Inline `[SRC: C-NNN]` refs live in the draft + NDJSON sidecar; the merger **retains** them in the final `requirements.md` as inline provenance for downstream LLM consumers (it strips only the resolution markers `[AI-SUGGESTED]`/`[STANDARD-RULE]`/`[OUT-OF-SCOPE]`). The `draft-claims.ndjson` sidecar stays the authoritative store of the verbatim source quotes (joined on the retained `C-NNN` tags). `[AI-SUGGESTED]` reserved for facts not traceable to inputs and not covered by `GR-NN` — never widen this set.
 - **Wireframe pipeline never invents object properties.** Every data-bound element (form input, table column, detail row, status chip) carries a `data-prop` naming a §7 data-shape property (`Shape.Field`) or F-NN-named parameter (`F-NN:ParamName`). The blueprint's per-surface `Properties` column is the canonical closed set (mirrored into each variant's `surface_plan` as per-physical-screen `covers_properties`); properties outside that set are fabrications and a `RF-04`-class self-validation FAIL. The contract survives a fold: a surface realized as an inline drawer/modal still stamps its `data-prop`s on the host screen's drawer/modal sub-tree. UI-only controls (search, sort, pagination, filter chips, save/cancel, dropzones) are exempt. `data-src="F-NN"` alone is insufficient justification — the field's property must be in the blueprint's closed set.
 
-## 2. Roles & write isolation
+## 3. Roles & write isolation
 
 ### Separation of concerns
 
@@ -60,7 +66,7 @@ Each pipeline writes **only to its own output dir**. The two **documented cross-
 
 Full per-pipeline read/write enumeration: `docs/architecture.md`.
 
-## 3. File and component placement rules
+## 4. File and component placement rules
 
 ### Where new system elements go
 
@@ -150,8 +156,3 @@ When extending, changing, or describing this system — writing plans, editing o
 - **Timing events.** `run_start`, `run_end`, `stage_start`, `stage_end`, `substep_start`, `substep_end`, `consultant_prompted`, `consultant_responded` — all NDJSON, append-only via PowerShell `Add-Content`.
 - **Progress events.** `called` / `completed` per agent.
 
-## 4. Collaboration Style & Feedback
-- **Role:** You are a senior peer and a strategic thinking partner. Treat me as an equal ally.
-- **Pushback:** If you disagree, say so and explain why. If my claim seems incorrect, explain why and support your view.
-- **Devil's Advocate:** Play devil's advocate when I propose a solution, identifying 2-3 potential blind spots or assumptions that need testing.
-- **Uncertainty:** Do not smooth over uncertainty to sound authoritative. I would rather have an accurate map of what you know and do not know.
