@@ -20,7 +20,7 @@ Run a single foreground agent (`design-system-styler`), gating completion on its
 
 ## Stand-alone constraint
 
-This orchestrator and its agent are isolated from the `/requirements` pipeline. They do not read `requirements/`, `framework/state/.progress.json`, or any other agent's working state, **except** that the orchestrator's step-0b context-bloat preflight reads `requirements/` (byte sizes only), `requirements/source-manifest.json`, and `framework/state/.progress.json` as inputs to `framework/skills/check-context-bloat.md`. This is a narrow, read-only exception scoped to the preflight; no other read of those paths is permitted, and no write to any path outside `design-system/` is permitted by either the orchestrator or the agent. The agent itself remains fully isolated — the preflight lives entirely in the orchestrator. They write only to `design-system/` (the artefact and a transient workspace folder).
+This orchestrator and its agent are isolated from the `/requirements` pipeline. They do not read `requirements/`, `framework/state/.progress.json`, or any other agent's working state, **except** that the orchestrator's step-0b context-bloat preflight reads `requirements/` (byte sizes only) and `framework/state/.progress.json` as inputs to `framework/skills/check-context-bloat.md` (called **without** `manifest_path` — the styler reads nothing under `requirements/`, so the directory serves only as a thread-bloat proxy and the source manifest's raw-input bytes/rows are not relevant). This is a narrow, read-only exception scoped to the preflight; no other read of those paths is permitted, and no write to any path outside `design-system/` is permitted by either the orchestrator or the agent. The agent itself remains fully isolated — the preflight lives entirely in the orchestrator. They write only to `design-system/` (the artefact and a transient workspace folder).
 
 ## No progress file
 
@@ -29,7 +29,7 @@ Unlike `requirements-orch.md`, this orchestrator does **not** maintain a `.progr
 ## Pipeline
 
 0. **Detect prior artefact** — before invoking the agent, perform the gate described in **Startup: detect prior artefact** below. Depending on the consultant's choice, either delete the prior artefact (after a git checkpoint) or exit cleanly.
-0b. **Preflight: context-bloat check** — performed only when step 0 did not exit (i.e. no prior artefact, or the consultant chose `Overwrite` and the reset has run). Skipped on `Keep` and `Cancel`. Call `framework/skills/check-context-bloat.md` with `artefact_dir = requirements/`, `manifest_path = requirements/source-manifest.json`, and `progress_path = framework/state/.progress.json`. On `ok`, proceed to step 1. On `RF-05 trigger`, surface the predicate per `framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` (design-system-orch surface variant) via `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`.
+0b. **Preflight: context-bloat check** — performed only when step 0 did not exit (i.e. no prior artefact, or the consultant chose `Overwrite` and the reset has run). Skipped on `Keep` and `Cancel`. Call `framework/skills/check-context-bloat.md` with `artefact_dir = requirements/` and `progress_path = framework/state/.progress.json` — **no `manifest_path`** (the styler reads nothing under `requirements/`; the directory is a pure *thread-bloat proxy* here, so the source manifest's raw-input bytes and `row_count` would be noise). On `ok`, proceed to step 1. On `RF-05 trigger`, surface the predicate per `framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` (design-system-orch surface variant) via `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`.
     - `proceed-without-clear` — proceed to step 1.
     - `continue-later` — output: *"Conversation context looks bloated from prior pipeline state. Run `/clear` and re-invoke `/design-system` for a clean run."* and exit cleanly. Do **not** write `framework/state/.progress.json`. Do **not** modify `design-system/`.
 1. **Run the styler** — invoke `framework/agents/design-system-styler.md` in the foreground. Wait until the agent reports the artefact accepted (handback gate below).
@@ -90,7 +90,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 - `design-system/design-system.html` — read at startup (existence check) and overwritten by the agent's step-06 on a fresh run.
 - `framework/skills/check-context-bloat.md` — invoked once at step 0b before the styler is called.
 - `framework/shared/refusal-registry.md` — `RF-05` (design-system-orch surface variant) and `RF-06` semantics surfaced by this orchestrator and by the styler's step-04.
-- `requirements/`, `requirements/source-manifest.json`, `framework/state/.progress.json` — read **only** as preflight inputs to step 0b's context-bloat skill. See the stand-alone constraint above.
+- `requirements/`, `framework/state/.progress.json` — read **only** as preflight inputs to step 0b's context-bloat skill (called without `manifest_path`). See the stand-alone constraint above.
 
 ## Output
 
@@ -98,7 +98,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 
 ## Tools
 
-- `Read` — check whether `design-system/design-system.html` (and the transition-window stale `design-system/design-system.md`) exists at startup; read `framework/state/.progress.json`, `requirements/source-manifest.json`, and the `.md` / `.json` files directly under `requirements/` (existence and byte size only) as preflight inputs to the step-0b context-bloat skill. No other reads outside `design-system/` are permitted.
+- `Read` — check whether `design-system/design-system.html` (and the transition-window stale `design-system/design-system.md`) exists at startup; read `framework/state/.progress.json` and the `.md` / `.json` files directly under `requirements/` (existence and byte size only) as preflight inputs to the step-0b context-bloat skill (no `manifest_path` is passed, so `requirements/source-manifest.json` is not read). No other reads outside `design-system/` are permitted.
 - `Bash` — git checkpoint commit + `rm -f design-system/design-system.html design-system/design-system.md` (the `.md` arg is the transition-window cleanup) + `rm -rf design-system/.workspace` during the Reset procedure. No other Bash usage. Never use destructive operations beyond those explicitly named paths. Never push or skip hooks.
 - `AskUserQuestion` — surface the `{ Overwrite, Keep, Cancel }` prompt at startup when a prior artefact exists, and surface the `RF-05 { proceed-without-clear, continue-later }` prompt when the step-0b preflight returns `RF-05 trigger`.
 

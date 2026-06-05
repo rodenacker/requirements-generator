@@ -28,7 +28,7 @@ This orchestrator and its reviewer agents are **isolated from the `/requirements
 - `framework/assets/reviews/registry.md` — methodology registry. Read-only.
 - The chosen reviewer's `reviewer_agent` path (resolved from the registry row at step 1). Read-only.
 - The chosen methodology's prior artefact (path resolved from the registry row's `output_path`) at step 2. Read-only for the existence check; deletion is via `Bash` on the Overwrite branch only.
-- `requirements/`, `requirements/source-manifest.json`, `framework/state/.progress.json` — **only** as preflight inputs to step 0b's context-bloat skill (existence and byte-size only). Same narrow exception as in `framework/orchestrators/design-system-orch.md` and `framework/orchestrators/analyse-requirement-orch.md`.
+- `requirements/`, `framework/state/.progress.json` — **only** as preflight inputs to step 0b's context-bloat skill (existence and byte-size only; called **without** `manifest_path`, so `requirements/source-manifest.json` is not read). Same narrow exception as in `framework/orchestrators/design-system-orch.md` and `framework/orchestrators/analyse-requirement-orch.md`.
 
 The reviewer agent itself remains fully stand-alone-ish — its only `requirements/` read is `requirements/requirements.md`. See `framework/agents/reviews/adversarial-reviewer.md > Stand-alone-ish constraint`.
 
@@ -46,7 +46,7 @@ Steps 1–3 form an in-memory loop whose head is the step-1 methodology selector
     - If the file does not exist, OR exists but is empty (zero bytes after trim): emit the single plain-text line *"`requirements/requirements.md` is required to run `/review-requirement`. Run `/requirements` first to produce it, then re-invoke `/review-requirement`."* and exit cleanly. Do **not** invoke any agent, do **not** prompt the consultant, do **not** write any file. This is a hard, recovery-by-re-invoke exit — analogous in spirit to `RF-04`'s plain-text halt, but specific to this orchestrator's prerequisite.
     - If the file exists and is non-empty: advance to step 0b.
 
-0b. **Preflight: context-bloat check** — performed only when step 0 did not exit. Call `framework/skills/check-context-bloat.md` with `artefact_dir = requirements/`, `manifest_path = requirements/source-manifest.json`, and `progress_path = framework/state/.progress.json`. On `ok`, proceed to step 1. On `RF-05 trigger`, surface the predicate per `framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` (review-requirement-orch surface variant, see below) via `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`.
+0b. **Preflight: context-bloat check** — performed only when step 0 did not exit. Call `framework/skills/check-context-bloat.md` with `artefact_dir = requirements/` and `progress_path = framework/state/.progress.json` — **no `manifest_path`** (the reviewer reads only `requirements.md` and its method assets, never the raw `input/` corpus, so the manifest's input bytes and `row_count` would be noise). On `ok`, proceed to step 1. On `RF-05 trigger`, surface the predicate per `framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` (review-requirement-orch surface variant, see below) via `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`.
     - `proceed-without-clear` — proceed to step 1.
     - `continue-later` — output: *"Conversation context looks bloated from prior pipeline state. Run `/clear` and re-invoke `/review-requirement` for a clean run."* and exit cleanly. Do **not** write `framework/state/.progress.json` — same constraint as the `design-system-orch` and `analyse-requirement-orch` surface variants of RF-05. Do **not** modify any path under `review-requirements/`.
 
@@ -104,7 +104,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 - `framework/agents/reviews/<method>-reviewer.md` — the reviewer agent invoked at step 3, resolved per the chosen registry row's `reviewer_agent` field. For the Adversarial MVP: `framework/agents/reviews/adversarial-reviewer.md`.
 - `requirements/requirements.md` — read at step 0 (existence + non-empty check). This is the orchestrator's only read under `requirements/` outside the step-0b preflight.
 - `framework/shared/refusal-registry.md` — `RF-04` and `RF-05` (review-requirement-orch surface variant) semantics surfaced by this orchestrator and by the reviewer at its write step.
-- `requirements/`, `requirements/source-manifest.json`, `framework/state/.progress.json` — read **only** as preflight inputs to step 0b's context-bloat skill. See the stand-alone constraint above.
+- `requirements/`, `framework/state/.progress.json` — read **only** as preflight inputs to step 0b's context-bloat skill (called without `manifest_path`). See the stand-alone constraint above.
 
 ## Output
 
@@ -112,7 +112,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 
 ## Tools
 
-- `Read` — check whether `requirements/requirements.md` exists and is non-empty at step 0; check whether `<chosen.output_path>` exists at step 2; read `framework/state/.progress.json`, `requirements/source-manifest.json`, and the `.md` / `.json` files directly under `requirements/` (existence and byte size only) as preflight inputs to the step-0b context-bloat skill. No other reads outside the reviewer's input paths are permitted.
+- `Read` — check whether `requirements/requirements.md` exists and is non-empty at step 0; check whether `<chosen.output_path>` exists at step 2; read `framework/state/.progress.json` and the `.md` / `.json` files directly under `requirements/` (existence and byte size only) as preflight inputs to the step-0b context-bloat skill (no `manifest_path` is passed, so `requirements/source-manifest.json` is not read). No other reads outside the reviewer's input paths are permitted.
 - `Bash` — git checkpoint commit + `rm -f <chosen.output_path>` during the Reset procedure. No other Bash usage. Never use destructive operations beyond the explicitly named path. Never push or skip hooks.
 - `AskUserQuestion` — surface the step-2 `{ Overwrite, Keep }` prompt when a prior artefact exists, and surface the `RF-05 { proceed-without-clear, continue-later }` prompt when the step-0b preflight returns `RF-05 trigger`. The step-1 methodology prompt and the step-3 accept/revise/restart prompts belong to the analysis-selector skill and the reviewer agent respectively — the orchestrator does not surface them directly.
 

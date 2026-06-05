@@ -128,7 +128,7 @@ Add new predicates by appending; never renumber.
 
 **Severity:** pause.
 
-**Trigger:** The blueprint-architect's step-02 block 2.6 encountered a `selections[i]` whose sidecar is absent on disk (`sidecar_present == false` or the file is missing) AND whose prose `output_path` is larger than 60 KB on disk. Loading the prose whole would impose unacceptable architect-side context cost; the consultant is asked to regenerate the analyser so a structured sidecar is available. The 60 KB threshold is set per `framework/assets/analyses/sidecar-schema.md > Section 3.3` and reflects the largest acceptable single-analysis context contribution under the 250 KB hard ceiling enforced by `framework/skills/check-context-bloat.md`.
+**Trigger:** The blueprint-architect's step-02 block 2.6 encountered a `selections[i]` whose sidecar is absent on disk (`sidecar_present == false` or the file is missing) AND whose prose `output_path` is larger than 60 KB on disk. Loading the prose whole would impose unacceptable architect-side context cost; the consultant is asked to regenerate the analyser so a structured sidecar is available. The 60 KB threshold is set per `framework/assets/analyses/sidecar-schema.md > Section 3.3` and reflects the largest acceptable single-analysis context contribution under the `bytes_total` ceiling enforced by `framework/skills/check-context-bloat.md` (whose default and per-caller overrides are defined there only — not restated here).
 
 **Surface:** `AskUserQuestion` with the choice set `{ regenerate-and-retry, proceed-with-bounded-read, cancel }` plus an "Other" override.
 

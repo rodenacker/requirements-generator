@@ -109,7 +109,7 @@ Full per-pipeline read/write enumeration: `docs/architecture.md`.
 - Adjusting an orchestrator's pipeline steps → its single `<name>-orch.md`. Update **Tools**, **Self-validation**, **Anti-Patterns**, **Inputs/Output** together.
 - Adding a `[STANDARD-RULE: GR-NN]` answer → append rule to `framework/shared/general-rules.md`. The drafter's `completeness-gap-pass.md` picks it up automatically when its scope predicate matches.
 - Adding a methodology (from a `plans/` candidate or net-new) → append the registry row with `status: mvp`, fill the eight registry fields, and ship the agent + reference + template + character + map skill. Orchestrator unchanged.
-- Tuning the context-bloat heuristic → `framework/skills/check-context-bloat.md` (`bytes_total > 250_000` or `row_count > 25`).
+- Tuning the context-bloat heuristic → `framework/skills/check-context-bloat.md` (defaults `bytes_total > 500_000` or `row_count > 25`; both per-caller-overridable via `threshold_bytes` / `threshold_rows`, and the numbers are defined there only). Derived-artefact pipelines (`analyse-requirement`, `review-requirement`, `wireframe`, `design-system`) call it **without** `manifest_path` so the raw-input corpus they never load does not inflate the measurement.
 - Updating dep graphs after any structural edit → `framework/dependency-graphs.md`.
 
 ### Create abstraction (extract a skill or shared file)
