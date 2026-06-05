@@ -136,22 +136,16 @@
   absent): row 0 Outcome, row 1 Opportunities (+ the orphan sentinel last, if
   orphans exist), row 2 Solutions, row 3 Assumption Tests.
 
-  DETERMINISTIC LAYOUT (the analyser computes these in render Step 10-B; exact
-  pixel values may vary, alignment does not — edges are computed from the same
-  node centres they connect):
-    boxW=170  boxH=52  hGap=18  vGap=72  marginX=24  marginY=20
-    For each row k with n_k node boxes: rowW_k = n_k*boxW + (n_k-1)*hGap
-    inner   = max(rowW_k over all rows)
-    W (viewBox width)  = inner + 2*marginX
-    H (viewBox height) = numRows*boxH + (numRows-1)*vGap + 2*marginY   // numRows = 3 or 4
-    Row k start x = marginX + (inner - rowW_k)/2                       // centre each row
-    Node i in row k: nx = rowStartX + i*(boxW+hGap);  ny = marginY + k*(boxH+vGap)
-    Node centre cx = nx + boxW/2;  node bottom = ny + boxH;  node top = ny
-    Edge parent->child: d="M {p.cx} {p.ny+boxH} C {p.cx} {my} {c.cx} {my} {c.cx} {c.ny}"
-      where my = (p.ny+boxH + c.ny) / 2   (a vertical-S cubic; never crosses sideways into garbage)
-  The <svg> carries width="{W}" height="{H}" viewBox="0 0 {W} {H}" (natural px,
-  default preserveAspectRatio) so the .tree-wrap scrolls horizontally for wide
-  trees rather than distorting; @media print scales it to page width.
+  DETERMINISTIC LAYOUT — computed by framework/skills/render-layered-tree-svg.md
+  (the canonical layered-tree layout: centred rows, a single viewBox, and
+  vertical-S cubic edges d="M p.cx p.bottom C p.cx my c.cx my c.cx c.top",
+  my=(p.bottom+c.top)/2; constants boxW=170 boxH=52 hGap=18 vGap=72 marginX=24
+  marginY=20, numRows 3 or 4). The analyser calls that skill in render Step 10-B;
+  exact pixel values may vary, alignment does not — edges are derived from the
+  same node centres they connect. The <svg> carries width="{W}" height="{H}"
+  viewBox="0 0 {W} {H}" (natural px, default preserveAspectRatio) so the
+  .tree-wrap scrolls horizontally for wide trees rather than distorting;
+  @media print scales it to page width.
 
       <section class="tree-wrap" aria-label="Opportunity Solution Tree (from inputs)">
         <svg class="tree-svg" role="img" width="{W}" height="{H}" viewBox="0 0 {W} {H}"

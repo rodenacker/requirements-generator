@@ -103,23 +103,27 @@
   Output: analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html.
 
   THEME-MAP SVG SCHEMA — {{THEME_MAP_SVG}} substitutes a single
-  <figure class="theme-map"> containing ONE inline <svg>. The analyser computes
-  geometry at render time (a top-down hub-and-spoke: root at top centre, theme
-  nodes in a wrapping row beneath, optional code circles below each theme, dashed
-  cross-theme proximity edges). All text XML-escaped. Conventions:
-    - viewBox "0 0 W H" — W and H computed by the analyser from theme count.
-    - role="img" + aria-label on the <svg>.
-    - <path class="edge edge-root-theme"> per root->theme link (solid).
-    - <path class="edge edge-theme-theme"> per cross-theme proximity pair (dashed).
-    - <path class="edge edge-theme-code"> per theme->code link when codes are toggled on.
-    - root: <g class="node node-root"> = <rect rx="16"/> + <text>.
-    - theme: <g class="node node-theme"> = <rect rx="6"/> + <text> (label wraps via tspan).
-    - code (optional, default OFF): <g class="node node-code"> = <circle/> + <text>.
+  <figure class="theme-map"> containing ONE inline <svg>, computed by
+  framework/skills/render-layered-tree-svg.md (the canonical layered-tree layout:
+  deterministic centred rows + a single viewBox + vertical-S cubic edges, so every
+  edge meets its node — NOT a hub-and-spoke fan of straight radial edges into a
+  wrapping grid). Rows top->bottom: row 0 Root, row 1 Themes, row 2 Codes (only
+  when toggled on; default OFF -> 2 rows). All text XML-escaped. Conventions:
+    - <svg> carries role="img" + width/height/viewBox (natural px, default
+      preserveAspectRatio); figure.theme-map scrolls horizontally for wide maps.
+    - <path class="edge edge-root-theme"> per root->theme link (solid, vertical-S).
+    - <path class="edge edge-theme-theme"> per cross-theme proximity pair (dashed
+      arc out of the themes-row band; a same_row_edge, not a laddering edge).
+    - <path class="edge edge-theme-code"> per theme->code link when codes toggled on.
+    - root:  <g class="node node-root">  = <rect rx="16"/> + centred <text>.
+    - theme: <g class="node node-theme"> = <rect rx="6"/>  + centred <text> (up to 2 tspan lines).
+    - code (optional, default OFF): <g class="node node-code"> = <circle/> + centred <text>.
+    - optional <text class="layer-label" x="4"> per present row (Root / Themes / Codes).
 
       <figure class="theme-map" aria-labelledby="theme-map-cap">
         <figcaption id="theme-map-cap">Theme map — root -> themes (-> codes when toggled), dashed edges show cross-theme proximity.</figcaption>
-        <svg viewBox="0 0 W H" role="img" aria-label="Theme map for the inputs">
-          <!-- edges first (under nodes), then node <g> groups -->
+        <svg role="img" width="W" height="H" viewBox="0 0 W H" aria-label="Theme map: N themes">
+          <!-- edges first (under nodes), then row labels, then node <g> groups -->
         </svg>
       </figure>
 
@@ -435,6 +439,7 @@
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 6px;
+      overflow-x: auto;        /* wide theme maps scroll horizontally; never distorted */
     }
     figure.theme-map figcaption {
       color: var(--muted);
@@ -442,9 +447,8 @@
       margin-bottom: 10px;
     }
     figure.theme-map svg {
-      width: 100%;
-      height: auto;
       display: block;
+      max-width: none;         /* natural pixel width; figure.theme-map scrolls when wider than the page */
       background: #fcfcfc;
       border: 1px solid var(--border);
       border-radius: 4px;
@@ -460,6 +464,7 @@
     figure.theme-map svg .node-root text { fill: var(--root-fg); font-size: 13px; font-weight: 700; text-anchor: middle; }
     figure.theme-map svg .node-theme text { fill: var(--theme-fg); font-size: 12px; font-weight: 600; text-anchor: middle; }
     figure.theme-map svg .node-code text { fill: var(--code-fg); font-size: 10px; text-anchor: middle; }
+    figure.theme-map svg .layer-label { fill: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
     figure.theme-map svg text {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }

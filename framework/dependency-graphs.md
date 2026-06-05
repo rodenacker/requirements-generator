@@ -149,7 +149,7 @@ state-diagram-analyser → svg-overlap-check.md
 
 ---
 
-## 5. analyse-inputs-orch.md · 65 nodes / 81 edges / depth 4
+## 5. analyse-inputs-orch.md · 66 nodes / 83 edges / depth 4
 
 ```
 orch → analysis-selector, check-context-bloat, input-handler, refusal-registry,
@@ -166,6 +166,9 @@ deltas:
      journey-mapping, task-analysis, jtbd,
      ooux, swim-lane-process-mapping, affinity-mapping, user-goal-analysis,
      business-context-definition, glossary
+  +render-layered-tree-svg: opportunity-solution-trees, thematic-analysis
+     (canonical layered-tree SVG layout skill — deterministic centred rows, single viewBox,
+      vertical-S cubic edges; the OST tree and the theme-map share it)
   +svg-overlap-check: affinity-mapping, swim-lane-process-mapping
      (post-write geometric check on the pre-rendered inline-SVG diagrams; report kept in /tmp
       scratch, NOT framework/state — preserves the no-state-write invariant)
@@ -190,7 +193,7 @@ deltas:
 - 11 MVP input analysers; `glossary` is `mvp`. (The inputs-side `five-whys` stub was retired — the requirement-side `five-whys` is a separate MVP method in graph 4.)
 - input-handler create/refresh writes are the only writes outside `analyse-inputs/<METHOD>/`.
 - map-skills are registry metadata → no edges (mirrors graph 4).
-- **Diagram rendering:** every diagram-emitting analyse-inputs analyser — `thematic-analysis`, `opportunity-solution-trees`, `affinity-mapping`, `swim-lane-process-mapping` — pre-renders its diagram as inline `<svg>`. No `mmdc`, no `mermaid-validator`, no `RF-07`. `affinity-mapping` + `swim-lane-process-mapping` additionally run `svg-overlap-check` post-write (overlaps → diagnostics layout warnings, never a halt).
+- **Diagram rendering:** every diagram-emitting analyse-inputs analyser — `thematic-analysis`, `opportunity-solution-trees`, `affinity-mapping`, `swim-lane-process-mapping` — pre-renders its diagram as inline `<svg>`. No `mmdc`, no `mermaid-validator`, no `RF-07`. `thematic-analysis` + `opportunity-solution-trees` compute that `<svg>` via the shared `render-layered-tree-svg` skill (layered centred rows + vertical-S cubic edges in one `viewBox`; the theme-map is the 2–3-row Root→Themes→Codes case, the OST tree the 3–4-row case). `affinity-mapping` + `swim-lane-process-mapping` additionally run `svg-overlap-check` post-write (overlaps → diagnostics layout warnings, never a halt).
 - The `mindmap` / `flowchart TD` / `graph TD` Mermaid sources are export / re-ingestion adjuncts (collapsed `<details class="mermaid-block">`), embedded as unvalidated text — not the visible diagram (which is the inline SVG).
 - affinity-mapping is the **only sub-agent-invoking** analyser: step-6 Round-3 `general-purpose` sub-agent receives the Round-1 notes JSON only (no Pass-1 labels) — documented "no sub-agents" exception (purely computational anti-anchoring KJ discipline; not drawn — one-shot tool call).
 - Methodology rationale (KJ/ORCA/Rummler-Brache provenance, sibling comparisons, re-ingestibility) lives in each analyser + `*-reference.md`, not here.

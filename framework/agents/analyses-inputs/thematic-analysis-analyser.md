@@ -284,13 +284,15 @@ Read `framework/assets/analyses-inputs/template-thematic-analysis.html` (loaded 
 
 **A. Overview / meta.** Substitute `{{TITLE}}`, `{{DOMAIN}}`, `{{GENERATED_AT}}` (ISO-8601 UTC), `{{MANIFEST_SHA256}}` (the Step-2 manifest fingerprint), `{{RUN_COUNT}}` (`prior.run_count + 1` or `1`), and the counts (`{{OBSERVATION_COUNT}}`, `{{CODE_COUNT}}`, `{{CANDIDATE_THEME_COUNT}}`, `{{FINAL_THEME_COUNT}}`, `{{CANDIDATE_REQ_COUNT}}`, `{{COVERED_COUNT}}`, `{{GAP_COUNT}}`, `{{SILENT_COUNT}}`, `{{CONSUMED_ROW_COUNT}}`, `{{SKIPPED_ROW_COUNT}}`). The same values populate both the `dl.meta-grid` cells and the `<script type="application/json" id="thematic-analysis-meta">` head block (the markitdown-stripped drift cursor — the HTML analogue of the former `<!-- thematic-meta -->` line). The `Manifest SHA-256` cell and the head block's `manifest_sha256` must match the Step-2 value.
 
-**B. Theme-map SVG (`{{THEME_MAP_SVG}}`).** Compute the geometry of a top-down hub-and-spoke and emit a single inline `<svg viewBox="0 0 W H" role="img" aria-label="…">` inside `<figure class="theme-map">` per the template's THEME-MAP SVG SCHEMA:
-  - Edges first (drawn under nodes), then node `<g>` groups.
-  - Root node (`<g class="node node-root">` = `<rect rx="16"/>` + `<text>`) at top centre, label "Themes from Inputs".
-  - One theme node (`<g class="node node-theme">` = `<rect rx="6"/>` + `<text>`, multi-line label via `<tspan>`) per entry in `final_themes`, in a wrapping row beneath the root; one solid `<path class="edge edge-root-theme">` per root→theme link.
-  - Cross-theme proximity: one dashed `<path class="edge edge-theme-theme">` per pair recorded in Step 7 with Jaccard overlap ∈ [0.30, 0.50].
-  - Code circles (`<g class="node node-code">` = `<circle/>` + `<text>`) + `<path class="edge edge-theme-code">` are **off by default**; emit only if the consultant toggled `include-codes` during a prior Revise loop in Step 12.
-  - All `<text>` content XML-escaped. The SVG is the **visible** diagram; gate 4 requires every theme to appear as a node here.
+**B. Theme-map SVG (`{{THEME_MAP_SVG}}`).** Compute the SVG with `framework/skills/render-layered-tree-svg.md` (the canonical layered-tree layout — deterministic centred rows, a single `viewBox`, and vertical-S cubic edges; nodes and edges share one coordinate space, so every edge meets its node and the diagram reads cleanly even with many themes — **never** a hub-and-spoke fan of straight radial edges into a wrapping grid, the unreadable layout this replaces). Substitute its returned `svg_markup` into `{{THEME_MAP_SVG}}` inside `<figure class="theme-map">` per the template's THEME-MAP SVG SCHEMA. Pass:
+  - **`rows` (top→bottom):** row 0 = `node-root` — one node, `shape: rect rx=16`, label "Themes from Inputs"; row 1 = `node-theme` — one node per entry in `final_themes` (alphabetical by label), `shape: rect rx=6`, `label_lines` = the theme label wrapped to up to two lines (~22 chars/line); row 2 = `node-code` — `shape: circle`, one per code, **only when** the consultant toggled `include-codes` during a prior Revise loop in Step 12 (off by default → 2 rows).
+  - **`parent_child_edges`:** one `edge-root-theme` per root→theme link; with codes on, one `edge-theme-code` per theme→code link.
+  - **`same_row_edges`:** one `edge-theme-theme` (dashed) per cross-theme proximity pair recorded in Step 7 with Jaccard overlap ∈ [0.30, 0.50] (the skill draws these as dashed arcs out of the themes-row band; empty in the common case).
+  - **`row_labels`:** `Root` / `Themes` / (`Codes` when on), one per present row.
+  - **`node_text`:** `{ show_id: false, anchor: "middle" }` for every layer (centred multi-line labels, no id line).
+  - **`aria_label`:** name the theme count (e.g. `Theme map: {N} themes`).
+
+  The SVG is the **visible** diagram; gate 4 requires every theme to appear as a `<g class="node …">` node here (and as a node in the Mermaid export source). Every `<text>` payload XML-escaped.
 
 **C. Theme-map Mermaid source (`{{THEME_MAP_MERMAID}}`).** Emit the adjacent collapsed `<details class="mermaid-block">` with `<pre class="mermaid-source">` holding the `graph TD` source — the export / re-ingestion adjunct (survives markitdown HTML→MD as a fenced ```mermaid block). Build it exactly as before:
   - Root node `root([Themes from Inputs])`.
@@ -381,6 +383,7 @@ Output the final handback line:
 - `framework/assets/analyses-inputs/template-thematic-analysis.html` — the HTML template scaffold. Read once in Step 1; populated by `{{PLACEHOLDER}}` substitution at Step 10.
 - `framework/assets/characters/thematic-analysis-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/thematic-analysis-reference.md` — the methodology reference. Read once in Step 1.
+- `framework/skills/render-layered-tree-svg.md` — the canonical layered-tree SVG layout skill (deterministic centred rows, single `viewBox`, vertical-S cubic edges). Read on demand at Step 10B Sub-step B to compute the theme-map. (`framework/skills/verify-artifact-write.md` is likewise read on demand at Step 11.)
 
 **Template asset.** Thematic Analysis populates `framework/assets/analyses-inputs/template-thematic-analysis.html` (the registry's `template_asset`) by `{{PLACEHOLDER}}` substitution; it pre-renders the theme-map as inline `<svg>` in the `#diagrams` section and keeps the `graph TD` Mermaid source as an adjacent collapsed export `<details>`. Self-contained HTML: one inline `<style>`, no external CSS/JS, no CDN, no `<script>` behaviour, no client-side Mermaid runtime.
 
@@ -390,7 +393,7 @@ Output the final handback line:
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the HTML template scaffold (`framework/assets/analyses-inputs/template-thematic-analysis.html`), the manifest, each manifest-enumerated source file (via `original_path` or `converted_sibling`), and (if present) the prior thematic-analysis artefact. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.** The stand-alone-ish constraint is enforced by tool-list scope.
+- `Read` — read the character file, the reference asset, the HTML template scaffold (`framework/assets/analyses-inputs/template-thematic-analysis.html`), the manifest, each manifest-enumerated source file (via `original_path` or `converted_sibling`), and (if present) the prior thematic-analysis artefact, plus the skills it invokes (`framework/skills/render-layered-tree-svg.md` at Step 10B and `framework/skills/verify-artifact-write.md` at Step 11). **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.** The stand-alone-ish constraint is enforced by tool-list scope.
 - `Write` — write `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 10's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
 - `Bash` — `mkdir -p analyse-inputs/THEMATIC-ANALYSIS` (Step 11 setup). No other Bash usage.

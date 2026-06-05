@@ -223,18 +223,27 @@ For each concern:
 
 ---
 
-## Theme-map diagram (Mermaid spec)
+## Theme-map diagram
 
-- **Graph type:** `graph TD` (top-down). Top-down reads cleanly from root → themes; long code labels would wrap awkwardly in `LR`.
-- **Nodes:**
-  - **Root:** `root([Themes from Inputs])` (stadium shape).
-  - **Theme:** `T1[<theme label>]` (rectangle). One node per entry in `final_themes`.
-  - **Code (optional, default OFF):** `c1((<code label>))` (circle). Off by default for diagram readability. The consultant can opt in via the Step 12 Revise toggle (*"include codes in the theme-map"*); the analyser then re-renders the diagram with code nodes and theme-to-code edges.
-  - **Sources:** never drawn — `[SRC: <filename>]` markers in the body carry that provenance; surfacing sources in the diagram clutters the layout without adding information the body cannot.
-- **Edges:** `root --> T1` for every theme. With codes included: `T1 --> c1` for every theme-code link.
-- **Cross-theme proximity:** when two themes shared ≥ 30% of codes at Phase 7 but were kept distinct (the analyst's clustering judgement), render a dashed edge `T1 -.-> T2` to surface the proximity. The 30% threshold is computed as the Jaccard overlap of the two themes' code sets.
+The theme-map has two parts: the **visible** pre-rendered inline SVG and an embedded **Mermaid export** source beneath it. Keep them in agreement — every theme is a node in both.
+
+### Visible diagram — layered-tree SVG
+
+The visible diagram is a layered tree rendered by `framework/skills/render-layered-tree-svg.md` (the canonical layered-tree layout: deterministic centred rows, a single `viewBox`, vertical-S cubic edges). It reads top→bottom as **Root → Themes → (Codes)**:
+
+- **Rows:** row 0 = a single Root node (`<rect rx="16">`, label "Themes from Inputs"); row 1 = one Theme node (`<rect rx="6">`, centred up-to-2-line label) per entry in `final_themes`, in a single centred row; row 2 = Code circles, **off by default** (the consultant opts in via the Step 12 Revise toggle *"include codes in the theme-map"*, which adds the codes row + theme→code edges).
+- **Edges:** a solid vertical-S `edge-root-theme` per root→theme link (and `edge-theme-code` per theme→code link when codes are on). Each edge leaves its parent and meets its child straight-down, so the line→block correspondence is unambiguous even with many themes.
+- **Cross-theme proximity:** when two themes shared ≥ 30% of codes at Phase 7 but were kept distinct (the analyst's clustering judgement), a dashed `edge-theme-theme` arc links them within the Themes row. The 30% threshold is the Jaccard overlap of the two themes' code sets.
+- **Width:** wide maps scroll horizontally inside `figure.theme-map` (natural pixel width, never squashed to fit). Why layered rather than hub-and-spoke: a single root fanning straight radial lines into a 2-D grid forces many long diagonals to cross near the root, so lines cannot be traced to their blocks; one centred row + vertical-S edges removes the crossings.
+- **Sources:** never drawn — `[SRC: <filename>]` markers in the body carry that provenance; surfacing sources in the diagram clutters the layout without adding information the body cannot.
 - **Placement in the artefact:** after `## Themes`, before `## Theme-to-requirement-candidates`. Readers build the picture from the body's theme definitions, anchor it visually via the diagram, then see how each theme bridges to candidate requirements.
-- **No Mermaid validation:** the theme-map is a pre-rendered inline SVG; the Mermaid source beneath it is embedded as an unvalidated export adjunct (no `mmdc` dependency). Keep the SVG and the Mermaid source in agreement — every theme is a node in both.
+
+### Mermaid export source
+
+- **Graph type:** `graph TD` (top-down).
+- **Nodes:** Root `root([Themes from Inputs])` (stadium); Theme `T1["<theme label>"]` (rectangle), one per entry in `final_themes`; Code `c1((<code label>))` (circle), only when codes are toggled on.
+- **Edges:** `root --> T1` for every theme; `T1 --> c1` per theme-code link when codes are on; `T1 -.-> T2` (dashed) per cross-theme proximity pair.
+- **No Mermaid validation:** the visible diagram is the pre-rendered inline SVG; the Mermaid source beneath it is embedded as an unvalidated export adjunct (no `mmdc` dependency), surviving markitdown HTML→MD as a fenced ```mermaid block for re-ingestion.
 
 ---
 
