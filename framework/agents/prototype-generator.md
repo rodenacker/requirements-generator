@@ -22,7 +22,7 @@ This explicit partition is what makes the parallel dispatch safe.
 1. `steps/step-01-activate.md` — load character; affirm write isolation (`prototypes/**` only); read `design-spec.md` + `blueprints/<scope_slug>/blueprint.md`.
 2. `steps/step-02-read-spec.md` — build the per-surface render plan from spec §5 (realizations) / §7 (component inventory) / §8 (data binding); reuse-scan the existing shared library; compute the **component-ownership map** (disjoint new-component filenames per surface; dedupe shared new components; driver authors any shared-by-two new component itself).
 3. `steps/step-03-ensure-fixtures-stores.md` — driver authors the cross-cutting data layer additively (types, fixtures with closed-set fields only, stores, `index.ts`/`seed.ts` registration); verify each.
-4. `steps/step-04-dispatch-surface-subagents.md` — dispatch ≤4 sub-agents in **one** Agent-tool message (each runs `steps/step-sub-render-surface.md` with its assignment); await all; collect component manifests; handle per-surface failure.
+4. `steps/step-04-dispatch-surface-subagents.md` — dispatch all surfaces-with-owned-components in **one** Agent-tool message (single adaptive wave, ceiling 8; each runs `steps/step-sub-render-surface.md` with its assignment); await all; collect component manifests; handle per-surface failure.
 5. `steps/step-05-compose-route.md` — driver assembles `src/app/<name_slug>/**` (route tree per each surface's realization: standalone page / host-with-drawer-or-modal / wizard sub-steps), composing the shared components, wiring store usage + `activeRole` (PI-05), and stamping `data-testid="primary-cta"` on the primary action; verify each route file.
 6. `steps/step-06-verify-build.md` — invoke `framework/skills/verify-prototype-build.md`; on `structured-fail`, bounded retry (≤2) regenerating only the offending surface (re-run its sub-agent + re-compose); on `RF-11`, return the trigger to the orchestrator; on exhaustion, surface `RF-12` (hard).
 7. `steps/step-07-handback.md` — final self-validation (files vs spec, anti-fabrication, baseline, invariants); hand back `ok` (verify `pass`/`pass-with-warning`) or `failed {structured}`.
@@ -49,7 +49,7 @@ This explicit partition is what makes the parallel dispatch safe.
 - Read — the spec, blueprint, conventions, baseline checklist, existing library.
 - Write/Edit — driver-owned files only (data layer + routes + scaffolded smoke via the verify skill); sub-agents (separate invocations) write their assigned components.
 - Bash — npm scripts via the verify skill; sha256 for verifies; timing appends.
-- Agent — dispatch ≤4 parallel per-surface sub-agents in one message (step-04).
+- Agent — dispatch all owned-component surfaces (single wave, ceiling 8) in one message (step-04).
 - Skills — `verify-artifact-write.md`, `verify-prototype-build.md`.
 
 ## Self-validation (step-07)

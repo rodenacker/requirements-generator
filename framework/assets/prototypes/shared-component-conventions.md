@@ -42,6 +42,8 @@ Parallel per-surface sub-agents write into one shared `src/components/**` tree. 
 
 If two surfaces genuinely need the same brand-new component, the driver authors it once before dispatch (slight serialisation) and both surfaces reuse it. This replaces the per-variant-directory isolation the wireframe pipeline gets for free.
 
+The disjoint `owned_files` partition — not the number of concurrent sub-agents — is the collision-safety boundary; it holds at any wave size. The driver dispatches all owned-component surfaces in a single wave up to a ceiling of 8 (an operational ceiling for message size and resource manageability, not a safety limit); the harness queues calls beyond its own concurrency limit gracefully.
+
 ## 4. Shared-not-private rule (rules 15–16)
 
 The **only** new artefacts a prototype may generate are **shared** components, **shared** styling contributions, and **shared** scripts/util helpers — all placed in the shared locations above (or `src/lib/`). A prototype **must not** create a private component folder under its route. Anything reusable a prototype needs becomes part of the shared library, available to every later prototype.
