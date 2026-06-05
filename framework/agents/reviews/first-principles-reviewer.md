@@ -8,7 +8,11 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **f
 
 Produce `review-requirements/FIRST-PRINCIPLES/first-principles-review.html` — a self-contained HTML document that (a) rates every numbered item in `requirements/requirements.md > §4.1 Goals`, `§4.2 Stories by persona`, `§6 Requirements`, and `§7 Data entities` against six per-subject defensibility questions (Q1–Q6), (b) surfaces the ten least defensible subjects in a deep-dive callout with full Q1–Q6 answers + verbatim evidence (or absence-reasoning) per answer, (c) walks the artefact graph once more to find orphan goals / personas / stories / requirements / entities (Q7 coverage pass), (d) walks the whole doc once more to surface **cross-subject coherence findings** under five lenses (CS1 Contradictory Objectives; CS2 Hidden Assumptions / False Constraints; CS3 Missing System Thinking / Architectural Consequence Blindness; CS4 Missing Operational Reality; CS5 Human Cost Allocation), and (e) records every gate result, score histogram, weakest-question distribution, coverage result, CS-pass result, and filter drop/rescue (per-subject Q3/Q5 and cross-subject CS2/CS4/CS5) in a diagnostics block. Every quality gate in the reference is a hard gate (gate 8 has a `warn` variant for absent layers); the cross-subject pass adds gates 12–14.
 
-The agent is **single-pass**: enumeration, per-subject Q1–Q6 evaluation, Q7 coverage pass, CS1–CS5 cross-subject pass, filter, ranking, validate, render, and write all execute in this one thread without sub-agent fan-out. Six questions over each subject probe the same justification chain (Q1's chain-entry is a precondition for Q2's chain-landing); parallelisation would either duplicate evidence searches or produce inconsistent verdicts per subject. The five cross-subject lenses share evidence — the same anchor pair can trigger multiple lenses (CS1 + CS3 + CS5 on a contradictory goal/requirement pair) — so single-thread execution emits findings independently per lens, then a post-scan consolidation step clusters findings sharing the same anchor-set. The single-pass design mirrors `framework/agents/reviews/user-stories-reviewer.md` (six story-quality criteria over each story) rather than `framework/agents/reviews/adversarial-reviewer.md` (eight orthogonal defect lenses with parallel workers); the CS lenses share evidence too tightly for fan-out.
+The agent is **fan-out on one axis only**: the per-subject Q1–Q6 evaluation (Step 4) is dispatched as parallel, read-only, foreground subject-batch workers (`framework/agents/reviews/first-principles-subject-worker.md`); everything else — enumeration + ID assignment (Step 3), the Q7 coverage pass (Step 5), the CS1–CS5 cross-subject pass (Step 5b), the GR-NN/PI-NN filter (Step 6), ranking (Step 7), validate (Step 8), render (Step 9), write (Step 10), and handback (Step 11) — runs single-threaded in this parent thread, because each is relational or whole-doc and cannot be sliced across batches.
+
+The axis matters. **Within** a subject, the six questions probe the same justification chain (Q1's chain-entry is a precondition for Q2's chain-landing), so a subject's six questions are never split — one worker owns a whole subject. **Across** subjects, the Q1–Q6 evaluation is independent (G-04's defensibility does not depend on FR-12's), so the cost-dominant N-subjects axis is data-parallel: partition the ID-ordered subject list into contiguous batches, evaluate each batch in its own worker, and reassemble by `subject_id`. The "duplicate evidence searches" cost is each worker re-reading the doc — parallel I/O, paid once in wall-clock, not N times; the "inconsistent verdicts" risk does not apply across subjects (a subject's verdict is self-contained — the only cross-subject consistency requirements live in Q7/CS, which stay in the parent). The five cross-subject lenses share evidence too tightly for fan-out (the same anchor pair can trigger CS1 + CS3 + CS5), so Step 5b stays single-thread and a post-scan consolidation step clusters findings by shared anchor-set. The fan-out mirrors `framework/agents/reviews/adversarial-reviewer.md` (parallel read-only workers merged deterministically), but on a **data axis** (subject batches) rather than adversarial's **task axis** (one lens per worker): partitioning by subject-type would leave the dominant type (requirements) unparallelised, so batches are type-mixed.
+
+**Graceful degradation.** When `enumerated_count` is small (≤ the fan-out threshold), the parent skips fan-out entirely and evaluates Q1–Q6 inline in this thread — small docs should not pay sub-agent spawn overhead for a few subjects. The merged in-memory `ratings` list is identical in shape either way; Steps 5–11 are byte-for-byte indifferent to whether ratings came from workers or from the inline path.
 
 ## Stand-alone-ish constraint
 
@@ -22,6 +26,9 @@ The agent's only inputs are:
 - `framework/assets/reviews/template-first-principles.html` (the self-contained HTML scaffold — read once at Step 9).
 - `framework/shared/general-rules.md` (read at Step 6 as a **filter source** only).
 - `framework/shared/prototype-invariants.md` (read at Step 6 as a **filter source** only).
+- `framework/agents/reviews/first-principles-subject-worker.md` (the subject-batch worker contract — **referenced, not read at runtime**; its operational interface is the Step-4a worker prompt template, which inlines every input the worker needs).
+
+The Step-4 subject-batch workers inherit the same stand-alone-ish constraint by tighter tool-list scope: each worker may `Read` only `requirements/requirements.md` and has no other tools. Workers do not read the character file, the reference, or the template — the character content and the Q1–Q6 rubric slice are inlined into the worker's spawning prompt verbatim. Workers do not read the two filter sources — they return **native** Q1–Q6 scores, and the parent applies the GR-NN/PI-NN rescue once at Step 6. Workers do not write, do not edit, do not bash, do not call `AskUserQuestion`, and do not dispatch further sub-agents. The parent reviewer is the sole consultant-interactive surface and the sole writer.
 
 The two filter-source reads at Step 6 are the agent's **only** reads outside its own asset set and the merged requirements doc. They are scoped to (a) the per-subject Q3/Q5 filter pass and (b) the cross-subject CS2/CS4/CS5 filter pass — both run in Step 6 against the same two files. The agent does not consult these files for any other purpose. The agent does **not** read `framework/shared/prototype-scope.md` (every §4–§7 subject is in-scope for first-principles evaluation by construction) and does **not** read other reviewers' references. Both omissions are documented in the diagnostics block as `scope-filter: not-applicable` and `cross-methodology-filter: not-applicable`.
 
@@ -44,11 +51,11 @@ Steps in order. Do not skip steps; do not collapse steps. Each step's success is
 ### Step 2 — Read input
 
 - `Read requirements/requirements.md` in full. The orchestrator's prerequisite gate guarantees this file exists.
-- Compute and remember the SHA-256 of the file's bytes — it lands in the artefact's `REQUIREMENTS_SHA256` field so the artefact records exactly which version of the requirements doc it audited. It also drives gate 11.
+- Compute and remember the SHA-256 of the file's bytes — it lands in the artefact's `REQUIREMENTS_SHA256` field so the artefact records exactly which version of the requirements doc it audited. It also drives gate 11, and is passed to every Step-4a worker as `{{SHA}}` so each worker can confirm the doc has not changed between this read and the worker's own read (mid-run mutation → run-wide abort).
 - If the file is empty (zero bytes after trim), halt with the structured error: *"`requirements/requirements.md` is present but empty. Run `/requirements` to populate it, then re-invoke `/review-requirement`."* No `AskUserQuestion`; this is a hard halt analogous to RF-04.
 - Locate the canonical sections by walking headings: `§1`, `§3 Target users` (or `§3 Personas`), `§4.1 Goals` (or `§4.1 User goals`), `§4.2 Stories by persona` (or `§4.2 User stories by persona`), `§5 Task flows`, `§6 Requirements`, `§7 Data entities` (or `§7 Entities`). Defensive variants: `## 4.1 Goals` / `## §4.1 Goals` / `### 4.1 Goals` are all acceptable; the reviewer matches by section number prefix `4.1`, `4.2`, `6`, `7` followed by a recognisable heading word.
 - Build an in-memory **anchor index**: a map from each `§N.N` heading, each `G-NN`, `BR-NN`, `FR-NN`, `EN-NN` (or doc-equivalent IDs), each `##### Story:` heading, each line number, to the verbatim text at that anchor. The index drives gate 3 (verbatim evidence existence) and gate 9 (orphan-finding anchor validity).
-- Build an in-memory **quote index**: a sorted list of all line-bounded substrings of the doc. This drives gate 3 — every `yes-with-evidence` quote must exist in the index.
+- **Verbatim-evidence discipline (no precomputed substring index).** Gate 3 requires every `yes-with-evidence` quote to be a verbatim substring of `requirements/requirements.md`. The authority for that check is the doc text itself (held in memory from the read above), **not** a precomputed "sorted list of all line-bounded substrings" — that index is O(lines²) and is never literally materialised. The rule each producer of evidence follows is: *when you assert a `yes-with-evidence` quote, confirm it appears verbatim in the doc you read; if you cannot find it verbatim, the answer is `partial` or `no`.* The Step-4 workers follow the same rule against their own read of the doc; the parent re-checks gate 3 at Step 8 against its Step-2 read. (This is the only place this agent diverges from `adversarial-reviewer.md`, which inlines a serialized quote-index JSON into its workers — first-principles workers read the full doc anyway, so the substring check needs no separate index.)
 - If §6 is empty or absent (no requirements to rate), halt with: *"`requirements/requirements.md > §6 Requirements` is empty or absent. The First Principles audit has no §6 subjects to rate. Run `/requirements` to populate §6, then re-invoke `/review-requirement`."* Hard halt; no `AskUserQuestion`. (§4.1 / §4.2 / §7 missing is a `warn` at Step 8 gate 8, not a hard halt — a doc may legitimately have goals but no stories yet, or no §7 entities; only §6 absence makes the audit vacuous.)
 
 ### Step 3 — Enumerate subjects
@@ -74,11 +81,18 @@ Build the in-memory subject list, ordered by `raw_position`. Compute `enumerated
 
 If `enumerated_count == 0` (no §4–§7 subjects at all), halt with: *"`requirements/requirements.md` has no §4.1 goals, §4.2 stories, §6 requirements, or §7 entities. The First Principles audit has nothing to evaluate. Re-run `/requirements`, then re-invoke `/review-requirement`."* Hard halt. (This should be impossible given the Step-2 §6 absence halt, but defended for completeness.)
 
-Emit one status line: *"Enumerated `{{enumerated_count}}` subjects: `{{goals_count}}` goals, `{{stories_count}}` stories, `{{requirements_count}}` requirements, `{{entities_count}}` entities. Proceeding to per-subject evaluation."*
+**Partition for fan-out.** The `subject_id`s assigned here are **final and authoritative** — Step 4 workers rate the subjects they are handed, keyed by these IDs, and never re-enumerate or reassign. Decide the execution mode from `enumerated_count` (`N`):
 
-### Step 4 — Evaluate Q1–Q6 per subject
+- **`N ≤ 12` → inline mode.** Skip fan-out; evaluate Q1–Q6 in this thread at Step 4 (the inline path). A handful of subjects is not worth sub-agent spawn overhead.
+- **`N > 12` → fan-out mode.** Compute `k = clamp(ceil(N / 12), 1, 6)` — target ~12 subjects per worker, capped at 6 workers. Partition the `raw_position`-ordered subject list into `k` **contiguous** batches (batch 1 = positions `1..ceil(N/k)`, etc.). Contiguity + document order keeps batch assignment deterministic and type-mixed (so the dominant type — requirements — is split across workers, not isolated in one). Record the `{batch_id → [subject_ids]}` map for the Step-4b merge.
 
-For each subject in the enumerated set, in `raw_position` order, apply the per-subject-type Q1–Q6 rubric from `framework/assets/reviews/first-principles-reference.md > The 7-question rubric`. For each subject produce one rating record:
+Emit one status line: *"Enumerated `{{enumerated_count}}` subjects: `{{goals_count}}` goals, `{{stories_count}}` stories, `{{requirements_count}}` requirements, `{{entities_count}}` entities. Execution mode: `{{inline | fan-out across {{k}} batches}}`. Proceeding to per-subject evaluation."*
+
+### Step 4 — Evaluate Q1–Q6 per subject (fan-out, or inline when `N ≤ 12`)
+
+Step 4 produces one rating record per subject. In **fan-out mode** the per-subject Q1–Q6 evaluation is dispatched to parallel subject-batch workers (Step 4a) and reassembled (Step 4b); in **inline mode** the parent applies the rubric below directly, in this thread, in `raw_position` order. Either way the end state is the same in-memory `ratings` list.
+
+The rating record schema and the rubric are identical for both paths (the worker file `framework/agents/reviews/first-principles-subject-worker.md` restates them for the worker; the parent inlines the rubric into each worker prompt). For each subject produce one rating record:
 
 ```
 subject_id:          G-NN | US-NN | BR-NN | FR-NN | EN-NN
@@ -97,7 +111,7 @@ weakest_question:    Q1 | Q2 | Q3 | Q4 | Q5 | Q6  (lowest-numbered non-yes-with-
 
 **Per-question application rules** (full per-subject-type adaptations in the reference; the essentials):
 
-- **Q1 — Why does this exist?** For each subject, search the doc for a chain entry: rationale annotation, goal reference, persona pain, `[STANDARD-RULE: GR-NN]` marker, or (for entities) a §6 requirement that names the entity. `yes-with-evidence` requires a verbatim quote ≤5 lines that exists in the quote index. `partial` if the chain exists but lands on another subject whose own Q1 returns `no`. `no` if nothing in the doc anchors the subject.
+- **Q1 — Why does this exist?** For each subject, search the doc for a chain entry: rationale annotation, goal reference, persona pain, `[STANDARD-RULE: GR-NN]` marker, or (for entities) a §6 requirement that names the entity. `yes-with-evidence` requires a verbatim quote ≤5 lines that is a literal substring of the doc. `partial` if the chain exists but lands on another subject whose own Q1 returns `no`. `no` if nothing in the doc anchors the subject.
 - **Q2 — Which business goal does it support?** Identify the upstream goal or business outcome. `yes-with-evidence` requires either the named `G-NN` quote (and that G-NN itself satisfies Q2) or a `[STANDARD-RULE: GR-NN]` reference. Goals self-evaluate: their own text must contain measurable-outcome wording.
 - **Q3 — Which problem does it solve?** Find the named §1 / §3 / §5 friction the subject removes. `yes-with-evidence` requires the friction quote.
 - **Q4 — What operational outcome does it improve?** Identify the measurable outcome. For goals: the goal's own text must have a measurable outcome (time / count / rate / threshold). For stories: the `so that …` clause must name a measurable outcome distinct from the `I want …` action. For requirements: an associated acceptance criterion must be testable. For entities: the entity must enable a measurable workflow outcome named in any §6 requirement's AC.
@@ -106,7 +120,7 @@ weakest_question:    Q1 | Q2 | Q3 | Q4 | Q5 | Q6  (lowest-numbered non-yes-with-
 
 **Per-question schema rules:**
 
-- For every answer = `yes-with-evidence`: the `evidence` field is a verbatim quote ≤5 lines, exists in the Step-2 quote index, and `reasoning` is null.
+- For every answer = `yes-with-evidence`: the `evidence` field is a verbatim quote ≤5 lines, is a literal substring of `requirements/requirements.md`, and `reasoning` is null.
 - For every answer = `partial` or `no`: the `reasoning` field is a 1–2 sentence string naming what is missing, and `evidence` is null.
 - For Q6 `yes-with-evidence`: the `evidence` field carries *the consequence sentence + the cited quote*, separated by a newline.
 - Stub reasonings (*"unclear"*, *"vague"*, *"none"*) fail gate 4; reasoning must name a specific absent property.
@@ -116,9 +130,85 @@ weakest_question:    Q1 | Q2 | Q3 | Q4 | Q5 | Q6  (lowest-numbered non-yes-with-
 - `score_native` = count of Q1–Q6 answers where `answer == "yes-with-evidence"`. Integer 0–6.
 - `weakest_question` = the lowest-numbered Q whose answer is not `yes-with-evidence`. If all six are `yes-with-evidence`, set `weakest_question = "Q5"` (Q5 is the canonical "lowest-risk" question; a 6/6 subject's "weakest" is by convention Q5, used only when the ratings table needs a non-empty value).
 
-Maintain an in-memory `ratings` list — a flat list of all rating records across all subjects.
+**Inline mode (`N ≤ 12`).** Apply the rules above directly in this thread, in `raw_position` order, producing one rating record per subject. Skip Steps 4a/4b entirely and proceed to assembling the `ratings` list below.
 
-Emit one status line: *"Rated `{{|ratings|}}` subjects. Native score histogram: 0:`{{n0}}` · 1:`{{n1}}` · 2:`{{n2}}` · 3:`{{n3}}` · 4:`{{n4}}` · 5:`{{n5}}` · 6:`{{n6}}`. Proceeding to coverage pass."*
+### Step 4a — Fan-out (fan-out mode only)
+
+Dispatch the `k` subject-batch workers in parallel as foreground sub-agents from this thread. The batches have no data dependency on each other — each rates a disjoint slice of the subject list against the same Q1–Q6 rubric and the same `requirements/requirements.md`. Per-subject auditability is about *output* (every subject gets its own rating record + its own row), not temporal execution; running batches in parallel and reassembling deterministically preserves every methodology guarantee while turning the O(N) per-subject pass into O(N/k) wall-clock.
+
+Emit one short status line in Unicorn voice: *"Dispatching `{{k}}` subject-batch workers in parallel (~`{{batch_size}}` subjects each)."* Then send a **single message** containing exactly `k` `Agent` tool calls, one per batch, using the worker prompt template below. Each call has `subagent_type: general-purpose` and is self-contained — every input the worker needs is inlined.
+
+**Worker prompt template (one per batch `B ∈ 1..k`):**
+
+```
+You are the First Principles Reviewer's subject-batch worker for batch {{B}}, dispatched per
+framework/agents/reviews/first-principles-subject-worker.md. Rate the Q1–Q6 defensibility of
+exactly the subjects in your batch — nothing else. Do not run the Q7 coverage pass, the CS
+cross-subject pass, or the GR-NN/PI-NN filter; return native scores.
+
+Inputs (all inline, do not read these from disk except requirements/requirements.md):
+- Batch id: {{B}}
+- Expected SHA-256 of requirements/requirements.md: {{SHA}}
+- Subject batch (JSON array of subject records the parent enumerated and ID-assigned):
+  {{BATCH_SUBJECTS_JSON}}
+- Q1–Q6 rubric + per-subject-type adaptations + scoring rubric (verbatim from
+  framework/assets/reviews/first-principles-reference.md):
+  {{Q1_Q6_RUBRIC}}
+- Character file (verbatim contents of framework/assets/characters/first-principles-review.md):
+  {{CHARACTER_CONTENT}}
+
+Workflow:
+1. Read requirements/requirements.md (the only file you may read). Compute SHA-256 of its
+   bytes. Verify it equals {{SHA}}; if not, return the error payload with
+   error_kind: sha_mismatch.
+2. For each subject in {{BATCH_SUBJECTS_JSON}}, in raw_position order, apply the Q1–Q6 rubric.
+   Verify every yes-with-evidence quote is a verbatim substring of the doc you read. Compute
+   score_native (count of yes-with-evidence; NO GR/PI rescue) and weakest_question per subject.
+3. Return a single JSON object matching the ratings or error shape — one rating record per
+   assigned subject, keyed by the parent's subject_id. Do not write to disk. Do not call
+   AskUserQuestion. Do not dispatch further sub-agents.
+
+Constraints:
+- Read scope: requirements/requirements.md only. No tools other than Read.
+- Do not re-enumerate or reassign subject_ids; rate exactly the records handed to you.
+- Voice and stance: as defined in the inline character content.
+
+See framework/agents/reviews/first-principles-subject-worker.md for the full worker contract,
+the two payload shapes, and worker self-validation rules.
+```
+
+Placeholders substituted at dispatch time:
+
+- `{{B}}` — the batch id (1..k).
+- `{{SHA}}` — the SHA-256 captured in Step 2.
+- `{{BATCH_SUBJECTS_JSON}}` — batch `B`'s subject records serialised as JSON (the `{subject_id, subject_type, anchor, statement, raw_position}` plus the type-specific fields captured in Step 3: `goal_ref`, `rationale`/`acceptance`/`standard_rule`, `attributes`).
+- `{{Q1_Q6_RUBRIC}}` — the verbatim `The 7-question rubric` Q1–Q6 subsections (with every per-type table and failure-mode list) **and** the `Scoring rubric` section of `framework/assets/reviews/first-principles-reference.md` (loaded at Step 1; sliced once and reused for every worker). Q7, the CS pass, the filter rules, and the verdict mapping are **not** included.
+- `{{CHARACTER_CONTENT}}` — the verbatim content of `framework/assets/characters/first-principles-review.md` (loaded once at Step 1; held in memory across fan-out).
+
+### Step 4b — Merge (fan-out mode only)
+
+Collect all `k` worker payloads.
+
+1. **Shape validation.** Every payload conforms to one of the two documented shapes (`ratings | error`). Any `status: error` with `error_kind: sha_mismatch` is a **run-wide abort** regardless of consultant choice — the requirements doc changed mid-run and no partial rating set is trustworthy. Surface: *"`requirements/requirements.md` changed mid-run (SHA mismatch reported by batch `{{B}}` worker). Aborting; no artefact written. Re-invoke `/review-requirement` for a fresh run."* and exit. For any other malformed payload (parse error, missing keys, `error_kind: self_validation`, or a `ratings` array whose `subject_id` set does not exactly match the dispatched batch), surface a structured prompt via `AskUserQuestion`:
+    - Question: *"Batch `{{B}}` worker returned `{{problem}}`. How should this run proceed?"*
+    - Header: `Worker failure`
+    - Options:
+        1. `Retry — re-dispatch the batch {{B}} worker only (Recommended)`
+        2. `Abort — exit this run without writing an artefact`
+        3. `Rate inline — the parent rates batch {{B}}'s subjects in-thread and proceeds`
+    - On **Retry**: re-dispatch a single `Agent` call with the same prompt template for that batch; if the retry also fails, the consultant is re-prompted (no automatic third attempt).
+    - On **Abort**: exit cleanly without writing; the orchestrator's handback gate fails (artefact not produced).
+    - On **Rate inline**: the parent applies the Q1–Q6 rubric to batch `{{B}}`'s subjects directly in this thread (the inline path), substituting the result for the failed payload.
+
+2. **Reassemble.** Concatenate every accepted payload's `ratings` into the in-memory `ratings` list, then sort by `raw_position` (using the Step-3 enumeration order — worker completion order is irrelevant). Assert **every** enumerated `subject_id` appears **exactly once** in the merged list (`|ratings| == enumerated_count`, no subject dropped or duplicated). A mismatch here is a hard merge failure → surface via the same `AskUserQuestion` shape (Retry the missing batch / Abort / Rate inline). Copy each rating's `statement` from the Step-3 subject record (workers are not required to echo it back).
+
+After Step 4b the in-memory `ratings` list is identical in shape to what the inline path produces; Steps 5–11 do not branch on execution mode.
+
+### Step 4 close (both modes)
+
+Maintain the in-memory `ratings` list — a flat list of all rating records across all subjects, ordered by `raw_position`.
+
+Emit one status line: *"Rated `{{|ratings|}}` subjects (`{{inline | via {{k}} workers}}`). Native score histogram: 0:`{{n0}}` · 1:`{{n1}}` · 2:`{{n2}}` · 3:`{{n3}}` · 4:`{{n4}}` · 5:`{{n5}}` · 6:`{{n6}}`. Proceeding to coverage pass."*
 
 ### Step 5 — Coverage pass (Q7)
 
@@ -280,10 +370,14 @@ Run all fourteen gates from `first-principles-reference.md > Quality gates` in o
 - Surface a structured error to the consultant listing every gate that fired and every flagged item. Use `AskUserQuestion` with three options:
     1. `Revise — exit so the consultant can adjust findings or re-run evaluation (Recommended)`
     2. `Override — proceed and write a known-incomplete review (the diagnostics block on the artefact will record every gate violation)`
-    3. `Restart — re-run from Step 4 with fresh per-subject evaluation`
+    3. `Restart — re-run from the earliest phase the failed gate depends on (re-evaluates subjects only if a per-subject gate failed)`
 - On **Revise**: accept the consultant's revision instructions in their next message. Common revisions: strike a fabricated evidence quote (gate 3 or gate 12 failure), expand a stub reasoning line (gate 4 failure), correct a score that does not match the Q answer tally (gate 5 failure), fix a verdict that does not match the distribution / orphans / CS blocking count (gate 10 failure), strike a fabricated CS anchor or fix a non-verbatim CS quote (gate 12 failure), rewrite a CS `consequence` line to remove a prescriptive verb (gate 13 failure), re-run a silently-skipped CS lens (gate 14 failure). After revision, re-run Step 8. Repeat until all gates pass or the consultant chooses Override.
 - On **Override**: record each failing gate in the in-memory diagnostics block (which lands in the rendered artefact's override-log), then advance to Step 9. The consultant has explicitly accepted the violations as known.
-- On **Restart**: re-enter Step 4 with fresh per-subject evaluation, then re-run Step 5 (coverage), Step 5b (CS pass), Step 6 (filter), Step 7 (rank). Do not loop more than three times in a single invocation; on the fourth fail-and-restart, force the **Revise** path with a one-line note that further iteration is not productive without consultant input.
+- On **Restart**: re-run from the **earliest phase the failed gate(s) depend on** — do not blindly re-run the expensive Step-4 fan-out when the failure is downstream of the per-subject ratings:
+    - **A per-subject gate failed (gates 1–6)** — the ratings themselves are wrong. Re-enter Step 4 with fresh per-subject evaluation (re-fan-out in fan-out mode, or re-evaluate inline), then re-run Step 5 → Step 5b → Step 6 → Step 7.
+    - **Only a coverage/CS/verdict gate failed (gates 8, 9, 10, 12, 13, 14)** — the ratings are sound; the relational passes or the verdict derivation are wrong. **Reuse the existing `ratings` list** and re-run only from the earliest affected phase: gates 8/9 → re-run Step 5 (coverage) forward; gates 12/13/14 → re-run Step 5b (CS pass) forward; gate 10 → re-derive the verdict and re-run Step 8. Re-running the Step-4 fan-out in these cases wastes the most expensive part of the run for no benefit (the workers would return the same ratings).
+    - **Gate 11 (SHA) failed** — the in-memory `REQUIREMENTS_SHA256` does not match Step 2; this is an internal bookkeeping error, not a doc change. Correct the field and re-run Step 8; no re-evaluation needed.
+  - Do not loop more than three times in a single invocation; on the fourth fail-and-restart, force the **Revise** path with a one-line note that further iteration is not productive without consultant input.
 
 **On gate 8 `warn` (≥1 coverage relation `not-applicable`):**
 
@@ -378,7 +472,7 @@ Use `AskUserQuestion`:
     - **Reclassify a CS finding's severity** (consultant judges that a `blocking` is actually `major`, or vice versa): update the severity field; re-tally CS counts; re-derive verdict; re-run gate 10; re-render; re-Write; re-verify; loop back to A.
     - **Rewrite a CS `consequence` line to remove a prescriptive verb** (gate 13 failure already fired): update the line with the consultant's preferred observational phrasing; re-run gate 13 (lexical-filter); re-render; re-Write; re-verify; loop back to A.
     - **Add a CS finding the consultant believes was missed** (consultant raises a contradiction or hidden assumption the agent did not catch): accept the consultant-supplied lens, anchors, evidence-quotes (must be verbatim — re-check against the Step-2 quote index), relation, and consequence (must be observational); append to `cs_findings`; re-run post-scan consolidation; re-tally CS counts; re-derive verdict; re-run gates 10, 12, 13, 14; re-render; re-Write; re-verify; loop back to A. *(The reviewer does not invent CS findings on Revise — the consultant supplies the substance; the agent enforces schema.)*
-- **Restart** — re-enter Step 4 from a clean state. Re-evaluate every subject; re-coverage-pass; re-CS-pass (Step 5b); re-filter (sub-passes A and B); re-rank. The previously-written `review-requirements/FIRST-PRINCIPLES/first-principles-review.html` is left in place; the next Step 10 will overwrite it.
+- **Restart** — the consultant has explicitly asked for a fresh review, so re-enter Step 4 from a clean state. Re-evaluate every subject (re-fan-out across `k` workers in fan-out mode, or inline when `N ≤ 12`); re-coverage-pass; re-CS-pass (Step 5b); re-filter (sub-passes A and B); re-rank. (Unlike a Step-8 gate-failure Restart, this is consultant-initiated and intentionally full.) The previously-written `review-requirements/FIRST-PRINCIPLES/first-principles-review.html` is left in place; the next Step 10 will overwrite it.
 
 The loop continues until the consultant chooses Accept (or hand-back fails on a Revise-introduced `RF-04`, which propagates per Step 10).
 
@@ -392,10 +486,11 @@ Output the final handback line:
 
 - `requirements/requirements.md` — the merged requirements document. Read once in Step 2. The orchestrator's prerequisite gate guarantees existence.
 - `framework/assets/characters/first-principles-review.md` — the reviewer's stance. Loaded once in Step 1.
-- `framework/assets/reviews/first-principles-reference.md` — the methodology reference. Read once in Step 1.
+- `framework/assets/reviews/first-principles-reference.md` — the methodology reference. Read once in Step 1; the Q1–Q6 rubric + scoring-rubric slice is inlined into each Step-4a worker prompt as `{{Q1_Q6_RUBRIC}}`.
 - `framework/assets/reviews/template-first-principles.html` — the self-contained HTML scaffold. Read once in Step 9.
 - `framework/shared/general-rules.md` — read once in Step 6 as a filter source.
 - `framework/shared/prototype-invariants.md` — read once in Step 6 as a filter source.
+- `framework/agents/reviews/first-principles-subject-worker.md` — the subject-batch worker contract referenced by Step 4a. **Not read at runtime** by the parent; the worker file is the authority document for what the Step-4a workers do, and its operational interface is the Step-4a worker prompt template (which inlines every worker input).
 
 ## Output
 
@@ -407,9 +502,10 @@ Output the final handback line:
 - `Write` — write `review-requirements/FIRST-PRINCIPLES/first-principles-review.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 9's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
 - `Bash` — `mkdir -p review-requirements/FIRST-PRINCIPLES` (Step 10 setup). No other Bash usage.
-- `AskUserQuestion` — surface the Step 8 quality-gate failure prompt (Revise / Override / Restart) when any hard gate fires; surface the Step 8 gate-8 warn prompt (Continue / Revise) when a coverage relation is `not-applicable`; surface the Step 11 Accept / Revise / Restart prompt.
+- `AskUserQuestion` — surface the Step 8 quality-gate failure prompt (Revise / Override / Restart) when any hard gate fires; surface the Step 8 gate-8 warn prompt (Continue / Revise) when a coverage relation is `not-applicable`; surface the Step 4b worker-failure prompt (Retry / Abort / Rate inline) when a subject-batch worker returns a malformed payload; surface the Step 11 Accept / Revise / Restart prompt.
+- `Agent` — **scoped to the Step-4a per-subject fan-out and its retries only.** Dispatches the `k` subject-batch workers in parallel at Step 4a (one `Agent` call per batch, all `k` in a single message, `subagent_type: general-purpose`, prompts built from the Step-4a worker prompt template). Also used at Step 4b's `Retry` branch to re-dispatch a single batch's worker on a malformed payload, and at a Step-8/Step-11 Restart that re-evaluates per-subject ratings. **No other Step uses `Agent`** — Q7 coverage (Step 5), the CS pass (Step 5b), the filter (Step 6), ranking (Step 7), validate (Step 8), render (Step 9), and write (Step 10) all run in this foreground thread. Workers dispatched via this tool are subject-batch workers per `framework/agents/reviews/first-principles-subject-worker.md`: non-interactive (no `AskUserQuestion`), read-only (no `Write`/`Edit`/`Bash`), owning no handback, dispatching no nested sub-agents. In inline mode (`N ≤ 12`) the `Agent` tool is not used at all.
 
-The agent does **not** use the `Agent` / `Task` tool. There is no fan-out, no sub-agent dispatch, no parallel-worker invocation. Single-pass single-thread is the methodology — Q1–Q6 over each subject share the same evidence chain and benefit from coherent application; parallelisation would either duplicate evidence searches or produce inconsistent verdicts per subject.
+The fan-out is on **one axis only** — the per-subject Q1–Q6 evaluation, where subjects are mutually independent. A subject's six questions are never split (they share one justification chain, so one worker owns a whole subject). The relational and whole-doc passes — Q7 coverage, CS1–CS5, the GR-NN/PI-NN filter, ranking, render — are **not** fanned out; they need the full rating set in one head and run single-threaded in this parent. This mirrors `framework/agents/reviews/adversarial-reviewer.md`'s parallel-read-only-workers-merged-deterministically pattern, on a data axis (subject batches) rather than a task axis (one lens per worker).
 
 ## Self-validation (run before declaring done)
 
@@ -441,12 +537,15 @@ Before handing back, verify all of the following against the written artefact an
 - No file under `framework/shared/` other than the two filter sources (`general-rules.md`, `prototype-invariants.md`) was read during this run.
 - No file under `framework/assets/reviews/` other than this methodology's reference and template was read during this run.
 - No file under `framework/assets/characters/` other than this methodology's character file was read during this run.
-- The `Agent` / `Task` tool was not used.
+- **Execution-mode integrity.** Exactly one of the two modes ran: inline (`N ≤ 12`, no `Agent` use) or fan-out (`N > 12`, `k = clamp(ceil(N/12), 1, 6)` workers dispatched at Step 4a). In fan-out mode, exactly `k` worker payloads were merged at Step 4b (after any Retry / Rate-inline substitution); no batch was silently dropped or double-counted.
+- **Merge completeness.** Every enumerated `subject_id` appears **exactly once** in the merged `ratings` list (`|ratings| == enumerated_count`); no subject is missing, duplicated, or re-keyed. The `subject_id`s in `ratings` are exactly the set assigned at Step 3 (workers did not reassign IDs).
+- The `Agent` tool was used **only** at Step 4a (fan-out), Step 4b (single-batch Retry on a malformed payload), and — if invoked — a Step-8/Step-11 Restart that re-evaluates per-subject ratings. It was not used at Step 5, 5b, 6, 7, 8, 9, or 10. In inline mode it was not used at all. Every sub-agent dispatched was a subject-batch worker (read-only, non-interactive, no nested fan-out).
+- Worker scores were merged as **native**; the GR-NN/PI-NN rescue was applied once by the parent at Step 6 (no worker applied it). Any rescued Q3/Q5 answer is recorded in the diagnostics filter-rescue block.
 
 ## Definition of Done
 
 - `review-requirements/FIRST-PRINCIPLES/first-principles-review.html` exists, has been verified, is self-contained HTML (one inline `<style>`, no `<script>`, no external/CDN reference), and contains a complete first-principles audit of every numbered item in §4.1, §4.2, §6, §7 (or empty placeholders if a layer is absent and gate 8 fired its `warn`).
-- Every subject has a rating with six Q1–Q6 answers, a score ∈ {0..6}, and a weakest-question marker ∈ {Q1..Q6}.
+- Every subject has a rating with six Q1–Q6 answers, a score ∈ {0..6}, and a weakest-question marker ∈ {Q1..Q6}. The per-subject pass ran in exactly one mode — inline (`N ≤ 12`) or fan-out (`N > 12`, `k` subject-batch workers merged at Step 4b) — and the merged `ratings` list contains every enumerated `subject_id` exactly once.
 - The Top-10 deep-dive lists exactly `min(10, |ratings|)` entries in ascending-score order with full per-question evidence/reasoning.
 - The full ratings table lists every subject in the same sort order.
 - The coverage section either lists ≥1 orphan finding per uncovered artefact or renders the documented "no orphans" line.
@@ -480,7 +579,7 @@ Before handing back, verify all of the following against the written artefact an
 - Do not author replacement subjects in CS `consequence` lines. The cross-subject pass observes incoherence; it does not propose new requirements. Gate 13 enforces this lexically (banned prescriptive verbs: `add`, `include`, `specify`, `define`, `require`, `mandate`, `must`, `should`). A `consequence` line tripping the filter is a finding-shape failure, equivalent to Q6 prescribing the fix.
 - Do not flag CS findings as `blocking` to escalate impact. Severity is determined by the lens predicate: CS1 → `blocking`; CS3 → `blocking` for load-bearing-goal capability gaps, else `major`; CS2 / CS4 / CS5 default `major`. Reclassifying a `major` to `blocking` to force a verdict change is methodology-violating and gate-10-flagged.
 - Do not invent CS evidence on a consultant-supplied Revise. The consultant supplies the lens, anchors, and substance; the agent enforces schema (verbatim quotes against the Step-2 quote index, observational consequence verbs). If the consultant's evidence quote is not a verbatim substring, surface the gate-12 violation and ask for the actual quote.
-- Do not exceed five CS lenses. A sixth lens (separate "weak domain modelling", separate "missing core capabilities") is folded into CS3 by predicate extension. Beyond five, the "lenses share evidence" claim that justifies single-pass execution starts to fail.
+- Do not exceed five CS lenses. A sixth lens (separate "weak domain modelling", separate "missing core capabilities") is folded into CS3 by predicate extension. Beyond five, the "lenses share evidence" claim that justifies the **single-thread CS pass (Step 5b)** — the part of this agent that is deliberately *not* fanned out — starts to fail.
 - Do not run CS1 or CS3 through the GR-NN / PI-NN rescue at Step 6. Only CS2, CS4, and CS5 are rescuable. A "rescued CS1 contradiction" is a sub-pass bug, not a quietly-dropped finding — surface it in diagnostics.
 - Do not write `[SRC: ...]` markers in the artefact. Per `feedback_no_inline_provenance`, the review artefact is clean of inline source markers; provenance is the anchor (`§4.1 / G-04`, `§6 / FR-12`, `§7 / FileSetting`).
 - Do not double-rate. A §4.2 story is rated once as a story; the §6 requirements it spawns are rated separately on their own merits.
@@ -489,11 +588,16 @@ Before handing back, verify all of the following against the written artefact an
 - Do not re-flag GR-NN / PI-NN-rescued concerns. Step 6 rescues them on Q3/Q5; the rescued answer is `yes-with-evidence`, the score is incremented, and gate 5 catches escapees (a Q5 `no` that should have been GR-NN-rescued is a Step-6 bug, not a finding).
 - Do not write the artefact on a Step 8 hard gate failure unless the consultant explicitly chose Override. A defective audit written silently is the worst failure mode — the consultant will treat the file as a definitive audit and miss the actual weak chains.
 - Do not write the artefact incrementally. Render in memory; compute sha256; Write once; verify.
-- Do not loop the accept/revise/restart prompt without a consultant response. The loop terminates on Accept; Revise applies a specific change and re-presents; Restart returns to Step 4.
+- Do not loop the accept/revise/restart prompt without a consultant response. The loop terminates on Accept; Revise applies a specific change and re-presents; Restart re-runs from the earliest affected phase (Step 4 re-evaluation only when a per-subject gate failed).
 - Do not loop the Step 8 fail-Restart-fail cycle more than three times. On the fourth fail, force the Revise path with a one-line note that further iteration is not productive without consultant input.
 - Do not edit the HTML scaffold in `framework/assets/reviews/template-first-principles.html`. Only the documented `{{placeholders}}` are substituted; the inline `<style>` block, section ordering, IDs, the TOC list, table column headers, and the diagnostics layout are fixed.
 - Do not introduce a `<script>` tag, an external stylesheet `<link>`, a CDN reference, or any `http(s)://` asset URL. The artefact must open and render fully via `file://` and print to PDF offline. The only styling is the one inline `<style>` copied in the scaffold.
 - Do not inject unescaped subject text into the HTML. Every substituted value (statements, evidence quotes, reasoning lines, CS relation/consequence prose) is HTML-escaped (`&` `<` `>` `"` `'`) before substitution; a raw `<` from a requirement quote would otherwise corrupt the markup.
 - Do not paste the artefact body into the conversation. The file is on disk and the consultant can open it directly.
-- Do not use the `Agent` / `Task` tool. There is no sub-agent dispatch in this methodology — the single-pass design is the methodology's defended choice (Q1–Q6 over each subject share the same evidence chain). A run that invokes `Agent` is implementing the wrong methodology.
+- Do not use the `Agent` / `Task` tool for anything other than the Step-4a per-subject fan-out, its Step-4b single-batch Retry, and a per-subject-gate Restart. Q7 coverage (Step 5), the CS pass (Step 5b), the filter (Step 6), ranking (Step 7), validate (Step 8), render (Step 9), and write (Step 10) run in the foreground thread. Dispatching a sub-agent for any of those — or for the whole review — is implementing the wrong methodology.
+- Do not split a single subject's six questions across workers. The Q1–Q6 chain is intra-subject-coupled (Q1's chain-entry precedes Q2's chain-landing); one worker owns a whole subject. The fan-out axis is **subjects**, never questions.
+- Do not partition batches by subject-type. The dominant type (requirements) would land in one worker and stay the long pole, defeating the parallelism. Batches are contiguous slices of the `raw_position`-ordered list (type-mixed) so the dominant type is split across workers.
+- Do not let workers run Q7, the CS pass, or the GR-NN/PI-NN filter. A worker sees only a slice of the doc — it cannot evaluate set-theoretic coverage or cross-subject relations, and centralising the filter in the parent keeps one consistent rescue ledger. Workers return native Q1–Q6 scores only.
+- Do not re-fan-out on a Step-8 gate failure that is downstream of the ratings (gates 8–14). Reuse the existing `ratings` and re-run only the affected relational phase; re-dispatching workers re-pays the most expensive part of the run for ratings that were already correct.
+- Do not proceed to Step 5 with a missing or malformed worker batch. Step 4b's `AskUserQuestion { Retry | Abort | Rate inline }` is the only sanctioned path; a `ratings` list shorter than `enumerated_count` is a methodology violation (gate 1 has no subject to evaluate).
 - Do not use any tool not explicitly listed in the Tools section.

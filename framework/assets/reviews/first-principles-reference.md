@@ -30,6 +30,8 @@ The reviewer reads every numbered item in §4 (goals + stories), §6 (requiremen
 
 Q1–Q6 are *per-subject* — they probe whether one artefact is defensible against the rest of the doc. Q7 is *per-document* — it walks the artefact graph (goals → stories → requirements → entities) and surfaces every node that should have a counterpart but doesn't. Q7 is the coverage pass; Q1–Q6 produce a defensibility score.
 
+**Execution note (not a methodology change).** Because Q1–Q6 are per-subject and independent across subjects (one subject's score does not depend on another's), the reviewer agent may evaluate them in parallel by partitioning the subject list into batches — see `framework/agents/reviews/first-principles-reviewer.md` Step 4a + `framework/agents/reviews/first-principles-subject-worker.md`. A subject's six questions are never split (they share one justification chain). Q7 coverage, the CS1–CS5 cross-subject pass, the GR-NN/PI-NN filter, and ranking are whole-doc/relational and are **not** parallelised — they run once over the merged rating set. Parallel or single-thread, the rubric, scores, gates, and rendered artefact are identical; fan-out is a wall-clock optimisation, not a change to what gets evaluated.
+
 The output is **two views of the same evidence chain**:
 
 - A **full defensibility ratings table** — one row per subject, scored 0–6, showing the weakest question per row. Consultants scan top-to-bottom for the score distribution.
@@ -235,7 +237,7 @@ The Q1–Q6 rubric audits each subject **in isolation**; the Q7 pass audits **se
 
 Framing test the user named: *requirements that appear reasonable individually but collectively cannot achieve the stated business outcome.* Q1–Q6 cannot detect this — every subject can pass — and Q7 cannot detect it — every counterpart can be present. The collective failure lives in the *relations* between subjects.
 
-The pass runs **once across the whole doc**, after the Q7 coverage pass and before the Step 6 filter (so CS findings can be GR-NN/PI-NN-rescued by the same filter). Each of five lenses applies a relational predicate over the requirement set and emits 0..N findings. The lenses share evidence (the same anchor pair can trigger multiple lenses); single-pass execution is the methodology choice and a post-scan consolidation step clusters findings by shared anchor-set so the rendered output shows one item with multiple lens-tags rather than duplicates.
+The pass runs **once across the whole doc**, after the Q7 coverage pass and before the Step 6 filter (so CS findings can be GR-NN/PI-NN-rescued by the same filter). Each of five lenses applies a relational predicate over the requirement set and emits 0..N findings. The lenses share evidence (the same anchor pair can trigger multiple lenses); single-thread execution of this pass is the methodology choice (the CS pass is whole-doc and relational, so — unlike the per-subject Q1–Q6 pass — it is *not* fanned out) and a post-scan consolidation step clusters findings by shared anchor-set so the rendered output shows one item with multiple lens-tags rather than duplicates.
 
 ### Lens definitions
 
@@ -492,7 +494,7 @@ Fourteen hard gates. Every gate is a `pass | fail` decision; gate 8 has a `warn`
 - **(Cross-subject pass) Do not author replacement subjects in `consequence` lines.** The cross-subject pass observes incoherence; it does not propose new requirements. *"G-02 commits to a 50% reduction in approver workload, but every §6 requirement preserves approver-on-every-transaction — the requirement set as written cannot deliver G-02"* is observational. *"Add an auto-approve requirement"* is authoring — banned by gate 13. The lexical filter on prescriptive verbs catches the failure shape before it lands in the artefact.
 - **(Cross-subject pass) Do not collapse CS findings into Q1–Q6 ratings.** A subject that fails Q2 (anchor exists but content mismatched) is a per-subject finding; a portfolio of three FR-NNs that each cite G-04 but none deliver G-04's outcome is a CS3 finding. The first lives in the ratings table; the second lives in the cross-subject section.
 - **(Cross-subject pass) Do not flag findings as `blocking` to escalate impact.** Severity is determined by the lens's predicate: CS1 contradiction → `blocking`; CS3 load-bearing-goal capability gap → `blocking`; CS2/CS4/CS5 default → `major`. Reclassifying a `major` finding as `blocking` to force a verdict change is gate-10-flagged and is methodology-violating.
-- **(Cross-subject pass) Do not exceed five lenses.** A sixth lens (separate "weak domain modelling", separate "missing core capabilities") is folded into CS3 by predicate extension. Beyond five, the "lenses share evidence" claim that justifies single-pass execution starts to fail and the methodology becomes adversarial-with-different-categories.
+- **(Cross-subject pass) Do not exceed five lenses.** A sixth lens (separate "weak domain modelling", separate "missing core capabilities") is folded into CS3 by predicate extension. Beyond five, the "lenses share evidence" claim that justifies running the CS pass **single-thread** (the part deliberately not fanned out, unlike the per-subject Q1–Q6 pass) starts to fail and the methodology becomes adversarial-with-different-categories.
 
 ---
 
