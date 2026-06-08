@@ -41,6 +41,12 @@
     text. No [AI-SUGGESTED] markers — OST is extraction, not inference.
 
   Section order (top-to-bottom):
+    0. In plain terms (id="plain-terms")      — {{PLAIN_SUMMARY}}: a 2–5 sentence
+                                                 plain-English lead (what this
+                                                 analysis is, what it found, what
+                                                 to do with it). First section,
+                                                 above the meta-grid. Per
+                                                 framework/shared/output-readability.md.
     1. Overview (id="overview")               — title, subtitle, meta-grid
                                                  (Domain, Generated, Manifest
                                                  SHA-256, Run #, counts).
@@ -72,12 +78,25 @@
                                                  (consumed/skipped) +
                                                  manifest-fingerprint + gate
                                                  results + run history.
+   12. Downstream-use footer                  — <details class="downstream-toggle">
+                                                 collapsed by default. Re-ingestion
+                                                 instructions (markitdown path,
+                                                 surviving blocks). Machinery prose
+                                                 kept out of the main reading flow.
 
   Placeholders the analyser substitutes (string substitution; all text values
   pre-escaped for HTML; JSON inside <pre><code> escaped as plain text; Mermaid
   inside <pre class="mermaid-source"> kept literal beyond `<`, `>`, `&` so node
   syntax survives; SVG <text> XML-escaped):
 
+    {{PLAIN_SUMMARY}}               — 2–5 plain-English sentences for the "In plain terms"
+                                      lead block: what this analysis is, what it found,
+                                      what to do with it. HTML-escaped. Methodology
+                                      jargon (outcome, opportunity, solution,
+                                      experiment/assumption test, tree) glossed at first
+                                      use; client domain terms NOT glossed (the GLOSSARY
+                                      methodology owns those). Per
+                                      framework/shared/output-readability.md.
     {{TITLE}}                       — short title (e.g. "Opportunity Solution Tree (inputs) — Project X").
     {{DOMAIN}}                      — domain string (from manifest meta if declared, else
                                       "(not declared in manifest)").
@@ -819,22 +838,55 @@
     }
     .diagnostics .flagged-items strong { color: var(--rev-fg); }
 
-    /* ------- next-steps / footer ------- */
+    /* ------- in plain terms (human-readable lead) ------- */
+    #plain-terms { margin: 0 0 24px 0; padding: 14px 18px; background: #f0f7ff; border: 1px solid var(--sol-border); border-left: 4px solid var(--sol-border); border-radius: 6px; }
+    #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+    #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--fg); }
 
-    section.next-steps {
-      margin-top: 24px;
+    /* ------- downstream-use footer (collapsed; analyses only) ------- */
+
+    details.downstream-toggle { margin-top: 24px; margin-bottom: 24px; }
+    details.downstream-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid #d4d4d4;
+      border-left: 4px solid #8a8a8a;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      color: #5a5a5a;
+      list-style: none;
+      user-select: none;
+    }
+    details.downstream-toggle > summary::-webkit-details-marker { display: none; }
+    details.downstream-toggle > summary::before {
+      content: "\25B6";
+      font-size: 10px;
+      color: #5a5a5a;
+      margin-right: 8px;
+      display: inline-block;
+      transition: transform 0.15s ease;
+    }
+    details.downstream-toggle[open] > summary { border-radius: 6px 6px 0 0; border-bottom: none; }
+    details.downstream-toggle[open] > summary::before { transform: rotate(90deg); }
+    .downstream-note {
       padding: 14px 18px;
       background: #fff;
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--opp-border);
-      border-radius: 6px;
+      border: 1px solid #d4d4d4;
+      border-top: none;
+      border-radius: 0 0 6px 6px;
     }
-    section.next-steps h2 { margin-top: 0; font-size: 14px; }
-    section.next-steps p { color: var(--muted); margin: 6px 0; font-size: 13px; }
-    section.next-steps code {
+    .downstream-note p { color: #5a5a5a; font-size: 13px; margin: 6px 0; }
+    .downstream-note code {
       font-family: ui-monospace, monospace;
       font-size: 0.92em;
+      background: #f3f4f6;
+      padding: 0 4px;
+      border-radius: 3px;
     }
+
+    /* ------- footer ------- */
 
     footer {
       margin-top: 24px;
@@ -891,6 +943,11 @@
 </head>
 <body>
   <main>
+    <section id="plain-terms" aria-label="In plain terms">
+      <h2>In plain terms</h2>
+      <p>{{PLAIN_SUMMARY}}</p>
+    </section>
+
     <section id="overview">
       <h1>{{TITLE}}</h1>
       <p class="subtitle">Opportunity Solution Tree (inputs side) — Teresa Torres forward discovery from raw inputs. Outcome &rarr; Opportunities &rarr; Solutions &rarr; Assumption Tests. Pre-rendered layered SVG tree diagram (nodes + edges in one coordinate space) + per-Opportunity candidate-requirements bridge + coverage diagnostics + machine-readable JSON.</p>
@@ -915,6 +972,7 @@
 
     <nav class="toc" aria-label="Sections">
       <ol>
+        <li><a href="#plain-terms">In plain terms</a></li>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#diagrams">Tree</a></li>
         <li><a href="#outcomes">Outcome</a></li>
@@ -984,12 +1042,14 @@
       {{DIAGNOSTICS_BLOCK}}
     </details>
 
-    <section class="next-steps">
-      <h2>Next steps</h2>
-      <p>
-        To re-ingest this artefact into <code>/requirements</code>, copy this file into <code>input/</code> (e.g. <code>input/opportunity-solution-tree.html</code>) and re-run <code>/requirements</code>. The input-handler classifies it as <code>Supported-via-MCP</code>; markitdown converts it to <code>input/opportunity-solution-tree.html.converted.md</code>. The embedded JSON body block (the <code>language-json</code> code block, carrying the tree model + the candidate-requirement seeds) and the Mermaid tree source survive verbatim as fenced code blocks; <code>[SRC: &lt;filename&gt;]</code> markers survive as plain text. The drafter consumes the converted markdown via the refreshed manifest.
-      </p>
-    </section>
+    <details class="downstream-toggle">
+      <summary>For downstream use — re-ingesting this artefact into /requirements</summary>
+      <div class="downstream-note">
+        <p>
+          To re-ingest this artefact into <code>/requirements</code>, copy this file into <code>input/</code> (e.g. <code>input/opportunity-solution-tree.html</code>) and re-run <code>/requirements</code>. The input-handler classifies it as <code>Supported-via-MCP</code>; markitdown converts it to <code>input/opportunity-solution-tree.html.converted.md</code>. The embedded JSON body block (the <code>language-json</code> code block, carrying the tree model + the candidate-requirement seeds) and the Mermaid tree source survive verbatim as fenced code blocks; <code>[SRC: &lt;filename&gt;]</code> markers survive as plain text. The drafter consumes the converted markdown via the refreshed manifest.
+        </p>
+      </div>
+    </details>
 
     <footer>
       <div class="credit">Generated by `framework/agents/analyses-inputs/opportunity-solution-trees-analyser.md`.</div>

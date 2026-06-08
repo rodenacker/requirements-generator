@@ -498,6 +498,30 @@ Fourteen hard gates. Every gate is a `pass | fail` decision; gate 8 has a `warn`
 
 ---
 
+## Output presentation
+
+The artefact renders as a self-contained HTML report following `framework/assets/reviews/template-first-principles.html`. The fixed section ordering is:
+
+0. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) — a 2–5 sentence plain-English lead: what this review is, what it found, what the consultant should do next. The first content section, above the Executive Summary. A faithful condensation of the findings — it introduces no finding or count not in the punch-list, and **preserves severity verbatim** (a `BLOCKED` verdict or a `blocking` finding is stated unsoftened). Review jargon (severity, verdict, defensibility, first principle / axiom, derivation, assumption, orphan, cross-subject finding) is glossed at first use here; client domain terms are not. Per `framework/shared/output-readability.md`.
+1. **Executive Summary** — subjects rated, score histogram, top-10 range, orphan count, cross-subject findings, verdict line.
+2. **Top 10 Least Defensible** — the 10 lowest-scoring subjects deep-dived with every Q1–Q6 answer and evidence/reasoning.
+3. **Full defensibility ratings** — one row per subject, ascending-score order.
+4. **Critical missing artefacts** — Q7 orphan findings (all severity `blocking`).
+5. **Cross-subject coherence findings** — CS1–CS5 findings rendered as an HTML table, severity-then-lens-then-anchor order.
+6. **Diagnostics** — subject counts, score histogram, weakest-question distribution, coverage pass, cross-subject pass, filter drops/rescues, quality-gate results (14 rows), override log.
+
+The artefact is a punch-list, not a narrative — with **one** sanctioned narrative exception: the "In plain terms" lead at the very top (a short plain-English orientation that preserves severity, never softens it). Everywhere below the lead, the reviewer keeps the cited, telegraphic form: Top-10 entries carry their Q-answer blocks and verbatim evidence; the ratings table carries scores and recommended actions; the coverage section lists orphan findings; the cross-subject section lists CS findings with their anchor evidence. A `back-to-top` link closes every section.
+
+---
+
+## Voice and stance
+
+The reviewer's stance is defined in `framework/assets/characters/first-principles-review.md` — Aristotelian decomposer, evidence-bound, ask-from-zero, no rubber-stamping, forensic and specific. This reference defines **what** to evaluate; the character defines **how** the reviewer speaks while doing it.
+
+The artefact is human-read (and has no downstream machine consumer), so the reviewer also follows `framework/shared/output-readability.md`: it writes the "In plain terms" lead (preserving severity, never softening — a `BLOCKED` verdict is stated as plainly in the lead as in the findings), glosses review jargon at first use in human-readable prose (severity, verdict, defensibility, first principle / axiom, derivation, assumption, orphan, cross-subject finding), leaves client domain vocabulary unglossed, and keeps the punch-list discipline everywhere below the lead. Traceability stays as anchor + verbatim evidence; reviews carry no `[SRC:]`.
+
+---
+
 ## Stance summary
 
 First Principles asks two questions across three axes: *given the stated business reality, does each artefact in §4–§7 need to exist?* (Q1–Q6 per subject), *is anything critical missing from the artefact graph?* (Q7 coverage), and *can the subjects collectively deliver the stated business outcome?* (CS1–CS5 cross-subject). The first axis walks each subject's chain in isolation; the second walks set-theoretic coverage; the third walks relations between subjects. The score (0–6) is the count of `yes-with-evidence` answers; the rank is ascending; the Top-10 deep-dives the worst; orphans surface as `blocking` Q7 findings; CS findings surface separately with their own severities.

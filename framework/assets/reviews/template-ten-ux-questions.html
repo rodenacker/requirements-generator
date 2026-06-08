@@ -14,6 +14,9 @@
     • Every substituted value is HTML-escaped (5 chars: & < > " ').
     • {{TITLE}}, {{DOMAIN}}, counts, {{CATEGORY_COVERAGE}}, etc. are simple text
       substitutions injected as the text content of the elements below.
+    • {{PLAIN_SUMMARY}} is a pre-rendered HTML string of 2–5 plain-English sentences
+      (the "In plain terms" lead — faithful condensation, no new finding/count/citation,
+      severity preserved verbatim, jargon glossed at first use, domain terms NOT glossed).
     • {{TRIAGE_BLOCK}}, {{QUESTION_N_BLOCK}}, {{DIAGNOSTICS_BLOCK}} are PRE-RENDERED HTML
       fragments — the agent constructs them in memory per the per-block schemas below, then
       substitutes them in.
@@ -22,6 +25,12 @@
 
   Placeholders the reviewer substitutes (string substitution, all values pre-escaped):
 
+    {{PLAIN_SUMMARY}}            — 2–5 plain-English sentences: what this review is, what
+                                   it found, what to do next. Faithful condensation; no new
+                                   finding/count/citation not in the punch-list. Severity
+                                   preserved verbatim (blocking stated as blocking).
+                                   Jargon glossed at first use; client domain terms NOT
+                                   glossed. HTML-escaped.
     {{TITLE}}                    — short title (e.g. "10 UX Questions — Project X")
     {{DOMAIN}}                   — domain string (from requirements §1 if present, else "(not declared in requirements.md)")
     {{GENERATED_AT}}             — ISO-8601 UTC timestamp the artefact was rendered
@@ -308,6 +317,11 @@
   }
   .back-to-top a:hover { color: var(--fg); border-bottom-color: var(--fg); }
 
+  /* In plain terms (human-readable lead — first section) */
+  #plain-terms { border-left: 4px solid #0f766e; background: #f0fbfa; }
+  #plain-terms h2 { border-bottom-color: #0f766e; }
+  #plain-terms p { margin: 0 0 4px 0; font-size: 15px; line-height: 1.55; }
+
   /* Priority chips */
   .chip {
     display: inline-block;
@@ -516,6 +530,7 @@
 <nav class="toc" aria-label="Sections">
   <span class="toc-label">Contents</span>
   <ol>
+    <li><a href="#plain-terms">In plain terms</a></li>
     <li><a href="#executive-summary">Executive Summary</a></li>
     <li><a href="#triage">Triage</a></li>
     <li><a href="#questions">Questions</a></li>
@@ -533,6 +548,12 @@
   <p class="legend">
     Source: <code>requirements/requirements.md</code> only. Categories: C1 Users &amp; segmentation · C2 Context of use · C3 Goals &amp; success signals · C4 Tasks, flows, decision points · C5 Data &amp; content for decisions · C6 Errors, edge cases, recovery · C7 Collaboration &amp; concurrency · C8 Trust, transparency, audit.
   </p>
+</section>
+
+<section id="plain-terms" aria-label="In plain terms">
+  <h2>In plain terms</h2>
+  <p>{{PLAIN_SUMMARY}}</p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
 
 <section id="executive-summary">

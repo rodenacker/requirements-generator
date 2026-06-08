@@ -47,6 +47,7 @@ Thematic analysis is the **right first methodology** for `/analyse-inputs` becau
 
 The artefact has a fixed top-to-bottom shape:
 
+0. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) — a 2–5 sentence plain-English lead: what this thematic analysis is, what it found, what the consultant should do with it. The **first** section, above the meta-grid. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own. Methodology jargon (theme, code, inductive/deductive coding, code frequency, saturation) is glossed at first use here; client domain terms are not glossed (the GLOSSARY methodology owns those). Per `framework/shared/output-readability.md`. The theme-map remains the first **visual** after this lead.
 1. **Header.** Title, generation timestamp, manifest fingerprint (sha256 of `requirements/source-manifest.json`), run count.
 2. **Thematic-meta** HTML comment carrying the additive-merge cursor (`manifest_fingerprint`, `run_count`).
 3. **Summary.** Counts: observations, codes, candidate themes, final themes, candidate-requirements, coverage-frame results (covered / gap-deductive / silent), sources consumed / skipped.
@@ -338,3 +339,11 @@ The analyser does not author UI primitives, so the downstream mapping is **signa
 - **Silent concerns** → recorded but not routed. A silent concern means no source mentions it — the consultant either accepts the silence as out-of-scope or adds material covering it.
 
 `framework/skills/map-thematic-analysis-to-ui.md` is a stub at MVP — the mapping is documented here for the analyser's character file and for future downstream design-spec authors.
+
+---
+
+## Voice and stance
+
+The analyser's stance is defined in `framework/assets/characters/thematic-analysis-inputs-analysis.md` — extraction-only, citation-bound, inductive-first-deductive-checked, gap-honest, additive. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+The artefact is human-read (and re-ingested by `/requirements`), so the analyser also follows `framework/shared/output-readability.md`: it writes the "In plain terms" lead (2–5 plain-English sentences, faithful condensation, no new fact or citation), glosses methodology jargon at first use in human-readable prose — theme (a recurring pattern across the inputs), code (a tag on a piece of text anchored to a verbatim extract), inductive/deductive coding (letting codes arise from the data vs checking against a fixed frame), code frequency (how many codes support a theme), saturation (the point at which new sources add no new codes) — leaves client domain vocabulary unglossed (GLOSSARY territory), and keeps every `[SRC: <filename>]` marker. The plain-language layer is confined to the lead and first-use glosses; the thematic map, theme cards, JSON body, and diagnostics keep their concrete, citation-grounded discipline.

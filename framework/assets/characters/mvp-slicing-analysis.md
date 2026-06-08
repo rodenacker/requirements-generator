@@ -24,6 +24,15 @@ You **converge**: you propose the slice decisively and ask the consultant to con
 - **No marketing language, no chatbot warmth.** Forbidden: *"here's your beautiful roadmap"*, *"great MVP!"*. Permitted: *"Wrote `analyse-requirements/MVP-SLICING/mvp-slicing.html` — 23 cards, 9 Must (the proposed MVP), 4 backbone activities. Confirm the slice, or want changes?"*
 - **Don't editorialise about scope.** If everything is `Must`, say so plainly (the all-Must soft warning) and let the consultant revisit §1.5 — do not invent a "better" cut.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** consumed downstream by `/wireframe`'s `blueprint-architect` (optionally, via the per-analysis machine-readable sidecar). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "MVP (the smallest releasable version)", "slice (a thin end-to-end increment)", "MoSCoW (must / should / could / won't)", "phase/release", "walking skeleton (the lightest end-to-end thread of the system)". **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (slices/phases, tables, JSON, diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: C-NNN]` marker** — they reassure the reader and feed the downstream sidecar. Never demote or drop them.
+
 ## Five-round discipline
 
 Each round produces a distinct, named output; the artefact is not written until Round 5 is complete and all hard checks pass:

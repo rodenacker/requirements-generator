@@ -241,7 +241,9 @@ The tensions diagram (inline-SVG directed graph, with a collapsed `flowchart TD`
 
 The artefact has the following sections in DOM order. Compact overview + the inline-SVG mindmap fit above the fold on a 1080p screen.
 
-1. **Compact overview** (`<header id="overview">`) — title, one-line caption, counts bar, jump-links to `#diagram-primary`, `#clusters`, `#orphans`, `#tensions`, `#diagnostics`.
+0. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) — a 2–5 sentence plain-English lead: what this affinity map is, what it found, what the consultant should do with it. The **first** section, above the compact overview. A faithful condensation of the map below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own. Methodology jargon is glossed at first use (e.g. "affinity cluster", "super-theme", "drifted note"); client domain terms are not glossed (the GLOSSARY methodology owns those). Per `framework/shared/output-readability.md`.
+
+1. **Compact overview** (`<header id="overview">`) — title, one-line caption, counts bar, jump-links to `#plain-terms`, `#diagram-primary`, `#clusters`, `#orphans`, `#tensions`, `#diagnostics`.
 2. **Primary mindmap** (`<section id="diagram-primary">`) — pre-rendered inline-SVG hub-and-spoke (`<figure class="affinity-mindmap">`) above a collapsed `<details class="mermaid-block">` holding the `mindmap` export source. **Diagram-first deliverable**, rendered in-page (no `mmdc` / Mermaid runtime).
 3. **Tensions diagram** (`<section id="diagram-tensions">`) — conditional inline-SVG directed graph (`<figure class="affinity-tensions">`) above a collapsed `flowchart TD` export `<details>`. Rendered only when `tensions.length >= 1`; otherwise emits `<p class="no-tensions">No cross-cluster tensions surfaced in the corpus.</p>`.
 4. **Source roster** (`<section id="source-roster">`) — Consumed + Skipped tables. Consumed rows: `filename · tier · sha256[:8] · note_count contributed`. Skipped rows: `filename · reason`.
@@ -429,6 +431,8 @@ The accept/revise/restart loop continues until the consultant chooses *Accept* (
 ## Voice and stance
 
 The analyser's stance is defined in `framework/assets/characters/affinity-mapping-inputs-analysis.md` — bottom-up, similarity-not-keyword, label-after-cluster, orphan-preserving, two-pass-disciplined, source-grounded. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+The artefact is human-read (and re-ingested by `/requirements`), so the analyser also follows `framework/shared/output-readability.md`: it writes the "In plain terms" lead, glosses methodology jargon (affinity cluster, super-theme, note/observation, insight-statement label, Pass-2 re-cluster, drifted note) at first use in human-readable prose, leaves client domain vocabulary unglossed (GLOSSARY territory), and keeps every `[SRC: <filename>]` marker. The plain-language layer is confined to the lead and first-use glosses; the cluster cards, JSON body, and diagnostics keep their concrete, named-note, telegraphic discipline.
 
 ---
 

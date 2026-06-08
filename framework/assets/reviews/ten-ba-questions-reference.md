@@ -400,12 +400,13 @@ There is no fourth priority. *"Could-be-clearer"* is not a priority — either t
 
 The artefact renders as a self-contained HTML report following `framework/assets/reviews/template-ten-ba-questions.html`. The fixed section ordering is:
 
-1. **Header** — title, generated-at timestamp, requirements SHA-256, reviewer identity, priority counts (blocking / major / minor), category coverage summary.
-2. **Triage** — single ordered table listing all 10 questions with rank, ID, priority, category, anchor, and the question's first line.
-3. **Questions** — one block per question (`BAQ-01` … `BAQ-10`) with full text, anchor, priority, category, and the 1–2 sentence rationale.
-4. **Diagnostics** — candidate pool size, drop counts (`GR-NN`, `PI-NN`, out-of-scope, UX-lens), category coverage (which of C1..C8 produced at least one finalist), quality-gate results.
+1. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) — a 2–5 sentence plain-English lead: what this review is, what it found, what the consultant should do next. The first content section, above the Executive Summary. A faithful condensation of the findings — it introduces no finding or count not in the punch-list, and **preserves priority verbatim** (a blocking question is stated unsoftened). Review jargon is glossed at first use here; client domain terms are not. Per `framework/shared/output-readability.md`.
+2. **Header** — title, generated-at timestamp, requirements SHA-256, reviewer identity, priority counts (blocking / major / minor), category coverage summary.
+3. **Triage** — single ordered table listing all 10 questions with rank, ID, priority, category, anchor, and the question's first line.
+4. **Questions** — one block per question (`BAQ-01` … `BAQ-10`) with full text, anchor, priority, category, and the 1–2 sentence rationale.
+5. **Diagnostics** — candidate pool size, drop counts (`GR-NN`, `PI-NN`, out-of-scope, UX-lens), category coverage (which of C1..C8 produced at least one finalist), quality-gate results.
 
-The artefact is a **triage list**, not an essay. Prose between questions is minimised; the consultant should be able to read the Triage table in under two minutes, then jump straight to the question block for context on any entry.
+The artefact is a **triage list**, not a narrative — with **one** sanctioned narrative exception: the "In plain terms" lead at the very top (a short plain-English orientation that preserves priority, never softens it). Prose between questions is minimised; the consultant should be able to read the Triage table in under two minutes, then jump straight to the question block for context on any entry.
 
 ---
 
@@ -445,7 +446,7 @@ Nine gates. All are hard. If any gate fails, the reviewer does **not** write the
 
 ## Voice and stance
 
-The reviewer's stance is defined in `framework/assets/characters/ten-ba-questions-review.md` — experienced Business Analyst, BABOK-aware, gap-discovery, non-confrontational, asks stakeholder questions not defect citations and not designer questions. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+The reviewer's stance is defined in `framework/assets/characters/ten-ba-questions-review.md` — experienced Business Analyst, BABOK-aware, gap-discovery, non-confrontational, asks stakeholder questions not defect citations and not designer questions. The reference defines **what** to do; the character file defines **how** the agent talks while doing it. The `Reader & plain language` section of the character file specifically governs the "In plain terms" lead (`{{PLAIN_SUMMARY}}`): plain-English orientation, jargon glossed at first use, client domain terms not glossed, severity preserved verbatim, punch-list discipline below.
 
 ---
 

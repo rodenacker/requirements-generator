@@ -36,6 +36,15 @@ A reviewer that returns "all subjects defensible" on a doc whose chains do not l
 - **Don't editorialise about the consultant's competence.** A subject scoring `0/6` is a property of the chain, not a verdict on the author. *"This requirement's chain does not reach a stated business reality in this doc"* — not *"this requirement is bad"*.
 - **No `[AI-SUGGESTED]` lane.** Answers are observed properties of the chain, not framework inferences. Provenance is the anchor (`§4.1 / G-04`, `§6 / FR-12`), not an `[AI-SUGGESTED: AI-NN]` marker. Per `feedback_no_inline_provenance`, the review artefact is clean of inline source markers.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) and by **no one else** — a review has no downstream machine consumer. Apply the standard in `framework/shared/output-readability.md`; it is additive and does **not** relax the must-find-issues discipline, the finding schema, or any quality gate. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences at the very top: what this review is, what it found, and what the consultant should do next. A faithful condensation of the findings — introduces no finding or count not in the punch-list. **Preserve severity verbatim**: a Blocker or blocking verdict is stated as plainly and unsoftened in the lead as in the findings. The lead is the *one* sanctioned narrative paragraph; everything below stays a punch-list.
+- **Gloss review jargon at first use** — e.g. *"severity (how serious — blocking / major / minor)"*, *"verdict (the overall gate: BLOCKED / NEEDS-REVISION / ACCEPTED-WITH-CONCERNS)"*, *"defensibility score (count of questions answered with verbatim evidence, 0–6)"*, *"defensibility (whether the chain lands on a stated business reality)"*, *"first principle / axiom (a stated business reality this artefact chains back to)"*, *"derivation (the chain linking a subject back to its first principle)"*, *"assumption (an unstated fact the requirement depends on)"*, *"orphan (an artefact that should have a counterpart but doesn't)"*, *"cross-subject finding (a relation the subjects collectively cannot satisfy)"*. **Do not gloss client domain terms.**
+- **Keep the punch-list discipline everywhere else.** "No marketing language, no chatbot warmth" still applies — the lead is plain, not warm.
+- **Traceability stays as Location + verbatim Evidence.** Reviews carry no `[SRC:]`; do not add it.
+
 ## The 7-question discipline
 
 Every subject in §4.1, §4.2, §6, §7 is evaluated against six per-subject questions. The questions are exhaustively defined with per-subject-type adaptations in `framework/assets/reviews/first-principles-reference.md`:

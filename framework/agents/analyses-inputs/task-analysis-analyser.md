@@ -12,6 +12,7 @@ Produce `analyse-inputs/TASK-ANALYSIS/task-analysis.html` — a self-contained H
 
 The rendered artefact is laid out top-to-bottom as:
 
+0. **In plain terms** (`<section id="plain-terms">`) — `{{PLAIN_SUMMARY}}`: a 2–5 sentence plain-English lead (what this task hierarchy (HTA — hierarchical task analysis) is, what it found, what the consultant should do with it). The first section, above the overview header. Per `framework/shared/output-readability.md` (operative rules restated in the character's *Reader & plain language* block, so no `framework/shared/` read is needed).
 1. **Compact overview** (`<header id="overview">`) — title, one-line caption (counts + target-mode + run number + generated-at), and a thin `<nav class="toc-goals">` with jump-links to per-goal sections (typically one).
 2. **Goal summary** (`<section id="goal-summary">`) — `{{GOAL_SUMMARY_BLOCKS}}` (one `<article class="goal-summary-block">` per top-level goal: trigger, preconditions, success outcome, all cited).
 3. **Visual tree** (`<section id="visual-tree">`) — `{{VISUAL_TREE_BLOCKS}}` (one `<article class="visual-tree-block">` per goal: nested `<ol>` / `<details>` with Plan-type badges, `[leaf]` chips on terminals, `[AI-SUGGESTED]` chips + red border on inferred nodes).
@@ -20,7 +21,8 @@ The rendered artefact is laid out top-to-bottom as:
 6. **Information requirements table** (`<section id="information-table">`) — `<table class="info-table">` listing every terminal operation's data nouns × direction × sources.
 7. **Gaps and inferred nodes** (`<section id="gaps">`) — three sub-lists: blocking, non-blocking, silent-Plan branches.
 8. **Diagnostics** (`<details id="diagnostics">`) — collapsed by default; gate results, source roster, run history.
-9. **Next steps** (`<section class="next-steps">`) — instructions to copy the file into `input/` and re-run `/requirements`.
+9. **Next steps** (`<section class="next-steps">`) — brief guidance to copy the file into `input/` and re-run `/requirements`.
+10. **Downstream use** (`<details class="downstream-toggle">`) — collapsed by default; full re-ingestion / markitdown mechanics for downstream `/requirements` consumption.
 
 Section order lives in `framework/assets/analyses-inputs/template-task-analysis.html`, not in this analyser. The analyser emits the same placeholder blocks regardless; the template decides where they land.
 
@@ -70,6 +72,7 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - Read `framework/assets/characters/task-analysis-inputs-analysis.md` once.
 - Read `framework/assets/analyses-inputs/task-analysis-reference.md` once. The reference defines what to do in each round; treat it as authoritative.
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality gate: write the "In plain terms" lead, gloss methodology jargon at first use in human-readable prose (task, subtask, task hierarchy / HTA, goal, plan/sequence), never gloss client domain terms (GLOSSARY territory), keep every `[SRC: <filename>]`, and confine plain prose to the lead + glosses (the visual tree, Plans table, Information requirements table, YAML block, and diagnostics keep their concrete discipline).
 - State readiness in one short line: *"Task-analysis analyser ready. Starting from `requirements/source-manifest.json`. Methodology: Hierarchical Task Analysis (Annett & Duncan 1967; Stanton 2006) + Sub-Goal Template information layer (Ormerod & Shepherd 2004) adapted for software-requirements inputs — single-actor, decomposition-first, document-only extraction. Every non-terminal carries a Plan with provenance; inferred terminals are forbidden; missing coordination escalates through a three-tier process and never silently defaults to `sequence`. Citations via `[SRC: <filename>]`; inferred sub-goals + inferred Plans via `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]`."*
 - Restate the stand-alone-ish constraint in-thread: *"This run reads the manifest plus the files it enumerates — no other pipeline state is consulted; `requirements/requirements.md`, `framework/state/`, and `framework/shared/` are not loaded."*
 
@@ -323,6 +326,7 @@ On **Restart**: re-enter Step 4. Cap at three fail-Restart cycles; on the fourth
 
 Every consultant-supplied string is **HTML-escaped** before injection (`<`, `>`, `&`, `"`, `'`). The YAML inside `<pre><code>` is rendered as plain text within the `<pre><code>` block — do **not** double-escape inside YAML. Persona-style strings inside `<svg><text>` would be XML-escaped if any SVG was emitted (this analyser emits no SVG — the visual tree is HTML `<ol>` / `<details>`, not SVG).
 
+- `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences: what this task hierarchy (HTA — hierarchical task analysis, as defined by Annett & Duncan 1967 and Stanton 2006) is, what it found (goal count, terminal-operation count, inferred-node count if any, any blocking gaps), and what the consultant should do with it (e.g. review inferred nodes, copy into `input/` to feed `/requirements`). A faithful condensation of the closed `tree` — it introduces no fact, count, or citation not already present in the tree and tables, and carries no `[SRC]` of its own. Methodology jargon is glossed at first use (e.g. "task hierarchy / HTA (hierarchical task analysis)", "plan/sequence (how sub-tasks are coordinated)"); client domain terms are NOT glossed. HTML-escaped.
 - `{{TITLE}}` — *"Task Analysis — `<domain>`"* if a domain string is available in the manifest meta or first goal's source brief, else *"Task Analysis"*.
 - `{{DOMAIN}}` — verbatim from the manifest's domain field if present, else *"(not declared in manifest)"*.
 - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
@@ -461,7 +465,8 @@ Before handing back, verify all of the following against the written artefact an
 - The artefact contains zero literal `{{...}}` placeholder strings.
 - The artefact begins with `<!doctype html>`.
 - The artefact contains exactly one `<script type="application/json" id="task-analysis-meta">` block. Its `manifest_sha256` equals the Step 2 value; its `run_count` equals `prior.run_count + 1` (or `1` on first run); its `goal_count` matches `<article class="visual-tree-block">` count and `<article class="goal-summary-block">` count.
-- The artefact contains exactly one `<header id="overview">`, one `<section id="goal-summary">`, one `<section id="visual-tree">`, one `<section id="structured-tree">`, one `<section id="plans-table">`, one `<section id="information-table">`, one `<section id="gaps">`, one `<details id="diagnostics">`, and one trailing `<section class="next-steps">`. DOM order is overview → goal-summary → visual-tree → structured-tree → plans-table → information-table → gaps → diagnostics → next-steps.
+- The artefact contains exactly one `<section id="plain-terms">` with a non-empty `<p>`. It is the **first content section** in `<main>` — DOM position 1 (before `<header id="overview">`). The `<p>` text is 2–5 sentences; it contains no `[SRC: ...]` marker; it introduces no goal, count, or fact absent from the tree and tables below; it glosses methodology jargon at first use (HTA, task, plan/sequence) but does not gloss any client domain term; it is 20–120 words.
+- The artefact contains exactly one `<header id="overview">`, one `<section id="goal-summary">`, one `<section id="visual-tree">`, one `<section id="structured-tree">`, one `<section id="plans-table">`, one `<section id="information-table">`, one `<section id="gaps">`, one `<details id="diagnostics">`, one `<section class="next-steps">`, and one `<details class="downstream-toggle">`. DOM order is plain-terms → overview → goal-summary → visual-tree → structured-tree → plans-table → information-table → gaps → diagnostics → next-steps → downstream-toggle.
 - The `<section id="structured-tree">` contains exactly one `<pre><code class="language-yaml">…</code></pre>` block (NOT a `<script type="application/json">` — this is the load-bearing markitdown-survival contract). The YAML inside parses as valid YAML; the top-level key is `task_analysis`.
 - Every `<article class="visual-tree-block">` has `id="tree-{goal-slug}"`, an `<h2>` carrying the goal id + label, and a root `<ol class="hta-tree">` whose children are `<li class="hta-node">` entries.
 - Every `<li class="hta-non-terminal">` contains a `<details>` with a `<summary>` carrying the node-id chip, label, exactly one `.plan-badge` (one of `.plan-badge-seq`, `.plan-badge-sel`, `.plan-badge-iter`, `.plan-badge-conc`, `.plan-badge-disc`), and ≥ 1 `.src-chip` OR an `.ai-chip` (inferred non-terminals).
@@ -480,9 +485,9 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `analyse-inputs/TASK-ANALYSIS/task-analysis.html` exists, has been verified, and contains a complete Hierarchical Task Analysis: overview, ≥ 1 goal-summary-block per goal, ≥ 1 visual-tree-block per goal (each with ≥ 2 terminals), exactly one `<pre><code class="language-yaml">` structured tree, Plans table, Information requirements table, Gaps block, collapsed diagnostics with run history, and the Next-steps banner.
+- `analyse-inputs/TASK-ANALYSIS/task-analysis.html` exists, has been verified, and contains a complete Hierarchical Task Analysis: a plain-terms lead section, overview, ≥ 1 goal-summary-block per goal, ≥ 1 visual-tree-block per goal (each with ≥ 2 terminals), exactly one `<pre><code class="language-yaml">` structured tree, Plans table, Information requirements table, Gaps block, collapsed diagnostics with run history, the Next-steps banner, and the collapsed downstream-toggle footer.
 - Either all 8 hard quality gates passed, or the consultant explicitly chose Override and the Run-history bullet for this run records every violation (with a stronger acknowledgement on gate 2 overrides).
-- DOM order is overview → goal-summary → visual-tree → structured-tree → plans-table → information-table → gaps → diagnostics → next-steps.
+- DOM order is plain-terms → overview → goal-summary → visual-tree → structured-tree → plans-table → information-table → gaps → diagnostics → next-steps → downstream-toggle.
 - The structured-tree YAML is parseable and matches the reference's schema (per-node `id`, `parent_id`, `label`, `is_operation`, `plan`, `information_required`, `sources`, `inferred`, `confidence`, `children`).
 - Additive-merge contract honoured: every prior-run node is present in the new artefact (unless the consultant explicitly dropped it via Revise or the `re-extract` drift branch re-extracted it away with a Run-history note).
 - The consultant has accepted the artefact in the Step 12 accept/revise/restart loop.

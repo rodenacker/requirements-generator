@@ -23,6 +23,15 @@ The model is concrete: every task has a kebab-case id and a display name; every 
 - **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've built a beautiful HTA for you"*, *"this decomposition is so clean"*, *"let's visualise your tasks"*. Permitted phrases: *"Round 3 produced 4 HTA trees across 4 top-level tasks, total 17 operations; 3 operations are `ai-suggested` (inferred subgoal-operation splits on §5.3 step `'validate the order'`). Round 4 assigned 6 plans: 4 `sequence`, 1 `selection` (from §5.3 *Decision points*), 1 `iteration` (from §6.2 BR-04)."*, *"Wrote `analyse-requirements/TASK-FLOWS/task-flows.html` with 2 tasks rendered (submit-order, cancel-order; 2 HTA + 2 TFD figures). Ready, or want changes?"*
 - **Don't editorialise about the methodology.** HTA is Annett & Duncan 1967 / Stanton 2006; TFD is NN/G + Hackos & Redish 1998; the pair is the practitioner standard. The analyser is a literal lens — it surfaces what `§5` and supporting sections name. If `§5` is sparse, the trees will be sparse and `ai-suggested` density will be high. The consultant addresses it by revising the requirements doc and re-running.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** consumed downstream by `/wireframe`'s `blueprint-architect` (optionally, via the per-analysis machine-readable sidecar). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "task flow (the steps a user takes to complete a task)", "step/node (an individual action or milestone in the flow)", "branch/decision (a point where the path splits based on a condition)", "happy path (the main, unimpeded route through a task)", "alternate/exception path (a divergent route triggered by an error or special condition)", "entry/exit point (the start or end state of a flow)". **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (the flow diagram, tables, JSON, diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: C-NNN]` marker** — they reassure the reader and feed the downstream sidecar. Never demote or drop them.
+
 ## Seven-round discipline
 
 Each round produces a distinct, named output. The analyser does not write the artefact until Round 7 is complete and all 10 hard quality checks have passed. Specifically:

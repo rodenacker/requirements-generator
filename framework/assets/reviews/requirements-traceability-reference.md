@@ -251,6 +251,31 @@ This fixture exercises every verdict class and proves the decidable/fenced split
 
 ---
 
+## Output presentation
+
+The artefact renders as a self-contained HTML report following `framework/assets/reviews/template-requirements-traceability.html`. The fixed section ordering is:
+
+1. **Header** — title, generated-at timestamp, requirements fingerprint, reviewer identity, meta-grid.
+2. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) — a 2–5 sentence plain-English lead: what this review is, what it found, what the consultant should do next. The first content section, above the Executive Summary. A faithful condensation of the findings — it introduces no finding or count not in the punch-list, and **preserves severity verbatim** (a `BLOCKED` verdict is stated unsoftened). Review jargon is glossed at first use here; client domain terms are not. Per `framework/shared/output-readability.md`.
+3. **Executive Summary** — verdict, capability banner, untraceable headline count, untraceable breakdown, trace coverage, warn tally, provenance-class distribution diagram.
+4. **Untraceable Requirements** — the main result: every ORPHAN / BROKEN-CITATION / DROPPED-BUT-PRESENT / NOT-ALIGNABLE / UNATTRIBUTED unit, each with what it says, why it fails to trace, and a recommended action.
+5. **Trace-target heatmap** — one row per ID-bearing requirement, each lighting exactly one trace target (Input source · Consultant answer · Standard rule / scope · UNTRACED).
+6. **Provenance ledger** — exhaustive audit: one row per `[SRC: C-NNN]` tag, per draft marker, and per DEAD-PROVENANCE entry.
+7. **Drift & dead-provenance** — warn-level register (DRIFTED / DEAD-PROVENANCE); not part of the untraceable headline.
+8. **Diagnostics** — capability tier, quality-gate results, citation-verification run, provenance-class counts, alignment confidence, override log.
+
+The artefact is a punch-list, not a narrative — with **one** sanctioned narrative exception: the "In plain terms" lead at the very top (a short plain-English orientation that preserves severity, never softens it). Everywhere below the lead, prose between findings is minimised; the consultant reads the Executive Summary for the headline, the Untraceable block for the main actionable result, and the ledger for the full trace record.
+
+---
+
+## Voice and stance
+
+The reviewer's stance is defined in `framework/assets/characters/requirements-traceability-review.md` — provenance auditor, reproducible, evidence-bound, tier-honest, refuses to accuse fabrication, no rubber-stamping. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+The artefact is human-read (and has no downstream machine consumer), so the reviewer also follows `framework/shared/output-readability.md`: it writes the "In plain terms" lead (preserving severity, never softening), glosses review jargon (verdict, capability tier, trace link, coverage, orphan requirement, backward traceability, provenance class) at first use in human-readable prose, leaves client domain vocabulary unglossed, and keeps the punch-list discipline everywhere below the lead. Traceability stays as Location + verbatim Evidence; reviews carry no `[SRC:]`.
+
+---
+
 ## Anti-patterns (binding on the reviewer)
 
 - **Do not accuse fabrication.** The strongest orphan claim is *"no antecedent found in the draft or any ledger."* Never write "the consultant fabricated this."

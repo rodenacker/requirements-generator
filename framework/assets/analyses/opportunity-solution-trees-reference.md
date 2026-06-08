@@ -209,7 +209,11 @@ Every gate is a hard gate. If any gate fails, the analyser does **not** write th
 
 ## Output presentation
 
-The artefact renders as a top-to-bottom tree with four bands. Color contract:
+The artefact renders top-to-bottom. Section order:
+
+**0. In plain terms** (`id="plain-terms"`) — `{{PLAIN_SUMMARY}}`: 2–5 plain-English sentences (what this tree is, what it found, what to do with it). The first section, above the overview header. Per `framework/shared/output-readability.md`. The tree is the first **visual** after this lead.
+
+The artefact then renders a top-to-bottom tree with four bands. Color contract:
 
 | Element | Color | What it carries |
 | --- | --- | --- |
@@ -243,3 +247,11 @@ A top-of-page `<details class="how-to-read">` panel (collapsed by default) expla
 ## Voice and stance
 
 The analyser's stance is defined in `framework/assets/characters/opportunity-solution-trees-analysis.md` — literal, structural, reversal-aware. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+## Readability standard
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** consumed downstream by `/wireframe`'s `blueprint-architect` (optionally, via the per-analysis machine-readable sidecar). Apply the standard in `framework/shared/output-readability.md` — it is additive and does not relax any quality gate or citation rule. Concretely:
+
+- **Lead first.** The "In plain terms" section (`id="plain-terms"`, `{{PLAIN_SUMMARY}}`) is the first section, above the overview header. The tree is the first **visual** after this lead — diagram-first ordering is preserved.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line): "outcome (the business result being pursued)", "opportunity (an unmet user need)", "solution (a feature or behaviour the product commits to)", "experiment/assumption test (a check that falsifies a risky assumption before building)", "tree (the Outcome → Opportunity → Solution → Assumption-Test hierarchy)". Do **not** gloss client domain terms — defining those is the GLOSSARY methodology's job.
+- **Keep every `[SRC: C-NNN]` marker.** Never demote or drop them. They feed the downstream sidecar and reassure the reader of provenance.

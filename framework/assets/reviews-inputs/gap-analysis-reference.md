@@ -229,6 +229,7 @@ Self-contained HTML5. No external CSS / JS / fonts / CDNs. Opens cleanly via `fi
 
 **Section ordering (fixed):**
 
+0. **In plain terms** (`<section id="plain-terms">`). A 2–5 sentence plain-English lead: what this review is, what it found, and what the consultant should do next. A faithful condensation — introduces no finding or count not in the punch-list. Preserves severity verbatim (a `BLOCKED` verdict is stated unsoftened). Review jargon is glossed at first use; client domain terms are not. This is the *one* sanctioned narrative section; everything below stays a punch-list. Per `framework/shared/output-readability.md`.
 1. **Title + metadata block.** `<h1>Gap Analysis (inputs-side)</h1>` plus a metadata table listing `Generated-At` (ISO-8601 UTC), `Manifest fingerprint` (manifest SHA-256), `topics-requirements.md fingerprint` (template SHA-256), `Target` (the manifest's `target` field, or `null`), `Reviewer Identity` (fixed string), `Sources Consumed` (count), `Sources Skipped` (count).
 2. **Executive summary.** Total gap rows; per-dimension counts; per-MoSCoW counts; per-coverage-state counts; verdict (one of `BLOCKED` / `NEEDS-DECISIONS` / `ACCEPTED-WITH-CANDIDATES` per the verdict rubric below).
 3. **Verdict.** Exactly one of the three values, on its own line in bold, preceded by `Verdict:`.
@@ -330,6 +331,12 @@ Embedded as `<script type="application/json" id="gap-analysis-meta">` in the pro
 ## Used by
 
 - `framework/agents/reviews-inputs/gap-analysis-reviewer.md` — workflow Steps 1–12.
+
+## Voice and stance
+
+The reviewer's stance is defined in `framework/assets/characters/gap-analysis-inputs-review.md` — template-bijection-disciplined, dimension-from-SPoT, evidence-required, confidence-conservative, candidate-requirement-shaped, no-solutioning. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+The artefact is human-read (and has no downstream machine consumer), so the reviewer also follows `framework/shared/output-readability.md`: it writes the "In plain terms" lead at the very top (preserving severity, never softening a `BLOCKED` verdict), glosses gap-analysis jargon (coverage state, gap, MoSCoW, impact, confidence, verdict, Candidate Requirement) at first use in human-readable prose, leaves client domain vocabulary unglossed, and keeps the punch-list discipline everywhere below the lead. Traceability stays as `[Location/ID + verbatim Evidence]`; reviews carry no `[SRC:]`; no downstream machine consumer exists for this artefact. The "In plain terms" lead is the *one* sanctioned narrative paragraph; the executive summary, gap matrix, action list, per-dimension narrative, and diagnostics all stay punch-list form.
 
 ## Anti-patterns
 

@@ -21,6 +21,15 @@ The map is concrete: every situation is specific (never *"when using the app"*),
 - **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've mapped your beautiful jobs"*, *"great jobs here"*, *"let's uncover your users' deepest motivations"*. Permitted phrases: *"Round 2 produced 12 jobs across 4 clusters. Gate 2 flagged 1 motivation (`I want to click the export button`) for solution-leak — rewrite, or proceed?"*, *"Wrote `analyse-requirements/JTBD/jtbd-job-map.html`. Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If the consultant's `§Personas` is sparse, the map will be sparse. The analyser surfaces what is there; if more is needed, the consultant addresses it by revising the requirements doc and re-running.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** consumed downstream by `/wireframe`'s `blueprint-architect` (optionally, via the per-analysis machine-readable sidecar). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "job (the progress a user is trying to make)", "job map (the stages of getting a job done)", "outcome (a measurable success metric)", "circumstance/context", "forces of progress (push, pull, anxiety, habit — the four pressures that drive or resist change)". **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (job map, tables, JSON, diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: C-NNN]` marker** — they reassure the reader and feed the downstream sidecar. Never demote or drop them.
+
 ## Six-round discipline
 
 Each JTBD-X round produces a distinct, named output. The analyser does not write the artefact until Round 6 is complete and all quality gates have passed. Specifically:

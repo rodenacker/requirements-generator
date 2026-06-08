@@ -13,6 +13,8 @@
   wireframing implications. Diagnostics sit inside a collapsed <details>.
 
   Section order (top-to-bottom):
+    0. In plain terms (id="plain-terms") — {{PLAIN_SUMMARY}}: human-readable lead.
+                                          First content section, above the overview.
     1. Overview (id="overview")        — title, subtitle, meta-grid, counts bar.
     2. TOC (<nav class="toc">)         — static top-level anchors.
     2b. Legend (.legend-bar)           — colour / provenance key, directly under
@@ -35,6 +37,12 @@
   {{TRADE_OFF_JSON}} which is pre-serialised JSON inside a <script> tag):
 
     {{TITLE}}                  — short title (e.g. "Trade-off Dimensions — Project X")
+    {{PLAIN_SUMMARY}}          — 2–5 plain-English sentences for the "In plain terms"
+                                  lead block (first content section, above the overview):
+                                  what this matrix is, what it found, what to do with it.
+                                  HTML-escaped; methodology jargon glossed at first use;
+                                  client domain terms NOT glossed. Per
+                                  framework/shared/output-readability.md.
     {{DOMAIN}}                 — domain string (from requirements §1)
     {{BUSINESS_GOAL}}          — business-goal string (from requirements §1)
     {{SCOPE_SUMMARY}}          — one-line summary of §1.5 In bucket
@@ -270,6 +278,15 @@
       font-variant-numeric: tabular-nums;
       word-break: break-word;
     }
+
+    /* ------- in plain terms (human-readable lead) ------- */
+    #plain-terms {
+      margin: 0 0 24px 0; padding: 14px 18px;
+      background: #f0f7ff; border: 1px solid #4f8fbf;
+      border-left: 4px solid #4f8fbf; border-radius: 6px;
+    }
+    #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+    #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--fg); }
 
     /* ------- counts bar ------- */
 
@@ -742,6 +759,11 @@
 </head>
 <body>
   <main>
+    <section id="plain-terms" aria-label="In plain terms">
+      <h2>In plain terms</h2>
+      <p>{{PLAIN_SUMMARY}}</p>
+    </section>
+
     <section id="overview">
       <h1>{{TITLE}}</h1>
       <p class="subtitle">Trade-off dimension matrix — scores per user goal across kept dimensions. Negative scores lean toward pole A; positive toward pole B; zero is no-signal or balanced.</p>
@@ -768,6 +790,7 @@
 
     <nav class="toc" aria-label="Sections">
       <ol>
+        <li><a href="#plain-terms">In plain terms</a></li>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#matrix">Goal × Dimension matrix</a></li>
         <li><a href="#guidance">Design guidance per goal</a></li>

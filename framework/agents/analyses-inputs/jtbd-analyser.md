@@ -24,12 +24,13 @@ Every quality check in `framework/assets/analyses-inputs/jtbd-reference.md > Qua
 
 The rendered HTML is laid out top-to-bottom as (per the template's scaffolded structure):
 
+0. **In plain terms** (`<section id="plain-terms">`) — `{{PLAIN_SUMMARY}}`: a 2–5 sentence plain-English lead (what this job map is, what it found, what the consultant should do with it). The first section, above the meta-grid. Per `framework/shared/output-readability.md` (operative rules restated in the character's *Reader & plain language* block, so no `framework/shared/` read is needed).
 1. **Overview** — title, subtitle, meta-grid.
-2. **TOC** — static top-level anchors (`Overview`, `Diagrams`, `Tabular information`, `Use in /requirements`, `Diagnostics`).
+2. **TOC** — static top-level anchors (`In plain terms`, `Overview`, `Diagrams`, `Tabular information`, `Diagnostics`).
 3. **Diagrams** (`<section id="diagrams">`) — `{{JOB_CLUSTERS}}` populated by the analyser; one cluster per `(actor, main-goal)`, one job card per job.
 4. **Tabular information** (`<section id="tables">`) — `{{OPPORTUNITY_MATRIX}}` populated by the analyser.
-5. **Round-trip footer** (`<section id="round-trip">`) — static paragraph; the analyser does not edit it.
-6. **Diagnostics** (`<details id="diagnostics">`) — `{{DIAGNOSTICS_BLOCK}}` populated by the analyser; carries provenance/measure/score/force counts, Source roster (Consumed + Skipped tables), 7 gate results, Run history.
+5. **Diagnostics** (`<details id="diagnostics">`) — `{{DIAGNOSTICS_BLOCK}}` populated by the analyser; carries provenance/measure/score/force counts, Source roster (Consumed + Skipped tables), 7 gate results, Run history.
+6. **Downstream-use footer** (`<details class="downstream-toggle">`) — collapsed; re-ingestion instructions for feeding this artefact into `/requirements`. Template-scaffolded; the analyser does not edit its content.
 7. **`jtbd-meta` HTML comment** — emitted by the analyser at the bottom of the body just before `</main>` (`<!-- jtbd-meta: manifest_fingerprint=<sha>, run_count=N -->`); first match is the cursor parsed on the next run.
 
 Section order is template-scaffolded; the analyser substitutes `{{placeholders}}` and emits the meta comment but does not alter the template's HTML/CSS structure.
@@ -80,6 +81,7 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - Read `framework/assets/characters/jtbd-inputs-analysis.md` once.
 - Read `framework/assets/analyses-inputs/jtbd-reference.md` once. The reference defines what to do in each round; treat it as authoritative.
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality gate: write the "In plain terms" lead, gloss methodology jargon at first use in human-readable prose (job, job map, outcome, forces of progress, opportunity score), never gloss client domain terms (GLOSSARY territory), keep every `[SRC]`, and confine plain prose to the lead + glosses (the job cards, matrix, and diagnostics keep their concrete discipline).
 - (Optional, may defer to Step 10) Read `framework/assets/analyses-inputs/template-jtbd.html` once for substitution.
 - State readiness in one short line: *"JTBD analyser (input-analysis variant) ready. Starting from `requirements/source-manifest.json`. Methodology: Christensen-Moesta canonical statement form (`When <situation>, I want to <motivation>, so I can <outcome>`) + four forces of progress (push / pull / anxiety / habit) + Ulwick importance × satisfaction = opportunity scoring (`Opportunity = Importance + max(0, Importance - Satisfaction)`), adapted for raw consultant inputs. Jobs are anchored to manifest rows via `[SRC: <filename>]`; outcomes without anchorable measures carry `(no-metric-in-inputs)`; scoring without input signal carries `consultant-assigned-no-signal`; forces with no input mention carry `not-named-in-inputs`. Six rounds in sequence; seven hard quality gates; no fabricated jobs, outcomes, scores, or forces."*
 - Restate the stand-alone-ish constraint in-thread: *"This run reads the manifest plus the files it enumerates — no other pipeline state is consulted; `requirements/requirements.md`, `framework/state/`, and `framework/shared/` are not loaded; the sibling JTBD artefact at `analyse-requirements/JTBD/jtbd-job-map.html` is not read."*
@@ -280,6 +282,7 @@ On **Restart**: re-enter Step 4. Cap at three fail-Restart cycles; on the fourth
 
 | Placeholder | Value |
 |---|---|
+| `{{PLAIN_SUMMARY}}` | 2–5 plain-English sentences: what this job map is (JTBD extraction from raw inputs — surfacing the jobs, outcomes, and forces of progress the inputs already describe), what it found (job count, cluster count, high-opportunity count, force-naming summary), and what the consultant should do with it (audit high-opportunity jobs, address force-naming gaps, optionally feed into `/requirements`). Faithful condensation of the content below — introduces no new fact, object, finding, count, or citation not already present; carries no `[SRC]` of its own. Methodology jargon glossed at first use (job — the progress a user is trying to make; forces of progress — push/pull/anxiety/habit; opportunity score — Ulwick's importance + max(0, importance − satisfaction)); client domain terms NOT glossed. HTML-escaped. |
 | `{{TITLE}}` | `JTBD Job Map — Inputs — <domain or "Untitled">` |
 | `{{DOMAIN}}` | manifest's `target` field if present (`prototype` / `application`), else `(domain not specified)` |
 | `{{GENERATED_AT}}` | ISO-8601 UTC timestamp (the agent's render time) |
@@ -444,7 +447,10 @@ Before handing back, verify all of the following against the written artefact an
 - The artefact contains zero literal `{{...}}` placeholder strings.
 - The artefact begins with `<!doctype html>` and is well-formed self-contained HTML.
 - The artefact contains exactly one `<!-- jtbd-meta: ... -->` line. Its `manifest_fingerprint` equals the Step 2 value; its `run_count` equals `prior.run_count + 1` (or `1` on first run).
-- The artefact contains exactly one `<section id="overview">`, one `<nav class="toc">`, one `<section id="diagrams">`, one `<section id="tables">`, one `<section id="round-trip">`, and one `<details id="diagnostics">` — in that order — per the template's scaffolded structure.
+- `<section id="plain-terms">` exists as the FIRST content section (before `<section id="overview">`), contains a non-empty `<p>`, and its text is a faithful condensation of the artefact body — it introduces no new fact, count, or `[SRC]` citation of its own, and it glosses no client domain terms.
+- The artefact contains exactly one `<section id="overview">`, one `<nav class="toc">`, one `<section id="diagrams">`, one `<section id="tables">`, and one `<details id="diagnostics">` — in that DOM order (after `plain-terms`) — per the template's scaffolded structure.
+- A `<details class="downstream-toggle">` footer is present near the foot of `<main>`, after `<details id="diagnostics">`, containing the re-ingestion instructions.
+- The TOC's first `<li>` links to `#plain-terms`.
 - The Overview meta-grid carries the correct `{{MANIFEST_FINGERPRINT}}`, `{{SOURCE_COUNT}}`, `{{TIER_BREAKDOWN}}`, `{{JOB_COUNT}}`, `{{CLUSTER_COUNT}}`, `{{FUNCTIONAL_COUNT}}`, `{{EMOTIONAL_COUNT}}`, `{{SOCIAL_COUNT}}`, `{{HIGH_OPPORTUNITY_COUNT}}` substitutions.
 - Every cluster in `final_clusters` is rendered as exactly one `<section class="job-cluster">`; every job in `final_jobs` is rendered as exactly one `<article class="job-card">`. Counts match the meta-grid values.
 - Every `<article class="job-card">` carries: one type badge, one priority badge, one job ID, an actor row with `<span class="actor-name">` + `<span class="source-chips">` containing ≥ 1 `<span class="src-chip">[SRC: <filename>]</span>`, a three-element `<ul class="statement-stack">` (WHEN / I WANT TO / SO I CAN), a `<div class="scoring-strip">` with both dot rows + the opportunity chip, and a four-element `<ul class="forces-strip">` (Push / Pull / Anxiety / Habit).
@@ -460,7 +466,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `analyse-inputs/JTBD/jtbd-job-map.html` exists, has been verified, and contains a complete JTBD job map: Overview, TOC, Diagrams (≥ 1 cluster with ≥ 1 job card), Opportunity Matrix (5×5), Round-trip footer, Diagnostics (provenance + outcomes + scoring + forces + Source roster + 7 gate results + Run history), and the `jtbd-meta` cursor line.
+- `analyse-inputs/JTBD/jtbd-job-map.html` exists, has been verified, and contains a complete JTBD job map in DOM order: `plain-terms` lead (first section, non-empty), Overview, TOC (with `#plain-terms` as first entry), Diagrams (≥ 1 cluster with ≥ 1 job card), Opportunity Matrix (5×5), Diagnostics (provenance + outcomes + scoring + forces + Source roster + 7 gate results + Run history), downstream-toggle footer, and the `jtbd-meta` cursor line.
 - Either all 7 hard quality gates passed, or the consultant explicitly chose Override and the Run-history bullet for this run records every violation.
 - Additive-merge contract honoured: every prior-run job card is present in the new artefact (unless the consultant explicitly dropped it via Revise or the `re-extract-everything` drift branch re-clustered it away with a Run-history note).
 - The consultant has accepted the artefact in the Step 12 accept/revise/restart loop. The handback message surfaced the round-trip instruction.
@@ -485,4 +491,5 @@ Before handing back, verify all of the following against the written artefact an
 - **Do not use the Agent or Task tool to delegate any step.** All work happens in this thread. No MCP tools are authorised.
 - **Do not emit any `[AI-SUGGESTED]` marker.** JTBD on raw inputs is extraction, not inference. Jobs, outcomes, scores, and forces all trace to manifest rows via `[SRC: <filename>]` (or are explicitly marked absent via `(no-metric-in-inputs)` / `consultant-assigned-no-signal` / `not-named-in-inputs`); the `[AI-SUGGESTED]` namespace is reserved for the `/requirements`-drafter's inferences and must not be widened into analyser territory.
 - **Do not edit the template HTML scaffold.** The template's `<style>` block, section structure, TOC, footer legend, and round-trip paragraph are fixed. Only the `{{placeholders}}` documented in the template's comment header may be substituted.
-- **Do not omit the round-trip handback note.** Consultants may not realise the JTBD map is consumable by `/requirements`; the Step 12 message is the discoverability surface.
+- **Do not omit the round-trip handback note.** Consultants may not realise the JTBD map is consumable by `/requirements`; the Step 12 message is the discoverability surface. The template's `<details class="downstream-toggle">` footer also surfaces this — do not delete it.
+- **Do not add new facts, counts, or `[SRC]` citations to the `{{PLAIN_SUMMARY}}` lead.** The lead is a faithful condensation of the artefact body; it must not introduce information that is not already present in the job cards, matrix, or diagnostics block.

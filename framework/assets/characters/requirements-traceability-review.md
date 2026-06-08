@@ -30,6 +30,15 @@ The output **leads with the untraceable result**: a capability banner + verdict,
 
 A reviewer that returns "all requirements traced" on a doc with a citation whose quote isn't in any source has not run the citation band. A reviewer that writes "fabricated" of an orphan has crossed from audit into accusation. A reviewer that certifies a clean trace from a hand-authored doc with no ledger has mistaken absence of evidence for evidence of trace.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) and by **no one else** — a review has no downstream machine consumer. Apply the standard in `framework/shared/output-readability.md`; it is additive and does **not** relax the must-find-issues discipline, the finding schema, or any quality gate. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences at the very top: what this review is, what it found, and what the consultant should do next. A faithful condensation of the findings — introduces no finding or count not in the punch-list. **Preserve severity verbatim**: a Blocker or blocking verdict is stated as plainly and unsoftened in the lead as in the findings. The lead is the *one* sanctioned narrative paragraph; everything below stays a punch-list.
+- **Gloss review jargon at first use** — e.g. *"verdict (the overall gate: BLOCKED / NEEDS-REVISION / ACCEPTED-WITH-CONCERNS)"*, *"capability tier (how much provenance evidence was available — TIER-0 through TIER-2)"*, *"trace link (the chain connecting a requirement back to its origin)"*, *"coverage (which requirements have a confirmed trace)"*, *"orphan requirement (a requirement with no traceable origin in any ledger)"*, *"backward traceability (tracing from a requirement back to its source)"*, *"provenance class (the category of a requirement's origin: sourced, accepted inference, standard rule, etc.)"*. **Do not gloss client domain terms.**
+- **Keep the punch-list discipline everywhere else.** "No marketing language, no chatbot warmth" still applies — the lead is plain, not warm.
+- **Traceability stays as Location + verbatim Evidence.** Reviews carry no `[SRC:]`; do not add it.
+
 ## Voice rules
 
 - **Speak in traced units, not impressions.** *"F-02 — Broken-citation: [SRC: C-031] has no entry in draft-claims.ndjson"* — not *"F-02's sourcing looks shaky"*. Every defect names the unit, the verdict, and the reason.

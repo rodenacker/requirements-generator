@@ -17,6 +17,7 @@ Every row in every Tier-1 table carries exactly one provenance marker. Every qua
 
 The rendered artefact is laid out top-to-bottom as:
 
+0. **In plain terms** (`<section id="plain-terms">`) — `{{PLAIN_SUMMARY}}`: a 2–5 sentence plain-English lead (what this analysis is, what it found, what the consultant should do with it). The first section, above the meta-grid. The ER diagram (entity-relationship diagram — a visual map of entities and their relationships) is the first visual after this lead.
 1. **Overview** (`id="overview"`) — title, subtitle, meta-grid.
 2. **TOC** (`<nav class="toc">`) — static top-level anchors.
 3. **Diagrams** (`id="diagrams"`) — `{{ERD_VIEWS_BLOCK}}` followed by `{{MERMAID_BLOCK}}` (Mermaid source kept adjacent to its SVGs).
@@ -48,6 +49,7 @@ Eleven steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - Read `framework/assets/characters/data-model-analysis.md` once.
 - Read `framework/assets/analyses/data-model-reference.md` once. The reference defines what to do in each round; treat it as authoritative.
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality gate: write the "In plain terms" lead, gloss methodology jargon (entity, attribute/field, relationship, cardinality, primary key, foreign key, ER diagram) at first use in human-readable prose, never gloss client domain terms (GLOSSARY territory), keep every `[SRC: C-NNN]`, and confine plain prose to the lead and first-use glosses (the ER diagram, tables, and diagnostics keep their concrete discipline).
 - State readiness in one short line: *"Data Model analyser ready. Starting from `requirements/requirements.md`."*
 - Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only — no other pipeline state is consulted."*
 
@@ -201,6 +203,7 @@ Per `framework/assets/analyses/template-data-model.html`:
 
 - Read the template once.
 - Build the substitution map for the placeholders documented in the template's header comment:
+    - `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences: what this Logical Data Model (entity-relationship) analysis is, what it found (number of entities, relationships, notable `ai-suggested` items), and what the consultant should do with it (e.g. review provenance markers, audit any `ai-suggested` join entities before handing off to the design phase). A faithful condensation of the body — no new fact, count, or citation that is not already in the body tables; no `[SRC: C-NNN]` of its own. Methodology jargon glossed at first use within the sentence: entity (a type of thing the system stores), relationship (a named link between two entities), cardinality (how many of one relate to how many of another). Client domain terms (entity names from `§2.1`, relationship verbs from `§2.2`) are **not** glossed. HTML-escaped before injection.
     - `{{TITLE}}` — *"Data Model — `<domain>`"* if `§1 Domain` exists, else *"Data Model"*.
     - `{{DOMAIN}}` — verbatim from `§1` if present, else *"(not declared in requirements.md)"*.
     - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
@@ -360,9 +363,10 @@ Output the final handback line:
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
+- The artefact's first child `<section>` inside `<main>` is `<section id="plain-terms">` with a non-empty `<p>` element (the `{{PLAIN_SUMMARY}}` lead). DOM order: `plain-terms` → `overview` → TOC → legend → `diagrams` → `tables` → `diagnostics`. The lead contains at least 2 and at most 5 sentences, introduces no fact not present in the body tables, and carries no `[SRC: C-NNN]` marker. Methodology jargon is glossed at first use within the lead; client domain terms are not glossed.
+- The artefact contains zero literal `{{...}}` placeholders — including `{{PLAIN_SUMMARY}}`.
 - `analyse-requirements/DATA-MODEL/data-model.html` exists and `verify-artifact-write` returned `pass`.
 - `svg-overlap-check` has been invoked in Step 10 with the data-model allowlists (or skipped because `chosen.notations` was empty). If it returned `fail`, every detected overlap appears as a one-line entry inside the diagnostics block.
-- The artefact contains zero literal `{{...}}` placeholders.
 - The Data Model section contains exactly five sub-sections in fixed order (`.entities-block`, `.attributes-block`, `.relationships-block`, `.business-rules-block`, `.normalisation-block`).
 - Every row in every Tier-1 table carries exactly one `.provenance-*` class — never zero, never two.
 - Every `.provenance-ai-suggested` row's content contains `[AI-SUGGESTED]` somewhere in its text (typically in the notes column or as a prefix on inferred values).
@@ -381,6 +385,7 @@ Before handing back, verify all of the following against the written artefact an
 ## Definition of Done
 
 - `analyse-requirements/DATA-MODEL/data-model.html` exists, has been verified, and contains a complete Logical Data Model plus the consultant-selected ERD views (zero to three).
+- The artefact's DOM order is: `plain-terms` (non-empty lead, no `[SRC: C-NNN]`) → `overview` → TOC → legend → `diagrams` (ER diagram first visual) → `tables` → `diagnostics`.
 - Either all 10 hard quality checks passed, or the consultant explicitly chose Override and the diagnostics block records every violation.
 - The consultant has accepted the artefact in the Step 11 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.

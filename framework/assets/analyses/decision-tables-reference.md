@@ -147,6 +147,10 @@ The analyser MAY `Glob`+`Read` `analyse-requirements/STATE-DIAGRAM/state-diagram
 
 ## Output structure
 
+### 0. In plain terms (first rendered section)
+
+`{{PLAIN_SUMMARY}}` — a 2–5 sentence plain-English lead placed above the overview meta-grid, per `framework/shared/output-readability.md`. It states what this decision-tables analysis is, what it found (summary of decisions, gaps, conflicts), and what the consultant should do with it (review blocking gaps, surface to `/requirements` resolver). It is a faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC: C-NNN]` of its own. Methodology jargon (decision table, condition, conclusion/action, rule, hit policy, completeness, gap, consistency, conflict) is glossed at first use; client domain terms are not glossed. Rendered as `<section id="plain-terms">`.
+
 ### Diagrams (top of document)
 
 1. **Decision-health strip** — the value, front-loaded. One card per decision: rule count · completeness (`complete` / *n* gaps) · consistency (`consistent` / *n* conflicts) · hit policy. The reader sees the gaps and conflicts before the tables.
@@ -162,6 +166,10 @@ The analyser MAY `Glob`+`Read` `analyse-requirements/STATE-DIAGRAM/state-diagram
 ### Diagnostics (bottom, collapsed)
 
 7. Counts summary, the hard-check result lines (PASS/FAIL), the size-cap notes, the excluded-transition-guards note (lane boundary), and the embedded `<pre><code class="language-json" id="decision-tables-body">` model carrying `{ decisions[], inputs[], rules[], hit_policy, completeness_gaps[], conflicts[] }` for `/requirements` re-ingestion.
+
+### Downstream-use footer (collapsed, after diagnostics)
+
+8. `<details class="downstream-toggle">` — re-ingestion mechanics (how to copy the HTML into `input/`, what the markitdown round-trip preserves, how blocking gaps reach the `/requirements` resolver). Collapsed by default; machinery prose moved here so it does not interrupt the reader. The JSON/`<pre><code>` block remains in the non-collapsed `#body` section (markitdown-survival contract — cannot be collapsed).
 
 ---
 
@@ -222,3 +230,17 @@ Full envelope: `schema_version "1"`, `method "decision-tables"`, `source_path`, 
 ## Stop-condition
 
 The analysis is complete when every decision has a table with a declared hit policy and ≥ 1 typed condition; every rule cites a source or carries a derivation marker + anchor; every completeness gap is an `[AI-SUGGESTED]` register row (blocking where consequential) with no fabricated outcome; every conflict appears in the consistency register; no status-transition rule was tabulated; the size cap holds; all 7 hard checks pass (or Override); and the consultant chose Accept in the handback loop.
+
+---
+
+## Voice and readability
+
+The rendered artefact is read by a human (the consultant, sometimes a client stakeholder) **and** consumed downstream by `/wireframe`'s `blueprint-architect` (optionally, via the per-analysis machine-readable sidecar). The operative standard is `framework/shared/output-readability.md` — restated in the character's *Reader & plain language* block so the analyser never needs to load `framework/shared/` at runtime.
+
+**What this means for the output:**
+
+- **Lead first.** The `{{PLAIN_SUMMARY}}` "In plain terms" section (`<section id="plain-terms">`) is the first rendered section, before the overview meta-grid. It states in 2–5 plain sentences what the analysis is, what it found, and what the consultant should do with it.
+- **Gloss methodology jargon at first use.** In the lead and any handback prose: "decision table (a grid of conditions → actions)", "condition (an input variable the table reads)", "action/conclusion (the outcome a rule assigns)", "rule (one row of the table)", "hit policy (how overlapping rules resolve)", "completeness (every reachable condition-value combination has an assigned outcome)", "gap (a reachable combination with no stated rule)", "consistency (no two rules conflict)", "conflict (two overlapping rules with differing conclusions)". Client domain terms are **never** glossed here — that is the GLOSSARY methodology's job.
+- **Plain layer confined.** The lead and glosses are the only plain-English additions. The decision tables, registers, JSON block, and diagnostics keep their existing concrete, telegraphic discipline unchanged.
+- **Keep every `[SRC: C-NNN]`.** Never demote or drop source citations. They reassure the reader and feed the downstream sidecar.
+- **Machinery prose collapsed.** Re-ingestion instructions (how to copy into `input/`, what markitdown preserves, how blocking gaps reach the resolver) live in the `<details class="downstream-toggle">` footer. The `<pre><code class="language-json" id="decision-tables-body">` block stays in the non-collapsed `#body` section (required for round-trip survival).

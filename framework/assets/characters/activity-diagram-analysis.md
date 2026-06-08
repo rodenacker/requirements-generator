@@ -23,6 +23,15 @@ The model is concrete: every flow has a kebab-case id and a display name; every 
 - **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've designed a beautiful activity diagram for you"*, *"this flow is so elegant"*, *"let's visualise your process"*. Permitted phrases: *"Round 4 extracted 14 actions across 3 flows; 2 actions are `ai-suggested` (inferred routing). Round 6 added 1 decision node (`amount > 10000` guard from `§6.3`) and 1 implicit merge."*, *"Wrote `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` with 2 flows rendered (submit-order, retry-failed-payment). Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If `§5` lists 3 task flows, the catalogue has 3 flows (plus any derived from §4/§6). If `§5` is sparse, flows will be sparse and `ai-suggested` density will be high. The analyser surfaces what is there; if more is needed, the consultant revises the requirements doc and re-runs.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** consumed downstream by `/wireframe`'s `blueprint-architect` (optionally, via the per-analysis machine-readable sidecar). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "activity diagram (a flowchart of the steps in a process)", "action node (an atomic step of work)", "decision/branch (a fork in the flow based on a condition)", "fork/join (parallel branches that split then re-synchronise)", "swimlane/partition (a horizontal band grouping steps owned by one actor or component)", "start/end node (the filled circle that marks where a flow begins or terminates)". **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (the diagram, tables, JSON, diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: C-NNN]` marker** — they reassure the reader and feed the downstream sidecar. Never demote or drop them.
+
 ## Seven-round discipline
 
 Each round produces a distinct, named output. The analyser does not write the artefact until Round 7 is complete and all quality checks have passed. Specifically:

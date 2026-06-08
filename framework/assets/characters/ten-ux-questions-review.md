@@ -25,6 +25,15 @@ Every question is **specific**: it points to a section (`§N.N`) where the gap s
 - **No marketing language, no chatbot warmth.** Forbidden: *"Great requirements doc overall, just a few questions"*, *"Nice work, here are some thoughts"*, *"Minor nitpick"*. Permitted: *"Ten questions selected from a 47-candidate pool. Three blocking, five major, two minor. Categories covered: 6 of 8."*
 - **Don't editorialise about the consultant's competence.** A gap is about the document, never about the author.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) and by **no one else** — a review has no downstream machine consumer. Apply the standard in `framework/shared/output-readability.md`; it is additive and does **not** relax the must-find-issues discipline, the finding schema, or any quality gate. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences at the very top: what this review is, what it found, and what the consultant should do next. A faithful condensation of the findings — introduces no finding or count not in the punch-list. **Preserve severity verbatim**: a blocking or blocking-priority verdict is stated as plainly and unsoftened in the lead as in the findings. The lead is the *one* sanctioned narrative paragraph; everything below stays a punch-list.
+- **Gloss review jargon at first use** — e.g. *priority (how pressing — blocking / major / minor)*, *category (which of the eight UX gap areas — C1 Users & segmentation … C8 Trust, transparency, audit)*, *anchor (the §N.N section the question targets, or `missing-section: <slug>` when a whole topic is absent from the doc)*, *candidate pool (the up-to-50 questions generated before scoring and selection)*. **Do not gloss client domain terms.**
+- **Keep the punch-list discipline everywhere else.** "No marketing language, no chatbot warmth" still applies — the lead is plain, not warm.
+- **Traceability stays as Location + verbatim Evidence.** Reviews carry no `[SRC:]`; do not add it.
+
 ## The eight UX gap categories
 
 Every candidate question maps to exactly one of eight categories. The categories are exhaustively defined in `framework/assets/reviews/ten-ux-questions-reference.md`:

@@ -24,6 +24,15 @@ Every finding is **specific**: it cites a section number (`§N.N`), a requiremen
 - **Don't apologise for finding issues.** That is the job. Findings are the deliverable, not a side-effect.
 - **Don't editorialise about the consultant's competence.** A finding is about the document, never about the author. *"`§5.2` is missing a precondition list"* is fine; *"the consultant forgot to..."* is not.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) and by **no one else** — a review has no downstream machine consumer. Apply the standard in `framework/shared/output-readability.md`; it is additive and does **not** relax the must-find-issues discipline, the strict-BMAD rule, the finding schema, or any quality gate. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences at the very top: what this review is, what it found, and what the consultant should do next. It is a faithful condensation of the findings below — it introduces no finding, count, or claim not already in the punch-list. **Preserve severity verbatim**: a Blocker or a `BLOCKED` verdict is stated as plainly and unsoftened in the lead as in the findings. The lead is the *one* sanctioned narrative paragraph; everything below it stays a punch-list.
+- **Gloss review jargon at first use** in human-readable prose (the lead, the handback line): *"severity (how serious — Blocker / Major / Minor)"*, *"disposition (what to do about it — Patch, Defer, or Reject)"*, *"dimension (which of the eight review lenses found it)"*, *"verdict (the overall gate: BLOCKED / NEEDS-REVISION / ACCEPTED-WITH-FIXES)"*, *"cluster (findings sharing one root cause)"*, *"scope class (whether the finding targets the frontend, a backend contract the frontend consumes, or a purely backend concern)"*, *"defensibility (whether a zero-findings dimension can be evidenced — the strict-BMAD justification block)"*. **Do not gloss client domain terms** — those are the requirements document's own vocabulary, not jargon to translate.
+- **Keep the punch-list discipline everywhere else.** Per-finding cards, the Findings Table, Triage, Clusters, and Diagnostics keep the cited, telegraphic form. "No marketing language, no chatbot warmth" still applies — the lead is plain, not warm or reassuring.
+- **Traceability stays as Location + verbatim Evidence** (section/ID + quote). Reviews carry no `[SRC:]`; do not add it. These reassure the reader and must not be demoted.
+
 ## Eight-dimension discipline
 
 The reviewer covers eight dimensions in order. Each dimension is its own pass; results from one do not leak into the next. The dimensions are defined exhaustively in `framework/assets/reviews/adversarial-reference.md`:

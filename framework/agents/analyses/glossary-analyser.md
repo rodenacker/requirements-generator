@@ -28,6 +28,7 @@ Every quality check in `framework/assets/analyses/glossary-reference.md > Qualit
 
 The rendered HTML is laid out top-to-bottom (per the `framework/assets/analyses/template-glossary.html` scaffold) as:
 
+0. **In plain terms** (`#plain-terms`) — `{{PLAIN_SUMMARY}}`: 2–5 plain-English sentences explaining what this glossary is. First section, above the Overview.
 1. **Overview** (`#overview`) — `<h1>` title + `dl.meta-grid` (Domain, Generated, Requirements SHA-256, scope tier, term counts).
 2. **Sticky TOC** (`nav.toc`).
 3. **Defined terms** (`#defined`) — alphabetical cited cards.
@@ -38,7 +39,8 @@ The rendered HTML is laid out top-to-bottom (per the `framework/assets/analyses/
 8. **Machine-readable model** (`#body`) — the `language-json` `glossary-body` block.
 9. **Run history** (`#run-history`) — chronological bullets.
 10. **Diagnostics** (`#diagnostics`) — collapsed `<details>`.
-11. **Glossary-meta** — the single trailing `<!-- glossary-meta: ... -->` comment (immediately before `</main>`), parsed by Step 3 on the next run.
+11. **Downstream-use footer** (`details.downstream-toggle`) — collapsed; machinery prose for `/wireframe` re-ingestion (moved from body captions).
+12. **Glossary-meta** — the single trailing `<!-- glossary-meta: ... -->` comment (immediately before `</main>`), parsed by Step 3 on the next run.
 
 The analyser populates the template's `{{PLACEHOLDER}}` slots via string substitution; it does not author the scaffold or the CSS.
 
@@ -68,6 +70,7 @@ Ten steps in order. Do not skip steps; do not collapse steps. Each step's succes
 
 - Read `framework/assets/characters/glossary-analysis.md` once.
 - Read `framework/assets/analyses/glossary-reference.md` once. The reference defines what to do in each round; treat it as authoritative.
+- Apply the human-readability standard from `framework/assets/characters/glossary-analysis.md > Reader & plain language` (canonical; additive — does not relax any gate or citation rule above). Concretely: produce the `{{PLAIN_SUMMARY}}` placeholder as 2–5 plain-English sentences explaining what this glossary IS — the agreed vocabulary for the project's domain, how many terms are defined, how many are used-but-undefined (flagged), and that the consultant should confirm or correct the proposed definitions. The lead must NOT re-define domain terms; that is the term cards' job. Gloss methodology jargon at first use in the lead and the handback line (e.g. *"used-but-undefined"*, *"scope tier"*, *"provenance"*); never gloss client domain terms — they are this artefact's content. Keep every `[SRC: C-NNN]` marker.
 - State readiness in one short line: *"Glossary analyser ready. Starting from `requirements/requirements.md`. Methodology: domain-vocabulary extraction (Evans 2003 DDD / ISO/IEC/IEEE 24765). Tier scope is strictly cumulative (1 = nouns + roles + statuses → 2 += acronyms → 3 += action verbs → 4 += field names). Definitions are lifted verbatim from the document; terms without an explicit definition are surfaced as gaps — never glossed."*
 - Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only (plus the prior glossary, if present, for additive merge) — no other pipeline state is consulted; `framework/assets/glossary.md` is not loaded."*
 
@@ -212,6 +215,8 @@ Read `framework/assets/analyses/template-glossary.html` once. Compose the artefa
 
 **Escaping (replaces the prior markdown-table-escaping rules).** This is HTML. Every requirements-derived string (term, definition quote, expansion, action shape, owning entity, context snippet) is **HTML-escaped** before substitution into element text or table-cell content: `&` → `&amp;`, `<` → `&lt;`, `>` → `&gt;`, `"` → `&quot;`. There are no markdown tables and therefore no `|`-escaping or backtick-fencing; verbatim definitions land inside `<p class="def-text">` / `<td>` text nodes where the four HTML entities are the only escaping needed. Section refs render as inline `<span class="src-chip">§N.M</span>` (not markdown inline-code).
 
+**A0. `{{PLAIN_SUMMARY}}` — "In plain terms" lead (FIRST placeholder substituted).** Compose 2–5 plain-English sentences explaining *what this glossary is*: the agreed vocabulary for the project's domain, how many terms are defined, how many are used-but-undefined (flagged for the consultant), and that the consultant should confirm or correct the proposed definitions. This is a faithful condensation of the glossary below — it introduces no new term, count, or citation not already present in the entry set, and carries no `[SRC]` of its own. Methodology jargon glossed at first use in this text: *"used-but-undefined (a term the requirements uses but does not explicitly define)"*, *"scope tier (which categories of term this run extracted)"*, *"provenance (the section ref and verbatim quote grounding each cited definition)"*. Client domain terms are **never** glossed — they are the content of the term cards. HTML-escape the composed text before substitution.
+
 **A. Overview meta-grid (`{{...}}` scalars).**
 
 - `{{TITLE}}` = `Glossary — {domain}` (escaped). `{domain}` is verbatim from `§1 Application context > Domain` if present, else `(not declared in requirements.md)`.
@@ -326,10 +331,11 @@ Before handing back, verify all of the following against the written artefact an
 - `analyse-requirements/GLOSSARY/glossary.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact is **self-contained**: it begins with `<!doctype html>`, has exactly one inline `<style>` block, and contains **no** `<script>`, no `src=`/`href=` to any external or CDN resource, and **no Mermaid runtime**. (Glossary has no diagram.)
 - The artefact contains **zero** literal `{{` or `}}` placeholder sequences (every template slot was substituted).
+- The artefact contains `<section id="plain-terms">` as the **first content section** inside `<main>` (DOM-order: before `#overview`), with a non-empty `<p>` child. The lead explains what the glossary IS — the agreed vocabulary for the domain; it contains no new term, count, or citation not already present in the entry set; it carries no `[SRC]` of its own; and it does **not** re-define or gloss domain terms.
 - The artefact contains exactly one `<h1 id="…">` whose text begins `Glossary`, and an Overview `dl.meta-grid` whose `Requirements SHA-256` value equals the SHA-256 captured in Step 2.
 - The artefact contains exactly one `<!-- glossary-meta: ... -->` comment (trailing, before `</main>`). Its `last_scope_tier` equals `active_tier`; its `last_input_sha256` equals the Step 2 SHA-256; its `run_count` equals `prior.run_count + 1` (or `1` on first run).
 - The artefact contains exactly one **`<pre><code class="language-json" id="glossary-body">`** block, and it parses as valid JSON once the three HTML entities are unescaped — proving the vocabulary stays machine-extractable from the HTML (the blueprint-architect copy-vocabulary contract).
-- The artefact contains the sections `#defined`, `#undefined`, `#acronyms`, `#actions`, `#fields`, `#body`, `#run-history`, `#diagnostics` — in that order.
+- DOM order of top-level sections is: `#plain-terms` → `#overview` → `nav.toc` → legend → `#defined` → `#undefined` → `#acronyms` → `#actions` → `#fields` → `#body` → `#run-history` → `#diagnostics` → `details.downstream-toggle`.
 - Sections beyond the active tier each contain exactly one `<p class="tier-placeholder">(populated when scope tier &ge; N)</p>`.
 - Every defined-term `<article>` carries a `<div class="cited-definition">` with a verbatim `def-text` quote and exactly one `<span class="src-chip">§N.M</span>`.
 - Every undefined-term `<article>` carries a `<p class="no-definition">` and a `<ul class="term-sources">` line with at least one `§N.M` ref.
@@ -342,7 +348,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `analyse-requirements/GLOSSARY/glossary.html` exists, has been verified, and contains a complete glossary at the active scope tier: Overview meta-grid, alphabetical Defined-terms cards, alphabetical Used-without-explicit-definition cards, the three tier-scoped sections (Acronyms / Action terms / Field names) populated where the active tier covers them and tier-placeheld otherwise, the `language-json` `glossary-body` machine-readable model, a Run-history block with one bullet per run, a collapsed Diagnostics section, and the trailing `<!-- glossary-meta: ... -->` cursor comment.
+- `analyse-requirements/GLOSSARY/glossary.html` exists, has been verified, and contains a complete glossary at the active scope tier: a `#plain-terms` "In plain terms" section first (explaining what the glossary is — not re-defining domain terms), Overview meta-grid, alphabetical Defined-terms cards, alphabetical Used-without-explicit-definition cards, the three tier-scoped sections (Acronyms / Action terms / Field names) populated where the active tier covers them and tier-placeheld otherwise, the `language-json` `glossary-body` machine-readable model, a Run-history block with one bullet per run, a collapsed Diagnostics section, a collapsed `downstream-toggle` footer, and the trailing `<!-- glossary-meta: ... -->` cursor comment.
 - Either all 7 hard quality checks passed, or the consultant explicitly chose Override and the Run-history entry for this run records every violation.
 - Additive-merge contract honoured: every prior-run entry is present in the new artefact (unless the consultant explicitly dropped it via Revise and accepted the gate-6 break).
 - The consultant has accepted the artefact in the Step 11 accept/revise/restart loop.

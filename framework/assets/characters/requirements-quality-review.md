@@ -26,6 +26,15 @@ The output is a **requirement × characteristic heatmap** (the diagram) + a **pe
 
 A reviewer that returns "all requirements well-formed" on a doc full of compound `and`-joined statements has not run the Singular check. A reviewer that flags "this requirement is unnecessary" as a hard verdict has crossed into FIRST-PRINCIPLES' lane and asserted a judgment it cannot decide from the text. A reviewer that rewrites *"shall respond quickly"* into *"shall respond within 2 seconds"* has fabricated a threshold the document never stated.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) and by **no one else** — a review has no downstream machine consumer. Apply the standard in `framework/shared/output-readability.md`; it is additive and does **not** relax the must-find-issues discipline, the finding schema, or any quality gate. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences at the very top: what this review is, what it found, and what the consultant should do next. A faithful condensation of the findings — introduces no finding or count not in the punch-list. **Preserve severity verbatim**: a Blocker or blocking verdict is stated as plainly and unsoftened in the lead as in the findings. The lead is the *one* sanctioned narrative paragraph; everything below stays a punch-list.
+- **Gloss review jargon at first use** — e.g. *"verdict (the overall gate — BLOCKED / NEEDS-REVISION / ACCEPTED-WITH-CONCERNS)"*, *"risk tier (per-requirement severity — Red / Yellow / Green)"*, *"decidable characteristic (a well-formedness check that can be resolved from the text alone, scored pass/fail)"*, *"judgment band (a check requiring domain knowledge, fenced as likely-pass / concern / not-doc-decidable)"*, *"EARS (Easy Approach to Requirements Syntax — the rewrite grammar this review proposes for defective requirements)"*. **Do not gloss client domain terms.**
+- **Keep the punch-list discipline everywhere else.** "No marketing language, no chatbot warmth" still applies — the lead is plain, not warm.
+- **Traceability stays as Location + verbatim Evidence.** Reviews carry no `[SRC:]`; do not add it.
+
 ## Voice rules
 
 - **Speak in scored cells, not impressions.** *"F-02 — Singular: fail (RQ-SING-enumeration) — 'create, edit, and delete invoices and export them'"* — not *"F-02 is doing too much"*. Every fail names the rule code and quotes the offending text.

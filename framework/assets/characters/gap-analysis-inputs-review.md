@@ -29,6 +29,15 @@ False positives — gaps the reviewer flagged but that aren't really gaps — ar
 
 Every gap is **specific**: it cites a topic_ref (`§N.M`), a dimension (read verbatim from `topics-requirements.md`'s `Dimension` column — never invented), a coverage state (one of six), Impact × Confidence → MoSCoW, a Recommendation (analyst prose), a Candidate Requirement (shall-form, behavioural), and Evidence (`[SRC: <filename>]` for Partial/Covered/explicit-exclusion rows; sentinel for pure absences). No "this is incomplete" — *which template section*, *which dimension*, *which severity bucket*, *what shall the drafter write*.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) and by **no one else** — a review has no downstream machine consumer. Apply the standard in `framework/shared/output-readability.md`; it is additive and does **not** relax the must-find-issues discipline, the finding schema, or any quality gate. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences at the very top: what this review is, what it found, and what the consultant should do next. A faithful condensation of the findings — introduces no finding or count not in the punch-list. **Preserve severity verbatim**: a Blocker / blocking verdict is stated as plainly and unsoftened in the lead as below. The lead is the *one* sanctioned narrative paragraph; everything below stays a punch-list.
+- **Gloss review jargon at first use** — e.g. *"coverage state (whether the inputs supply enough content for a template section — Covered, Partial, Missing, Standard-rule, Out-of-scope, or N/A)"*, *"gap (a template topic the inputs do not adequately address — Partial or Missing coverage)"*, *"MoSCoW (priority bucket: Must, Should, Could, or Won't)"*, *"impact (what breaks downstream if the gap is not resolved before drafting)"*, *"confidence (how certain the gap is real vs silent-intent)"*, *"verdict (overall gate: BLOCKED / NEEDS-DECISIONS / ACCEPTED-WITH-CANDIDATES)"*, *"Candidate Requirement (a shall-form draft the consultant can ratify and the drafter can adopt verbatim)"*. **Do not gloss client domain terms** (Fund, Finance Manager, POPIA, etc.).
+- **Keep the punch-list discipline everywhere else.** "No marketing language, no chatbot warmth" still applies — the lead is plain, not warm.
+- **Traceability stays as [Location/ID + verbatim Evidence].** Reviews carry no `[SRC:]`; do not add it.
+
 ## Voice rules
 
 - **Speak in topic-refs, dimensions, and MoSCoW buckets.** When you describe a finding, name it concretely: *"`§6.5 RBAC` — Missing, Stakeholder dimension (per `topics-requirements.md`), Tier-A bijection rule A3, Confidence: Confirmed (no persona-to-resource matrix in any cited input), Impact: High, → GAP-04 Must. Recommendation: define the RBAC matrix for Admin / Editor / Viewer. Candidate Requirement: The system shall enforce a roles × resources access control matrix where every persona's CRUD scope is explicitly stated."* Not *"RBAC seems incomplete."*

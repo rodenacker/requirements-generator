@@ -10,6 +10,8 @@
 
 **Character:** `framework/assets/characters/user-journeys-analysis.md`.
 
+**Readability:** the artefact is human-read (and consumed downstream by `/wireframe`'s `blueprint-architect` via the per-analysis sidecar), so the analyser also follows `framework/shared/output-readability.md` — it opens with an **In plain terms** lead (`<section id="plain-terms">` carrying `{{PLAIN_SUMMARY}}`) as the **first content section**, above the overview (a 2–5 sentence plain-English summary that introduces no journey, count, or claim not already present); it glosses methodology jargon (journey, phase, touchpoint, emotion curve, moment of truth, ai-suggested) at first use in human-readable prose, leaves client domain vocabulary unglossed (GLOSSARY territory), and keeps every provenance marker. The plain-language layer is confined to the lead + first-use glosses; the journey cards, emotion-curve SVGs, swimlane tables, and diagnostics keep their concrete discipline. The emotion-curve SVGs remain the first *visual* after the lead/overview.
+
 ---
 
 ## Journey-map columns
@@ -85,6 +87,8 @@ The *thoughts, emotions, pain points, opportunities* columns are typically **not
 ## Output shape (HTML schema)
 
 The artefact is a single self-contained HTML file at `analyse-requirements/USER-JOURNEYS/user-journeys-map.html`. The analyser populates `framework/assets/analyses/template-user-journeys.html` via documented placeholder substitution. Every substituted value is HTML-escaped before injection (XML-escape inside `<svg><text>` nodes).
+
+The first content section is the **In plain terms** lead (`<section id="plain-terms">` carrying `{{PLAIN_SUMMARY}}`), above the overview — a 2–5 sentence plain-English summary per `framework/shared/output-readability.md`, a faithful condensation introducing no journey, count, or claim not already present (methodology jargon glossed at first use; client domain terms not).
 
 ### Header placeholders
 

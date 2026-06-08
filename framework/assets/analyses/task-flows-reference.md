@@ -10,6 +10,8 @@
 
 **Character:** `framework/assets/characters/task-flows-analysis.md`.
 
+**Readability:** the artefact is human-read (and consumed downstream by `/wireframe`'s `blueprint-architect` via the per-analysis sidecar), so the analyser also follows `framework/shared/output-readability.md` — it writes the "In plain terms" lead, glosses methodology jargon (task flow, HTA, plan, decision point, exception path) at first use in human-readable prose, leaves client domain vocabulary unglossed (GLOSSARY territory), and keeps every `[SRC: C-NNN]` marker. The plain-language layer is confined to the lead + first-use glosses; the catalogue tables, SVG figures, and diagnostics keep their concrete discipline.
+
 ---
 
 ## Industry framing — HTA + TFD
@@ -55,7 +57,7 @@ The pair is **extraction-shaped**: HTA decomposes content already in `§5 Task f
 
 ## Output structure
 
-The artefact has two tiers.
+The artefact opens with an **In plain terms** lead (`<section id="plain-terms">` carrying `{{PLAIN_SUMMARY}}`) as its **first content section**, above the overview — a 2–5 sentence plain-English summary (what this catalogue is, what it found, what to do with it), per `framework/shared/output-readability.md`. It is a faithful condensation introducing no task, count, or `[SRC]` not already present; methodology jargon is glossed at first use, client domain terms are not. The HTA + TFD figures remain the first *visual* after the lead/overview. Below the lead, the artefact has two tiers.
 
 ### Tier 1 — Task-flows catalogue (always rendered)
 

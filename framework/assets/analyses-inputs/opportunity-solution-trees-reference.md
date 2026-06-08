@@ -56,6 +56,8 @@ The requirements-side twin already produced HTML + SVG as a final audit delivera
 
 The artefact has a fixed top-to-bottom shape:
 
+0. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) — a 2–5 sentence plain-English lead: what this analysis is, what it found, and what the consultant should do with it (e.g. re-ingest into `/requirements`, use the coverage diagnostics to drive interviews). The **first** section, above the meta-grid — the tree diagram remains the first visual immediately after this lead. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own. Methodology jargon is glossed at first use here; client domain terms are not glossed (the GLOSSARY methodology owns those). Per `framework/shared/output-readability.md`.
+
 1. **Header.** Title, generation timestamp, manifest fingerprint (sha256 of `requirements/source-manifest.json`), run count.
 2. **ost-meta** HTML comment carrying the additive-merge cursor (`manifest_fingerprint`, `run_count`).
 3. **Summary.** Counts: outcomes (primary + candidate), opportunities, solutions (with orphan count), assumption tests (or `absent` flag), candidate-requirements, orphan / unaddressed / weakly-anchored counts, sources consumed / skipped.
@@ -442,3 +444,11 @@ The analyser does not author UI primitives; the downstream mapping is **signal-b
 - **Manifest fingerprint** → used by re-runs to detect drift between the analysis and the current manifest; not routed to design consumers.
 
 `map-opportunity-solution-trees-from-inputs-to-ui.md` is a stub at MVP — the mapping is documented here for the analyser's character file and for future downstream design-spec authors.
+
+---
+
+## Voice and stance
+
+The analyser's stance is defined in `framework/assets/characters/opportunity-solution-trees-inputs-analysis.md` — extraction-only, citation-bound, forward-discovery, gap-honest, additive. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+The artefact is human-read (and re-ingested by `/requirements`), so the analyser also follows `framework/shared/output-readability.md`: it writes the "In plain terms" lead (`{{PLAIN_SUMMARY}}`), glosses methodology jargon (outcome, opportunity, solution, experiment/assumption test, tree) at first use in human-readable prose, leaves client domain vocabulary unglossed (GLOSSARY territory), and keeps every `[SRC: <filename>]` marker. The plain-language layer is confined to the lead and first-use glosses; the tree diagram, body sections, JSON body block, and diagnostics keep their concrete, telegraphic discipline.

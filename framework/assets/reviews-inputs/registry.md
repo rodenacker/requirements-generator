@@ -32,7 +32,7 @@ methodologies:
   - name: completeness-review
     status: mvp
     group: Completeness & gaps
-    description: Choose this when you want a broad, authority-grounded punch-list of what the raw inputs are missing, measured against the BA canon (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010) — pick its sibling gap-analysis instead to measure against this project's own requirements template. It produces a self-contained HTML completeness register across ten coverage dimensions (rendered as a sticky-thead coverage matrix table), each finding classified Needs-Clarification, Standard-Rule-Applies, or Out-of-Scope, plus per-source elicitation questions. Send the elicitation questions to stakeholders to chase missing material before /requirements drafts from the inputs.
+    description: Choose this when you want a broad, authority-grounded punch-list of what the raw inputs are missing, measured against the BA canon (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010) — pick its sibling gap-analysis instead to measure against this project's own requirements template. It produces a self-contained HTML completeness register across ten coverage dimensions (rendered as a coverage-matrix table), each finding classified Needs-Clarification, Standard-Rule-Applies, or Out-of-Scope, plus per-source elicitation questions (ready-to-ask stakeholder questions). Send the elicitation questions to stakeholders to chase missing material before /requirements drafts from the inputs.
     output_path: review-inputs/COMPLETENESS-REVIEW/completeness-review.html
     reference_asset: framework/assets/reviews-inputs/completeness-reference.md
     template_asset: framework/assets/reviews-inputs/template-completeness.html
@@ -52,7 +52,7 @@ methodologies:
   - name: gap-analysis
     status: mvp
     group: Completeness & gaps
-    description: Choose this when you want a visual, drafter-aligned gap map — the raw inputs measured against this project's own requirements template — rather than the BA-literature canon its sibling completeness-review uses. It produces an HTML report with a coverage heatmap and gap matrix, each gap scored Impact × Confidence → MoSCoW and every Must/Should gap carrying a ready-drafted shall-form candidate requirement. Ratify, edit, or reject each candidate, then drop the HTML into input/ so the next /requirements run ingests and cites it.
+    description: Choose this when you want a visual, drafter-aligned gap map — the raw inputs measured against this project's own requirements template — rather than the BA-literature canon its sibling completeness-review uses. It produces an HTML report with a coverage heatmap and gap matrix, each gap scored Impact × Confidence → MoSCoW priority (must / should / could / won't) and every Must/Should gap carrying a ready-drafted candidate requirement (in "the system shall …" form). Ratify, edit, or reject each candidate, then drop the HTML into input/ so the next /requirements run ingests and cites it.
     output_path: review-inputs/GAP-ANALYSIS/gap-analysis.html
     reference_asset: framework/assets/reviews-inputs/gap-analysis-reference.md
     template_asset: framework/assets/reviews-inputs/template-gap-analysis.html

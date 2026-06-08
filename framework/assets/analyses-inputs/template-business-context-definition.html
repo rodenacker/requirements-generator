@@ -16,6 +16,9 @@
 
   Section order (top-to-bottom) — diagram-first (the causal-chain map is the connective tissue;
   it leads so the reader sees how the four artefacts connect before the detail cards):
+    0. In plain terms (id="plain-terms")    — {{PLAIN_SUMMARY}} — 2–5 sentence human-readable lead.
+                                              FIRST section, above the overview/meta-grid.
+                                              Per framework/shared/output-readability.md.
     1. Overview (id="overview")             — title, subtitle, meta-grid.
     2. TOC (<nav class="toc">)              — static top-level anchors.
     2b. Legend (.legend-bar)               — colour key, directly under the TOC
@@ -27,12 +30,20 @@
     7. Problem Statement (id="problem-statement")       — {{PROBLEM_STATEMENTS_BLOCK}} — artefact #4 (POV+HMW).
     8. Tensions (id="tensions")             — {{TENSIONS_TABLE}} — goal/need tensions table.
     9. JSON body (id="body")                — {{BODY_JSON}} inside <pre><code id="bcd-body">.
-   10. Round-trip footer (id="round-trip")  — static paragraph above diagnostics.
+   10. Downstream-use footer               — <details class="downstream-toggle"> (collapsed).
+                                              Contains the re-ingestion / round-trip instructions.
+                                              Replaces the former inline round-trip section.
    11. Diagnostics (id="diagnostics")       — <details> wrapper, collapsed by default.
 
   Placeholders the analyser substitutes (string substitution, all values pre-escaped for HTML
   EXCEPT the BODY_JSON block which is escaped for the &lt; / &amp; / &gt; that would break <pre><code>):
 
+    {{PLAIN_SUMMARY}}               — 2–5 plain-English sentences for the "In plain terms" lead:
+                                      what this analysis is, what it found, what to do with it.
+                                      HTML-escaped. Methodology jargon (business goal, stakeholder,
+                                      causal chain, BMM Ends, KAOS AND/OR, etc.) glossed at first
+                                      use; client domain terms NOT glossed. No [SRC] of its own.
+                                      Per framework/shared/output-readability.md.
     {{TITLE}}                       — short title (e.g. "Business Context — Inputs — Project X")
     {{DOMAIN}}                      — domain string (best-effort: manifest `target`/brief)
     {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
@@ -362,6 +373,30 @@
     .meta-grid dt { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; margin: 0; }
     .meta-grid dd { margin: 0 0 6px 0; font-variant-numeric: tabular-nums; word-break: break-word; }
 
+    /* ------- in plain terms (human-readable lead) ------- */
+    #plain-terms { margin: 0 0 24px 0; padding: 14px 18px; background: #f0f7ff; border: 1px solid #4f7fbf; border-left: 4px solid #4f7fbf; border-radius: 6px; }
+    #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+    #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--fg); }
+
+    /* ------- downstream-use footer (collapsed) ------- */
+    details.downstream-toggle { margin-top: 24px; margin-bottom: 24px; }
+    details.downstream-toggle > summary {
+      cursor: pointer; padding: 10px 14px; background: #fff;
+      border: 1px solid #d4d4d4; border-left: 4px solid #8a8a8a; border-radius: 6px;
+      font-weight: 600; font-size: 13px; color: #5a5a5a;
+      list-style: none; user-select: none;
+    }
+    details.downstream-toggle > summary::-webkit-details-marker { display: none; }
+    details.downstream-toggle > summary::before {
+      content: "▶"; font-size: 10px; color: #5a5a5a; margin-right: 8px;
+      display: inline-block; transition: transform 0.15s ease;
+    }
+    details.downstream-toggle[open] > summary { border-radius: 6px 6px 0 0; border-bottom: none; }
+    details.downstream-toggle[open] > summary::before { transform: rotate(90deg); }
+    .downstream-note { padding: 14px 18px; background: #fff; border: 1px solid #d4d4d4; border-top: none; border-radius: 0 0 6px 6px; }
+    .downstream-note p { color: #5a5a5a; font-size: 13px; margin: 6px 0; }
+    .downstream-note code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92em; background: var(--header-bg); padding: 0 4px; border-radius: 3px; }
+
     /* ------- table of contents ------- */
     .toc {
       margin: 0 0 8px 0; padding: 10px 14px; background: #fff;
@@ -535,11 +570,6 @@
     pre.body-json { margin: 0; padding: 14px 16px; background: #1e1e1e; color: #e8e8e8; border-radius: 6px; overflow-x: auto; font-size: 11px; line-height: 1.4; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
     pre.body-json code { white-space: pre; }
 
-    /* ------- round-trip footer ------- */
-    .round-trip { margin: 24px 0; padding: 12px 16px; background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--stage-goal-border); border-radius: 6px; font-size: 13px; color: var(--fg); }
-    .round-trip strong { color: var(--stage-goal-fg); }
-    .round-trip code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; background: var(--header-bg); padding: 1px 4px; border-radius: 3px; }
-
     /* ------- diagnostics ------- */
     details.diagnostics-toggle { margin-bottom: 24px; }
     details.diagnostics-toggle > summary {
@@ -591,13 +621,17 @@
       .tree-wrap { break-inside: avoid; overflow-x: visible; }
       pre.body-json { white-space: pre-wrap; word-break: break-word; }
       .toc { display: none; }
-      .round-trip { break-inside: avoid; }
       details.diagnostics-toggle[open] > summary::before { content: ""; }
     }
   </style>
 </head>
 <body>
   <main>
+    <section id="plain-terms" aria-label="In plain terms">
+      <h2>In plain terms</h2>
+      <p>{{PLAIN_SUMMARY}}</p>
+    </section>
+
     <section id="overview">
       <h1>{{TITLE}}</h1>
       <p class="subtitle">Business context report (input-analysis variant) — the enterprise motivation behind the request: a Business Needs Assessment, a Business Problem Statement, a Business Goals collection, and a human-centered Problem Statement, linked in a problem&rarr;need&rarr;goal causal chain. Sourced from raw consultant inputs enumerated in <code>requirements/source-manifest.json</code>. Explicit items are cited; inferred items are anchored, marked, and auditable. Enterprise altitude only — actor goals are <code>user-goal-analysis</code>'s lane.</p>
@@ -623,6 +657,7 @@
 
     <nav class="toc" aria-label="Sections">
       <ol>
+        <li><a href="#plain-terms">In plain terms</a></li>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#causal-map">Causal-chain map</a></li>
         <li><a href="#needs">Business Needs Assessment</a></li>
@@ -630,7 +665,6 @@
         <li><a href="#goals">Business Goals</a></li>
         <li><a href="#problem-statement">Problem Statement</a></li>
         <li><a href="#tensions">Tensions</a></li>
-        <li><a href="#round-trip">Use in /requirements</a></li>
         <li><a href="#diagnostics">Diagnostics</a></li>
       </ol>
     </nav>
@@ -703,9 +737,12 @@
       <pre class="body-json"><code class="language-json" id="bcd-body">{{BODY_JSON}}</code></pre>
     </section>
 
-    <section id="round-trip" class="round-trip" aria-label="Use in /requirements">
-      <p><strong>Use this report as input to <code>/requirements</code>:</strong> copy this file into <code>input/</code> and re-invoke <code>/requirements</code>. The shared input-handler will detect the new file, surface a manifest-refresh prompt, and add it as a <code>Native-text</code> row. The drafter then seeds the <strong>strategic framing</strong> (why each requirement exists) from the explicit <strong>Goals</strong>, <strong>Objectives</strong>, and <strong>Needs</strong>, and the scope framing from the <strong>Problem Statement</strong>, while the <strong>inferred</strong> items surface to the resolver as <code>AI-NNN</code> questions — <em>blocking</em> ones (inferred root causes, inferred root goals, abductive explanations) as mandatory confirmations, <em>non-blocking</em> ones as suggestions — so you validate every inference before it frames a requirement. The <code>causal_links</code> seed traceability (requirement &rarr; goal &rarr; need &rarr; problem), and the <code>[SRC: <em>&lt;filename&gt;</em>]</code> anchors preserve the audit trail back to the original briefs / notes / decks.</p>
-    </section>
+    <details class="downstream-toggle">
+      <summary>For downstream use — re-ingesting this report into /requirements</summary>
+      <div class="downstream-note">
+        <p><strong>Use this report as input to <code>/requirements</code>:</strong> copy this file into <code>input/</code> and re-invoke <code>/requirements</code>. The shared input-handler will detect the new file, surface a manifest-refresh prompt, and add it as a <code>Native-text</code> row. The drafter then seeds the <strong>strategic framing</strong> (why each requirement exists) from the explicit <strong>Goals</strong>, <strong>Objectives</strong>, and <strong>Needs</strong>, and the scope framing from the <strong>Problem Statement</strong>, while the <strong>inferred</strong> items surface to the resolver as <code>AI-NNN</code> questions — <em>blocking</em> ones (inferred root causes, inferred root goals, abductive explanations) as mandatory confirmations, <em>non-blocking</em> ones as suggestions — so you validate every inference before it frames a requirement. The <code>causal_links</code> seed traceability (requirement &rarr; goal &rarr; need &rarr; problem), and the <code>[SRC: <em>&lt;filename&gt;</em>]</code> anchors preserve the audit trail back to the original briefs / notes / decks.</p>
+      </div>
+    </details>
 
     <details id="diagnostics" class="diagnostics-toggle">
       <summary>Diagnostics</summary>

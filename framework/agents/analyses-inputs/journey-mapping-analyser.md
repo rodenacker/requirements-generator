@@ -12,8 +12,9 @@ Produce `analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` — a self-contain
 
 The rendered artefact is laid out top-to-bottom as:
 
-1. **Compact overview** (`<header id="overview">`) — title, one-line caption (counts + run number + generated-at), and a thin `<nav class="toc-diagrams">` with jump-links targeting per-persona diagram blocks. Fits above the fold on a 1080p screen.
-2. **Diagrams gallery** (`<section id="diagrams">`) — `{{DIAGRAM_BLOCKS}}` (one `<article class="diagram-block">` per persona, in discovery order: diagram-header + inline SVG emotion curve + CSS-grid swim-lane table).
+0. **In plain terms** (`<section id="plain-terms">`) — `{{PLAIN_SUMMARY}}`: 2–5 plain-English sentences (what this map is, what it found, what to do with it). First section, above the overview. Per `framework/shared/output-readability.md` (restated in character). Methodology jargon glossed at first use; client domain terms not glossed; no `[SRC]` of its own.
+1. **Compact overview** (`<header id="overview">`) — title, one-line caption (counts + run number + generated-at), and a thin `<nav class="toc-diagrams">` with jump-links — "In plain terms" first, then per-persona diagram anchors. Fits above the fold on a 1080p screen.
+2. **Diagrams gallery** (`<section id="diagrams">`) — `{{DIAGRAM_BLOCKS}}` (one `<article class="diagram-block">` per persona, in discovery order: diagram-header + inline SVG emotion curve + CSS-grid swim-lane table). The journey diagram is the first **visual** after the plain-terms lead/overview.
 3. **Narrative details** (`<section id="narratives">`) — `{{NARRATIVE_BLOCKS}}` (one `<article class="narrative-block">` per persona: pain → opportunity bridge + moments of truth).
 4. **Diagnostics** (`<details id="diagnostics" class="diagnostics-toggle">`) — collapsed by default. Gate results, source roster, gap notes, run history.
 
@@ -65,6 +66,7 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - Read `framework/assets/characters/journey-mapping-inputs-analysis.md` once.
 - Read `framework/assets/analyses-inputs/journey-mapping-reference.md` once. The reference defines what to do in each round; treat it as authoritative.
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). Concretely: write the `{{PLAIN_SUMMARY}}` lead (2–5 sentences, faithful condensation, no new fact/count/citation, no `[SRC]` of its own); gloss methodology jargon at first use in human-readable prose (journey, stage/phase, touchpoint, pain point, emotion curve, moment of truth — never gloss client domain terms); keep every `[SRC: <filename>]` marker; confine plain prose to the lead and first-use glosses.
 - State readiness in one short line: *"Journey-mapping analyser ready. Starting from `requirements/source-manifest.json`. Methodology: NN/G Journey Mapping 101 + Kalbach 2020 adapted for software-requirements inputs — current-state only, one persona per journey card, [SRC: <filename>] citations on every non-empty cell, emotion proxies rendered inline for transparency, [GAP-NO-EVIDENCE] for cells with no source proxy."*
 - Restate the stand-alone-ish constraint in-thread: *"This run reads the manifest plus the files it enumerates — no other pipeline state is consulted; `requirements/requirements.md`, `framework/state/`, and `framework/shared/` are not loaded."*
 
@@ -286,6 +288,7 @@ On **Restart**: re-enter Step 4. Cap at three fail-Restart cycles; on the fourth
 
 Build the substitution map. Every consultant-supplied string is **HTML-escaped** before injection (`<`, `>`, `&`, `"`, `'`); strings inside `<svg><text>` are XML-escaped equivalently.
 
+- `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences summarising what this journey map is, what it found (personas, phases, key pain points, moments of truth), and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own. Methodology jargon (journey, stage/phase, touchpoint, pain point, emotion curve, moment of truth) is glossed at first use; client domain terms are NOT glossed. HTML-escaped.
 - `{{TITLE}}` — *"Journey Mapping — `<domain>`"* if a domain string is available in the manifest meta, else *"Journey Mapping"*.
 - `{{DOMAIN}}` — verbatim from the manifest's domain field if present, else *"(not declared in manifest)"*.
 - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
@@ -565,7 +568,9 @@ Before handing back, verify all of the following against the written artefact an
 - The artefact contains zero literal `{{...}}` placeholder strings.
 - The artefact begins with `<!doctype html>`.
 - The artefact contains exactly one `<script type="application/json" id="journey-mapping-meta">` block. Its `manifest_sha256` equals the Step 2 value; its `run_count` equals `prior.run_count + 1` (or `1` on first run); its `persona_count` matches `<article class="diagram-block">` count.
-- The artefact contains exactly one `<header id="overview">`, one `<section id="diagrams">`, one `<section id="narratives">`, one `<details id="diagnostics" class="diagnostics-toggle">`. DOM order is overview → diagrams → narratives → diagnostics.
+- The artefact contains exactly one `<section id="plain-terms">` with a non-empty `<p>` as its first child content section, before `<header id="overview">`. DOM order is `plain-terms → overview → diagrams → narratives → diagnostics`.
+- The `<section id="plain-terms">` lead introduces no fact, count, or citation not already present in the body; carries no `[SRC]` of its own; glosses methodology jargon (journey, stage/phase, touchpoint, pain point, emotion curve, moment of truth) at first use; does not gloss client domain terms.
+- The artefact contains exactly one `<header id="overview">`, one `<section id="diagrams">`, one `<section id="narratives">`, one `<details id="diagnostics" class="diagnostics-toggle">`. DOM order is plain-terms → overview → diagrams → narratives → diagnostics.
 - The `<section id="diagrams">` contains exactly `persona_count` `<article class="diagram-block">` blocks; the `<section id="narratives">` contains exactly `persona_count` `<article class="narrative-block">` blocks.
 - Every `<article class="diagram-block">` has `id="diagram-{persona-slug}"`, a `--phase-count` inline style, one `<figure class="emotion-curve">` containing a single `<svg>` with `role="img"` and `aria-label`, and one `<figure class="swimlane">` containing a `<table>` with seven `<tr>` lane rows (one per lane class in the fixed order).
 - Every swim-lane `<table>` has `1 + phase_count` `<th>` cells in its `<thead>` and seven `<tr>` body rows; each body `<tr>` has `1 + phase_count` cells (one `<th scope="row">` + N `<td>`). Empty cells render as `<td>—</td>`.
@@ -583,7 +588,7 @@ Before handing back, verify all of the following against the written artefact an
 
 - `analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` exists, has been verified, and contains a complete journey atlas: overview (compact), diagrams gallery (≥ 1 diagram-block per persona, each with SVG emotion curve + CSS-grid swim-lane table), narrative details (≥ 1 narrative-block per persona with bridge + moments), collapsed diagnostics.
 - Either all 8 hard quality gates passed, or the consultant explicitly chose Override and the Run-history bullet for this run records every violation.
-- The DOM order is `overview → diagrams → narratives → diagnostics`. The first diagram-block fits within the first viewport on a 1080p screen with default font sizes (the diagrams-first invariant).
+- The DOM order is `plain-terms → overview → diagrams → narratives → diagnostics`. The `<section id="plain-terms">` is present with a non-empty `<p>`; it introduces no new facts, carries no `[SRC]`, and glosses methodology jargon at first use without glossing client domain terms. The first diagram-block fits within the first viewport on a 1080p screen with default font sizes (the diagrams-first invariant; the plain-terms lead does not push the diagram below the fold).
 - Additive-merge contract honoured: every prior-run journey card heading is present in the new artefact (unless the consultant explicitly dropped it via Revise or the `re-extract-everything` drift branch re-extracted it away with a Run-history note).
 - The consultant has accepted the artefact in the Step 12 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.

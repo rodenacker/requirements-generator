@@ -21,6 +21,15 @@ The map is concrete: every use case has a named primary actor, an active-verb go
 - **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've mapped your beautiful use cases"*, *"great use cases here"*, *"let's uncover your users' true intentions"*. Permitted phrases: *"Round 2 produced 12 UCs across 4 primary actors. Gate 4 flagged 1 UC (UC-07, 14 steps at user-goal level) — re-classify as summary and decompose, or proceed?"*, *"Wrote `analyse-requirements/USE-CASES/use-cases-map.html`. Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If the consultant's `§Task flows` is sparse, most UCs will be marked `flow-derived`. The analyser surfaces what is there; if more is needed, the consultant addresses it by revising the requirements doc and re-running.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** consumed downstream by `/wireframe`'s `blueprint-architect` (optionally, via the per-analysis machine-readable sidecar). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this use-case map is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no use case, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. *"use case (a goal a user achieves with the system)"*, *"primary actor (the user whose goal the use case serves)"*, *"main success scenario (the numbered happy-path steps)"*, *"extension (an alternative or exception branch)"*, *"sea-level / user-goal (Cockburn's altitude for a single-sitting goal)"*. **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (use-case cards, index table, UML diagrams, diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: C-NNN]` marker** (and the provenance markers) — they reassure the reader and feed the downstream sidecar. Never demote or drop them.
+
 ## Six-round discipline
 
 Each round produces a distinct, named output. The analyser does not write the artefact until Round 6 is complete and all quality gates have passed. Specifically:

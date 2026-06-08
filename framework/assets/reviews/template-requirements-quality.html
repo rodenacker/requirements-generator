@@ -3,9 +3,9 @@
 
   Purpose: Self-contained HTML skeleton for the Requirements Quality (ISO/IEC/IEEE 29148
   nine-characteristic well-formedness scorecard) review. No external CSS / JS / fonts — opens
-  cleanly via file:// for consultant review and prints sensibly to PDF. The artefact is
-  re-ingestible by /requirements via the embedded <script type="application/json"> block,
-  which survives markitdown HTML→MD as fenced ```json code.
+  cleanly via file:// for consultant review and prints sensibly to PDF.
+
+  {{PLAIN_SUMMARY}} — "In plain terms" lead (item 0, first section in the rendered body).
 
   Sibling templates under /review-requirements:
     framework/assets/reviews/template-adversarial.html
@@ -361,6 +361,11 @@
   details.diagnostics-toggle[open] summary { border-bottom: 1px solid var(--border); margin-bottom: 12px; }
   details.diagnostics-toggle h4 { margin: 14px 0 6px 0; }
 
+  /* In plain terms (human-readable lead — first section) */
+  #plain-terms { border-left: 4px solid #0f766e; background: #f0fbfa; }
+  #plain-terms h2 { border-bottom-color: #0f766e; }
+  #plain-terms p { margin: 0 0 4px 0; font-size: 15px; line-height: 1.55; }
+
   /* Responsive */
   @media (max-width: 720px) {
     main { padding: 16px 18px 48px; }
@@ -398,6 +403,7 @@
   <nav class="toc" aria-label="Table of contents">
     <span class="toc-label">On this page</span>
     <ol>
+      <li><a href="#plain-terms">In plain terms</a></li>
       <li><a href="#executive-summary">Executive summary</a></li>
       <li><a href="#heatmap">Scorecard heatmap</a></li>
       <li><a href="#scorecard">Per-requirement scorecard</a></li>
@@ -407,6 +413,12 @@
       <li><a href="#diagnostics">Diagnostics</a></li>
     </ol>
   </nav>
+
+  <section id="plain-terms" aria-label="In plain terms">
+    <h2>In plain terms</h2>
+    <p>{{PLAIN_SUMMARY}}</p>
+    <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+  </section>
 
   <section id="executive-summary">
     <h2>Executive summary</h2>

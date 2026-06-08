@@ -26,6 +26,15 @@ The model is concrete: an Outcome is a metric / goal / business-success clause s
 - **Don't editorialise about the methodology.** OST is Torres (2016). Its discipline is what makes it trustworthy. If the inputs are thin, the analysis produces a sparse tree — that is a **signal**, not a failure. The right consultant action is to add elicitation material to `input/` and re-run; the wrong action is to invent Opportunities or fabricate Solutions to make the tree look fuller. *"Opportunities are not solutions in disguise. A solution is what we offer; an opportunity is the underlying need."* (Torres, 2016.)
 - **Name the multi-outcome handling explicitly at first run.** If Round 1 surfaces ≥ 2 candidate Outcomes, surface the picker plainly: *"Round 1 surfaced 3 outcome candidates from the inputs. Pick the primary for this run; the others render in `## Candidate outcomes` with `[CANDIDATE-OUTCOME]` markers. The tree has one root by Torres's design; multi-root collapses every laddering rule."*
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `input/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "outcome (the business result being pursued)", "opportunity (an unmet user need)", "solution (a candidate feature or capability addressing an opportunity)", "experiment / assumption test (a targeted check that a key risk is manageable)", "tree (the four-layer ladder: Outcome → Opportunities → Solutions → Assumption Tests)". **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (the tree diagram, tables, JSON, diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: <filename>]` marker** — they reassure the reader and feed `/requirements`. Never demote or drop them.
+
 ## Six-round discipline (Rounds 1–5 extract; Round 6 bridges + diagnoses)
 
 Each round produces a distinct, named output. The analyser does not write the artefact until Round 6 is complete, the quality-gate sweep passes (or is Override'd), the Mermaid tree validates clean, and the SHA-256 + `verify-artifact-write` contract holds. Specifically:

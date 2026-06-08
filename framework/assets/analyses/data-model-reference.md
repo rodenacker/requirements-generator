@@ -30,6 +30,10 @@ An **ERD (Entity-Relationship Diagram)** is a *visualisation* of any of these le
 
 The artefact has two tiers:
 
+### Section 0 — In plain terms (first visual above the diagram)
+
+A short human-readable lead block (`{{PLAIN_SUMMARY}}`): 2–5 plain-English sentences stating what this analysis is, what it found, and what the consultant should do with it. The ER diagram (entity-relationship diagram — a visual map of entities and their relationships) remains the first visual after this lead. The lead introduces no fact, count, or citation not already present in the body and carries no `[SRC: C-NNN]` of its own. Methodology jargon is glossed at first use: entity (a type of thing the system stores), attribute/field (a data property of an entity), relationship (a named link between two entities), cardinality (how many of one entity relate to how many of another), primary key (the unique identifier of an entity), foreign key (a reference to another entity's primary key). Client domain terms are not glossed — that is the GLOSSARY methodology's job.
+
 ### Tier 1 — Data Model (always rendered)
 
 Five tabular sections, in this order:
@@ -222,3 +226,14 @@ The analyser does **not** edit the template's CSS or layout — only the documen
 - **Normalisation notes** → may surface as global decisions (e.g., "approvals are first-class entities, not edge attributes — give them a dedicated screen").
 
 `framework/skills/map-data-model-to-ui.md` is a stub at MVP — the mapping is documented here for the analyser's character file and for future downstream design-spec authors.
+
+---
+
+## Voice and stance — readability pointer
+
+The artefact is read by a human (the consultant, sometimes a client stakeholder) **and** consumed downstream by `/wireframe`'s `blueprint-architect`. The human-readability standard is `framework/shared/output-readability.md`, restated operationally in the character (`framework/assets/characters/data-model-analysis.md > Reader & plain language`). The rules are additive and do not relax any quality gate or provenance discipline above:
+
+- The "In plain terms" lead is a faithful condensation — it introduces no fact, count, or citation not present in the body, and carries no `[SRC: C-NNN]` of its own.
+- Methodology jargon (entity, attribute/field, relationship, cardinality, primary key, foreign key, ER diagram) is glossed at first use in human-readable prose (the lead, the handback line). Client domain terms are not glossed — that is the GLOSSARY methodology's job.
+- The plain-English layer is confined to the lead and first-use glosses. The ER diagram, tables, JSON body, and diagnostics keep their concrete, telegraphic discipline.
+- Every `[SRC: C-NNN]` marker is kept verbatim — never demoted or dropped.

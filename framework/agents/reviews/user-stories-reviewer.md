@@ -40,6 +40,7 @@ Steps in order. Do not skip steps; do not collapse steps. Each step's success is
 - State readiness in one short line: *"User Stories reviewer ready. Starting from `requirements/requirements.md > §4.2 Stories by persona`."*
 - Restate the stand-alone constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only — no analyses, no design-system, no pipeline state. Two filter sources (general-rules, prototype-invariants) are read once at Step 4 to drop issues whose root cause is framework-resolved."*
 - Restate the methodology's core promise in one line: *"Every story in §4.2 evaluated against six criteria (Meaningful / Implementable / Testable / Coherent / Scoped / Outcome-aligned). One finding per defective story, headline priority = max issue severity, sorted by priority → persona → anchor. Passing stories live in the diagnostics counts, not in the body."*
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** and relaxes no gate, no severity, and no quality check: at Step 7 write the "In plain terms" lead (preserving severity verbatim — never soften a blocking / major finding), gloss review jargon at first use in human-readable prose, never gloss client domain terms, and keep the punch-list discipline everywhere below the lead.
 
 ### Step 2 — Read input
 
@@ -197,6 +198,7 @@ Per `framework/assets/reviews/template-user-stories.html`:
 - Read the template once. It is a self-contained HTML scaffold (one inline `<style>`, no external CSS/JS, no `<script>`).
 - Build the substitution map for the placeholders documented in the template's header comment:
     - `{{TITLE}}` — *"User Stories Review — `<domain>`"* if `§1` declares a domain or app name, else *"User Stories Review — requirements.md"*.
+    - `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences: what this review is (a story-quality audit of §4.2 against six criteria (criterion = one of the six quality tests: Meaningful, Implementable, Testable, Coherent, Appropriately scoped, Outcome-aligned)), what it found (count of findings, headline-priority (headline priority = the worst severity across a story's issues) breakdown, noting blocking/major if present — stated plainly, never softened), and what the consultant should do next (rewrite the flagged stories before the next phase, or if zero findings, all stories are ready). Gloss review jargon at first use: *severity (how serious — blocking / major / minor)*, *criterion (one of the six quality tests)*, *headline priority (worst severity across a story's issues)*, *INVEST (a mnemonic for story-quality attributes: Independent, Negotiable, Valuable, Estimable, Small, Testable)*, *acceptance criteria (the conditions under which a story is considered done)*, *Connextra format (the As-a / I-want / so-that story shape)*, *story (a Connextra-format user story in §4.2)*, *epic (an over-broad story umbrella, a Scoped failure)*. Do NOT gloss client domain terms. HTML-escaped. Faithful condensation — no new finding or count not already in the punch-list.
     - `{{DOMAIN}}` — verbatim from `§1` if present, else *"(not declared in requirements.md)"*.
     - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
     - `{{REQUIREMENTS_SHA256}}` — the SHA-256 captured in Step 2.
@@ -296,6 +298,7 @@ Before handing back, verify all of the following against the written artefact an
 
 - `review-requirements/USER-STORIES/user-stories-review.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
+- The artefact contains, in DOM order: a `<nav class="toc">`, a `<section id="plain-terms">` (the "In plain terms" lead — **first content section**, before the legend-bar and Executive Summary), and a non-empty `<p>` inside it. The `<section id="plain-terms">` lead `<p>` names no finding or count not present in the punch-list, preserves severity (no blocking/major softened into reassurance), glosses review jargon at first use, and does not gloss client domain terms. COUNT of words in the lead: ≥ 20 (2–5 real sentences, not a stub).
 - The artefact is self-contained HTML: it begins with `<!doctype html>`, carries exactly one inline `<style>` block, and contains **no** `<script>` tag, no external stylesheet `<link>`, and no CDN/`http(s)://` asset reference.
 - Every consultant-visible substituted value (Connextra story text, reasons, fixes, persona names) is HTML-escaped (no raw `<`, `>`, or unescaped `&` leaks into the markup).
 - The artefact's `REQUIREMENTS_SHA256` field equals the SHA-256 captured in Step 2.
@@ -318,7 +321,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `review-requirements/USER-STORIES/user-stories-review.html` exists, has been verified, is self-contained HTML (one inline `<style>`, no `<script>`, no external/CDN reference), and contains one finding card per defective story in §4.2 (or the empty-state line in each priority section if no stories are defective).
+- `review-requirements/USER-STORIES/user-stories-review.html` exists, has been verified, is self-contained HTML (one inline `<style>`, no `<script>`, no external/CDN reference), and the DOM order is: header → TOC → `<section id="plain-terms">` (non-empty `<p>`, severity-preserving, jargon-glossed, domain-terms-not-glossed) → legend-bar → Executive Summary → Triage → Blocking → Major → Minor → Diagnostics. Contains one finding card per defective story in §4.2 (or the empty-state line in each priority section if no stories are defective).
 - Every finding has a non-empty `story_id`, `persona`, `anchor`, blockquoted Connextra text, ≥ 1 issue, and a headline priority that equals the max severity across its issues.
 - Every issue has a criterion ∈ the six, a severity ∈ {blocking, major, minor}, a 1–3 sentence reason, and a 1–2 sentence directional fix.
 - Findings are sorted by priority → persona → anchor.

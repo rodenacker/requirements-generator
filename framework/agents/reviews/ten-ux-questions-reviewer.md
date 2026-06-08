@@ -41,6 +41,7 @@ Steps in order. Do not skip steps; do not collapse steps. Each step's success is
 - State readiness in one short line: *"10 UX Questions reviewer ready. Starting from `requirements/requirements.md`."*
 - Restate the stand-alone constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only — no analyses, no design-system, no pipeline state. Three shared-policy files (general-rules, prototype-invariants, prototype-scope) are read once at Step 4 to filter candidates."*
 - Restate the methodology's core promise in one line: *"Up to 50 candidate questions generated across 8 UX gap categories, filtered against the framework's deterministic answer set, scored by (design-impact × answerability-gap), top 10 selected with natural priority distribution."*
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** and relaxes no gate, no severity, and no quality-gate: at Step 7 write the `{{PLAIN_SUMMARY}}` "In plain terms" lead (2–5 sentences, preserving severity verbatim — never soften a blocking priority), gloss review jargon at first use (priority, category, anchor, candidate pool — but never gloss client domain terms), and keep the punch-list discipline everywhere below the lead.
 
 ### Step 2 — Read input
 
@@ -172,6 +173,7 @@ Per `framework/assets/reviews/template-ten-ux-questions.html`:
 
 - Read the template once. It is a self-contained HTML scaffold (one inline `<style>`, no external CSS/JS, no `<script>`).
 - Build the substitution map for the placeholders documented in the template's header comment:
+    - `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences: what this review is (a gap-discovery pass asking what an experienced UX designer would need to know before starting wireframes), what it found (priority breakdown and category coverage using the glossed vocabulary — e.g. *"priority (how pressing — blocking / major / minor)"*, *"category (which of the eight UX gap areas — C1 Users & segmentation … C8 Trust, transparency, audit)"*, *"candidate pool (the up-to-50 questions generated before scoring and selection)"*), and what the consultant should do next (address blocking questions before the next design phase; review the triage table in order). Faithful condensation — introduces no finding, count, or category not in the punch-list below. **Severity preserved verbatim**: a blocking question is stated as blocking, unsoftened. Client domain terms (persona names, entity names from the requirements doc) are NOT glossed. HTML-escaped.
     - `{{TITLE}}` — *"10 UX Questions — `<domain>`"* if `§1` declares a domain or app name, else *"10 UX Questions — requirements.md"*.
     - `{{DOMAIN}}` — verbatim from `§1` if present, else *"(not declared in requirements.md)"*.
     - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
@@ -271,6 +273,8 @@ Before handing back, verify all of the following against the written artefact an
 - `review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The artefact is self-contained HTML: it begins with `<!doctype html>`, carries exactly one inline `<style>` block, and contains **no** `<script>` tag, no external stylesheet `<link>`, and no CDN/`http(s)://` asset reference.
+- `<section id="plain-terms">` appears **first** among all `<section>` elements (before `#executive-summary`), and its `<p>` is non-empty, names no finding or count not present in the punch-list below, and preserves severity (no blocking priority softened into reassurance). Review jargon (priority, category, anchor, candidate pool) is glossed at first use in the lead; client domain terms are not glossed.
+- DOM order: `#plain-terms` → `#executive-summary` → `#triage` → `#questions` → `#diagnostics`.
 - Every consultant-visible substituted value (question text, rationale prose, anchors) is HTML-escaped (no raw `<`, `>`, or unescaped `&` leaks into the markup).
 - The artefact's `REQUIREMENTS_SHA256` field equals the SHA-256 captured in Step 2.
 - The Executive Summary's *"Total questions"* equals 10. *"Blocking + Major + Minor"* equals 10.
@@ -289,6 +293,7 @@ Before handing back, verify all of the following against the written artefact an
 ## Definition of Done
 
 - `review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.html` exists, has been verified, is self-contained HTML (one inline `<style>`, no `<script>`, no external/CDN reference), and contains exactly 10 UX questions selected from a candidate pool of ≤ 50.
+- `<section id="plain-terms">` is the first content section (DOM order: `#plain-terms` → `#executive-summary` → `#triage` → `#questions` → `#diagnostics`), with a non-empty `{{PLAIN_SUMMARY}}`-derived `<p>`.
 - Every selected question has a priority ∈ {blocking, major, minor}, a valid anchor or `missing-section: <slug>`, and a 1–3 sentence rationale.
 - Category coverage among the selected ten is ≥ 5 of 8 (or the consultant explicitly chose Override at Step 6 and the diagnostics block records the violation).
 - Either all eight quality gates passed, or the consultant explicitly chose Override and the diagnostics block records every violation.

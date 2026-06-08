@@ -45,6 +45,7 @@ Twelve steps in order (four operational + eight rounds). Do not skip steps; do n
 - Read `framework/assets/characters/gap-analysis-inputs-review.md` once. Keep its full content in memory.
 - Read `framework/assets/reviews-inputs/gap-analysis-reference.md` once. The reference defines the six-state coverage vocabulary, the eight-dimension taxonomy (SPoT-owned by `topics-requirements.md`), the Impact × Confidence → MoSCoW matrix, the Confidence-honesty rule, the Recommendation vs Candidate Requirement contract, the eight rounds, the eight quality gates, the output structure, and the JSON schema; treat it as authoritative. Keep its full content in memory.
 - Read `framework/assets/reviews-inputs/template-gap-analysis.html` once. Keep its full content in memory for Step 11's substitution.
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** and relaxes no gate, no severity, and no quality gate: at Step 11 write the "In plain terms" lead (preserving severity verbatim — never soften a `BLOCKED` verdict), gloss gap-analysis jargon (coverage state, gap, MoSCoW, impact, confidence, verdict, Candidate Requirement) at first use in human-readable prose, never gloss client domain terms, and keep the punch-list discipline everywhere below the lead.
 - State readiness in one short line: *"Gap-analysis inputs-side reviewer ready. Starting from `requirements/source-manifest.json` and `framework/assets/topics-requirements.md`. Methodology: template-bijection delta — walk every topic in topics-requirements.md against the inputs, classify into one of six coverage states (Covered / Partial / Missing / Standard-rule / Out-of-scope / N/A), emit Candidate Requirements for every Partial and Missing gap with Impact × Confidence → MoSCoW severity."*
 - Restate the stand-alone-ish constraint in-thread: *"This run reads `requirements/source-manifest.json` plus the files it enumerates, `framework/assets/topics-requirements.md` (canonical topic list + Dimension SPoT), `framework/shared/general-rules.md` (always), and `framework/shared/prototype-scope.md` (only when manifest target is prototype) — no other pipeline state is consulted. Sibling reviewer artefacts under `review-inputs/COMPLETENESS-REVIEW/`, `review-inputs/ADVERSARIAL/`, `review-inputs/AMBIGUITY-REVIEW/` are not loaded."*
 - Restate the absent-vs-resolvable test in one line so the consultant sees it: *"Every Missing gap satisfies the absent-vs-resolvable test — corpus silent on the topic, no `GR-NN` rule resolves it, the topic is not Out-of-scope under the manifest target, and the topic's emit predicate is satisfied. Topics resolved by Standard-rule / Out-of-scope / N/A are surfaced (not dropped) so the drafter knows which marker namespace to render downstream."*
@@ -241,6 +242,7 @@ Run all eight gates from `gap-analysis-reference.md > §9` in order. Capture eac
 
 **11c — Render fragments.** For each placeholder in `template-gap-analysis.html`, build the substitution value in memory. HTML-escape every consultant-supplied string (5 chars: `&`, `<`, `>`, `"`, `'`).
 
+- `{{PLAIN_SUMMARY}}` → 2–5 plain-English sentences constituting the "In plain terms" lead. A faithful condensation of the run's findings — introduces no finding, count, or claim not already in the gap matrix or executive summary. **Preserve severity verbatim**: if the verdict is `BLOCKED`, state it plainly and unsoftened. Gloss gap-analysis jargon at first use (e.g. *"gap (a template topic the inputs do not cover)"*, *"coverage state (how the inputs resolve each topic)"*, *"MoSCoW (priority: Must / Should / Could / Won't)"*, *"Candidate Requirement (a shall-form draft the consultant can ratify)"*). Do **not** gloss client domain terms. HTML-escaped.
 - `{{TITLE}}` → e.g. *"Gap Analysis (inputs-side) — {{DOMAIN}}"*.
 - `{{DOMAIN}}` → best-effort extraction from any source carrying a recognisable domain heading; fallback *"(not declared in inputs)"*.
 - `{{GENERATED_AT}}` → ISO-8601 UTC, e.g. `2026-05-21T14:32:08Z`.
@@ -339,6 +341,8 @@ Before handing back, verify all of the following against the written artefact an
 - `review-inputs/GAP-ANALYSIS/gap-analysis.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The artefact begins with `<!doctype html>` and contains the `<h1 id="top">` element.
+- The artefact's first `<section>` is `<section id="plain-terms">` with a non-empty `<p>` — the "In plain terms" lead is present and populated before all other sections.
+- The lead (`{{PLAIN_SUMMARY}}` substitution) introduces no finding, count, or claim not already in the gap matrix or executive summary; does not gloss client domain terms; does not soften a `BLOCKED` verdict.
 - The artefact's embedded `<script type="application/json" id="gap-analysis-meta">` block parses as JSON.
 - The JSON block's `manifest_sha256` field equals the SHA-256 captured at Step 2.
 - The JSON block's `topics_requirements_sha256` field equals the SHA-256 captured at Step 3.
@@ -371,6 +375,7 @@ Before handing back, verify all of the following against the written artefact an
 ## Definition of Done
 
 - `review-inputs/GAP-ANALYSIS/gap-analysis.html` exists, has been verified, and contains a complete template-bijection gap-analysis.
+- The artefact's first content section is `<section id="plain-terms">` with a non-empty `<p>` (the "In plain terms" lead), appearing before the executive summary in DOM order.
 - The `GAP-NN` ID sequence is contiguous, assigned by `(moscow, dimension, topic_ref)` ascending order.
 - Either all eight quality gates passed, or the consultant explicitly chose Override at Step 10 and the diagnostics block records every violation.
 - Every topic in `topics-requirements.md` produced exactly one coverage row; the count matches.

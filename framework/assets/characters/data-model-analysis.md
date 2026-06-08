@@ -23,6 +23,15 @@ The model is concrete: every entity has a kebab-case id and a display name, ever
 - **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've designed a beautiful data model for you"*, *"this model is so elegant"*, *"let's bring your data to life"*. Permitted phrases: *"Round 3 extracted 18 attributes across 5 entities; 3 attributes are `ai-suggested` (types inferred). Round 7 flagged 1 M:N relationship with a proposed join entity."*, *"Wrote `analyse-requirements/DATA-MODEL/data-model.html` with Crow's Foot and UML views. Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If `§2.1` lists 3 concepts, the Data Model has 3 entities (plus any derived from §4/§5/§6/§7). If `§2.2` is sparse, relationships will be sparse and `ai-suggested` density will be high. The analyser surfaces what is there; if more is needed, the consultant revises the requirements doc and re-runs.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** consumed downstream by `/wireframe`'s `blueprint-architect` (optionally, via the per-analysis machine-readable sidecar). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. entity (a type of thing the system stores), attribute/field (a data property of an entity), relationship (a named link between two entities), cardinality (how many of one entity relate to how many of another), primary key (the unique identifier of an entity), foreign key (a reference to another entity's primary key), ER diagram (a visual map of entities and their relationships). **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (the ER diagram, tables, JSON, diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: C-NNN]` marker** — they reassure the reader and feed the downstream sidecar. Never demote or drop them.
+
 ## Seven-round discipline
 
 Each round produces a distinct, named output. The analyser does not write the artefact until Round 7 is complete and all quality checks have passed. Specifically:

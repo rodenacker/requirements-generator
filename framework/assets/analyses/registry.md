@@ -77,7 +77,7 @@ methodologies:
   - name: mvp-slicing
     status: mvp
     group: Users, goals & value
-    description: Choose this when the requirements carry priorities but no one has drawn the line between what ships first and what waits. It produces an HTML user-story map — a §5 task-flow backbone with F-NN, UI-NN, and §4.2 story cards beneath each activity and a release-slice line proposed from the GR-24 Must set — paired with a MoSCoW board of the §6.1, §6.4, and §4.2 priorities. Use the proposed slice to confirm the MVP scope before wireframing, and the MoSCoW board to see at a glance what each priority bucket holds.
+    description: Choose this when the requirements carry priorities but no one has drawn the line between what ships first and what waits. It produces an HTML user-story map — a task-flow backbone with feature, UI, and user-story cards beneath each activity and a proposed release-slice line marking the MVP cut — paired with a MoSCoW board (must / should / could / won't) of the requirement priorities. Use the proposed slice to confirm the MVP scope before wireframing, and the MoSCoW board to see at a glance what each priority bucket holds.
     output_path: analyse-requirements/MVP-SLICING/mvp-slicing.html
     reference_asset: framework/assets/analyses/mvp-slicing-reference.md
     template_asset: framework/assets/analyses/template-mvp-slicing.html
@@ -127,7 +127,7 @@ methodologies:
   - name: crud-coverage
     status: mvp
     group: Objects, data & lifecycle
-    description: Choose this when your domain is entity-and-operation heavy and you want a mechanical check that every entity has a create, read, update, and delete path before wireframing. It produces an HTML coverage matrix crossing each entity against the four lifecycle operations, marking each cell delivered, granted-not-delivered, forgotten, or intentional, plus a lifecycle-hole register and an optional role view with Segregation-of-Duties flags. Use the filled cells as a screen-and-action checklist against the blueprint and chase the flagged holes — especially rights §6.5 grants that no function delivers — before building. Recommended: run data-model and/or ooux first — this matrix seeds its entity list from them when present, and runs cold from the spec when they are absent.
+    description: Choose this when your domain is entity-and-operation heavy and you want a mechanical check that every entity has a create, read, update, and delete path before wireframing. It produces an HTML coverage matrix crossing each entity against the four lifecycle operations, marking each cell delivered, granted-not-delivered, forgotten, or intentional, plus a lifecycle-hole register and an optional role view with Segregation-of-Duties flags. Use the filled cells as a screen-and-action checklist against the blueprint and chase the flagged holes — especially permission rights the spec grants that no function delivers — before building. Recommended: run data-model and/or ooux first — this matrix seeds its entity list from them when present, and runs cold from the spec when they are absent.
     output_path: analyse-requirements/CRUD-COVERAGE/crud-matrix.html
     reference_asset: framework/assets/analyses/crud-coverage-reference.md
     template_asset: framework/assets/analyses/template-crud-coverage.html
@@ -167,7 +167,7 @@ methodologies:
   - name: faceted-classification
     status: mvp
     group: Objects, data & lifecycle
-    description: Choose this when your app is list-heavy and you need to specify how users filter, sort, and search records before wireframing those list surfaces. It produces an HTML facet map of the orthogonal dimensions records can be sliced along — status, type, owner, date-range — each with its value set and the §7 data property it filters on, an orthogonality check, a per-surface filter/sort scaffolding note, and a facet-value-scoped controlled vocabulary. Use the facets as the filter-chip, facet-rail, and sort-axis specification your list surfaces are designed against, and re-drop it into input/ so /requirements hardens the filter/sort UI requirements. Recommended: run glossary first — this facet map seeds its controlled vocabulary from it when present, and runs cold from the spec when it is absent.
+    description: Choose this when your app is list-heavy and you need to specify how users filter, sort, and search records before wireframing those list surfaces. It produces an HTML facet map of the orthogonal dimensions records can be sliced along — status, type, owner, date-range — each with its value set and the data property it filters on, an orthogonality check, a per-surface filter/sort scaffolding note, and a facet-value-scoped controlled vocabulary. Use the facets as the filter-chip, facet-rail, and sort-axis specification your list surfaces are designed against, and re-drop it into input/ so /requirements hardens the filter/sort UI requirements. Recommended: run glossary first — this facet map seeds its controlled vocabulary from it when present, and runs cold from the spec when it is absent.
     output_path: analyse-requirements/FACETED-CLASSIFICATION/facet-map.html
     reference_asset: framework/assets/analyses/faceted-classification-reference.md
     template_asset: framework/assets/analyses/template-faceted-classification.html

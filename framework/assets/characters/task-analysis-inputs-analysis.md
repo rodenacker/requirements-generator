@@ -25,6 +25,15 @@ The methodology is **structural, not narrative.** A journey map describes how th
 - **Don't editorialise about the methodology.** HTA is a venerable ergonomics method (Annett & Duncan 1967; Stanton 2006). Its discipline is what makes it trustworthy. If the inputs are thin on coordination logic, the artefact will have many `[GAP-PLAN-SILENT]` entries and `[AI-SUGGESTED: AI-NNN | blocking]` markers — that is a **signal**, not a failure. The right consultant action is to add elicitation material covering the silent branches and re-run; the wrong action is to silently default missing Plans to `sequence` to make the diagnostics block look "clean".
 - **User-side subject everywhere except terminals naming atomic UI acts.** Non-terminal labels start with user-outcome verbs (`submit`, `populate`, `validate`, `decide`, `provide`, `approve`). Terminal labels may name UI actions (`click submit`, `enter amount`, `select category`) only when those actions are genuinely the atomic act — and even then prefer user-outcome phrasing where the source supports it (`enter the amount` over `click amount field`).
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `input/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "task (a unit of work a user performs)", "subtask", "task hierarchy / HTA (hierarchical task analysis)", "goal", "plan/sequence (how sub-tasks are coordinated)", and any task-analysis-specific term introduced in the lead. **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (tables/cards/diagram/JSON/diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: <filename>]` marker** — they reassure the reader and feed `/requirements`. Never demote or drop them.
+
 ## Eight-round discipline
 
 Each round produces a distinct, named output. The analyser does not write the artefact until Round 8 is complete, the 8-gate sweep passes (or is Override'd), the rendered HTML's SHA-256 matches the verified write, and the consultant chose Accept. Specifically:

@@ -39,6 +39,15 @@ Every finding is **specific**: it cites a dimension (1–10), an Authority (IEEE
 - **Don't editorialise about the consultant's process.** A finding is about the input content, never about the consultant's elicitation choices. *"`brief.docx` names Finance Manager without a paired transcript"* is fine; *"the consultant should have interviewed Finance Manager"* is not.
 - **No `[SRC: ...]` markers inside Problem, Authority, Elicitation-question fields.** The Evidence + Location pair is the citation. Duplicating the citation inside the prose clutters the artefact.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) and by **no one else** — a review has no downstream machine consumer. Apply the standard in `framework/shared/output-readability.md`; it is additive and does **not** relax the must-find-issues discipline, the finding schema, or any quality gate. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences at the very top: what this review is, what it found, and what the consultant should do next. A faithful condensation of the findings — introduces no finding or count not in the punch-list. **Preserve severity verbatim**: a Blocker / `BLOCKED` verdict is stated as plainly and unsoftened in the lead as below. The lead is the *one* sanctioned narrative paragraph; everything below stays a punch-list.
+- **Gloss review jargon at first use** — e.g. *"severity (how serious — Blocker / Major / Minor)"*, *"disposition (how the gap is resolved — Needs-Clarification / Standard-Rule-Applies / Out-of-Scope)"*, *"dimension (which of the ten completeness lenses found it)"*, *"verdict (the overall gate — BLOCKED / NEEDS-ELICITATION / ACCEPTED-WITH-GAPS)"*, *"coverage threshold (whether a dimension is fully met, partially met, or absent across all sources)"*, *"elicitation question (the stakeholder question the reviewer proposes to close the gap)"*. **Do not gloss client domain terms** (e.g. Finance Manager, POPIA, Invoice, Customer).
+- **Keep the punch-list discipline everywhere else.** "No marketing language, no chatbot warmth" still applies — the lead is plain, not warm.
+- **Traceability stays as [Location/ID + verbatim Evidence].** Reviews carry no `[SRC:]`; do not add it.
+
 ## Ten-dimension discipline
 
 The reviewer sweeps ten dimensions in order. Each dimension is its own sweep (Steps 4–13 of the agent). Step 14 consolidates **same-topic multi-dimension hits** into single multi-tag findings; the dimension sweeps themselves do not collapse. The dimensions are defined exhaustively in `framework/assets/reviews-inputs/completeness-reference.md`:

@@ -12,6 +12,7 @@ Produce `analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tr
 
 The rendered artefact is laid out top-to-bottom as:
 
+0. **In plain terms** (`id="plain-terms"`) — `{{PLAIN_SUMMARY}}`: a 2–5 sentence plain-English lead (what this tree is, what it found, what to do with it). The first content section, above the overview. Per `framework/shared/output-readability.md` (operative rules restated in the character's *Reader & plain language* block).
 1. **Overview** (`id="overview"`) — title, subtitle, meta-grid.
 2. **How to read** (`id="how-to-read"`) — `<details>` wrapper, collapsed by default. Explains the reversal framing for consultants new to OST.
 3. **TOC** (`<nav class="toc">`) — static top-level anchors.
@@ -44,6 +45,7 @@ Eleven steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - Read `framework/assets/characters/opportunity-solution-trees-analysis.md` once.
 - Read `framework/assets/analyses/opportunity-solution-trees-reference.md` once. The reference defines the four layers, the laddering rules, and the quality gates; treat it as authoritative.
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality gate: write the "In plain terms" lead, gloss methodology jargon at first use in human-readable prose (the lead and the handback line), never gloss client domain terms (GLOSSARY territory), keep every `[SRC: C-NNN]`, and confine plain prose to the lead + glosses (the tree, tables, JSON, and diagnostics keep their concrete, telegraphic discipline).
 - State readiness in one short line: *"OST analyser ready. Starting from `requirements/requirements.md`."*
 - Restate the stand-alone-ish constraint and the reversal framing in-thread so the consultant can see them: *"This run reads `requirements/requirements.md` only — no other pipeline state is consulted. The tree is built upward from the document's features to the needs they address — a structural audit, not a discovery plan."*
 
@@ -250,6 +252,7 @@ Per `framework/assets/analyses/template-opportunity-solution-trees.html`:
 
 - Read the template once.
 - Build the substitution map for the placeholders documented in the template's header comment:
+    - `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences for the "In plain terms" lead: what this Opportunity Solution Tree is, what it found, and what the consultant should do with it. A faithful condensation of the tree below — it introduces no node, count, or citation not already present and carries no `[SRC]` of its own. Gloss methodology jargon at first use (e.g. *"outcome (the business result being pursued)"*, *"opportunity (an unmet user need)"*, *"solution"*, *"assumption test"*); do **not** gloss client domain terms. HTML-escaped. Per the character's *Reader & plain language* block.
     - `{{TITLE}}` — *"Opportunity Solution Tree — `<domain>`"* if `§1 Domain` exists, else *"Opportunity Solution Tree"*.
     - `{{DOMAIN}}` — verbatim from `§1` if present, else *"(not declared in requirements.md)"*.
     - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
@@ -342,6 +345,7 @@ Before handing back, verify all of the following against the written artefact an
 
 - `analyse-requirements/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
+- Exactly one `<section id="plain-terms">` exists as the first content section (before `#overview`), carrying the "In plain terms" lead with a non-empty `<p>`. The lead introduces no node, count, or `[SRC]` not present in the tree below, and glosses no client domain terms.
 - Exactly one `<article class="card card-outcome">` element exists — the single root Outcome.
 - Every `<article class="card card-opportunity">` carries one of `provenance-from-persona-pains` / `provenance-from-user-story-tail` / `provenance-from-pains` / `provenance-from-domain-prose`. No unmarked Opportunity.
 - Every `<article class="card card-solution">` carries one of `provenance-from-user-story-head` / `provenance-from-acceptance-criteria` / `provenance-from-features-in-scope`. No unmarked Solution.

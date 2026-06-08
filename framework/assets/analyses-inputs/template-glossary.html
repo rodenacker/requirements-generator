@@ -17,6 +17,15 @@
   `.cited-definition`.
 
   Section order (top-to-bottom):
+    0. In plain terms (id="plain-terms")     — {{PLAIN_SUMMARY}}: a short human-
+                                               readable lead explaining what this
+                                               glossary is, how many terms are
+                                               defined, how many are used-but-
+                                               undefined (flagged), and that the
+                                               consultant should confirm or correct
+                                               the proposed definitions. First
+                                               section, above the meta-grid. Per
+                                               framework/shared/output-readability.md.
     1. Overview (id="overview")              — title, subtitle, meta-grid.
     2. TOC (<nav class="toc">)               — static top-level anchors.
     2b. Legend (.legend-bar)                 — colour key, directly under the TOC
@@ -37,6 +46,17 @@
   Placeholders the analyser substitutes (string substitution, all values pre-escaped for HTML
   EXCEPT BODY_JSON which is additionally escaped for &lt; / &amp; / &gt; that would break <pre><code>):
 
+    {{PLAIN_SUMMARY}}             — 2–5 plain-English sentences explaining what this
+                                    glossary is: the agreed vocabulary for the project's
+                                    domain, how many terms are defined, how many are
+                                    used-but-undefined (flagged for the consultant), and
+                                    that the consultant should confirm or correct the
+                                    proposed definitions. Faithful condensation — no new
+                                    term, count, or citation; no [SRC] of its own.
+                                    Methodology jargon (used-but-undefined, alias/synonym,
+                                    provenance, definition source) glossed at first use;
+                                    client domain terms NOT glossed (they are the content).
+                                    Per framework/shared/output-readability.md.
     {{TITLE}}                     — short title (e.g. "Glossary — Inputs — Project X")
     {{DOMAIN}}                    — domain string (best-effort: manifest `target`/brief)
     {{GENERATED_AT}}              — ISO-8601 UTC timestamp the artefact was rendered
@@ -279,6 +299,36 @@
     .meta-grid dt { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; margin: 0; }
     .meta-grid dd { margin: 0 0 6px 0; font-variant-numeric: tabular-nums; word-break: break-word; }
 
+    /* ------- in plain terms (human-readable lead) ------- */
+    #plain-terms {
+      margin: 0 0 24px 0; padding: 14px 18px;
+      background: #f0f7ff; border: 1px solid var(--cls-domain-border);
+      border-left: 4px solid var(--cls-domain-border); border-radius: 6px;
+    }
+    #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+    #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--fg); }
+
+    /* ------- downstream-use footer (collapsed; analyses only) ------- */
+    details.downstream-toggle { margin-top: 24px; margin-bottom: 24px; }
+    details.downstream-toggle > summary {
+      cursor: pointer; padding: 10px 14px; background: #fff;
+      border: 1px solid #d4d4d4; border-left: 4px solid #8a8a8a;
+      border-radius: 6px; font-weight: 600; font-size: 13px;
+      color: #5a5a5a; list-style: none; user-select: none;
+    }
+    details.downstream-toggle > summary::-webkit-details-marker { display: none; }
+    details.downstream-toggle > summary::before {
+      content: "▶"; font-size: 10px; color: #5a5a5a; margin-right: 8px;
+      display: inline-block; transition: transform 0.15s ease;
+    }
+    details.downstream-toggle[open] > summary { border-radius: 6px 6px 0 0; border-bottom: none; }
+    details.downstream-toggle[open] > summary::before { transform: rotate(90deg); }
+    .downstream-note {
+      padding: 14px 18px; background: #fff;
+      border: 1px solid #d4d4d4; border-top: none; border-radius: 0 0 6px 6px;
+    }
+    .downstream-note p { color: #5a5a5a; font-size: 13px; margin: 6px 0; }
+
     /* ------- table of contents ------- */
     .toc {
       margin: 0 0 8px 0; padding: 10px 14px; background: #fff;
@@ -454,6 +504,11 @@
 </head>
 <body>
   <main>
+    <section id="plain-terms" aria-label="In plain terms">
+      <h2>In plain terms</h2>
+      <p>{{PLAIN_SUMMARY}}</p>
+    </section>
+
     <section id="overview">
       <h1>{{TITLE}}</h1>
       <p class="subtitle">Glossary (input-analysis variant) — one agreed vocabulary for the system's specification and design, drawn from the raw consultant inputs enumerated in <code>requirements/source-manifest.json</code>. Each term is classified <strong>domain</strong> (problem space) or <strong>application</strong> (solution space), defined from the inputs (cited), and rated 0&ndash;4 for how settled its shared understanding is. Where the inputs leave a term undefined, weak, synonymous, or conflicting, a <strong>proposed</strong> definition or canonical resolution is offered (amber, blocking) for you to confirm. The aim: a usable, agreed glossary <code>/requirements</code> and design can rely on.</p>
@@ -482,6 +537,7 @@
 
     <nav class="toc" aria-label="Sections">
       <ol>
+        <li><a href="#plain-terms">In plain terms</a></li>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#domain-glossary">Domain terms</a></li>
         <li><a href="#application-glossary">Application terms</a></li>
@@ -558,9 +614,12 @@
       <pre class="body-json"><code class="language-json" id="glossary-body">{{BODY_JSON}}</code></pre>
     </section>
 
-    <section id="round-trip" class="round-trip" aria-label="Use in /requirements">
-      <p><strong>Use this glossary as input to <code>/requirements</code>:</strong> copy this file into <code>input/</code> and re-invoke <code>/requirements</code>. The shared input-handler detects the new file and adds it as a source. The drafter then adopts every <strong>settled</strong> definition as the project's <strong>canonical vocabulary</strong> &mdash; using one agreed term per concept and seeding <code>&sect;2 Domain model</code> / <code>&sect;7 Data entities</code> from them &mdash; while every <code>[AI-SUGGESTED: AI-NNN | blocking]</code> proposal (definition, refinement, or canonical resolution) surfaces to the resolver as a <em>mandatory confirmation</em>, so you agree each meaning and each canonical-term choice before it anchors a requirement. The <code>[SRC: <em>&lt;filename&gt;</em>]</code> markers preserve the audit trail back to the original briefs / notes / decks.</p>
-    </section>
+    <details id="round-trip" class="downstream-toggle">
+      <summary>For downstream use &mdash; re-ingesting this glossary into /requirements</summary>
+      <div class="downstream-note">
+        <p><strong>Use this glossary as input to <code>/requirements</code>:</strong> copy this file into <code>input/</code> and re-invoke <code>/requirements</code>. The shared input-handler detects the new file and adds it as a source. The drafter then adopts every <strong>settled</strong> definition as the project's <strong>canonical vocabulary</strong> &mdash; using one agreed term per concept and seeding <code>&sect;2 Domain model</code> / <code>&sect;7 Data entities</code> from them &mdash; while every <code>[AI-SUGGESTED: AI-NNN | blocking]</code> proposal (definition, refinement, or canonical resolution) surfaces to the resolver as a <em>mandatory confirmation</em>, so you agree each meaning and each canonical-term choice before it anchors a requirement. The <code>[SRC: <em>&lt;filename&gt;</em>]</code> markers preserve the audit trail back to the original briefs / notes / decks.</p>
+      </div>
+    </details>
 
     <details id="diagnostics" class="diagnostics-toggle">
       <summary>Diagnostics</summary>

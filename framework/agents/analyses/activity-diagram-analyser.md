@@ -17,6 +17,7 @@ Every row in every Tier-1 table carries exactly one provenance marker. Every qua
 
 The rendered artefact is laid out top-to-bottom as:
 
+0. **In plain terms** (`<section id="plain-terms">`) — `{{PLAIN_SUMMARY}}`: a 2–5 sentence plain-English lead (what this catalogue is, what it found, what the consultant should do with it). The first section, above the overview. Per `framework/shared/output-readability.md` (operative rules restated in the character's *Reader & plain language* block, so no `framework/shared/` read is needed). The first visual after this lead is the activity diagram.
 1. **Overview** (`id="overview"`) — title, subtitle, meta-grid.
 2. **TOC** (`<nav class="toc">`) — static top-level anchors.
 3. **Diagrams** (`id="diagrams"`) — `{{SVG_DIAGRAMS_BLOCK}}` followed by `{{MERMAID_BLOCK}}` (Mermaid source kept adjacent to its SVGs).
@@ -48,6 +49,7 @@ Eleven steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - Read `framework/assets/characters/activity-diagram-analysis.md` once.
 - Read `framework/assets/analyses/activity-diagram-reference.md` once. The reference defines what to do in each round; treat it as authoritative.
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality gate: write the "In plain terms" lead, gloss methodology jargon at first use in human-readable prose (the lead, the handback line — e.g. "activity diagram (a flowchart of the steps in a process)", "action node (an atomic step of work)", "decision/branch (a fork based on a condition)", "fork/join (parallel branches that split then re-synchronise)", "swimlane/partition (a horizontal band owned by one actor or component)", "start/end node (the marker where a flow begins or terminates)"), never gloss client domain terms (GLOSSARY territory), keep every `[SRC: C-NNN]`, and confine plain prose to the lead + glosses (the diagram, tables, and diagnostics keep their concrete discipline).
 - State readiness in one short line: *"Activity Diagram analyser ready. Starting from `requirements/requirements.md`. UML 2.5 subset: action / initial / activity-final / flow-final / decision / merge / fork / join / swimlane / control-flow edge. Object flow, signals, expansion regions, interruptible regions deferred."*
 - Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only — no other pipeline state is consulted."*
 
@@ -229,6 +231,7 @@ Per `framework/assets/analyses/template-activity-diagram.html`:
 
 - Read the template once.
 - Build the substitution map for the placeholders documented in the template's header comment:
+    - `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences, HTML-escaped. A faithful condensation of the catalogue: what this analysis is (an activity-diagram catalogue extracted from `requirements/requirements.md`), what it found (number of flows discovered, key structural observations such as `[AI-SUGGESTED]` density or a density warning), and what the consultant should do with it (review the catalogue, validate `[AI-SUGGESTED]` items, check any density warning). Introduces no fact, count, or citation not already in the rendered catalogue. Carries no `[SRC: C-NNN]` of its own. Methodology jargon (activity diagram, action node, decision/branch, fork/join, swimlane/partition, start/end node) glossed at first use; client domain terms left unglossed (GLOSSARY methodology's responsibility).
     - `{{TITLE}}` — *"Activity Diagrams — `<domain>`"* if `§1 Domain` exists, else *"Activity Diagrams"*.
     - `{{DOMAIN}}` — verbatim from `§1` if present, else *"(not declared in requirements.md)"*.
     - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
@@ -390,6 +393,10 @@ Before handing back, verify all of the following against the written artefact an
 
 - `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
+- The artefact's DOM order begins with `<section id="plain-terms">` as the first child of `<main>`, before `<section id="overview">`. The `<section id="plain-terms">` contains a non-empty `<p>` (the plain summary is not blank).
+- The `<section id="plain-terms">` `<p>` introduces no fact, count, or `[SRC: C-NNN]` not already present in the catalogue body — it is a condensation only. No client domain term is glossed in it; methodology jargon is glossed at first use.
+- The first TOC entry is `<a href="#plain-terms">In plain terms</a>`, before the Overview entry.
+- The first visual after `<section id="plain-terms">` is the activity diagram (the `id="diagrams"` section), not a table or diagnostics block.
 - The catalogue section contains exactly six sub-sections in fixed order (`.flows-block`, `.swimlanes-block`, `.actions-block`, `.control-nodes-block`, `.edges-block`, `.matrix-block`).
 - Every row in every Tier-1 table carries exactly one `.provenance-*` class — never zero, never two.
 - Every `.provenance-ai-suggested` row's content contains `[AI-SUGGESTED]` somewhere in its text (typically in the notes column or as a prefix on inferred values).
@@ -409,6 +416,7 @@ Before handing back, verify all of the following against the written artefact an
 ## Definition of Done
 
 - `analyse-requirements/ACTIVITY-DIAGRAM/activity-diagram.html` exists, has been verified, and contains a complete activity-diagram catalogue plus the consultant-selected inline-SVG figures (zero to N).
+- DOM order is: `plain-terms` → `overview` → TOC → legend → `diagrams` → `tables` → `diagnostics`. The `<section id="plain-terms">` is the first rendered section; the activity diagram is the first visual after it.
 - Either all 10 hard quality checks passed, or the consultant explicitly chose Override and the diagnostics block records every violation.
 - The consultant has accepted the artefact in the Step 11 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.

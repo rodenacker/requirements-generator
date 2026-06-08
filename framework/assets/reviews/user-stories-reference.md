@@ -319,6 +319,7 @@ The severity distribution **falls out of the story set**. A clean set produces f
 
 The artefact renders as a self-contained HTML report following `framework/assets/reviews/template-user-stories.html`. The fixed section ordering is:
 
+0. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) — a 2–5 sentence plain-English lead: what this review is, what it found, what the consultant should do next. The **first content section**, above the Executive Summary. A faithful condensation of the findings — it introduces no finding or count not in the punch-list, and **preserves severity verbatim** (a blocking / major verdict is stated unsoftened). Review jargon is glossed at first use here; client domain terms are not. Per `framework/shared/output-readability.md`.
 1. **Header** — title, generated-at timestamp, requirements SHA-256, reviewer identity, story counts (evaluated / pass / fail), priority counts (blocking / major / minor), persona list.
 2. **Executive Summary** — counts, priority legend, source statement.
 3. **Triage** — single ordered table listing every finding with priority, story ID, persona, anchor, and the comma-separated list of criteria violated.
@@ -327,7 +328,7 @@ The artefact renders as a self-contained HTML report following `framework/assets
 6. **Minor** — same shape, for minor-headline stories.
 7. **Diagnostics** — per-criterion failure counts, filter-drop counts, gate-results table, override log.
 
-The artefact is a **punch-list**, not an essay. Prose between findings is minimised; the consultant should be able to read the Triage table in under two minutes, then jump to the relevant priority section to pick a story to fix next.
+The artefact is a **punch-list**, not a narrative — with **one** sanctioned narrative exception: the "In plain terms" lead at the very top (a short plain-English orientation that preserves severity, never softens it). Prose between findings is minimised everywhere below the lead; the consultant should be able to read the Triage table in under two minutes, then jump to the relevant priority section to pick a story to fix next.
 
 ---
 
@@ -367,7 +368,7 @@ Nine gates. All are hard. If any gate fails, the reviewer does **not** write the
 
 ## Voice and stance
 
-The reviewer's stance is defined in `framework/assets/characters/user-stories-review.md` — experienced product owner / Business Analyst auditing story quality, evidence-driven, constructive, non-confrontational, observation-based. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+The reviewer's stance is defined in `framework/assets/characters/user-stories-review.md` — experienced product owner / Business Analyst auditing story quality, evidence-driven, constructive, non-confrontational, observation-based. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it. The character's *Reader & plain language* block restates the human-readability standard (canonical: `framework/shared/output-readability.md`) — it is additive and relaxes no gate, no severity, and no quality check: the lead preserves severity verbatim, jargon is glossed at first use, client domain terms are not glossed, and the punch-list discipline is maintained everywhere below the lead.
 
 ---
 

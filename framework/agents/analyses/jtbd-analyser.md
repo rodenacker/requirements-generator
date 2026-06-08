@@ -12,6 +12,7 @@ Produce `analyse-requirements/JTBD/jtbd-job-map.html` — a self-contained HTML 
 
 The rendered artefact is laid out top-to-bottom as:
 
+0. **In plain terms** (`<section id="plain-terms">`) — `{{PLAIN_SUMMARY}}`: a 2–5 sentence plain-English lead (what this job map is, what it found, what the consultant should do with it). The first section, above the meta-grid. Per `framework/shared/output-readability.md` (operative rules restated in the character's *Reader & plain language* block, so no `framework/shared/` read is needed).
 1. **Overview** (`id="overview"`) — title, subtitle, meta-grid.
 2. **TOC** (`<nav class="toc">`) — static top-level anchors.
 3. **Diagrams** (`id="diagrams"`) — `{{JOB_CLUSTERS}}` (sticky-board of job-cluster sections, one card per job).
@@ -43,6 +44,7 @@ Eleven steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - Read `framework/assets/characters/jtbd-analysis.md` once.
 - Read `framework/assets/analyses/jtbd-reference.md` once. The reference defines what to do in each JTBD-X round; treat it as authoritative.
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality gate: write the "In plain terms" lead, gloss methodology jargon at first use in human-readable prose (the lead, the handback line), never gloss client domain terms (GLOSSARY territory), keep every `[SRC: C-NNN]`, and confine plain prose to the lead and first-use glosses (the job-card board, tables, and diagnostics keep their concrete discipline).
 - State readiness in one short line: *"JTBD analyser ready. Starting from `requirements/requirements.md`."*
 - Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only — no other pipeline state is consulted."*
 
@@ -164,6 +166,7 @@ Per `framework/assets/analyses/template-jtbd.html`:
 
 - Read the template once.
 - Build the substitution map for the placeholders documented in the template's header comment:
+    - `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences summarising: what this analysis is (a job map — the stages of progress users are trying to make), what it found (how many jobs across how many clusters, how many at high opportunity), and what the consultant should do with it (review the job statements, check the high-opportunity jobs for design prioritisation, optionally feed to `/wireframe`'s `blueprint-architect`). A faithful condensation of the map below — introduces no job, count, or citation not already present; carries no `[SRC]` of its own. Methodology jargon (job, job map, outcome, forces of progress) is glossed at first use; client domain terms are NOT glossed. HTML-escaped.
     - `{{TITLE}}` — *"JTBD Job Map — `<domain>`"* if `§1 Domain` exists, else *"JTBD Job Map"*.
     - `{{DOMAIN}}` — verbatim from `§1` if present, else *"(not declared in requirements.md)"*.
     - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
@@ -253,6 +256,7 @@ Before handing back, verify all of the following against the written artefact an
 
 - `analyse-requirements/JTBD/jtbd-job-map.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
+- `<section id="plain-terms">` is the first child element of `<main>`, before `<section id="overview">`. Its `<p>` is non-empty (contains at least 20 words). The paragraph text is a faithful condensation of the map — it introduces no job, count, or citation not already in the artefact body, and contains no `[SRC: C-NNN]` markers.
 - Every `<article class="job-card">` has its type class set to exactly one of `type-functional`, `type-emotional`, or `type-social`. No unclassified cards.
 - Every job card has its actor-provenance dot set to exactly one of `provenance-from-personas` or `provenance-derived`. No unmarked actors.
 - Every job card emits the three statement stickies in order: `.sticky.when`, `.sticky.want`, `.sticky.so`. No card is missing a clause.
@@ -269,6 +273,7 @@ Before handing back, verify all of the following against the written artefact an
 ## Definition of Done
 
 - `analyse-requirements/JTBD/jtbd-job-map.html` exists, has been verified, and contains a complete job map.
+- DOM order: `<section id="plain-terms">` is first in `<main>`, followed by `id="overview"`, `<nav class="toc">`, legend, `id="diagrams"`, `id="tables"`, `id="diagnostics"`. The TOC's first `<li>` links to `#plain-terms`.
 - Either all seven quality gates passed, or the consultant explicitly chose Override and the diagnostics block records every violation.
 - The consultant has accepted the artefact in the Step 11 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.

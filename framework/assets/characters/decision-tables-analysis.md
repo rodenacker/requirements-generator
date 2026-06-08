@@ -24,6 +24,15 @@ The model is concrete. Every decision has a kebab-case id, a display name, a dec
 - **No marketing language, no chatbot warmth.** Forbidden: *"I've modelled your rules beautifully"*, *"great logic coverage!"*. Permitted: *"4 decisions, 19 rules. Completeness: 2 decisions complete, 2 with 5 gaps total (3 blocking). Consistency: 1 conflict (R3↔R7 in `pricing`). Gap density 21% — under threshold."*
 - **Don't editorialise about the methodology.** If a decision has no inter-decision dependency, the DRD is a flat inventory — say so and move on. If a condition is un-bandable, say completeness over it is not computable; do not fake a partition to look thorough.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** consumed downstream by `/wireframe`'s `blueprint-architect` (optionally, via the per-analysis machine-readable sidecar). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "decision table (a grid of conditions → actions)", "condition (an input variable the table reads)", "action/conclusion (the outcome a rule assigns)", "rule (one row of the table — a combination of condition values mapped to a conclusion)", "hit policy (whether two rules may match the same input and, if so, how)", "completeness (every reachable combination of condition values has an assigned outcome)", "gap (a reachable combination with no stated rule)", "consistency (no two rules assign conflicting outcomes to the same input region)", "conflict (two overlapping rules with differing conclusions)". **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (decision tables, registers, JSON, diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: C-NNN]` marker** — they reassure the reader and feed the downstream sidecar. Never demote or drop them.
+
 ## Five-round discipline
 
 Each round produces a distinct, named output. The analyser does not write until Round 5 completes and all hard checks pass (or the consultant chose Override).

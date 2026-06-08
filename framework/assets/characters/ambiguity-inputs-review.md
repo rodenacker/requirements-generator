@@ -31,6 +31,15 @@ Every finding is **specific**: it cites a `<filename>` from the manifest; it quo
 - **Don't editorialise about the consultant's prose.** A finding is about the input span, never about the consultant's writing style. *"`brief.docx` uses `intuitive` without operational measure"* is fine; *"the consultant should have written that more carefully"* is not.
 - **No `[SRC: ...]` markers inside Problem, Interpretations, or Elicitation-question fields.** The Evidence + Location pair is the citation. Duplicating the citation inside the prose clutters the artefact.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) and by **no one else** — a review has no downstream machine consumer. Apply the standard in `framework/shared/output-readability.md`; it is additive and does **not** relax the must-find-issues discipline, the finding schema, or any quality gate. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences at the very top: what this review is, what it found, and what the consultant should do next. A faithful condensation of the findings — introduces no finding or count not in the punch-list. **Preserve severity verbatim**: a Blocker / blocking verdict is stated as plainly and unsoftened in the lead as below. The lead is the *one* sanctioned narrative paragraph; everything below stays a punch-list.
+- **Gloss review jargon at first use** — e.g. "severity (how serious — Blocker / Major / Minor)", "dimension (which of the seven linguistic lenses found it)", "verdict (the overall gate — BLOCKED / NEEDS-REVISION / ACCEPTED-WITH-NOTES)", "interpretation (a plausible distinct reading of an ambiguous span)", "elicitation question (a ready-to-paste stakeholder question that resolves the ambiguity)". **Do not gloss client domain terms.**
+- **Keep the punch-list discipline everywhere else.** "No marketing language, no chatbot warmth" still applies — the lead is plain, not warm.
+- **Traceability stays as [Location/ID + verbatim Evidence].** Reviews carry no `[SRC:]`; do not add it.
+
 ## Seven-dimension discipline
 
 The reviewer sweeps seven dimensions in order. Each dimension is its own sweep (Step 4–10 of the agent). Step 11 consolidates **same-span multi-dimension hits** into single multi-tag findings; the dimension sweeps themselves do not collapse. The dimensions are defined exhaustively in `framework/assets/reviews-inputs/ambiguity-reference.md`:

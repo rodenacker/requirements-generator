@@ -20,6 +20,12 @@
   and survive the round-trip cleanly.
 
   Section order (top-to-bottom):
+    0. In plain terms (id="plain-terms")       — {{PLAIN_SUMMARY}}: a short
+                                                 human-readable lead (what this
+                                                 HTA is, what it found, what to
+                                                 do with it). First section,
+                                                 above the overview header.
+                                                 Per framework/shared/output-readability.md.
     1. Compact overview (id="overview")        — title, counts caption,
                                                  jump-links to goals.
     2. Goal summary (id="goal-summary")        — {{GOAL_SUMMARY_BLOCKS}}.
@@ -68,6 +74,14 @@
   Placeholders the analyser substitutes (string substitution; all values
   pre-escaped for HTML; YAML inside <pre><code> is escaped as plain text):
 
+    {{PLAIN_SUMMARY}}          — 2–5 plain-English sentences for the "In plain
+                                 terms" lead block: what this HTA is, what it
+                                 found, what to do with it. HTML-escaped.
+                                 Methodology jargon (task, subtask, task
+                                 hierarchy / HTA, goal, plan/sequence) glossed
+                                 at first use; client domain terms NOT glossed
+                                 (the GLOSSARY methodology owns those). Per
+                                 framework/shared/output-readability.md.
     {{TITLE}}                  — short title (e.g. "Task Analysis — Project X").
     {{DOMAIN}}                 — domain string (from manifest meta if declared, else "(not declared)").
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
@@ -420,6 +434,55 @@
 
     code, pre, .node-id {
       font-family: "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+    }
+
+    /* ------- in plain terms (human-readable lead) ------- */
+
+    #plain-terms { margin: 0 0 24px 0; padding: 14px 18px; background: var(--next-steps-bg); border: 1px solid var(--next-steps-border); border-left: 4px solid var(--next-steps-border); border-radius: 6px; }
+    #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+    #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--fg); }
+
+    /* ------- downstream-use footer (collapsed) ------- */
+
+    details.downstream-toggle { margin-top: 24px; margin-bottom: 24px; }
+    details.downstream-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid #d4d4d4;
+      border-left: 4px solid #8a8a8a;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      color: #5a5a5a;
+      list-style: none;
+      user-select: none;
+    }
+    details.downstream-toggle > summary::-webkit-details-marker { display: none; }
+    details.downstream-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: #5a5a5a;
+      margin-right: 8px;
+      display: inline-block;
+      transition: transform 0.15s ease;
+    }
+    details.downstream-toggle[open] > summary { border-radius: 6px 6px 0 0; border-bottom: none; }
+    details.downstream-toggle[open] > summary::before { transform: rotate(90deg); }
+    .downstream-note {
+      padding: 14px 18px;
+      background: #fff;
+      border: 1px solid #d4d4d4;
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+    }
+    .downstream-note p { color: #5a5a5a; font-size: 13px; margin: 6px 0; }
+    .downstream-note code {
+      font-family: "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+      font-size: 0.92em;
+      background: #f3f4f6;
+      padding: 0 4px;
+      border-radius: 3px;
     }
 
     /* ------- compact overview ------- */
@@ -995,6 +1058,11 @@
   </script>
 
   <main>
+    <section id="plain-terms" aria-label="In plain terms">
+      <h2>In plain terms</h2>
+      <p>{{PLAIN_SUMMARY}}</p>
+    </section>
+
     <header id="overview">
       <h1>{{TITLE}}</h1>
       <p class="caption">{{GOAL_COUNT}} goals · {{TERMINAL_COUNT}} terminal operations · {{PLAN_COUNT}} Plans · {{INFORMATION_REQ_COUNT}} information requirements · {{INFERRED_COUNT}} inferred ({{BLOCKING_GAP_COUNT}} blocking) · run {{RUN_COUNT}} · target {{TARGET}} · {{GENERATED_AT}}</p>
@@ -1058,8 +1126,17 @@
 
     <section class="next-steps" aria-label="Next steps">
       <h2>Next steps</h2>
-      <p>To use this artefact as additional input for <code>/requirements</code>, copy this file into <code>input/</code> (e.g. <code>input/task-analysis.html</code>) and re-run <code>/requirements</code>. The input-handler will classify it as <code>Supported-via-MCP</code>, markitdown will convert it to <code>input/task-analysis.html.converted.md</code> (preserving the structured YAML block as a fenced code section), and the drafter will consume it via the refreshed manifest. The YAML structured tree becomes a bijection target for <code>/requirements</code>' completeness gap pass; the Plans table seeds acceptance-criteria branches; the information-requirements table hints at <code>§7 Data entities</code>; any <code>[AI-SUGGESTED: AI-NNN | blocking]</code> gaps flow into the resolver as consultant questions.</p>
+      <p>To feed this task analysis into <code>/requirements</code>, copy this file into <code>input/</code> and re-run <code>/requirements</code>. See the "For downstream use" section below for the full re-ingestion details.</p>
     </section>
+
+    <details class="downstream-toggle">
+      <summary>For downstream use — re-ingesting this artefact into /requirements</summary>
+      <div class="downstream-note">
+        <p>
+          Copy this file into <code>input/</code> (e.g. <code>input/task-analysis.html</code>) and re-run <code>/requirements</code>. The input-handler classifies it as <code>Supported-via-MCP</code>; markitdown converts it to <code>input/task-analysis.html.converted.md</code>. The structured YAML block (inside <code>&lt;pre&gt;&lt;code class="language-yaml"&gt;</code>) survives the HTML→MD round-trip as a fenced code block and is what the drafter consumes — the visual tree becomes indented bullets; <code>[SRC: &lt;filename&gt;]</code> markers survive as plain text; <code>[AI-SUGGESTED: AI-NNN | blocking]</code> markers flow into the resolver as consultant questions. The YAML structured tree becomes a bijection target for the completeness gap pass; the Plans table seeds acceptance-criteria branches; the information-requirements table hints at <code>§7 Data entities</code>.
+        </p>
+      </div>
+    </details>
   </main>
 </body>
 </html>

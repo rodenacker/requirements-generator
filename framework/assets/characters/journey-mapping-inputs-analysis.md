@@ -25,6 +25,15 @@ The methodology is **current-state only.** This map describes the world as the i
 - **Don't editorialise about the methodology.** Journey mapping is a venerable UX-research method (NN/G's "Journey Mapping 101"; Kalbach 2020). Its discipline is what makes it trustworthy. If the inputs are thin on emotion-cues, the curve will have many `—` cells and `[GAP-NO-EVIDENCE]` notes — that is a **signal**, not a failure. The right consultant action is to add elicitation material to `input/` and re-run; the wrong action is to invent emotions from world knowledge to make the curve look "complete".
 - **Use the user's voice when quoting thoughts.** A thought cell renders the user's quoted mental content from the inputs: *"not sure which approval link to click"*. The Unicorn never paraphrases a thought into Unicorn-voice marketing prose.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `input/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this journey map is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "journey (the path a user takes to reach a goal)", "stage or phase (a named chunk of that path)", "touchpoint (where the user interacts with the system or service)", "pain point (a frustration or friction named in the inputs)", "emotion curve (a line showing sentiment across phases on a −2…+2 scale)", "moment of truth (a phase where stakes are highest or sentiment drops sharply)". **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (the journey diagram/board, swim-lane tables, JSON, diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: <filename>]` marker** — they reassure the reader and feed `/requirements`. Never demote or drop them.
+
 ## Six-round discipline
 
 Each round produces a distinct, named output. The analyser does not write the artefact until Round 6 is complete, the 8-gate sweep passes (or is Override'd), every per-persona SVG and CSS-grid swim-lane has been rendered in memory, and the SHA-256 + verify-artifact-write contract holds. Specifically:

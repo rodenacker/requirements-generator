@@ -17,7 +17,7 @@ Also produce `analyse-requirements/DECISION-TABLES/decision-tables.sidecar.json`
 
 ## Output section order (DIAGRAMS FIRST)
 
-The rendered artefact is laid out top-to-bottom as: **1.** Overview meta-grid → **2.** TOC → **3.** Diagrams (`{{HEALTH_STRIP_BLOCK}}` decision-health cards, then `{{DRD_BLOCK}}` the Decision Requirements Diagram) → **4.** Tables (`{{DECISION_TABLES_BLOCK}}` + `{{COMPLETENESS_REGISTER_BLOCK}}` + `{{CONSISTENCY_REGISTER_BLOCK}}` + `{{CATALOGUE_BLOCK}}`) → **5.** Machine-readable model (`{{BODY_JSON}}`, not collapsed) → **6.** Diagnostics (collapsed). Section order lives in `framework/assets/analyses/template-decision-tables.html`; the analyser emits the placeholder blocks; the template decides where they land.
+The rendered artefact is laid out top-to-bottom as: **0.** In plain terms (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) → **1.** Overview meta-grid → **2.** TOC → **3.** Diagrams (`{{HEALTH_STRIP_BLOCK}}` decision-health cards, then `{{DRD_BLOCK}}` the Decision Requirements Diagram) → **4.** Tables (`{{DECISION_TABLES_BLOCK}}` + `{{COMPLETENESS_REGISTER_BLOCK}}` + `{{CONSISTENCY_REGISTER_BLOCK}}` + `{{CATALOGUE_BLOCK}}`) → **5.** Machine-readable model (`{{BODY_JSON}}`, not collapsed) → **6.** Diagnostics (collapsed) → **7.** Downstream-use footer (`<details class="downstream-toggle">`, collapsed — re-ingestion machinery prose). Section order lives in `framework/assets/analyses/template-decision-tables.html`; the analyser emits the placeholder blocks; the template decides where they land.
 
 ## Stand-alone-ish constraint
 
@@ -42,6 +42,7 @@ Ten steps in order. Do not skip or collapse steps; each step's success is the pr
 
 - Read `framework/assets/characters/decision-tables-analysis.md` once.
 - Read `framework/assets/analyses/decision-tables-reference.md` once. The reference defines the hit-policy catalogue, condition typing, the completeness/consistency algorithms, the size cap, the lane rule, and the checks; treat it as authoritative.
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality check: write the "In plain terms" lead, gloss methodology jargon at first use in human-readable prose (the lead, the handback line), never gloss client domain terms (GLOSSARY territory), keep every `[SRC: C-NNN]`, and confine plain prose to the lead + glosses (the decision tables, registers, JSON block, and diagnostics keep their concrete discipline).
 - State readiness in one short line: *"Decision-tables analyser ready. Starting from `requirements/requirements.md`. Lifting conditional rules into DMN tables (default hit policy Unique); checking completeness + consistency. Status-transition rules deferred to STATE-DIAGRAM."*
 - Restate the stand-alone-ish constraint in-thread: *"This run reads `requirements/requirements.md` (plus a prior STATE-DIAGRAM output if present, to recognise transition guards) — no other pipeline state."*
 
@@ -114,6 +115,7 @@ Output: `decisions[].gaps[]`, `decisions[].conflicts[]`, `oversized[]`, the DRD 
 Per `framework/assets/analyses/template-decision-tables.html`:
 
 - Read the template once. Build the substitution map for every documented placeholder:
+    - `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences for the "In plain terms" lead: what this decision-tables analysis is, what it found (summarise decision count, gap count, blocking gaps, conflict count), and what the consultant should do with it (e.g. review blocking gaps, confirm inferred outcomes, re-drop into `/requirements` to surface gaps to the resolver). A faithful condensation of the closed rule model — it names no decision, count, or fact not already in the model, and carries no `[SRC: C-NNN]` of its own. Gloss methodology jargon at first use: "decision table (a grid of conditions → actions)", "condition (an input variable the table reads)", "rule (one row of the table — a combination of condition values mapped to a conclusion)", "hit policy (whether two rules may match the same input and, if so, how)", "completeness gap (a reachable combination of condition values with no stated rule)", "conflict (two overlapping rules with differing conclusions under a policy that forbids it)"; do **not** gloss client domain terms. HTML-escaped. Per the character's *Reader & plain language* block.
     - `{{TITLE}}` — *"Decision Tables — `<domain>`"* if `§1` declares a domain, else *"Decision Tables"*.
     - `{{DOMAIN}}` — verbatim from `§1`, else *"(not declared in requirements.md)"*.
     - `{{GENERATED_AT}}` — ISO-8601 UTC at render time.
@@ -182,6 +184,9 @@ Variants: prepend the Override note if Step 7 was Override'd; append the density
 - `analyse-requirements/DECISION-TABLES/decision-tables.html` exists and `verify-artifact-write` returned `pass`.
 - The sidecar `analyse-requirements/DECISION-TABLES/decision-tables.sidecar.json` exists, conforms to `sidecar-schema.md` (`schema_version "1"`, `method "decision-tables"`, `source_sha256` of the HTML, `architect_projection` containing only the `upstream-only` role), is ≤ 20 KB, and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
+- `<section id="plain-terms">` is the **first** content section in `<main>` (DOM order: before `<header id="overview">`); its `<p>` is non-empty and contains ≥ 2 sentences (≥ 20 words). The section carries no `[SRC: C-NNN]` markers. Lead-quality check: it names at least the decision count and the gap/conflict counts; it glosses at least one methodology term at first use; it introduces no fact or count not present in the rule model.
+- The TOC's first link is `<a href="#plain-terms">In plain terms</a>`.
+- The `<details class="downstream-toggle">` footer is present (after `<details id="diagnostics">`), collapsed by default; it contains the re-ingestion guidance. The `<pre><code class="language-json" id="decision-tables-body">` block is **not** inside the downstream-toggle (it remains in the non-collapsed `#body` section).
 - Every decision has a kebab-case id, a display name, exactly one declared hit policy, and ≥ 1 typed condition.
 - Every rule has a stable id, ≥ 1 source citation OR a derivation marker + ≥ 1 anchor, and exactly one conclusion (gap rows excepted, surfaced as flagged-empty).
 - Every completeness gap is an `[AI-SUGGESTED]` register row with a resolver question and `.provenance-ai-suggested`; **no conclusion cell is fabricated to fill a gap**.
@@ -200,6 +205,7 @@ Variants: prepend the Override note if Step 7 was Override'd; append the density
 ## Definition of Done
 
 - `analyse-requirements/DECISION-TABLES/decision-tables.html` + `decision-tables.sidecar.json` exist, are verified, and contain a decision table per decision, the completeness register, the consistency register, the business-rules catalogue, and the re-ingestible machine-readable model.
+- DOM order in the artefact: `<section id="plain-terms">` first (non-empty lead with ≥ 1 glossed methodology term, no `[SRC]`), then `<header id="overview">`, TOC with `#plain-terms` as first link, diagrams, tables, `#body` JSON (not collapsed), diagnostics (collapsed), `<details class="downstream-toggle">` footer (collapsed; re-ingestion guidance only — JSON block not inside it).
 - Either all 7 hard quality checks passed, or the consultant explicitly chose Override and diagnostics records every violation.
 - The consultant accepted the artefact in the Step 10 loop; control has been handed back to the orchestrator.
 

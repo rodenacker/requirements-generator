@@ -39,6 +39,16 @@ System-level fidelity: swimlanes are **the persona actor + named system componen
 
 ---
 
+## Output presentation
+
+The artefact opens with a short human-readable lead before the catalogue and diagrams:
+
+**0. In plain terms** (`<section id="plain-terms">`) — `{{PLAIN_SUMMARY}}`: 2–5 plain-English sentences: what this activity-diagram catalogue is, what it found (flow count, key structural observations), and what the consultant should do with it (review the catalogue, check `[AI-SUGGESTED]` items, select flows to render). Written as a faithful condensation of the content below — introduces no fact, count, or citation not already present; carries no `[SRC: C-NNN]` of its own. Methodology jargon glossed at first use (e.g. "activity diagram (a flowchart of the steps in a process)", "swimlane (a horizontal band grouping steps owned by one actor or component)", "decision/branch (a fork based on a condition)"); client domain terms left unglossed (GLOSSARY's job). The first visual after this lead is the activity diagram itself.
+
+**Voice and stance:** follows `framework/shared/output-readability.md` (additive — relaxes nothing above). Plain prose is confined to the lead and first-use glosses; the structured body (diagram, tables, diagnostics) keeps its concrete, telegraphic discipline. Every `[SRC: C-NNN]` marker is retained; none are demoted or dropped.
+
+---
+
 ## Output structure
 
 The artefact has two tiers:

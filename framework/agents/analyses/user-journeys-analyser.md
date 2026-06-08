@@ -12,6 +12,7 @@ Produce `analyse-requirements/USER-JOURNEYS/user-journeys-map.html` — a self-c
 
 The rendered artefact is laid out top-to-bottom as:
 
+0. **In plain terms** (`id="plain-terms"`) — `{{PLAIN_SUMMARY}}`: a 2–5 sentence plain-English lead (what this atlas is, what it found, what to do with it). The first content section, above the overview; the per-journey emotion-curve SVGs remain the first *visual* after the lead/overview. Per `framework/shared/output-readability.md` (operative rules restated in the character's *Reader & plain language* block).
 1. **Overview** (`id="overview"`) — title, subtitle, meta-grid.
 2. **TOC** (`<nav class="toc">`) — static top-level anchors. No "Tabular information" entry: this artefact has no standalone tables section; per-journey swimlane tables remain embedded inside their journey-card under Diagrams.
 3. **Diagrams** (`id="diagrams"`) — `{{JOURNEY_CARDS}}` (one card per journey: header, SVG emotion curve, swimlane table, footer).
@@ -42,6 +43,7 @@ Eleven steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - Read `framework/assets/characters/user-journeys-analysis.md` once.
 - Read `framework/assets/analyses/user-journeys-reference.md` once. The reference defines what to do in each round; treat it as authoritative.
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality check: write the "In plain terms" lead, gloss methodology jargon at first use in human-readable prose (the lead and the handback line), never gloss client domain terms (GLOSSARY territory), keep every provenance marker, and confine plain prose to the lead + glosses (the journey cards, SVGs, swimlane tables, and diagnostics keep their concrete, telegraphic discipline).
 - State readiness in one short line: *"User-journeys analyser ready. Starting from `requirements/requirements.md`."*
 - Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only — no other pipeline state is consulted."*
 
@@ -140,6 +142,7 @@ Per `framework/assets/analyses/template-user-journeys.html`:
 
 - Read the template once.
 - Build the substitution map for the placeholders documented in the template's header comment:
+    - `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences for the "In plain terms" lead (the first content section, above the overview): what this journey atlas is, what it found, and what the consultant should do with it. A faithful condensation of the journey cards below — it introduces no journey, count, or citation not already present and carries no `[SRC]` of its own. Gloss methodology jargon at first use (e.g. *"journey (the path a persona takes to reach a goal)"*, *"phase"*, *"touchpoint"*, *"emotion curve (sentiment across phases, −2…+2)"*, *"moment of truth"*, *"ai-suggested (inferred, not sourced)"*); do **not** gloss client domain terms. HTML-escaped. Per the character's *Reader & plain language* block.
     - `{{TITLE}}` — *"User Journeys — `<domain>`"* if `§1 Domain` exists, else *"User Journeys"*.
     - `{{DOMAIN}}` — verbatim from `§1` if present, else *"(not declared in requirements.md)"*.
     - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
@@ -239,6 +242,7 @@ Before handing back, verify all of the following against the written artefact an
 
 - `analyse-requirements/USER-JOURNEYS/user-journeys-map.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
+- Exactly one `<section id="plain-terms">` exists as the first content section (before `#overview`), carrying the "In plain terms" lead with a non-empty `<p>`. The lead introduces no journey, count, or claim not present below, and glosses no client domain terms.
 - Every `<section class="journey-card">` has its `--phase-count` inline style set, and the swimlane table column count matches.
 - Every `<tr>` inside a `<table class="journey-swimlane">` is one of the five named lanes (`.lane-actions`, `.lane-thoughts`, `.lane-emotion`, `.lane-touchpoints`, `.lane-painpoints`). All five lanes are present per card; empty cells render as `<td class="provenance-...">—</td>` rather than being omitted.
 - Every content `<td>` carries exactly one `.provenance-*` class — never zero, never two.

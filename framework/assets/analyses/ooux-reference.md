@@ -97,6 +97,17 @@ For every object, mark a small subset of attributes — typically 2 to 5 — as 
 
 ## Output presentation
 
+The artefact is laid out top-to-bottom as:
+
+0. **In plain terms** (`<section id="plain-terms">`) — `{{PLAIN_SUMMARY}}`: a 2–5 sentence plain-English lead (what this object map is, what it found, what the consultant should do with it). The first section, above the overview / meta-grid. Per `framework/shared/output-readability.md`.
+1. **Overview** (`<section id="overview">`) — title, subtitle, meta-grid (domain, generated-at, SHA-256, counts), and a `<nav class="toc">` with jump-links.
+2. **Legend** (`.legend-bar`) — colour key for the five sticky kinds + provenance dots. Directly under the TOC, above the column-board.
+3. **Object column-board** (`<section id="diagrams">`) — the sticky-note board; one `<section class="object-column">` per object.
+4. **Tabular information** (`<section id="tables">`) — `{{REL_MATRIX_BLOCK}}`: the relationship matrix.
+5. **Diagnostics** (`<details id="diagnostics" class="diagnostics-toggle">`) — collapsed by default.
+
+The column-board and matrix details follow below. The full HTML scaffold lives in `framework/assets/analyses/template-ooux.html`.
+
 The artefact renders as the canonical OOUX **sticky-note column-board**: one column per object, stickies stacked vertically. Color contract follows the canonical Prater/OOUX vocabulary:
 
 | Sticky kind        | Color               | What it carries                                                                |
@@ -138,3 +149,14 @@ Every check is a hard gate. If any check fails, the analyser does **not** write 
 ## Voice and stance
 
 The analyser's stance is defined in `framework/assets/characters/ooux-analysis.md` — analytical, thorough, literal. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+---
+
+## Readability standard
+
+This artefact is dual-audience: human (consultant, sometimes client stakeholder) and downstream (`/wireframe`'s `blueprint-architect` via the per-analysis sidecar). Apply `framework/shared/output-readability.md` — additive; does not relax any gate or quality check above. In practice:
+
+- **Lead first.** The rendered artefact opens with `<section id="plain-terms">` containing `{{PLAIN_SUMMARY}}`: 2–5 plain-English sentences describing what this object map is, what it found, and what the consultant should do with it. The lead is a faithful condensation — it introduces no object, count, or `[SRC: C-NNN]` citation not already present in the body.
+- **Gloss methodology jargon at first use** in the lead (and the handback line if prose): *objects (the real-world things users work with)*, *CTAs (actions a user can take on an object)*, *CCPs (the few fields shown on every list row / card)*, *relationship / cardinality (how objects connect and in what quantity)*. Client domain vocabulary is not glossed here — that is the GLOSSARY methodology's job.
+- **Plain prose confined to the lead and first-use glosses.** Object columns, relationship matrix, and diagnostics keep the concrete, telegraphic discipline defined above.
+- **Retain every `[SRC: C-NNN]` marker** and every provenance marker (`from-domain-model`, `derived-from-<section>`). Never demote or drop them.

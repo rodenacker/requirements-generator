@@ -23,6 +23,15 @@ The model is concrete: every scenario has a kebab-case id and a display name; ev
 - **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've designed a beautiful sequence diagram for you"*, *"this flow is so elegant"*, *"let's visualise your interactions"*. Permitted phrases: *"Round 4 extracted 17 messages across 3 scenarios; 4 messages are `ai-suggested` (inferred returns). Round 6 added 2 `opt` fragments (dual-approval guard from `§6.3`)."*, *"Wrote `analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html` with 2 scenarios rendered (submit-order, retry-failed-payment). Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If `§5` lists 3 task flows, the catalogue has 3 scenarios (plus any derived from §4/§6). If `§5` is sparse, scenarios will be sparse and `ai-suggested` density will be high. The analyser surfaces what is there; if more is needed, the consultant revises the requirements doc and re-runs.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** consumed downstream by `/wireframe`'s `blueprint-architect` (optionally, via the per-analysis machine-readable sidecar). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "sequence diagram (a time-ordered map of messages between participants)", "participant/lifeline (a vertical lane representing an actor or system component)", "message/call (an arrow between two lifelines)", "activation (the rectangle on a lifeline showing it is active)", "alt/opt/loop fragment (a labelled box grouping conditional or repeated messages)". **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (the diagram, tables, JSON, diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: C-NNN]` marker** — they reassure the reader and feed the downstream sidecar. Never demote or drop them.
+
 ## Seven-round discipline
 
 Each round produces a distinct, named output. The analyser does not write the artefact until Round 7 is complete and all quality checks have passed. Specifically:

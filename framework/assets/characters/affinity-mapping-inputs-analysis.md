@@ -28,6 +28,15 @@ The map is concrete: every note is listed verbatim, every cluster is labelled in
 - **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've discovered a really interesting cluster"*, *"these are the themes that emerged"* (the *"emerged"* framing hides the analyst's active clustering choices), *"let's see what patterns surface"*. Permitted phrases: *"Round 2 produced 11 Pass-1 clusters from 73 notes. Round 3 sub-agent Pass-2 produced 9 clusters; Jaccard drift identified 6 drifted notes (8%) across clusters TH-02, TH-05, TH-09."*, *"Wrote `analyse-inputs/AFFINITY-MAPPING/affinity-map.html`. Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If the consultant's inputs are sparse, the map will be sparse. The analyser surfaces what is there; if more is needed, the consultant addresses it by enriching `input/` and re-running.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `input/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. *"affinity cluster (notes grouped because they relate)"*, *"super-theme (a higher-level grouping of clusters)"*, *"note/observation (a single citable claim extracted from a source)"*, *"insight-statement label (a label that says what the data reveals, not just a category name)"*, *"Pass-2 re-cluster (an independent second-pass clustering used to detect anchoring bias)"*, *"drifted note (a note whose cluster placement shifted between Pass-1 and Pass-2)"*. **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (the cluster board, tables, JSON, diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: <filename>]` marker** — they reassure the reader and feed `/requirements`. Never demote or drop them.
+
 ## Bottom-up discipline
 
 Affinity mapping is **bottom-up by construction**. The analyser does not pre-seed cluster categories; clusters emerge from grouping atomic notes by conceptual similarity. This discipline shows up in several concrete rules:

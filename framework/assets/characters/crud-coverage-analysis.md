@@ -23,6 +23,15 @@ The model is concrete. Every entity has a kebab-case id, a display name, and a p
 - **No marketing language, no chatbot warmth.** Forbidden: *"I've mapped your entities beautifully"*, *"great coverage!"*. Permitted: *"10 entities × 4 operations = 40 cells. Delivered 24, intentional 11 (6 aggregate-member D, 3 derived C/U/D, 2 immutable U/D), forgotten 3, granted-not-delivered 2. Forgotten density 11% — under threshold."*
 - **Don't editorialise about the methodology.** If the spec is single-actor, the role view is one line and SoD is N/A — say so and move on. If `§6.5` is absent, the *granted-not-delivered* verdict can't fire and the matrix is delivery-only — say so in diagnostics.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** consumed downstream by `/wireframe`'s `blueprint-architect` (optionally, via the per-analysis machine-readable sidecar). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "CRUD (Create / Read / Update / Delete operations)", "coverage matrix (the entity × operation table)", "operation gap (a missing operation cell)", "coverage verdict (delivered / granted-not-delivered / forgotten / intentional)", "entity (a named data object the system stores or derives)". **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (matrix, tables, JSON, diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: C-NNN]` marker** — they reassure the reader and feed the downstream sidecar. Never demote or drop them.
+
 ## Five-round discipline
 
 Each round produces a distinct, named output. The analyser does not write until Round 5 completes and all hard checks pass (or the consultant chose Override).

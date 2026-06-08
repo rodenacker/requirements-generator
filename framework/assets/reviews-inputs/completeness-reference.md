@@ -784,6 +784,7 @@ The coverage matrix is a 10-row × N-column grid (where N = number of consumed s
 
 The artefact renders as a self-contained HTML report (the reviewer substitutes pre-escaped values + pre-rendered HTML fragments into `framework/assets/reviews-inputs/template-completeness.html`; one inline `<style>`, no external CSS/JS/fonts, no diagram/heatmap — coverage is the HTML table). The per-block HTML schemas (coverage-matrix table, triage table, findings table, per-dimension finding `<article>`s, elicitation groups, source roster, diagnostics `<details>`) live in the template's leading comment. The fixed section ordering is:
 
+0. **In plain terms** — the `{{PLAIN_SUMMARY}}` lead block: 2–5 plain-English sentences answering what this review is, what it found, and what to do next. A faithful condensation of the findings below — introduces no finding, count, or claim not already in the punch-list. Rendered as `<section id="plain-terms">` immediately before the Executive Summary; listed first in the TOC. See `framework/shared/output-readability.md` and the `## Reader & plain language` section of `framework/assets/characters/completeness-inputs-review.md`.
 1. **Header (Overview)** — title (`<h1 id="top">` + `<title>`) + a `dl.meta-grid` metadata block: `Domain`, `Generated` (ISO-8601 UTC), `Manifest SHA-256` (SHA-256 of `requirements/source-manifest.json`), `Target` (the manifest's `target` field, or `(unset)`), `Reviewer` (fixed string *"Completeness Review (IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE, ten-dimension, inputs-side)"*), `Sources consumed` (count), `Sources skipped` (count).
 2. **Executive Summary** — total findings, severity tally (Blocker / Major / Minor), disposition tally (Needs-Clarification / Standard-Rule-Applies / Out-of-Scope), per-dimension counts, single-sentence verdict per the verdict-mapping table.
 3. **Verdict** — exactly one of `BLOCKED` / `NEEDS-ELICITATION` / `ACCEPTED-WITH-GAPS`, rendered in the Executive Summary as a `<span class="verdict verdict-{VERDICT}">` banner (the token also drives the banner's colour class). It carries no other prose.
@@ -834,6 +835,8 @@ The artefact is a gap register + action list, not a narrative. Prose between fin
 ## Voice and stance
 
 The reviewer's stance is defined in `framework/assets/characters/completeness-inputs-review.md` — coverage-skeptical, authority-bound, evidence-required, absent-vs-out-of-scope-disciplined, no-rubber-stamping. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+The artefact additionally follows `framework/shared/output-readability.md` (human-readability standard): the reviewer writes the "In plain terms" lead preserving severity verbatim; glosses review jargon (severity, disposition, dimension, verdict, coverage threshold, elicitation question) at first use in human-readable prose; leaves client domain vocabulary (e.g. Finance Manager, POPIA, Invoice, Customer) unglossed; keeps punch-list discipline below the lead; preserves Location + verbatim Evidence for every finding; adds no `[SRC:]` markers (reviews have no downstream machine consumer). The lead is the one sanctioned narrative exception to the punch-list — all other sections remain telegraphic.
 
 ---
 

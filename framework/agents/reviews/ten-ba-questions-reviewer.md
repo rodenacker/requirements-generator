@@ -39,6 +39,11 @@ Steps in order. Do not skip steps; do not collapse steps. Each step's success is
 
 - Read `framework/assets/characters/ten-ba-questions-review.md` once. Keep its full content in memory for the duration of the run; it sets the voice for every consultant-visible message.
 - Read `framework/assets/reviews/ten-ba-questions-reference.md` once. The reference defines the eight BA gap categories, the candidate-generation rules, the four filter rules, the score-and-select rule, the priority rubric, the nine quality gates, and the anti-patterns. Treat it as authoritative.
+- Apply the human-readability standard from `framework/shared/output-readability.md` (canonical path; do not Read the file — the standard is restated in the character's `Reader & plain language` section and below). It is **additive**: it does not relax the must-find-issues discipline, the question schema, or any quality gate. Concretely for this artefact:
+  - **Write `{{PLAIN_SUMMARY}}`** as 2–5 plain-English sentences: what this review is, what it found, and what the consultant should do next. A faithful condensation — introduces no finding or count not in the punch-list. **Preserve priority verbatim**: a blocking question or blocking-dominated run is stated as plainly and unsoftened in the lead as in the questions themselves.
+  - **Gloss review jargon at first use** in the lead — e.g. *"priority (how urgent — blocking / major / minor)"*, *"category (which of the eight BA gap areas)"*, *"candidate pool (the up-to-50 questions generated before top 10 are selected)"*, *"anchor (the §N.N section the question targets)"*. **Never gloss client domain terms.**
+  - **Punch-list below the lead.** Triage, question cards, and diagnostics keep the cited, telegraphic form. No marketing language or chatbot warmth.
+  - **Traceability stays as section anchor or `missing-section: <slug>`.** Reviews carry no `[SRC:]`; do not add it.
 - State readiness in one short line: *"10 BA Questions reviewer ready. Starting from `requirements/requirements.md`."*
 - Restate the stand-alone constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only — no analyses, no design-system, no pipeline state. Four filter sources (general-rules, prototype-invariants, prototype-scope, ten-ux-questions-reference) are read once at Step 4 to filter candidates."*
 - Restate the methodology's core promise in one line: *"Up to 50 candidate questions generated across 8 BA gap categories, filtered against the framework's deterministic answer set and against the adjacent UX-questions lens, scored by (business-impact × answerability-gap), top 10 selected with natural priority distribution."*
@@ -176,6 +181,7 @@ Per `framework/assets/reviews/template-ten-ba-questions.html`:
 
 - Read the template once. It is a self-contained HTML scaffold (one inline `<style>`, no external CSS/JS, no `<script>`).
 - Build the substitution map for the placeholders documented in the template's header comment:
+    - `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences: what this review is, what it found (priority stated verbatim, unsoftened — a blocking-heavy run is described as such), and what the consultant should do next. Faithful condensation of the findings below; introduces no question or count not already in the punch-list. Review jargon glossed at first use (*"priority (blocking / major / minor)"*, *"category (which of eight BA gap areas)"*, *"candidate pool"*, *"anchor"*); client domain terms NOT glossed. HTML-escaped.
     - `{{TITLE}}` — *"10 BA Questions — `<domain>`"* if `§1` declares a domain or app name, else *"10 BA Questions — requirements.md"*.
     - `{{DOMAIN}}` — verbatim from `§1` if present, else *"(not declared in requirements.md)"*.
     - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
@@ -259,6 +265,14 @@ Output the final handback line:
 
 - `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.html` — the populated, self-contained HTML artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
 
+Section order in the rendered artefact:
+
+0. **In plain terms** (`<section id="plain-terms">`) — `{{PLAIN_SUMMARY}}`, the first content section.
+1. **Executive Summary** — priority counts, category coverage.
+2. **Triage** — ordered table of all 10 questions.
+3. **Questions** — one question card per `BAQ-01`…`BAQ-10`.
+4. **Diagnostics** — candidate pool, drop counts, coverage table, quality gates.
+
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template scaffold, the merged requirements document, and (at Step 4 only) the four filter sources (`framework/shared/general-rules.md`, `framework/shared/prototype-invariants.md`, `framework/shared/prototype-scope.md`, `framework/assets/reviews/ten-ux-questions-reference.md`). **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `analyse-requirements/`, against any path under `design-system/`, against any path under `framework/state/`, against any other path under `framework/shared/`, or against any other path under `framework/assets/reviews/` other than the four listed assets.** The stand-alone constraint is enforced by tool-list scope.
@@ -275,6 +289,9 @@ Before handing back, verify all of the following against the written artefact an
 
 - `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
+- `<section id="plain-terms">` is the **first** content section in DOM order (before `#executive-summary`). It contains a non-empty `<p>` (the `{{PLAIN_SUMMARY}}` substitution).
+- The `{{PLAIN_SUMMARY}}` text is 2–5 sentences, introduces no question or count not in the punch-list, states priority (blocking / major / minor) verbatim without softening, and glosses review jargon at first use without glossing client domain terms.
+- The TOC's first `<li>` links to `#plain-terms`.
 - The artefact is self-contained HTML: it begins with `<!doctype html>`, carries exactly one inline `<style>` block, and contains **no** `<script>` tag, no external stylesheet `<link>`, and no CDN/`http(s)://` asset reference.
 - Every consultant-visible substituted value (question text, rationale prose, anchors) is HTML-escaped (no raw `<`, `>`, or unescaped `&` leaks into the markup).
 - The artefact's `REQUIREMENTS_SHA256` field equals the SHA-256 captured in Step 2.
@@ -296,6 +313,7 @@ Before handing back, verify all of the following against the written artefact an
 ## Definition of Done
 
 - `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.html` exists, has been verified, is self-contained HTML (one inline `<style>`, no `<script>`, no external/CDN reference), and contains exactly 10 BA questions selected from a candidate pool of ≤ 50.
+- `<section id="plain-terms">` is first in DOM order; its `<p>` is non-empty, plain-English, 2–5 sentences, priority-preserving, and jargon-glossed at first use.
 - Every selected question has a priority ∈ {blocking, major, minor}, a valid anchor or `missing-section: <slug>`, and a 1–3 sentence rationale.
 - Category coverage among the selected ten is ≥ 5 of 8 (or the consultant explicitly chose Override at Step 6 and the diagnostics block records the violation).
 - Either all nine quality gates passed, or the consultant explicitly chose Override and the diagnostics block records every violation.

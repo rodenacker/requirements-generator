@@ -19,7 +19,7 @@ Also produce `analyse-requirements/CRUD-COVERAGE/crud-coverage.sidecar.json` per
 
 ## Output section order (DIAGRAMS FIRST)
 
-The rendered artefact is laid out top-to-bottom as: **1.** Overview meta-grid → **2.** TOC → **3.** Diagrams (`{{HEATMAP_BLOCK}}` coverage heatmap, then `{{ROLE_VIEW_BLOCK}}`) → **4.** Tables (`{{TRACEABILITY_BLOCK}}` + `{{HOLE_REGISTER_BLOCK}}` + `{{PLAIN_MATRIX_BLOCK}}`) → **5.** Diagnostics (collapsed). Section order lives in `framework/assets/analyses/template-crud-coverage.html`; the analyser emits the placeholder blocks; the template decides where they land.
+The rendered artefact is laid out top-to-bottom as: **0.** In plain terms (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) → **1.** Overview meta-grid → **2.** TOC → **3.** Diagrams (`{{HEATMAP_BLOCK}}` coverage heatmap, then `{{ROLE_VIEW_BLOCK}}`) → **4.** Tables (`{{TRACEABILITY_BLOCK}}` + `{{HOLE_REGISTER_BLOCK}}` + `{{PLAIN_MATRIX_BLOCK}}`) → **5.** Diagnostics (collapsed). Section order lives in `framework/assets/analyses/template-crud-coverage.html`; the analyser emits the placeholder blocks; the template decides where they land.
 
 ## Stand-alone-ish constraint
 
@@ -42,7 +42,7 @@ Ten steps in order. Do not skip or collapse steps; each step's success is the pr
 
 ### Step 1 — Activate
 
-- Read `framework/assets/characters/crud-coverage-analysis.md` once.
+- Read `framework/assets/characters/crud-coverage-analysis.md` once. The character's *Reader & plain language* block restates the operative rules from `framework/shared/output-readability.md` — these are the canonical source; no separate read of `framework/shared/output-readability.md` is needed. Concretely: write the "In plain terms" lead as a faithful 2–5 sentence condensation (no new fact, count, or citation; no `[SRC]`); gloss methodology jargon (CRUD, coverage matrix, operation gap, coverage verdict, entity) at first use in human-readable prose; never gloss client domain terms; keep every `[SRC: C-NNN]` marker.
 - Read `framework/assets/analyses/crud-coverage-reference.md` once. The reference defines verdicts, the rubric, the source hierarchy, and the checks; treat it as authoritative.
 - State readiness in one short line: *"CRUD-coverage analyser ready. Starting from `requirements/requirements.md`. Crossing data entities × {C,R,U,D}; verdicts: delivered / granted-not-delivered / forgotten / intentional. Role view only for multi-role specs."*
 - Restate the stand-alone-ish constraint in-thread: *"This run reads `requirements/requirements.md` (plus prior OOUX/DATA-MODEL outputs if present, as entity-list seeds only) — no other pipeline state."*
@@ -122,6 +122,7 @@ Output: per-cell `verdicts`, the `hole_register[]`.
 Per `framework/assets/analyses/template-crud-coverage.html`:
 
 - Read the template once. Build the substitution map for every documented placeholder:
+    - `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences: what this CRUD coverage matrix (the entity × operation table) is, what it found (delivered / forgotten / granted-not-delivered cell counts; any lifecycle holes flagged), and what the consultant should do with it (review the hole register; raise resolver questions before wireframing). A faithful condensation of the analysis — no new entity, count, or citation not already in the matrix; no `[SRC]` of its own. Methodology jargon glossed at first use (CRUD, coverage matrix, entity, operation gap, coverage verdict); client domain terms NOT glossed. HTML-escaped.
     - `{{TITLE}}` — *"CRUD Coverage — `<domain>`"* if `§1` declares a domain, else *"CRUD Coverage"*.
     - `{{DOMAIN}}` — verbatim from `§1`, else *"(not declared in requirements.md)"*.
     - `{{GENERATED_AT}}` — ISO-8601 UTC at render time.
@@ -188,6 +189,8 @@ Variants: prepend the Override note if Step 7 was Override'd; append the density
 - `analyse-requirements/CRUD-COVERAGE/crud-matrix.html` exists and `verify-artifact-write` returned `pass`.
 - The sidecar `analyse-requirements/CRUD-COVERAGE/crud-coverage.sidecar.json` exists, conforms to `sidecar-schema.md` (`schema_version "1"`, `method "crud-coverage"`, `source_sha256` of the HTML, only the two declared roles in `architect_projection`), is ≤ 20 KB, and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
+- `<section id="plain-terms">` is the **first** content element inside `<main>`, before the `<header id="overview">`. Its `<p>` is non-empty (the plain-English lead is present, not a placeholder). DOM order: `#plain-terms` → `#overview` → `.toc` → `.legend-bar` → `#diagrams` → … → diagnostics.
+- The "In plain terms" lead (the rendered `{{PLAIN_SUMMARY}}` content) is 2–5 sentences, introduces no new entity/count/citation not in the matrix, carries no `[SRC: C-NNN]`, and glosses methodology jargon (at minimum: CRUD, and at least one of coverage matrix / operation gap / coverage verdict / entity) at first use; client domain terms are unglossed.
 - Every (entity, operation) cell carries exactly one verdict (`delivered` / `granted-not-delivered` / `forgotten` / `intentional`) — never zero, never two.
 - Every `delivered` cell cites ≥ 1 source ID; every `forgotten` cell carries `[AI-SUGGESTED]` + a resolver question and `.provenance-ai-suggested`; every `intentional` cell cites a rubric class + §-anchor; every `granted-not-delivered` cell cites `§6.5` and is **not** marked `[AI-SUGGESTED]`.
 - If `§6.5` was present: no operation granted by `§6.5` is classified `forgotten` or `intentional` (check 6); every `§6.5` entity appears as a matrix row.
@@ -203,6 +206,7 @@ Variants: prepend the Override note if Step 7 was Override'd; append the density
 ## Definition of Done
 
 - `analyse-requirements/CRUD-COVERAGE/crud-matrix.html` + `crud-coverage.sidecar.json` exist, are verified, and contain a complete coverage matrix, lifecycle-hole register, traceability matrix, and the role view (grid or single-actor note).
+- DOM order: `#plain-terms` (non-empty lead) is first, followed by `#overview`, `.toc`, `.legend-bar`, `#diagrams`, `#tables`, diagnostics.
 - Either all 6 hard quality checks passed, or the consultant explicitly chose Override and diagnostics records every violation.
 - The consultant accepted the artefact in the Step 10 loop; control has been handed back to the orchestrator.
 

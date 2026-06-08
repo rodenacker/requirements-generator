@@ -88,6 +88,10 @@ Only `forgotten` cells carry `[AI-SUGGESTED]` — they are the genuinely-non-tra
 
 ## Output structure
 
+### 0. In plain terms (first rendered section)
+
+`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}` — a 2–5 sentence plain-English lead: what this CRUD coverage matrix (the entity × operation table) is, what it found, and what the consultant should do with it (e.g. review the lifecycle-hole register, raise resolver questions before wireframing). The **first** section, above the overview meta-grid. A faithful condensation of the content below — it introduces no entity, count, or citation not already in the matrix, and carries no `[SRC]` of its own. Methodology jargon (CRUD, coverage matrix, operation gap, coverage verdict, entity) is glossed at first use here; client domain terms are not glossed (the GLOSSARY methodology owns those). Per `framework/shared/output-readability.md`.
+
 ### Diagrams (top of document)
 
 1. **Coverage heatmap** — the centrepiece. Rows = entities (grouped persistent then derived); columns = `C` `R` `U` `D`. Each cell is colour-classed by verdict (delivered / granted-not-delivered / forgotten / intentional) and carries the delivering source IDs (or the hole marker) as text — colour is never the sole signal (a glyph + the verdict word accompany it). A forgotten or granted-not-delivered cell reads "hot".
@@ -158,3 +162,11 @@ Hard cap ≤ 20 KB; `source_sha256` of the HTML at write time; `truncated` flag 
 ## Stop-condition
 
 The analysis is complete when every entity has a row with all four operation cells carrying exactly one verdict; every delivered cell cites a source; every forgotten cell carries `[AI-SUGGESTED]` + a question; every intentional cell cites a rubric class; the `§6.5` reconciliation check passes (when `§6.5` is present); all 6 hard checks pass (or Override); and the consultant chose Accept in the handback loop.
+
+---
+
+## Voice and stance
+
+The analyser's stance is defined in `framework/assets/characters/crud-coverage-analysis.md` — mechanical, exhaustive, cross-section, provenance-honest. This reference defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+The artefact is human-read (and consumed downstream by `/wireframe`'s `blueprint-architect` via the sidecar), so the analyser also follows `framework/shared/output-readability.md`: it writes the "In plain terms" lead (`{{PLAIN_SUMMARY}}`), glosses methodology jargon — CRUD (Create / Read / Update / Delete operations), coverage matrix (entity × operation table), operation gap (a missing operation cell), coverage verdict (delivered / granted-not-delivered / forgotten / intentional), entity (a named data object the system stores or derives) — at first use in human-readable prose, leaves client domain vocabulary unglossed (GLOSSARY territory), and keeps every `[SRC: C-NNN]` marker. The plain-language layer is confined to the lead and first-use glosses; the matrix, tables, JSON, and diagnostics keep their concrete, named-entity discipline.

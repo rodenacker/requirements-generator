@@ -22,8 +22,27 @@
     • The scaffold itself is NEVER edited; section ordering, IDs, ARIA labels, and the
       TOC list are fixed.
 
+  Section order (fixed):
+    0. In plain terms (#plain-terms)
+    1. Executive summary (#executive-summary)
+    2. Coverage heatmap (#coverage-heatmap)
+    3. Gap matrix (#gap-matrix)
+    4. Action list (#action-list)
+    5. Per-dimension narrative (#per-dimension)
+    6. Source roster (#source-roster)
+    7. Diagnostics (#diagnostics)
+
   Placeholders the reviewer substitutes (string substitution, all values pre-escaped):
 
+    {{PLAIN_SUMMARY}}          — 2–5 plain-English sentences for the "In plain terms" lead
+                                 block (the FIRST section, above the Executive summary):
+                                 what this review is, what it found (preserving severity —
+                                 do NOT soften a BLOCKED verdict into reassurance), and what
+                                 the consultant should do next. HTML-escaped. Review jargon
+                                 (coverage state, gap, MoSCoW, impact, confidence, verdict,
+                                 Candidate Requirement) glossed at first use; client domain
+                                 terms NOT glossed. Reviews are human-only — no downstream
+                                 consumer. Per framework/shared/output-readability.md.
     {{TITLE}}                  — short title (e.g. "Gap Analysis (inputs-side) — Project X")
     {{DOMAIN}}                 — domain string (best-effort: from any source carrying a
                                  recognisable domain heading; otherwise "(not declared in inputs)")
@@ -423,6 +442,11 @@
     color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em;
   }
 
+  /* In plain terms (human-readable lead — first section) */
+  #plain-terms { border-left: 4px solid #0f766e; background: #f0fbfa; }
+  #plain-terms h2 { border-bottom-color: #0f766e; }
+  #plain-terms p { margin: 0 0 4px 0; font-size: 15px; line-height: 1.55; }
+
   /* Back-to-top */
   .back-to-top { margin: 24px 0 0 0; text-align: right; font-size: 12px; }
   .back-to-top a {
@@ -650,6 +674,7 @@
   <nav class="toc" aria-label="Table of contents">
     <span class="toc-label">On this page</span>
     <ol>
+      <li><a href="#plain-terms">In plain terms</a></li>
       <li><a href="#executive-summary">Executive summary</a></li>
       <li><a href="#coverage-heatmap">Coverage heatmap</a></li>
       <li><a href="#gap-matrix">Gap matrix</a></li>
@@ -659,6 +684,12 @@
       <li><a href="#diagnostics">Diagnostics</a></li>
     </ol>
   </nav>
+
+  <section id="plain-terms" aria-label="In plain terms">
+    <h2>In plain terms</h2>
+    <p>{{PLAIN_SUMMARY}}</p>
+    <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+  </section>
 
   <section id="executive-summary">
     <h2>Executive summary</h2>

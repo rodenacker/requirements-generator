@@ -46,6 +46,7 @@ Glossary is alphabetical, definitional text — there is no diagram. But it ship
 
 The artefact has a fixed top-to-bottom shape, realized by `framework/assets/analyses/template-glossary.html` (the template header comment is the canonical markup source of truth). No tier-1 / tier-2 split — every section is always rendered (sections beyond the active scope tier render an italic *"(populated when scope tier ≥ N)"* placeholder).
 
+0. **In plain terms.** A `<section id="plain-terms">` carrying 2–5 plain-English sentences (the `{{PLAIN_SUMMARY}}` placeholder) explaining *what this glossary is*: the agreed vocabulary for the project's domain, how many terms are defined, how many are used-but-undefined (flagged), and that the consultant should confirm or correct the proposed definitions. This lead is a faithful condensation — it introduces no term, count, or citation not already present in the glossary body, and carries no `[SRC]` of its own. It does **not** re-define domain terms (that is the term cards' job). First section, above the Overview.
 1. **Overview.** `<h1>` title + `dl.meta-grid`: domain, generation timestamp, requirements SHA-256, active scope tier, and the term counts (total, defined, used-without-definition, per-category, new-this-run, run number).
 2. **Defined terms.** Alphabetical term cards. Each card: term headword, category badge, maturity badge (L3 · Settled), verbatim definition lifted from `requirements.md`, citation (section ref + use-count + use-sites).
 3. **Terms used without explicit definition.** Alphabetical term cards. Each card: term headword, category badge, maturity badge (L0 · Undefined), use-count, citation list of use-sites. No authored gloss.
@@ -55,7 +56,18 @@ The artefact has a fixed top-to-bottom shape, realized by `framework/assets/anal
 7. **Machine-readable model.** The structured term model as JSON inside `<pre><code class="language-json" id="glossary-body">` — the re-ingestion contract the blueprint-architect's copy-vocabulary role reads.
 8. **Run history.** Append-only `<ul>` of prior runs (one `<li>` per run, timestamped, with scope tier and entry-count delta).
 9. **Diagnostics.** Collapsed `<details>`: the 7 hard-check results, by-category counts, Override flag-list.
-10. **Glossary-meta** trailing `<!-- glossary-meta: ... -->` comment (immediately before `</main>`) carrying the additive-merge cursor (`last_scope_tier`, `last_input_sha256`, `run_count`).
+10. **Downstream-use footer.** Collapsed `<details class="downstream-toggle">` containing the machinery prose for `/wireframe` re-ingestion (markitdown round-trip, blueprint-architect copy-vocabulary role, RF-09 fallback). Visible to the curious consultant; out of the way for the first-time reader.
+11. **Glossary-meta** trailing `<!-- glossary-meta: ... -->` comment (immediately before `</main>`) carrying the additive-merge cursor (`last_scope_tier`, `last_input_sha256`, `run_count`).
+
+## Voice and stance — readability pointer
+
+This artefact is read by a **human** (the consultant, sometimes a client stakeholder) and consumed downstream by `/wireframe`'s `blueprint-architect`. The voice and stance rules in `framework/assets/characters/glossary-analysis.md` govern the term cards, diagnostics, and all concrete output. The readability standard in `framework/shared/output-readability.md` is additive and governs the plain-terms lead and the first-use glosses — it does **not** relax any gate or citation rule.
+
+Key constraints for the human-readable layer:
+
+- The "In plain terms" lead explains **what the glossary is** — agreed vocabulary, counts, confirm-or-correct invitation. It does **not** re-define domain terms (those live in the term cards). This is the glossary method's critical rule: domain vocabulary is its content; the lead must never become a second glossary.
+- Methodology/framework jargon glossed at first use in the lead and handback line: *"used-but-undefined"*, *"alias/synonym"*, *"provenance"*, *"definition source"*, *"scope tier"*. Client domain terms are **never** glossed — they are the artefact's content.
+- Every `[SRC: C-NNN]` marker is kept. Never demote or drop.
 
 ---
 

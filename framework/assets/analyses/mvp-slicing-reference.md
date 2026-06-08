@@ -84,8 +84,9 @@ Compute the counts and coverage signals: per-bucket counts; cards mapped vs in S
 
 ## Output presentation
 
-The artefact renders top-to-bottom (diagram-first):
+The artefact renders top-to-bottom, plain-terms lead first:
 
+0. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) — a 2–5 sentence plain-English lead: what this MVP-slicing analysis is, what it found, and what the consultant should do with it. The **first** section, above the meta-grid. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own. Methodology jargon (MVP, slice, MoSCoW, phase/release, walking skeleton) is glossed at first use here; client domain terms are not glossed (the GLOSSARY methodology owns those). Per `framework/shared/output-readability.md`.
 1. **Overview** — meta-grid + the **proposed-MVP callout** banner (the convergence headline: *"Proposed MVP — N Must items; confirm or adjust before client hand-off"*).
 2. **Story map** — backbone-activity columns (left-to-right in flow order) × release bands (MVP band above the slice line; Release-2, Later, Unprioritised below). Each card is a tile carrying `data-src` (its requirement ID), `data-priority` (verbatim), `data-activity`, and (where known) `data-goal` / `data-flow`. The slice line is a full-width divider labelled with the Must count.
 3. **MoSCoW board** — four columns (Must / Should / Could / Won't). `Won't` is greyed and collapsed.
@@ -131,3 +132,12 @@ Each hard check is a gate. On any hard failure the analyser does **not** write t
 ## Voice and stance
 
 The analyser's stance is defined in `framework/assets/characters/mvp-slicing-analysis.md` — literal, slice-decisive, completeness-over-omission, provenance-honest, converging. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+## Readability standard
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) as well as consumed downstream by `/wireframe`'s `blueprint-architect` (optionally, via the per-analysis sidecar). The operative rules are restated in the character's *Reader & plain language* block; the canonical definition is `framework/shared/output-readability.md`. In brief:
+
+- The "In plain terms" lead (`{{PLAIN_SUMMARY}}`) is 2–5 sentences: a faithful condensation of what the analysis is, what it found, and what the consultant should do — no new fact, no `[SRC]`.
+- Methodology jargon is glossed at first use in the lead (e.g. "MVP (the smallest releasable version)", "slice (a thin end-to-end increment)", "MoSCoW (must / should / could / won't)", "walking skeleton (the lightest end-to-end thread)"). Client domain terms are **not** glossed here.
+- The plain-English layer is confined to the lead and first-use glosses. The structured body (story map, MoSCoW board, diagnostics) keeps its concrete, telegraphic discipline.
+- Every `[SRC: C-NNN]` marker is kept. Never demote or drop them.

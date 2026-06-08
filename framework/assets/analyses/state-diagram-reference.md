@@ -10,6 +10,8 @@
 
 **Character:** `framework/assets/characters/state-diagram-analysis.md`.
 
+**Readability:** the artefact is human-read (and consumed downstream by `/wireframe`'s `blueprint-architect` via the per-analysis sidecar), so the analyser also follows `framework/shared/output-readability.md` — it writes the "In plain terms" lead, glosses methodology jargon (state, transition, event, guard) at first use in human-readable prose, leaves client domain vocabulary unglossed (GLOSSARY territory), and keeps every `[SRC: C-NNN]` marker. The plain-language layer is confined to the lead + first-use glosses; the catalogue tables, SVG figures, and diagnostics keep their concrete discipline.
+
 ---
 
 ## Industry framing — UML 2.5 state-machine subset
@@ -45,7 +47,7 @@ System-level fidelity: state machines are per **aggregate root** (from `§2.3 Ag
 
 ## Output structure
 
-The artefact has two tiers:
+The artefact opens with an **In plain terms** lead (`<section id="plain-terms">` carrying `{{PLAIN_SUMMARY}}`) as its **first content section**, above the overview — a 2–5 sentence plain-English summary (what this catalogue is, what it found, what to do with it), per `framework/shared/output-readability.md`. It is a faithful condensation introducing no entity, count, or `[SRC]` not already present; methodology jargon is glossed at first use, client domain terms are not. The state-diagram figures remain the first *visual* after the lead/overview. Below the lead, the artefact has two tiers:
 
 ### Tier 1 — State-diagram catalogue (always rendered)
 

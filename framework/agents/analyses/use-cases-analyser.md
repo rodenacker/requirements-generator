@@ -12,6 +12,7 @@ Produce `analyse-requirements/USE-CASES/use-cases-map.html` — a self-contained
 
 The rendered artefact is laid out top-to-bottom as:
 
+0. **In plain terms** (`id="plain-terms"`) — `{{PLAIN_SUMMARY}}`: a 2–5 sentence plain-English lead (what this map is, what it found, what to do with it). The first content section, above the overview. Per `framework/shared/output-readability.md` (operative rules restated in the character's *Reader & plain language* block).
 1. **Overview** (`id="overview"`) — title, subtitle, meta-grid.
 2. **TOC** (`<nav class="toc">`) — static top-level anchors.
 3. **UML diagrams** (`id="uml-diagrams"`) — `{{UML_SVG_BLOCK}}` (one always-on System overview figure + 0..N per-actor focus figures) followed by `{{UML_MERMAID_BLOCK}}` (copy-pasteable Mermaid `flowchart LR` source, one `<pre>` per diagram). Placed immediately after the Overview to match the other analysis report templates.
@@ -44,6 +45,7 @@ Eleven primary steps plus two UML sub-steps (Step 8.5 — Round 7 UML diagram de
 
 - Read `framework/assets/characters/use-cases-analysis.md` once.
 - Read `framework/assets/analyses/use-cases-reference.md` once. The reference defines what to do in each round; treat it as authoritative.
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality gate: write the "In plain terms" lead, gloss methodology jargon at first use in human-readable prose (the lead and the handback line), never gloss client domain terms (GLOSSARY territory), keep every `[SRC: C-NNN]`, and confine plain prose to the lead + glosses (the cards, index table, UML diagrams, and diagnostics keep their concrete, telegraphic discipline).
 - State readiness in one short line: *"Use Cases analyser ready. Starting from `requirements/requirements.md`."*
 - Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only — no other pipeline state is consulted."*
 
@@ -220,6 +222,7 @@ Per `framework/assets/analyses/template-use-cases.html`:
 
 - Read the template once.
 - Build the substitution map for the placeholders documented in the template's header comment:
+    - `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences for the "In plain terms" lead (the first content section, above the overview): what this use-case map is, what it found, and what the consultant should do with it. A faithful condensation of the cards below — it introduces no use case, count, or citation not already present and carries no `[SRC]` of its own. Gloss methodology jargon at first use (e.g. *"use case (a goal a user achieves with the system)"*, *"primary actor"*, *"main success scenario"*, *"extension (an alternative or exception branch)"*); do **not** gloss client domain terms. HTML-escaped. Per the character's *Reader & plain language* block.
     - `{{TITLE}}` — *"Use Cases Map — `<domain>`"* if `§1 Domain` exists, else *"Use Cases Map"*.
     - `{{DOMAIN}}` — verbatim from `§1` if present, else *"(not declared in requirements.md)"*.
     - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
@@ -333,6 +336,7 @@ Before handing back, verify all of the following against the written artefact an
 
 - `analyse-requirements/USE-CASES/use-cases-map.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
+- Exactly one `<section id="plain-terms">` exists as the first content section (before `#overview`), carrying the "In plain terms" lead with a non-empty `<p>`. The lead introduces no use case, count, or `[SRC]` not present below, and glosses no client domain terms.
 - Every `<article class="uc-card">` has its level class set to exactly one of `level-summary`, `level-user-goal`, or `level-subfunction`. No unclassified cards.
 - Every UC card has its actor-provenance dot set to exactly one of `provenance-from-personas` or `provenance-derived`. No unmarked actors.
 - Every UC card has its goal-source pill set to exactly one of `src-from-user-stories`, `src-from-task-flows`, `src-from-goals`, or `src-from-prose`. No unmarked goal sources.

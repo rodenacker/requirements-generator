@@ -41,6 +41,16 @@ System-level fidelity: participants are **the persona actor + named system compo
 
 The artefact has two tiers:
 
+### Output presentation order (top-to-bottom)
+
+0. **In plain terms** (`<section id="plain-terms">`) — `{{PLAIN_SUMMARY}}`: a 2–5 sentence plain-English lead (what this analysis is, what it found, what the consultant should do with it). The first section, above the overview and above the diagram. Per `framework/shared/output-readability.md` (operative rules restated in the character's *Reader & plain language* block). Methodology jargon glossed at first use; client domain terms not glossed.
+1. Overview — title, subtitle, meta-grid.
+2. TOC — static top-level anchors.
+3. Legend — colour / provenance key.
+4. **Diagrams** (`id="diagrams"`) — the first visual after the "In plain terms" lead; inline-SVG sequence-diagram figures (consultant-selected) plus the adjacent Mermaid source block.
+5. Tabular information — Tier-1 catalogue tables.
+6. Diagnostics — collapsed by default.
+
 ### Tier 1 — Sequence-diagram catalogue (always rendered)
 
 Six tabular sections, in this order:
@@ -356,3 +366,14 @@ The analyser does **not** edit the template's CSS or layout — only the documen
 - **Cross-scenario participant matrix** → component-reuse hints for the design system (a participant used in 5+ scenarios warrants a first-class component).
 
 `framework/skills/map-sequence-diagram-to-ui.md` is a stub at MVP — the mapping is documented here for the analyser's character file and for future downstream design-spec authors.
+
+---
+
+## Voice, stance, and readability
+
+The output artefact follows `framework/shared/output-readability.md`. The operative rules are restated in the character file (`framework/assets/characters/sequence-diagram-analysis.md > Reader & plain language`) so no additional `framework/shared/` read is needed at runtime. In brief:
+
+- **Lead first.** The `{{PLAIN_SUMMARY}}` block (see *In plain terms* above) is a 2–5 sentence faithful condensation of the catalogue — what this analysis is, what it found, and what the consultant should do with it. It introduces no scenario, count, or citation not already in the body, and it carries no `[SRC: C-NNN]` of its own.
+- **Gloss methodology jargon at first use** in the lead and handback line: "sequence diagram (a time-ordered map of messages between participants)", "participant/lifeline", "message/call", "activation", "alt/opt/loop fragment". **Do not gloss client domain terms** — those belong to the GLOSSARY methodology.
+- **Keep every `[SRC: C-NNN]` marker.** They feed the downstream sidecar and the consultant's audit trail. Never demote or drop them.
+- **No plain-English layer in the body.** The diagram, tables, and diagnostics keep the concrete, named-participant, telegraphic discipline defined in the character's *Voice rules*. Plain language lives only in the lead and the first-use glosses.

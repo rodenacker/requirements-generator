@@ -47,6 +47,7 @@ This analyser **never** reads `framework/assets/glossary.md` (the cross-agent BA
 
 The artefact is laid out top-to-bottom (placeholders substituted into `template-glossary.html`):
 
+0. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) — a 2–5 sentence plain-English lead explaining *what this glossary is*: the agreed vocabulary for the project's domain, how many terms are defined, how many are used-but-undefined (flagged for the consultant), and that the consultant should confirm or correct the proposed definitions. The **first** section, above the meta-grid. A faithful condensation of the glossary below — it introduces no term, count, or citation not already present, and carries no `[SRC]` of its own. **The lead explains what the glossary is; it does NOT re-define the domain terms** (they are the glossary's content). Methodology jargon is glossed at first use here (e.g. "used-but-undefined", "alias/synonym", "provenance", "definition source"); client domain terms are not glossed. Per `framework/shared/output-readability.md`.
 1. **Overview** — title, subtitle, meta-grid (domain, generated timestamp, manifest fingerprint, source count + tier breakdown, total terms, domain/application split, maturity histogram L0–L4, settled/proposed/disputed tallies, proposal count, and the five open-item counts).
 2. **TOC** — static top-level anchors.
 3. **Canonical glossary — domain terms** — alphabetical term cards. **The primary content.**
@@ -282,3 +283,11 @@ When the consultant copies `glossary.html` into `input/` and re-invokes `/requir
 - Frantzi, K., Ananiadou, S., & Mima, H. (2000). "Automatic Recognition of Multi-Word Terms: the C-value/NC-value Method." *Int. J. on Digital Libraries* 3(2), 115–130. (Termhood/unithood.)
 - Berry, D. M., & Kamsties, E. (2004). "Ambiguity in Requirements Specification" / *Ambiguity Handbook*. (Ambiguity vs vagueness.)
 - ISO 30042:2019, *TermBase eXchange (TBX)*. (Term-entry structure inspiration: status, synonyms, related terms.)
+
+---
+
+## Voice and stance
+
+The analyser's stance is defined in `framework/assets/characters/glossary-inputs-analysis.md` — literal, citation-bound, extraction-first, convergence-disciplined. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+The artefact is human-read (and re-ingested by `/requirements`), so the analyser also follows `framework/shared/output-readability.md` (restated in the character's *Reader & plain language* block, so no `framework/shared/` read is needed): it writes the "In plain terms" lead explaining *what the glossary is* — the agreed vocabulary for the project's domain, term/undefined counts, and what the consultant should do — glosses methodology jargon (used-but-undefined, alias/synonym, provenance, definition source) at first use in human-readable prose, leaves client domain vocabulary entirely unglossed (defining domain vocabulary is the glossary's whole job, so this rule is critical here), and keeps every `[SRC: <filename>]` marker. The plain-language layer is confined to the lead and first-use glosses; the term cards, open-item registers, JSON body, and diagnostics keep their concrete, telegraphic, citation-bound discipline.

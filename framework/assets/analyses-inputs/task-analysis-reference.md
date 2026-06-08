@@ -81,6 +81,7 @@ The two are complementary; consultants commonly run this one before `/requiremen
 
 The artefact has a fixed top-to-bottom shape, populated into `framework/assets/analyses-inputs/template-task-analysis.html` via documented placeholder substitution:
 
+0. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) — a 2–5 sentence plain-English lead: what this task hierarchy (HTA — hierarchical task analysis) is, what it found, and what the consultant should do with it. The **first** section, above the overview header. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own. Methodology jargon (task, subtask, goal, plan/sequence) is glossed at first use; client domain terms are not glossed (the GLOSSARY methodology owns those). Per `framework/shared/output-readability.md`.
 1. **Header banner** (`<header id="overview">`) — title, generation timestamp, manifest sha256 (first 12 chars), manifest row count consumed / skipped, target-mode (prototype / application, from the manifest's `target` field if present), run number. Includes a `<nav class="toc-trees">` with jump-links to per-goal sections (one link per top-level goal — almost always one).
 2. **Goal summary** (`<section id="goal-summary">`) — for each top-level goal (typically one; rarely more — see §Multi-goal handling below): a short paragraph naming the goal (node `0`), its trigger event (when it starts), its preconditions (what must be true to begin), and the success outcome (what makes it complete). Every claim cites a manifest source.
 3. **Visual tree** (`<section id="visual-tree">`) — nested `<ol>` / `<details>`. Each node renders: hierarchical id (`0`, `1`, `1.1`, …), label, `[SRC: <filename>]` chips (one per source), Plan-type badge for non-terminals (`SEQ` / `SEL` / `ITER` / `CONC` / `DISC`, colour-coded), `[leaf]` chip for terminals, `[AI-SUGGESTED]` chip and red left border for inferred nodes.
@@ -375,3 +376,11 @@ The trailing **Next steps** banner in the artefact instructs the consultant:
 > *"To use this artefact as additional input for `/requirements`, copy this file into `input/` (e.g. `input/task-analysis.html`) and re-run `/requirements`. The input-handler will classify it as `Supported-via-MCP`, markitdown will convert it to `input/task-analysis.html.converted.md` (preserving the structured YAML block as fenced code), and the drafter will consume it via the refreshed manifest. The YAML structured tree becomes a bijection target for `/requirements`'s completeness gap pass; the Plans table seeds acceptance-criteria branches; the information-requirements table hints at `§7 Data entities`; any `[AI-SUGGESTED: AI-NNN | blocking]` gaps flow into the resolver as consultant questions."*
 
 The analyser does **not** auto-copy. The consultant copies manually.
+
+---
+
+## Voice and stance
+
+The analyser's stance is defined in `framework/assets/characters/task-analysis-inputs-analysis.md` — decompositional, literal, single-actor, source-grounded, gap-honest, additive, Plan-mandatory. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+The artefact is human-read (and re-ingested by `/requirements`), so the analyser also follows `framework/shared/output-readability.md`: it writes the "In plain terms" lead (what this task hierarchy / HTA is, what it found, what the consultant should do with it), glosses methodology jargon at first use in human-readable prose ("task", "subtask", "task hierarchy / HTA", "goal", "plan/sequence"), leaves client domain vocabulary unglossed (GLOSSARY territory), and keeps every `[SRC: <filename>]` marker. The plain-language layer is confined to the lead and first-use glosses; the visual tree, Plans table, Information requirements table, YAML block, and diagnostics keep their concrete, structured discipline.

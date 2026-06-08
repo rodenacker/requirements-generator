@@ -40,6 +40,7 @@ Sixteen steps in order. Do not skip steps; do not collapse steps. Each step's su
 - State readiness in one short line: *"Ambiguity inputs-side reviewer ready. Starting from `requirements/source-manifest.json`. Methodology: seven-dimension Berry/Kamsties + Femmer ambiguity sweep over the raw consultant input set — every finding cites a verbatim span, lists ≥2 plausible interpretations, and emits a stakeholder elicitation question."*
 - Restate the stand-alone-ish constraint in-thread: *"This run reads `requirements/source-manifest.json` plus the files it enumerates — no other pipeline state is consulted. `requirements/requirements.md`, analyses, design-system, reviews-of-requirements, and pipeline state are not loaded."*
 - Restate the ≥2-interpretations test in one line so the consultant sees it: *"Every finding must list ≥2 plausible readings. If only one reading exists, it is not ambiguous — it is wrong, and belongs in an adversarial review, not here. Such candidates are dropped."*
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** and relaxes no gate, no severity rule, and no quality discipline: at render (Step 14) write the "In plain terms" lead (preserving severity verbatim — never soften a Blocker / `BLOCKED` verdict), gloss review jargon at first use in human-readable prose, never gloss client domain terms, and keep the punch-list discipline everywhere below the lead.
 
 ### Step 2 — Read manifest
 
@@ -209,12 +210,13 @@ For multi-tag findings, the elicitation question addresses the strongest dimensi
 
 ### Step 14 — Render artefact in memory (HTML template substitution)
 
-Render the artefact by populating the in-memory copy of `framework/assets/reviews-inputs/template-ambiguity.html` (loaded at Step 1). **Never edit the scaffold structure** — section ordering, element IDs, ARIA labels, and the TOC list are fixed. Only substitute placeholder values: simple text placeholders inject as text content; block placeholders are pre-rendered HTML fragments constructed in memory per the per-block schemas in the template's leading comment. The section order in the rendered HTML follows `ambiguity-reference.md > Output presentation`, recast for HTML (Overview → Triage → Ambiguity Register → Source Roster → Findings Table → per-dimension sections → Suggested Elicitation Questions → collapsed Diagnostics → footer). The **ambiguity register** is the load-bearing artefact: a table keyed by ambiguity type, one row per finding, with a ready-to-paste stakeholder question.
+Render the artefact by populating the in-memory copy of `framework/assets/reviews-inputs/template-ambiguity.html` (loaded at Step 1). **Never edit the scaffold structure** — section ordering, element IDs, ARIA labels, and the TOC list are fixed. Only substitute placeholder values: simple text placeholders inject as text content; block placeholders are pre-rendered HTML fragments constructed in memory per the per-block schemas in the template's leading comment. The section order in the rendered HTML follows `ambiguity-reference.md > Output presentation`, recast for HTML (Overview → In plain terms → Executive Summary → Triage → Ambiguity Register → Source Roster → Findings Table → per-dimension sections → Suggested Elicitation Questions → collapsed Diagnostics). The **ambiguity register** is the load-bearing artefact: a table keyed by ambiguity type, one row per finding, with a ready-to-paste stakeholder question.
 
 **HTML-escaping discipline.** Every substituted value is HTML-escaped for the five characters `& < > " '` *before* substitution. There is no markdown pipe-escaping — the tables are HTML, not markdown. Evidence verbatim quotes are HTML-escaped and emitted inside `<blockquote class="evidence"><pre>…</pre></blockquote>` (per-dimension) or `<blockquote class="evidence-inline"><pre>…</pre></blockquote>` (the register table cell); the `<pre>` preserves line breaks.
 
 **Simple text placeholders:**
 
+- `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences for the "In plain terms" lead (the first content section, above the Executive Summary): what this review is, what it found, and what the consultant should do next. A faithful condensation of the merged findings — it names no finding or count not in the punch-list, and **preserves severity verbatim** (a Blocker, or a `BLOCKED` verdict, is stated plainly, never softened into reassurance). Gloss review jargon at first use (e.g. *"severity (how serious — Blocker / Major / Minor)"*, *"dimension (which of the seven linguistic lenses found it)"*, *"verdict (the overall gate)"*, *"elicitation question (a ready-to-paste stakeholder question)"*); do **not** gloss client domain terms. HTML-escaped. Per the character's *Reader & plain language* block.
 - `{{TITLE}}` — short title (e.g. *"Ambiguity Review (inputs-side) — {DOMAIN-or-project}"*).
 - `{{DOMAIN}}` — best-effort domain string from a source heading, else `(not declared in inputs)`.
 - `{{GENERATED_AT}}` — ISO-8601 UTC timestamp.
@@ -312,6 +314,9 @@ Before handing back, verify all of the following against the written artefact an
 - The artefact is self-contained: it begins with `<!doctype html>`, carries exactly one inline `<style>` block, and contains **no** `<script>`, no external stylesheet/`<link rel="stylesheet">`, no CDN/`http(s)://` asset reference, and no external font import.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The artefact's `<h1 id="top">` and `<title>` name the Ambiguity Review (inputs-side).
+- The artefact contains, in order: a `<title>` element, an `<h1 id="top">`, a `<nav class="toc">`, a `<section id="plain-terms">` (the "In plain terms" lead — the FIRST content section, before the Executive Summary, with a non-empty `<p>`), and `<section id="executive-summary">`, `<section id="triage">`, etc.
+- Every section ends with a `<p class="back-to-top"><a href="#top">↑ Back to top</a></p>` element (fifteen sections total: In plain terms, Executive Summary, Triage, Ambiguity Register, Source Roster, Findings Table, Dim 1 through Dim 7, Suggested Elicitation Questions, Diagnostics — so fifteen back-to-top links).
+- The `<section id="plain-terms">` lead `<p>` is non-empty, names no finding or count not present in the punch-list below, and preserves severity (no Blocker/Major softened into reassurance, no `BLOCKED` verdict downplayed). Review jargon is glossed at first use; client domain terms are not glossed.
 - The Executive Summary's verdict matches the severity tally per the reference's mapping table (`BLOCKED` if ≥1 Blocker; `NEEDS-REVISION` if ≥1 finding and zero Blockers; `ACCEPTED-WITH-NOTES` if zero findings), and the verdict banner's class is `verdict-{VERDICT}` for that exact token.
 - The Ambiguity Register `<table class="ambiguity-register">` has one `<tr>` per finding (keyed by ambiguity type), each carrying ≥2 interpretations and a stakeholder question; or the `<p class="register-empty">` line when zero findings.
 - The Findings Table `<tbody>` has exactly `{TOTAL_FINDINGS}` `<tr>` data rows.
@@ -335,7 +340,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` exists, is self-contained (one inline `<style>`, no `<script>`/CDN/external asset), has been verified, and contains a complete seven-dimension review.
+- `review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html` exists, is self-contained (one inline `<style>`, no `<script>`/CDN/external asset), has been verified, and contains a complete seven-dimension review with `<section id="plain-terms">` as the first content section.
 - The `AMB-NN` ID sequence is contiguous, assigned by primary-dimension order then within-dimension order.
 - Either all ten quality gates passed, or the consultant explicitly chose Override at Step 13 and the diagnostics block records every violation.
 - Every dimension's section is either a findings list or a Justification block — no silent zero-finding dimensions.

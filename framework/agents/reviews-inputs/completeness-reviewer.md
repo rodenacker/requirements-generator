@@ -39,6 +39,7 @@ Twenty steps in order. Do not skip steps; do not collapse steps. Each step's suc
 - Read `framework/assets/characters/completeness-inputs-review.md` once. Keep its full content in memory.
 - Read `framework/assets/reviews-inputs/completeness-reference.md` once. The reference defines the ten dimensions, the finding schema, the severity rubric, the disposition rubric, the absent-vs-out-of-scope test, the cross-dimension consolidation rule, the elicitation-question authoring rules, the coverage-matrix construction rules, and the twelve quality gates; treat it as authoritative. Keep its full content in memory.
 - Read `framework/assets/reviews-inputs/template-completeness.html` once. This is the self-contained HTML scaffold the artefact is rendered into at Step 18 (one inline `<style>`; placeholders + per-block schemas documented in the leading comment). Keep its full content in memory; never edit the scaffold structure — only substitute placeholder values.
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical source: `framework/shared/output-readability.md`, restated in `framework/assets/characters/completeness-inputs-review.md` so no `framework/shared/` read is needed here). The standard is additive — it relaxes no gate, no severity, and no finding-schema discipline. Concretely: write the `{{PLAIN_SUMMARY}}` lead preserving severity verbatim (a Blocker / BLOCKED verdict is stated unsoftened), gloss review jargon at first use (severity, disposition, dimension, verdict, coverage threshold, elicitation question), never gloss client domain terms, and keep punch-list discipline below the lead.
 - State readiness in one short line: *"Completeness inputs-side reviewer ready. Starting from `requirements/source-manifest.json`. Methodology: ten-dimension IEEE 29148 / IEEE 830 / Volere / BABOK / Wiegers / INCOSE / ISO 25010 completeness sweep over the raw consultant input set — every finding carries a citation Authority, a Disposition (Needs-Clarification / Standard-Rule-Applies / Out-of-Scope), and (for Needs-Clarification only) a one-sentence stakeholder elicitation question."*
 - Restate the stand-alone-ish constraint in-thread: *"This run reads `requirements/source-manifest.json` plus the files it enumerates, plus `framework/shared/general-rules.md` (always) and `framework/shared/prototype-scope.md` (only when manifest target is prototype) at the disposition step — no other pipeline state is consulted. `requirements/requirements.md`, analyses, design-system, reviews-of-requirements, sibling input-reviews, and pipeline state are not loaded."*
 - Restate the absent-vs-out-of-scope test in one line so the consultant sees it: *"Every finding satisfies the absent-vs-out-of-scope test — corpus silent on the topic, no explicit exclusion quote, no `GR-NN` rule covering the gap, before defaulting to Needs-Clarification. Findings resolved by `Standard-Rule-Applies` or `Out-of-Scope` are surfaced (not dropped) so the drafter knows which marker namespace to render downstream."*
@@ -444,12 +445,13 @@ For multi-tag findings, the question addresses the most-actionable dimension fir
 
 ### Step 18 — Render artefact in memory (HTML template substitution)
 
-Render the artefact by populating the in-memory copy of `framework/assets/reviews-inputs/template-completeness.html` (loaded at Step 1). **Never edit the scaffold structure** — section ordering, element IDs, ARIA labels, and the TOC list are fixed. Only substitute placeholder values: simple text placeholders inject as text content; block placeholders are pre-rendered HTML fragments constructed in memory per the per-block schemas in the template's leading comment. The section order in the rendered HTML matches `completeness-reference.md > Output presentation` (Overview → Coverage Matrix → Triage → Source Roster → Findings Table → per-dimension sections → Suggested Elicitation Questions → collapsed Diagnostics → footer). **There is no diagram/heatmap section** — coverage is the HTML table, not a visual.
+Render the artefact by populating the in-memory copy of `framework/assets/reviews-inputs/template-completeness.html` (loaded at Step 1). **Never edit the scaffold structure** — section ordering, element IDs, ARIA labels, and the TOC list are fixed. Only substitute placeholder values: simple text placeholders inject as text content; block placeholders are pre-rendered HTML fragments constructed in memory per the per-block schemas in the template's leading comment. The section order in the rendered HTML matches `completeness-reference.md > Output presentation` (In plain terms → Overview → Coverage Matrix → Triage → Source Roster → Findings Table → per-dimension sections → Suggested Elicitation Questions → collapsed Diagnostics). **There is no diagram/heatmap section** — coverage is the HTML table, not a visual.
 
 **HTML-escaping discipline.** Every substituted value is HTML-escaped for the five characters `& < > " '` *before* substitution. There is no markdown pipe-escaping — the tables are HTML, not markdown. Evidence verbatim quotes are HTML-escaped and emitted inside `<blockquote class="evidence"><pre>…</pre></blockquote>` (the `<pre>` preserves line breaks); `ABSENT` sentinels emit as `<blockquote class="evidence sentinel"><em>(no mention in consumed corpus)</em></blockquote>`.
 
 **Simple text placeholders:**
 
+- `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences: what this review is, what it found (preserving severity verbatim — do NOT soften a Blocker/BLOCKED verdict into reassurance), and what the consultant should do next. A faithful condensation of the findings; introduces no finding, count, or claim not already in the punch-list. Review jargon glossed at first use (severity, disposition, dimension, verdict, coverage threshold, elicitation question); client domain terms NOT glossed. HTML-escaped.
 - `{{TITLE}}` — short title (e.g. *"Completeness Review (inputs-side) — {DOMAIN-or-project}"*).
 - `{{DOMAIN}}` — best-effort domain string from a source heading, else `(not declared in inputs)`.
 - `{{GENERATED_AT}}` — ISO-8601 UTC timestamp.
@@ -547,6 +549,9 @@ Use `AskUserQuestion`:
 
 Before handing back, verify all of the following against the written artefact and the run's state:
 
+- The artefact contains exactly one `<section id="plain-terms">` and it is the first content `<section>` after `<nav class="toc">` (before `<section id="executive-summary">`). Its `<p>` is non-empty.
+- The `{{PLAIN_SUMMARY}}` lead introduces no finding, count, or claim not already in the punch-list, glosses no client domain terms, and does not soften any Blocker / BLOCKED verdict.
+- The first `<li>` in the TOC `<ol>` links to `#plain-terms`.
 - `review-inputs/COMPLETENESS-REVIEW/completeness-review.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact is self-contained: it begins with `<!doctype html>`, carries exactly one inline `<style>` block, and contains **no** `<script>`, no external stylesheet/`<link rel="stylesheet">`, no CDN/`http(s)://` asset reference, and no external font import.
 - The artefact contains zero literal `{{...}}` placeholders.
@@ -582,6 +587,7 @@ Before handing back, verify all of the following against the written artefact an
 ## Definition of Done
 
 - `review-inputs/COMPLETENESS-REVIEW/completeness-review.html` exists, is self-contained (one inline `<style>`, no `<script>`/CDN/external asset), has been verified, and contains a complete ten-dimension review.
+- The artefact's first content section is `<section id="plain-terms">` with a non-empty `{{PLAIN_SUMMARY}}` paragraph; the first TOC `<li>` links to `#plain-terms`.
 - The `COMP-NN` ID sequence is contiguous, assigned by primary-dimension order then within-dimension order.
 - Either all twelve quality gates passed, or the consultant explicitly chose Override at Step 17 and the diagnostics block records every violation.
 - Every dimension's section is either a findings list or a Justification block — no silent zero-finding dimensions.

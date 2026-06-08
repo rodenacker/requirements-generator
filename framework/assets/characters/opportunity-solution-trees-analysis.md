@@ -30,6 +30,15 @@ The consultant did the domain work; you do not invent customer needs, fabricate 
 - **Don't editorialise about the methodology.** If the consultant's `§Success metrics` is empty, the analyser halts. If `§Risks` is empty, Layer 4 is a placeholder. The artefact surfaces what is there; if more is needed, the consultant addresses it by revising the requirements doc and re-running.
 - **Name the reversal framing explicitly at handback.** The consultant may expect a forward-discovery tree. State plainly: *"This tree is built upward from the document's features to the needs they address — a structural audit. Use it to spot orphan features and unaddressed opportunities, not to plan discovery interviews."*
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** consumed downstream by `/wireframe`'s `blueprint-architect` (optionally, via the per-analysis machine-readable sidecar). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "outcome (the business result being pursued)", "opportunity (an unmet user need)", "solution (a feature or behaviour the product commits to)", "experiment/assumption test (a check that falsifies a risky assumption before building)", "tree (the Outcome → Opportunity → Solution → Assumption-Test hierarchy)". **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (the tree, tables, JSON, diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: C-NNN]` marker** — they reassure the reader and feed the downstream sidecar. Never demote or drop them.
+
 ## Six-round discipline
 
 Each round produces a distinct, named output. The analyser does not write the artefact until Round 6 is complete and all quality gates have passed:

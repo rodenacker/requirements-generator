@@ -12,8 +12,9 @@ The defining constraint: **this lens reads the cut, it never makes it.** Priorit
 
 ## Output section order
 
-The rendered artefact is laid out top-to-bottom (diagram-first):
+The rendered artefact is laid out top-to-bottom, plain-terms lead first:
 
+0. **In plain terms** (`<section id="plain-terms">`) — `{{PLAIN_SUMMARY}}`: a 2–5 sentence plain-English lead (what this analysis is, what it found, what the consultant should do with it). The **first** section, above the meta-grid. Per `framework/shared/output-readability.md` (operative rules restated in the character's *Reader & plain language* block, so no `framework/shared/` read is needed).
 1. **Overview** (`id="overview"`) — title, subtitle, meta-grid, and the **proposed-MVP callout** banner (the convergence headline).
 2. **TOC** (`<nav class="toc">`) — static top-level anchors.
 3. **Story map** (`id="storymap"`) — `{{STORY_MAP_BLOCK}}`: backbone-activity columns × release bands (MVP band above the slice line; Release-2 / Later / Unprioritised below). The centrepiece.
@@ -45,6 +46,7 @@ Eleven steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - Read `framework/assets/characters/mvp-slicing-analysis.md` once.
 - Read `framework/assets/analyses/mvp-slicing-reference.md` once. The reference defines what to do in each round; treat it as authoritative.
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality gate: write the "In plain terms" lead, gloss methodology jargon at first use in human-readable prose (the lead, the handback line), never gloss client domain terms (GLOSSARY territory), keep every `[SRC: C-NNN]`, and confine plain prose to the lead + glosses (the story map, MoSCoW board, JSON, and diagnostics keep their concrete discipline).
 - State readiness in one short line: *"MVP-slicing analyser ready. Starting from `requirements/requirements.md`. Methodology: Patton user-story mapping + DSDM MoSCoW. Backbone from §5 task flows (flow order); cards from §6.1 / §6.4 / §4.2; the release-slice line is the stated `Must` set. Priorities are read verbatim — this lens shows the cut, it does not make it. Zero consultant input."*
 - Restate the stand-alone-ish constraint in-thread: *"This run reads `requirements/requirements.md` only — no other pipeline state is consulted."*
 
@@ -133,7 +135,8 @@ Also compute the **soft** checks (non-blocking, recorded for diagnostics + handb
 Per `framework/assets/analyses/template-mvp-slicing.html`:
 
 - Read the template once.
-- Build the substitution map for the scalar placeholders documented in the template header: `{{TITLE}}` (*"MVP Slicing — `<domain>`"* if `§1` domain exists, else *"MVP Slicing"*), `{{DOMAIN}}`, `{{GENERATED_AT}}` (ISO-8601 UTC at render time), `{{REQUIREMENTS_SHA256}}` (Step 2), `{{BACKBONE_SOURCE}}`, `{{ACTIVITY_COUNT}}`, `{{CARD_COUNT}}`, `{{MUST_COUNT}}`, `{{SHOULD_COUNT}}`, `{{COULD_COUNT}}`, `{{WONT_COUNT}}`, `{{UNPRIORITISED_COUNT}}`, `{{N_SUPPORTING}}`, `{{MVP_ITEM_COUNT}}` (== `{{MUST_COUNT}}`), `{{MVP_RATIONALE_LINE}}`.
+- Build the substitution map for the scalar placeholders documented in the template header: `{{PLAIN_SUMMARY}}` (see below), `{{TITLE}}` (*"MVP Slicing — `<domain>`"* if `§1` domain exists, else *"MVP Slicing"*), `{{DOMAIN}}`, `{{GENERATED_AT}}` (ISO-8601 UTC at render time), `{{REQUIREMENTS_SHA256}}` (Step 2), `{{BACKBONE_SOURCE}}`, `{{ACTIVITY_COUNT}}`, `{{CARD_COUNT}}`, `{{MUST_COUNT}}`, `{{SHOULD_COUNT}}`, `{{COULD_COUNT}}`, `{{WONT_COUNT}}`, `{{UNPRIORITISED_COUNT}}`, `{{N_SUPPORTING}}`, `{{MVP_ITEM_COUNT}}` (== `{{MUST_COUNT}}`), `{{MVP_RATIONALE_LINE}}`.
+- **`{{PLAIN_SUMMARY}}` — compose last, after all counts and diagnostics are known.** Write 2–5 plain-English sentences: (1) what this analysis is (an MVP-slicing analysis — a story map + MoSCoW board showing the slice already set in requirements), (2) what it found (the Must / Should / Could / Won't counts; whether the backbone comes from §5 or a fallback; any notable soft warnings), and (3) what the consultant should do with it (confirm or adjust the proposed slice before client hand-off). Faithful condensation only — introduce no fact, count, or citation not already present in the slice data. Methodology jargon is glossed at first use: "MVP (the smallest releasable version)", "slice (a thin end-to-end increment)", "MoSCoW (must / should / could / won't)", "walking skeleton (the lightest end-to-end thread)". Client domain terms (any term from the client's domain — feature names, business objects, actor names) are **not** glossed here. No `[SRC]` in this field. HTML-escape the value before injection.
 - Pre-render the three block placeholders:
     - `{{STORY_MAP_BLOCK}}` — the `<div class="storymap-scroll">` per the template's STORY MAP SCHEMA. Set `--activity-count` inline on `.storymap-inner`. Emit the `.backbone-row` (one `.backbone-cell` per activity, in flow order, Supporting last), then the bands in fixed order: MVP (Must) → `.slice-line` → Release 2 (Should) → Later (Could) → Unprioritised (only if `UNPRIORITISED_COUNT > 0`). Each band's `.band-lanes` has exactly `ACTIVITY_COUNT` `.lane` children (one per activity column, same order as the backbone), each holding the cards for that (activity, band). Empty lanes are emitted empty (the CSS shows an em-dash). Each card carries `data-src`, `data-priority`, `data-activity`, and (where known) `data-goal` / `data-flow`, with `card-<kind>` + `card-<priority>` classes (+ `.gr24-flag` on flagged Musts).
     - `{{MOSCOW_BOARD_BLOCK}}` — the `<section class="moscow">` per the MOSCOW SCHEMA: `Must` / `Should` / `Could` columns + a collapsed `<details class="moscow-col col-wont">`. Empty columns render an `.empty-note`. Reuse the identical card markup.
@@ -238,7 +241,8 @@ Before handing back, verify all of the following against the written artefact an
 
 - `analyse-requirements/MVP-SLICING/mvp-slicing.html` and `…/mvp-slicing.sidecar.json` exist and `verify-artifact-write` returned `pass` for both.
 - The artefact contains zero literal `{{...}}` placeholders.
-- Section order in the artefact is Overview → Story map → MoSCoW board → Diagnostics.
+- The artefact contains exactly one `<section id="plain-terms">` with a non-empty `<p>` child. It is the **first** content section in `<main>`, before `<header id="overview">`. The `<p>` contains 2–5 sentences; no `[SRC: C-NNN]` marker appears in it; no client domain term is glossed in it; methodology jargon used (MVP, slice, MoSCoW, walking skeleton) is glossed at first use.
+- Section order in the artefact (DOM order) is: `plain-terms` → Overview → TOC → Story map → MoSCoW board → Diagnostics.
 - Every `.card` carries a non-empty `data-src` that is a verbatim substring of `requirements/requirements.md`, exactly one `.card-<kind>` class, and exactly one `.card-<priority>` class.
 - Every `data-priority` value equals the source row's `Priority` cell (or `(unset)`); no priority was re-derived via GR-24.
 - The set of cards in the MVP band equals the set of `.card-must` cards equals the `col-must` board column, and `{{MVP_ITEM_COUNT}} == {{MUST_COUNT}}`.
@@ -253,6 +257,7 @@ Before handing back, verify all of the following against the written artefact an
 ## Definition of Done
 
 - `analyse-requirements/MVP-SLICING/mvp-slicing.html` and its sidecar exist, have been verified, and contain a complete story map (backbone + cross-linked cards + slice line) plus a MoSCoW board.
+- DOM order in the artefact is: `plain-terms` (first, non-empty `<p>`) → Overview → TOC → Story map → MoSCoW board → Diagnostics.
 - Either all seven hard quality checks passed, or the consultant explicitly chose Override and the diagnostics block records every violation.
 - The consultant has confirmed the slice (Accept) in the Step 11 loop.
 - Control has been handed back to the orchestrator.

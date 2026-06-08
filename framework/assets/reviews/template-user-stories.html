@@ -23,6 +23,15 @@
   Placeholders the reviewer substitutes (string substitution, all values pre-escaped):
 
     {{TITLE}}                       — short title (e.g. "User Stories Review — Project X")
+    {{PLAIN_SUMMARY}}               — 2–5 plain-English sentences for the "In plain terms" lead
+                                      block (the FIRST section, above the Executive Summary):
+                                      what this review is, what it found (preserving severity —
+                                      do NOT soften a blocking/major into reassurance), and what
+                                      the consultant should do next. HTML-escaped. Review jargon
+                                      (severity, criterion, headline priority, INVEST, acceptance
+                                      criteria, Connextra format, story, epic) glossed at first use;
+                                      client domain terms NOT glossed. Reviews are human-only —
+                                      no downstream consumer. Per framework/shared/output-readability.md.
     {{DOMAIN}}                      — domain string (from requirements §1 if present, else "(not declared in requirements.md)")
     {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
     {{REQUIREMENTS_SHA256}}         — sha256 of requirements/requirements.md at read time
@@ -334,6 +343,11 @@
   }
   .back-to-top a:hover { color: var(--fg); border-bottom-color: var(--fg); }
 
+  /* In plain terms (human-readable lead — first section) */
+  #plain-terms { border-left: 4px solid var(--disp-patch); background: #f0fbfa; }
+  #plain-terms h2 { border-bottom-color: var(--disp-patch); }
+  #plain-terms p { margin: 0 0 4px 0; font-size: 15px; line-height: 1.55; }
+
   /* Priority + severity chips */
   .chip {
     display: inline-block;
@@ -558,6 +572,7 @@
 <nav class="toc" aria-label="Sections">
   <span class="toc-label">Contents</span>
   <ol>
+    <li><a href="#plain-terms">In plain terms</a></li>
     <li><a href="#executive-summary">Executive Summary</a></li>
     <li><a href="#triage">Triage</a></li>
     <li><a href="#blocking">Blocking</a></li>
@@ -566,6 +581,12 @@
     <li><a href="#diagnostics">Diagnostics</a></li>
   </ol>
 </nav>
+
+<section id="plain-terms" aria-label="In plain terms">
+  <h2>In plain terms</h2>
+  <p>{{PLAIN_SUMMARY}}</p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
 
 <section class="legend-bar" aria-label="Legend">
   <p class="legend">

@@ -15,6 +15,11 @@
   the artefact is human-facing only.
 
   Section order (top-to-bottom):
+    0. In plain terms (id="plain-terms") — {{PLAIN_SUMMARY}}: a short human-
+                                           readable lead (what this analysis is,
+                                           what it found, what to do with it).
+                                           First section, above the overview.
+                                           Per framework/shared/output-readability.md.
     1. Overview (id="overview")          — title, subtitle, meta-grid
                                            (Domain, Generated, Requirements SHA-256,
                                            + method counts).
@@ -47,6 +52,15 @@
   Placeholders the analyser substitutes (string substitution, all values
   pre-escaped for HTML):
 
+    {{PLAIN_SUMMARY}}               — 2–5 plain-English sentences for the "In plain terms"
+                                      lead block: what this analysis is, what it found,
+                                      what the consultant should do with it. HTML-escaped.
+                                      Methodology jargon (five whys, root cause, causal
+                                      chain, symptom vs cause, PASS/INCOMPLETE/CAP,
+                                      coverage gap, ai-suggested density) glossed at first
+                                      use; client domain terms NOT glossed (GLOSSARY owns
+                                      those). No [SRC] of its own. Per
+                                      framework/shared/output-readability.md.
     {{TITLE}}                       — short title (e.g. "Five Whys Justification Analysis — Project X")
     {{DOMAIN}}                      — domain string (from requirements §1 if present, else "(not declared in requirements.md)")
     {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
@@ -300,6 +314,11 @@
     .meta-grid dt { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; margin: 0; }
     .meta-grid dd { margin: 0 0 6px 0; font-variant-numeric: tabular-nums; word-break: break-word; }
 
+    /* ------- in plain terms (human-readable lead) ------- */
+    #plain-terms { margin: 0 0 24px 0; padding: 14px 18px; background: #f0f7ff; border: 1px solid #4f8fbf; border-left: 4px solid #4f8fbf; border-radius: 6px; }
+    #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+    #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--fg); }
+
     /* ------- table of contents (sticky) ------- */
     .toc {
       position: sticky;
@@ -529,6 +548,11 @@
 </head>
 <body>
   <main>
+    <section id="plain-terms" aria-label="In plain terms">
+      <h2>In plain terms</h2>
+      <p>{{PLAIN_SUMMARY}}</p>
+    </section>
+
     <section id="overview">
       <h1>{{TITLE}}</h1>
       <p class="subtitle">Five Whys justification audit of the merged requirements document. Each selected requirement is drilled level by level toward the underlying user goal, business driver, or external mandate — terminating at the Justification Sufficiency Test (an axiomatic / immutable driver), at three consecutive inferred rows (INCOMPLETE), or at the 7-level depth cap (CAP). Toyota Production System (Sakichi Toyoda 1930s / Taiichi Ohno 1950s), applied to requirement justification.</p>
@@ -549,6 +573,7 @@
 
     <nav class="toc" aria-label="Sections">
       <ol>
+        <li><a href="#plain-terms">In plain terms</a></li>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#diagrams">Why-chain diagrams</a></li>
         <li><a href="#scoring">Priority scoring</a></li>

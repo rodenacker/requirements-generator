@@ -17,7 +17,7 @@ Also produce `analyse-requirements/FACETED-CLASSIFICATION/faceted-classification
 
 ## Output section order (DIAGRAMS FIRST)
 
-The rendered artefact is laid out top-to-bottom as: **1.** Overview meta-grid + standing disclaimer banner → **2.** TOC → **3.** Diagrams (`{{FACET_CARDS_BLOCK}}` per-collection facet-coverage cards, then `{{ORTHOGONALITY_MATRIX_BLOCK}}` the per-collection facets × facets matrix) → **4.** Tables (`{{SCAFFOLDING_NOTE_BLOCK}}` + `{{CONTROLLED_VOCAB_BLOCK}}` + `{{NON_ORTHOGONALITY_REGISTER_BLOCK}}`) → **5.** Machine-readable model (`{{BODY_JSON}}`, not collapsed) → **6.** Diagnostics (collapsed). Section order lives in `framework/assets/analyses/template-faceted-classification.html`; the analyser emits the placeholder blocks; the template decides where they land. The "diagrams" are CSS-only (cards + a matrix table) — **no inline SVG**, no `svg-overlap-check`.
+The rendered artefact is laid out top-to-bottom as: **0.** In plain terms (`{{PLAIN_SUMMARY}}` — first rendered section, above the meta-grid) → **1.** Overview meta-grid + standing disclaimer banner → **2.** TOC → **3.** Diagrams (`{{FACET_CARDS_BLOCK}}` per-collection facet-coverage cards, then `{{ORTHOGONALITY_MATRIX_BLOCK}}` the per-collection facets × facets matrix) → **4.** Tables (`{{SCAFFOLDING_NOTE_BLOCK}}` + `{{CONTROLLED_VOCAB_BLOCK}}` + `{{NON_ORTHOGONALITY_REGISTER_BLOCK}}`) → **5.** Machine-readable model (`{{BODY_JSON}}`, not collapsed) → **6.** Diagnostics (collapsed). Section order lives in `framework/assets/analyses/template-faceted-classification.html`; the analyser emits the placeholder blocks; the template decides where they land. The "diagrams" are CSS-only (cards + a matrix table) — **no inline SVG**, no `svg-overlap-check`.
 
 ## Stand-alone-ish constraint
 
@@ -40,7 +40,7 @@ Ten steps in order. Do not skip or collapse steps; each step's success is the pr
 
 ### Step 1 — Activate
 
-- Read `framework/assets/characters/faceted-classification-analysis.md` once.
+- Read `framework/assets/characters/faceted-classification-analysis.md` once. The character's *Reader & plain language* block restates the human-readability standard (from `framework/shared/output-readability.md`) — apply it: write the "In plain terms" lead as a faithful 2–5-sentence condensation; gloss methodology jargon at first use in the lead and handback line; never gloss client domain terms; keep every `[SRC: C-NNN]` marker.
 - Read `framework/assets/analyses/faceted-classification-reference.md` once. The reference defines the extraction scan, facet typing, the orthogonality test, the controlled-vocabulary boundary, the anti-fabrication guard, the lane boundaries, and the checks; treat it as authoritative.
 - State readiness in one short line: *"Faceted-classification analyser ready. Starting from `requirements/requirements.md`. Deriving orthogonal facets + value sets for each list surface, binding each to a §7 property; checking orthogonality. Filter/sort controls are UI-only chrome — they must cite a real backing property, never invent one."*
 - Restate the stand-alone-ish constraint in-thread: *"This run reads `requirements/requirements.md` (plus a prior GLOSSARY output if present, for value labels) — no other pipeline state."*
@@ -110,6 +110,7 @@ Output: `orthogonality_matrix`, `non_orthogonal_pairs[]`, `scaffolding[]`, per-f
 Per `framework/assets/analyses/template-faceted-classification.html`:
 
 - Read the template once. Build the substitution map for every documented placeholder:
+    - `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences: (1) what this analysis is — a faceted-classification (facet: an independent axis for classifying things) of the list surfaces in `requirements.md`; (2) what it found — the number of collections, total facets, any non-orthogonal pairs (orthogonality: whether two facets are truly independent or one predicts the other), AI-suggested items, or un-banded flags; (3) what the consultant should do with it — confirm any `[AI-SUGGESTED]` facets or value sets, collapse non-orthogonal pairs, and (optionally) re-drop into `input/` to harden §6.4 UI requirements. Faithful condensation only — introduce no fact, count, or citation not already in the model. Methodology jargon glossed at first use (facet, facet value, orthogonality, backing property (the §7 data field a facet filters on), filter/refinement); client domain terms NOT glossed. HTML-escaped.
     - `{{TITLE}}` — *"Faceted Classification — `<domain>`"* if `§1` declares a domain, else *"Faceted Classification"*.
     - `{{DOMAIN}}` — verbatim from `§1`, else *"(not declared in requirements.md)"*.
     - `{{GENERATED_AT}}` — ISO-8601 UTC at render time.
@@ -174,6 +175,7 @@ Variants: prepend the Override note if Step 7 was Override'd; append the thin-sl
 
 ## Self-validation (run before declaring done)
 
+- `<section id="plain-terms">` is the **first** content section in `<main>` (DOM order: `#plain-terms` → `#overview` → `.toc` → …); its `<p>` is non-empty (contains 2–5 plain-English sentences, ≥ 20 words); methodology jargon is glossed at first use; no client domain term is glossed; no `[SRC: C-NNN]` appears in the lead.
 - `analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` exists and `verify-artifact-write` returned `pass`.
 - The sidecar `analyse-requirements/FACETED-CLASSIFICATION/faceted-classification.sidecar.json` exists, conforms to `sidecar-schema.md` (`schema_version "1"`, `method "faceted-classification"`, `source_sha256` of the HTML, `architect_projection` containing only the `upstream-only` role), is ≤ 20 KB, and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
@@ -194,7 +196,7 @@ Variants: prepend the Override note if Step 7 was Override'd; append the thin-sl
 
 ## Definition of Done
 
-- `analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` + `faceted-classification.sidecar.json` exist, are verified, and contain the facet-coverage cards, the orthogonality matrix, the filter/sort scaffolding note, the controlled-vocabulary table, the non-orthogonality register, and the re-ingestible machine-readable model (or, on the honest-skip path, the near-empty artefact that states no collection was in scope).
+- `analyse-requirements/FACETED-CLASSIFICATION/facet-map.html` + `faceted-classification.sidecar.json` exist, are verified, and the HTML contains (in DOM order): `<section id="plain-terms">` first (non-empty `<p>`, 2–5 sentences, jargon glossed, no `[SRC]`), then the facet-coverage cards, the orthogonality matrix, the filter/sort scaffolding note, the controlled-vocabulary table, the non-orthogonality register, and the re-ingestible machine-readable model (or, on the honest-skip path, the near-empty artefact that states no collection was in scope).
 - Either all 7 hard quality checks passed, or the consultant explicitly chose Override and diagnostics records every violation.
 - The consultant accepted the artefact in the Step 10 loop; control has been handed back to the orchestrator.
 

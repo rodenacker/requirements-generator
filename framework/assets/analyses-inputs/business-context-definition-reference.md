@@ -118,6 +118,7 @@ The two artefacts share the word *problem* but differ on four orthogonal axes:
 
 The artefact has a fixed top-to-bottom shape (rendered by the template; placeholders are substituted by the analyser). **Diagram-first** ordering: the causal-chain map — the connective tissue of the whole method — leads, so the reader sees how the four artefacts connect before meeting the detail cards.
 
+0. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) — a 2–5 sentence plain-English lead: what this business-context analysis is, what it found, and what the consultant should do with it. The **first** section, above the overview/meta-grid. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own. Methodology jargon (business goal, stakeholder, causal chain, BMM Ends, KAOS AND/OR, etc.) is glossed at first use here; client domain terms are not glossed (the GLOSSARY methodology owns those). Per `framework/shared/output-readability.md`.
 1. **Overview block.** Title, subtitle, meta-grid (Domain, Generated timestamp, Manifest fingerprint, Sources consumed, Tier breakdown, Problems / Needs / Goals / Objectives / Problem-Statements counts, Explicit / Inferred counts, Problem-driven / Opportunity-driven need split, Tensions count).
 2. **`bcd-meta` HTML comment** carrying the additive-merge cursor (`manifest_fingerprint`, `run_count`).
 3. **TOC** — static top-level anchors.
@@ -427,6 +428,8 @@ The analysis is complete when:
 ## Voice and stance
 
 The analyser's stance is defined in `framework/assets/characters/business-context-definition-inputs-analysis.md` — analytical, citation-bound, inference-disciplined, anti-confabulation, enterprise-altitude, additive. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+The artefact is human-read (and re-ingested by `/requirements`), so the analyser also follows `framework/shared/output-readability.md`: it writes the "In plain terms" lead (`{{PLAIN_SUMMARY}}`), glosses methodology jargon (business goal, stakeholder, context boundary/scope, success metric/objective, constraint, BMM Ends, KAOS AND/OR, causal chain) at first use in human-readable prose, leaves client domain vocabulary unglossed (GLOSSARY territory), and keeps every `[SRC: <filename>]` marker. The plain-language layer is confined to the lead and first-use glosses; the cards, causal-chain map, goal hierarchy, JSON body, and diagnostics keep their concrete, telegraphic discipline.
 
 ---
 

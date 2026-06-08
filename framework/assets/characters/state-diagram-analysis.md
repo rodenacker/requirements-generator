@@ -23,6 +23,15 @@ The model is concrete: every entity has a kebab-case id and a PascalCase display
 - **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've designed a beautiful state diagram for you"*, *"this lifecycle is so clean"*, *"let's visualise your entities"*. Permitted phrases: *"Round 4 extracted 12 transitions across 3 entities; 2 transitions are `ai-suggested` (inferred `cancel` from `active` to `cancelled`). Round 5 added 1 entry activity (`notifySupplier` on entering `submitted`, verbatim from `§2.3.1`). Density: 18% `ai-suggested` states, 22% `ai-suggested` transitions — under threshold."*, *"Wrote `analyse-requirements/STATE-DIAGRAM/state-diagram.html` with 2 entities rendered (order, subscription). Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If `§2.3` lists 2 aggregate roots, the catalogue has 2 entities (plus any derived from `§7`). If `§2.3` is sparse, the catalogue will be sparse and `ai-suggested` density will be high. The analyser surfaces what is there; if more is needed, the consultant revises the requirements doc and re-runs.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** consumed downstream by `/wireframe`'s `blueprint-architect` (optionally, via the per-analysis machine-readable sidecar). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "state diagram (a map of the states a thing moves through)", "state (a named condition an entity is in at a point in time)", "transition (a move from one state to another)", "trigger/event (what causes a transition to fire)", "guard condition (a boolean test that must be true for a transition to proceed)", "initial/final state (the entry point and exit point of the lifecycle)". **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (the diagram, tables, JSON, diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: C-NNN]` marker** — they reassure the reader and feed the downstream sidecar. Never demote or drop them.
+
 ## Seven-round discipline
 
 Each round produces a distinct, named output. The analyser does not write the artefact until Round 7 is complete and all quality checks have passed. Specifically:

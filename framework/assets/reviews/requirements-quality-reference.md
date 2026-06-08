@@ -8,7 +8,16 @@
 
 - `framework/agents/reviews/requirements-quality-reviewer.md` — drives enumeration, per-requirement nine-characteristic scoring, the set-level pass, the GR/PI rescue, the fix-list/EARS construction, validate, render, and write workflow.
 
-**Output produced by the reviewer:** `review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html` — a self-contained HTML document that (a) renders a **requirement × characteristic heatmap** (the diagram), (b) reports a **per-characteristic failure tally** and a **risk-tier distribution** (no blended conformance percentage), (c) lists a **set-level register** (the five set-level characteristics + a GTWR redundancy extension), (d) hands back a **fix list** with EARS-form rewrites for the ambiguous/compound requirements, (e) carries a **judgement-fence note** explaining the decidable/judgment split + the ID-scope exclusion, and (f) records every gate result, rescue, and drift fingerprint in a diagnostics block.
+**Output produced by the reviewer:** `review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html` — a self-contained HTML document structured as follows (section order fixed):
+
+0. **In plain terms** — 2–5 plain-English sentences: what this review is, what it found (verdict + tier counts), and what the consultant should do next. A faithful condensation — no finding or count not in the punch-list below; severity preserved verbatim (a BLOCKED verdict is stated as plainly in the lead as in the findings). Jargon glossed at first use (verdict, risk tier, decidable characteristic, judgment band, EARS). The *one* sanctioned narrative paragraph; everything below is a punch-list.
+1. **Executive summary** — verdict banner, per-characteristic failure tally, tier distribution, set-level tally, judgment-band tally.
+2. **Scorecard heatmap** — the requirement × characteristic heatmap diagram (diagrams-first ordering).
+3. **Per-requirement scorecard** — one row per ID-bearing requirement.
+4. **Fix list (EARS rewrites)** — one card per Red/Yellow requirement.
+5. **Set-level register** — the five 29148 set-level characteristics + GTWR redundancy extension.
+6. **Judgement-fence note** — decidable/judgment split + ID-scope exclusion + FIRST-PRINCIPLES pointer.
+7. **Diagnostics** — ten quality gates, rescue log, drift fingerprints, override log.
 
 The scaffold for the artefact is `framework/assets/reviews/template-requirements-quality.html`.
 
@@ -338,6 +347,15 @@ This fixture proves the four acceptance criteria: ≥70% of the 70 decidable cel
 - **Do not read draft sidecars / analyses / design-system / framework state.** Read `requirements/requirements.md` + this reference + the character + the template + the conforming-target files + (at the late filter step) general-rules + prototype-invariants. Nothing else.
 - **Do not cross lanes.** A contradiction *between* requirements is a set-level Consistent finding, not nine separate cell fails. A "should this exist at all" judgment is the Necessary band's thin shadow + a pointer to FIRST-PRINCIPLES — do not run the full defensibility audit here.
 - **Do not paste the artefact body into the conversation.** The file lands on disk; the consultant opens it.
+
+## Voice and readability
+
+This artefact is read by a human consultant (sometimes a client stakeholder) and by **no one else** — a review has no downstream machine consumer. The full readability standard is `framework/shared/output-readability.md` (additive — relaxes no gate, no severity, no quality check). The operative contract for this reviewer:
+
+- The "In plain terms" lead is the **one** sanctioned narrative paragraph. It is plain, not warm. Everything below it is a punch-list of scored cells, evidence quotes, and fix-list cards.
+- Jargon is glossed at first use in the lead: *verdict (the overall gate — BLOCKED / NEEDS-REVISION / ACCEPTED-WITH-CONCERNS)*, *risk tier (per-requirement severity — Red / Yellow / Green)*, *decidable characteristic*, *judgment band*, *EARS*. Client domain terms are never glossed.
+- Severity is **never softened** in the lead: a BLOCKED verdict names it as BLOCKED; a Red tier is Red.
+- Traceability (requirement ID / §-anchor / verbatim evidence) is preserved everywhere; no `[SRC:]` markers are added.
 
 ## Stance summary
 

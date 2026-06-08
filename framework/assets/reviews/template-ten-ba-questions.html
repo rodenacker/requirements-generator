@@ -22,6 +22,15 @@
 
   Placeholders the reviewer substitutes (string substitution, all values pre-escaped):
 
+    {{PLAIN_SUMMARY}}            — 2–5 plain-English sentences for the "In plain terms" lead
+                                   block (the FIRST content section, above the Executive
+                                   Summary): what this review is, what it found (preserving
+                                   priority — do NOT soften a blocking question into
+                                   reassurance), and what the consultant should do next.
+                                   HTML-escaped. Review jargon (priority, category, candidate
+                                   pool, anchor) glossed at first use; client domain terms
+                                   NOT glossed. Reviews are human-only — no downstream
+                                   consumer. Per framework/shared/output-readability.md.
     {{TITLE}}                    — short title (e.g. "10 BA Questions — Project X")
     {{DOMAIN}}                   — domain string (from requirements §1 if present, else "(not declared in requirements.md)")
     {{GENERATED_AT}}             — ISO-8601 UTC timestamp the artefact was rendered
@@ -309,6 +318,11 @@
   }
   .back-to-top a:hover { color: var(--fg); border-bottom-color: var(--fg); }
 
+  /* In plain terms (human-readable lead — first section) */
+  #plain-terms { border-left: 4px solid #0f766e; background: #f0fbfa; }
+  #plain-terms h2 { border-bottom-color: #0f766e; }
+  #plain-terms p { margin: 0 0 4px 0; font-size: 15px; line-height: 1.55; }
+
   /* Priority chips */
   .chip {
     display: inline-block;
@@ -517,6 +531,7 @@
 <nav class="toc" aria-label="Sections">
   <span class="toc-label">Contents</span>
   <ol>
+    <li><a href="#plain-terms">In plain terms</a></li>
     <li><a href="#executive-summary">Executive Summary</a></li>
     <li><a href="#triage">Triage</a></li>
     <li><a href="#questions">Questions</a></li>
@@ -534,6 +549,12 @@
   <p class="legend">
     Source: <code>requirements/requirements.md</code> only. Categories: C1 Problem &amp; justification · C2 Stakeholders &amp; users · C3 Success &amp; acceptance criteria · C4 Scope &amp; MVP boundaries · C5 Business rules &amp; decisions · C6 Data, entities &amp; integrations · C7 Edge cases &amp; exception flows · C8 Assumptions, dependencies &amp; sequencing.
   </p>
+</section>
+
+<section id="plain-terms" aria-label="In plain terms">
+  <h2>In plain terms</h2>
+  <p>{{PLAIN_SUMMARY}}</p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
 
 <section id="executive-summary">

@@ -17,6 +17,7 @@ Every row in every Tier-1 table carries exactly one provenance marker. Every qua
 
 The rendered artefact is laid out top-to-bottom as:
 
+0. **In plain terms** (`id="plain-terms"`) — `{{PLAIN_SUMMARY}}`: a 2–5 sentence plain-English lead (what this catalogue is, what it found, what to do with it). The first content section, above the overview; the task diagrams remain the first *visual* after the lead/overview. Per `framework/shared/output-readability.md` (operative rules restated in the character's *Reader & plain language* block).
 1. **Overview** (`id="overview"`) — title, subtitle, meta-grid.
 2. **TOC** (`<nav class="toc">`) — static top-level anchors.
 3. **Diagrams** (`id="diagrams"`) — `{{TASK_DIAGRAMS_BLOCK}}` followed by `{{MERMAID_BLOCK}}`. The task-diagrams block emits one `<section class="task-pair">` per selected task, each containing both the HTA tree and the Task-Flow Diagram (HTA first, TFD second).
@@ -48,6 +49,7 @@ Eleven steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - Read `framework/assets/characters/task-flows-analysis.md` once.
 - Read `framework/assets/analyses/task-flows-reference.md` once. The reference defines what to do in each round; treat it as authoritative.
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality check: write the "In plain terms" lead, gloss methodology jargon at first use in human-readable prose (the lead and the handback line), never gloss client domain terms (GLOSSARY territory), keep every `[SRC: C-NNN]`, and confine plain prose to the lead + glosses (the catalogue tables, SVG figures, and diagnostics keep their concrete, telegraphic discipline).
 - State readiness in one short line: *"Task-flows analyser ready. Starting from `requirements/requirements.md`. Methodology: Hierarchical Task Analysis (Annett-Duncan 1967; Stanton 2006) + Task-Flow Diagrams (NN/G; Hackos & Redish 1998). Single-actor, decomposition-first, user-mental-model fidelity. Plan types: sequence / selection / iteration / concurrent. Cap: 8 top-level tasks, depth 3, subgoals-per-parent 10."*
 - Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only — no other pipeline state is consulted."*
 
@@ -213,6 +215,7 @@ Per `framework/assets/analyses/template-task-flows.html`:
 
 - Read the template once.
 - Build the substitution map for the placeholders documented in the template's header comment:
+    - `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences for the "In plain terms" lead: what this task-flows catalogue is, what it found, and what the consultant should do with it. A faithful condensation of the catalogue below — it introduces no task, count, or citation not already present and carries no `[SRC]` of its own. Gloss methodology jargon at first use (e.g. *"task flow (the steps a user takes to complete a task)"*, *"HTA (hierarchical task analysis — goals broken into subgoals and operations)"*, *"plan (the order/condition in which subtasks run)"*, *"decision point"*, *"exception path"*); do **not** gloss client domain terms. HTML-escaped. Per the character's *Reader & plain language* block.
     - `{{TITLE}}` — *"Task Analysis & Task Flows — `<domain>`"* if `§1 Domain` exists, else *"Task Analysis & Task Flows"*.
     - `{{DOMAIN}}` — verbatim from `§1` if present, else *"(not declared in requirements.md)"*.
     - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
@@ -375,6 +378,7 @@ Before handing back, verify all of the following against the written artefact an
 
 - `analyse-requirements/TASK-FLOWS/task-flows.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
+- Exactly one `<section id="plain-terms">` exists as the first content section (before `#overview`), carrying the "In plain terms" lead with a non-empty `<p>`. The lead introduces no task, count, or `[SRC]` not present in the catalogue below, and glosses no client domain terms.
 - The catalogue section contains exactly six sub-sections in fixed order (`.tasks-block`, `.nodes-block`, `.plans-block`, `.decisions-block`, `.exceptions-block`, `.op-matrix-block`).
 - Every row in every Tier-1 table carries exactly one `.provenance-*` class — never zero, never two.
 - Every `.provenance-ai-suggested` row's content contains `[AI-SUGGESTED]` somewhere in its text (typically in the notes column or as a prefix on inferred values).

@@ -27,15 +27,16 @@ Every quality check in `framework/assets/analyses-inputs/user-goal-analysis-refe
 
 The rendered HTML is laid out top-to-bottom as (per the template's scaffolded structure):
 
+0. **In plain terms** (`<section id="plain-terms">`) — `{{PLAIN_SUMMARY}}`; a 2–5 sentence plain-English lead (what this goal register is, what it found, what the consultant should do with it). **The first section, above the meta-grid.** Per `framework/shared/output-readability.md` (operative rules restated in the character's *Reader & plain language* block, so no `framework/shared/` read is needed).
 1. **Overview** — title, subtitle, meta-grid.
-2. **TOC** — static top-level anchors (Overview, Goal hierarchy, Goal register, Actor map, Conflicts, Use in /requirements, Diagnostics).
+2. **TOC** — static top-level anchors (In plain terms, Overview, Goal hierarchy, Goal register, Actor map, Conflicts, Diagnostics).
 3. **Goal hierarchy** (`<section id="hierarchy">`) — `{{GOAL_HIERARCHY}}`; CSS-only nested AND/OR tree. **The diagram — the first content item** (diagram-first ordering, mirroring journey-mapping / affinity-mapping).
 4. **Goal register** (`<section id="register">`) — `{{GOAL_REGISTER}}`; Cooper-type sub-sections of goal cards.
 5. **Actor map** (`<section id="actor-map">`) — `{{ACTOR_MAP}}`.
 6. **Conflicts** (`<section id="conflicts">`) — `{{CONFLICTS_TABLE}}` (or the empty-state paragraph).
 7. **Machine-readable model** (`<section id="body">`) — `{{BODY_JSON}}` inside `<pre><code id="user-goal-analysis-body">`.
-8. **Round-trip footer** (`<section id="round-trip">`) — static paragraph; the analyser does not edit it.
-9. **Diagnostics** (`<details id="diagnostics">`) — `{{DIAGNOSTICS_BLOCK}}`.
+8. **Diagnostics** (`<details id="diagnostics">`) — `{{DIAGNOSTICS_BLOCK}}`.
+9. **Downstream footer** (`<details class="downstream-toggle">`) — static collapsed footer with re-ingestion instructions; the analyser does not edit it.
 10. **`user-goal-meta` HTML comment** — emitted by the analyser at the bottom of the body just before `</main>` (`<!-- user-goal-meta: manifest_fingerprint=<sha>, run_count=N -->`); first match is the cursor parsed on the next run.
 
 Section order is template-scaffolded; the analyser substitutes `{{placeholders}}` and emits the meta comment but does not alter the template's HTML/CSS structure.
@@ -84,6 +85,7 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - Read `framework/assets/characters/user-goal-analysis-inputs-analysis.md` once.
 - Read `framework/assets/analyses-inputs/user-goal-analysis-reference.md` once. The reference defines what to do in each pass; treat it as authoritative.
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality gate: write the "In plain terms" lead, gloss methodology jargon at first use in human-readable prose, never gloss client domain terms (GLOSSARY territory), keep every `[SRC]`, and confine plain prose to the lead + glosses (the goal cards, hierarchy, actor map, JSON, and diagnostics keep their concrete, citation-bound discipline).
 - (Optional, may defer to Step 10) Read `framework/assets/analyses-inputs/template-user-goal-analysis.html` once for substitution.
 - State readiness in one short line: *"User Goal Analysis analyser (input-analysis variant) ready. Starting from `requirements/source-manifest.json`. Methodology: a pragmatic GORE synthesis — Cooper goal types (life / end / experience) + hard/soft goals + KAOS AND/OR refinement + means-end laddering & Five-Whys for inference + i*-lite actor map, adapted for raw consultant inputs. Explicit goals are cited `[SRC: <filename>]`; inferred goals carry `[AI-SUGGESTED: AI-NN | blocking|non-blocking]` with a named technique and a source anchor — never anchorless. Six passes in sequence; seven hard quality gates; no goal fabricated from world knowledge."*
 - Restate the stand-alone-ish constraint in-thread: *"This run reads the manifest plus the files it enumerates — no other pipeline state is consulted; `requirements/requirements.md`, `framework/state/`, and `framework/shared/` are not loaded; there is no requirements-doc sibling for this method."*
@@ -251,6 +253,12 @@ On **Revise**: hand back with `failed-handback`. On **Override**: record each fa
 - `Read framework/assets/analyses-inputs/template-user-goal-analysis.html` (if not already loaded in Step 1).
 - Compose the artefact as a single string by substituting placeholders. All values are HTML-escaped before substitution, **except** the `{{BODY_JSON}}` payload which must additionally have `&`, `<`, `>` escaped so it is valid inside `<pre><code>` (the JSON itself is otherwise emitted verbatim so it round-trips).
 
+**Plain-terms placeholder:**
+
+| Placeholder | Value |
+|---|---|
+| `{{PLAIN_SUMMARY}}` | 2–5 plain-English sentences — what this goal register is (a GORE-based analysis of raw consultant inputs), what it found (goal count: explicit and inferred; Cooper-type coverage; key conflicts if any), and what the consultant should do with it (audit inferred goals; confirm blockers; optionally copy into `input/` for a `/requirements` round-trip). A faithful condensation: introduces no goal, count, or fact not already in the register; carries no `[SRC]` of its own. Methodology jargon glossed at first use (e.g. "user goal (what the user is trying to achieve)", "actor/persona (a role or person whose goals are surfaced)"); client domain terms NOT glossed (GLOSSARY methodology owns those). HTML-escaped. |
+
 **Meta-grid placeholders:**
 
 | Placeholder | Value |
@@ -296,6 +304,7 @@ After the full string is composed, compute its SHA-256 and store it for Step 11.
 Walk the composed string and verify:
 
 - No literal `{{...}}` placeholder strings remain.
+- `<section id="plain-terms">` appears before `<section id="overview">` (DOM-order check); its `<p>` is non-empty; no `[SRC:` marker appears inside `#plain-terms`.
 - Exactly one `<!-- user-goal-meta: ... -->` line is present.
 - Every `[SRC: <filename>]` payload (explicit cards, inferred anchors, conflict evidence, criterion sources) matches a `consumed_rows[*].filename`.
 - Every goal in `final_goals` is rendered as exactly one `<article class="goal-card">`; counts match `{{GOAL_COUNT}}` and the explicit/inferred/type/hardness sub-counts.
@@ -389,7 +398,9 @@ Before handing back, verify all of the following against the written artefact an
 - The artefact contains zero literal `{{...}}` placeholder strings.
 - The artefact begins with `<!doctype html>` and is well-formed self-contained HTML with **no `<script>` tag, no external `href`/`src` URL, and no Mermaid block**.
 - The artefact contains exactly one `<!-- user-goal-meta: ... -->` line. Its `manifest_fingerprint` equals the Step 2 value; its `run_count` equals `prior.run_count + 1` (or `1` on first run).
-- The artefact contains exactly one each of `<section id="overview">`, `<nav class="toc">`, `<section id="hierarchy">`, `<section id="register">`, `<section id="actor-map">`, `<section id="conflicts">`, `<section id="body">`, `<section id="round-trip">`, and `<details id="diagnostics">` — in that order (diagram-first: the hierarchy precedes the register).
+- The artefact contains `<section id="plain-terms">` as its **first section** (before `<section id="overview">`), with a non-empty `<p>` (the `{{PLAIN_SUMMARY}}` substitution). The lead is 2–5 sentences; it carries no `[SRC]` marker; methodology jargon is glossed at first use; no client domain term is glossed.
+- The TOC's first `<li>` links to `#plain-terms`.
+- The artefact contains exactly one each of `<section id="plain-terms">`, `<section id="overview">`, `<nav class="toc">`, `<section id="hierarchy">`, `<section id="register">`, `<section id="actor-map">`, `<section id="conflicts">`, `<section id="body">`, and `<details id="diagnostics">` — in that DOM order (`plain-terms` → `overview` → TOC → legend → `hierarchy` → `register` → `actor-map` → `conflicts` → `body` → `diagnostics` → `downstream-toggle`). The `<details class="downstream-toggle">` footer is present (collapsed re-ingestion instructions).
 - The Overview meta-grid carries correct `{{MANIFEST_FINGERPRINT}}`, `{{SOURCE_COUNT}}`, `{{TIER_BREAKDOWN}}`, `{{GOAL_COUNT}}`, `{{EXPLICIT_COUNT}}`, `{{INFERRED_COUNT}}`, `{{LIFE_COUNT}}`, `{{END_COUNT}}`, `{{EXPERIENCE_COUNT}}`, `{{HARD_COUNT}}`, `{{SOFT_COUNT}}`, `{{CONFLICT_COUNT}}` substitutions.
 - Every goal in `final_goals` is rendered as exactly one `<article class="goal-card">`; the explicit/inferred/type/hardness sub-counts match the meta-grid.
 - **Every goal carries exactly one provenance shape:** explicit goals carry ≥1 `<span class="src-chip">[SRC: <filename>]</span>` and **no** `AI-NN` badge; inferred goals carry an `.ai-suggested` block with one `AI-NN | blocking|non-blocking` badge, one `technique-chip` (a value from the closed set), and ≥1 anchor `[SRC: <filename>]`.
@@ -406,7 +417,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` exists, has been verified, and contains a complete goal register: Overview, TOC, Goal hierarchy (the diagram — first content item; CSS-only AND/OR tree, every goal placed once), Goal register (≥1 goal card), Actor map, Conflicts (table or empty-state), JSON body block, Round-trip footer, Diagnostics (provenance + technique + criteria + Cooper-coverage + Source roster + 7 gate results + flagged low-confidence + Run history), and the `user-goal-meta` cursor line.
+- `analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` exists, has been verified, and contains a complete goal register in DOM order: In plain terms (first section; non-empty lead; `{{PLAIN_SUMMARY}}` substituted; no `[SRC]`; methodology jargon glossed; client domain terms unglossed), Overview, TOC (first entry `#plain-terms`), Goal hierarchy (the diagram — first content item; CSS-only AND/OR tree, every goal placed once), Goal register (≥1 goal card), Actor map, Conflicts (table or empty-state), JSON body block, Diagnostics (provenance + technique + criteria + Cooper-coverage + Source roster + 7 gate results + flagged low-confidence + Run history), downstream footer (`<details class="downstream-toggle">`, collapsed), and the `user-goal-meta` cursor line.
 - Every explicit goal is `[SRC]`-cited; every inferred goal carries `[AI-SUGGESTED: AI-NN | blocking|non-blocking]` + a named technique + ≥1 anchor `[SRC]`. No anchorless inferred goal; no solution-as-goal; no platitude root.
 - Either all 7 hard quality gates passed, or the consultant explicitly chose Override and the Run-history bullet records every violation.
 - Additive-merge contract honoured: every prior-run goal card, hierarchy node, actor-map row, and conflict is present (unless explicitly dropped via Revise or re-clustered by the `re-extract-everything` drift branch with a Run-history note).

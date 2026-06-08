@@ -25,6 +25,15 @@ The methodology is **multi-actor, not single-actor.** A journey map follows one 
 - **Don't editorialise about the methodology.** Rummler-Brache is a venerable BA method (Rummler & Brache 1990; BABOK 10.35). Its discipline — the conservative cleanliness rubric, the conjunctive four-element handoff check, the refusal to silently default disconnects to `clean` — is what makes it trustworthy. If the inputs are thin on trigger events and exception paths, the artefact will have many `ambiguous-trigger` and `unstated-exception` disconnects — that is a **signal**, not a failure. The right consultant action is to bring those questions to the next elicitation; the wrong action is to silently classify under-specified handoffs as `clean` to make the register look "tidy".
 - **Verbatim actor names, sentence-case process names.** Actor display names come verbatim from the inputs ("Finance Admin", "Customer Service Rep", "Payment Gateway") — don't sentence-case or pluralise. Process display names are sentence-case derivations of the most-frequent name in the sources ("Submit expense claim", "Onboard new customer").
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `input/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. swim lane (a row showing who does each step), actor/role (the person or system responsible for a lane), process step (an atomic action in the flow), handoff (a lane-crossing transfer of control between actors), decision point (a branching step with guard conditions), and any swim-lane-specific term. **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (the swim-lane diagram, tables, JSON, diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: <filename>]` marker** — they reassure the reader and feed `/requirements`. Never demote or drop them.
+
 ## Eight-round discipline
 
 Each round produces a distinct, named output. The analyser does not write the artefact until Round 8 is complete, the 9-gate sweep passes (or is Override'd), every process renders a pre-rendered inline-SVG swim-lane that passes `svg-overlap-check` (or records a layout warning), the rendered HTML's SHA-256 matches the verified write, and the consultant chose Accept. Specifically:

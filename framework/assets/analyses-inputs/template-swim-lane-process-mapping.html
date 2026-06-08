@@ -26,6 +26,11 @@
   plain text inside cell / row / node content and survive the round-trip cleanly.
 
   Section order (top-to-bottom):
+    0. In plain terms (id="plain-terms")          — {{PLAIN_SUMMARY}}: short
+                                                    human-readable lead (what
+                                                    this map is, what it found,
+                                                    what to do with it). First
+                                                    section, above the overview.
     1. Compact overview (id="overview")           — title, counts caption,
                                                     jump-links to processes.
     2. Process gallery (id="processes")           — {{PROCESS_BLOCKS}}.
@@ -81,6 +86,14 @@
   the standard `<`, `>`, `&`, `"`, `'` set — Mermaid pipe / bracket / brace
   syntax must remain literal):
 
+    {{PLAIN_SUMMARY}}          — 2–5 plain-English sentences for the "In plain
+                                 terms" lead block: what this analysis is, what
+                                 it found, what the consultant should do with it.
+                                 HTML-escaped. Methodology/framework jargon (swim
+                                 lane, actor/role, handoff, decision point,
+                                 disconnect) glossed at first use; client domain
+                                 terms NOT glossed. No [SRC] markers. Per
+                                 framework/shared/output-readability.md.
     {{TITLE}}                  — short title (e.g. "Swim-Lane Process Mapping — Project X").
     {{DOMAIN}}                 — domain string (from manifest meta if declared, else "(not declared)").
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
@@ -659,6 +672,53 @@
     section.next-steps h2 { border-bottom: none; margin-top: 0; font-size: 1.05rem; }
     section.next-steps p { color: var(--fg-muted); margin: 0.4rem 0; }
 
+    /* ------- in plain terms (human-readable lead) ------- */
+    #plain-terms { margin: 0 0 24px 0; padding: 14px 18px; background: #f0f7ff; border: 1px solid #4f8fbf; border-left: 4px solid #4f8fbf; border-radius: 6px; }
+    #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+    #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--fg); }
+
+    /* ------- downstream-use footer (collapsed) ------- */
+    details.downstream-toggle { margin-top: 24px; margin-bottom: 24px; }
+    details.downstream-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-left: 4px solid #6b7280;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      color: #6b7280;
+      list-style: none;
+      user-select: none;
+    }
+    details.downstream-toggle > summary::-webkit-details-marker { display: none; }
+    details.downstream-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: #6b7280;
+      margin-right: 8px;
+      display: inline-block;
+      transition: transform 0.15s ease;
+    }
+    details.downstream-toggle[open] > summary { border-radius: 6px 6px 0 0; border-bottom: none; }
+    details.downstream-toggle[open] > summary::before { transform: rotate(90deg); }
+    .downstream-note {
+      padding: 14px 18px;
+      background: #fff;
+      border: 1px solid #d1d5db;
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+    }
+    .downstream-note p { color: #4b5563; font-size: 13px; margin: 6px 0; }
+    .downstream-note code {
+      font-family: ui-monospace, monospace;
+      font-size: 0.92em;
+      background: #f3f4f6;
+      padding: 0 4px;
+      border-radius: 3px;
+    }
+
     @media print {
       figure.swimlane-diagram { page-break-inside: avoid; }
       details.mermaid-block { display: none; }
@@ -669,6 +729,11 @@
 </head>
 
 <body>
+
+<section id="plain-terms" aria-label="In plain terms">
+  <h2>In plain terms</h2>
+  <p>{{PLAIN_SUMMARY}}</p>
+</section>
 
 <header id="overview">
   <h1>{{TITLE}}</h1>
@@ -688,7 +753,7 @@
     <div><span>Conflicting-source</span><span>{{DC_CONFLICTING_SOURCE}}</span></div>
     <div><span>Inferred nodes</span><span>{{INFERRED_COUNT}} ({{BLOCKING_GAP_COUNT}} blocking)</span></div>
   </div>
-  <nav class="toc-processes">{{TOC_PROCESSES}}</nav>
+  <nav class="toc-processes"><a href="#plain-terms">In plain terms</a><span class="sep" aria-hidden="true"> · </span>{{TOC_PROCESSES}}</nav>
 </header>
 
 <main>
@@ -758,16 +823,22 @@
     Closing disconnects before <code>/requirements</code> runs prevents fabricated integration
     requirements downstream.
   </p>
-  <p>
-    To re-ingest this artefact into <code>/requirements</code>, copy this file into
-    <code>input/</code> (e.g. <code>input/swim-lane-process-mapping.html</code>) and re-run
-    <code>/requirements</code>. The input-handler will classify it as
-    <code>Supported-via-MCP</code>; markitdown will convert it to
-    <code>input/swim-lane-process-mapping.html.converted.md</code> (the structured YAML model
-    survives as a fenced code block; the Mermaid source survives as <code>&lt;pre&gt;</code> text);
-    and the drafter will consume the converted markdown via the refreshed manifest.
-  </p>
 </section>
+
+<details class="downstream-toggle">
+  <summary>For downstream use — re-ingesting this artefact into /requirements</summary>
+  <div class="downstream-note">
+    <p>
+      To re-ingest this artefact into <code>/requirements</code>, copy this file into
+      <code>input/</code> (e.g. <code>input/swim-lane-process-mapping.html</code>) and re-run
+      <code>/requirements</code>. The input-handler will classify it as
+      <code>Supported-via-MCP</code>; markitdown will convert it to
+      <code>input/swim-lane-process-mapping.html.converted.md</code> (the structured YAML model
+      survives as a fenced code block; the Mermaid source survives as <code>&lt;pre&gt;</code> text);
+      and the drafter will consume the converted markdown via the refreshed manifest.
+    </p>
+  </div>
+</details>
 
 </main>
 

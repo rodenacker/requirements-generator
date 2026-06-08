@@ -7,6 +7,11 @@
   shareable with clients without tooling.
 
   Section order (top-to-bottom):
+    0. In plain terms (id="plain-terms") — {{PLAIN_SUMMARY}}: a short human-
+                                           readable lead (what this job map is,
+                                           what it found, what to do with it).
+                                           First section, above the meta-grid.
+                                           Per framework/shared/output-readability.md.
     1. Overview (id="overview")        — title, subtitle, meta-grid.
     2. TOC (<nav class="toc">)         — static top-level anchors.
     2b. Legend (.legend-bar)           — colour / provenance key, directly under
@@ -26,6 +31,13 @@
   Placeholders the analyser substitutes (string substitution, all values
   pre-escaped for HTML):
 
+    {{PLAIN_SUMMARY}}               — 2–5 plain-English sentences for the "In plain
+                                      terms" lead block: what this job map is, what it
+                                      found, what to do with it. HTML-escaped. Methodology
+                                      jargon (job, job map, outcome, forces of progress,
+                                      circumstance/context) glossed at first use; client
+                                      domain terms NOT glossed. Per
+                                      framework/shared/output-readability.md.
     {{TITLE}}                       — short title (e.g. "JTBD Job Map — Project X")
     {{DOMAIN}}                      — domain string (from requirements §1 if present)
     {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
@@ -731,6 +743,11 @@
     }
     .toc a:hover { border-bottom-color: var(--fg); }
 
+    /* ------- in plain terms (human-readable lead) ------- */
+    #plain-terms { margin: 0 0 24px 0; padding: 14px 18px; background: #f0f7ff; border: 1px solid #4f8fbf; border-left: 4px solid #4f8fbf; border-radius: 6px; }
+    #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+    #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--fg); }
+
     @media print {
       body { background: #fff; }
       main { padding: 0; }
@@ -744,6 +761,11 @@
 </head>
 <body>
   <main>
+    <section id="plain-terms" aria-label="In plain terms">
+      <h2>In plain terms</h2>
+      <p>{{PLAIN_SUMMARY}}</p>
+    </section>
+
     <section id="overview">
       <h1>{{TITLE}}</h1>
       <p class="subtitle">JTBD job map — one card per job (WHEN · I WANT TO · SO I CAN · scoring · forces). Grouped by cluster.</p>
@@ -763,6 +785,7 @@
 
     <nav class="toc" aria-label="Sections">
       <ol>
+        <li><a href="#plain-terms">In plain terms</a></li>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#diagrams">Diagrams</a></li>
         <li><a href="#tables">Tabular information</a></li>

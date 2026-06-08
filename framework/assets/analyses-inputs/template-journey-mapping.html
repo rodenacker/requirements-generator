@@ -16,6 +16,11 @@
   and survive the round-trip cleanly.
 
   Section order (top-to-bottom):
+    0. In plain terms (id="plain-terms")    — {{PLAIN_SUMMARY}}: a short human-
+                                              readable lead (what this map is, what
+                                              it found, what to do with it). First
+                                              section, above the overview. Per
+                                              framework/shared/output-readability.md.
     1. Compact overview (id="overview")     — title, one-line caption,
                                               jump-links to diagrams.
     2. Diagrams gallery (id="diagrams")     — {{DIAGRAM_BLOCKS}}.
@@ -39,6 +44,12 @@
   Placeholders the analyser substitutes (string substitution, all values
   pre-escaped for HTML; XML-escaped inside <svg><text> nodes):
 
+    {{PLAIN_SUMMARY}}          — 2–5 plain-English sentences for the "In plain terms"
+                                 lead block: what this journey map is, what it found,
+                                 what to do with it. HTML-escaped. Methodology jargon
+                                 (journey, stage/phase, touchpoint, pain point, emotion
+                                 curve, moment of truth) glossed at first use; client
+                                 domain terms NOT glossed. No [SRC] of its own.
     {{TITLE}}                  — short title (e.g. "Journey Mapping — Project X").
     {{DOMAIN}}                 — domain string (from manifest meta if available, or "(not declared)").
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
@@ -288,6 +299,15 @@
       margin: 0 auto;
       padding: 24px;
     }
+
+    /* ------- in plain terms (human-readable lead) ------- */
+    #plain-terms {
+      margin: 0 0 24px 0; padding: 14px 18px;
+      background: #f0f7ff; border: 1px solid #4f8fbf;
+      border-left: 4px solid #4f8fbf; border-radius: 6px;
+    }
+    #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+    #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--fg); }
 
     /* ------- compact overview (kept short to keep diagrams above fold) ------- */
 
@@ -680,11 +700,18 @@
   </script>
 
   <main>
+    <section id="plain-terms" aria-label="In plain terms">
+      <h2>In plain terms</h2>
+      <p>{{PLAIN_SUMMARY}}</p>
+    </section>
+
     <header id="overview">
       <h1>{{TITLE}}</h1>
       <p class="caption">{{PERSONA_COUNT}} personas · {{PHASE_COUNT}} phases · {{STEP_COUNT}} steps · {{PAIN_COUNT}} pain points · {{OPPORTUNITY_COUNT}} opportunities · {{MOMENT_OF_TRUTH_COUNT}} moments of truth · run {{RUN_COUNT}} · {{GENERATED_AT}}</p>
       <nav class="toc-diagrams" aria-label="Jump to diagrams">
-        <strong>Jump to diagram:</strong>
+        <strong>Jump to:</strong>
+        <a href="#plain-terms">In plain terms</a><span class="sep" aria-hidden="true"> · </span>
+        <strong>Diagrams:</strong>
         {{TOC_DIAGRAMS}}
       </nav>
     </header>

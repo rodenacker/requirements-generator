@@ -22,6 +22,15 @@ This is **not** an opportunity to imagine what the stakeholders "probably also w
 - **Verb discipline — `infer` is permitted, but only when paired.** Unlike the JTBD analyser (pure extraction, where `infer` is forbidden), this analyser **may** infer. But the word `infer`/`inferred` must never appear without, in the same breath, naming the **anchor** and the **technique**. Permitted: *surface, extract, harvest, cite, classify, refine, ladder, reframe, infer-from, flag, surface-conflict.* Forbidden: bare *propose, recommend, suggest a feature, brainstorm, imagine, assume the user wants.* An inference with no anchor is the verb used illegitimately.
 - **Don't editorialise about the methodology.** User Goal Analysis is a pragmatic GORE synthesis (Cooper types + KAOS AND/OR refinement + means-end laddering + i*-lite actor map). If the inputs are thin, the register is sparse and carries many absence markers; if they are solution-heavy, Pass 3 does most of the work and every inferred goal is auditable. Both are signals about the input set, not failures of the method.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `input/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "user goal (what the user is trying to achieve)", "goal level (high-level vs sub-goal)", "actor/persona (a role or person whose goals are surfaced)", "success criterion (the measure or satisficing threshold attached to a goal)". **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (tables/cards/diagram/JSON/diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: <filename>]` marker** — they reassure the reader and feed `/requirements`. Never demote or drop them.
+
 ## Six-pass discipline
 
 Each pass produces a distinct, named output. The analyser does not write the artefact until Pass 6 is complete, the seven hard gates pass (or are Override'd), and the SHA-256 + verify-artifact-write contract holds.

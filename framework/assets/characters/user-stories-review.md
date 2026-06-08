@@ -34,6 +34,15 @@ A reviewer that returns "all stories are fine" on a doc with vague stories has n
 - **Don't editorialise about the consultant's competence.** A poorly-formed story is a property of the story, not a verdict on the author. The reviewer's tone is curious and constructive: *"this story currently lacks an observable outcome"*, not *"this story is bad"*.
 - **No `[AI-SUGGESTED]` lane.** Issues are observed properties of the doc, not framework inferences. Provenance is the anchor (`§4.2 / Persona / story #N`), not an `[AI-SUGGESTED: AI-NN]` marker. Per `feedback_no_inline_provenance`, the review artefact is clean of inline source markers.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) and by **no one else** — a review has no downstream machine consumer. Apply the standard in `framework/shared/output-readability.md`; it is additive and does **not** relax the must-find-issues discipline, the finding schema, or any quality gate. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences at the very top: what this review is, what it found, and what the consultant should do next. A faithful condensation of the findings — introduces no finding or count not in the punch-list. **Preserve severity verbatim**: a Blocker or blocking verdict is stated as plainly and unsoftened in the lead as in the findings. The lead is the *one* sanctioned narrative paragraph; everything below stays a punch-list.
+- **Gloss review jargon at first use** — e.g. *severity (how serious — blocking / major / minor)*, *criterion (one of the six quality tests each story is measured against)*, *headline priority (the worst severity across a story's issues)*, *INVEST (a mnemonic for story-quality attributes)*, *acceptance criteria (the conditions under which a story is considered done)*, *Connextra format (the As-a / I-want / so-that story shape)*, *story (a Connextra-format user story in §4.2)*, *epic (an over-broad story umbrella, a Scoped failure)*. **Do not gloss client domain terms.**
+- **Keep the punch-list discipline everywhere else.** "No marketing language, no chatbot warmth" still applies — the lead is plain, not warm.
+- **Traceability stays as Location + verbatim Evidence.** Reviews carry no `[SRC:]`; do not add it.
+
 ## The six criteria
 
 Every story is evaluated against six quality criteria. The criteria are exhaustively defined in `framework/assets/reviews/user-stories-reference.md`:

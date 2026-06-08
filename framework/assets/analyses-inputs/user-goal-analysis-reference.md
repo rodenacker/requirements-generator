@@ -61,9 +61,10 @@ The scope boundaries are **hard** — they are enforced as analyser anti-pattern
 
 The artefact has a fixed top-to-bottom shape (rendered by the template; placeholders are substituted by the analyser):
 
+0. **In plain terms** (`<section id="plain-terms">`). A 2–5 sentence plain-English lead — what this goal register is, what it found, and what the consultant should do with it. A faithful condensation: no new fact, count, or `[SRC]` of its own. First section, above the meta-grid. Methodology jargon (user goal (what the user is trying to achieve), goal level (high-level vs sub-goal), actor/persona (a role or person whose goals are surfaced), success criterion (the measure or satisficing threshold attached to a goal)) glossed at first use; client domain terms unglossed. Per `framework/shared/output-readability.md`.
 1. **Overview block.** Title, subtitle, meta-grid (Domain, Generated timestamp, Manifest fingerprint, Sources consumed, Tier breakdown, Total goals, Explicit / Inferred counts, Life / End / Experience counts, Hard / Soft counts, Conflicts count).
 2. **`user-goal-meta` HTML comment** carrying the additive-merge cursor (`manifest_fingerprint`, `run_count`).
-3. **TOC** — static top-level anchors (Overview, Goal hierarchy, Goal register, Actor map, Conflicts, Use in /requirements, Diagnostics).
+3. **TOC** — static top-level anchors (In plain terms, Overview, Goal hierarchy, Goal register, Actor map, Conflicts, Diagnostics).
 4. **Goal hierarchy** (`<section id="hierarchy">`) — **the diagram, placed first among the content sections** (diagram-first ordering, mirroring journey-mapping / affinity-mapping: compact overview, then the prominent diagram, then the rest). A CSS-only nested `<ul>` tree of the KAOS AND/OR refinement; each branch node labelled `AND` or `OR`; leaves are operationalisable goals; inferred nodes marked inline. No JS, no Mermaid.
 5. **Goal register** (`<section id="register">`). Goal cards grouped by Cooper type (Life / End / Experience sub-sections). Each `<article class="goal-card">`:
    - Cooper-type badge (Life / End / Experience) + hardness pill (Hard / Soft) + Goal ID (`G-NN`).
@@ -74,8 +75,8 @@ The artefact has a fixed top-to-bottom shape (rendered by the template; placehol
 6. **Actor map** (`<section id="actor-map">`). A table: actor `A-NN` × the goals they hold and the goals they depend on another actor/the system to satisfy.
 7. **Conflicts** (`<section id="conflicts">`). A table of goal pairs that pull against each other (e.g. a security goal vs an ease-of-access goal), each with a one-line tension note and `[SRC: <filename>]` on the evidence. Empty is a legitimate state (rendered as "no goal conflicts surfaced in the consumed inputs").
 8. **JSON body block** (`<section id="body">` → `<pre><code class="language-json" id="user-goal-analysis-body">`). The machine-readable re-ingestion contract per the JSON SCHEMA below.
-9. **Round-trip footer** (`<section id="round-trip">`). Static paragraph telling the consultant how to feed the register into a subsequent `/requirements` run.
-10. **Diagnostics** (`<details id="diagnostics">`, collapsed). Manifest fingerprint, source roster (Consumed + Skipped tables), 7 gate results, provenance counts (explicit / inferred per source), inference-technique breakdown, criterion counts, flagged low-confidence inferred goals, run history.
+9. **Diagnostics** (`<details id="diagnostics">`, collapsed). Manifest fingerprint, source roster (Consumed + Skipped tables), 7 gate results, provenance counts (explicit / inferred per source), inference-technique breakdown, criterion counts, flagged low-confidence inferred goals, run history.
+10. **Downstream footer** (`<details class="downstream-toggle">`, collapsed). Re-ingestion instructions: how to copy the register into `input/` for a subsequent `/requirements` run.
 
 ---
 
@@ -353,6 +354,8 @@ The analysis is complete when:
 ## Voice and stance
 
 The analyser's stance is defined in `framework/assets/characters/user-goal-analysis-inputs-analysis.md` — analytical, citation-bound, inference-disciplined, anti-confabulation, additive. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+The artefact is human-read (and re-ingested by `/requirements`), so the analyser also follows `framework/shared/output-readability.md`: it writes the "In plain terms" lead, glosses methodology jargon (user goal, goal level, actor/persona, success criterion) at first use in human-readable prose, leaves client domain vocabulary unglossed (GLOSSARY territory), and keeps every `[SRC: <filename>]` marker. The plain-language layer is confined to the lead and first-use glosses; the goal cards, hierarchy, actor map, JSON body, and diagnostics keep their concrete, citation-bound discipline.
 
 ---
 

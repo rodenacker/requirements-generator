@@ -29,16 +29,17 @@ Every quality check in `framework/assets/analyses-inputs/business-context-defini
 
 The rendered HTML is laid out top-to-bottom as (per the template's scaffolded structure):
 
+0. **In plain terms** (`<section id="plain-terms">`) — `{{PLAIN_SUMMARY}}`: a 2–5 sentence plain-English lead (what this analysis is, what it found, what the consultant should do with it). **The first section, above the meta-grid.** Methodology jargon glossed at first use; client domain terms not glossed; no `[SRC]` of its own.
 1. **Overview** — title, subtitle, meta-grid.
-2. **TOC** — static top-level anchors (Overview, Causal-chain map, Business Needs Assessment, Business Problem Statement, Business Goals, Problem Statement, Tensions, Use in /requirements, Diagnostics).
-3. **Causal-chain map** (`<section id="causal-map">`) — `{{CAUSAL_MAP}}`; CSS-only four-stage grid. **The diagram — the first content item.**
+2. **TOC** — static top-level anchors (In plain terms, Overview, Causal-chain map, Business Needs Assessment, Business Problem Statement, Business Goals, Problem Statement, Tensions, Diagnostics).
+3. **Causal-chain map** (`<section id="causal-map">`) — `{{CAUSAL_MAP}}`; CSS-only four-stage grid. **The diagram — the first content item after the lead.**
 4. **Business Needs Assessment** (`<section id="needs">`) — `{{NEEDS_BLOCK}}`.
 5. **Business Problem Statement** (`<section id="problems">`) — `{{PROBLEMS_BLOCK}}`.
 6. **Business Goals** (`<section id="goals">`) — `{{GOALS_HIERARCHY}}` then `{{GOALS_BLOCK}}`.
 7. **Problem Statement** (`<section id="problem-statement">`) — `{{PROBLEM_STATEMENTS_BLOCK}}`.
 8. **Tensions** (`<section id="tensions">`) — `{{TENSIONS_TABLE}}` (or the empty-state paragraph).
 9. **Machine-readable model** (`<section id="body">`) — `{{BODY_JSON}}` inside `<pre><code id="bcd-body">`.
-10. **Round-trip footer** (`<section id="round-trip">`) — static paragraph; the analyser does not edit it.
+10. **Downstream-use footer** (`<details class="downstream-toggle">`) — collapsed by default; contains the re-ingestion / round-trip instructions. The analyser does not edit its content.
 11. **Diagnostics** (`<details id="diagnostics">`) — `{{DIAGNOSTICS_BLOCK}}`.
 12. **`bcd-meta` HTML comment** — emitted by the analyser at the bottom of the body just before `</main>` (`<!-- bcd-meta: manifest_fingerprint=<sha>, run_count=N -->`); first match is the cursor parsed on the next run.
 
@@ -89,6 +90,7 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 - Read `framework/assets/characters/business-context-definition-inputs-analysis.md` once.
 - Read `framework/assets/analyses-inputs/business-context-definition-reference.md` once. The reference defines what to do in each pass; treat it as authoritative.
 - (Optional, may defer to Step 10) Read `framework/assets/analyses-inputs/template-business-context-definition.html` once for substitution.
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality gate: write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`), gloss methodology jargon at first use in human-readable prose (business goal, stakeholder, causal chain, BMM Ends, KAOS AND/OR, constraint, success metric/objective), never gloss client domain terms (GLOSSARY territory), keep every `[SRC: <filename>]`, and confine the plain-prose layer to the lead and first-use glosses (the cards, causal-chain map, goal hierarchy, JSON body, and diagnostics keep their concrete, telegraphic discipline).
 - State readiness in one short line: *"Business Context Definition analyser (input-analysis variant) ready. Starting from `requirements/source-manifest.json`. Methodology: an enterprise-motivation synthesis — BMM Ends (Vision/Goal/Objective) + BABOK Business Need (problem-or-opportunity) + Five-Whys root cause + Gause-Weinberg problem-as-gap + Design-Thinking POV/HMW + KAOS AND/OR refinement at the enterprise tier, adapted for raw consultant inputs. Explicit items are cited `[SRC: <filename>]`; inferred items carry `[AI-SUGGESTED: AI-NN | blocking|non-blocking]` with a named technique and a source anchor — never anchorless. Six passes in sequence; seven hard quality gates; no item fabricated from world knowledge; enterprise altitude only — actor goals are deferred to user-goal-analysis."*
 - Restate the stand-alone-ish constraint in-thread: *"This run reads the manifest plus the files it enumerates — no other pipeline state is consulted; `requirements/requirements.md`, `framework/state/`, `framework/shared/`, and other analyses' outputs (including USER-GOAL-ANALYSIS) are not loaded; there is no requirements-doc sibling for this method."*
 
@@ -268,6 +270,12 @@ On **Revise**: hand back with `failed-handback`. On **Override**: record each fa
 - `Read framework/assets/analyses-inputs/template-business-context-definition.html` (if not already loaded in Step 1).
 - Compose the artefact as a single string by substituting placeholders. All values are HTML-escaped before substitution, **except** the `{{BODY_JSON}}` payload which must additionally have `&`, `<`, `>` escaped so it is valid inside `<pre><code>` (the JSON itself is otherwise emitted verbatim so it round-trips).
 
+**Lead placeholder:**
+
+| Placeholder | Value |
+|---|---|
+| `{{PLAIN_SUMMARY}}` | 2–5 plain-English sentences: what this business-context analysis is (an enterprise-motivation synthesis covering problems, needs, goals — the *business goal* (desired organisational end-state) — and problem statements, linked in a *causal chain* (problem → need → goal → problem-statement)); what it found (explicit items cited, inferred items anchored and marked); what the consultant should do with it (audit the amber inferred cards, then optionally copy the file into `input/` for a `/requirements` round-trip). A faithful condensation of the artefact below — it introduces no new fact, count, or citation not already present, and carries no `[SRC]` of its own. Methodology jargon is glossed at first use (e.g. "business goal (the desired organisational end-state)", "causal chain (the problem → need → goal → problem-statement link)"); client domain terms are NOT glossed. HTML-escaped. |
+
 **Meta-grid placeholders:**
 
 | Placeholder | Value |
@@ -307,6 +315,7 @@ Walk the composed string and verify:
 
 - No literal `{{...}}` placeholder strings remain.
 - Exactly one `<!-- bcd-meta: ... -->` line is present.
+- `<section id="plain-terms">` is the first child section of `<main>` and its `<p>` is non-empty (word count ≥ 30). The lead introduces no fact, count, or `[SRC]` not already present in the body. The TOC's first `<li>` links to `#plain-terms`.
 - Every `[SRC: <filename>]` payload (cards, anchors, why-chain rungs, tension evidence) matches a `consumed_rows[*].filename`.
 - Every item in the final collections is rendered as exactly one card (or, for objectives, one `objective-row`); counts match the meta-grid sub-counts.
 - Every inferred item carries an `.ai-suggested` provenance block with an `AI-NN` badge, a `technique-chip`, a `conf-chip`, and an anchor `[SRC]`. No explicit item carries an `AI-NN` badge.
@@ -403,7 +412,9 @@ Before handing back, verify all of the following against the written artefact an
 - The artefact contains zero literal `{{...}}` placeholder strings.
 - The artefact begins with `<!doctype html>` and is well-formed self-contained HTML with **no `<script>` tag, no external `href`/`src` URL, and no Mermaid block**.
 - The artefact contains exactly one `<!-- bcd-meta: ... -->` line. Its `manifest_fingerprint` equals the Step 2 value; its `run_count` equals `prior.run_count + 1` (or `1` on first run).
-- The artefact contains exactly one each of `<section id="overview">`, `<nav class="toc">`, `<section id="causal-map">`, `<section id="needs">`, `<section id="problems">`, `<section id="goals">`, `<section id="problem-statement">`, `<section id="tensions">`, `<section id="body">`, `<section id="round-trip">`, and `<details id="diagnostics">` — in that order (diagram-first: the causal-chain map precedes the four artefact sections).
+- The artefact contains `<section id="plain-terms">` as the **first child section of `<main>`**, with a non-empty `<p>` carrying `{{PLAIN_SUMMARY}}` content. The lead is a faithful condensation of the artefact below it — it introduces no new fact, count, or citation not already present, and carries no `[SRC]` marker. Word count ≥ 30 and ≤ 200. Methodology jargon is glossed at first use; no client domain terms are glossed.
+- The TOC `<nav class="toc">` contains `<a href="#plain-terms">In plain terms</a>` as its first `<li>`.
+- The artefact contains exactly one each of `<section id="plain-terms">`, `<section id="overview">`, `<nav class="toc">`, `<section id="causal-map">`, `<section id="needs">`, `<section id="problems">`, `<section id="goals">`, `<section id="problem-statement">`, `<section id="tensions">`, `<section id="body">`, `<details class="downstream-toggle">`, and `<details id="diagnostics">` — in that order (`plain-terms` first, then diagram-first: the causal-chain map precedes the four artefact sections, then the downstream-toggle footer, then diagnostics).
 - The Overview meta-grid carries correct `{{MANIFEST_FINGERPRINT}}`, `{{SOURCE_COUNT}}`, `{{TIER_BREAKDOWN}}`, `{{PROBLEM_COUNT}}`, `{{NEED_COUNT}}`, `{{GOAL_COUNT}}`, `{{OBJECTIVE_COUNT}}`, `{{PROBLEM_STATEMENT_COUNT}}`, `{{EXPLICIT_COUNT}}`, `{{INFERRED_COUNT}}`, `{{PROBLEM_DRIVEN_COUNT}}`, `{{OPPORTUNITY_DRIVEN_COUNT}}`, `{{TENSION_COUNT}}` substitutions.
 - Every item in the final collections is rendered as exactly one card (objectives as one `objective-row`); the explicit/inferred/per-bucket sub-counts match the meta-grid.
 - **Every item carries exactly one provenance shape:** explicit items carry ≥1 `<span class="src-chip">[SRC: <filename>]</span>` and **no** `AI-NN` badge; inferred items carry an `.ai-suggested` block with one `AI-NN | blocking|non-blocking` badge, one `technique-chip` (a value from the closed set), one `conf-chip`, and ≥1 anchor `[SRC: <filename>]`.
@@ -420,7 +431,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html` exists, has been verified, and contains a complete business-context report: Overview, TOC, Causal-chain map (the diagram — first content item; CSS-only four-stage grid), Business Needs Assessment, Business Problem Statement (Five-Whys ladders), Business Goals (BMM AND/OR tree + cards), Problem Statement (POV+HMW), Tensions (table or empty-state), JSON body block, Round-trip footer, Diagnostics (provenance + technique + confidence + need-driver + Source roster + boundary-audit log + 7 gate results + flagged low-confidence + Run history), and the `bcd-meta` cursor line.
+- `analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html` exists, has been verified, and contains a complete business-context report in DOM order: **In plain terms** lead (first section, `<section id="plain-terms">`, non-empty, no new facts, methodology jargon glossed at first use, no domain-term glosses, no `[SRC]`), Overview, TOC (with "In plain terms" as first entry), Causal-chain map (the diagram — CSS-only four-stage grid), Business Needs Assessment, Business Problem Statement (Five-Whys ladders), Business Goals (BMM AND/OR tree + cards), Problem Statement (POV+HMW), Tensions (table or empty-state), JSON body block, Downstream-use footer (`<details class="downstream-toggle">`), Diagnostics (provenance + technique + confidence + need-driver + Source roster + boundary-audit log + 7 gate results + flagged low-confidence + Run history), and the `bcd-meta` cursor line.
 - Every explicit item is `[SRC]`-cited; every inferred item carries `[AI-SUGGESTED: AI-NN | blocking|non-blocking]` + a named technique + ≥1 anchor `[SRC]`. No anchorless inferred item; no solution-as-goal; no platitude root; no actor/end-user goal (deferred ones logged).
 - The causal chain is integral (every need traces to a problem/opportunity; every goal to a need; every objective to a goal; opportunity-driven needs carry no problem); the goal hierarchy places every goal/objective exactly once.
 - Either all 7 hard quality gates passed, or the consultant explicitly chose Override and the Run-history bullet records every violation.

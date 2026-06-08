@@ -40,6 +40,7 @@ Steps in order. Do not skip steps; do not collapse steps. Each step's success is
 - State readiness in one short line: *"Adversarial reviewer ready. Starting from `requirements/requirements.md`."*
 - Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only — no analyses, no design-system, no pipeline state is consulted. Eight dimension workers will be dispatched in parallel at Step 3; each worker inherits the same read scope."*
 - Restate the strict-BMAD rule in one line so the consultant sees it: *"Zero findings on any dimension triggers a re-run + Justification block. No silent clean dimensions."*
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** and relaxes no gate, no severity, and no strict-BMAD rule: at Step 11 write the "In plain terms" lead (preserving severity verbatim — never soften a Blocker / `BLOCKED`), gloss review jargon at first use in human-readable prose, never gloss client domain terms, and keep the punch-list discipline everywhere below the lead.
 
 ### Step 2 — Read input
 
@@ -239,6 +240,7 @@ Per `framework/assets/reviews/template-adversarial.html`:
 
 - Read the template once. It is a self-contained HTML scaffold (one inline `<style>`, no external CSS/JS, no `<script>`).
 - Build the substitution map for the placeholders documented in the template's header comment:
+    - `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences for the "In plain terms" lead (the FIRST content section, above the Executive Summary): what this review is, what it found, and what the consultant should do next. A faithful condensation of the merged findings — it names no finding or count not already in the punch-list, and **preserves severity verbatim** (a Blocker, or a `BLOCKED` verdict, is stated plainly, never softened into reassurance). Gloss review jargon at first use (e.g. *"severity (how serious — Blocker / Major / Minor)"*, *"disposition (what to do about it — Patch, Defer, or Reject)"*, *"dimension (which of the eight review lenses found it)"*, *"verdict (the overall gate)"*, *"cluster (findings sharing one root cause)"*, *"scope class (fe-relevant / fe-facing-contract / backend-only)"*); do **not** gloss client domain terms. HTML-escaped. Per the character's *Reader & plain language* block.
     - `{{TITLE}}` — *"Adversarial Review — `<domain>`"* if `§1 Domain` (or the equivalent first-section domain anchor) exists, else *"Adversarial Review — requirements.md"*.
     - `{{DOMAIN}}` — verbatim from `§1` if present, else *"(not declared in requirements.md)"*.
     - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
@@ -321,7 +323,7 @@ Output the final handback line:
 
 ## Output
 
-- `review-requirements/ADVERSARIAL/adversarial-review.html` — the populated, self-contained HTML artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
+- `review-requirements/ADVERSARIAL/adversarial-review.html` — the populated, self-contained HTML artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked). Section order: (0) In plain terms, (1) Executive Summary, (2) Triage, (3) Clusters, (4) Findings Table, (5–12) Dimensions 1–8, (13) Diagnostics.
 
 ## Tools
 
@@ -339,6 +341,8 @@ Before handing back, verify all of the following against the written artefact an
 - `review-requirements/ADVERSARIAL/adversarial-review.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
 - The artefact is self-contained HTML: it begins with `<!doctype html>`, carries exactly one inline `<style>` block, and contains **no** `<script>` tag, no external stylesheet `<link>`, and no CDN/`http(s)://` asset reference.
+- The `<section id="plain-terms">` block is the FIRST content section (immediately after `<nav class="toc">`), before the Executive Summary. It contains a non-empty `<p>` (the `{{PLAIN_SUMMARY}}` substitution). The TOC's first `<li>` links to `#plain-terms`. The `#plain-terms` CSS rule is present in the `<style>` block.
+- The "In plain terms" lead introduces no finding, count, or claim not already in the punch-list; it preserves severity verbatim (no softening of Blocker / `BLOCKED`); it glosses review jargon (severity, disposition, dimension, verdict, cluster, scope class) at first use; it does **not** gloss client domain terms.
 - Every consultant-visible substituted value is HTML-escaped (no raw `<`, `>`, or unescaped `&` from finding text leaks into the markup).
 - The Executive Summary's verdict matches the disposition/severity tally per the reference's mapping table, and the banner carries the matching `verdict-{{VERDICT}}` class.
 - The Findings Table has exactly `{{TOTAL_FINDINGS}}` data rows.
@@ -367,6 +371,7 @@ Before handing back, verify all of the following against the written artefact an
 ## Definition of Done
 
 - `review-requirements/ADVERSARIAL/adversarial-review.html` exists, has been verified, is self-contained HTML (one inline `<style>`, no `<script>`, no external/CDN reference), and contains a complete eight-dimension review.
+- The rendered HTML section order is: `#plain-terms` (In plain terms) first, then `#executive-summary`, `#triage`, `#clusters`, `#findings-table`, `#dim-1` … `#dim-8`, `#diagnostics`. The TOC's first item links to `#plain-terms`.
 - All eight Step-3 dimension workers returned a parsed payload (originally emitted or Manual-Justification-substituted at Step 3b). Step 3b merged exactly one payload per dimension into the in-memory state.
 - The `ADV-NN` ID sequence is contiguous, assigned by dimension order then within-dimension order.
 - Either all eleven quality gates passed, or the consultant explicitly chose Override and the diagnostics block records every violation.

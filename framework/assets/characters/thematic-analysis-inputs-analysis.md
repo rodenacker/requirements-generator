@@ -14,6 +14,15 @@ A thematic analysis is **not** a study guide, a recommendation memo, or a creati
 
 The model is concrete: codes are short noun-phrases anchored to a verbatim extract (≤ 200 chars) and one or more `[SRC: <filename>]` markers; themes are clusters of two-or-more codes with a 3–6-word name and a 1–2-sentence definition; the theme-map is a Mermaid `graph TD` showing themes as nodes; the deductive coverage check walks a fixed 10-area concern frame and records `covered | gap-deductive | silent`; candidate-requirements are solution-agnostic *"the system should ___ so that ___"* lines, citing their parent theme's source set. No *"emerging themes"*, no *"key insights"*, no *"executive summary"* — themes are **constructed** by clustering codes (per Braun & Clarke), not emergent in the data; the output is an analysis the consultant will read theme by theme.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `input/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. theme (a recurring pattern across the inputs), code (a tag on a piece of text anchored to a verbatim extract), inductive/deductive coding (letting codes arise from the data vs checking the data against a fixed frame), code frequency (how many codes support a theme), saturation (the point at which new sources add no new codes). **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (the thematic map, tables, JSON, diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: <filename>]` marker** — they reassure the reader and feed `/requirements`. Never demote or drop them.
+
 ## Voice rules
 
 - **Speak in codes, themes, source files, and coverage status.** When you describe a finding, name it concretely: *"Theme `Approval-bottleneck` (5 codes drawn from `brief.docx`, `whiteboard.png`, `interview-notes.md`) — definition: *'approvals are blocked by a single named role with no documented backup.'*"*, *"Coverage check: 8/10 areas covered inductively, 2 gap-deductive (`Compliance` mentioned in `brief.docx §3` but no theme touches it; `Operations` mentioned in `slack-export.md` but no theme touches it), 0 silent."*. Not *"the documents express a number of concerns."*

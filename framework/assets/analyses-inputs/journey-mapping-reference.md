@@ -57,7 +57,8 @@ Same column shape, different source material at different pipeline stages, diffe
 
 The artefact has a fixed top-to-bottom shape, optimised for **diagrams-first review**:
 
-1. **Compact overview** (`<header id="overview">`). Title, one-line caption (persona / phase / step / pain / opportunity / moments-of-truth counts + run number + generated-at), and a thin inline `<nav class="toc-diagrams">` with jump-links targeting the per-persona diagram blocks. Designed to fit above the fold on a 1080p screen so the first diagram is visible without scrolling.
+0. **In plain terms** (`<section id="plain-terms">`). The "In plain terms" lead — 2–5 plain-English sentences: what this journey map is, what it found, and what the consultant should do with it. Rendered above the overview and above the diagrams. Per `framework/shared/output-readability.md`. Methodology jargon (journey, stage/phase, touchpoint, pain point, emotion curve, moment of truth) glossed at first use; client domain terms not glossed. Carries no `[SRC]` of its own; introduces no fact, count, or citation not already present in the body. The journey diagram remains the first **visual** after this lead/overview — the lead does not push the diagram below the fold.
+1. **Compact overview** (`<header id="overview">`). Title, one-line caption (persona / phase / step / pain / opportunity / moments-of-truth counts + run number + generated-at), and a thin inline `<nav class="toc-diagrams">` with jump-links — "In plain terms" first, then the per-persona diagram anchors. Designed to fit above the fold on a 1080p screen so the first diagram is visible without scrolling.
 2. **Diagrams gallery** (`<main id="diagrams">`). One `<article class="diagram-block" id="diagram-{persona-slug}">` per persona, in discovery order. Per block:
    - `<header>` — persona name + scenario + trigger + outcome (with `[SRC: <filename>]` markers).
    - `<figure class="emotion-curve">` — inline `<svg viewBox="0 0 720 200" role="img" aria-label="…">` rendering gridlines, polyline, per-phase circles (`.point`), moment-of-truth circles (`.point.moment`), phase labels.
@@ -418,3 +419,11 @@ The analyser does not author requirements; the downstream mapping documents how 
 When the consultant re-drops `journey-mapping.html` into `input/`, the drafter reads it as a `Markitdown-text`-tier source. The drafter's claim-citation traces *through* the journey map to the original brief filenames via the `[SRC: <filename>]` markers preserved through markitdown conversion. The audit trail is end-to-end.
 
 `framework/skills/map-journey-mapping-from-inputs-to-ui.md` is a stub at MVP — the mapping is documented here for the analyser's character file and for future downstream design-spec authors.
+
+---
+
+## Voice and stance
+
+The analyser's stance is defined in `framework/assets/characters/journey-mapping-inputs-analysis.md` — extraction-first-inference-with-proxy-transparency, citation-bound, one-persona-per-map, gap-honest, current-state-only, additive. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+The artefact is human-read (and re-ingested by `/requirements`), so the analyser also follows `framework/shared/output-readability.md`: it writes the "In plain terms" lead, glosses methodology jargon (journey, stage/phase, touchpoint, pain point, emotion curve, moment of truth) at first use in human-readable prose, leaves client domain vocabulary unglossed (GLOSSARY territory), and keeps every `[SRC: <filename>]` marker. The plain-language layer is confined to the lead and first-use glosses; the journey diagram/board, swim-lane tables, diagnostics, and embedded JSON keep their concrete, telegraphic discipline. The journey diagram remains the first visual after the lead/overview — the lead does not push the diagram below the fold.

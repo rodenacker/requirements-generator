@@ -307,7 +307,7 @@ methodologies:
   - name: jtbd
     status: mvp
     group: Users, goals & value
-    description: Choose this when you want the requirements anchored to user motivation, drawn from what the raw inputs say about why users act. It produces an HTML job map of the jobs, outcomes, and forces of progress (push / pull / anxiety / habit) the inputs describe, with Ulwick opportunity scores. Re-drop it into input/ as a Native-text source so the requirements that follow target jobs and outcomes rather than features.
+    description: Choose this when you want the requirements anchored to user motivation, drawn from what the raw inputs say about why users act. It produces an HTML job map of the jobs, outcomes, and forces of progress (push / pull / anxiety / habit) the inputs describe, with opportunity scores (importance vs satisfaction — which jobs are most underserved). Re-drop it into input/ as a Native-text source so the requirements that follow target jobs and outcomes rather than features.
     output_path: analyse-inputs/JTBD/jtbd-job-map.html
     reference_asset: framework/assets/analyses-inputs/jtbd-reference.md
     template_asset: framework/assets/analyses-inputs/template-jtbd.html

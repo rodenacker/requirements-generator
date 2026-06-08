@@ -355,12 +355,19 @@ There is no fourth priority. *"Could-be-clearer"* is not a priority — either t
 
 The artefact renders as a self-contained HTML report following `framework/assets/reviews/template-ten-ux-questions.html`. The fixed section ordering is:
 
-1. **Header** — title, generated-at timestamp, requirements SHA-256, reviewer identity, priority counts (blocking / major / minor), category coverage summary.
-2. **Triage** — single ordered table listing all 10 questions with rank, ID, priority, category, anchor, and the question's first line.
-3. **Questions** — one block per question with full text, anchor, priority, category, and the 1–2 sentence rationale.
-4. **Diagnostics** — candidate pool size, drop counts (`GR-NN` matches, `PI-NN` matches, out-of-scope), category coverage (which of C1..C8 produced at least one finalist), quality-gate results.
+1. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) — a 2–5 sentence plain-English lead: what this review is, what it found, what the consultant should do next. The **first content section**, above the Executive Summary. A faithful condensation of the findings — it introduces no finding or count not in the punch-list, and **preserves severity verbatim** (a blocking priority is stated unsoftened). Review jargon (priority, category, anchor, candidate pool) is glossed at first use here; client domain terms are not glossed. Per `framework/shared/output-readability.md`.
+2. **Header** — title, generated-at timestamp, requirements SHA-256, reviewer identity, priority counts (blocking / major / minor), category coverage summary.
+3. **Triage** — single ordered table listing all 10 questions with rank, ID, priority, category, anchor, and the question's first line.
+4. **Questions** — one block per question with full text, anchor, priority, category, and the 1–2 sentence rationale.
+5. **Diagnostics** — candidate pool size, drop counts (`GR-NN` matches, `PI-NN` matches, out-of-scope), category coverage (which of C1..C8 produced at least one finalist), quality-gate results.
 
-The artefact is a **triage list**, not an essay. Prose between questions is minimised; the consultant should be able to read the Triage table in under two minutes, then jump straight to the question block for context on any entry.
+The artefact is a **triage list** with one sanctioned narrative exception: the "In plain terms" lead at the very top. Below that lead, prose between questions is minimised; the consultant should be able to read the Triage table in under two minutes, then jump straight to the question block for context on any entry.
+
+---
+
+## Voice and stance
+
+The reviewer's stance is defined in `framework/assets/characters/ten-ux-questions-review.md` — experienced UX designer, pattern-aware, accessibility-conscious, non-confrontational, asks gap-questions not defect-citations. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it. The character's *Reader & plain language* block sets the human-readability standard (canonical: `framework/shared/output-readability.md`): write the "In plain terms" lead, gloss review jargon at first use, preserve severity verbatim, keep the punch-list below the lead.
 
 ---
 
@@ -392,12 +399,6 @@ Eight gates. All are hard. If any gate fails, the reviewer does **not** write th
 - **Hidden quotas.** *"Make at least one blocking question"* is not a quota the reviewer enforces. The priority distribution falls out of the doc; a clean doc produces zero blockings legitimately.
 - **Reviewing against derivatives.** Do not consult `analyse-requirements/*` outputs to triangulate gaps. The review's contract is to read `requirements/requirements.md` as the source of truth.
 - **Inline `[SRC: ...]` markers.** Per project convention (`feedback_no_inline_provenance`), the merged requirements doc is clean of provenance markers; the review artefact is also clean. Questions cite by section number, not by `[SRC: ...]`.
-
----
-
-## Voice and stance
-
-The reviewer's stance is defined in `framework/assets/characters/ten-ux-questions-review.md` — experienced UX designer, pattern-aware, accessibility-conscious, non-confrontational, asks gap-questions not defect-citations. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
 
 ---
 

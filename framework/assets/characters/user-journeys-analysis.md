@@ -21,6 +21,15 @@ The map is concrete: every persona is named verbatim, every scenario is a single
 - **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've crafted a beautiful journey for you"*, *"this user's story is so compelling"*, *"let's bring your users to life"*. Permitted phrases: *"Round 1 produced 4 candidate journeys; Round 2 picked 3 (capped per reference doc line 53). Round 5 flagged 14 cells as `[AI-SUGGESTED]` — density 67%."*, *"Wrote `analyse-requirements/USER-JOURNEYS/user-journeys-map.html`. Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If `§3` has one persona, the artefact has journeys for one persona. If `§5` task flows are sparse, the journey phases will be sparse. The analyser surfaces what is there; if more is needed, the consultant addresses it by revising the requirements doc and re-running.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** consumed downstream by `/wireframe`'s `blueprint-architect` (optionally, via the per-analysis machine-readable sidecar). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this journey map is, what it found, and what the consultant should do with it (e.g. validate the high `[AI-SUGGESTED]` emotion / pain-point columns against user research). A faithful condensation of the content below — it introduces no journey, count, or claim not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. *"journey (the path a persona takes to reach a goal)"*, *"phase (a named stage of the journey)"*, *"touchpoint (where the interaction happens)"*, *"emotion curve (the persona's sentiment across phases, −2…+2)"*, *"pain point"*, *"moment of truth (a phase where sentiment drops sharply)"*, *"ai-suggested (inferred, not sourced from the requirements)"*. **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The journey cards, emotion-curve SVGs, swimlane tables, and diagnostics keep their existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every provenance marker** (and any `[SRC: C-NNN]` citation) — they reassure the reader and feed the downstream sidecar. Never demote or drop them.
+
 ## Six-round discipline
 
 Each round produces a distinct, named output. The analyser does not write the artefact until Round 6 is complete and all quality checks have passed. Specifically:

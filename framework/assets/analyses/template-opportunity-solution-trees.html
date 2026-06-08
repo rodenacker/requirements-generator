@@ -8,6 +8,11 @@
   clients without tooling.
 
   Section order (top-to-bottom):
+    0. In plain terms (id="plain-terms")   — {{PLAIN_SUMMARY}}: a short human-
+                                             readable lead (what this tree is,
+                                             what it found, what to do with it).
+                                             First section, above the overview.
+                                             Per framework/shared/output-readability.md.
     1. Overview (id="overview")        — title, subtitle, meta-grid.
     2. How to read (id="how-to-read")  — <details> wrapper, collapsed by
        default. Explains the reversal framing for consultants new to OST.
@@ -15,7 +20,7 @@
     3b. Legend (.legend-bar)           — colour / provenance key, directly under
                                          the TOC (first item after the nav).
     4. Diagrams (id="diagrams")        — {{TREE}} (the four-band tree
-       with inline SVG connectors).
+       with inline SVG connectors). First visual after the lead.
     5. Tabular information (id="tables") — {{LADDER_TABLE}}
        (Outcome × Opportunity × Solution × Assumption-Test rows).
     6. Diagnostics (id="diagnostics")  — <details> wrapper, collapsed
@@ -32,6 +37,13 @@
   Placeholders the analyser substitutes (string substitution, all values
   pre-escaped for HTML):
 
+    {{PLAIN_SUMMARY}}               — 2–5 plain-English sentences for the "In plain terms"
+                                      lead block: what this tree is, what it found,
+                                      what to do with it. HTML-escaped. Methodology jargon
+                                      (outcome, opportunity, solution, experiment/assumption test,
+                                      tree) glossed at first use; client domain terms NOT glossed
+                                      (the GLOSSARY methodology owns those). Per
+                                      framework/shared/output-readability.md.
     {{TITLE}}                       — short title (e.g. "Opportunity Solution Tree — Project X")
     {{DOMAIN}}                      — domain string (from requirements §1 if present)
     {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
@@ -343,6 +355,53 @@
     .meta-grid dd {
       margin: 0 0 6px 0;
       font-variant-numeric: tabular-nums;
+    }
+
+    /* ------- in plain terms (human-readable lead) ------- */
+    #plain-terms { margin: 0 0 24px 0; padding: 14px 18px; background: #f0f7ff; border: 1px solid var(--sol-border); border-left: 4px solid var(--sol-border); border-radius: 6px; }
+    #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+    #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--fg); }
+
+    /* ------- downstream-use footer (collapsed) ------- */
+    details.downstream-toggle { margin-top: 24px; margin-bottom: 24px; }
+    details.downstream-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid #d4d4d4;
+      border-left: 4px solid #8a8a8a;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      color: #5a5a5a;
+      list-style: none;
+      user-select: none;
+    }
+    details.downstream-toggle > summary::-webkit-details-marker { display: none; }
+    details.downstream-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: #5a5a5a;
+      margin-right: 8px;
+      display: inline-block;
+      transition: transform 0.15s ease;
+    }
+    details.downstream-toggle[open] > summary { border-radius: 6px 6px 0 0; border-bottom: none; }
+    details.downstream-toggle[open] > summary::before { transform: rotate(90deg); }
+    .downstream-note {
+      padding: 14px 18px;
+      background: #fff;
+      border: 1px solid #d4d4d4;
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+    }
+    .downstream-note p { color: #5a5a5a; font-size: 13px; margin: 6px 0; }
+    .downstream-note code {
+      font-family: ui-monospace, monospace;
+      font-size: 0.92em;
+      background: #f3f4f6;
+      padding: 0 4px;
+      border-radius: 3px;
     }
 
     /* ------- how-to-read panel ------- */
@@ -826,6 +885,11 @@
 </head>
 <body>
   <main>
+    <section id="plain-terms" aria-label="In plain terms">
+      <h2>In plain terms</h2>
+      <p>{{PLAIN_SUMMARY}}</p>
+    </section>
+
     <section id="overview">
       <h1>{{TITLE}}</h1>
       <p class="subtitle">Opportunity Solution Tree — reverse-discovery audit of the merged requirements document. Outcome → Opportunities → Solutions → Assumption Tests.</p>
@@ -855,6 +919,7 @@
 
     <nav class="toc" aria-label="Sections">
       <ol>
+        <li><a href="#plain-terms">In plain terms</a></li>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#how-to-read">How to read</a></li>
         <li><a href="#diagrams">Tree</a></li>

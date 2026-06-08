@@ -113,6 +113,10 @@ Faceted classification overlaps three existing lenses at the edges; draw the lan
 
 ## Output structure
 
+### 0. In plain terms (first rendered section)
+
+A `<section id="plain-terms">` block, the first thing the reader sees: 2–5 plain-English sentences stating what this analysis is, what it found, and what the consultant should do with it. It is a faithful condensation of the content that follows — it introduces no fact, count, or citation not already present, and carries no `[SRC: C-NNN]` of its own. Methodology jargon (facet, facet value, orthogonality, backing property, filter/refinement) is glossed at first use; client domain terms are not glossed. Follows `framework/shared/output-readability.md`.
+
 ### Diagrams (top of document) — CSS only
 
 1. **Facet-coverage cards** — the value, front-loaded. One card per collection, each listing its facets as chips: facet name · kind · value-set preview · backing property · cited/inferred marker. The reader sees the slicing dimensions of every list surface at a glance, and which collections are thin or have no slice dimension.
@@ -211,3 +215,14 @@ Full envelope: `schema_version "1"`, `method "faceted-classification"`, `source_
 ## Stop-condition
 
 The analysis is complete when every collection in scope has its facets derived (or is honestly flagged `no-slice-dimension`); every facet has a kind, a sourced value set (or an `[AI-SUGGESTED]` / `needs-a-threshold` flag), and a backing §7 `Shape.Property` / `F-NN`; every facet pair has been tested for orthogonality with every dependent pair in the non-orthogonality register; the controlled vocabulary is facet-value-scoped; the standing empirical-validation disclaimer is present; all 7 hard checks pass (or Override); and the consultant chose Accept in the handback loop.
+
+---
+
+## Voice and stance — readability standard
+
+The artefact is read by a human (the consultant, sometimes a client stakeholder) **and** consumed downstream by `/wireframe`'s `blueprint-architect` (optionally, via the per-analysis machine-readable sidecar). The operative readability rules are restated in the character's *Reader & plain language* block (`framework/assets/characters/faceted-classification-analysis.md`); the canonical standard is `framework/shared/output-readability.md`. Summary:
+
+- **Lead first.** The `<section id="plain-terms">` is the first rendered section — before the meta-grid and diagrams. It contains 2–5 plain-English sentences (faithful condensation only; no new fact, count, or `[SRC: C-NNN]`).
+- **Gloss methodology jargon at first use** in the lead and any human-readable prose: *facet* (an independent axis for classifying things), *facet value*, *orthogonality* (whether two facets are truly independent or one predicts the other), *backing property* (the §7 data field a facet filters on), *filter/refinement*. **Do not gloss client domain terms** — that is the GLOSSARY methodology's job.
+- **Keep every `[SRC: C-NNN]` marker.** Never demote or drop them.
+- **No plain-English layer outside the lead and glosses.** The structured body (facet cards, tables, JSON, diagnostics) keeps its concrete, telegraphic discipline.

@@ -471,16 +471,17 @@ Ten gates. All are hard. If any gate fails, the reviewer does **not** write the 
 The artefact renders as a self-contained HTML report (the reviewer substitutes pre-escaped values + pre-rendered HTML fragments into `framework/assets/reviews-inputs/template-ambiguity.html`; one inline `<style>`, no external CSS/JS/fonts). The per-block HTML schemas (triage table, ambiguity register, findings table, per-dimension finding `<article>`s, elicitation groups, source roster, diagnostics `<details>`) live in the template's leading comment. The fixed section ordering is:
 
 1. **Header (Overview)** — title (`<h1 id="top">` + `<title>`) + a `dl.meta-grid`: Domain, Generated-at timestamp, Manifest SHA-256, sources-consumed/skipped counts, reviewer identity.
-2. **Executive Summary** — total findings, severity tally, single-sentence verdict (a `<span class="verdict verdict-{VERDICT}">` banner).
-3. **Triage** — *"Top issues to address first"* callout (≤10 entries: every Blocker plus highest-impact Majors per the deterministic selection rule).
-4. **Ambiguity Register** — the load-bearing table, keyed by ambiguity type (the seven dimensions): one row per finding carrying ID, Type(s), Severity, Location, Evidence, ≥2 Interpretations, and a ready-to-paste stakeholder question. Sorted Blocker → Major → Minor, then ambiguity type ascending, then AMB-NN.
-5. **Source roster** — Consumed + Skipped tables.
-6. **Findings Table** — compact tabular view of every finding (ID, Dim(s), Sev, Location, one-line problem), sorted Blocker → Major → Minor.
-7. **Per-Dimension Sections (1–7)** — full findings for each dimension (finding `<article>`s), or a Justification block if zero findings + ≥3-sentence justification provided.
-8. **Suggested elicitation questions** — grouped by source filename, one `<ol>` per filename. This is the section the consultant pastes into the client follow-up.
-9. **Diagnostics** — a collapsed `<details>`: quality-gate results, coverage map, override log, run history.
+2. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) — a 2–5 sentence plain-English lead: what this review is, what it found, what the consultant should do next. The first content section, above the Executive Summary. A faithful condensation of the findings — it introduces no finding or count not in the punch-list, and **preserves severity verbatim** (a Blocker / `BLOCKED` verdict is stated unsoftened). Review jargon (severity, dimension, verdict, interpretation, elicitation question) is glossed at first use; client domain terms are not glossed. Per `framework/shared/output-readability.md`. Reviews have no downstream machine consumer.
+3. **Executive Summary** — total findings, severity tally, single-sentence verdict (a `<span class="verdict verdict-{VERDICT}">` banner).
+4. **Triage** — *"Top issues to address first"* callout (≤10 entries: every Blocker plus highest-impact Majors per the deterministic selection rule).
+5. **Ambiguity Register** — the load-bearing table, keyed by ambiguity type (the seven dimensions): one row per finding carrying ID, Type(s), Severity, Location, Evidence, ≥2 Interpretations, and a ready-to-paste stakeholder question. Sorted Blocker → Major → Minor, then ambiguity type ascending, then AMB-NN.
+6. **Source roster** — Consumed + Skipped tables.
+7. **Findings Table** — compact tabular view of every finding (ID, Dim(s), Sev, Location, one-line problem), sorted Blocker → Major → Minor.
+8. **Per-Dimension Sections (1–7)** — full findings for each dimension (finding `<article>`s), or a Justification block if zero findings + ≥3-sentence justification provided.
+9. **Suggested elicitation questions** — grouped by source filename, one `<ol>` per filename. This is the section the consultant pastes into the client follow-up.
+10. **Diagnostics** — a collapsed `<details>`: quality-gate results, coverage map, override log, run history.
 
-The artefact is a punch-list + action list, not a narrative. Prose between findings is minimised; the consultant should be able to read the Triage callout in under two minutes, scan the ambiguity register keyed by type, jump to the per-dimension section for context on any finding, and copy the elicitation-questions section into a client email in one selection.
+The artefact is a punch-list + action list — with **one** sanctioned narrative exception: the "In plain terms" lead at the very top (a short plain-English orientation that preserves severity, never softens it). Everywhere below the lead, prose between findings is minimised; the consultant should be able to read the Triage callout in under two minutes, scan the ambiguity register keyed by type, jump to the per-dimension section for context on any finding, and copy the elicitation-questions section into a client email in one selection.
 
 ---
 
@@ -505,6 +506,8 @@ The artefact is a punch-list + action list, not a narrative. Prose between findi
 ## Voice and stance
 
 The reviewer's stance is defined in `framework/assets/characters/ambiguity-inputs-review.md` — linguist-skeptical, taxonomy-bound, evidence-required, ≥2-interpretations test, no rubber-stamping. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+The artefact is human-read (and has no downstream machine consumer), so the reviewer also follows `framework/shared/output-readability.md`: it writes the "In plain terms" lead (preserving severity verbatim, never softening a Blocker / `BLOCKED` verdict), glosses review jargon (severity, dimension, verdict, interpretation, elicitation question) at first use in human-readable prose, leaves client domain vocabulary unglossed, and keeps the punch-list discipline everywhere below the lead. Traceability stays as Location + verbatim Evidence; reviews carry no `[SRC:]` and have no downstream consumer.
 
 ---
 

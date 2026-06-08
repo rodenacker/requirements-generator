@@ -631,6 +631,15 @@
     }
     footer.bottom .credit { margin-top: 6px; text-align: right; }
 
+    /* ------- in plain terms (human-readable lead) ------- */
+    #plain-terms {
+      margin: 0 0 24px 0; padding: 14px 18px;
+      background: #f0f7ff; border: 1px solid #4f8fbf;
+      border-left: 4px solid #4f8fbf; border-radius: 6px;
+    }
+    #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+    #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--fg); }
+
     /* ------- table of contents ------- */
 
     .toc {
@@ -683,6 +692,11 @@
 </head>
 <body>
   <main>
+    <section id="plain-terms" aria-label="In plain terms">
+      <h2>In plain terms</h2>
+      <p>{{PLAIN_SUMMARY}}</p>
+    </section>
+
     <section id="overview">
       <h1>{{TITLE}}</h1>
       <p class="subtitle">User journey atlas — one card per (persona × scenario): emotion curve over phases, plus a swimlane grid of actions, thoughts, emotions, touchpoints, and pain points.</p>
@@ -703,6 +717,7 @@
 
     <nav class="toc" aria-label="Sections">
       <ol>
+        <li><a href="#plain-terms">In plain terms</a></li>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#diagrams">Diagrams</a></li>
         <li><a href="#diagnostics">Diagnostics</a></li>

@@ -26,6 +26,7 @@ Every quality check in `framework/assets/analyses/five-whys-reference.md > Quali
 
 The rendered HTML is laid out top-to-bottom (per the `framework/assets/analyses/template-five-whys.html` scaffold) as:
 
+0. **In plain terms** (`<section id="plain-terms">`) — `{{PLAIN_SUMMARY}}`: a 2–5 sentence plain-English lead (what this analysis is, what it found, what the consultant should do with it). The first section, above the overview meta-grid. Per `framework/shared/output-readability.md` (operative rules restated in the character's *Reader & plain language* block, so no `framework/shared/` read is needed).
 1. **Overview** (`#overview`) — `<h1>` title + `dl.meta-grid` (Domain, Generated, Requirements SHA-256, method counts).
 2. **Sticky TOC** (`nav.toc`).
 3. **Diagrams** (`#diagrams`) — one inline-`<svg>` why-chain figure per requirement in the analysis set, in rendered order (auto-extracted ranked-by-score first, then consultant-stated in Other-submission order). Rendered **first**, above the textual drill-down. Empty analysis set → a single muted placeholder.
@@ -61,6 +62,7 @@ Thirteen steps in order. Do not skip steps; do not collapse steps. Each step's s
 
 - Read `framework/assets/characters/five-whys-analysis.md` once.
 - Read `framework/assets/analyses/five-whys-reference.md` once. The reference defines what to do in each round; treat it as authoritative.
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality gate: write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`), gloss methodology jargon at first use in human-readable prose (five whys, root cause, causal chain, symptom vs cause, PASS/INCOMPLETE/CAP terminators, coverage gap, ai-suggested density), never gloss client domain terms (GLOSSARY territory), keep every `[SRC: C-NNN]`, and confine plain prose to the lead and first-use glosses (the causal-chain diagrams, tables, and diagnostics keep their concrete discipline).
 - State readiness in one short line: *"Five-Whys justification analyser ready. Starting from `requirements/requirements.md`. Methodology: Five Whys (Sakichi Toyoda 1930s / Taiichi Ohno, Toyota Production System), applied to requirement justification. Termination: Justification Sufficiency Test (axiomatic / immutable driver). Five-Whys-fitness categories: business-goal / op-capability / workflow-constraint / policy-driven. Caps: auto-extract 5 candidates from §6 (consultant can add more via Other), ≤ 7 why-levels per chain, ≤ 3 branched sub-chains per requirement, ≤ 3 fail-restart cycles per run."*
 - Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only — no other pipeline state is consulted."*
 
@@ -292,7 +294,13 @@ Read `framework/assets/analyses/template-five-whys.html` once. Compose the artef
 
 **Global escaping.** This is HTML. Every consultant-supplied / requirements-derived string (requirement quotes, answers, evidence, rationale, labels, domain, snippets) is **HTML-escaped** before substitution: `&` → `&amp;`, `<` → `&lt;`, `>` → `&gt;`, `"` → `&quot;`. Newlines inside table cells / SVG `<text>` become `<br>` (cells) or wrapped `<tspan>` lines (SVG). After substitution, the rendered string must contain **zero** literal `{{` or `}}` sequences.
 
-**A. Overview meta-grid (`{{...}}` scalars).**
+**A. Plain-terms lead (`{{PLAIN_SUMMARY}}`).**
+
+Compose 2–5 plain-English sentences covering: (1) what this Five Whys justification analysis is — that it drilled selected requirements level by level toward their root causes (the deepest traceable drivers) to audit whether each requirement's justification is traceable to an axiomatic business, user, or regulatory driver; (2) what it found — how many requirements were analysed, how many chains (sequences of why-rows from requirement to root justification) reached PASS (Justification Sufficiency Test satisfied), how many were INCOMPLETE (source exhausted or causal chain capped), and how many coverage gaps (root justifications named in chains but not anchored in the requirements doc) were identified; (3) what the consultant should do — which chains need interview follow-up (INCOMPLETE / high ai-suggested density rows), which coverage gaps need a citation added to §1 or §6, and whether cross-requirement consolidation opportunities exist.
+
+Rules: faithful condensation only — no fact, count, or `[SRC: C-NNN]` citation that is not already in the body below. Methodology jargon glossed at first use: "five whys (repeatedly asking why to reach a root cause)", "root cause", "causal chain", "PASS (the Justification Sufficiency Test — an axiomatic driver was reached)", "INCOMPLETE (source was exhausted before a root was found)", "coverage gap (a root justification named in a chain but not anchored anywhere in the requirements doc)", "ai-suggested density (the fraction of why-rows inferred rather than sourced)". Client domain terms NOT glossed. HTML-escaped; no literal `{{` or `}}` surviving.
+
+**C. Overview meta-grid (`{{...}}` scalars).**
 
 - `{{TITLE}}` = `Five Whys Justification Analysis — {domain}` (escaped). `{domain}` is verbatim from `§1 Application context > Domain` if present, else `(not declared in requirements.md)`.
 - `{{DOMAIN}}` = the domain string (escaped).
@@ -306,7 +314,7 @@ Read `framework/assets/analyses/template-five-whys.html` once. Compose the artef
 - `{{COVERAGE_GAP_COUNT}}` = count of coverage rows with `coverage: gap`.
 - `{{AI_SUGGESTED_DENSITY}}` = `{pct}% ({A}/{L})` — `ai-suggested` why-rows over total why-rows.
 
-**B. `{{DIAGRAMS}}` — pre-rendered inline-SVG why-chain figures (the diagram-first requirement).**
+**D. `{{DIAGRAMS}}` — pre-rendered inline-SVG why-chain figures (the diagram-first requirement).**
 
 For each requirement in rendered order, emit one `<figure class="chain-figure" id="fig-R{n}">` per the template's CHAIN-SVG SCHEMA:
 
@@ -316,7 +324,7 @@ For each requirement in rendered order, emit one `<figure class="chain-figure" i
 - This is the OST `{{TREE}}` mechanism: all geometry is computed by the analyser and baked into the emitted SVG markup. **No `<script>`, no Mermaid.**
 - **Empty analysis set:** substitute the single `<p class="diagram-empty">…</p>` placeholder per the schema.
 
-**C. `{{SCORING_TABLE}}` — the Round 1 priority scoring table.**
+**E. `{{SCORING_TABLE}}` — the Round 1 priority scoring table.**
 
 Emit one `<table class="scoring-table">` per the SCORING SCHEMA, one `<tbody>` row per Round 1 candidate (≤ 5 rows), ranked by score descending. Per the methodology's columns:
 
@@ -328,7 +336,7 @@ Emit one `<table class="scoring-table">` per the SCORING SCHEMA, one `<tbody>` r
 - Modal: `<span class="modal-chip">must|shall|should|may</span>`.
 - Depth: integer (`td.num`). Impl-detail penalty: `0` or `−3` (`td.num`). Score: final integer (`td.num.score`).
 
-**D. `{{REQUIREMENT_SECTIONS}}` — per-requirement drill-down blocks.**
+**F. `{{REQUIREMENT_SECTIONS}}` — per-requirement drill-down blocks.**
 
 Emit one `<section class="req-block" id="R{n}">` per requirement in rendered order (`selected_extracted` in score order, then `anchored_stated` in submission order; `n` restarts at 1), per the REQUIREMENT-BLOCK SCHEMA:
 
@@ -339,11 +347,11 @@ Emit one `<section class="req-block" id="R{n}">` per requirement in rendered ord
 - One `<p class="coverage cov-cited|cov-gap|cov-na">` (with a `<span class="cov-label">Coverage</span>` prefix) stating the coverage outcome + location/quote or guidance.
 - **Branched requirements:** after the primary chain, emit one `<h4 class="branch-heading">Why chain R{n}.B{m}</h4>` + `<table class="why-chain branch">` + termination `<p>` + coverage `<p>` per branch.
 
-**E. `{{DIAGNOSTICS_BLOCK}}` — the diagnostics section.**
+**G. `{{DIAGNOSTICS_BLOCK}}` — the diagnostics section.**
 
 Emit a single `<section class="diagnostics">` per the DIAGNOSTICS SCHEMA: a `<p>` with the `{n_pass}/10` headline, a `<ul>` of all 10 hard checks each as `<li class="check-pass">` or `<li class="check-fail">` (FAIL lines append the flagged items), a `<p>` with the AI-suggested density. Then, **only when non-empty**, an `<h3>` + `<ul>` for Cross-requirement links, for Dropped requirements (zero-why-rows), and for Cap notes (caps + excess-driver overflow). On Override, a final `<p class="override-note">` listing the accepted violations. Omit empty sub-blocks entirely (no "none" lines).
 
-**F. Empty-set rendering.** If the final analysis set is empty (consultant selected nothing in Round 2 and added nothing via Other): `{{DIAGRAMS}}` is the single `diagram-empty` placeholder; `{{REQUIREMENT_SECTIONS}}` is the empty string; the scoring table still shows the auto-extracted candidates the consultant could have picked; the Overview "Requirements analysed" reads `0`. Diagnostics still render.
+**H. Empty-set rendering.** If the final analysis set is empty (consultant selected nothing in Round 2 and added nothing via Other): `{{DIAGRAMS}}` is the single `diagram-empty` placeholder; `{{REQUIREMENT_SECTIONS}}` is the empty string; the scoring table still shows the auto-extracted candidates the consultant could have picked; the Overview "Requirements analysed" reads `0`. Diagnostics still render.
 
 After substitution, compute the SHA-256 of the final HTML byte-string for Step 12.
 
@@ -431,6 +439,8 @@ Before handing back, verify all of the following against the written artefact an
 - `analyse-requirements/FIVE-WHYS/five-whys.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact is **self-contained**: it begins with `<!doctype html>`, has exactly one inline `<style>` block, and contains **no** `<script>`, no `src=`/`href=` to any external or CDN resource, and **no Mermaid runtime** of any kind. The only SVG is the pre-rendered why-chain markup.
 - The artefact contains **zero** literal `{{` or `}}` placeholder sequences (every template slot was substituted).
+- The artefact's **first rendered content section** is `<section id="plain-terms">` with a non-empty `<p>` (the `{{PLAIN_SUMMARY}}` substitution). In DOM order it precedes `<section id="overview">`, which precedes `<nav class="toc">`, which precedes `<section id="diagrams">`. Confirm DOM order matches: `#plain-terms` → `#overview` → `nav.toc` → `#diagrams` → `#scoring` → `#drilldown` → `#diagnostics`.
+- The `<section id="plain-terms">` `<p>` is non-empty (contains at least 20 words), carries no `[SRC: C-NNN]` markers (the lead is a faithful condensation, not a citation chain), and glosses methodology jargon at first use (verify at least one of: "five whys", "root cause", "causal chain", "PASS", "INCOMPLETE", "coverage gap", "ai-suggested density" is explained in parenthetical or appositive form).
 - The artefact contains exactly one `<h1 id="…">` whose text begins `Five Whys Justification Analysis — `, and an Overview `dl.meta-grid` whose `Requirements SHA-256` value equals the SHA-256 captured in Step 2 — proving the analysis matched the requirements doc as-read, not a stale copy.
 - The `#diagrams` section is present **above** the `#scoring` and `#drilldown` sections, and contains exactly `len(analysis_set)` `<figure class="chain-figure">` blocks (or, for an empty analysis set, the single `diagram-empty` placeholder). Each figure's `<svg>` is inline pre-rendered markup with no `<script>`.
 - The `#scoring` section contains exactly one `table.scoring-table` with `{N}` `<tbody>` rows where `N` equals the Round 1 selection size (≤ 5).
@@ -453,7 +463,7 @@ Before handing back, verify all of the following against the written artefact an
 
 ## Definition of Done
 
-- `analyse-requirements/FIVE-WHYS/five-whys.html` exists, has been verified, and contains a complete Five Whys justification analysis: Overview meta-grid, a `#diagrams` section of inline-SVG why-chain figures rendered above the text, the Rationale-analysis priority scoring (Round 1) table, zero-or-more per-requirement drill-down blocks (each with a complete why-chain, termination row, and coverage row; branched requirements emit one sub-chain table per branch), and a collapsed Diagnostics section reporting all 10 hard-check results plus the AI-suggested density.
+- `analyse-requirements/FIVE-WHYS/five-whys.html` exists, has been verified, and contains a complete Five Whys justification analysis in DOM order: an "In plain terms" `<section id="plain-terms">` lead first (non-empty, no `[SRC]`, jargon glossed), then an Overview meta-grid, a `#diagrams` section of inline-SVG why-chain figures rendered above the text, the Rationale-analysis priority scoring (Round 1) table, zero-or-more per-requirement drill-down blocks (each with a complete why-chain, termination row, and coverage row; branched requirements emit one sub-chain table per branch), and a collapsed Diagnostics section reporting all 10 hard-check results plus the AI-suggested density.
 - Either all 10 hard quality checks passed, or the consultant explicitly chose Override and the diagnostics block records every violation.
 - The consultant has accepted the artefact in the Step 13 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.

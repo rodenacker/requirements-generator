@@ -32,6 +32,11 @@
       sourced from the manifest, in addition to gate results + counts.
 
   Section order (top-to-bottom):
+    0. In plain terms (id="plain-terms") — {{PLAIN_SUMMARY}}: a short human-
+                                           readable lead (what this job map is,
+                                           what it found, what to do with it).
+                                           First section, above the meta-grid.
+                                           Per framework/shared/output-readability.md.
     1. Overview (id="overview")        — title, subtitle, meta-grid.
     2. TOC (<nav class="toc">)         — static top-level anchors.
     2b. Legend (.legend-bar)           — colour key, directly under the TOC
@@ -41,6 +46,8 @@
     5. Round-trip footer               — static paragraph above diagnostics.
     6. Diagnostics (id="diagnostics")  — <details> wrapper, collapsed
        by default. Bottom of page; position alone signals auxiliary.
+    7. Downstream-use footer (downstream-toggle) — collapsed <details>
+       near foot of page; pipeline/re-ingestion instructions.
 
   Layout: one `<section class="job-cluster">` per cluster (one cluster per
   actor + main-goal pair). Inside each cluster, jobs render as
@@ -51,6 +58,13 @@
   Placeholders the analyser substitutes (string substitution, all values
   pre-escaped for HTML):
 
+    {{PLAIN_SUMMARY}}               — 2–5 plain-English sentences for the "In plain terms"
+                                      lead block: what this job map is, what it found,
+                                      what to do with it. HTML-escaped. Methodology/framework
+                                      jargon (job, job map, outcome, forces of progress,
+                                      opportunity score) glossed at first use; client domain
+                                      terms NOT glossed (the GLOSSARY methodology owns those).
+                                      Per framework/shared/output-readability.md.
     {{TITLE}}                       — short title (e.g. "JTBD Job Map — Inputs — Project X")
     {{DOMAIN}}                      — domain string (best-effort: from manifest's `target` field, or from brief if discoverable)
     {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
@@ -786,6 +800,35 @@
       border-radius: 3px;
     }
 
+    /* ------- in plain terms (human-readable lead) ------- */
+
+    #plain-terms {
+      margin: 0 0 24px 0; padding: 14px 18px;
+      background: #f0f7ff; border: 1px solid var(--want-border);
+      border-left: 4px solid var(--want-border); border-radius: 6px;
+    }
+    #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+    #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--fg); }
+
+    /* ------- downstream-use footer (collapsed; analyses only) ------- */
+
+    details.downstream-toggle { margin-top: 24px; margin-bottom: 24px; }
+    details.downstream-toggle > summary {
+      cursor: pointer; padding: 10px 14px; background: #fff;
+      border: 1px solid var(--border); border-left: 4px solid var(--border-strong);
+      border-radius: 6px; font-weight: 600; font-size: 13px; color: var(--muted);
+      list-style: none; user-select: none;
+    }
+    details.downstream-toggle > summary::-webkit-details-marker { display: none; }
+    details.downstream-toggle > summary::before {
+      content: "▶"; font-size: 10px; color: var(--muted); margin-right: 8px;
+      display: inline-block; transition: transform 0.15s ease;
+    }
+    details.downstream-toggle[open] > summary { border-radius: 6px 6px 0 0; border-bottom: none; }
+    details.downstream-toggle[open] > summary::before { transform: rotate(90deg); }
+    .downstream-note { padding: 14px 18px; background: #fff; border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; }
+    .downstream-note p { color: var(--muted); font-size: 13px; margin: 6px 0; }
+
     footer {
       margin-top: 24px;
       padding-top: 16px;
@@ -882,6 +925,11 @@
 </head>
 <body>
   <main>
+    <section id="plain-terms" aria-label="In plain terms">
+      <h2>In plain terms</h2>
+      <p>{{PLAIN_SUMMARY}}</p>
+    </section>
+
     <section id="overview">
       <h1>{{TITLE}}</h1>
       <p class="subtitle">JTBD job map (input-analysis variant) — one card per job (WHEN · I WANT TO · SO I CAN · scoring · forces), grouped by cluster, sourced from raw consultant inputs enumerated in <code>requirements/source-manifest.json</code>.</p>
@@ -903,10 +951,10 @@
 
     <nav class="toc" aria-label="Sections">
       <ol>
+        <li><a href="#plain-terms">In plain terms</a></li>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#diagrams">Diagrams</a></li>
         <li><a href="#tables">Tabular information</a></li>
-        <li><a href="#round-trip">Use in /requirements</a></li>
         <li><a href="#diagnostics">Diagnostics</a></li>
       </ol>
     </nav>
@@ -934,13 +982,16 @@
       {{OPPORTUNITY_MATRIX}}
     </section>
 
-    <section id="round-trip" class="round-trip" aria-label="Use in /requirements">
-      <p><strong>Use this map as input to <code>/requirements</code>:</strong> copy this file into <code>input/</code> and re-invoke <code>/requirements</code>. The shared input-handler will detect the new file, surface a manifest-refresh prompt, and add it to <code>requirements/source-manifest.json</code> as a new <code>Native-text</code> row. The drafter will then read this map's job-card content as candidate-requirement seeds, and the <code>[SRC: <em>&lt;filename&gt;</em>]</code> markers inside the map will preserve the audit trail back to the original briefs / interview notes / decks that justified each job.</p>
-    </section>
-
     <details id="diagnostics" class="diagnostics-toggle">
       <summary>Diagnostics</summary>
       {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    <details class="downstream-toggle">
+      <summary>For downstream use — re-ingesting this artefact into /requirements</summary>
+      <div class="downstream-note">
+        <p>To re-ingest this artefact into <code>/requirements</code>, copy this file into <code>input/</code> and re-invoke <code>/requirements</code>. The shared input-handler will detect the new file, surface a manifest-refresh prompt, and add it to <code>requirements/source-manifest.json</code> as a new <code>Native-text</code> row. The drafter will then read this map's job-card content as candidate-requirement seeds, and the <code>[SRC: &lt;filename&gt;]</code> markers inside the map will preserve the audit trail back to the original briefs / interview notes / decks that justified each job.</p>
+      </div>
     </details>
 
     <footer>

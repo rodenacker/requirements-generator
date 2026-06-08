@@ -51,6 +51,7 @@ JTBD on raw inputs is the **right complement** to the existing `/analyse-require
 
 The artefact has a fixed top-to-bottom shape (rendered by the template; placeholders are substituted by the analyser):
 
+0. **In plain terms** (`<section id="plain-terms">`). `{{PLAIN_SUMMARY}}` — a 2–5 sentence plain-English lead (what this job map is, what it found, what the consultant should do with it). First section, above the meta-grid. Faithful condensation of the content below; introduces no new fact, count, or citation; carries no `[SRC]` of its own. Methodology jargon (job, job map, outcome, forces of progress, opportunity score) glossed at first use; client domain terms not glossed. Per `framework/shared/output-readability.md`.
 1. **Overview block.** Title, subtitle, meta-grid (Domain, Generated timestamp, Manifest fingerprint, Source count + tier breakdown, Jobs, Clusters, Functional / Emotional / Social counts, High-Opportunity count).
 2. **JTBD-meta** HTML comment carrying the additive-merge cursor (`manifest_fingerprint`, `run_count`).
 3. **TOC** — static top-level anchors (Overview, Diagrams, Tabular information, Diagnostics).
@@ -63,8 +64,8 @@ The artefact has a fixed top-to-bottom shape (rendered by the template; placehol
    - Scoring strip: Importance dots (5), Satisfaction dots (5), Opportunity score + band chip. Scores carry `consultant-assigned-no-signal` marker in Diagnostics if unsignaled.
    - Forces strip: Push / Pull / Anxiety / Habit lines; forces with no input mention render as `not-named-in-inputs` with the `not-named` CSS class.
 5. **Opportunity matrix** (`<section id="tables">`). 5×5 grid plotting jobs by Importance (Y) × Satisfaction (X). Top-right quadrant (Imp ≥ 4 ∧ Sat ≤ 2) highlighted as the innovation-opportunity zone.
-6. **Round-trip footer.** A short paragraph (template-supplied) telling the consultant how to feed this map into a subsequent `/requirements` run.
-7. **Diagnostics** (`<details id="diagnostics">`, collapsed by default). Manifest fingerprint, source roster (Consumed table + Skipped table), gate results (1–7 pass / fail), provenance counts (jobs cited from each source), measure counts (measurable / `(no-metric-in-inputs)`), scoring marker counts (`consultant-assigned-no-signal`), force counts (named / `not-named-in-inputs`), run history.
+6. **Diagnostics** (`<details id="diagnostics">`, collapsed by default). Manifest fingerprint, source roster (Consumed table + Skipped table), gate results (1–7 pass / fail), provenance counts (jobs cited from each source), measure counts (measurable / `(no-metric-in-inputs)`), scoring marker counts (`consultant-assigned-no-signal`), force counts (named / `not-named-in-inputs`), run history.
+7. **Downstream-use footer** (`<details class="downstream-toggle">`, collapsed by default). Re-ingestion instructions (how to copy this file into `input/` for a subsequent `/requirements` run). Pipeline-machinery prose; visible only on expand.
 
 ---
 
@@ -361,3 +362,5 @@ The analysis is complete when:
 ## Voice and stance
 
 The analyser's stance is defined in `framework/assets/characters/jtbd-inputs-analysis.md` — extraction-only, citation-bound, motivation-anchored, force-honest, additive. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+The analyser also follows `framework/shared/output-readability.md` (operative rules restated in the character's *Reader & plain language* block, so no `framework/shared/` read is needed at run time): writes the "In plain terms" lead, glosses methodology jargon at first use in human-readable prose (job, job map, outcome, forces of progress, opportunity score), leaves client domain vocabulary unglossed (GLOSSARY territory), keeps every `[SRC: <filename>]` marker; plain prose confined to the lead + glosses; the structured body (cards, matrix, diagnostics) keeps its concrete, telegraphic discipline.

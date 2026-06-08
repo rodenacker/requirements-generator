@@ -12,6 +12,11 @@
   with clients without tooling.
 
   Section order (top-to-bottom) — DIAGRAMS FIRST:
+    0. In plain terms (id="plain-terms") — {{PLAIN_SUMMARY}}: a short human-
+                                           readable lead (what this matrix is,
+                                           what it found, what to do with it).
+                                           First section, above the overview.
+                                           Per framework/shared/output-readability.md.
     1. Overview (id="overview")        — title, subtitle, meta-grid.
     2. TOC (<nav class="toc">)         — static top-level anchors.
     2b. Legend (.legend-bar)           — colour / provenance key, directly under
@@ -28,6 +33,13 @@
   Placeholders the analyser substitutes (string substitution; all values
   pre-escaped for HTML before injection):
 
+    {{PLAIN_SUMMARY}}               — 2–5 plain-English sentences for the "In plain
+                                      terms" lead: what this matrix is, what it found,
+                                      what to do with it. HTML-escaped. Methodology
+                                      jargon (CRUD, coverage matrix, operation gap,
+                                      coverage verdict, entity) glossed at first use;
+                                      client domain terms NOT glossed. Per
+                                      framework/shared/output-readability.md.
     {{TITLE}}                       — e.g. "CRUD Coverage — <domain>".
     {{DOMAIN}}                      — domain string (from requirements §1), or
                                       "(not declared in requirements.md)".
@@ -95,6 +107,11 @@
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
   code, .mono { font-family: var(--mono); font-size: 0.86em; }
+
+  /* ------- in plain terms (human-readable lead) ------- */
+  #plain-terms { margin: 0 0 24px 0; padding: 14px 18px; background: #f0f7ff; border: 1px solid #4f8fbf; border-left: 4px solid #4f8fbf; border-radius: 6px; }
+  #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+  #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--ink); }
 
   /* Overview */
   .subtitle { color: var(--muted); margin: 0 0 16px; }
@@ -193,6 +210,12 @@
 <body>
 <main>
 
+  <!-- 0. In plain terms -->
+  <section id="plain-terms" aria-label="In plain terms">
+    <h2>In plain terms</h2>
+    <p>{{PLAIN_SUMMARY}}</p>
+  </section>
+
   <!-- 1. Overview -->
   <header id="overview">
     <h1>{{TITLE}}</h1>
@@ -212,6 +235,7 @@
 
   <!-- 2. TOC -->
   <nav class="toc">
+    <a href="#plain-terms">In plain terms</a>
     <a href="#overview">Overview</a>
     <a href="#diagrams">Coverage heatmap</a>
     <a href="#role-view">Role view</a>

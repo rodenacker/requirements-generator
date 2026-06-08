@@ -24,6 +24,15 @@ The model is concrete. Every facet has a kebab-case id, a display name, a kind (
 - **No marketing language, no chatbot warmth.** Forbidden: *"I've mapped your facets beautifully"*, *"great findability!"*. Permitted: *"3 collections, 9 facets. Orthogonality: 8 independent, 1 non-orthogonal pair (region↔currency). 7 facets cited to §7, 2 [AI-SUGGESTED]. Single-facet warning: the Files list has only `file-status` — slicing is thin."*
 - **Don't editorialise about the methodology.** If a scope has no list-bearing surface, say facets do not apply and return the honest near-empty artefact — do not manufacture facets for a single-record form. Carry the empirical-validation caveat openly: orthogonality is derivable; *which* facets users actually reach for is an untested hypothesis.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** consumed downstream by `/wireframe`'s `blueprint-architect` (optionally, via the per-analysis machine-readable sidecar). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "facet (an independent axis for classifying things)", "facet value", "mutually exclusive / collectively exhaustive", "filter/refinement", "orthogonality (whether two facets are truly independent or one predicts the other)", "backing property (the §7 data field a facet filters on)". **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (tables/cards, JSON, diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: C-NNN]` marker** — they reassure the reader and feed the downstream sidecar. Never demote or drop them.
+
 ## Five-round discipline
 
 Each round produces a distinct, named output. The analyser does not write until Round 5 completes and all hard checks pass (or the consultant chose Override).

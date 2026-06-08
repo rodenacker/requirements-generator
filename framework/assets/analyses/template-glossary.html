@@ -21,6 +21,11 @@
   `<!-- glossary-meta: ... -->` comment.
 
   Section order (top-to-bottom):
+    0. In plain terms (id="plain-terms")        — {{PLAIN_SUMMARY}}: 2–5 plain-English sentences
+                                                  explaining what this glossary is (agreed vocabulary,
+                                                  term/undefined counts, confirm-or-correct prompt).
+                                                  First section, above the Overview. Per
+                                                  framework/shared/output-readability.md.
     1. Overview (id="overview")                 — title, subtitle, meta-grid
                                                   (Domain, Generated, Requirements SHA-256, Scope tier,
                                                   + term counts).
@@ -40,12 +45,23 @@
                                                   markitdown HTML→MD round-trip as a fenced code block.
     9. Run history (id="run-history")           — {{RUN_HISTORY_BLOCK}} — append-only prior-run bullets.
    10. Diagnostics (id="diagnostics")           — <details> wrapper, collapsed by default; {{DIAGNOSTICS_BLOCK}}.
-   11. <!-- glossary-meta: ... --> comment       — analyser emits immediately before </main>.
-   12. footer                                    — credit.
+   11. Downstream use (details.downstream-toggle) — collapsed footer; machinery prose for /wireframe
+                                                  re-ingestion (moved from body captions).
+   12. <!-- glossary-meta: ... --> comment       — analyser emits immediately before </main>.
+   13. footer                                    — credit.
 
   Placeholders the analyser substitutes (string substitution, all values pre-escaped for HTML
   EXCEPT BODY_JSON which is additionally escaped for &lt; / &amp; / &gt; that would break <pre><code>):
 
+    {{PLAIN_SUMMARY}}             — 2–5 plain-English sentences for the "In plain terms" lead:
+                                    what this glossary is (the agreed vocabulary for the project's
+                                    domain), how many terms are defined, how many are used-but-undefined
+                                    (flagged for the consultant), and that the consultant should confirm
+                                    or correct the proposed definitions. HTML-escaped. Methodology/
+                                    framework jargon (used-but-undefined, alias/synonym, provenance,
+                                    definition source) glossed at first use; client domain terms NOT
+                                    glossed (they are this artefact's content). Per
+                                    framework/shared/output-readability.md.
     {{TITLE}}                     — short title (e.g. "Glossary — Project X")
     {{DOMAIN}}                    — domain string (from requirements §1 if present, else "(not declared in requirements.md)")
     {{GENERATED_AT}}              — ISO-8601 UTC timestamp the artefact was rendered
@@ -235,6 +251,22 @@
     .meta-grid dt { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; margin: 0; }
     .meta-grid dd { margin: 0 0 6px 0; font-variant-numeric: tabular-nums; word-break: break-word; }
 
+    /* ------- in plain terms (human-readable lead) ------- */
+    #plain-terms { margin: 0 0 24px 0; padding: 14px 18px; background: #f0f7ff; border: 1px solid #4f8fbf; border-left: 4px solid #4f8fbf; border-radius: 6px; }
+    #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+    #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--fg); }
+
+    /* ------- downstream-use footer (collapsed) ------- */
+    details.downstream-toggle { margin-top: 24px; margin-bottom: 24px; }
+    details.downstream-toggle > summary { cursor: pointer; padding: 10px 14px; background: #fff; border: 1px solid #d4d4d4; border-left: 4px solid #8a8a8a; border-radius: 6px; font-weight: 600; font-size: 13px; color: #5a5a5a; list-style: none; user-select: none; }
+    details.downstream-toggle > summary::-webkit-details-marker { display: none; }
+    details.downstream-toggle > summary::before { content: "\25B6"; font-size: 10px; color: #5a5a5a; margin-right: 8px; display: inline-block; transition: transform 0.15s ease; }
+    details.downstream-toggle[open] > summary { border-radius: 6px 6px 0 0; border-bottom: none; }
+    details.downstream-toggle[open] > summary::before { transform: rotate(90deg); }
+    .downstream-note { padding: 14px 18px; background: #fff; border: 1px solid #d4d4d4; border-top: none; border-radius: 0 0 6px 6px; }
+    .downstream-note p { color: #5a5a5a; font-size: 13px; margin: 6px 0; }
+    .downstream-note code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.92em; background: #efefef; padding: 0 4px; border-radius: 3px; }
+
     /* ------- table of contents (sticky) ------- */
     .toc {
       position: sticky; top: 0; z-index: 5;
@@ -372,6 +404,11 @@
 </head>
 <body>
   <main>
+    <section id="plain-terms" aria-label="In plain terms">
+      <h2>In plain terms</h2>
+      <p>{{PLAIN_SUMMARY}}</p>
+    </section>
+
     <section id="overview">
       <h1>{{TITLE}}</h1>
       <p class="subtitle">Glossary (requirements-analysis variant) — the domain vocabulary of the merged <code>requirements/requirements.md</code> and the definitions the document itself gives. Each term is either <strong>defined</strong> (a verbatim definition lifted from the document, with a section citation) or <strong>used without explicit definition</strong> (surfaced as a gap, with use-site citations). Nothing is glossed from world knowledge — there are no <code>[AI-SUGGESTED]</code> entries. Scope is tiered and cumulative; re-run at a wider tier to widen additively.</p>
@@ -397,6 +434,7 @@
 
     <nav class="toc" aria-label="Sections">
       <ol>
+        <li><a href="#plain-terms">In plain terms</a></li>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#defined">Defined terms</a></li>
         <li><a href="#undefined">Used without definition</a></li>
@@ -454,7 +492,7 @@
 
     <section id="body" class="body-wrap" aria-label="Machine-readable glossary model">
       <h2 class="section-title">Machine-readable model</h2>
-      <p class="section-caption">The full glossary model in JSON &mdash; the machine-extractable term contract the blueprint-architect's copy-vocabulary role can read. It survives a markitdown HTML&rarr;MD round-trip as a fenced code block.</p>
+      <p class="section-caption">The full glossary model in JSON — the structured term inventory for this project's domain vocabulary.</p>
       <pre class="body-json"><code class="language-json" id="glossary-body">{{BODY_JSON}}</code></pre>
     </section>
 
@@ -467,6 +505,15 @@
     <details id="diagnostics" class="diagnostics-toggle">
       <summary>Diagnostics</summary>
       {{DIAGNOSTICS_BLOCK}}
+    </details>
+
+    <details class="downstream-toggle">
+      <summary>For downstream use — /wireframe blueprint-architect re-ingestion</summary>
+      <div class="downstream-note">
+        <p>
+          The <code>blueprint-architect</code>'s <code>copy-vocabulary</code> role may read this artefact to seed the vocabulary for <code>/wireframe</code> (sidecar-first, with an RF-09 bounded prose-read fallback). The embedded <code>language-json</code> <code>glossary-body</code> block keeps the term model machine-extractable directly from the HTML and survives a markitdown HTML&rarr;MD round-trip as a fenced code block.
+        </p>
+      </div>
     </details>
 
     <footer>

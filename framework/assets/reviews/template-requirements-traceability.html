@@ -35,6 +35,16 @@
 
   Placeholders the reviewer substitutes (string substitution, all values pre-escaped):
 
+    {{PLAIN_SUMMARY}}           — 2–5 plain-English sentences for the "In plain terms" lead
+                                  block (the FIRST section, before the Executive Summary):
+                                  what this review is, what it found (preserving severity —
+                                  do NOT soften a BLOCKED verdict into reassurance), and what
+                                  the consultant should do next. HTML-escaped. Review jargon
+                                  (verdict, capability tier, trace link, coverage, orphan
+                                  requirement, backward traceability, provenance class)
+                                  glossed at first use; client domain terms NOT glossed.
+                                  Reviews are human-only — no downstream consumer. Per
+                                  framework/shared/output-readability.md.
     {{TITLE}}                   — e.g. "Requirements Traceability Review — Project X"
     {{DOMAIN}}                  — domain string from §1, else "(not declared in requirements.md)"
     {{GENERATED_AT}}            — ISO-8601 UTC timestamp
@@ -288,6 +298,11 @@
   .back-to-top a { color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--border-strong); padding-bottom: 1px; }
   .back-to-top a:hover { color: var(--fg); border-bottom-color: var(--fg); }
 
+  /* In plain terms (human-readable lead — first section) */
+  #plain-terms { border-left: 4px solid var(--prov-rule); background: #f0fbfa; }
+  #plain-terms h2 { border-bottom-color: var(--prov-rule); }
+  #plain-terms p { margin: 0 0 4px 0; font-size: 15px; line-height: 1.55; }
+
   /* Verdict banner */
   .verdict { display: inline-block; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 14px; letter-spacing: 0.04em; }
   .verdict-BLOCKED { background: var(--verdict-blocked-bg); color: var(--verdict-blocked-fg); }
@@ -424,6 +439,7 @@
   <nav class="toc" aria-label="Table of contents">
     <span class="toc-label">On this page</span>
     <ol>
+      <li><a href="#plain-terms">In plain terms</a></li>
       <li><a href="#executive-summary">Executive summary</a></li>
       <li><a href="#untraceable">Untraceable requirements</a></li>
       <li><a href="#heatmap">Trace-target heatmap</a></li>
@@ -432,6 +448,12 @@
       <li><a href="#diagnostics">Diagnostics</a></li>
     </ol>
   </nav>
+
+  <section id="plain-terms" aria-label="In plain terms">
+    <h2>In plain terms</h2>
+    <p>{{PLAIN_SUMMARY}}</p>
+    <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+  </section>
 
   <section id="executive-summary">
     <h2>Executive summary</h2>

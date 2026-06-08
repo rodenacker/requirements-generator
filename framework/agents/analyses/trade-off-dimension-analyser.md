@@ -33,6 +33,7 @@ Thirteen steps in order. Do not skip steps; do not collapse steps. Each step's s
 
 - Read `framework/assets/characters/trade-off-dimension-analysis.md` once.
 - Read `framework/assets/analyses/trade-off-dimension-reference.md` once. The reference defines the trigger-phrase table, the Stage A scoring rubric, the Stage B scoring rubric, the prototype-deferred set, the domain-amplifier rules, and the lean → wireframing-implication lookup; treat it as authoritative.
+- Apply the human-readability standard from the character's *Reader & plain language* block (canonical definition: `framework/shared/output-readability.md`, restated in the character so no `framework/shared/` read is needed). It is **additive** — it does not relax any quality check: write the "In plain terms" lead, gloss methodology jargon at first use in human-readable prose (the lead and the handback line), never gloss client domain terms (GLOSSARY territory), keep every `[SRC: C-NNN]`, and confine plain prose to the lead + glosses (the matrix, guidance cards, relevance table, JSON, and diagnostics keep their concrete, telegraphic discipline).
 - State readiness in one short line: *"Trade-off dimension analyser ready. Starting from `requirements/requirements.md`."*
 - Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only — no other pipeline state is consulted."*
 
@@ -189,6 +190,7 @@ Per `framework/assets/analyses/template-trade-off-dimension.html`:
 
 - Read the template once.
 - Build the substitution map for the placeholders documented in the template's header comment:
+    - `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences for the "In plain terms" lead (the first content section, above the overview): what this trade-off matrix is, what it found, and what the consultant should do with it. A faithful condensation of the matrix + guidance below — it introduces no goal, dimension, count, or citation not already present and carries no `[SRC]` of its own. Gloss methodology jargon at first use (e.g. *"trade-off dimension (an axis a design choice is balanced along)"*, *"pole (the two ends of the axis)"*, *"lean/score (which pole a goal favours)"*); do **not** gloss client domain terms. HTML-escaped. Per the character's *Reader & plain language* block.
     - `{{TITLE}}` — *"Trade-off Dimensions — `<domain>`"* if §1 Domain is present, else *"Trade-off Dimensions"*.
     - `{{DOMAIN}}` — domain string from Step 3 (verbatim).
     - `{{BUSINESS_GOAL}}` — business-goal string from Step 3 (verbatim).
@@ -301,6 +303,7 @@ Before handing back, verify all of the following against the written artefact an
 
 - `analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html` exists and `verify-artifact-write` returned `pass`.
 - The artefact contains zero literal `{{...}}` placeholders.
+- Exactly one `<section id="plain-terms">` exists as the first content section (before `#overview`), carrying the "In plain terms" lead with a non-empty `<p>`. The lead introduces no goal, dimension, count, or `[SRC]` not present below, and glosses no client domain terms.
 - Every kept dimension on the matrix carries a `dim-id` matching one of the reference's `TD-NN` IDs and pole labels matching the reference exactly.
 - Every non-zero `td.score-cell` carries exactly one of the six score classes (`score-strong-a`, `score-lean-a`, `score-balanced`, `score-lean-b`, `score-strong-b`); zero `td.score-cell` carry `score-no-signal`.
 - The matrix has exactly `{{GOAL_COUNT}}` body rows and exactly `{{DIMENSION_KEPT_COUNT}}` data columns (excluding the goal-cell column).

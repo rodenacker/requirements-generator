@@ -7,6 +7,8 @@
   `file://` in a browser; shareable with clients without tooling.
 
   Section order (top-to-bottom):
+    0. In plain terms (id="plain-terms") — {{PLAIN_SUMMARY}}: human-readable lead,
+                                         first content section, above the overview.
     1. Overview (id="overview")        — title, subtitle, meta-grid.
     2. TOC (<nav class="toc">)         — static top-level anchors.
     2b. Legend (.legend-bar)           — colour / provenance key, directly under
@@ -35,6 +37,11 @@
   pre-escaped for HTML):
 
     {{TITLE}}                       — short title (e.g. "Use Cases Map — Project X")
+    {{PLAIN_SUMMARY}}               — 2–5 plain-English sentences for the "In plain terms"
+                                      lead (first content section, above the overview);
+                                      HTML-escaped; methodology jargon glossed at first use,
+                                      client domain terms NOT glossed. Per
+                                      framework/shared/output-readability.md.
     {{DOMAIN}}                      — domain string (from requirements §1 if present)
     {{GENERATED_AT}}                — ISO-8601 UTC timestamp the artefact was rendered
     {{REQUIREMENTS_SHA256}}         — sha256 of requirements/requirements.md at read time
@@ -1149,6 +1156,15 @@
     }
     footer .credit { margin-top: 6px; text-align: right; }
 
+    /* ------- in plain terms (human-readable lead) ------- */
+    #plain-terms {
+      margin: 0 0 24px 0; padding: 14px 18px;
+      background: #f0f7ff; border: 1px solid #4f8fbf;
+      border-left: 4px solid #4f8fbf; border-radius: 6px;
+    }
+    #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+    #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--fg); }
+
     /* ------- table of contents ------- */
 
     .toc {
@@ -1200,6 +1216,11 @@
 </head>
 <body>
   <main>
+    <section id="plain-terms" aria-label="In plain terms">
+      <h2>In plain terms</h2>
+      <p>{{PLAIN_SUMMARY}}</p>
+    </section>
+
     <section id="overview">
       <h1>{{TITLE}}</h1>
       <p class="subtitle">Use Cases map — one card per UC (title · primary actor · level · conditions · main scenario · extensions). Grouped by sea-level.</p>
@@ -1219,6 +1240,7 @@
 
     <nav class="toc" aria-label="Sections">
       <ol>
+        <li><a href="#plain-terms">In plain terms</a></li>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#uml-diagrams">UML diagrams</a></li>
         <li><a href="#diagrams">Diagrams</a></li>

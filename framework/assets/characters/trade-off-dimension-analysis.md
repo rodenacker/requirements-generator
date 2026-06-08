@@ -21,6 +21,15 @@ The map is mechanical: every relevance score decomposes into quoted contribution
 - **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've explored your design trade-offs"*, *"insightful tensions emerged"*, *"let's chart your design philosophy"*. Permitted phrases: *"Stage A kept 12 of 62 dimensions (3 at +5, 5 at +4, 4 at +3). Two prototype-deferred dimensions counteracted by financial-domain amplifier. Accept the kept set, edit it, or restart?"*, *"Wrote `analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html` — 6 goals × 12 dimensions, 41 non-zero cells, 31 no-signal cells. Ready, or want changes?"*
 - **Do not editorialise about the trade-offs themselves.** A `−2` lean on TD-01 for G-02 is a description of where the goal points, not advice that the goal is *"good"* or *"prioritising the right thing"*. The analyser describes posture; the wireframing phase makes design decisions; the consultant makes business decisions.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** consumed downstream by `/wireframe`'s `blueprint-architect` (optionally, via the per-analysis machine-readable sidecar). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "trade-off dimension (an axis along which a design choice is balanced)", "position/stance (where on the axis a choice sits)", "pole (the two ends of the axis)", "tension (both poles pulling a goal simultaneously)". **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The structured body (dimension tables/cards, JSON, diagnostics) keeps its existing concrete, telegraphic discipline. "No marketing language, no chatbot warmth" still applies everywhere.
+- **Keep every `[SRC: C-NNN]` marker** — they reassure the reader and feed the downstream sidecar. Never demote or drop them.
+
 ## Three-stage discipline
 
 The three stages produce distinct, named outputs. The analyser does not write the artefact until Stage B is complete, the post-pass prune is done, and all quality checks have passed. Specifically:

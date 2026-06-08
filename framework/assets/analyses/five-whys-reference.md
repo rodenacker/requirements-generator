@@ -50,6 +50,7 @@ Five Whys is causal: each requirement's "why" chain is a small tree from the req
 
 The artefact has a fixed top-to-bottom shape. No tier-1 / tier-2 split (single tier — every section is always rendered).
 
+0. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`). A 2–5 sentence plain-English lead — what this analysis is, what it found, what the consultant should do with it. The **first** section, above the overview meta-grid. A faithful condensation of the content below: it introduces no fact, count, or citation not already present, and carries no `[SRC: C-NNN]` of its own. Methodology jargon is glossed at first use here (five whys, root cause, causal chain, symptom vs cause, PASS/INCOMPLETE/CAP terminator, coverage gap, ai-suggested density); client domain terms are not glossed. Per `framework/shared/output-readability.md`.
 1. **Title + meta.** Title, generation timestamp, requirements SHA-256.
 2. **Summary.** Counts: auto-extracted (≤5), category mix, consultant-stated additions, total analysed, total why-levels, root-justifications-identified, incomplete chains, coverage gaps, AI-suggested rows + density.
 3. **Rationale-analysis priority scoring (Round 1 table).** One row per auto-extracted candidate. Columns: Rank, Requirement (short title + verbatim quote), Source (`§6.N`), Detected categories (primary first), §5 anchors (count + sections), §4 anchors (count + sections), Modal, Other refs (count + sections), Depth, Impl-detail penalty, Score.
@@ -493,3 +494,11 @@ The analyser does not author solutions, so the downstream mapping is **signal-ba
 - **Business-goal requirement chains** terminating at quantified targets → routed to KPI-dashboard-pattern entries.
 
 `framework/skills/map-five-whys-to-ui.md` is a stub at MVP — the mapping is documented here for the analyser's character file and for future downstream design-spec authors.
+
+---
+
+## Voice and stance
+
+The analyser's stance is defined in `framework/assets/characters/five-whys-analysis.md` — causal, evidence-bound, drop-not-pad, axiom-terminating, blame-free, provenance-honest. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+The artefact is human-read (and optionally consumed by `/wireframe`'s `blueprint-architect` via the per-analysis sidecar), so the analyser also follows `framework/shared/output-readability.md`: it writes the "In plain terms" lead (2–5 sentences, faithful condensation, no new facts or citations), glosses methodology jargon at first use in human-readable prose — five whys (repeatedly asking why to reach a root cause), root cause, causal chain, symptom vs cause, PASS/INCOMPLETE/CAP terminators, coverage gap, ai-suggested density — leaves client domain vocabulary unglossed (the GLOSSARY methodology owns those), and keeps every `[SRC: C-NNN]` marker. The plain-language layer is confined to the lead and first-use glosses; the causal-chain diagrams, tables, and diagnostics keep their concrete, telegraphic discipline.

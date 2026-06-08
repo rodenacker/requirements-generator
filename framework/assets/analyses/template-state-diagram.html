@@ -19,6 +19,11 @@
   browser; shareable with clients without tooling.
 
   Section order (top-to-bottom):
+    0. In plain terms (id="plain-terms") — {{PLAIN_SUMMARY}}: a short human-
+                                           readable lead (what this analysis is,
+                                           what it found, what to do with it).
+                                           First section, above the overview.
+                                           Per framework/shared/output-readability.md.
     1. Overview (id="overview")        — title, subtitle, meta-grid.
     2. TOC (<nav class="toc">)         — static top-level anchors.
     2b. Legend (.legend-bar)           — colour / provenance key, directly
@@ -33,6 +38,15 @@
   Placeholders the analyser substitutes (string substitution, all values
   pre-escaped for HTML; XML-escaped inside <svg><text> nodes):
 
+    {{PLAIN_SUMMARY}}          — 2–5 plain-English sentences for the "In plain terms"
+                                 lead block: what this state-diagram analysis is, what
+                                 it found, what the consultant should do with it.
+                                 HTML-escaped. Methodology jargon (state diagram,
+                                 state, transition, trigger/event, guard condition,
+                                 initial/final state) glossed at first use; client
+                                 domain terms NOT glossed (GLOSSARY methodology owns
+                                 those). No [SRC] markers. Per
+                                 framework/shared/output-readability.md.
     {{TITLE}}                  — short title (e.g. "State Diagrams — Project X").
     {{DOMAIN}}                 — domain string (from requirements §1 if present).
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
@@ -867,6 +881,49 @@
     }
     .toc a:hover { border-bottom-color: var(--fg); }
 
+    /* ------- in plain terms (human-readable lead) ------- */
+    #plain-terms { margin: 0 0 24px 0; padding: 14px 18px; background: #f0f7ff; border: 1px solid #4f8fbf; border-left: 4px solid #4f8fbf; border-radius: 6px; }
+    #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+    #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--fg); }
+
+    /* ------- downstream toggle (machinery prose, collapsed) ------- */
+    details.downstream-toggle {
+      margin-top: 32px;
+      margin-bottom: 24px;
+    }
+    details.downstream-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #f7f7f7;
+      border: 1px solid #d4d4d4;
+      border-left: 4px solid #8a8a8a;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      color: #5a5a5a;
+      list-style: none;
+      user-select: none;
+    }
+    details.downstream-toggle > summary::-webkit-details-marker { display: none; }
+    details.downstream-toggle > summary::before {
+      content: "▶ ";
+      font-size: 10px;
+      color: #8a8a8a;
+    }
+    details.downstream-toggle[open] > summary::before { content: "▼ "; }
+    .downstream-note {
+      padding: 12px 16px;
+      background: #f7f7f7;
+      border: 1px solid #d4d4d4;
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      font-size: 13px;
+      color: #5a5a5a;
+      line-height: 1.55;
+    }
+    .downstream-note p { margin: 0 0 8px 0; }
+    .downstream-note p:last-child { margin-bottom: 0; }
+
     @media print {
       body { background: #fff; }
       main { padding: 0; }
@@ -885,6 +942,11 @@
 </head>
 <body>
   <main>
+    <section id="plain-terms" aria-label="In plain terms">
+      <h2>In plain terms</h2>
+      <p>{{PLAIN_SUMMARY}}</p>
+    </section>
+
     <section id="overview">
       <h1>{{TITLE}}</h1>
       <p class="subtitle">UML 2.5 § 14 state-diagram catalogue (per-entity behaviour state machines, lean MVP subset) — entities, states, internal activities, transitions, events — plus consultant-selected inline-SVG diagrams and copy-pasteable Mermaid source.</p>
@@ -904,6 +966,7 @@
 
     <nav class="toc" aria-label="Sections">
       <ol>
+        <li><a href="#plain-terms">In plain terms</a></li>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#diagrams">Diagrams</a></li>
         <li><a href="#tables">Tabular information</a></li>

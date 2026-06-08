@@ -10,8 +10,11 @@
 
   No sibling under /analyse-requirement — User Goal Analysis ships only on the inputs side.
 
-  Section order (top-to-bottom) — diagram-first (mirrors journey-mapping / affinity-mapping:
-  compact overview, then the prominent diagram, then the rest):
+  Section order (top-to-bottom) — plain-terms lead first, then diagram-first content:
+    0. In plain terms (id="plain-terms") — {{PLAIN_SUMMARY}}: a 2–5 sentence plain-English lead
+                                           (what this register is, what it found, what to do with it).
+                                           First section, above the meta-grid. Per
+                                           framework/shared/output-readability.md.
     1. Overview (id="overview")        — title, subtitle, meta-grid.
     2. TOC (<nav class="toc">)         — static top-level anchors.
     2b. Legend (.legend-bar)           — colour key, directly under the TOC
@@ -21,12 +24,20 @@
     5. Actor map (id="actor-map")      — {{ACTOR_MAP}} — actor × held/depended goals table.
     6. Conflicts (id="conflicts")      — {{CONFLICTS_TABLE}} — goal-tension table.
     7. JSON body (id="body")           — {{BODY_JSON}} inside <pre><code id="user-goal-analysis-body">.
-    8. Round-trip footer (id="round-trip") — static paragraph above diagnostics.
-    9. Diagnostics (id="diagnostics")  — <details> wrapper, collapsed by default.
+    8. Diagnostics (id="diagnostics")  — <details> wrapper, collapsed by default.
+    9. Downstream footer               — <details class="downstream-toggle"> with re-ingestion
+                                         instructions (collapsed by default).
 
   Placeholders the analyser substitutes (string substitution, all values pre-escaped for HTML
   EXCEPT the BODY_JSON block which is escaped for the &lt; / &amp; that would break <pre><code>):
 
+    {{PLAIN_SUMMARY}}            — 2–5 plain-English sentences for the "In plain terms" lead:
+                                   what this register is, what it found, what to do with it.
+                                   HTML-escaped. Methodology jargon (user goal, goal level,
+                                   actor/persona, success criterion) glossed at first use;
+                                   client domain terms NOT glossed (GLOSSARY methodology owns
+                                   those). No [SRC] markers. Per
+                                   framework/shared/output-readability.md.
     {{TITLE}}                    — short title (e.g. "User Goal Register — Inputs — Project X")
     {{DOMAIN}}                   — domain string (best-effort: manifest `target`/brief)
     {{GENERATED_AT}}             — ISO-8601 UTC timestamp the artefact was rendered
@@ -439,6 +450,36 @@
     footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 11px; }
     footer .credit { margin-top: 6px; text-align: right; }
 
+    /* ------- in plain terms (human-readable lead) ------- */
+    #plain-terms { margin: 0 0 24px 0; padding: 14px 18px; background: #f0f7ff; border: 1px solid #4f8fbf; border-left: 4px solid #4f8fbf; border-radius: 6px; }
+    #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+    #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--fg); }
+
+    /* ------- downstream-use footer (collapsed; analyses only) ------- */
+    details.downstream-toggle { margin-top: 24px; margin-bottom: 24px; }
+    details.downstream-toggle > summary {
+      cursor: pointer; padding: 10px 14px; background: #fff;
+      border: 1px solid #d4d4d4; border-left: 4px solid #8a8a8a;
+      border-radius: 6px; font-weight: 600; font-size: 13px;
+      color: #5a5a5a; list-style: none; user-select: none;
+    }
+    details.downstream-toggle > summary::-webkit-details-marker { display: none; }
+    details.downstream-toggle > summary::before {
+      content: "▶"; font-size: 10px; color: #5a5a5a; margin-right: 8px;
+      display: inline-block; transition: transform 0.15s ease;
+    }
+    details.downstream-toggle[open] > summary { border-radius: 6px 6px 0 0; border-bottom: none; }
+    details.downstream-toggle[open] > summary::before { transform: rotate(90deg); }
+    .downstream-note {
+      padding: 14px 18px; background: #fff;
+      border: 1px solid #d4d4d4; border-top: none; border-radius: 0 0 6px 6px;
+    }
+    .downstream-note p { color: #5a5a5a; font-size: 13px; margin: 6px 0; }
+    .downstream-note code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92em; background: #f3f4f6; padding: 0 4px; border-radius: 3px;
+    }
+
     /* ------- legend (colour key, directly under the TOC) ------- */
 
     .legend-bar { margin: 16px 0 24px; padding: 10px 14px; background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--border-strong); border-radius: 6px; color: var(--muted); font-size: 11px; }
@@ -468,6 +509,11 @@
 </head>
 <body>
   <main>
+    <section id="plain-terms" aria-label="In plain terms">
+      <h2>In plain terms</h2>
+      <p>{{PLAIN_SUMMARY}}</p>
+    </section>
+
     <section id="overview">
       <h1>{{TITLE}}</h1>
       <p class="subtitle">User goal register (input-analysis variant) — one card per goal (type · hardness · provenance · statement · criterion), grouped by Cooper goal type, with a refinement hierarchy, actor map, and conflicts. Sourced from raw consultant inputs enumerated in <code>requirements/source-manifest.json</code>. Explicit goals are cited; inferred goals are anchored, marked, and auditable.</p>
@@ -492,12 +538,12 @@
 
     <nav class="toc" aria-label="Sections">
       <ol>
+        <li><a href="#plain-terms">In plain terms</a></li>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#hierarchy">Goal hierarchy</a></li>
         <li><a href="#register">Goal register</a></li>
         <li><a href="#actor-map">Actor map</a></li>
         <li><a href="#conflicts">Conflicts</a></li>
-        <li><a href="#round-trip">Use in /requirements</a></li>
         <li><a href="#diagnostics">Diagnostics</a></li>
       </ol>
     </nav>
@@ -545,9 +591,12 @@
       <pre class="body-json"><code class="language-json" id="user-goal-analysis-body">{{BODY_JSON}}</code></pre>
     </section>
 
-    <section id="round-trip" class="round-trip" aria-label="Use in /requirements">
-      <p><strong>Use this register as input to <code>/requirements</code>:</strong> copy this file into <code>input/</code> and re-invoke <code>/requirements</code>. The shared input-handler will detect the new file, surface a manifest-refresh prompt, and add it as a <code>Native-text</code> row. The drafter then seeds <code>&sect;4 User goals &amp; stories</code> from the <strong>explicit</strong> goals, while the <strong>inferred</strong> goals surface to the resolver as <code>AI-NNN</code> questions — <em>blocking</em> ones as mandatory confirmations, <em>non-blocking</em> ones as suggestions — so you validate every inference before it becomes a requirement. The <code>[SRC: <em>&lt;filename&gt;</em>]</code> anchors preserve the audit trail back to the original briefs / notes / decks.</p>
-    </section>
+    <details class="downstream-toggle">
+      <summary>For downstream use — re-ingesting this register into /requirements</summary>
+      <div class="downstream-note">
+        <p><strong>Use this register as input to <code>/requirements</code>:</strong> copy this file into <code>input/</code> and re-invoke <code>/requirements</code>. The shared input-handler will detect the new file, surface a manifest-refresh prompt, and add it as a <code>Native-text</code> row. The drafter then seeds <code>&sect;4 User goals &amp; stories</code> from the <strong>explicit</strong> goals, while the <strong>inferred</strong> goals surface to the resolver as <code>AI-NNN</code> questions — <em>blocking</em> ones as mandatory confirmations, <em>non-blocking</em> ones as suggestions — so you validate every inference before it becomes a requirement. The <code>[SRC: <em>&lt;filename&gt;</em>]</code> anchors preserve the audit trail back to the original briefs / notes / decks.</p>
+      </div>
+    </details>
 
     <details id="diagnostics" class="diagnostics-toggle">
       <summary>Diagnostics</summary>

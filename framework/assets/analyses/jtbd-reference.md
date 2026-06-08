@@ -155,7 +155,11 @@ Opportunity = Importance + max(0, Importance - Satisfaction)
 
 ## Output presentation
 
-The artefact renders as a job-card grid grouped by cluster headings. Color contract:
+The artefact's surfaces, in rendered (DOM) order:
+
+0. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) — a 2–5 sentence plain-English lead: what this job map is, what it found, what the consultant should do with it. The **first** section, above the meta-grid. A faithful condensation of the map below — it introduces no job, count, or citation not already present, and carries no `[SRC]` of its own. Methodology jargon (job, job map, outcome, circumstance/context, forces of progress) is glossed at first use here; client domain terms are not glossed (the GLOSSARY methodology owns those). Per `framework/shared/output-readability.md`.
+
+The artefact then renders as a job-card grid grouped by cluster headings. Color contract:
 
 | Element        | Color               | What it carries                                                                |
 |----------------|---------------------|--------------------------------------------------------------------------------|
@@ -201,3 +205,5 @@ Every gate is a hard gate. If any gate fails, the analyser does **not** write th
 ## Voice and stance
 
 The analyser's stance is defined in `framework/assets/characters/jtbd-analysis.md` — analytical, thorough, literal. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+The artefact is human-read (and optionally consumed by `/wireframe`'s `blueprint-architect` via the per-analysis sidecar), so the analyser also follows `framework/shared/output-readability.md`: it writes the "In plain terms" lead, glosses methodology jargon (job, job map, outcome, circumstance/context, forces of progress) at first use in human-readable prose, leaves client domain vocabulary unglossed (GLOSSARY territory), and keeps every `[SRC: C-NNN]` marker. The plain-language layer is confined to the lead and first-use glosses; the job map, scoring tables, and diagnostics keep their concrete, named-job, telegraphic discipline.

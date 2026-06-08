@@ -10,7 +10,10 @@
   CSS/JS dependencies; viewable by opening `file://` in a browser; shareable with
   clients without tooling. No SVG, no Mermaid — pure CSS Grid.
 
-  Section order (top-to-bottom) — DIAGRAM FIRST:
+  Section order (top-to-bottom) — PLAIN-TERMS LEAD FIRST, THEN DIAGRAM:
+    0. In plain terms (id="plain-terms") — {{PLAIN_SUMMARY}}: a short human-readable
+       lead (what this slice is, what it found, what to do with it). First section,
+       above the overview/meta-grid. Per framework/shared/output-readability.md.
     1. Overview (id="overview")     — title, subtitle, meta-grid, proposed-MVP callout.
     2. TOC (<nav class="toc">)      — static top-level anchors.
     3. Story map (id="storymap")    — {{STORY_MAP_BLOCK}}: backbone-activity columns ×
@@ -24,6 +27,13 @@
   for HTML before injection). Scalar placeholders appear in the Overview + callout
   only; the three {{*_BLOCK}} placeholders are fully pre-rendered by the analyser:
 
+    {{PLAIN_SUMMARY}}          — 2–5 plain-English sentences for the "In plain terms"
+                                 lead block: what this slice is, what it found, what
+                                 to do with it. HTML-escaped. Methodology jargon
+                                 (MVP, slice, MoSCoW, phase/release, walking skeleton)
+                                 glossed at first use; client domain terms NOT glossed
+                                 (the GLOSSARY methodology owns those). Per
+                                 framework/shared/output-readability.md.
     {{TITLE}}                  — e.g. "MVP Slicing — <domain>".
     {{DOMAIN}}                 — domain string (from requirements §1), or
                                  "(not declared in requirements.md)".
@@ -173,6 +183,11 @@
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
   code, .mono { font-family: var(--mono); font-size: 0.86em; }
+
+  /* ------- in plain terms (human-readable lead) ------- */
+  #plain-terms { margin: 0 0 24px 0; padding: 14px 18px; background: #f0f7ff; border: 1px solid #4f8fbf; border-left: 4px solid #4f8fbf; border-radius: 6px; }
+  #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+  #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--ink); }
 
   /* Overview */
   .subtitle { color: var(--muted); margin: 0 0 16px; }
@@ -331,6 +346,12 @@
 <body>
 <main>
 
+  <!-- 0. In plain terms -->
+  <section id="plain-terms" aria-label="In plain terms">
+    <h2>In plain terms</h2>
+    <p>{{PLAIN_SUMMARY}}</p>
+  </section>
+
   <!-- 1. Overview -->
   <header id="overview">
     <h1>{{TITLE}}</h1>
@@ -356,6 +377,7 @@
 
   <!-- 2. TOC -->
   <nav class="toc">
+    <a href="#plain-terms">In plain terms</a>
     <a href="#overview">Overview</a>
     <a href="#storymap">Story map</a>
     <a href="#board">MoSCoW board</a>

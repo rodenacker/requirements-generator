@@ -106,7 +106,8 @@ The two are complementary; consultants commonly run this one before `/requiremen
 
 The artefact has a fixed top-to-bottom shape, populated into `framework/assets/analyses-inputs/template-swim-lane-process-mapping.html` via documented placeholder substitution:
 
-1. **Header banner** (`<header id="overview">`) — title, generation timestamp, manifest sha256 (first 12 chars), manifest row count consumed / skipped, target-mode (prototype / application, from the manifest's `target` field if present), run number, summary counts (processes / actors / steps / handoffs / disconnects-by-category). Includes a `<nav class="toc-processes">` with jump-links to each process section.
+0. **In plain terms** (`<section id="plain-terms">`) — `{{PLAIN_SUMMARY}}`: 2–5 plain-English sentences describing what this analysis is, what it found, and what the consultant should do with it. The first section rendered, above the overview header. The swim-lane diagram remains the first visual element after this lead (inside the first process-block article).
+1. **Header banner** (`<header id="overview">`) — title, generation timestamp, manifest sha256 (first 12 chars), manifest row count consumed / skipped, target-mode (prototype / application, from the manifest's `target` field if present), run number, summary counts (processes / actors / steps / handoffs / disconnects-by-category). Includes a `<nav class="toc-processes">` with an "In plain terms" link first, then jump-links to each process section.
 2. **Process gallery** (`<section id="processes">`) — for each discrete process: `<article class="process-block" id="process-{process-slug}">`. Each article contains:
    - `<h2>` with process id + name + a one-line goal statement (cited).
    - **Inline-SVG swim-lane diagram** (`<figure class="swimlane-diagram">` containing one pre-rendered `<svg>` — one horizontal lane per actor, steps left-to-right by sequence, lane-crossing edges are handoffs; see "Diagram rendering" below) above a **collapsed `<details class="mermaid-block">`** holding the `flowchart TD` Mermaid export source. The SVG renders in-page; the Mermaid source is the export adjunct.
@@ -120,6 +121,15 @@ The artefact has a fixed top-to-bottom shape, populated into `framework/assets/a
 8. **Next steps banner** (after diagnostics) — instructions to copy the artefact into `input/` for `/requirements` re-ingestion; reminder that the Disconnect Register is the primary elicitation surface for the next consultant conversation.
 
 Section order lives in the template, not in the analyser. The analyser emits the same placeholder blocks regardless; the template decides where they land.
+
+### Voice and readability
+
+The artefact is read by two audiences: the consultant (and sometimes a client stakeholder) directly, and the `/requirements` drafter after re-ingestion. The human-readability standard is `framework/shared/output-readability.md` — additive; it relaxes no gate, no severity, and no quality check. Concretely:
+
+- **"In plain terms" lead first.** `{{PLAIN_SUMMARY}}` is 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do next. It is a faithful condensation — it introduces no fact, count, or citation not already in the body, and it carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use.** In the lead and the handback line, gloss terms the consultant may not recognise: swim lane (a row showing who does each step), actor/role (the person or system responsible for a lane), process step (an atomic action in the flow), handoff (a lane-crossing transfer of control between actors), decision point (a branching step with guard conditions), disconnect (a classified gap in a handoff). Do **not** gloss client domain terms — defining those is the GLOSSARY methodology's job.
+- **Keep every `[SRC: <filename>]` marker.** They reassure the reader and feed `/requirements` after re-ingestion. Never demote or drop them.
+- **Swim-lane diagram stays the first visual.** The `<section id="plain-terms">` lead is above the overview; the first inline-SVG swim-lane diagram (inside the first `<article class="process-block">`) is the first visual element after the lead. Do not reorder or bury the diagram.
 
 ### Diagram rendering — inline SVG + Mermaid export shape (per process)
 

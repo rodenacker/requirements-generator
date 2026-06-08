@@ -31,6 +31,7 @@ Eleven steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - Read `framework/assets/characters/ooux-analysis.md` once.
 - Read `framework/assets/analyses/ooux-reference.md` once. The reference defines what to do in each ORCA round; treat it as authoritative.
+- Apply the readability standard restated in the character's *Reader & plain language* block (canonical source: `framework/shared/output-readability.md`; no additional read of that file is needed — the character block is the operative restatement). Concretely: write `{{PLAIN_SUMMARY}}` as 2–5 plain-English sentences condensing what this map is, what it found, and what the consultant should do with it; gloss methodology jargon at first use in the lead (objects, CTAs, CCPs, relationship / cardinality); never gloss client domain terms; carry no `[SRC: C-NNN]` in the lead; keep every `[SRC: C-NNN]` and provenance marker (`from-domain-model`, `derived-from-<section>`) in the body untouched.
 - State readiness in one short line: *"OOUX analyser ready. Starting from `requirements/requirements.md`."*
 - Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `requirements/requirements.md` only — no other pipeline state is consulted."*
 
@@ -139,6 +140,7 @@ Per `framework/assets/analyses/template-ooux.html`:
 - Read the template once.
 - Build the substitution map for the placeholders documented in the template's header comment:
     - `{{TITLE}}` — *"OOUX Object Map — `<domain>`"* if `§1 Domain` exists, else *"OOUX Object Map"*.
+    - `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences: what this object map is (an OOUX object map produced from the requirements document), what it found (the count of objects — the real-world things users work with — plus the key provenance split), and what the consultant should do with it (e.g. review derived objects, audit relationships, pass to `/wireframe`). Faithful condensation of the body — no new object name, count, or `[SRC: C-NNN]` citation introduced here. Methodology jargon glossed at first use: *objects (the real-world things users work with)*, *CTAs (the actions a user can take on an object)*, *CCPs (the few fields shown on every list row / card)*, *relationship / cardinality (how objects connect and in what quantity)*. Client domain terms are NOT glossed. HTML-escaped before injection.
     - `{{DOMAIN}}` — verbatim from `§1` if present, else *"(not declared in requirements.md)"*.
     - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
     - `{{REQUIREMENTS_SHA256}}` — the SHA-256 captured in Step 2.
@@ -211,6 +213,15 @@ Output the final handback line:
 
 - `analyse-requirements/OOUX/ooux-object-map.html` — the populated artefact. Always written to the same path; overwritten on each run (the orchestrator's prior-artefact gate has already taken the consultant's overwrite/keep/cancel choice before the agent is invoked).
 
+### Section order (DOM, top-to-bottom)
+
+0. **In plain terms** (`<section id="plain-terms">`) — `{{PLAIN_SUMMARY}}`: 2–5 sentence plain-English lead. First section, above the overview. Per `framework/shared/output-readability.md`.
+1. **Overview** (`<section id="overview">`) — title, subtitle, meta-grid, TOC.
+2. **Legend** (`.legend-bar`) — colour key for sticky kinds + provenance dots.
+3. **Object column-board** (`<section id="diagrams">`) — one column per object.
+4. **Tabular information** (`<section id="tables">`) — `{{REL_MATRIX_BLOCK}}`.
+5. **Diagnostics** (`<details id="diagnostics" class="diagnostics-toggle">`) — collapsed.
+
 ## Tools
 
 - `Read` — read the character file, the reference asset, the template scaffold, and the merged requirements document. **Read is not authorised against any path under `requirements/` other than `requirements/requirements.md`, against any path under `framework/state/`, or against any path under `framework/shared/`.** The stand-alone-ish constraint is enforced by tool-list scope.
@@ -224,7 +235,9 @@ Output the final handback line:
 Before handing back, verify all of the following against the written artefact and the run's state:
 
 - `analyse-requirements/OOUX/ooux-object-map.html` exists and `verify-artifact-write` returned `pass`.
-- The artefact contains zero literal `{{...}}` placeholders.
+- The artefact contains zero literal `{{...}}` placeholders (covers `{{PLAIN_SUMMARY}}` and all others).
+- **DOM order:** `<section id="plain-terms">` is the first child `<section>` inside `<main>`, appearing before `<section id="overview">`. No other section precedes it.
+- **Plain-terms quality:** `<section id="plain-terms">` contains a non-empty `<p>` whose text (a) introduces no object name, count, or `[SRC: C-NNN]` citation not already present in the body; (b) carries no `[SRC]` of its own; (c) does not gloss any client domain term (glossing those is the GLOSSARY methodology's job); (d) glosses at least one methodology term (objects, CTAs, CCPs, or relationship / cardinality) at first use if that term appears.
 - Every `<section class="object-column">` has its provenance dot set to exactly one of `provenance-from-domain-model` or `provenance-derived`. No unmarked columns.
 - Every column emits all five sticky stacks (`ctas`, `object-header`, `core-content`, `metadata`, `nested-refs`); empty stacks are present with the `hidden` attribute rather than omitted.
 - Every attribute `<li>` appears in exactly one of `.core-content` (when CCP-marked) or `.metadata` (when not CCP-marked) — never in both, never in neither.
@@ -239,6 +252,7 @@ Before handing back, verify all of the following against the written artefact an
 ## Definition of Done
 
 - `analyse-requirements/OOUX/ooux-object-map.html` exists, has been verified, and contains a complete object map.
+- DOM order: `<section id="plain-terms">` is first inside `<main>`; `<section id="overview">` follows; `<details id="diagnostics" class="diagnostics-toggle">` is near the end.
 - Either all seven quality checks passed, or the consultant explicitly chose Override and the diagnostics block records every violation.
 - The consultant has accepted the artefact in the Step 11 accept/revise/restart loop.
 - Control has been handed back to the orchestrator.
