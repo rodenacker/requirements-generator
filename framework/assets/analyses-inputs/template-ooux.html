@@ -24,6 +24,11 @@
     content survives as enumerated list items.
 
   Section order (top-to-bottom):
+    0. In plain terms (id="plain-terms")     — {{PLAIN_SUMMARY}}: a short human-
+                                                readable lead (what this map is, what
+                                                it found, what to do with it). First
+                                                section, above the meta-grid. Per
+                                                framework/shared/output-readability.md.
     1. Overview (id="overview")              — title, subtitle, meta-grid
                                                 (manifest sha + counts).
     2. TOC (<nav class="toc">)               — static top-level anchors.
@@ -55,6 +60,13 @@
   pre-escaped for HTML; JSON inside <pre><code> escaped as plain text):
 
     {{TITLE}}                  — short title (e.g. "OOUX Object Map (inputs) — Project X").
+    {{PLAIN_SUMMARY}}          — 2–5 plain-English sentences for the "In plain terms"
+                                 lead block: what this object map is, what it found,
+                                 what to do with it. HTML-escaped. Methodology/framework
+                                 jargon (object, CTA, CCP, synonym-merge, provenance)
+                                 glossed at first use; client domain terms NOT glossed
+                                 (the GLOSSARY methodology owns those). Per
+                                 framework/shared/output-readability.md.
     {{DOMAIN}}                 — domain string (from manifest meta if declared, else
                                  "(not declared in manifest)").
     {{GENERATED_AT}}           — ISO-8601 UTC timestamp the artefact was rendered.
@@ -742,6 +754,62 @@
       color: var(--rev-fg);
     }
 
+    /* ------- in plain terms (human-readable lead) ------- */
+
+    #plain-terms {
+      margin: 0 0 24px 0;
+      padding: 14px 18px;
+      background: #f0f7ff;
+      border: 1px solid var(--obj-border);
+      border-left: 4px solid var(--obj-border);
+      border-radius: 6px;
+    }
+    #plain-terms h2 { margin: 0 0 6px 0; font-size: 15px; }
+    #plain-terms p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--fg); }
+
+    /* ------- downstream-use footer (collapsed; analyses only) ------- */
+
+    details.downstream-toggle { margin-top: 24px; margin-bottom: 24px; }
+    details.downstream-toggle > summary {
+      cursor: pointer;
+      padding: 10px 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--border-strong);
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--muted);
+      list-style: none;
+      user-select: none;
+    }
+    details.downstream-toggle > summary::-webkit-details-marker { display: none; }
+    details.downstream-toggle > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      margin-right: 8px;
+      display: inline-block;
+      transition: transform 0.15s ease;
+    }
+    details.downstream-toggle[open] > summary { border-radius: 6px 6px 0 0; border-bottom: none; }
+    details.downstream-toggle[open] > summary::before { transform: rotate(90deg); }
+    .downstream-note {
+      padding: 14px 18px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+    }
+    .downstream-note p { color: var(--muted); font-size: 13px; margin: 6px 0; }
+    .downstream-note code {
+      font-family: ui-monospace, monospace;
+      font-size: 0.92em;
+      background: var(--code-bg);
+      padding: 0 4px;
+      border-radius: 3px;
+    }
+
     /* ------- next-steps banner ------- */
 
     section.next-steps {
@@ -824,6 +892,11 @@
 </head>
 <body>
   <main>
+    <section id="plain-terms" aria-label="In plain terms">
+      <h2>In plain terms</h2>
+      <p>{{PLAIN_SUMMARY}}</p>
+    </section>
+
     <section id="overview">
       <h1>{{TITLE}}</h1>
       <p class="subtitle">OOUX object map (inputs side) — sticky-board (one column per object: CTAs · Object · Core content · Metadata · Nested refs) + machine-readable JSON.</p>
@@ -848,6 +921,7 @@
 
     <nav class="toc" aria-label="Sections">
       <ol>
+        <li><a href="#plain-terms">In plain terms</a></li>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#diagrams">Object column-board</a></li>
         <li><a href="#tables">Relationship matrix</a></li>
@@ -893,12 +967,18 @@
     <section class="next-steps">
       <h2>Next steps</h2>
       <p>
-        <strong>Audit the synonym-merge log</strong> in Diagnostics before treating the object set as final — every cross-source merge is an interpretive decision the consultant should confirm or correct via the analyser's Revise loop.
-      </p>
-      <p>
-        To re-ingest this artefact into <code>/requirements</code>, copy this file into <code>input/</code> (e.g. <code>input/ooux-object-map.html</code>) and re-run <code>/requirements</code>. The input-handler classifies it as <code>Supported-via-MCP</code>; markitdown converts it to <code>input/ooux-object-map.html.converted.md</code>. The embedded JSON body block (the <code>language-json</code> code block) survives verbatim as a fenced code block; <code>[SRC: &lt;filename&gt;]</code> markers survive as plain text. The drafter consumes the converted markdown via the refreshed manifest.
+        <strong>Audit the synonym-merge log</strong> in Diagnostics before treating the object set as final — every cross-source merge (two source words treated as the same thing) is an interpretive decision the consultant should confirm or correct via the analyser's Revise loop.
       </p>
     </section>
+
+    <details class="downstream-toggle">
+      <summary>For downstream use — re-ingesting this artefact into /requirements</summary>
+      <div class="downstream-note">
+        <p>
+          To re-ingest this artefact into <code>/requirements</code>, copy this file into <code>input/</code> (e.g. <code>input/ooux-object-map.html</code>) and re-run <code>/requirements</code>. The input-handler classifies it as <code>Supported-via-MCP</code>; markitdown converts it to <code>input/ooux-object-map.html.converted.md</code>. The embedded JSON body block (the <code>language-json</code> code block) survives verbatim as a fenced code block; <code>[SRC: &lt;filename&gt;]</code> markers survive as plain text. The drafter consumes the converted markdown via the refreshed manifest.
+        </p>
+      </div>
+    </details>
 
     <footer>
       <div class="credit">Generated by `framework/agents/analyses-inputs/ooux-analyser.md`.</div>

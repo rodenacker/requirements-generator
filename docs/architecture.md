@@ -4,6 +4,10 @@
 >
 > Like `framework/dependency-graphs.md`, this can lag structural edits — **verify against the real files before relying on it.** Canonical owners for definitions/registries are listed in `CLAUDE.md` §3 "Canonical-source rule".
 
+## Output audience (orientation)
+
+Analysis and review outputs (`/analyse-requirement`, `/analyse-inputs`, `/review-requirement`, `/review-inputs`) are **human-audience** — readable without methodology knowledge per `framework/shared/output-readability.md` (an "In plain terms" lead first, first-use jargon glossing, retained citations). Analyses are *additionally* machine-consumed downstream — `/analyse-inputs` → `/requirements`; `/analyse-requirement` → `/wireframe` `blueprint-architect` (optional, via the per-analysis sidecar) — so their embedded machine-readable sidecar is retained and their machinery prose moves to a collapsed "For downstream use" footer rather than being deleted. Reviews have **no** downstream consumer (machinery text is removed, not footered). `requirements/requirements.md` stays LLM-audience; `prd/prd.md` is human-audience. (Canonical rule: `CLAUDE.md` §2 "Output audience".)
+
 ## Command mechanics (full)
 
 The slim command catalogue lives in `CLAUDE.md` §1. The two heavyweight pipelines are described in full here.

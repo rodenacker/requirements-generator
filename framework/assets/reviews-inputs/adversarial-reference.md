@@ -352,14 +352,15 @@ This rule applies independently to all six dimensions.
 The artefact renders as a self-contained HTML report following `framework/assets/reviews-inputs/template-adversarial.html`. The fixed section ordering is:
 
 1. **Header** — title, generated-at timestamp, manifest fingerprint, reviewer identity.
-2. **Executive Summary** — total findings, severity tally, disposition tally, verdict line.
-3. **Triage** — "Top issues to address first" callout (≤10 entries: every Reject and Blocker plus cluster-lead Majors). Lets the consultant chase the highest-impact missing material before scanning the full table.
-4. **Clusters** — findings sharing a root cause grouped under a `CL-NN` cluster ID. Each cluster lists its member ADV-NNs and a one-line theme; the full detail for each finding still appears in the per-dimension sections below.
-5. **Findings Table** — compact tabular view of every finding (ID, Dim, Sev, Disp, Cluster, Location, one-line problem), sorted Blocker → Major → Minor.
-6. **Per-Dimension Sections (1–6)** — full findings for each dimension, or a Justification block if zero findings + strict-BMAD re-run passed. Each finding card carries a `scope_class` chip (`fe-relevant | fe-facing-contract | backend-only`) alongside its severity and disposition chips.
-7. **Diagnostics** — quality-gate results, coverage map (which sources each dimension touched), strict-BMAD re-run log, the **Scope recalibration log** (`target: null` declared, then every finding whose rating was recalibrated, original → adjusted, with foreclosing authority), override log, **Corpus Shape** (source count, distinct-author count, time-window span, tier distribution — the observability data that the dropped Dim 7 used to surface, now reported as descriptive shape, never as findings), **Source roster (Consumed)** and **Source roster (Skipped)** tables.
+2. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) — a 2–5 sentence plain-English lead: what this review is, what it found, what the consultant should do next. The first content section, above the Executive Summary. A faithful condensation of the findings — it introduces no finding or count not in the punch-list, and **preserves severity verbatim** (a Blocker / `BLOCKED` verdict is stated unsoftened). Review jargon is glossed at first use here; client domain terms are not. Per `framework/shared/output-readability.md`.
+3. **Executive Summary** — total findings, severity tally, disposition tally, verdict line.
+4. **Triage** — "Top issues to address first" callout (≤10 entries: every Reject and Blocker plus cluster-lead Majors). Lets the consultant chase the highest-impact missing material before scanning the full table.
+5. **Clusters** — findings sharing a root cause grouped under a `CL-NN` cluster ID. Each cluster lists its member ADV-NNs and a one-line theme; the full detail for each finding still appears in the per-dimension sections below.
+6. **Findings Table** — compact tabular view of every finding (ID, Dim, Sev, Disp, Cluster, Location, one-line problem), sorted Blocker → Major → Minor.
+7. **Per-Dimension Sections (1–6)** — full findings for each dimension, or a Justification block if zero findings + strict-BMAD re-run passed. Each finding card carries a `scope_class` chip (`fe-relevant | fe-facing-contract | backend-only`) alongside its severity and disposition chips.
+8. **Diagnostics** — quality-gate results, coverage map (which sources each dimension touched), strict-BMAD re-run log, the **Scope recalibration log** (`target: null` declared, then every finding whose rating was recalibrated, original → adjusted, with foreclosing authority), override log, **Corpus Shape** (source count, distinct-author count, time-window span, tier distribution — the observability data that the dropped Dim 7 used to surface, now reported as descriptive shape, never as findings), **Source roster (Consumed)** and **Source roster (Skipped)** tables.
 
-The artefact is a punch-list, not a narrative. Prose between findings is minimised; the consultant should be able to read the Triage callout in under two minutes, scan the Clusters block to see which findings share a root cause, and jump straight to the per-dimension section for context on any finding. The Source-roster tables in Diagnostics tell the consultant which files were consumed (so findings can be traced back to source) and which files were skipped (so the consultant knows what coverage was unavailable).
+The artefact is a punch-list, not a narrative — with **one** sanctioned narrative exception: the "In plain terms" lead at the very top (a short plain-English orientation that preserves severity, never softens it). Everywhere below the lead, prose between findings is minimised; the consultant should be able to read the Triage callout in under two minutes, scan the Clusters block to see which findings share a root cause, and jump straight to the per-dimension section for context on any finding. The Source-roster tables in Diagnostics tell the consultant which files were consumed (so findings can be traced back to source) and which files were skipped (so the consultant knows what coverage was unavailable).
 
 ---
 
@@ -438,6 +439,8 @@ Beyond the thirteen numbered gates, the reviewer's self-validation also verifies
 ## Voice and stance
 
 The reviewer's stance is defined in `framework/assets/characters/adversarial-inputs-review.md` — skeptical, evidence-required, must-find-issues, no rubber-stamping, focused on the input set as the audit subject. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+The artefact is human-read (and has no downstream machine consumer), so the reviewer also follows `framework/shared/output-readability.md`: it writes the "In plain terms" lead (preserving severity, never softening), glosses review jargon (severity, disposition, dimension, verdict, cluster) at first use in human-readable prose, leaves client domain vocabulary unglossed, and keeps the punch-list discipline everywhere below the lead. Traceability stays as Location + verbatim Evidence; reviews carry no `[SRC:]`.
 
 ---
 

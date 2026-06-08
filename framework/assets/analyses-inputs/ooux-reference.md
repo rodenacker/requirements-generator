@@ -157,7 +157,9 @@ For every object, mark a small subset of attributes — typically 2 to 5 — as 
 
 ## Output presentation
 
-The artefact's surfaces, in rendered (DOM) order — a colour-key legend bar sits directly under the TOC, above the column-board:
+The artefact's surfaces, in rendered (DOM) order — an "In plain terms" lead sits first, then the overview/meta-grid, then a colour-key legend bar directly under the TOC, above the column-board:
+
+0. **In plain terms** (`<section id="plain-terms">` with `{{PLAIN_SUMMARY}}`) — a 2–5 sentence plain-English lead: what this object map is, what it found, what the consultant should do with it. The **first** section, above the meta-grid. A faithful condensation of the map below — it introduces no object, count, or fact not already present, and carries no `[SRC]` of its own. Methodology jargon is glossed at first use here; client domain terms are not glossed (the GLOSSARY methodology owns those). Per `framework/shared/output-readability.md`.
 
 1. **Sticky-note column-board** (`<section id="diagrams">` — an `<h2>` "Object column-board" heading followed by `<div class="object-board">`) — the canonical OOUX visual and the rendered **"MUST contain a diagram" deliverable**. One `<section class="object-column">` per object. Five sticky stacks per column in fixed order: CTAs (green) → Object header with provenance dot (blue) → Core Content / CCP (yellow) → Metadata / non-CCP (pink) → Nested references (blue, dashed border). Empty stacks render with `hidden`. The column-board does not survive markitdown round-trip layout-wise — its text content survives as enumerated list items, but the visual grid is lost. The embedded JSON block (item 3 below) is the primary structural carrier through round-trip; the column-board is supplementary for direct HTML viewing.
 
@@ -278,3 +280,5 @@ Gates 1–7 are inherited verbatim from the requirements-side OOUX reference. Ga
 ## Voice and stance
 
 The analyser's stance is defined in `framework/assets/characters/ooux-inputs-analysis.md` — analytical, thorough, literal, synonym-honest. The reference here defines **what** to do; the character file defines **how** the agent talks while doing it.
+
+The artefact is human-read (and re-ingested by `/requirements`), so the analyser also follows `framework/shared/output-readability.md`: it writes the "In plain terms" lead, glosses methodology jargon (object, CTA, CCP, synonym-merge, provenance) at first use in human-readable prose, leaves client domain vocabulary unglossed (GLOSSARY territory), and keeps every `[SRC: <filename>]` marker. The plain-language layer is confined to the lead and first-use glosses; the column-board, matrix, JSON body, and diagnostics keep their concrete, named-object discipline.

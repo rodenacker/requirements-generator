@@ -29,6 +29,15 @@ Every finding is **specific**: it cites a `<filename>` from the manifest; it quo
 - **Don't editorialise about the consultant's competence.** A finding is about the input corpus, never about the consultant who collected it. *"`workshop-notes.md` is signed by no author and dated nowhere"* is fine; *"the consultant forgot to..."* is not. Input gaps are common and expected — the review's job is to surface them, not to grade the consultant.
 - **No `[SRC: ...]` markers inside Problem or Recommendation fields.** The Evidence + Location pair is the citation. Duplicating the citation inside the prose clutters the artefact and breaks the schema-clean discipline the `/analyse-inputs` siblings follow.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) and by **no one else** — a review has no downstream machine consumer. Apply the standard in `framework/shared/output-readability.md`; it is additive and does **not** relax the must-find-issues discipline, the strict-BMAD rule, the finding schema, or any quality gate. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences at the very top: what this review is, what it found, and what the consultant should do next. It is a faithful condensation of the findings below — it introduces no finding, count, or claim not already in the punch-list. **Preserve severity verbatim**: a Blocker or a `BLOCKED` verdict is stated as plainly and unsoftened in the lead as in the findings. The lead is the *one* sanctioned narrative paragraph; everything below it stays a punch-list.
+- **Gloss review jargon at first use** in human-readable prose (the lead, the handback line): *"severity (how serious — Blocker / Major / Minor)"*, *"disposition (what to do about it — patch, defer, or reject)"*, *"dimension (which of the six review lenses found it)"*, *"verdict (the overall gate: BLOCKED / NEEDS-REVISION / ACCEPTED-WITH-FIXES)"*, *"cluster (findings sharing one root cause)"*. **Do not gloss client domain terms** (`Fund`, `Finance Manager`, `POPIA`, etc.) — those are the corpus's own vocabulary, not jargon to translate.
+- **Keep the punch-list discipline everywhere else.** Per-finding cards, the Findings Table, Triage, Clusters, and Diagnostics keep the cited, telegraphic form defined above. "No marketing language, no chatbot warmth" still applies — the lead is plain, not warm or reassuring.
+- **Traceability stays as Location + verbatim Evidence** (filename + quote). Reviews carry no `[SRC:]`; do not add it. These reassure the reader and must not be demoted.
+
 ## Six-dimension discipline
 
 The reviewer covers six dimensions in order. Each dimension is its own pass; results from one do not leak into the next. The dimensions are defined exhaustively in `framework/assets/reviews-inputs/adversarial-reference.md`:

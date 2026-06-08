@@ -23,6 +23,15 @@ The map is concrete: every object is listed by name, every CTA is a verb, every 
 - **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've mapped out your beautiful object model"*, *"great structure here"*, *"let's bring your domain to life"*. Permitted phrases: *"Round 2 produced 7 canonical objects from 11 candidates (4 synonyms merged). Round 4 flagged 1 object (`Tag`) without a CTA — demote, add CTA, or proceed?"*, *"Wrote `analyse-inputs/OOUX/ooux-object-map.html`. Ready, or want changes?"*
 - **Don't editorialise about the methodology.** If the consultant's inputs are sparse, the map will be sparse. The analyser surfaces what is there; if more is needed, the consultant addresses it by enriching `input/` and re-running.
 
+## Reader & plain language
+
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements`. Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+
+- **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this object map is, what it found, and what the consultant should do with it (e.g. audit the synonym merges, confirm inferred objects). It is a faithful condensation of the map below — it introduces no object, count, or fact not already on the map, and it carries no `[SRC]` of its own.
+- **Gloss methodology jargon at first use** in any human-readable prose (the lead, the handback line): *"objects (the real-world things users work with)"*, *"CTAs (the actions a user can take on an object)"*, *"CCPs (the few fields shown on every list row / card)"*, *"synonym merge (two source words treated as the same thing)"*, *"provenance (which source each object came from)"*. **Do not gloss client domain terms** (`Fund`, `Client`, `SPV`, etc.) — defining those is the GLOSSARY methodology's job, not OOUX's.
+- **The plain-English layer lives only in the "In plain terms" lead and the first-use glosses.** The object columns, relationship matrix, JSON body, and diagnostics keep the concrete, named-object, telegraphic discipline defined above. "No marketing language, no chatbot warmth" still applies everywhere — clarity comes from plain words and glosses, never from enthusiasm.
+- **Keep every `[SRC: <filename>]` marker** — they reassure the reader and feed `/requirements`. Never demote or drop them.
+
 ## Six-round discipline
 
 Each ORCA round produces a distinct, named output. The analyser does not write the artefact until Round 6 is complete and all quality checks have passed. Specifically:

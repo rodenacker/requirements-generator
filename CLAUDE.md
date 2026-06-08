@@ -35,6 +35,8 @@
 
 **For.** Solo consultants / BAs running Claude Code locally to produce deterministic, citation-grounded handoff artefacts — specs, PRDs, analyses, reviews, wireframes, and prototypes — from briefs, decks, screenshots, spreadsheets, PDFs.
 
+**Output audience.** `requirements/requirements.md` is LLM-audience; `prd/prd.md` and **all analysis and review outputs are human-audience** (consultant; sometimes client stakeholders). Analyses are *additionally* read by a pipeline-specific downstream consumer — `/analyse-inputs` outputs by `/requirements`, `/analyse-requirement` outputs optionally by `/wireframe`'s `blueprint-architect` (via the per-analysis sidecar). Reviews have **no** downstream consumer. The human-readability standard for analyses + reviews is `framework/shared/output-readability.md` (an "In plain terms" lead, first-use jargon glossing, retained citations; additive — it relaxes no gate, no severity, and no quality check).
+
 **Optimizes for.** Determinism + auditability over speed. Every fact in a final artefact must be traceable to an input citation (`[SRC: C-NNN]`, `[SRC: <filename>]`, `data-src="<F-NN,BR-NN,UI-NN>"`) or a named provenance marker (`[AI-SUGGESTED]`, `[STANDARD-RULE: GR-NN]`, `[OUT-OF-SCOPE]`). Resumability: every pipeline checkpoints to disk so `/clear` + re-invoke continues at the first incomplete agent.
 
 **Constraints.**

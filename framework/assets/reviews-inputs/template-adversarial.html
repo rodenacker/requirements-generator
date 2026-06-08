@@ -22,6 +22,15 @@
   Placeholders the reviewer substitutes (string substitution, all values pre-escaped):
 
     {{TITLE}}                  — short title (e.g. "Adversarial Review (inputs-side) — Project X")
+    {{PLAIN_SUMMARY}}          — 2–5 plain-English sentences for the "In plain terms" lead
+                                 block (the FIRST section, above the Executive Summary):
+                                 what this review is, what it found (preserving severity —
+                                 do NOT soften a Blocker/Major into reassurance), and what
+                                 the consultant should do next. HTML-escaped. Review jargon
+                                 (severity, disposition, dimension, verdict, cluster) glossed
+                                 at first use; client domain terms NOT glossed. Reviews are
+                                 human-only — no downstream consumer. Per
+                                 framework/shared/output-readability.md.
     {{DOMAIN}}                 — domain string (best-effort: from PrototypeBrief.md §1 if a
                                  candidate source has a recognisable domain heading;
                                  otherwise "(not declared in inputs)")
@@ -499,6 +508,11 @@
   }
   .back-to-top a:hover { color: var(--fg); border-bottom-color: var(--fg); }
 
+  /* In plain terms (human-readable lead — first section) */
+  #plain-terms { border-left: 4px solid var(--scope-fe); background: #f0fbfa; }
+  #plain-terms h2 { border-bottom-color: var(--scope-fe); }
+  #plain-terms p { margin: 0 0 4px 0; font-size: 15px; line-height: 1.55; }
+
   /* Verdict banner */
   .verdict {
     display: inline-block;
@@ -798,6 +812,7 @@
 <nav class="toc" aria-label="Sections">
   <span class="toc-label">Contents</span>
   <ol>
+    <li><a href="#plain-terms">In plain terms</a></li>
     <li><a href="#executive-summary">Executive Summary</a></li>
     <li><a href="#triage">Triage</a></li>
     <li><a href="#clusters">Clusters</a></li>
@@ -811,6 +826,12 @@
     <li><a href="#diagnostics">Diagnostics</a></li>
   </ol>
 </nav>
+
+<section id="plain-terms" aria-label="In plain terms">
+  <h2>In plain terms</h2>
+  <p>{{PLAIN_SUMMARY}}</p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
 
 <section id="executive-summary">
   <h2>Executive Summary</h2>
