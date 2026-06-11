@@ -56,13 +56,18 @@ Marker legend (canonical):
 |---|---|
 | Source review | `{{REVIEW_PATH}}` |
 | Source review sha256 | `{{REVIEW_SHA256}}` |
-| Review's manifest fingerprint | {{`REVIEW_MANIFEST_FINGERPRINT` | (not recorded in the review)}} |
-| Manifest fingerprint at resolution time | {{`CURRENT_MANIFEST_SHA256` | (no manifest on disk)}} |
-| Manifest drift | {{none | DRIFT — the review predates the current corpus | (not compared — no manifest)}} |
+| Review's source fingerprint | {{`REVIEW_SOURCE_FINGERPRINT` | (not recorded in the review)}} |
+| Fingerprint target ({{`requirements/source-manifest.json` | `requirements/requirements.md`}}) at resolution time | {{`CURRENT_FINGERPRINT` | (no manifest on disk)}} |
+| Source drift | {{none | DRIFT — the review predates the current {{corpus | requirements document}} | (not compared — no manifest)}} |
 | Methodology | `{{method_slug}}` |
 | Resolution date | {{YYYY-MM-DD}} |
 | Findings resolved | {{ID, ID, …}} |
 | Findings skipped | {{ID, ID, … | (none)}} |
+
+<!-- No addendum row: the Step-9b addendum outcome is decided after this document is
+     finalised, and recording transient requirements.md state in a durable corpus file
+     would mislead after the next re-merge removes the addendum. The pairing is recorded
+     on the addendum side (its Run sub-block names this file). -->
 
 **Origin markers:** `[CONSULTANT-STATED]` — the consultant supplied the resolution
 content. `[AI-INFERRED, CONSULTANT-CONFIRMED]` — drafted from the review finding's

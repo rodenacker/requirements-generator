@@ -27,6 +27,8 @@ Read tool: requirements/requirements.md
 
 Full read; the orchestrator's prerequisite gate guaranteed it exists and is non-empty.
 
+**Amendments supersession:** if the document carries an `## Amendments (pending re-merge)` section (inserted by `/resolve-review`; canonical shape in `framework/assets/resolve-review/template-addendum.md`), apply its `AMD-NN` entries to every extraction this step and step 3 perform — amendments supersede the base text they name, including the §7 / F-NN property extraction the Properties closed set is derived from (additions extend, removals shrink, renames replace). Note the applied amendments in the in-thread announcement.
+
 **Drift check:** compute the sha256 of the bytes just read. If it does not match `scope.requirements_sha256`, the requirements doc has changed since scope-selection. Surface a structured warning in the architect's in-thread announcement (do **not** fail; the consultant may have intentionally edited the doc): *"⚠ `requirements/requirements.md` has changed since scope-selection (new sha256 `{{actual_sha256}}` vs scope.json `{{scope.requirements_sha256}}`). Proceeding with current requirements; any scope sources no longer present will surface as bijection violations in step 3."*
 
 ## 2.3 Locate scope-restricted slices
