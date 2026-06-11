@@ -4,7 +4,7 @@
 
 **Inputs:**
 - The in-memory populated draft (template-requirements.md filled top-to-bottom from inputs and domain defaults; **no `[AI-SUGGESTED]` markers yet**).
-- `target` — exactly one of `"prototype"` or `"application"`. Sourced from `requirements/source-manifest.json > target` (set by the orchestrator's Step 1b). Governs whether `[OUT-OF-SCOPE: domain-default]` markers are emitted (`prototype`) or suppressed (`application`). **Does not change the set of `[AI-SUGGESTED]` outputs** — the same fields are AI-SUGGESTED under both targets.
+- `target` — exactly one of `"prototype"` or `"application"`. Sourced from `requirements/source-manifest.json > target` (auto-set to `"prototype"` by the orchestrator's Step 1b; `"application"` occurs only on legacy manifests). Governs whether `[OUT-OF-SCOPE: domain-default]` markers are emitted (`prototype`) or suppressed (`application`) — nothing else. **Does not change the set of `[AI-SUGGESTED]` outputs** — the same fields are AI-SUGGESTED under both targets.
 - `framework/shared/prototype-scope.md` — in-scope vs out-of-scope predicate. Consulted under both targets to identify which fields are historically out-of-prototype-scope; the decision is then routed to "emit OOS marker" (prototype) or "fill with domain default, emit no marker" (application).
 - `framework/shared/general-rules.md` — catalogue of `GR-NN` deterministic rules.
 - `framework/assets/topics-requirements.md` — bijection invariants.
@@ -19,14 +19,14 @@
 
 ## Priority scoring (consumed by the cap step)
 
-Every tuple whose decision tree resolves to `marker_kind = "AI-SUGGESTED"` is assigned a `priority_score` (integer, 0–10) drawn from the closed table below. The score is keyed on the `rule_id` that emitted the tuple — A1..A15, B1..B5, D1..D4. Tuples whose `marker_kind` is not `"AI-SUGGESTED"` carry `priority_score = 0` and the score is unused.
+Every tuple whose decision tree resolves to `marker_kind = "AI-SUGGESTED"` is assigned a `priority_score` (integer, 0–10) drawn from the closed table below. The score is keyed on the `rule_id` that emitted the tuple — A1..A15, B1..B7, D1..D4. Tuples whose `marker_kind` is not `"AI-SUGGESTED"` carry `priority_score = 0` and the score is unused.
 
 | Rule(s) | Score | Rationale |
 |---|---|---|
 | A1 personas↔stories · A3 personas↔RBAC · A9 §10 volumes · A10 §1.5 In-scope rows · A13 §6.8 notification audiences | 10 | Cross-cuts UI pattern choice and drives §6.5 / §6.7 / §6.8 — wrong guesses propagate. |
 | A2 goals↔stories · A8 §5 flow actors · A11 §2.5 state-transition rows · A12 §6.7 report source concepts · D3 visible state-transition effects | 7 | Drives flow logic and UI narrative; revision is bounded but costs design rework. |
 | A14 §6.10 operations · B2 conditional `<action>†BR-NN` rows · B5 acceptance-criteria fabrications | 5 | Behavioural detail. Adjustable post-hoc; surfacing is valuable but not load-bearing. |
-| A4 entity-RBAC columns · A5 flow-RBAC columns · A6 persistent entity stubs · A7 entity↔concept refs · A15 §7.X derived shapes · B1 goal→story filler · D1 server-side §6.2 BR projections · D2 hidden-field defaults | 3 | Bijection-filler — structural completeness, low decision-value per item. The set that the cap demotes first. |
+| A4 entity-RBAC columns · A5 flow-RBAC columns · A6 persistent entity stubs · A7 entity↔concept refs · A15 §7.X derived shapes · B1 goal→story filler · B7 §6.6.1/§6.6.2 guidance fields · D1 server-side §6.2 BR projections · D2 hidden-field defaults | 3 | Bijection-filler / scope-noted application-build guidance — structural completeness, low decision-value per item. The set that the cap demotes first. |
 
 Tier C is never AI-SUGGESTED (it routes to `[OUT-OF-SCOPE]` or value-only by target), so it has no row here. Tier B3 (warn-only), B4 (warn-only), and B6 (warn-only; priority is filled by `GR-24` as `[STANDARD-RULE]`) emit no AI-SUGGESTED tuples, so they have no row either.
 
@@ -77,9 +77,10 @@ The Tier C sections below are short-circuited at step 4 — they are completenes
 | B1 | Every §4.1 goal is referenced by ≥1 §4.2 story | fabricate story under most plausible persona; mark `[AI-SUGGESTED]` |
 | B2 | Every §6.5 conditional cell `<action>†BR-NN` names a real §6.2 BR-NN | fabricate BR-NN row in §6.2 inferred from the role + action + entity context; mark `[AI-SUGGESTED]` |
 | B3 | §7 entity relationships align with §2.2 | warn only; **no fabrication** (FK fabrication is too error-prone without input support) |
-| B4 | Every §1.7 row's `Driving requirement(s)` cell cross-refs ≥1 §6 / §10 row | warn only when the cross-ref is missing or dangles; the drafter's `derive-architectural-implications` substep is responsible for setting it. No fabrication here. **Skipped entirely under `target == "prototype"`** — §1.7 is not emitted under prototype, so this rule produces zero output. |
+| B4 | Every §1.7 row's `Driving requirement(s)` cell cross-refs ≥1 §6 / §10 row | warn only when the cross-ref is missing or dangles; the drafter's `derive-architectural-implications` substep is responsible for setting it. No fabrication here. Active under both targets — §1.7 is emitted on every run. |
 | B5 | Every §4.2 story / §6.1 F-NN / §6.2 BR-NN / §5 task-flow step has a populated `Acceptance criteria` cell | fabricate from observable signals when input is silent; `[AI-SUGGESTED: non-blocking]`. Phrase behaviourally per `GR-21`; never visually. §6.1 / §6.2 cells use EARS keywords per `GR-23`; §4.2 / §5 / §6.4 stay observable-signal. |
 | B6 | Every §4.2 story / §6.1 F-NN / §6.4 UI-NN has a `Priority` value (`Must` / `Should` / `Could` / `Won't`) | **no fabrication, no `[AI-SUGGESTED]`.** Priority is filled at decision-tree step 2 by `GR-24` (`[STANDARD-RULE: GR-24]`) when the input is silent. Warn only if a row is still missing a priority after the GR-24 pass. |
+| B7 | Every §6.6.1 field not resolved by `GR-19` and every §6.6.2 metric has a populated value | fabricate from the §1 domain + §10 volume bands; `[AI-SUGGESTED: non-blocking]` (the sections are scope-noted application-build guidance — a wrong guess cannot propagate into the prototype build). This rule pulls §6.6.x fields into decision-tree step 3 so they are never OOS-routed at steps 4/5; `framework/shared/prototype-scope.md` confirms these sections are not Filter-Out content. |
 
 ## Tier D — mixed (in-scope only when visually manifested)
 
@@ -119,14 +120,12 @@ Tier C sections are completeness-required by the template (`fill every field`) b
 | §2.5 transitions whose `Visible effect` is purely server-side | per **D3** above |
 | §6.10 sub-block not matching `manifest.target` | drafter emits only the matching variant; the off-mode sub-block is suppressed entirely (no marker, no row). This is a structural conditional, not a Tier C row in the traditional sense, but is listed here for symmetry. |
 
-**Emit-conditional on target (omitted under `prototype`, emitted under `application`).** These sections are not in the prototype draft at all, so the gap pass produces **zero tuples** for them under `target == "prototype"`. Under `target == "application"` they are emitted and in-scope — fields carry `[AI-SUGGESTED]` when inferred and no input states them, or `[STANDARD-RULE: GR-NN]` when a deterministic rule applies:
+**In-scope under both targets** (fields carry `[AI-SUGGESTED]` / `[STANDARD-RULE]` as applicable; the first three are scope-noted application-build guidance — the template blockquote carries the "not a prototype design input (PI-01/PI-03/PI-08)" semantics in-document):
 
-- §1.7 Architectural implications — drafter-derived capability plan. Omitted under prototype; under application every row carries `[AI-SUGGESTED: non-blocking]` (B4 checks the cross-ref).
-- §6.6.1 Session UX — UI surfaces of session policy (timeout warning copy, re-auth modal trigger, lockout messaging). Omitted under prototype (server/auth simulated, PI-01/PI-03). Under application: `GR-19` provides domain defaults; otherwise `[AI-SUGGESTED]`.
-- §6.6.2 FE performance budgets — TTI, bundle size, render budgets. Omitted under prototype (review harness, PI-08). Under application: `[AI-SUGGESTED]` when inferred from volumes (§10).
-
-**In-scope under both targets** (FE-relevant; fields carry `[AI-SUGGESTED]` / `[STANDARD-RULE]` as applicable):
-
+- §1.7 Architectural implications — drafter-derived capability plan, emitted on every run. Rows are authored by the drafter's step 6 (not gap-pass tuples); every row carries `[AI-SUGGESTED: non-blocking]` (B4 checks the cross-ref).
+- §6.6.1 Session UX — emitted on every run. `GR-19` provides `[STANDARD-RULE]` domain defaults for the timeout fields when input is silent; remaining fields per B7 (`[AI-SUGGESTED: non-blocking]`).
+- §6.6.2 FE performance budgets — TTI, bundle size, render budgets, emitted on every run. Per B7: `[AI-SUGGESTED: non-blocking]` when inferred from volumes (§10).
+- §6.1 `Rationale` cells — drafter-authored and **per-cell optional**; the gap pass never fabricates them (no tier row; blank is a valid resolution).
 - §6.6.3 Availability — **retired entirely from the template** (backend concern; FE doc no longer has this section).
 - §6.6.4 Compliance UI behaviour — consent banners, PII screen redaction, regional UI variants. `[AI-SUGGESTED]` when inferred from domain. Backend audit retention is the backend doc's concern and is not in this section.
 - §6.6.5 Accessibility — drives design tokens & screen states.
@@ -146,7 +145,7 @@ Tier C sections are completeness-required by the template (`fill every field`) b
     - **Renumber AI-NNN** monotonically over the surviving `[AI-SUGGESTED]` set (blocking + kept non-blocking, processed in their pre-cap AI-NNN order), starting at AI-001, so the drafter's tag-assignment stays gap-free in the written draft. Demoted tuples no longer carry an AI-NNN identifier.
     - If `blocking_count >= cap`, keep every blocking tuple anyway (the cap is a floor for blocking, not a ceiling) and demote every non-blocking tuple.
 
-**Invariant.** For the same draft state, the set of tuples with `marker_kind = "AI-SUGGESTED"` **after the cap step at step 6** is byte-for-byte identical under `target == "prototype"` and `target == "application"`. Only `marker_kind = "OUT-OF-SCOPE"` tuples differ between targets (emitted as OOS under prototype; emitted with `marker_kind = "none"` under application). The cap step is applied uniformly under both targets — it narrows the AI-SUGGESTED set, never widens it, so the invariant is preserved across the cap. Demoted tuples land on the `marker_kind = "none"` branch under both targets and are indistinguishable from application-mode OOS-routed fills in the produced draft.
+**Invariant.** For the same draft state, the set of tuples with `marker_kind = "AI-SUGGESTED"` **after the cap step at step 6** is byte-for-byte identical under `target == "prototype"` and `target == "application"`. Only `marker_kind = "OUT-OF-SCOPE"` tuples differ between targets (emitted as OOS under prototype; emitted with `marker_kind = "none"` under application). §1.7 / §6.6.1 / §6.6.2 contribute identically under both targets — they are emitted on every run, so they no longer break this invariant the way the retired emit-conditional regime did. The cap step is applied uniformly under both targets — it narrows the AI-SUGGESTED set, never widens it, so the invariant is preserved across the cap. Demoted tuples land on the `marker_kind = "none"` branch under both targets and are indistinguishable from application-mode OOS-routed fills in the produced draft.
 
 ## Used by
 
@@ -158,7 +157,7 @@ Tier C sections are completeness-required by the template (`fill every field`) b
 - Do not emit `[AI-SUGGESTED]` for any tuple whose decision tree resolved at step 2 (general-rules) or step 4 (out-of-scope). This rule holds under both targets — `target == "application"` suppresses the `[OUT-OF-SCOPE]` marker but does not promote those tuples to `[AI-SUGGESTED]`.
 - Do not skip the `general-rules.md` lookup; it must precede every `[AI-SUGGESTED]` decision.
 - Do not modify §2.3 — invariant filtering applies only at the §2.3 → §6.2 projection.
-- Do not emit tuples for conditional sections whose emit-predicate is false. §2.5 / §6.9 / §7.X / the off-mode sub-block of §6.10 produce zero tuples when not emitted; **§1.7 / §6.6.1 / §6.6.2 produce zero tuples under `target == "prototype"`** (emit-conditional on target); §1.6 / §8 / §9 produce zero tuples when their content-conditional predicate is false. The drafter's self-validation does not require their presence in those cases.
+- Do not emit tuples for conditional sections whose emit-predicate is false. §2.5 / §6.9 / §7.X / the off-mode sub-block of §6.10 produce zero tuples when not emitted; §1.6 / §8 / §9 produce zero tuples when their content-conditional predicate is false. The drafter's self-validation does not require their presence in those cases.
 - Do not enforce `GR-20` (no stack specifics) or `GR-21` (no UI layout) here — those are drafter pre-Write Grep guards over the produced draft, not gap-pass decision-tree outcomes. The gap-pass produces values that are themselves capability-category and behavioural; the drafter's self-validation catches any leak.
 - Do not widen the AI-SUGGESTED set when `target == "application"`. The contract with the consultant is that they answer questions only about facts the AI fabricated; widening the set under application mode would surface redundant or ungrounded questions. The application-mode behavioural change is OOS-marker suppression only.
 - Do not skip the prototype-scope predicate evaluation under `target == "application"`. The predicate is still needed to identify which tuples would have been OOS, so the skill can route them to the `marker_kind = "none"` branch. The file is consulted under both targets.

@@ -8,9 +8,9 @@ The "Not Prototypable (Filter Out)" list below is the strict predicate for `defe
 
 - Backend internals (FE consumes contracts via §6.10 only)
 - Database schema and migration specifics
-- Authentication/authorization implementation (UI auth surfaces remain in scope behaviourally via §6.4 / §5; the §6.6.1 session-policy table is application-target-only, omitted under prototype)
+- Authentication/authorization implementation (UI auth surfaces remain in scope behaviourally via §6.4 / §5; the §6.6.1 session-policy table appears in the doc as scope-noted application-build guidance — its fields are NOT filter-out content)
 - DevOps, CI/CD, infrastructure
-- Performance optimization techniques (backend-side; §6.6.2 FE perf budgets are application-target-only, omitted under prototype — review harness, PI-08)
+- Performance optimization techniques (backend-side only; the §6.6.2 FE perf-budget table appears in the doc as scope-noted application-build guidance — its fields are NOT filter-out content)
 - Data migration strategies
 - Security implementation details
 - Third-party service integration internals

@@ -2,7 +2,7 @@
 
 # Requirements: {{application_name}}
 
-**Domain:** {{domain}} <!-- inferred from inputs; flag [AI-SUGGESTED] if not stated explicitly --> **Target:** prototype | application <!-- from `requirements/source-manifest.json > target`; controls §6.10 sub-block, PI-append, and the emit-conditional sections listed in §0.1 --> **Created:** {{date}} **Status:** draft | final **Last finalised at:** {{last_finalised_at}}
+**Domain:** {{domain}} <!-- inferred from inputs; flag [AI-SUGGESTED] if not stated explicitly --> **Target:** prototype | application <!-- from `requirements/source-manifest.json > target`; `prototype` on every pipeline run (auto-set at the orchestrator's Step 1b; `application` appears only on legacy manifests). Controls the §6.10 sub-block and PI-append; §1.7/§6.6.1/§6.6.2 are always emitted as scope-noted application-build guidance (§0.1) --> **Created:** {{date}} **Status:** draft | final **Last finalised at:** {{last_finalised_at}}
 
 > **Authoring guardrails.** Cells across §1–§10 must obey:
 > - **`GR-20` No stack specifics.** No framework, library, vendor, product, version, or brand name in any cell. Speak in capability categories ("client-side state management", "binary blob storage tier"). Stack picks happen at code-generation time, not here.
@@ -23,16 +23,16 @@
 
 <!-- format: table[4-col: section, prototype, application, mode-conditional?]; one row per mode-conditional section -->
 
-> The `target` field on the source manifest is `prototype` or `application`. The drafter picks the matching variant for the rows below at fill-time; the merger does not see both. Rows marked *emit-conditional on target* are **omitted entirely** under `prototype` (the section heading does not appear) and emitted under `application` — these are the FE-irrelevant sections that the convergent/backend consumers (and a future BFF-API-doc / DB-script generator) need, but that add noise to a client-side prototype. Rows marked *content-conditional* are omitted when they have no content under either target.
+> The `target` field on the source manifest is `prototype` (every pipeline run; auto-set at the orchestrator's Step 1b) or `application` (legacy manifests only — the drafter no longer has a consultant-chosen application emit mode). The `application` column below therefore describes the **exported** document produced by `/export-application` from the finished pipeline doc, plus the dormant legacy-manifest behaviour. Rows marked *scope-noted* are emitted in **every** pipeline doc with an application-build-guidance blockquote ("not a prototype design input"). Rows marked *content-conditional* are omitted when they have no content under either target.
 
 | Section | `prototype` | `application` | Mode-conditional? |
 | --- | --- | --- | --- |
 | §1.6 Assumptions & dependencies | omitted when no assumption/dependency applies | emitted | yes — content-conditional |
-| §1.7 Architectural implications | **omitted** | emitted (drafter-derived) | yes — emit-conditional on target |
-| §6.1 `Rationale` column | column omitted | column emitted (optional) | yes — column-conditional on target |
-| §6.6.1 Session UX | **omitted** | emitted | yes — emit-conditional on target |
-| §6.6.2 FE performance budgets | **omitted** | emitted (optional) | yes — emit-conditional on target |
-| §6.10 Consumed backend contracts | fixture references | pointers into the sibling backend requirements document | yes — sub-block content differs |
+| §1.7 Architectural implications | emitted (drafter-derived; scope-noted) | carried through at export | no — scope-noted |
+| §6.1 `Rationale` column | column emitted (optional, per-cell) | same | no |
+| §6.6.1 Session UX | emitted (scope-noted) | carried through at export | no — scope-noted |
+| §6.6.2 FE performance budgets | emitted (scope-noted) | carried through at export | no — scope-noted |
+| §6.10 Consumed backend contracts | fixture references | pointers into the sibling backend requirements document — produced at export or under a legacy application manifest | yes — sub-block content differs |
 | §7 Data shapes consumed by FE | shape sourced from fixtures | shape sourced from backend contracts | provenance label only |
 | §8 Source UI references | omitted when no consultant-supplied reference exists | same | yes — content-conditional |
 | §9 Key terminology | omitted unless ≥1 inconsistency flag or alternate-term usage exists (full domain glossary lives in the GLOSSARY analysis, not here) | same | yes — content-conditional |
@@ -96,9 +96,9 @@
 ## 1.7 Architectural implications
 
 <!-- format: table[3-col: capability_category, driving_requirements, recommendation]; capability_category from drafter's inline catalogue (≤15 entries); recommendation optional -->
-<!-- emit: emit-conditional on target — OMITTED entirely under `target = prototype` (no design pipeline reads it); emitted under `target = application` (backend capability plan, consumed by application-build + a future BFF/DB generator) -->
+<!-- emit: always — scope-noted application-build guidance (backend capability plan, consumed by application-build, /export-application + a future BFF/DB generator); rows seeded [AI-SUGGESTED: AI-NNN | non-blocking] -->
 
-> **Emitted under `target = application` only** (§0.1). Capability categories derived by the drafter from §6 functional requirements + §10 volumes + §6.7 reporting needs, against an inline catalogue of ≤15 categories (see `framework/agents/requirements-drafter.md > derive-architectural-implications`). Drafter seeds every row as `[AI-SUGGESTED: AI-NNN | non-blocking]`; resolver Q&A refines. Recommendation column is **optional** and **non-deterministic** — a stack choice belongs in the code-generation step, not here.
+> **Application-build guidance — not a prototype design input; prototype behaviour is governed by PI-01/PI-03/PI-08.** Capability categories derived by the drafter from §6 functional requirements + §10 volumes + §6.7 reporting needs, against an inline catalogue of ≤15 categories (see `framework/agents/requirements-drafter.md > derive-architectural-implications`). Drafter seeds every row as `[AI-SUGGESTED: AI-NNN | non-blocking]`; resolver Q&A refines. Recommendation column is **optional** and **non-deterministic** — a stack choice belongs in the code-generation step, not here.
 
 | Capability category | Driving requirement(s) | Recommendation (optional) |
 | --- | --- | --- |
@@ -260,11 +260,11 @@ classDiagram
 
 <!-- format: table[cols: ID(F-NN), priority, statement, acceptance_criteria, source, rationale?]; statement is atomic — single capability per row, no compound "and"; AC in EARS form (GR-23) -->
 <!-- guidance: atomic decomposition aids gap-pass mapping to §6.10 ops (A14) and BR refs; priority per GR-24 (B6); AC in EARS keywords per GR-23 -->
-<!-- Rationale column: emit-conditional on target — present under `application` (optional), OMITTED under `prototype` (§0.1) -->
+<!-- Rationale column: always emitted, per-cell optional (§0.1). Cell format: stated prose with [SRC: C-NNN] when the inputs give the reason; else a cross-reference-only trace ("Supports|Enables|Enforces|Serves → §…") marked [AI-SUGGESTED: AI-NNN | non-blocking]; else blank. Never free-prose invention for inferred cells. -->
 
-| ID       | Priority | Statement              | Acceptance criteria (EARS — GR-23)                                       | Source                   | Rationale (application only, optional) |
-| -------- | -------- | ---------------------- | ------------------------------------------------------------------------ | ------------------------ | -------------------------------------- |
-| F-{{nn}} | Must / Should / Could / Won't <!-- GR-24 --> | {{functional_requirement}} | {{ears_acceptance_criterion}} <!-- "When <trigger>, the system shall <response>." etc. — GR-23; ≤3 preconditions; Tier B5 auto-fabricates --> | stated / → §X / inferred | {{why_this_requirement}} <!-- the business reason; application target only, omit the column under prototype --> |
+| ID       | Priority | Statement              | Acceptance criteria (EARS — GR-23)                                       | Source                   | Rationale (optional) |
+| -------- | -------- | ---------------------- | ------------------------------------------------------------------------ | ------------------------ | -------------------- |
+| F-{{nn}} | Must / Should / Could / Won't <!-- GR-24 --> | {{functional_requirement}} | {{ears_acceptance_criterion}} <!-- "When <trigger>, the system shall <response>." etc. — GR-23; ≤3 preconditions; Tier B5 auto-fabricates --> | stated / → §X / inferred | {{rationale_cell}} <!-- stated [SRC: C-NNN] / "Supports → §4.1 G-NN" \| "Enables → §5 Flow: <name>" \| "Enforces → §2.3 <invariant>" \| "Serves → §3 <persona>" [AI-SUGGESTED \| non-blocking] / blank --> |
 
 <!-- repeat per functional requirement -->
 
@@ -340,9 +340,9 @@ classDiagram
 #### 6.6.1 Session UX
 
 <!-- format: table[3-col: field, value, source]; quantified — minutes/seconds/hours, never "soon"; GR-19 supplies defaults when input is silent -->
-<!-- emit: emit-conditional on target — OMITTED under `target = prototype` (server + auth are simulated per PI-01/PI-03, so session policy is moot); emitted under `target = application` -->
+<!-- emit: always — scope-noted application-build guidance (§0.1). GR-19 supplies [STANDARD-RULE] defaults when input is silent; remaining fields [AI-SUGGESTED | non-blocking] when inferred, [SRC: C-NNN] when stated. -->
 
-> **Emitted under `target = application` only** (§0.1) — a client-side prototype has no real session/auth surface (PI-01/PI-03).
+> **Application-build guidance — not a prototype design input; prototype behaviour is governed by PI-01/PI-03** (server + auth are simulated, so this policy table binds the production application, not the prototype).
 
 | Field                    | Value                                                                             | Source            |
 | ------------------------ | --------------------------------------------------------------------------------- | ----------------- |
@@ -356,9 +356,9 @@ classDiagram
 #### 6.6.2 Frontend performance budgets
 
 <!-- format: table[3-col: metric, target, source]; targets quantified with units & percentile (e.g. "p95 ≤ 2.0s", "≤ 250KB gzipped") — never "fast" or "small" -->
-<!-- emit: emit-conditional on target — OMITTED under `target = prototype` (the prototype is a review harness per PI-08, never perf-optimised); emitted under `target = application` (optional) -->
+<!-- emit: always — scope-noted application-build guidance (§0.1). Values [AI-SUGGESTED | non-blocking] when inferred from §10 volumes, [SRC: C-NNN] when stated. -->
 
-> **Emitted under `target = application` only** (§0.1) — the prototype is a review harness (PI-08), not a perf-optimised build.
+> **Application-build guidance — not a prototype design input; prototype behaviour is governed by PI-08** (the prototype is a review harness, never perf-optimised — these budgets bind the production application).
 
 | Metric                                                | Target    | Source            |
 | ----------------------------------------------------- | --------- | ----------------- |
@@ -420,7 +420,7 @@ classDiagram
 <!-- format: prototype: table[3-col: operation, fixture_reference, notes]; application: table[3-col: operation, backend_contract_pointer, notes]; emit only the sub-block matching manifest.target -->
 <!-- guidance: every operation maps to §6.1 F-NN (A14); application-mode pointer never restates the contract -->
 
-> FE-facing only. The drafter emits one sub-block matching `manifest.target`; the merger does not see both.
+> FE-facing only. The drafter emits one sub-block matching `manifest.target`; the merger does not see both. (The application sub-block is produced at export time by `/export-application`, or by a legacy application-target manifest run.)
 
 #### Under `target = prototype`
 

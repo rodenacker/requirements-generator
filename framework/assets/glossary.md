@@ -136,7 +136,7 @@ One hi-fi, clickable, **client-side-only** React/Next.js realization of a scope,
 Canonical source: `framework/orchestrators/prototype-orch.md` + `framework/shared/prototype-invariants.md`.
 
 ### Build target
-The once-per-manifest choice of output mode: **prototype** (client-stub simulated server, fixture data) or **application** (full backend requirements). Durable in `requirements/source-manifest.json > target`.
+The manifest's output-mode field, auto-set to **prototype** (client-stub simulated server, fixture data) by the `/requirements` orchestrator's Step 1b — the consultant choice is retired. **application** remains a legal legacy value, honoured by dormant branches. The application-audience document is produced by `/export-application` from the finished `requirements.md`. Durable in `requirements/source-manifest.json > target`.
 Canonical source: `framework/shared/prototype-invariants.md` (PI-06) + `framework/skills/set-build-target.md`.
 
 ### Design-spec

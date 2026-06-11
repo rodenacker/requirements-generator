@@ -34,7 +34,7 @@ Adding a new topic ships its `Dimension` value with the row; consumers read the 
 | 1 | Application context | always | Scope |
 | 1.5 | Scope (in / out / deferred) | always | Scope |
 | 1.6 | Assumptions & dependencies | conditional — ≥1 assumption / dependency stated or domain-implied (no filler rows) | Scope |
-| 1.7 | Architectural implications | conditional — `target == application` (drafter-derived; **omitted under `prototype`**) | Scope |
+| 1.7 | Architectural implications | always (drafter-derived; scope-noted application-build guidance — see template §0.1) | Scope |
 | 2.1 | Concepts | always | Domain |
 | 2.2 | Relationships | always | Domain |
 | 2.3 | Aggregates & lifecycles | always | Domain |
@@ -50,8 +50,8 @@ Adding a new topic ships its `Dimension` value with the row; consumers read the 
 | 6.4 | UI feature needs (formerly "User-facing") | always | Functional |
 | 6.4.5 | Edge, empty & error states | conditional — ≥1 §5 flow has `exception_paths` OR ≥1 §6.4 row implies state branching | Process |
 | 6.5 | Access control (RBAC) | always | Stakeholder |
-| 6.6.1 | Session UX | conditional — `target == application` (**omitted under `prototype`**: server/auth simulated, PI-01/PI-03) | Non-functional |
-| 6.6.2 | FE performance budgets | conditional — `target == application` (**omitted under `prototype`**: review harness, PI-08) | Non-functional |
+| 6.6.1 | Session UX | always (scope-noted application-build guidance — not a prototype design input, PI-01/PI-03; see template §0.1) | Non-functional |
+| 6.6.2 | FE performance budgets | always (scope-noted application-build guidance — not a prototype design input, PI-08; see template §0.1) | Non-functional |
 | 6.6.4 | Compliance UI behaviour | always (may be `[OUT-OF-SCOPE]` if not applicable) | Compliance |
 | 6.6.5 | Accessibility | always | Non-functional |
 | 6.7 | Reporting feature needs | conditional — inputs name reports/dashboards/exports, or domain implies them | Functional |
@@ -80,7 +80,7 @@ Sections retired vs. prior versions: **§6.6.3 Availability** (backend concern; 
 - §6.4 UI feature needs are typed rows (UI-NN). `GR-21` forbids layout vocabulary; cells describe *what must exist*, not *how it is arranged*. Rows deterministically resolved by `GR-05..GR-18` carry `[STANDARD-RULE: GR-NN]`.
 - §6.4.5 Edge, empty & error states is emitted when ≥1 §5 flow has `exception_paths` OR a §6.4 row implies state branching. Surface cell references a §4.2 story, §5 flow, or §6.4 UI-NN; condition uses the closed vocabulary `{empty, partial, error, offline, loading, permission-denied}`. Behavioural phrasing only (`GR-21`).
 - §6.5 RBAC is a roles-×-resources matrix. Bijection: every §3 persona is a row; every §7 entity and every §5 flow is a column (or scoped action). Conditional cells cite a BR-NN from §6.2.
-- §6.6 NFR is **FE-only**. Sub-sections: §6.6.4 Compliance UI behaviour + §6.6.5 Accessibility are emitted under **both** targets (FE-relevant; `[AI-SUGGESTED]` when inferred). §6.6.1 Session UX + §6.6.2 FE performance budgets are **`application`-target-only** — omitted under `prototype` (server/auth simulated per PI-01/PI-03; the prototype is a review harness per PI-08), emitted under `application`. Backend availability / throughput / persistence concerns belong in the sibling backend doc.
+- §6.6 NFR is **FE-only**. Sub-sections: §6.6.4 Compliance UI behaviour + §6.6.5 Accessibility are emitted under **both** targets (FE-relevant; `[AI-SUGGESTED]` when inferred). §6.6.1 Session UX + §6.6.2 FE performance budgets are emitted under **both** targets as scope-noted application-build guidance (not a prototype design input — server/auth simulated per PI-01/PI-03; the prototype is a review harness per PI-08); `GR-19` supplies §6.6.1 defaults, gap-pass rule B7 covers the rest. Backend availability / throughput / persistence concerns belong in the sibling backend doc.
 - §6.7 Reporting needs **never** specify chart type or layout (`GR-21`). Source concept(s) must reference §2.1; audience must reference §3.
 - §6.8 Notification points use capability-level channel names only (`in-app`, `email`, `sms`, `webhook`, `push`); no vendor name (`GR-20`).
 - §6.10 Consumed backend contracts emits exactly one sub-block — the one matching `manifest.target`. Prototype variant rows reference fixture paths; application variant rows are *pointers only* into the sibling backend doc and never restate the contract.
@@ -110,9 +110,10 @@ Sections retired vs. prior versions: **§6.6.3 Availability** (backend concern; 
   - `goals_without_story_ref == 0`
   - `rbac_conditional_cells_dangling == 0`
   - `entity_relationships_misaligned_with_2_2` — warn only.
-  - **B4** `architectural_implication_cites_requirement == true` — every §1.7 row's Driving requirement cell cross-refs ≥1 §6 / §10 row; warn-only. **Skipped under `target == prototype`** (§1.7 is not emitted).
+  - **B4** `architectural_implication_cites_requirement == true` — every §1.7 row's Driving requirement cell cross-refs ≥1 §6 / §10 row; warn-only. Active under both targets (§1.7 is emitted on every run).
   - **B5** `acceptance_criteria_populated == true` — every §4.2 story / §6.1 F-NN / §6.2 BR-NN / §5 flow step has a populated Acceptance criteria cell; drafter auto-fabricates from observable signals when silent (`[AI-SUGGESTED]`). §6.1 / §6.2 cells use EARS per `GR-23`.
   - **B6** `priority_populated == true` — every §4.2 story / §6.1 F-NN / §6.4 UI-NN has a `Priority` value (`Must` / `Should` / `Could` / `Won't`); default derived per `GR-24` (`[STANDARD-RULE: GR-24]`), so this never gates as AI-SUGGESTED. Warn-only if a row is missing one.
+  - **B7** `application_guidance_fields_populated == true` — every §6.6.1 field not resolved by `GR-19` and every §6.6.2 metric has a populated value; fabricated from domain + §10 volumes (`[AI-SUGGESTED: non-blocking]`).
 - **Tier C (do not gate — domain-default fill):**
   - §6.6 sub-sections are FE-relevant under both targets; emptiness no longer fails completeness because they always populate from `GR-19` defaults or `[AI-SUGGESTED]` inferences. (§6.6.3 Availability is retired entirely from the template — backend concern.)
 - **Tier D (visual-manifestation gating):**

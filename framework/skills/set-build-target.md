@@ -1,9 +1,9 @@
 # set-build-target.md
 
-**Purpose:** Set the root-level `target` field of `requirements/source-manifest.json` to the consultant's build-target choice (`"prototype"` or `"application"`) captured at the orchestrator's Step 1b, then verify the write. The build-target choice governs whether the drafter's gap-pass emits `[OUT-OF-SCOPE: domain-default]` markers and whether the merger appends `framework/shared/prototype-invariants.md` to the final spec. This skill is the single mediator for that mutation — the orchestrator never Edits the manifest directly.
+**Purpose:** Set the root-level `target` field of `requirements/source-manifest.json` to the value the orchestrator's Step 1b supplies — always `"prototype"` in current pipeline use (`"application"` remains a legal value, present on legacy manifests and honoured by dormant downstream branches) — then verify the write. The target value governs whether the drafter's gap-pass emits `[OUT-OF-SCOPE: domain-default]` markers and whether the merger appends `framework/shared/prototype-invariants.md` to the final spec. This skill is the single mediator for that mutation — the orchestrator never Edits the manifest directly.
 
 **Inputs:**
-- `target` — exactly one of `"prototype"` or `"application"`. Any other value (including `null`) is a caller bug; this skill does not validate the choice set, but `framework/orchestrators/requirements-orch.md > Step 1b` constrains the prompt's choice set.
+- `target` — exactly one of `"prototype"` or `"application"`. Any other value (including `null`) is a caller bug; this skill does not validate the choice set — the orchestrator's Step 1b passes the fixed literal `"prototype"` (the consultant prompt is retired).
 - `manifest_path` — repo-relative path of the manifest to mutate. Always `"requirements/source-manifest.json"` in current usage.
 
 **Outputs:** exactly one of:
@@ -11,7 +11,7 @@
 - `RF-04 trigger` — the verification step failed; the orchestrator halts per `framework/shared/refusal-registry.md > RF-04 artifact_write_unverified`.
 
 **Used by:**
-- `framework/orchestrators/requirements-orch.md` — Step 1b, immediately after the consultant's build-target answer.
+- `framework/orchestrators/requirements-orch.md` — Step 1b, auto-invoked with `target: "prototype"` when the manifest's `target` field is `null` or absent.
 
 ## Procedure
 
@@ -29,8 +29,8 @@
 
 ## Anti-Patterns
 
-- Do not modify `rows[]`, `schema_version`, or `generated_at`. The manifest's content lineage is anchored on `generated_at`; mutating it during build-target selection would imply the inputs were re-enumerated, which they were not.
-- Do not infer `target` from the manifest's rows or any other source. The orchestrator's Step 1b is the sole authority for this choice.
+- Do not modify `rows[]`, `schema_version`, or `generated_at`. The manifest's content lineage is anchored on `generated_at`; mutating it during the Step 1b target set would imply the inputs were re-enumerated, which they were not.
+- Do not infer `target` from the manifest's rows or any other source. The orchestrator's Step 1b is the sole authority for this value.
 - Do not skip `verify-artifact-write.md`. A truncated manifest after this skill strands the drafter on a half-written file at workflow start.
-- Do not set `target` to `null`. `null` is the input-handler's initial value; reverting to it here would be a regression of the consultant's choice.
+- Do not set `target` to `null`. `null` is the input-handler's initial value; reverting to it here would regress the Step 1b auto-set.
 - Do not call this skill outside the orchestrator's Step 1b flow. Mid-run mutation of `target` would change the gap-pass's emission contract halfway through the pipeline.

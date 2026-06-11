@@ -1,6 +1,6 @@
 # Framework Dependency Graphs
 
-Nine transitive load/read/invoke trees, one per orchestrator. Source of truth for "what loads what". LLM-only doc (not loaded at runtime) — diagrams dropped in favour of filename-keyed adjacency lists.
+Ten transitive load/read/invoke trees, one per orchestrator. Source of truth for "what loads what". LLM-only doc (not loaded at runtime) — diagrams dropped in favour of filename-keyed adjacency lists.
 
 ## Notation
 
@@ -38,11 +38,13 @@ Per-caller `progress_path`: requirements = `.progress.json`; generate-prd = `.pr
 
 ---
 
-## 1. requirements-orch.md · 26 nodes / 40 edges / depth 4
+## 1. requirements-orch.md · 27 nodes / 42 edges / depth 4
 
 ```
 orch → input-handler, requirements-drafter, requirements-resolver, requirements-merger,
-       check-context-bloat, refusal-registry, state/.progress.json
+       check-context-bloat, refusal-registry, state/.progress.json,
+       set-build-target [cond: manifest.target null/absent]
+set-build-target → verify-artifact-write
 input-handler ⇒ @input-handler-subtree (progress_path=.progress.json)
 requirements-drafter → template-requirements.md, prototype-scope.md, general-rules.md,
        refusal-registry.md, verify-artifact-write, completeness-gap-pass.md, mermaid-validator.md
@@ -54,7 +56,9 @@ requirements-merger → prototype-invariants.md
 ```
 
 **Notes (unique):**
-- drafter's `derive-architectural-implications` substep uses an **inline** capability catalogue declared in `requirements-drafter.md` → not a file edge. Rows emitted as `[AI-SUGGESTED: non-blocking]`, refined in resolver Phase 2.
+- `set-build-target` is **auto-invoked** at Step 1b with the fixed literal `target: "prototype"` when `manifest.target` is null/absent — no consultant prompt, no timing events (the build-target choice is retired; `/export-application` produces the application-audience doc).
+- drafter emits §1.7 / §6.6.1 / §6.6.2 + the §6.1 `Rationale` column **unconditionally** (scope-noted application-build guidance); the old emit-conditional-on-target regime is retired.
+- drafter's `derive-architectural-implications` substep uses an **inline** capability catalogue declared in `requirements-drafter.md` → not a file edge. Rows emitted as `[AI-SUGGESTED: non-blocking]`, refined in resolver Phase 2. Runs on every run.
 - merger **retains** `[SRC: C-NNN]` tags in final `requirements.md`; `draft-claims.ndjson` stays authoritative for verbatim quotes (grounding re-verification).
 - `template-requirements.md`'s `<!-- format: -->` / `<!-- guidance: -->` directives survive the merger strip (which only matches `[AI-SUGGESTED]`/`[STANDARD-RULE]`/`[OUT-OF-SCOPE]`/blocking-suffix/`AI-NNN`/`GR-NN`) — they are part of the published spec.
 - `characters/requirements-qa.md` is a stub (no transitive deps).
@@ -357,3 +361,22 @@ prototype-landing-updater → wireframes/position-vocabulary.md, verify-artifact
 - **Verify gate:** `verify-prototype-build.md` runs lint + tsc + `next build` + Playwright smoke. New refusals `RF-10` (node missing), `RF-11` (playwright browsers), `RF-12` (build failed after retries), `RF-13` (scaffold failed). Invariants PI-01..PI-08 (PI-08 = chrome is a harness).
 - **Anti-fabrication:** every `data-prop` binds to a blueprint per-surface Property closed set; fixtures carry only closed-set fields — mirrors the wireframe `data-prop` rule.
 - **Per-prototype reset** deletes only the in-flight slug's `.specs/<slug>/` + `src/app/<slug>/` + its `.registry.json` entry + resolver sidecars; never other prototypes, the shared library, the scaffold, or the brand.
+
+---
+
+## 10. export-application-orch.md · 8 nodes / 9 edges / depth 2
+
+```
+orch → export-application-exporter, check-context-bloat, refusal-registry,
+       requirements/requirements.md [read: step-0 gate + step-0a sha256]
+export-application-exporter → characters/application-exporting.md, verify-artifact-write,
+       requirements/requirements.md [read: full, sole content input]
+```
+
+**Notes (unique):**
+- Single-agent, stateless, **no progress file and no timing events** (standalone-pipeline precedent: design-system / analyse-requirement). Resumability = the step-0a freshness gate re-probing disk.
+- **Pure re-projection** of the finished `requirements/requirements.md` to the application audience: §6.10 fixtures → backend-contract pointers, §7 `prototype-fixture` → `backend-contract`, PI appendix removed, header `Target` flipped, `## Export provenance` block inserted (source sha256 + citation legend). §1.7 / §6.6.1 / §6.6.2 + the §6.1 `Rationale` column pass through verbatim (they are drafted in the pipeline doc). **Zero generated content.**
+- **Freshness anchor:** the export embeds the source's sha256; step 0a compares embedded vs current and recommends Keep (match) or Regenerate (mismatch/garbled). Regenerate is checkpoint-then-delete.
+- Prerequisite gate exits when the source is missing/empty or already `Target: application`; non-final `Status` is a **soft** gate (the merger does not stamp it).
+- `requirements/draft-claims.ndjson` is existence-probed only (never read) — the provenance legend tells external consumers to bundle it.
+- Write scope: `export-application/` only. The step-0b context-bloat preflight is called **without** `manifest_path`.

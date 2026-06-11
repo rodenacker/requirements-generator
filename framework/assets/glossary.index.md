@@ -15,7 +15,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Asset | Read-only reference content under `framework/assets/`. | `CLAUDE.md §2` |
 | Blueprint | Shared scope IR: logical surfaces + closed sets + allowed realizations; no patterns/realization chosen. | `blueprint-architect.md` |
 | Brand | Fixed visual identity applied uniformly across all prototypes (one `theme.css`). | `prototypes/app-shell-spec.md` |
-| Build target | Per-manifest output mode: prototype (fixtures) vs application (backend). | `prototype-invariants.md` PI-06 |
+| Build target | Manifest output-mode field, auto-set to prototype (fixtures); application = legacy value / export-time concern (`/export-application`). | `prototype-invariants.md` PI-06 |
 | Character | Persona file giving an agent its stance/voice; not a product persona. | `assets/characters/` |
 | Checkpoint | Preserved partial state (often a git commit) before a destructive step. | — |
 | Citation (`[SRC: …]`) | Inline marker grounding a claim in an input source; retained in the final `requirements.md` as downstream provenance (only resolution markers are stripped). | `CLAUDE.md §3` |
