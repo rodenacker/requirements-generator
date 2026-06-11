@@ -76,7 +76,7 @@ Steps 0–3 form an in-memory loop whose head is the step-0 methodology selector
 
 3. **Invoke the reviewer** — invoke `chosen.reviewer_agent` in the foreground. Wait until the agent reports the artefact accepted (handback gate below).
 
-After the handback gate is met, emit *"✓ Ran {{chosen.name}}. Back to the menu."*, increment `run_count`, and return to step 0 (the selection-loop head). The orchestrator does **not** declare done here — the pipeline ends only when the consultant cancels at the step-0 selector. The step-0a/step-1 preflight is not re-run (`preflight_done == true`).
+After the handback gate is met, emit *"✓ Ran {{chosen.name}}. Back to the menu. (To turn its findings into a consultant-approved input document, cancel out and run `/resolve-review`.)"*, increment `run_count`, and return to step 0 (the selection-loop head). The orchestrator does **not** declare done here — the pipeline ends only when the consultant cancels at the step-0 selector. The step-0a/step-1 preflight is not re-run (`preflight_done == true`).
 
 ## Per-methodology Reset procedure (overwrite an existing artefact)
 

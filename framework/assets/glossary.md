@@ -64,6 +64,10 @@ Not to be confused with: **review** (a *critique* methodology, not a transform �
 The artefact produced by a *critique* methodology (ADVERSARIAL, COMPLETENESS-REVIEW, GAP-ANALYSIS …) that interrogates rather than transforms its source.
 Not to be confused with: **analysis** (a lens-transform that converges on a restructured view).
 
+### Review resolutions document
+The consultant-approved input document `/resolve-review` writes as a NEW dated file into `input/` (`<stem>-<date>.md`, never overwriting), turning selected findings of one existing `review-inputs/` artefact into first-class corpus material the next `/requirements` run ingests. Each resolution anchors on the finding's **verbatim quote** (finding IDs are per-run labels that reset when the review re-runs), carries exactly one origin marker — `[CONSULTANT-STATED]` or `[AI-INFERRED, CONSULTANT-CONFIRMED]` (every AI-inferred resolution is individually confirmed, never bulk-approved) — and exactly one Supersedes line naming the corpus statement it replaces (or the explicit net-new sentinel). Canonical skeleton + marker definitions: `framework/assets/resolve-review/template-resolutions.md`; per-methodology semantics: `framework/assets/resolve-review/methodology-map.md`.
+Not to be confused with: the **review** itself (the critique artefact under `review-inputs/<METHOD>/`, which stays untouched).
+
 ---
 
 ## 2 · The draft → resolve → merge triplet

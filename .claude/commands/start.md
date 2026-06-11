@@ -21,11 +21,12 @@ You are the dispatcher for `/start`. Your only job is to show the user the avail
    2. `generate-prd`
    3. `design-system`
    4. `review-inputs`
-   5. `analyse-inputs`
-   6. `review-requirement`
-   7. `analyse-requirement`
-   8. `wireframe`
-   9. `prototype`
+   5. `resolve-review`
+   6. `analyse-inputs`
+   7. `review-requirement`
+   8. `analyse-requirement`
+   9. `wireframe`
+   10. `prototype`
 
    Any discovered command **not** in this list (e.g. a newly added command) is appended after the fixed list, in discovery order. Any name in the fixed list that was **not** discovered on disk is silently skipped (do not print a dead entry). This keeps the menu fresh while honouring the consultant's preferred ordering.
 

@@ -53,6 +53,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Resolver | Second triplet agent: resolves `[AI-SUGGESTED]` markers with the consultant. | — |
 | Resumability | A `/clear` + re-invoke continues at the first incomplete agent. | `CLAUDE.md §1` |
 | Review | Output of a critique methodology (`review-*`); interrogates rather than transforms. | registries |
+| Review resolutions document | Consultant-approved `/resolve-review` output: a NEW dated `input/` file turning selected review findings into corpus material (verbatim-anchored, origin-marked, supersession-explicit). | `assets/resolve-review/template-resolutions.md` |
 | Reviewer | Anyone evaluating a generated prototype (uses the role switcher). | — |
 | Scope | The requirement-ID subset a wireframe/prototype run addresses; captured in `scope.json`. | `scope-selector.md` |
 | Scope-slug | Kebab-case scope id naming `blueprints/`/`wireframes/`; cf. name-slug (a prototype). | `scope-selector.md` |

@@ -380,3 +380,25 @@ export-application-exporter → characters/application-exporting.md, verify-arti
 - Prerequisite gate exits when the source is missing/empty or already `Target: application`; non-final `Status` is a **soft** gate (the merger does not stamp it).
 - `requirements/draft-claims.ndjson` is existence-probed only (never read) — the provenance legend tells external consumers to bundle it.
 - Write scope: `export-application/` only. The step-0b context-bloat preflight is called **without** `manifest_path`.
+
+## 11. resolve-review-orch.md · 10 nodes / 13 edges / depth 3
+
+```
+orch → resolve-review-drafter, refusal-registry,
+       review-inputs/*/*.html [Glob + byte sizes: step-0 artefact picker],
+       assets/resolve-review/methodology-map.md [read: step-0 map gate],
+       resolve-review/resolutions-draft.md [existence: step-1 stale-draft gate; rm -f on Discard]
+resolve-review-drafter → characters/review-resolving.md,
+       assets/resolve-review/methodology-map.md, assets/resolve-review/template-resolutions.md,
+       verify-artifact-write,
+       <chosen review .html> [read: full + sha256],
+       requirements/source-manifest.json [cond: exists; sha256 only — drift warning]
+```
+
+**Notes (unique):**
+- Single-agent, single-shot, **no progress file and no timing events** (export-application precedent). Interrupted-run recovery = the step-1 stale-draft gate; no other state survives a run.
+- **Methodology-agnostic by construction:** artefact discovery is a disk `Glob`; consumability and every methodology-specific value (parse anchors, severity vocabulary, resolution semantics, output filename stem) resolve from the methodology map's row. New methodology = map-row append; zero agent/orch edits. v1 glob is `review-inputs/*/*.html`; future `/review-requirement` support = widen the glob **and** add map rows together.
+- **Write scope:** `resolve-review/resolutions-draft.md` (transient staging, deleted on accept) + one NEW `input/<stem>-<date>[-N].md` per accepted run — the **third documented cross-pipeline write exception** (`CLAUDE.md` §3), additive only, never overwriting an existing `input/` file.
+- **Anti-laundering contract:** every AI-inferred resolution is individually consultant-confirmed (`AskUserQuestion`, one finding per question, ≤4 per call); origin markers `[CONSULTANT-STATED]` / `[AI-INFERRED, CONSULTANT-CONFIRMED]` + a mandatory per-resolution Supersedes line (canonical definitions: `assets/resolve-review/template-resolutions.md`).
+- The input-handler is **never** invoked; the manifest is hashed (drift warning), never parsed. Pickup of the new `input/` file is the next manifest create/refresh's job.
+- The context-bloat preflight is **deliberately omitted** (the skill sums only `.md`/`.json`; the artefacts here are `.html`) — replaced by a step-0 >300 KB size advisory.

@@ -10,7 +10,7 @@
 
 ## 2. Project purpose & division of labour
 
-**What.** Consultant-driven Claude Code workspace. Eleven slash commands — each a prompt-only pipeline of markdown orchestrators + agents + skills — turn loose client material into structured artefacts, wireframes, and clickable prototypes. Together these build a comprehensive, citation-grounded set of **frontend requirements** for generating internal, enterprise-level **data-management applications**. No runtime code: every "agent" is an `.md` file Claude reads and adopts as persona (the one exception: `/prototype` *generates* a real client-side Next.js app under `prototypes/`).
+**What.** Consultant-driven Claude Code workspace. Twelve slash commands — each a prompt-only pipeline of markdown orchestrators + agents + skills — turn loose client material into structured artefacts, wireframes, and clickable prototypes. Together these build a comprehensive, citation-grounded set of **frontend requirements** for generating internal, enterprise-level **data-management applications**. No runtime code: every "agent" is an `.md` file Claude reads and adopts as persona (the one exception: `/prototype` *generates* a real client-side Next.js app under `prototypes/`).
 
 **Division of labour (what vs how).** Mine **everything** relevant from the inputs — both *what* and *how*. The distinction between them is one of **authority**, not of source:
 
@@ -33,6 +33,7 @@
 | `/wireframe` | 2–3 parallel low-fi HTML wireframe variants for a scope of `requirements/requirements.md`; cross-pipeline `blueprint-architect` + `scope-selector` + `design-philosophies.md` reused by `/prototype`. |
 | `/prototype` | One hi-fi, clickable, client-side-only Next.js prototype per run, accumulating in one shared app under `prototypes/`, reachable from a single landing page. Brand-locked; divergence is pure UX (posture + D1–D5). |
 | `/export-application` | Application-audience export of the finished `requirements.md` (`export-application/requirements-application.md`) — pure re-projection: swaps §6.10 fixtures to backend-contract pointers, relabels §7 sources, strips the PI appendix, stamps provenance (source sha256). Zero generated content. |
+| `/resolve-review` | Consultant-approved resolutions document from selected findings of an existing `review-inputs/` artefact, written as a NEW dated file into `input/` (never overwriting) for the next `/requirements` run to ingest. Per-methodology schemas: `framework/assets/resolve-review/methodology-map.md`. |
 
 **For.** Solo consultants / BAs running Claude Code locally to produce deterministic, citation-grounded handoff artefacts — specs, PRDs, analyses, reviews, wireframes, and prototypes — from briefs, decks, screenshots, spreadsheets, PDFs.
 
@@ -62,10 +63,11 @@
 
 ### Stand-alone constraints (write isolation)
 
-Each pipeline writes **only to its own output dir**. The two **documented cross-pipeline exceptions** are inherited from shared agents:
+Each pipeline writes **only to its own output dir**. The three **documented cross-pipeline exceptions** (the first two inherited from shared agents, the third pipeline-private):
 
 - **`input-handler.md`** (shared by `/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`) writes `requirements/source-manifest.json` and `input/*.converted.md` siblings. Step-0 decides create / refresh / no-op / halt; only create + refresh write. When invoked with `progress_path: null` (i.e. by `/analyse-inputs` or `/review-inputs`), does not touch `framework/state/*`.
 - **`blueprint-architect.md` + `scope-selector.md`** (shared by `/wireframe` and `/prototype`) write `blueprints/<scope-slug>/{scope.json, blueprint.md}`.
+- **`resolve-review-drafter.md`** (private to `/resolve-review`) writes one NEW `input/<stem>-<date>.md` per accepted run — **additive only**, never overwriting an existing `input/` file (same-day collisions suffix `-2`, `-3`). The draft is staged under `resolve-review/` and never enters `input/` unaccepted.
 
 Full per-pipeline read/write enumeration: `docs/architecture.md`.
 
@@ -155,7 +157,7 @@ When extending, changing, or describing this system — writing plans, editing o
 - **Shared.** `<noun>.md` / `<noun>-registry.md` / `<noun>-invariants.md`. Stable-ID files use `NN-NN` numbering inside; never renumber.
 - **State.** `.progress.json`, `timing.ndjson`, `<agent>-<role>.ndjson|json` under `framework/state/`.
 - **Pipeline outputs.** `<artefact>.md/.html/.json/.ndjson` under the pipeline's own dir. Analyses + reviews use UPPERCASE-METHOD subdirs (`analyse-requirements/OOUX/`, `review-inputs/COMPLETENESS-REVIEW/`). `/prototype` is the exception — it generates a Next.js app under `prototypes/` with kebab-case per-prototype route segments (`prototypes/src/app/<name-slug>/`) + non-routed dot-state (`prototypes/.specs/<name-slug>/`, `.registry.json`, `.scaffold.json`).
-- **Markers in content.** `[SRC: C-NNN]` (input-cited fact in `/requirements` draft **and final doc**, sidecar-backed by `draft-claims.ndjson`, **retained by the merger** as downstream provenance — not stripped). `[SRC: <filename>]` (filename-cited fact in `/analyse-inputs` and `/review-inputs` artefacts — manifest row's `filename` payload). `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` (drafter inference, resolver Q&A). `[STANDARD-RULE: GR-NN]` (deterministic, resolver skips). `[OUT-OF-SCOPE: domain-default]` (prototype-only, resolver skips). `[POSTURE-DEFAULT]` (`/prototype` design spec — value deterministically from the chosen UX posture; resolver skips, merger strips; `[SRC: …]` in the design spec references requirement IDs / blueprint `LS-NN` / wireframe variants and is retained). Stable-ID prefixes: `C-` claims, `AI-` suggestions, `PC-` / `PAI-` PRD equivalents, `GR-` general rules, `RF-` refusals, `PI-` prototype invariants.
+- **Markers in content.** `[SRC: C-NNN]` (input-cited fact in `/requirements` draft **and final doc**, sidecar-backed by `draft-claims.ndjson`, **retained by the merger** as downstream provenance — not stripped). `[SRC: <filename>]` (filename-cited fact in `/analyse-inputs` and `/review-inputs` artefacts — manifest row's `filename` payload). `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` (drafter inference, resolver Q&A). `[STANDARD-RULE: GR-NN]` (deterministic, resolver skips). `[OUT-OF-SCOPE: domain-default]` (prototype-only, resolver skips). `[POSTURE-DEFAULT]` (`/prototype` design spec — value deterministically from the chosen UX posture; resolver skips, merger strips; `[SRC: …]` in the design spec references requirement IDs / blueprint `LS-NN` / wireframe variants and is retained). `[CONSULTANT-STATED]` / `[AI-INFERRED, CONSULTANT-CONFIRMED]` (`/resolve-review` resolutions-document origin markers — canonical definitions in `framework/assets/resolve-review/template-resolutions.md`). Stable-ID prefixes: `C-` claims, `AI-` suggestions, `PC-` / `PAI-` PRD equivalents, `GR-` general rules, `RF-` refusals, `PI-` prototype invariants.
 - **Timing events.** `run_start`, `run_end`, `stage_start`, `stage_end`, `substep_start`, `substep_end`, `consultant_prompted`, `consultant_responded` — all NDJSON, append-only via PowerShell `Add-Content`.
 - **Progress events.** `called` / `completed` per agent.
 
