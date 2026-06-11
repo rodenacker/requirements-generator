@@ -10,7 +10,7 @@
 
 ## 2. Project purpose & division of labour
 
-**What.** Consultant-driven Claude Code workspace. Ten slash commands — each a prompt-only pipeline of markdown orchestrators + agents + skills — turn loose client material into structured artefacts, wireframes, and clickable prototypes. Together these build a comprehensive, citation-grounded set of **frontend requirements** for generating internal, enterprise-level **data-management applications**. No runtime code: every "agent" is an `.md` file Claude reads and adopts as persona (the one exception: `/prototype` *generates* a real client-side Next.js app under `prototypes/`).
+**What.** Consultant-driven Claude Code workspace. Eleven slash commands — each a prompt-only pipeline of markdown orchestrators + agents + skills — turn loose client material into structured artefacts, wireframes, and clickable prototypes. Together these build a comprehensive, citation-grounded set of **frontend requirements** for generating internal, enterprise-level **data-management applications**. No runtime code: every "agent" is an `.md` file Claude reads and adopts as persona (the one exception: `/prototype` *generates* a real client-side Next.js app under `prototypes/`).
 
 **Division of labour (what vs how).** Mine **everything** relevant from the inputs — both *what* and *how*. The distinction between them is one of **authority**, not of source:
 
@@ -32,6 +32,7 @@
 | `/review-inputs` | Critiques raw `input/` material (`framework/assets/reviews-inputs/registry.md`). |
 | `/wireframe` | 2–3 parallel low-fi HTML wireframe variants for a scope of `requirements/requirements.md`; cross-pipeline `blueprint-architect` + `scope-selector` + `design-philosophies.md` reused by `/prototype`. |
 | `/prototype` | One hi-fi, clickable, client-side-only Next.js prototype per run, accumulating in one shared app under `prototypes/`, reachable from a single landing page. Brand-locked; divergence is pure UX (posture + D1–D5). |
+| `/export-application` | Application-audience export of the finished `requirements.md` (`export-application/requirements-application.md`) — pure re-projection: swaps §6.10 fixtures to backend-contract pointers, relabels §7 sources, strips the PI appendix, stamps provenance (source sha256). Zero generated content. |
 
 **For.** Solo consultants / BAs running Claude Code locally to produce deterministic, citation-grounded handoff artefacts — specs, PRDs, analyses, reviews, wireframes, and prototypes — from briefs, decks, screenshots, spreadsheets, PDFs.
 
@@ -41,7 +42,7 @@
 
 **Constraints.**
 - Target domain = **data-management productivity apps** (CRUD-heavy). Prototype defaults assume that, not marketing/content.
-- Output mode = **prototype** (client-stub simulated server, fixture data — see `framework/shared/prototype-invariants.md` PI-01..PI-08) OR **application** (full backend reqs). Chosen once per manifest; durable in `requirements/source-manifest.json > target`.
+- Output target = **prototype** for every pipeline run (client-stub simulated server, fixture data — see `framework/shared/prototype-invariants.md` PI-01..PI-08); `requirements/source-manifest.json > target` is auto-set to `"prototype"` at the orchestrator's Step 1b (the consultant choice is retired; legacy `"application"` manifests are honoured by dormant branches). The application-audience document is an export-time concern (`/export-application`). The pipeline doc carries §1.7 / §6.6.1 / §6.6.2 + the §6.1 Rationale column as scope-noted application-build guidance — never prototype design inputs.
 - Every consultant interaction = foreground in-thread via `AskUserQuestion`. **No background/sub/async agents** for interactive surfaces — handback gates depend on same-thread acceptance.
 - Every artefact write = `Write` then `framework/skills/verify-artifact-write.md` (sha256 + min-bytes). Mismatch → RF-04 hard halt.
 - Refusal predicates are canonical in `framework/shared/refusal-registry.md` — never paraphrase or redefine.

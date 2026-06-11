@@ -15,6 +15,7 @@
     - [`/review-requirement`](#38-review-requirement)
     - [`/wireframe`](#39-wireframe)
     - [`/prototype`](#310-prototype)
+    - [`/export-application`](#311-export-application)
 - [4. Setup](#4-setup)
     - [4.1 First-time install](#41-first-time-install-one-off)
     - [4.2 Office & PDF inputs](#42-to-handle-word-excel-powerpoint-and-pdf-inputs)
@@ -23,7 +24,7 @@
 
 ## 1. Overview
 
-A Claude Code workspace for consultants and business analysts. Drop the client material you've been given into `input/`, run a slash command, and get back a handoff-ready artefact — a structured spec, a PRD, a lens analysis or review, low-fi wireframes, or a clickable prototype. Used together, the commands turn a loose pile of client material into a comprehensive, traceable set of **frontend requirements** for building internal, enterprise-level **data-management applications**. The ten commands:
+A Claude Code workspace for consultants and business analysts. Drop the client material you've been given into `input/`, run a slash command, and get back a handoff-ready artefact — a structured spec, a PRD, a lens analysis or review, low-fi wireframes, or a clickable prototype. Used together, the commands turn a loose pile of client material into a comprehensive, traceable set of **frontend requirements** for building internal, enterprise-level **data-management applications**. The eleven commands:
 
 - **`/start`** — pick which command to run.
 - **`/requirements`** — turn the loose pile of briefs, decks, screenshots, spreadsheets and PDFs into a clean, structured `requirements.md`.
@@ -35,8 +36,9 @@ A Claude Code workspace for consultants and business analysts. Drop the client m
 - **`/review-requirement`** — find what's missing or wrong in the spec (adversarial, first-principles, user-stories, ten BA / UX questions).
 - **`/wireframe`** — 2–3 parallel low-fi HTML wireframe variants for a scope of the spec, each a divergent UX position, fully requirement-ID traceable.
 - **`/prototype`** — one clickable, client-side hi-fi React/Next.js prototype for a scope, accumulating in a single shared app; the brand is fixed across all prototypes while a selectable UX posture diverges the layout.
+- **`/export-application`** — export the finished `requirements.md` as an application-audience document for handoff outside this workspace: prototype scaffolding stripped, backend-contract pointers in place, provenance-stamped against the exact source version.
 
-`/analyse-requirement`, `/review-requirement`, `/wireframe`, and `/prototype` read `requirements/requirements.md` — run `/requirements` first. `/analyse-inputs` and `/review-inputs` read the raw `input/` files via a shared manifest. `/start`, `/requirements`, `/generate-prd`, and `/design-system` are stand-alone.
+`/analyse-requirement`, `/review-requirement`, `/wireframe`, `/prototype`, and `/export-application` read `requirements/requirements.md` — run `/requirements` first. `/analyse-inputs` and `/review-inputs` read the raw `input/` files via a shared manifest. `/start`, `/requirements`, `/generate-prd`, and `/design-system` are stand-alone.
 
 For a visual map of how the commands connect — the base spine, the optional review/analysis lenses, and the final design/build layer — see the interactive **[system flowchart](https://rodenacker.github.io/requirements-generator/docs/requirements-generator-flow.html)**. Open it in a browser and click any block for that pipeline's full description, including a card per methodology.
 
@@ -56,12 +58,13 @@ For a visual map of how the commands connect — the base spine, the optional re
 | You need to defend the spec to a sceptical stakeholder                            | `/review-requirement` → `adversarial`                                          | Strict critique with a Patch / Defer / Reject decision per finding.              |
 | You want to show 2–3 divergent screen options before committing to a high-fi mock | `/wireframe`                                                                   | Low-fi HTML variants tied to requirement IDs; compare side-by-side via tabs.     |
 | You want something the client can actually click through, not just look at        | `/prototype`                                                                   | Hi-fi client-side React app on fixture data; brand-locked, UX diverges by posture. |
+| The spec is settled and a dev team outside this workspace needs the build-ready version | `/export-application`                                                    | Strips the prototype scaffolding and stamps provenance — a clean handoff document. |
 
 ## 3. Commands
 
 Every command runs interactively inside Claude Code and keeps you in the loop. A few behaviours are shared, so they're stated once here rather than repeated per command:
 
-- **Two interaction patterns.** The *document* pipelines (`/requirements`, `/generate-prd`, and `/prototype`'s design spec) follow **draft → you accept → Q&A on anything the system couldn't confidently fill in → merge → you accept**. The *lens* pipelines (`/analyse-inputs`, `/analyse-requirement`, `/review-inputs`, `/review-requirement`) follow **pick a methodology → it runs → you accept → saved under its own folder**.
+- **Two interaction patterns.** The *document* pipelines (`/requirements`, `/generate-prd`, and `/prototype`'s design spec) follow **draft → you accept → Q&A on anything the system couldn't confidently fill in → merge → you accept**. The *lens* pipelines (`/analyse-inputs`, `/analyse-requirement`, `/review-inputs`, `/review-requirement`) follow **pick a methodology → it runs → you accept → saved under its own folder**. (`/export-application` is simpler still: **one transform → you accept** — no Q&A, nothing generated.)
 - **Read-only.** Analyses and reviews only *read* your inputs or spec — they never modify them.
 - **Re-runs are safe.** Each pipeline detects a prior run and offers to **continue**, **start fresh**, or **overwrite** — the prior work is committed to git first, so nothing is lost. Run a lens pipeline again to add another artefact alongside the first.
 - **Input file types** (for the commands that read `input/` — `/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`): text (`.md`, `.txt`, `.drawio`, `.yml`, `.yaml`, `.xml`) and images (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`) are read directly; Office and PDF (`.docx`, `.xlsx`, `.pptx`, `.pdf`) are converted first (needs markitdown — see §4.2); anything else is logged so it doesn't slip through silently.
@@ -172,6 +175,12 @@ Find what's missing or wrong in the spec *before* you hand it over — a second 
 One clickable, client-side hi-fi prototype of a scope of `requirements.md` per run, accumulating in a **single shared React/Next.js app** under `prototypes/`. The look and feel is **brand-locked and identical across every prototype** (one theme — from `/design-system` if you've run it, otherwise defaults you confirm); what differs is pure UX — a named posture plus trade-off positions reshape the layout and workflows. You scope and name the run, optionally seed it from an analysis or a wireframe variant (a wireframe basis pre-fills the posture and positions), then pick the posture and positions. It runs entirely in the browser against fixture data — there is no backend.
 
 **You get** a shared Next.js app under `prototypes/`: a landing page (`src/app/page.tsx`) listing every prototype grouped by scope, the clickable routes for this one (`src/app/<name-slug>/`), and shared theme / components / fixtures that grow additively across runs. Run `npm run dev` inside `prototypes/` and open the landing — a role switcher and a data-reset control are built into the chrome, so you can hand the running app to a client to click through. (The first run scaffolds the app and runs `npm install` once; later runs reuse it and are much faster.)
+
+### 3.11 `/export-application`
+
+Export the finished spec as an **application-audience document** you can hand to a dev team outside this workspace. Run it once the requirements have settled — after the analyses, reviews, wireframes, and any manual refinements have shaped `requirements.md` into what you actually want built. It's a pure export of the spec **as it exists at that moment**: nothing is generated or invented at export time. The prototype-only scaffolding is removed (the prototype-invariants appendix), fixture references become backend-contract pointers (with a placeholder path to rebind once a backend requirements document exists), and a provenance block is stamped in — including a fingerprint of the exact `requirements.md` version it came from, so a re-run can tell you whether the export is stale. The architectural implications, session-policy, performance-budget, and rationale content is already in the spec (drafted and confirmed during `/requirements`) and carries through untouched.
+
+**You get** `export-application/requirements-application.md` — self-describing for external readers (a citation legend explains every traceability marker). Hand it over together with `requirements/draft-claims.ndjson`, which holds the verbatim source quotes behind the citation tags. Re-running after the spec changes offers a one-click regenerate; the prior export is checkpointed to git first.
 
 ## 4. Setup
 
