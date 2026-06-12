@@ -499,7 +499,7 @@
 
 <header class="hero">
   <h1>Requirements Generator — System Flowchart</h1>
-  <p>How the nine slash commands fit together. <strong>Base</strong> pipelines produce the core deliverables — requirements, PRD, design system, low-fi wireframes, and finally a hi-fi clickable prototype. <strong>Optional</strong> pipelines lens the material at two moments — before <code>/requirements</code> (input reviews &amp; analyses, PRD) and after it (requirement reviews &amp; analyses). The design / build layer runs last: <code>/wireframe</code> explores low-fi directions, then <code>/prototype</code> builds the chosen direction into a clickable React app. Click any block in the flowchart to expand its description below.</p>
+  <p>How the eleven slash commands fit together. <strong>Base</strong> pipelines produce the core deliverables — requirements, PRD, design system, low-fi wireframes, and finally a hi-fi clickable prototype. <strong>Optional</strong> pipelines lens the material at two moments — before <code>/requirements</code> (input reviews &amp; analyses, PRD) and after it (requirement reviews &amp; analyses). <code>/resolve-review</code> closes the review loop: it turns accepted findings from either review pipeline into a consultant-approved input document for the next <code>/requirements</code> run. The design / build layer runs last: <code>/wireframe</code> explores low-fi directions, then <code>/prototype</code> builds the chosen direction into a clickable React app. When the spec settles, <code>/export-application</code> re-projects it as an application-audience handoff document. Click any block in the flowchart to expand its description below.</p>
 </header>
 
 <nav class="toc">
@@ -528,14 +528,18 @@
     <!-- PRD: side branch off the right -->
     <a class="block opt"   href="#generate-prd"    style="left: 740px; top: 230px;"><span class="cmd">/generate-prd</span><span class="label">human-audience PRD</span></a>
 
-    <!-- Row 2: Requirements spine -->
-    <a class="block opt"   href="#req-reviews"     style="left: 20px;  top: 340px;"><span class="cmd">/review-requirement</span><span class="label">critique requirements.md</span><span class="count">5 methodologies</span></a>
-    <a class="block spine" href="#requirements"    style="left: 380px; top: 340px;"><span class="cmd">/requirements</span><span class="label">draft → resolve → merge</span></a>
-    <a class="block opt"   href="#req-analyses"    style="left: 740px; top: 340px;"><span class="cmd">/analyse-requirement</span><span class="label">derive models from requirements.md</span><span class="count">15 methodologies</span></a>
+    <!-- Resolve-Review: left column, between the two review pipelines it consumes -->
+    <a class="block opt"   href="#resolve-review"  style="left: 20px;  top: 205px;"><span class="cmd">/resolve-review</span><span class="label">resolve review findings → new input doc</span></a>
 
-    <!-- Row 3: Wireframes + isolated Design-System -->
+    <!-- Row 2: Requirements spine -->
+    <a class="block opt"   href="#req-reviews"     style="left: 20px;  top: 340px;"><span class="cmd">/review-requirement</span><span class="label">critique requirements.md</span><span class="count">7 methodologies</span></a>
+    <a class="block spine" href="#requirements"    style="left: 380px; top: 340px;"><span class="cmd">/requirements</span><span class="label">draft → resolve → merge</span></a>
+    <a class="block opt"   href="#req-analyses"    style="left: 740px; top: 340px;"><span class="cmd">/analyse-requirement</span><span class="label">derive models from requirements.md</span><span class="count">17 methodologies</span></a>
+
+    <!-- Row 3: Wireframes + isolated Design-System + Export -->
     <a class="block aside" href="#design-system"   style="left: 20px;  top: 514px;"><span class="cmd">/design-system</span><span class="label">domain + URL → design tokens (stand-alone)</span></a>
     <a class="block spine" href="#wireframe"       style="left: 380px; top: 514px;"><span class="cmd">/wireframe</span><span class="label">parallel low-fi HTML variants</span></a>
+    <a class="block aside" href="#export-application" style="left: 740px; top: 514px;"><span class="cmd">/export-application</span><span class="label">application-audience export (handoff)</span></a>
 
     <!-- Row 4: Prototype — final hi-fi step -->
     <a class="block spine" href="#prototype"       style="left: 380px; top: 680px;"><span class="cmd">/prototype</span><span class="label">hi-fi clickable React app</span><span class="count">one shared app · UX divergence</span></a>
@@ -566,6 +570,14 @@
       <path d="M 500 402 L 500 560" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
       <!-- Wireframe → Prototype (down central spine, final hi-fi step) -->
       <path d="M 500 593 L 500 740" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+      <!-- Review-Inputs → Resolve-Review (down left column) -->
+      <path d="M 140 132 L 140 203" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+      <!-- Review-Requirement → Resolve-Review (up left column) -->
+      <path d="M 100 369 L 100 289" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+      <!-- Resolve-Review → Requirements (approved resolutions feed the next /requirements run) -->
+      <path d="M 262 240 C 320 260, 380 290, 410 336" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+      <!-- Requirements → Export-Application (re-projection of the settled spec) -->
+      <path d="M 580 402 C 660 450, 790 460, 845 512" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
       <!-- Design-System → Prototype (brand tokens feed the hi-fi step when present) -->
       <path d="M 110 595 C 110 720, 250 770, 368 768" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
 
@@ -594,6 +606,8 @@
       <g><rect class="edge-label-bg" x="728" y="462" width="104" height="18" rx="3"/><text class="edge-label" x="780" y="474" text-anchor="middle">select as inputs</text></g>
       <!-- "brand tokens" along the Design-System → Prototype arrow -->
       <g><rect class="edge-label-bg" x="158" y="716" width="84" height="18" rx="3"/><text class="edge-label" x="200" y="728" text-anchor="middle">brand tokens</text></g>
+      <!-- "approved resolutions" along the Resolve-Review → Requirements arrow -->
+      <g><rect class="edge-label-bg" x="283" y="269" width="126" height="18" rx="3"/><text class="edge-label" x="346" y="281" text-anchor="middle">approved resolutions</text></g>
     </svg>
 
   </div>
@@ -627,7 +641,7 @@
       <dt>Pick when</dt>
       <dd>You suspect the source is incomplete, ambiguous, or weak, and you want a structured list of <em>specifically what to fix</em> before drafting or designing further.</dd>
       <dt>Examples</dt>
-      <dd class="examples">adversarial · completeness-review · ambiguity-review · first-principles · ten-ba-questions · ten-ux-questions · user-stories · gap-analysis</dd>
+      <dd class="examples">adversarial · completeness-review · ambiguity-review · first-principles · ten-ba-questions · ten-ux-questions · user-stories · gap-analysis · requirements-quality · requirements-traceability</dd>
     </dl>
   </div>
 
@@ -644,7 +658,7 @@
       <dt>Pick when</dt>
       <dd>You want to enrich the source with a structural lens (motivation, object model, process flow, sentiment journey) before drafting or designing — and you want that lens to flow forward as a positive contract.</dd>
       <dt>Examples</dt>
-      <dd class="examples">ooux · jtbd · journey-mapping · task-analysis · opportunity-solution-trees · state-diagram · data-model · use-cases · thematic-analysis · affinity-mapping · mvp-slicing · crud-coverage · glossary · user-goal-analysis · business-context-definition</dd>
+      <dd class="examples">ooux · jtbd · journey-mapping · task-analysis · opportunity-solution-trees · state-diagram · data-model · use-cases · thematic-analysis · affinity-mapping · mvp-slicing · crud-coverage · decision-tables · faceted-classification · glossary · user-goal-analysis · business-context-definition</dd>
     </dl>
   </div>
 
@@ -655,7 +669,7 @@
 <p class="lede">Pipeline outputs are <strong>not auto-piped</strong>. The consultant manually shuttles relevant pieces between runs — every cross-pipeline transfer is an explicit decision with a paper trail.</p>
 
 <div class="handoff">
-  <h3>The four handoff patterns</h3>
+  <h3>The handoff patterns</h3>
   <table>
     <tr><th style="width: 26%;">From</th><th>What the consultant does with the output</th></tr>
     <tr>
@@ -673,6 +687,10 @@
     <tr>
       <td><code>/review-requirement</code> · any methodology</td>
       <td>Read the punch-list and <strong>manually edit <code>requirements/requirements.md</code></strong> to address defects — or re-run <code>/requirements</code> with corrective input. The review never auto-patches the spec.</td>
+    </tr>
+    <tr>
+      <td><code>/resolve-review</code></td>
+      <td>The assisted alternative to hand-editing after a review: pick an existing review artefact (<code>review-inputs/</code> or <code>review-requirements/</code>), select the findings to act on, and resolve each one interactively — every AI-inferred resolution is individually confirmed. The approved resolutions are written as a <strong>new dated document into <code>input/</code></strong> (never overwriting an existing file), ready for the next <code>/requirements</code> run. Review-requirements-sourced runs can additionally (opt-in) cache the same resolutions as a transient <em>Amendments</em> section in <code>requirements.md</code> until the next re-merge folds them in.</td>
     </tr>
     <tr>
       <td>Select relevant analyses (OOUX object map, user-journeys, task-flows, trade-off-dimension matrix) as supporting inputs when you run <code>/wireframe</code> (Stage&nbsp;1b — completed analyses are read sidecar-first) or <code>/prototype</code> (basis&nbsp;B of its A–E input selection), so the produced screens and prototype reflect the lensed structure. They also remain reference reading you use to set scope and trade-off-dimension positions.</td>
@@ -929,7 +947,7 @@
     <div class="head-left">
       <span class="head-cmd">/review-requirement</span>
       <span class="head-role">Optional · post-requirements</span>
-      <span class="head-count">· 5 methodologies</span>
+      <span class="head-count">· 7 methodologies</span>
     </div>
     <a class="back-link" href="#flowchart">↑ Back to flowchart</a>
   </summary>
@@ -982,6 +1000,45 @@
         <div class="field"><span class="field-label">How to use</span><div class="field-body">Manually rework the flagged stories in <code>requirements/requirements.md</code> — split, sharpen acceptance criteria, add missing personas — before passing to engineering or wireframing.</div></div>
       </div>
 
+      <div class="card opt">
+        <h4>requirements-quality</h4>
+        <div class="role">ISO 29148 well-formedness score</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Before design or estimation, when you want every requirement scored against the ISO/IEC/IEEE 29148 well-formedness characteristics (singular, unambiguous, verifiable, conforming, complete) rather than a freeform critique.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/REQUIREMENTS-QUALITY/requirements-quality.html</code> — requirement-by-characteristic heatmap with risk tiers, a set-level consistency / redundancy register, and a fix list rewriting ambiguous or compound requirements into EARS form.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Work the Red-tier requirements up to standard before they reach design; the per-characteristic tally shows which weakness dominates the doc.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>requirements-traceability</h4>
+        <div class="role">Citation audit</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code> (+ its citation sidecar).</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Before the requirements feed design or code-gen, when you want to know which facts trace back to a real input source or an accepted AI-suggestion — and which trace to nothing.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/REQUIREMENTS-TRACEABILITY/requirements-traceability.html</code> — leads with the untraceable result (orphans, broken citations, dropped content that leaked through), backed by a deterministic citation check and a requirement-by-trace-target heatmap.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Resolve the flagged orphans and broken citations — supply the missing source, re-confirm the dropped value, or remove the claim — before the document is trusted downstream.</div></div>
+      </div>
+
+    </div>
+  </div>
+</details>
+
+<!-- 3f2 — /resolve-review -->
+<details class="acc opt" id="resolve-review">
+  <summary>
+    <div class="head-left">
+      <span class="head-cmd">/resolve-review</span>
+      <span class="head-role">Optional · post-review · acts on findings</span>
+    </div>
+    <a class="back-link" href="#flowchart">↑ Back to flowchart</a>
+  </summary>
+  <div class="acc-body">
+    <div class="card opt solo">
+      <h4>/resolve-review</h4>
+      <div class="role">Review findings → approved input document</div>
+      <div class="field"><span class="field-label">Inputs</span><div class="field-body">One existing review artefact, picked from disk — any <code>review-inputs/&lt;METHOD&gt;/</code> or <code>review-requirements/&lt;METHOD&gt;/</code> output. Run a review first.</div></div>
+      <div class="field"><span class="field-label">When to use</span><div class="field-body">After a review, when you want its findings <em>acted on</em> rather than just listed — the assisted alternative to hand-editing <code>input/</code> files or <code>requirements.md</code>. You select which findings to address and resolve each one in turn; every AI-inferred resolution is individually confirmed before it is recorded.</div></div>
+      <div class="field"><span class="field-label">Delivers</span><div class="field-body">One <strong>new</strong> dated resolutions document under <code>input/</code> per run — existing input files are never modified or overwritten. Each resolution is origin-marked (consultant-stated vs AI-inferred-and-confirmed) and carries a Supersedes line so cross-source-conflict detection stays honest. On review-requirements-sourced runs you can additionally opt in to a transient <em>Amendments (pending re-merge)</em> section cached inside <code>requirements.md</code> for immediate downstream use.</div></div>
+      <div class="field"><span class="field-label">How to use</span><div class="field-body">Re-run <code>/requirements</code> — the resolutions document is picked up like any other input file and your decisions are folded into the regenerated spec (which also clears the transient Amendments cache). One run resolves one review; re-invoke for another.</div></div>
     </div>
   </div>
 </details>
@@ -992,7 +1049,7 @@
     <div class="head-left">
       <span class="head-cmd">/analyse-requirement</span>
       <span class="head-role">Optional · post-requirements</span>
-      <span class="head-count">· 15 methodologies</span>
+      <span class="head-count">· 17 methodologies</span>
     </div>
     <a class="back-link" href="#flowchart">↑ Back to flowchart</a>
   </summary>
@@ -1135,6 +1192,24 @@
         <div class="field"><span class="field-label">How to use</span><div class="field-body">Use the filled cells as a screen-and-action checklist against the blueprint; chase the flagged holes — especially §6.5 rights that no function delivers — before building.</div></div>
       </div>
 
+      <div class="card opt">
+        <h4>decision-tables</h4>
+        <div class="role">DMN rule tables</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>. Optionally seeds from an on-disk <em>state-diagram</em> analysis (runs cold without it).</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When the requirements are dense with conditional logic — validation, conditional fields, eligibility, status-and-role-driven enable/disable — and you want it pulled into structured rule tables and checked for gaps before building.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/DECISION-TABLES/decision-tables.html</code> — DMN decision tables (condition columns to a conclusion, hit policy per table), a completeness check flagging unhandled condition combinations, and a consistency check flagging conflicting rules, with the rule model embedded for re-ingestion.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Use the tables as the form-validation, conditional-visibility, and action-enablement spec your screens enforce; chase the flagged gaps and conflicts before wireframing, and re-drop the HTML into <code>input/</code> so <code>/requirements</code> turns each blocking gap into a question.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>faceted-classification</h4>
+        <div class="role">Filter / sort / search facet map</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>. Optionally seeds its controlled vocabulary from an on-disk <em>glossary</em> analysis (runs cold without it).</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">When the app is list-heavy and you need to specify how users filter, sort, and search records before wireframing those list surfaces.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/FACETED-CLASSIFICATION/facet-map.html</code> — a facet map of the orthogonal dimensions records can be sliced along (status, type, owner, date-range), each with its value set and the data property it filters on, plus an orthogonality check, per-surface filter/sort scaffolding notes, and a facet-value-scoped controlled vocabulary.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Use the facets as the filter-chip, facet-rail, and sort-axis specification your list surfaces are designed against; re-drop into <code>input/</code> so <code>/requirements</code> hardens the filter/sort UI requirements.</div></div>
+      </div>
+
     </div>
   </div>
 </details>
@@ -1186,8 +1261,29 @@
   </div>
 </details>
 
+<!-- 3j — /export-application -->
+<details class="acc base" id="export-application">
+  <summary>
+    <div class="head-left">
+      <span class="head-cmd">/export-application</span>
+      <span class="head-role">Base · handoff export · application audience</span>
+    </div>
+    <a class="back-link" href="#flowchart">↑ Back to flowchart</a>
+  </summary>
+  <div class="acc-body">
+    <div class="card base solo">
+      <h4>/export-application</h4>
+      <div class="role">Application-audience re-projection of the spec</div>
+      <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code> — sole content input, exported <em>as it exists at that moment</em>. Nothing is generated or invented at export time.</div></div>
+      <div class="field"><span class="field-label">When to use</span><div class="field-body">Once the requirements have settled — after the analyses, reviews, wireframes, and manual refinements have shaped the spec into what you actually want built — and a dev team outside this workspace needs the build-ready version.</div></div>
+      <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>export-application/requirements-application.md</code> — prototype-only scaffolding stripped (the prototype-invariants appendix), fixture references rebased to backend-contract pointers, and a provenance block stamped in with a sha256 fingerprint of the exact source version, so a re-run can tell you whether the export is stale. Self-describing for external readers via a citation legend.</div></div>
+      <div class="field"><span class="field-label">How to use</span><div class="field-body">Hand it over together with <code>requirements/draft-claims.ndjson</code> (the verbatim source quotes behind the citation tags). Re-running after the spec changes offers a one-click regenerate; the prior export is checkpointed to git first.</div></div>
+    </div>
+  </div>
+</details>
+
 <footer>
-  <p>Last updated 2026-06-02 · See <a href="./CLAUDE.md">CLAUDE.md</a> for the full project contract · Future-status methodologies omitted; promotions land via PR.</p>
+  <p>Last updated 2026-06-11 · See <a href="./CLAUDE.md">CLAUDE.md</a> for the full project contract · Future-status methodologies omitted; promotions land via PR.</p>
 </footer>
 
 </div>

@@ -16,6 +16,7 @@
     - [`/wireframe`](#39-wireframe)
     - [`/prototype`](#310-prototype)
     - [`/export-application`](#311-export-application)
+    - [`/resolve-review`](#312-resolve-review)
 - [4. Setup](#4-setup)
     - [4.1 First-time install](#41-first-time-install-one-off)
     - [4.2 Office & PDF inputs](#42-to-handle-word-excel-powerpoint-and-pdf-inputs)
@@ -24,7 +25,7 @@
 
 ## 1. Overview
 
-A Claude Code workspace for consultants and business analysts. Drop the client material you've been given into `input/`, run a slash command, and get back a handoff-ready artefact — a structured spec, a PRD, a lens analysis or review, low-fi wireframes, or a clickable prototype. Used together, the commands turn a loose pile of client material into a comprehensive, traceable set of **frontend requirements** for building internal, enterprise-level **data-management applications**. The eleven commands:
+A Claude Code workspace for consultants and business analysts. Drop the client material you've been given into `input/`, run a slash command, and get back a handoff-ready artefact — a structured spec, a PRD, a lens analysis or review, low-fi wireframes, or a clickable prototype. Used together, the commands turn a loose pile of client material into a comprehensive, traceable set of **frontend requirements** for building internal, enterprise-level **data-management applications**. The twelve commands:
 
 - **`/start`** — pick which command to run.
 - **`/requirements`** — turn the loose pile of briefs, decks, screenshots, spreadsheets and PDFs into a clean, structured `requirements.md`.
@@ -37,8 +38,9 @@ A Claude Code workspace for consultants and business analysts. Drop the client m
 - **`/wireframe`** — 2–3 parallel low-fi HTML wireframe variants for a scope of the spec, each a divergent UX position, fully requirement-ID traceable.
 - **`/prototype`** — one clickable, client-side hi-fi React/Next.js prototype for a scope, accumulating in a single shared app; the brand is fixed across all prototypes while a selectable UX posture diverges the layout.
 - **`/export-application`** — export the finished `requirements.md` as an application-audience document for handoff outside this workspace: prototype scaffolding stripped, backend-contract pointers in place, provenance-stamped against the exact source version.
+- **`/resolve-review`** — walk through the findings of a review you've already run, decide what to do about each one, and save your decisions as a new input document the next `/requirements` run picks up.
 
-`/analyse-requirement`, `/review-requirement`, `/wireframe`, `/prototype`, and `/export-application` read `requirements/requirements.md` — run `/requirements` first. `/analyse-inputs` and `/review-inputs` read the raw `input/` files via a shared manifest. `/start`, `/requirements`, `/generate-prd`, and `/design-system` are stand-alone.
+`/analyse-requirement`, `/review-requirement`, `/wireframe`, `/prototype`, and `/export-application` read `requirements/requirements.md` — run `/requirements` first. `/analyse-inputs` and `/review-inputs` read the raw `input/` files via a shared manifest. `/resolve-review` reads an existing review artefact — run `/review-inputs` or `/review-requirement` first. `/start`, `/requirements`, `/generate-prd`, and `/design-system` are stand-alone.
 
 For a visual map of how the commands connect — the base spine, the optional review/analysis lenses, and the final design/build layer — see the interactive **[system flowchart](https://rodenacker.github.io/requirements-generator/docs/requirements-generator-flow.html)**. Open it in a browser and click any block for that pipeline's full description, including a card per methodology.
 
@@ -56,6 +58,7 @@ For a visual map of how the commands connect — the base spine, the optional re
 | About to brief a designer on screens and navigation                               | `/analyse-requirement` → `ooux` or `use-cases`                                 | Surfaces the objects + CTAs, or the actor goals + flows.                         |
 | You sense something is missing in the spec but can't articulate it                | `/review-requirement` → `ten-ba-questions` or `ten-ux-questions`               | Surfaces the unasked questions in the consultant's blind spot.                   |
 | You need to defend the spec to a sceptical stakeholder                            | `/review-requirement` → `adversarial`                                          | Strict critique with a Patch / Defer / Reject decision per finding.              |
+| You've run a review and want its findings *acted on*, not just listed             | `/resolve-review`                                                              | Walks the findings with you and writes your approved resolutions into `input/`.  |
 | You want to show 2–3 divergent screen options before committing to a high-fi mock | `/wireframe`                                                                   | Low-fi HTML variants tied to requirement IDs; compare side-by-side via tabs.     |
 | You want something the client can actually click through, not just look at        | `/prototype`                                                                   | Hi-fi client-side React app on fixture data; brand-locked, UX diverges by posture. |
 | The spec is settled and a dev team outside this workspace needs the build-ready version | `/export-application`                                                    | Strips the prototype scaffolding and stamps provenance — a clean handoff document. |
@@ -64,7 +67,7 @@ For a visual map of how the commands connect — the base spine, the optional re
 
 Every command runs interactively inside Claude Code and keeps you in the loop. A few behaviours are shared, so they're stated once here rather than repeated per command:
 
-- **Two interaction patterns.** The *document* pipelines (`/requirements`, `/generate-prd`, and `/prototype`'s design spec) follow **draft → you accept → Q&A on anything the system couldn't confidently fill in → merge → you accept**. The *lens* pipelines (`/analyse-inputs`, `/analyse-requirement`, `/review-inputs`, `/review-requirement`) follow **pick a methodology → it runs → you accept → saved under its own folder**. (`/export-application` is simpler still: **one transform → you accept** — no Q&A, nothing generated.)
+- **Two interaction patterns.** The *document* pipelines (`/requirements`, `/generate-prd`, and `/prototype`'s design spec) follow **draft → you accept → Q&A on anything the system couldn't confidently fill in → merge → you accept**. The *lens* pipelines (`/analyse-inputs`, `/analyse-requirement`, `/review-inputs`, `/review-requirement`) follow **pick a methodology → it runs → you accept → saved under its own folder**. (`/export-application` is simpler still: **one transform → you accept** — no Q&A, nothing generated. `/resolve-review` is its own shape: **pick a review → pick findings → resolve each with you → you accept**.)
 - **Read-only.** Analyses and reviews only *read* your inputs or spec — they never modify them.
 - **Re-runs are safe.** Each pipeline detects a prior run and offers to **continue**, **start fresh**, or **overwrite** — the prior work is committed to git first, so nothing is lost. Run a lens pipeline again to add another artefact alongside the first.
 - **Input file types** (for the commands that read `input/` — `/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`): text (`.md`, `.txt`, `.drawio`, `.yml`, `.yaml`, `.xml`) and images (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`) are read directly; Office and PDF (`.docx`, `.xlsx`, `.pptx`, `.pdf`) are converted first (needs markitdown — see §4.2); anything else is logged so it doesn't slip through silently.
@@ -181,6 +184,14 @@ One clickable, client-side hi-fi prototype of a scope of `requirements.md` per r
 Export the finished spec as an **application-audience document** you can hand to a dev team outside this workspace. Run it once the requirements have settled — after the analyses, reviews, wireframes, and any manual refinements have shaped `requirements.md` into what you actually want built. It's a pure export of the spec **as it exists at that moment**: nothing is generated or invented at export time. The prototype-only scaffolding is removed (the prototype-invariants appendix), fixture references become backend-contract pointers (with a placeholder path to rebind once a backend requirements document exists), and a provenance block is stamped in — including a fingerprint of the exact `requirements.md` version it came from, so a re-run can tell you whether the export is stale. The architectural implications, session-policy, performance-budget, and rationale content is already in the spec (drafted and confirmed during `/requirements`) and carries through untouched.
 
 **You get** `export-application/requirements-application.md` — self-describing for external readers (a citation legend explains every traceability marker). Hand it over together with `requirements/draft-claims.ndjson`, which holds the verbatim source quotes behind the citation tags. Re-running after the spec changes offers a one-click regenerate; the prior export is checkpointed to git first.
+
+### 3.12 `/resolve-review`
+
+Turn the findings of a review you've already run into something the pipeline can consume. A review artefact is a punch-list; this command walks you through acting on it — you pick the review (any `/review-inputs` or `/review-requirement` artefact on disk), pick which findings to address, and resolve each one in turn. Anything the system infers on your behalf is individually confirmed with you before it's recorded — nothing is silently assumed. The approved resolutions are then written as a **new dated document into `input/`** (existing input files are never modified or overwritten), so the next `/requirements` run ingests your decisions like any other client material.
+
+When the review you picked critiques the *spec* (a `/review-requirement` artefact) rather than the raw inputs, the command additionally offers — opt-in — to cache the same resolutions as a transient **Amendments** section inside `requirements.md`, so downstream commands can use them immediately. The cache is temporary by design: the next `/requirements` re-merge regenerates the doc and folds the resolutions in properly from `input/`.
+
+**You get** one new `input/<review-name>-<date>.md` per run — a consultant-approved resolutions document in which every resolution is marked as stated by you or AI-inferred-and-confirmed by you. One run resolves one review; re-run it for another (the output files accumulate side-by-side).
 
 ## 4. Setup
 
