@@ -82,7 +82,7 @@ Emit findings using the schema (omitting the `ID` field). Every finding must hav
 
 - `dimension: N`
 - `severity`: exactly one of `Blocker | Major | Minor`
-- `disposition`: exactly one of `Patch | Defer | Reject` per the supplied rubric
+- `disposition`: **exactly one of the three literal enum tokens** `Patch | Defer | Reject` per the supplied rubric — the bare token and nothing else. A Recommendation form (especially the imperative-shaped *"Resolve at draft time"*, but also *Treat as silence*, *Treat as second-hand*, *Reconcile in-corpus*, *Label / annotate*) is **never** a disposition value; it belongs in the separate `recommendation` field. Which Recommendation form pairs with each disposition is given by the *Disposition → Recommendation coupling* subsection inlined in `{{SCHEMA_AND_RUBRIC_AND_BMAD_RULE}}` — consult it to pick the `recommendation`, but keep `disposition` as the token alone.
 - `location`: a `filename` that exists in the bundle's `filename` field OR (Dimension 1 only) in the skipped roster's `filename` field
 - `evidence`: one of two forms:
     - **Default form:** a verbatim substring of `bundle[i].text_or_transcription` for the bundle entry whose `filename` matches `location`. The substring must be ≤5 lines and must appear in `{{QUOTE_INDEX_BY_FILENAME_JSON}}[location]`. Anti-fabrication: validate locally before returning.
@@ -93,7 +93,7 @@ Emit findings using the schema (omitting the `ID` field). Every finding must hav
     2. **Label / annotate** — in-corpus annotation: mark mockup as aspirational, attribute anonymous brief, add glossary entry.
     3. **Treat as silence** — instruct downstream to apply a `GR-NN` default or mark `[OUT-OF-SCOPE: domain-default]` / `[AI-SUGGESTED]` (Dim 1 / 2 / 5 / 6 silences).
     4. **Treat as second-hand** — for a *load-bearing* claim attributed to a role with no first-hand corroboration, instruct downstream to mark as BA-interpretation to confirm, not established stakeholder position (the **narrow** Dim 1 voice-authenticity case only — second-hand voice in general is the corpus norm, not a defect).
-    5. **Resolve at draft time** — surface the defect in the `/requirements` consultant-answers loop (Dim 3 load-bearing ambiguity that no default can cover).
+    5. **Resolve at draft time** (a `Defer` form — see the coupling) — surface the defect in the `/requirements` consultant-answers loop (Dim 3 load-bearing ambiguity that no default can cover). This is a `recommendation` value, never a `disposition` value.
 
   **Forbidden Recommendation forms** (worker self-validation failure under quality gate 13): *"interview"*, *"elicit"*, *"workshop"*, *"schedule"*, *"go ask"*, *"contact the"*, *"add an interview transcript"*, or any phrasing that proposes new elicitation. The corpus IS the voice; there is no second visit.
 
@@ -179,7 +179,7 @@ The stricter no-tools constraint (vs the `/review-requirement` worker which has 
 ## Self-validation (run before returning)
 
 - The payload conforms to exactly one of the three documented shapes (findings | justification | error).
-- If `status: findings`: every finding has all seven non-ID fields populated; every `location` matches a `filename` in the bundle OR (Dimension 1 only) in the skipped roster; every `evidence` is either (a) a verbatim substring of the cited source's quote-index entry or (b) the sanctioned skipped-placeholder form for Dimension 1; every `severity` is one of the three allowed values; every `disposition` is one of the three allowed values; the findings list is non-empty.
+- If `status: findings`: every finding has all seven non-ID fields populated; every `location` matches a `filename` in the bundle OR (Dimension 1 only) in the skipped roster; every `evidence` is either (a) a verbatim substring of the cited source's quote-index entry or (b) the sanctioned skipped-placeholder form for Dimension 1; every `severity` is one of the three allowed values; **every `disposition` is exactly one of the three literal enum tokens `Patch | Defer | Reject` — the bare token only, never a Recommendation form (a `disposition` field containing "Resolve at draft time" or any other Recommendation phrase is a self-validation failure)**; the findings list is non-empty.
 - If `status: justification`: `findings` is empty; `justification` is ≥3 sentences and cites at least one filename from the bundle; `strict_bmad_rerun` is `true`; `anti_confirmation_prompts` is non-empty.
 - If `status: error`: `error_kind` is one of the two documented values; `error_message` is a concise single-string explanation.
 - `dimension` equals the `N` supplied in the spawning prompt.
@@ -197,6 +197,7 @@ The stricter no-tools constraint (vs the `/review-requirement` worker which has 
 - Do not attempt to use any tool. The agent has no tools; attempting one will fail. The reasoning must happen over the inlined bundle.
 - Do not return `"looks good"`, `"clean"`, or any prose alternative to the structured payload. The parent's merge step parses JSON; prose is a hard failure.
 - Do not return findings outside Dimension `N`. The six sibling workers cover the other dimensions; cross-dimension findings break the schema (gate 2) and the merge step's by-dimension allocation.
+- Do not put a Recommendation form in the `disposition` field. `disposition` is one of the three literal enum tokens `Patch | Defer | Reject` and nothing else; the coupled Recommendation form (*Reconcile in-corpus* / *Label / annotate* / *Treat as silence* / *Treat as second-hand* / *Resolve at draft time*) goes in the separate `recommendation` field. *"Resolve at draft time"* is the classic trap — it is an imperative phrase that reads like a disposition but is a `Defer`-coupled Recommendation form; placing it (or any other form) in `disposition` is a self-validation failure and trips the parent's gate 4.
 - Do not fabricate evidence. Every `evidence` field must either (a) match a substring in `{{QUOTE_INDEX_BY_FILENAME_JSON}}[location]` or (b) be the sanctioned skipped-placeholder form. If you cannot find a quote that supports a candidate finding, drop the finding.
 - Do not paraphrase the dimension section, the schema, or the rubric. Apply them literally.
 - Do not skip the strict-BMAD re-run when the first pass produces zero findings. The parent's diagnostics block depends on the worker reporting `strict_bmad_rerun: true` accurately.

@@ -39,7 +39,7 @@ Steps in order (including sub-steps 3a, 4b, 4s, 4c). Do not skip steps; do not c
 ### Step 1 — Activate
 
 - Read `framework/assets/characters/adversarial-inputs-review.md` once. Keep its full content in memory — it is injected verbatim into each Step-4 worker prompt as `{{CHARACTER_CONTENT}}`.
-- Read `framework/assets/reviews-inputs/adversarial-reference.md` once. The reference defines the *corpus IS the voice* Principle, the six dimensions, the finding schema (including the five sanctioned Recommendation forms), the narrowed disposition rubric, the strict-BMAD halt rule (including per-dimension anti-confirmation prompts), and the thirteen quality gates; treat it as authoritative. Keep its full content in memory; the six per-dimension sections, the *Finding schema* section, the *Disposition rubric* section, and *The strict-BMAD halt rule* section are sliced and injected into Step-4 worker prompts as `{{DIMENSION_SECTION}}` (per worker, dimension-specific) and `{{SCHEMA_AND_RUBRIC_AND_BMAD_RULE}}` (identical for every worker except for the per-dimension anti-confirmation prompt slice).
+- Read `framework/assets/reviews-inputs/adversarial-reference.md` once. The reference defines the *corpus IS the voice* Principle, the six dimensions, the finding schema (including the five sanctioned Recommendation forms), the narrowed disposition rubric (including the *Disposition → Recommendation coupling* subsection that maps each disposition to its sanctioned Recommendation form(s) and states the `disposition` field is the bare enum token only — never a Recommendation phrase), the strict-BMAD halt rule (including per-dimension anti-confirmation prompts), and the thirteen quality gates; treat it as authoritative. Keep its full content in memory; the six per-dimension sections, the *Finding schema* section, the *Disposition rubric* section (sliced whole — its *Disposition → Recommendation coupling* subsection rides with it, which is how the coupling reaches each tool-less worker), and *The strict-BMAD halt rule* section are sliced and injected into Step-4 worker prompts as `{{DIMENSION_SECTION}}` (per worker, dimension-specific) and `{{SCHEMA_AND_RUBRIC_AND_BMAD_RULE}}` (identical for every worker except for the per-dimension anti-confirmation prompt slice).
 - State readiness in one short line: *"Adversarial inputs-side reviewer ready. Starting from `requirements/source-manifest.json`. Methodology: six-dimension BMAD-style critique of the corpus *as the stakeholder voice* — extraction-of-defects from the source material itself (coverage silences, ambiguity, cross-source contradiction; voice authenticity is a narrow secondary lens, since second-hand voice is the corpus norm), with Recommendations that propose corpus-handling, never elicitation. Each dimension runs in a parallel read-only worker; the parent reads all sources and inlines a frozen bundle plus per-source quote indices."*
 - Restate the stand-alone-ish constraint in-thread so the consultant can see it: *"This run reads `requirements/source-manifest.json` plus the files it enumerates — no other pipeline state is consulted; `requirements/requirements.md`, analyses, design-system, reviews-of-requirements, and pipeline state are not loaded. Six dimension workers will be dispatched in parallel at Step 4; each worker has no tools — only the bundle the parent inlines."*
 - Restate the strict-BMAD rule in one line so the consultant sees it: *"Zero findings on any dimension triggers a re-run + Justification block. No silent clean dimensions."*
@@ -106,16 +106,21 @@ Inputs (all inline; the worker has no Read tool):
 - Reference for Dimension {{N}} (verbatim contents of the Dimension {{N}} section of
   framework/assets/reviews-inputs/adversarial-reference.md):
   {{DIMENSION_SECTION}}
-- Finding schema, Patch/Defer/Reject rubric, and strict-BMAD halt rule including the
-  dimension-specific anti-confirmation prompt for Dimension {{N}} (verbatim from
-  adversarial-reference.md):
+- Finding schema, Patch/Defer/Reject rubric (including the Disposition → Recommendation
+  coupling: which Recommendation form pairs with each disposition, and the rule that the
+  `disposition` field is the bare enum token ONLY — never a Recommendation phrase such as
+  "Resolve at draft time"), and strict-BMAD halt rule including the dimension-specific
+  anti-confirmation prompt for Dimension {{N}} (verbatim from adversarial-reference.md):
   {{SCHEMA_AND_RUBRIC_AND_BMAD_RULE}}
 
 Workflow:
 1. Re-compute SHA-256 of {{BUNDLE_JSON}}. Verify it equals {{BUNDLE_SHA256}}; if not,
    return the error payload with error_kind: bundle_mismatch.
 2. Apply Dimension {{N}}'s checks. Emit findings using the schema (omit the ID field — the
-   parent assigns IDs at merge). Validate every `evidence` field against the per-source quote
+   parent assigns IDs at merge). The `disposition` field is exactly one of the three enum
+   tokens `Patch | Defer | Reject` and NOTHING else; the coupled Recommendation form (e.g.
+   "Resolve at draft time", which is a `Defer` form) goes in the separate `recommendation`
+   field, never in `disposition`. Validate every `evidence` field against the per-source quote
    index BEFORE returning. If the first pass produces zero findings, run the strict-BMAD
    re-run with the dimension-specific anti-confirmation prompt. If still zero, compose a
    Justification block ≥3 sentences citing specific evidence from the bundle and naming
@@ -146,7 +151,7 @@ The placeholders are substituted at dispatch time:
 - `{{MANIFEST_SNAPSHOT_JSON}}` — the manifest's row list (for context).
 - `{{CHARACTER_CONTENT}}` — the verbatim content of `framework/assets/characters/adversarial-inputs-review.md` (loaded once at Step 1; kept in memory across fan-out).
 - `{{DIMENSION_SECTION}}` — the verbatim content of the Dimension `N` section of `framework/assets/reviews-inputs/adversarial-reference.md` (loaded once at Step 1; sliced per dimension at dispatch).
-- `{{SCHEMA_AND_RUBRIC_AND_BMAD_RULE}}` — the verbatim content of the *Finding schema*, *Disposition rubric*, and *The strict-BMAD halt rule* sections of `adversarial-reference.md`, with the dimension-specific anti-confirmation prompt for Dimension `N` highlighted.
+- `{{SCHEMA_AND_RUBRIC_AND_BMAD_RULE}}` — the verbatim content of the *Finding schema*, *Disposition rubric*, and *The strict-BMAD halt rule* sections of `adversarial-reference.md`, with the dimension-specific anti-confirmation prompt for Dimension `N` highlighted. The *Disposition rubric* slice is taken **whole**, so it carries the *Disposition → Recommendation coupling* subsection — that subsection is the canonical statement of which Recommendation form pairs with each disposition, and is the sole mechanism by which the coupling reaches the tool-less worker (no separate placeholder).
 
 **4b — Merge & Normalise.** Collect all six worker payloads.
 
