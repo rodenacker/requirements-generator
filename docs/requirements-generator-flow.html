@@ -571,11 +571,13 @@
       <!-- Wireframe → Prototype (down central spine, final hi-fi step) -->
       <path d="M 500 593 L 500 740" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
       <!-- Review-Inputs → Resolve-Review (down left column) -->
-      <path d="M 140 132 L 140 203" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+      <path d="M 100 132 L 100 222" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
       <!-- Review-Requirement → Resolve-Review (up left column) -->
       <path d="M 100 369 L 100 289" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
       <!-- Resolve-Review → Requirements (approved resolutions feed the next /requirements run) -->
-      <path d="M 262 240 C 320 260, 380 290, 410 336" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+      <path d="M 237 256 C 320 260, 380 290, 440 144" stroke="#222" stroke-dasharray="4 4" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+      <!-- Resolve-Review → Requirements (approved resolutions feed the next /requirements run) -->
+      <path d="M 237 256 C 320 260, 380 290, 410 369" stroke="#222" stroke-dasharray="4 4" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
       <!-- Requirements → Export-Application (re-projection of the settled spec) -->
       <path d="M 580 402 C 660 450, 790 460, 845 512" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
       <!-- Design-System → Prototype (brand tokens feed the hi-fi step when present) -->
@@ -589,7 +591,7 @@
       <!-- PRD → Inputs ("Add to inputs") — curve up from PRD top, sweeping left into Inputs' right edge -->
       <path d="M 800 260 C 740 200, 700 130, 630 128" stroke="#888" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow-soft)"/>
       <!-- Review-Requirement → Requirements ("Manually Update") -->
-      <path d="M 140 360 C 140 288, 440 288, 440 360" stroke="#888" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow-soft)"/>
+      <path d="M 140 380 C 120 350, 320 360, 370 380" stroke="#888" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow-soft)"/>
       <!-- Analyse-Requirement → Wireframes ("select as inputs") — curve down-and-left to right edge of /wireframe -->
       <path d="M 860 400 C 860 470, 720 544, 630 565" stroke="#888" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow-soft)"/>
 
@@ -601,13 +603,13 @@
       <!-- "Add to inputs" along PRD → Inputs (positioned just above PRD, on its curve) -->
       <g><rect class="edge-label-bg" x="700" y="170" width="84" height="18" rx="3"/><text class="edge-label" x="742" y="182" text-anchor="middle">Add to inputs</text></g>
       <!-- "Manually Update" between Review-Requirement and Requirements -->
-      <g><rect class="edge-label-bg" x="240" y="292" width="100" height="18" rx="3"/><text class="edge-label" x="290" y="304" text-anchor="middle">Manually Update</text></g>
+      <g><rect class="edge-label-bg" x="240" y="360" width="100" height="18" rx="3"/><text class="edge-label" x="290" y="372" text-anchor="middle">Manually Update</text></g>
       <!-- "select as inputs" along the Analyse-Req → Wireframes arrow (positioned mid-curve, in the gap between Requirements and Wireframes rows) -->
       <g><rect class="edge-label-bg" x="728" y="462" width="104" height="18" rx="3"/><text class="edge-label" x="780" y="474" text-anchor="middle">select as inputs</text></g>
       <!-- "brand tokens" along the Design-System → Prototype arrow -->
       <g><rect class="edge-label-bg" x="158" y="716" width="84" height="18" rx="3"/><text class="edge-label" x="200" y="728" text-anchor="middle">brand tokens</text></g>
       <!-- "approved resolutions" along the Resolve-Review → Requirements arrow -->
-      <g><rect class="edge-label-bg" x="283" y="269" width="126" height="18" rx="3"/><text class="edge-label" x="346" y="281" text-anchor="middle">approved resolutions</text></g>
+      <g><rect class="edge-label-bg" x="250" y="250" width="126" height="18" rx="3"/><text class="edge-label" x="312" y="262" text-anchor="middle">approved resolutions</text></g>
     </svg>
 
   </div>
