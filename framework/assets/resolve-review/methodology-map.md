@@ -8,12 +8,16 @@ kind: methodology-map
 # methodology = append a row here (verifying the selectors against that methodology's
 # template asset); zero agent edits, zero orchestrator edits.
 #
-# Scope: /review-inputs AND /review-requirement artefacts (the orchestrator globs both
-# review-inputs/*/*.html and review-requirements/*/*.html). The lookup key is `method_dir`:
-# the bare parent directory name for review-inputs artefacts (legacy v1 keying), the
-# root-qualified `review-requirements/<METHOD>` for review-requirements artefacts —
-# qualified because the same method dir name can exist under both roots (e.g. ADVERSARIAL).
+# Scope: TWO review kinds, each with its own block of rows below (the orchestrator globs
+# both review-inputs/*/*.html and review-requirements/*/*.html):
+#   (a) /review-inputs rows       — critique the input corpus; fingerprint = source-manifest.json sha
+#   (b) /review-requirements rows — critique requirements.md;   fingerprint = requirements.md sha
+# The lookup key is `method_dir`: the bare parent directory name for (a) review-inputs
+# artefacts (legacy v1 keying), the root-qualified `review-requirements/<METHOD>` for
+# (b) review-requirements artefacts — qualified because the same method dir name can exist
+# under both roots (e.g. ADVERSARIAL).
 methodologies:
+  # ---- /review-inputs rows (bare method_dir keys; fingerprint = source-manifest.json sha) ----
   - method_dir: ADVERSARIAL
     method_slug: adversarial
     filename_stem: adversarial-review-resolutions
@@ -310,11 +314,11 @@ methodologies:
 - `fingerprint_label` — the header `<dt>` label carrying the review's source fingerprint (`Manifest SHA-256` / `Manifest fingerprint` for review-inputs rows; `Source SHA-256` / `Requirements fingerprint` for review-requirements rows). Used by the drafter's Step-2 drift check.
 - `fingerprint_compares_to` — closed enum naming what the drafter's Step-2 drift check hashes for comparison: `source-manifest` (`requirements/source-manifest.json`, review-inputs rows) or `requirements-doc` (`requirements/requirements.md`, review-requirements rows). For `requirements-doc` rows the drafter also pre-flights that `requirements/requirements.md` exists, and its Step 9b addendum branch is armed (see the drafter).
 - `resolution_semantics` — closed enum naming the resolution flow: `apply-recommendation` | `answer-elicitation` | `pick-interpretation` | `ratify-candidate` | `kind-dispatched` (the row's findings come in more than one structural kind; the `ask_shape` names per kind which flow applies — confirmation for kinds with an actionable payload, elicitation for observational kinds). New methodologies may reuse an existing value or append a new one **here** (with its `ask_shape` describing the flow); the drafter's Step 5 executes whatever the row describes.
-- `ask_shape` — one short paragraph specifying the per-finding `AskUserQuestion`: what is presented, the option set, and which option maps to which origin marker (`[CONSULTANT-STATED]` / `[AI-INFERRED, CONSULTANT-CONFIRMED]` — canonical definitions in `framework/assets/resolve-review/template-resolutions.md`). Every flow must include a Skip option, and every flow in which the drafted content originates from the review (not the consultant) must confirm **per finding** — never in bulk.
+- `ask_shape` — one short paragraph specifying the per-finding `AskUserQuestion`: what is presented, the option set, and which option maps to which origin marker (`[CONSULTANT-STATED]` / `[AI-INFERRED, CONSULTANT-CONFIRMED]` — canonical definitions in `framework/assets/resolve-review/template-resolutions.md`). Every flow must include a Skip option, and every flow in which the drafted content originates from the review (not the consultant) must be confirmed by an explicit consultant affirmative — per finding, or via the explicit accept-all-remaining choice — never silently or by default.
 
 **Adding a new methodology (per-PR steps):**
 
 1. Read the methodology's template asset and transcribe its finding-block anatomy into a new row (verify the selectors against the real template — do not copy a sibling row blind).
-2. Choose `resolution_semantics` (reuse or append) and write the `ask_shape` honouring the per-item-confirmation rule.
+2. Choose `resolution_semantics` (reuse or append) and write the `ask_shape` honouring the explicit-confirmation rule (per finding, or the accept-all-remaining choice — never silent).
 3. Set `filename_stem` so the output filename reads naturally.
 4. No agent, orchestrator, or command edits. The artefact picker discovers artefacts from disk; this map only gates whether a discovered `method_dir` is consumable.

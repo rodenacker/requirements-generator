@@ -30,8 +30,9 @@ Marker legend (canonical):
   [AI-INFERRED, CONSULTANT-CONFIRMED]
       The resolution was drafted from the review finding's own actionable payload
       (recommendation, interpretation, candidate requirement) and the consultant
-      confirmed THIS SPECIFIC resolution individually at the per-finding ask.
-      Blanket approval is not a valid path to this marker.
+      explicitly affirmed it — either individually at the per-finding ask, or via the
+      explicit "Accept all remaining as drafted" choice. Silence, a skipped answer, or
+      approval of a different finding is never a valid path to this marker.
   Supersedes line
       "This supersedes the statement in `<filename>` regarding <X>." — emitted when
       the resolution changes or overrides a fact stated elsewhere in the input
@@ -71,8 +72,9 @@ Marker legend (canonical):
 
 **Origin markers:** `[CONSULTANT-STATED]` — the consultant supplied the resolution
 content. `[AI-INFERRED, CONSULTANT-CONFIRMED]` — drafted from the review finding's
-own actionable payload and individually confirmed by the consultant. Every
-resolution below carries exactly one.
+own actionable payload and explicitly confirmed by the consultant (per finding, or
+via an explicit "Accept all remaining as drafted" choice). Every resolution below
+carries exactly one.
 
 ## Resolutions
 

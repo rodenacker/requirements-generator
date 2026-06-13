@@ -381,13 +381,14 @@ export-application-exporter → characters/application-exporting.md, verify-arti
 - `requirements/draft-claims.ndjson` is existence-probed only (never read) — the provenance legend tells external consumers to bundle it.
 - Write scope: `export-application/` only. The step-0b context-bloat preflight is called **without** `manifest_path`.
 
-## 11. resolve-review-orch.md · 12 nodes / 16 edges / depth 3
+## 11. resolve-review-orch.md · 13 nodes / 17 edges / depth 3
 
 ```
 orch → resolve-review-drafter, refusal-registry,
        review-inputs/*/*.html + review-requirements/*/*.html [Glob + byte sizes: step-0 artefact picker],
        assets/resolve-review/methodology-map.md [read: step-0 map gate],
-       resolve-review/resolutions-draft.md [existence: step-1 stale-draft gate; rm -f on Discard]
+       resolve-review/resolutions-draft.md [existence: step-1 stale-draft gate; rm -f on Discard],
+       input/*-resolutions-*.md [Glob + provenance-head read: step-0 resolved-status tag]
 resolve-review-drafter → characters/review-resolving.md,
        assets/resolve-review/methodology-map.md, assets/resolve-review/template-resolutions.md,
        verify-artifact-write,
@@ -402,6 +403,7 @@ resolve-review-drafter → characters/review-resolving.md,
 - Single-agent, single-shot, **no progress file and no timing events** (export-application precedent). Interrupted-run recovery = the step-1 stale-draft gate; no other state survives a run.
 - **Methodology-agnostic by construction:** artefact discovery is a disk `Glob` over both review roots; consumability and every methodology-specific value (parse anchors, severity vocabulary, resolution semantics, output filename stem, fingerprint comparison target) resolve from the methodology map's row. New methodology = map-row append; zero agent/orch edits. `method_dir` keys: bare dir name for `review-inputs/` rows (legacy), root-qualified `review-requirements/<METHOD>` for review-requirements rows (same dir name can exist under both roots).
 - **Write scope:** `resolve-review/resolutions-draft.md` (transient staging, deleted on accept) + one NEW `input/<stem>-<date>[-N].md` per accepted run — the **third documented cross-pipeline write exception** (`CLAUDE.md` §3), additive only, never overwriting an existing `input/` file. Plus, on review-requirements-sourced runs with the consultant's Step-9b opt-in, the **fourth documented exception**: inserting/extending the single `## Amendments (pending re-merge)` section in `requirements/requirements.md` (before the PI appendix; canonical shape `assets/resolve-review/template-addendum.md`), always after — and as a strict subset of — the verified `input/` write (pairing invariant). The section is a transient cache; the next `/requirements` re-merge regenerates the doc and the same content arrives via ingestion.
-- **Anti-laundering contract:** every AI-inferred resolution is individually consultant-confirmed (`AskUserQuestion`, one finding per question, ≤4 per call); origin markers `[CONSULTANT-STATED]` / `[AI-INFERRED, CONSULTANT-CONFIRMED]` + a mandatory per-resolution Supersedes line (canonical definitions: `assets/resolve-review/template-resolutions.md`).
+- **Anti-laundering contract:** every AI-inferred resolution is confirmed by an explicit consultant affirmative — per finding (`AskUserQuestion`, one finding per question, ≤4 per call) or the explicit "Accept all remaining as drafted" choice; never silently or by default. Origin markers `[CONSULTANT-STATED]` / `[AI-INFERRED, CONSULTANT-CONFIRMED]` + a mandatory per-resolution Supersedes line (canonical definitions: `assets/resolve-review/template-resolutions.md`).
+- **Step-0 resolved-status tag:** the orchestrator reads the provenance-table head of `input/*-resolutions-*.md` files (bounded, read-only) and tags each picker entry `resolved (date)` / `not yet resolved` by matching the recorded `Source review` path — its only `input/` read, persisting nothing (the pipeline stays stateless).
 - The input-handler is **never** invoked; the Step-2 fingerprint target is hashed (drift warning), never parsed. Pickup of the new `input/` file is the next manifest create/refresh's job.
 - The context-bloat preflight is **deliberately omitted** (the skill sums only `.md`/`.json`; the artefacts here are `.html`) — replaced by a step-0 >300 KB size advisory.
