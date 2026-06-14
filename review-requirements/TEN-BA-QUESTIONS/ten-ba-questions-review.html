@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>10 BA Questions — Transaction Import &amp; Approval System</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --fg: #1a1a1a;
+    --muted: #5a5a5a;
+    --border: #d4d4d4;
+    --border-strong: #8a8a8a;
+    --section-bg: #ffffff;
+    --code-bg: #f3f3f3;
+    --shadow-card: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+
+    --sev-blocker: #b91c1c;
+    --sev-blocker-bg: rgba(185, 28, 28, 0.10);
+    --sev-major: #c2410c;
+    --sev-major-bg: rgba(194, 65, 12, 0.10);
+    --sev-minor: #a16207;
+    --sev-minor-bg: rgba(161, 98, 7, 0.10);
+
+    --disp-patch: #15803d;
+    --disp-patch-bg: rgba(21, 128, 61, 0.10);
+    --disp-reject: #b91c1c;
+    --disp-reject-bg: rgba(185, 28, 28, 0.10);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 32px 64px;
+  }
+
+  /* Header */
+  header { margin-bottom: 24px; }
+  h1#top {
+    margin: 0 0 12px 0;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px 24px;
+    padding: 14px 18px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-card);
+    margin: 16px 0;
+    font-size: 13px;
+  }
+  .meta-grid > div { display: flex; flex-direction: column; gap: 2px; }
+  .meta-grid dt {
+    margin: 0;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  .meta-grid dd {
+    margin: 0;
+    font-size: 14px;
+    color: var(--fg);
+    word-break: break-all;
+  }
+
+  /* TOC */
+  .toc {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin: 0 0 32px 0;
+    padding: 12px 18px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    box-shadow: var(--shadow-card);
+    font-size: 13px;
+  }
+  .toc-label {
+    display: block;
+    margin: 0 0 6px 0;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  .toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    counter-reset: toc-item;
+  }
+  .toc li {
+    counter-increment: toc-item;
+  }
+  .toc li::before {
+    content: counter(toc-item) ". ";
+    color: var(--muted);
+    margin-right: 4px;
+  }
+  .toc a {
+    color: var(--fg);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--border-strong);
+    padding-bottom: 1px;
+  }
+  .toc a:hover { border-bottom-color: var(--fg); color: #000; }
+
+  /* Sections */
+  section {
+    margin: 32px 0;
+    padding: 20px 24px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-card);
+  }
+  section h2 {
+    margin: 0 0 16px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border-strong);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  section h3 {
+    margin: 20px 0 10px 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  section h4 {
+    margin: 16px 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  section > p.section-intro {
+    margin: 0 0 12px 0;
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+
+  /* Back-to-top */
+  .back-to-top {
+    margin: 24px 0 0 0;
+    text-align: right;
+    font-size: 12px;
+  }
+  .back-to-top a {
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--border-strong);
+    padding-bottom: 1px;
+  }
+  .back-to-top a:hover { color: var(--fg); border-bottom-color: var(--fg); }
+
+  /* In plain terms (human-readable lead — first section) */
+  #plain-terms { border-left: 4px solid #0f766e; background: #f0fbfa; }
+  #plain-terms h2 { border-bottom-color: #0f766e; }
+  #plain-terms p { margin: 0 0 4px 0; font-size: 15px; line-height: 1.55; }
+
+  /* Priority chips */
+  .chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .chip.priority-blocking { background: var(--sev-blocker-bg); color: var(--sev-blocker); }
+  .chip.priority-major { background: var(--sev-major-bg); color: var(--sev-major); }
+  .chip.priority-minor { background: var(--sev-minor-bg); color: var(--sev-minor); }
+  .chip.gate-pass { background: var(--disp-patch-bg); color: var(--disp-patch); }
+  .chip.gate-fail { background: var(--disp-reject-bg); color: var(--disp-reject); }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  table caption {
+    text-align: left;
+    margin-bottom: 8px;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  thead {
+    background: #f3f3f3;
+    border-bottom: 2px solid var(--border-strong);
+  }
+  th {
+    text-align: left;
+    padding: 8px 10px;
+    font-weight: 600;
+    color: var(--fg);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:hover { background: #fafafa; }
+  td code, dd code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+  }
+
+  /* Triage table */
+  table.triage-table thead { position: sticky; top: 48px; z-index: 5; }
+  table.triage-table tr.priority-blocking { background: rgba(185, 28, 28, 0.04); }
+  table.triage-table td:nth-child(6) { min-width: 280px; }
+
+  /* Question card */
+  article.qcard {
+    margin: 16px 0;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    background: #fcfcfc;
+    box-shadow: 0 1px 1px rgba(0,0,0,.03);
+  }
+  article.qcard.priority-blocking { border-left-color: var(--sev-blocker); }
+  article.qcard.priority-major { border-left-color: var(--sev-major); }
+  article.qcard.priority-minor { border-left-color: var(--sev-minor); }
+  article.qcard h3 {
+    margin: 0 0 12px 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  article.qcard h3 code {
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+  }
+  blockquote.question {
+    margin: 0 0 10px 0;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border-strong);
+    border-radius: 4px;
+    background: #fbfbfb;
+  }
+  blockquote.question p { margin: 0; font-size: 15px; }
+  .why { margin: 0; font-size: 14px; }
+
+  /* Diagnostics toggle */
+  details.diagnostics-toggle { margin: 0; }
+  details.diagnostics-toggle > summary {
+    cursor: pointer;
+    padding: 0;
+    list-style: none;
+  }
+  details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+  details.diagnostics-toggle > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  details.diagnostics-toggle > summary::before {
+    content: "▶";
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform 0.15s ease;
+    display: inline-block;
+  }
+  details.diagnostics-toggle[open] > summary::before { transform: rotate(90deg); }
+
+  /* Diagnostics table accents */
+  table.diagnostics-gates tr.gate-fail { background: rgba(185, 28, 28, 0.05); }
+
+  /* Legend bar (colour/provenance key, directly under the TOC) */
+  .legend-bar {
+    margin: 16px 0 24px;
+    padding: 10px 14px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 12.5px;
+  }
+  .legend {
+    margin: 12px 0 0 0;
+    padding: 10px 12px;
+    background: #f7f7f7;
+    border-left: 3px solid var(--border-strong);
+    border-radius: 0 4px 4px 0;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  /* Responsive */
+  @media (max-width: 720px) {
+    main { padding: 16px 16px 48px; }
+    h1#top { font-size: 22px; }
+    section { padding: 14px 14px; }
+    section h2 { font-size: 18px; }
+    .meta-grid { grid-template-columns: 1fr; gap: 6px 0; }
+    table { font-size: 12px; }
+    th, td { padding: 6px 6px; }
+    .toc { position: static; }
+  }
+  @media (max-width: 480px) {
+    body { font-size: 14px; }
+    h1#top { font-size: 19px; }
+    article.qcard { padding: 12px 12px; }
+  }
+
+  /* Print */
+  @media print {
+    body { background: white; }
+    main { max-width: none; padding: 0; }
+    .toc, .back-to-top { display: none !important; }
+    section {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      box-shadow: none;
+      border: 1px solid #999;
+      margin: 12px 0;
+    }
+    article.qcard {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      box-shadow: none;
+    }
+    details.diagnostics-toggle { display: block; }
+    details:not([open]) > *:not(summary) { display: block !important; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1 id="top">10 BA Questions — Transaction Import &amp; Approval System</h1>
+  <dl class="meta-grid">
+    <div><dt>Domain</dt><dd>Enterprise financial transaction data management</dd></div>
+    <div><dt>Generated</dt><dd>2026-06-12T19:29:46Z</dd></div>
+    <div><dt>Source SHA-256</dt><dd><code>a8c551059a6affd50c20f2d4de43d7bf4d21e5aea9d81e954c56a96d8f3de214</code></dd></div>
+    <div><dt>Reviewer</dt><dd>10 BA Questions Review (experienced Business Analyst lens, BABOK-aware)</dd></div>
+    <div><dt>Total questions</dt><dd>10</dd></div>
+    <div><dt>Candidate pool</dt><dd>46 (≤ 50)</dd></div>
+    <div><dt>Category coverage</dt><dd>6 of 8 (C1, C2, C3, C5, C6, C7)</dd></div>
+  </dl>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <span class="toc-label">Contents</span>
+  <ol>
+    <li><a href="#plain-terms">In plain terms</a></li>
+    <li><a href="#executive-summary">Executive Summary</a></li>
+    <li><a href="#triage">Triage</a></li>
+    <li><a href="#questions">Questions</a></li>
+    <li><a href="#diagnostics">Diagnostics</a></li>
+  </ol>
+</nav>
+
+<section class="legend-bar" aria-label="Legend">
+  <p class="legend">
+    <strong>Priority legend.</strong>
+    <strong>blocking</strong> — without an answer, design / estimation / scope cannot proceed (two or more plausible interpretations would yield fundamentally different implementations).
+    <strong>major</strong> — an answer materially changes direction; the team can proceed with a stated default while the stakeholder decides, at documented risk.
+    <strong>minor</strong> — answer affects refinement only; a reasonable default produces an acceptable solution.
+  </p>
+  <p class="legend">
+    Source: <code>requirements/requirements.md</code> only. Categories: C1 Problem &amp; justification · C2 Stakeholders &amp; users · C3 Success &amp; acceptance criteria · C4 Scope &amp; MVP boundaries · C5 Business rules &amp; decisions · C6 Data, entities &amp; integrations · C7 Edge cases &amp; exception flows · C8 Assumptions, dependencies &amp; sequencing.
+  </p>
+</section>
+
+<section id="plain-terms" aria-label="In plain terms">
+  <h2>In plain terms</h2>
+  <p>This review lists the ten most pressing questions a business analyst would put back to you before this requirements document goes to design or estimation — not defects to fix, but decisions the business still needs to make. Each question carries a priority (how urgent — blocking, major, or minor), a category (which of eight business-analysis gap areas it came from), and an anchor (the §N.N section it targets, or &#39;missing-section&#39; when the topic is absent from the document entirely); the ten were selected from a candidate pool (the larger set of 46 questions generated before the top ten were chosen).</p>
+  <p>One question is blocking: the activity-name-to-status mapping that drives every File Status display is never defined, so the file-log screens cannot be built faithfully until the business supplies it. The other nine are major — the unstated problem and its cost, a quantified definition of success, separation of duties, approval routing, the file source-and-format contract, failed-file and unparseable-row handling, and who consumes the export — each a default the team could guess but would carry real risk of getting wrong. Take these ten to your stakeholders and fold the answers back through <code>/requirements</code> before the next phase begins.</p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="executive-summary">
+  <h2>Executive Summary</h2>
+  <p><strong>Total questions:</strong> 10</p>
+  <p>
+    <strong>Priority</strong> —
+    <span class="chip priority-blocking">Blocking 1</span>
+    <span class="chip priority-major">Major 9</span>
+    <span class="chip priority-minor">Minor 0</span>
+  </p>
+  <p><strong>Candidate pool size:</strong> 46 (≤ 50)</p>
+  <p><strong>Category coverage:</strong> 6 of 8 (C1, C2, C3, C5, C6, C7)</p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="triage">
+  <h2>Triage</h2>
+  <p class="section-intro">Read this table top-to-bottom; BAQ-01 is the highest-priority question. The full question text and rationale for each entry is in the <strong>Questions</strong> section below.</p>
+  <table class="triage-table">
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>ID</th>
+        <th>Priority</th>
+        <th>Category</th>
+        <th>Anchor</th>
+        <th>Question (first line)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="priority-blocking">
+        <td>1</td>
+        <td><a href="#BAQ-01"><code>BAQ-01</code></a></td>
+        <td><span class="chip priority-blocking">blocking</span></td>
+        <td>C5 Business rules &amp; decisions</td>
+        <td><code>§6.2</code></td>
+        <td>What are the authoritative activity-name → File Status pairs behind the mapping §6.2 BR-08 relies on…</td>
+      </tr>
+      <tr class="priority-major">
+        <td>2</td>
+        <td><a href="#BAQ-02"><code>BAQ-02</code></a></td>
+        <td><span class="chip priority-major">major</span></td>
+        <td>C1 Problem &amp; justification</td>
+        <td><code>§1</code></td>
+        <td>What is the current state of transaction import and approval today, and what makes it unsustainable…</td>
+      </tr>
+      <tr class="priority-major">
+        <td>3</td>
+        <td><a href="#BAQ-03"><code>BAQ-03</code></a></td>
+        <td><span class="chip priority-major">major</span></td>
+        <td>C7 Edge cases &amp; exception flows</td>
+        <td><code>§1.5</code></td>
+        <td>When a file fails processing, what does the business want the Importer to be able to do about it…</td>
+      </tr>
+      <tr class="priority-major">
+        <td>4</td>
+        <td><a href="#BAQ-04"><code>BAQ-04</code></a></td>
+        <td><span class="chip priority-major">major</span></td>
+        <td>C2 Stakeholders &amp; users</td>
+        <td><code>§6.7</code></td>
+        <td>Who consumes the exported transaction CSV, and does that consumer impose required columns or format…</td>
+      </tr>
+      <tr class="priority-major">
+        <td>5</td>
+        <td><a href="#BAQ-05"><code>BAQ-05</code></a></td>
+        <td><span class="chip priority-major">major</span></td>
+        <td>C5 Business rules &amp; decisions</td>
+        <td><code>§6.5</code></td>
+        <td>Is separation of duties a business rule — must a transaction&#39;s Approver differ from its Importer…</td>
+      </tr>
+      <tr class="priority-major">
+        <td>6</td>
+        <td><a href="#BAQ-06"><code>BAQ-06</code></a></td>
+        <td><span class="chip priority-major">major</span></td>
+        <td>C5 Business rules &amp; decisions</td>
+        <td><code>§6.1</code></td>
+        <td>Can any Approver action any Imported transaction, or are transactions routed to specific approvers…</td>
+      </tr>
+      <tr class="priority-major">
+        <td>7</td>
+        <td><a href="#BAQ-07"><code>BAQ-07</code></a></td>
+        <td><span class="chip priority-major">major</span></td>
+        <td>C6 Data, entities &amp; integrations</td>
+        <td><code>§9</code></td>
+        <td>What is the authoritative source of the uploaded files, and who owns the canonical file format…</td>
+      </tr>
+      <tr class="priority-major">
+        <td>8</td>
+        <td><a href="#BAQ-08"><code>BAQ-08</code></a></td>
+        <td><span class="chip priority-major">major</span></td>
+        <td>C7 Edge cases &amp; exception flows</td>
+        <td><code>missing-section: exception-flows</code></td>
+        <td>When an uploaded file has rows that cannot be parsed, what is the business policy for them…</td>
+      </tr>
+      <tr class="priority-major">
+        <td>9</td>
+        <td><a href="#BAQ-09"><code>BAQ-09</code></a></td>
+        <td><span class="chip priority-major">major</span></td>
+        <td>C1 Problem &amp; justification</td>
+        <td><code>missing-section: problem-justification</code></td>
+        <td>What does the status quo cost in measurable terms that this system is expected to reduce…</td>
+      </tr>
+      <tr class="priority-major">
+        <td>10</td>
+        <td><a href="#BAQ-10"><code>BAQ-10</code></a></td>
+        <td><span class="chip priority-major">major</span></td>
+        <td>C3 Success &amp; acceptance criteria</td>
+        <td><code>§4.1</code></td>
+        <td>What quantified target defines success, and at what threshold is the business satisfied…</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="questions">
+  <h2>Questions</h2>
+  <article class="qcard priority-blocking" id="BAQ-01">
+    <h3>
+      <code>BAQ-01</code> —
+      <span class="chip priority-blocking">blocking</span> ·
+      C5 Business rules &amp; decisions ·
+      <code>§6.2</code>
+    </h3>
+    <blockquote class="question"><p>What are the authoritative activity-name → File Status pairs behind the mapping that §6.2 BR-08 relies on and §9 flags as not enumerated?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> File Status (§2.3, BR-08) is the spine of the file-log overview every user sees, yet §9 records that the activity-name-to-status mapping is &#39;not enumerated in the corpus&#39;. Until the business supplies the activity-name → status pairs and names who maintains them, the Completed / Processing / Failed display cannot be built to reflect the real system, and any prototype mapping is a guess that may contradict production.</p>
+  </article>
+  <article class="qcard priority-major" id="BAQ-02">
+    <h3>
+      <code>BAQ-02</code> —
+      <span class="chip priority-major">major</span> ·
+      C1 Problem &amp; justification ·
+      <code>§1</code>
+    </h3>
+    <blockquote class="question"><p>What is the current state of transaction import and approval today, and what about it is costly or unsustainable enough to justify building this system?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §1 describes the solution — a dual-role import-and-approval surface — but not the problem it displaces, so there is no shared statement of what the current approach costs or why it is unsustainable. Without that anchor, scope and priority decisions float free: the team cannot tell which features relieve the real pain and which are merely nice to have.</p>
+  </article>
+  <article class="qcard priority-major" id="BAQ-03">
+    <h3>
+      <code>BAQ-03</code> —
+      <span class="chip priority-major">major</span> ·
+      C7 Edge cases &amp; exception flows ·
+      <code>§1.5</code>
+    </h3>
+    <blockquote class="question"><p>When a file fails processing (§2.5 Processing → Failed), what does the business want the Importer to be able to do — re-upload, request reprocessing, view the failure reason, escalate, or nothing in this release?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §1.5 defers the Failed-file recovery flow as &#39;not yet defined&#39; while §3 records that the Importer&#39;s central fear is files failing with no clear reason — so the one path the primary user most dreads is the one the document leaves blank. The business&#39;s answer determines whether a whole recovery surface enters scope or the release ships with Failed as a dead end.</p>
+  </article>
+  <article class="qcard priority-major" id="BAQ-04">
+    <h3>
+      <code>BAQ-04</code> —
+      <span class="chip priority-major">major</span> ·
+      C2 Stakeholders &amp; users ·
+      <code>§6.7</code>
+    </h3>
+    <blockquote class="question"><p>Who is the downstream consumer of the exported transaction CSV (§6.7 RPT-02), and does that consumer impose any required columns, format, or naming on the export?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> The filtered-transaction CSV (§6.7 RPT-02, F-11) leaves the system, but the document never names who consumes it or whether that consumer constrains the columns, format, or naming. If a downstream reconciliation system or auditor expects a fixed schema, the export is a contract rather than a convenience, and its column set must be confirmed before it is built.</p>
+  </article>
+  <article class="qcard priority-major" id="BAQ-05">
+    <h3>
+      <code>BAQ-05</code> —
+      <span class="chip priority-major">major</span> ·
+      C5 Business rules &amp; decisions ·
+      <code>§6.5</code>
+    </h3>
+    <blockquote class="question"><p>Is separation of duties a business rule — must the Approver of a transaction be a different person from the Importer who uploaded its file?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §1.6 states each user holds exactly one role, but the document never says whether separation of duties is a business rule — whether the person who imported a file may also approve its transactions. In a financial domain this is a core control; the answer decides whether maker-checker segregation must be reflected (or enforced) and reshapes RBAC and the approval workflow.</p>
+  </article>
+  <article class="qcard priority-major" id="BAQ-06">
+    <h3>
+      <code>BAQ-06</code> —
+      <span class="chip priority-major">major</span> ·
+      C5 Business rules &amp; decisions ·
+      <code>§6.1</code>
+    </h3>
+    <blockquote class="question"><p>Can any Approver action any Imported transaction, or does the business route transactions to specific approvers by file, amount, or team?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> The document implies any Approver can action any Imported transaction (§6.1 F-08, §6.5) but never states whether transactions are routed to specific approvers by file, amount, or team. Routing to a named approver is a fundamentally different workflow — queues, assignment, hand-off — than a shared pool, and the choice changes the transaction-table and approval design.</p>
+  </article>
+  <article class="qcard priority-major" id="BAQ-07">
+    <h3>
+      <code>BAQ-07</code> —
+      <span class="chip priority-major">major</span> ·
+      C6 Data, entities &amp; integrations ·
+      <code>§9</code>
+    </h3>
+    <blockquote class="question"><p>What is the authoritative upstream source of the uploaded transaction files, and who owns the canonical file format the system must accept, given the format disagreements §9 records?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §9 records that the inputs disagree on transaction-type codes and account-number format, which signals there is no single agreed file-format contract. The business must name the authoritative upstream source and the canonical format the system must accept, or ingestion will be built against an assumption the file producers do not share.</p>
+  </article>
+  <article class="qcard priority-major" id="BAQ-08">
+    <h3>
+      <code>BAQ-08</code> —
+      <span class="chip priority-major">major</span> ·
+      C7 Edge cases &amp; exception flows ·
+      <code>missing-section: exception-flows</code>
+    </h3>
+    <blockquote class="question"><p>When an uploaded file contains rows that cannot be parsed or fail the expected format, what is the business policy — reject the whole file, import the valid rows and drop the invalid ones, or hold the file for correction?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §1.5 places file-validation-error review out of scope, but the document never states the business policy when an uploaded file contains rows that cannot be parsed. Reject-the-file, import-valid-rows-only, and hold-for-correction are materially different ingestion outcomes that change what RecordCount and File Status even mean.</p>
+  </article>
+  <article class="qcard priority-major" id="BAQ-09">
+    <h3>
+      <code>BAQ-09</code> —
+      <span class="chip priority-major">major</span> ·
+      C1 Problem &amp; justification ·
+      <code>missing-section: problem-justification</code>
+    </h3>
+    <blockquote class="question"><p>What does the status quo cost in measurable terms — manual rework hours, mis-keyed-transaction rates, or approval delays — that this system is expected to reduce?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> The goals are stated qualitatively (§4.1, &#39;files ingested without manual rework&#39;) with no baseline for what the status quo costs in rework hours, error rates, or approval delays. Without that baseline, success cannot be measured and the business case for individual features cannot be defended at estimation time.</p>
+  </article>
+  <article class="qcard priority-major" id="BAQ-10">
+    <h3>
+      <code>BAQ-10</code> —
+      <span class="chip priority-major">major</span> ·
+      C3 Success &amp; acceptance criteria ·
+      <code>§4.1</code>
+    </h3>
+    <blockquote class="question"><p>What quantified target defines success for this system (for example approval turnaround time, ingestion-without-rework rate, or error reduction), and at what threshold is the business satisfied?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §4.1 lists quality signals as qualitative statements with no measurable threshold, so there is no agreed definition of when this system has done its job. A quantified target — approval turnaround, ingestion-without-rework rate, error reduction — is needed before the team can tell whether the build succeeded or where to concentrate effort.</p>
+  </article>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="diagnostics">
+  <h2>Diagnostics</h2>
+  <details class="diagnostics-toggle" open>
+    <summary>Show / hide diagnostics</summary>
+
+    <h4>Candidate pool</h4>
+    <table><thead><tr><th>Stat</th><th>Value</th></tr></thead><tbody>
+      <tr><td>Candidates generated (Step 3)</td><td>46 (≤ 50)</td></tr>
+      <tr><td>Dropped: GR-NN match (Step 4)</td><td>0</td></tr>
+      <tr><td>Dropped: PI-NN match (Step 4)</td><td>1</td></tr>
+      <tr><td>Dropped: out-of-scope (Step 4)</td><td>1</td></tr>
+      <tr><td>Dropped: UX-lens (Step 4)</td><td>2</td></tr>
+      <tr><td>Surviving candidates after filter</td><td>42</td></tr>
+      <tr><td>Selected (Step 5)</td><td>10</td></tr>
+    </tbody></table>
+
+    <h4>Category coverage</h4>
+    <table><thead><tr><th>Category</th><th>Candidates generated</th><th>Candidates surviving filter</th><th>Selected</th></tr></thead><tbody>
+      <tr><td>C1 Problem &amp; justification</td><td>5</td><td>5</td><td>2</td></tr>
+      <tr><td>C2 Stakeholders &amp; users</td><td>6</td><td>5</td><td>1</td></tr>
+      <tr><td>C3 Success &amp; acceptance criteria</td><td>5</td><td>4</td><td>1</td></tr>
+      <tr><td>C4 Scope &amp; MVP boundaries</td><td>5</td><td>5</td><td>0</td></tr>
+      <tr><td>C5 Business rules &amp; decisions</td><td>8</td><td>8</td><td>3</td></tr>
+      <tr><td>C6 Data, entities &amp; integrations</td><td>6</td><td>6</td><td>1</td></tr>
+      <tr><td>C7 Edge cases &amp; exception flows</td><td>5</td><td>4</td><td>2</td></tr>
+      <tr><td>C8 Assumptions, dependencies &amp; sequencing</td><td>6</td><td>5</td><td>0</td></tr>
+      <tr><td><strong>Coverage of selected</strong></td><td><strong>—</strong></td><td><strong>—</strong></td><td><strong>6 of 8</strong></td></tr>
+    </tbody></table>
+
+    <h4>Quality gates</h4>
+    <table class="diagnostics-gates"><thead><tr><th>Gate</th><th>Result</th><th>Notes</th></tr></thead><tbody>
+      <tr class="gate-pass"><td>1. Exactly 10 questions in final output</td><td><span class="chip gate-pass">PASS</span></td><td>10 questions selected (BAQ-01…BAQ-10).</td></tr>
+      <tr class="gate-pass"><td>2. Candidate pool size ≤ 50</td><td><span class="chip gate-pass">PASS</span></td><td>46 candidates generated.</td></tr>
+      <tr class="gate-pass"><td>3. Every question has a valid priority</td><td><span class="chip gate-pass">PASS</span></td><td>1 blocking, 9 major, 0 minor — all in {blocking, major, minor}.</td></tr>
+      <tr class="gate-pass"><td>4. Every question has a 1–3 sentence rationale</td><td><span class="chip gate-pass">PASS</span></td><td>All ten carry a non-stub rationale.</td></tr>
+      <tr class="gate-pass"><td>5. Every question has valid provenance</td><td><span class="chip gate-pass">PASS</span></td><td>8 cite an existing §N.N; 2 use documented missing-section slugs (exception-flows, problem-justification).</td></tr>
+      <tr class="gate-pass"><td>6. No question resolved by an active GR-NN</td><td><span class="chip gate-pass">PASS</span></td><td>Re-ran the Step-4 GR filter against the selected ten — no matches.</td></tr>
+      <tr class="gate-pass"><td>7. No question out-of-scope per prototype-scope.md</td><td><span class="chip gate-pass">PASS</span></td><td>No selected question names a Not-Prototypable implementation topic.</td></tr>
+      <tr class="gate-pass"><td>8. Category coverage ≥ 5 of 8</td><td><span class="chip gate-pass">PASS</span></td><td>6 of 8 (C1, C2, C3, C5, C6, C7).</td></tr>
+      <tr class="gate-pass"><td>9. No UX-lens overlap</td><td><span class="chip gate-pass">PASS</span></td><td>Re-ran the Step-4 UX-lens filter against the selected ten — all are BA-framed (what / why / who / when / how-much).</td></tr>
+    </tbody></table>
+
+    <h4>Override log</h4>
+    <p>All quality gates passed; no override invoked.</p>
+  </details>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+</main>
+</body>
+</html>
