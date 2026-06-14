@@ -44,6 +44,10 @@ Population rules:
     enumerate them as base requirements.
   - Origin markers are the canonical /resolve-review pair — definitions in
     framework/assets/resolve-review/template-resolutions.md; spell them verbatim.
+  - If the paired input/ resolution carries a "Grounding" line (elicitation-with-options
+    resolutions), copy it verbatim onto the AMD block; omit it otherwise. This preserves
+    the pairing invariant (addendum prose stays identical to the input/ resolution) — it
+    does not breach it.
   - The preamble blockquote below IS part of the output — it instructs downstream
     LLM consumers (analysers, blueprint-architect, prototype agents, the exporter)
     how to apply the section. Emit it verbatim with placeholders resolved, once per
@@ -69,6 +73,11 @@ Population rules:
 **Amends:** {{the base anchor — §N.N / F-NN / BR-NN / US-NN / Shape.Field — plus a short verbatim quote of the superseded base text | (net-new — supersedes nothing in this document)}}
 
 **Amendment** `[{{CONSULTANT-STATED | AI-INFERRED, CONSULTANT-CONFIRMED}}]`: {{the declarative resolution prose — identical to the resolution in the paired input/ document}}
+
+<!-- Grounding line — emit ONLY when the paired input/ resolution carries one (i.e.
+     elicitation-with-options resolutions); copy it verbatim from that resolution. Omit
+     the whole line otherwise. Copying it verbatim preserves the pairing invariant. -->
+**Grounding:** {{[grounded: <anchor>] | [domain-default] | [assumption — confirm with client]}} — {{one-line implication — copied verbatim from the paired input/ resolution}}
 
 <!-- repeat the AMD block per accepted resolution; repeat the "### Run …" sub-block
      per /resolve-review run that lands while this section is alive -->
