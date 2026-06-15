@@ -59,6 +59,16 @@ methodologies:
     map_skill: null
     reviewer_agent: framework/agents/reviews-inputs/gap-analysis-reviewer.md
     character: framework/assets/characters/gap-analysis-inputs-review.md
+  - name: ten-ba-questions
+    status: mvp
+    group: Stakeholder & BA gaps
+    description: Choose this before drafting requirements when you want the most consequential business-analysis gaps in the raw inputs named rather than an exhaustive coverage audit — pick its siblings completeness-review or gap-analysis instead when you want every gap mapped. It produces a self-contained HTML list of the ten most pressing stakeholder questions the gathered material leaves unanswered, ranked by business impact, across eight BA gap categories, each sourced to an input file or marked absent-from-corpus. Take the ten questions to your stakeholders and fold the answers back into input/ before /requirements drafts.
+    output_path: review-inputs/TEN-BA-QUESTIONS/ten-ba-questions-review.html
+    reference_asset: framework/assets/reviews-inputs/ten-ba-questions-reference.md
+    template_asset: framework/assets/reviews-inputs/template-ten-ba-questions.html
+    map_skill: null
+    reviewer_agent: framework/agents/reviews-inputs/ten-ba-questions-reviewer.md
+    character: framework/assets/characters/ten-ba-questions-inputs-review.md
 ---
 
 # reviews-inputs/registry.md
@@ -111,7 +121,7 @@ Folding input-reviews into the analyses-inputs registry would muddy the consulta
 - `reviewer_agent` — the foreground agent invoked by the orchestrator. Required only when `status: mvp`.
 - `character` — stance the Unicorn adopts while running the reviewer. Required only when `status: mvp`.
 
-**Empty-MVP behaviour:** when the registry has no `status: mvp` rows the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input reviews available yet" message and exits cleanly. With four rows at `status: mvp` (`adversarial`, `completeness-review`, `ambiguity-review`, `gap-analysis`), the selector presents four options to the consultant. This is a defensive guard; were every MVP row removed it would resume — it is not an error.
+**Empty-MVP behaviour:** when the registry has no `status: mvp` rows the selector returns `empty-registry` and the orchestrator surfaces a friendly "no input reviews available yet" message and exits cleanly. With five rows at `status: mvp` (`adversarial`, `completeness-review`, `ambiguity-review`, `gap-analysis`, `ten-ba-questions`), the selector presents five options to the consultant. This is a defensive guard; were every MVP row removed it would resume — it is not an error.
 
 **Sibling relationship: `completeness-review` vs `gap-analysis`.** Both lenses produce "what's missing" findings about the raw inputs, but they diverge on three load-bearing axes:
 

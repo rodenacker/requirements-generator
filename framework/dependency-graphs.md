@@ -205,11 +205,11 @@ deltas:
 
 ---
 
-## 6. review-inputs-orch.md · 34 nodes / 44 edges / depth 4
+## 6. review-inputs-orch.md · 40 nodes / 53 edges / depth 4
 
 ```
 orch → analysis-selector, context-hygiene, input-handler, refusal-registry,
-       + 4 reviewers: adversarial, ambiguity, completeness, gap-analysis
+       + 5 reviewers: adversarial, ambiguity, completeness, gap-analysis, ten-ba-questions
 analysis-selector → reviews-inputs/registry.md
 input-handler ⇒ @input-handler-subtree (progress_path=null)
 
@@ -226,13 +226,17 @@ deltas:
   gap-analysis   +reviews-inputs/template-gap-analysis.html, +topics-requirements.md [step 3],
                  +general-rules                          [step 3]
                  +prototype-scope  [cond: target=prototype, step 3]
+  ten-ba-questions +reviews-inputs/template-ten-ba-questions.html,
+                 +reviews/ten-ux-questions-reference.md  [step5 UX-lens filter],
+                 +general-rules +prototype-invariants +prototype-scope  [step5 filters],
+                 [single-pass, NO workers — reads manifest + sources directly, 8-category 50→10 rank-and-select]
 ```
 
 **Notes (unique):**
 - `analysis-selector.md` shared with graphs 4 + 5; here it gets `list_label:"reviews"` + `verb_label:"review"`.
 - adversarial fans out 6 parallel **tool-less** workers (parent inlines a frozen evidence bundle + quote indices, so workers need no disk access). adversarial + ambiguity are full-overwrite per run (no additive merge), unlike graph-5 analysers.
 - `gap-analysis → topics-requirements.md` is the **only graph-6 edge** touching that file (otherwise read only by drafter + completeness-gap-pass in graph 1); the `Dimension` column is read verbatim. gap-analysis emits a drafter-ingestible `Candidate Requirement` column.
-- completeness is now a self-contained HTML report whose 10×N coverage matrix is an HTML table (no heatmap); gap-analysis adds an inline-SVG coverage heatmap. All four reviewers carry `map_skill: null`. `reviews-inputs/registry.md` has no `future` rows (the stub roadmap was retired — planned methods live in `plans/`).
+- completeness is now a self-contained HTML report whose 10×N coverage matrix is an HTML table (no heatmap); gap-analysis adds an inline-SVG coverage heatmap. ten-ba-questions is single-pass (no workers; reads the manifest + sources directly) and reuses the requirements-side `reviews/ten-ux-questions-reference.md` read-only as its UX-lens filter. All five reviewers carry `map_skill: null`. `reviews-inputs/registry.md` has no `future` rows (the stub roadmap was retired — planned methods live in `plans/`).
 
 ---
 
