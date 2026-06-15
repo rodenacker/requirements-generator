@@ -221,3 +221,52 @@
 {"type":"run_end","t":"2026-05-31T08:33:47.1172480Z"}
 {"type":"run_start","pipeline":"prototype","t":"2026-06-15T08:23:47.6653912Z"}
 {"type":"stage_start","stage":"scope","t":"2026-06-15T08:24:51.2727713Z"}
+{"type":"stage_end","stage":"scope","t":"2026-06-15T08:29:26.5627153Z"}
+{"type":"stage_start","stage":"name","t":"2026-06-15T08:29:53.5797892Z"}
+{"label":"prototype-name","type":"consultant_prompted","stage":"name","t":"2026-06-15T08:29:53.5797892Z"}
+{"label":"prototype-name","type":"consultant_responded","stage":"name","outcome":"approval-queue-dense","t":"2026-06-15T08:32:14.3930028Z"}
+{"type":"stage_end","stage":"name","t":"2026-06-15T08:32:14.3930028Z"}
+{"type":"stage_start","stage":"inputs","t":"2026-06-15T08:33:19.6976312Z"}
+{"type":"stage_end","stage":"inputs","t":"2026-06-15T08:37:50.1953610Z"}
+{"label":"step-b-purpose-posture-positions","type":"consultant_prompted","stage":"spec-drafter","t":"2026-06-15T08:40:01.7336968Z"}
+{"label":"step-b-purpose-posture-positions","type":"consultant_responded","stage":"spec-drafter","outcome":"P3-dense; detail=centred-modal(divergence)","t":"2026-06-15T08:45:44.8453321Z"}
+{"type":"stage_start","stage":"spec-drafter","t":"2026-06-15T08:47:38.2536163Z"}
+{"type":"substep_start","stage":"spec-drafter","substep":"read-inputs","t":"2026-06-15T08:51:19.9598256Z"}
+{"type":"substep_end","stage":"spec-drafter","substep":"read-inputs","t":"2026-06-15T08:51:20.0000716Z"}
+{"type":"substep_start","stage":"spec-drafter","substep":"populate-spec","t":"2026-06-15T08:51:20.0000716Z"}
+{"type":"substep_end","stage":"spec-drafter","substep":"populate-spec","t":"2026-06-15T08:54:50.0636604Z"}
+{"type":"substep_start","stage":"spec-drafter","substep":"write-draft","t":"2026-06-15T08:54:50.0636604Z"}
+{"type":"substep_end","stage":"spec-drafter","substep":"write-draft","t":"2026-06-15T08:54:50.0636604Z"}
+{"type":"substep_start","stage":"spec-drafter","substep":"write-claims","t":"2026-06-15T08:54:50.0636604Z"}
+{"type":"substep_end","stage":"spec-drafter","substep":"write-claims","t":"2026-06-15T08:54:50.0636604Z"}
+{"type":"substep_start","stage":"spec-drafter","substep":"reference-check","t":"2026-06-15T08:54:50.0636604Z"}
+{"type":"substep_end","stage":"spec-drafter","substep":"reference-check","t":"2026-06-15T08:54:50.0636604Z"}
+{"type":"stage_end","stage":"spec-drafter","t":"2026-06-15T08:55:01.8712457Z"}
+{"type":"stage_start","stage":"spec-resolver","t":"2026-06-15T08:55:46.5799915Z"}
+{"type":"stage_end","stage":"spec-resolver","t":"2026-06-15T08:56:05.1850408Z"}
+{"type":"stage_start","stage":"spec-merger","t":"2026-06-15T08:57:59.9848723Z"}
+{"label":"review-iteration-1","type":"consultant_prompted","stage":"merger","t":"2026-06-15T08:57:59.9848723Z"}
+{"label":"review-iteration-1","type":"consultant_responded","stage":"merger","outcome":"accept","t":"2026-06-15T08:58:45.1385308Z"}
+{"type":"stage_end","stage":"spec-merger","t":"2026-06-15T08:58:45.1385308Z"}
+{"type":"stage_start","stage":"scaffold","t":"2026-06-15T09:01:45.8211894Z"}
+{"type":"stage_end","stage":"scaffold","t":"2026-06-15T09:05:36.6954359Z"}
+{"type":"stage_start","stage":"generator","t":"2026-06-15T09:11:35.1180753Z"}
+{"type":"substep_start","stage":"generator","substep":"data-layer","t":"2026-06-15T09:11:35.1180753Z"}
+{"type":"substep_end","stage":"generator","substep":"data-layer","t":"2026-06-15T09:15:04.1096917Z"}
+{"type":"substep_start","stage":"generator","substep":"dispatch-surfaces","t":"2026-06-15T09:15:04.1096917Z"}
+{"type":"substep_end","stage":"generator","substep":"dispatch-surfaces","t":"2026-06-15T09:21:53.6187628Z"}
+{"type":"stage_start","stage":"verify","t":"2026-06-15T09:21:53.6187628Z"}
+{"label":"RF-11","type":"consultant_prompted","stage":"verify","t":"2026-06-15T09:26:44.4933016Z"}
+{"label":"RF-11","type":"consultant_responded","stage":"verify","outcome":"install-and-retry (in-session)","t":"2026-06-15T09:28:26.7996067Z"}
+{"type":"run_start","pipeline":"prototype","note":"resume-session","t":"2026-06-15T10:23:28.5083137Z"}
+{"type":"consultant_prompted","stage":"resume","label":"step-0-resume","t":"2026-06-15T10:23:50.3786768Z"}
+{"type":"consultant_responded","stage":"resume","label":"step-0-resume","outcome":"continue","t":"2026-06-15T10:29:35.2341653Z"}
+{"type":"stage_start","stage":"verify","note":"resume-after-rf11","t":"2026-06-15T10:29:35.2341653Z"}
+{"type":"substep_event","stage":"verify","phase":"build","result":"structured-fail","summary":"package.json type=commonjs vs ESM source (29 errors), injected by in-session RF-11 playwright install","t":"2026-06-15T10:35:27.3199110Z"}
+{"type":"substep_event","stage":"verify","verdict":"pass","note":"lint+tsc+build+smoke all green after package.json repair","t":"2026-06-15T11:10:14.5330913Z"}
+{"type":"stage_end","stage":"verify","t":"2026-06-15T11:10:14.5330913Z"}
+{"type":"stage_start","stage":"landing","t":"2026-06-15T11:11:40.4244235Z"}
+{"type":"stage_end","stage":"landing","t":"2026-06-15T11:14:35.2039485Z"}
+{"type":"consultant_prompted","stage":"accept","label":"step-g-accept","t":"2026-06-15T11:14:35.2039485Z"}
+{"type":"consultant_responded","stage":"accept","label":"step-g-accept","outcome":"accept","t":"2026-06-15T11:18:52.2304376Z"}
+{"type":"run_end","pipeline":"prototype","name_slug":"approval-queue-dense","status":"complete","t":"2026-06-15T11:18:52.2304376Z"}

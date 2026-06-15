@@ -15,4 +15,16 @@ export interface PrototypeEntry {
   smoke_skipped?: boolean
 }
 
-export const PROTOTYPES: PrototypeEntry[] = []
+export const PROTOTYPES: PrototypeEntry[] = [
+  {
+    name: 'Approval Queue — Dense',
+    slug: 'approval-queue-dense',
+    route: '/approval-queue-dense',
+    scope_slug: 'approval-queue',
+    scope_label: 'The approval queue with bulk-decision actions',
+    posture_label: 'Analytical / Information-Dense',
+    position_labels: ['Maximally dense'],
+    roles: ['Importer', 'Approver'],
+    smoke_skipped: false,
+  },
+]
