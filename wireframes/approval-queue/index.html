@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>approval-queue — wireframes</title>
+  <link rel="stylesheet" href="SPACIOUS-DEFAULT/wireframe-ds.css" />
+  <style>
+    /* Index-specific layout overrides. The wireframe-ds CSS gives us the
+       dashed-sketch shell; section grids + matrix table layout is index-private. */
+
+    .wf-index-main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    .wf-toc {
+      border: var(--wf-border-width) dashed var(--wf-border-emphasis);
+      border-radius: var(--wf-radius);
+      padding: calc(var(--wf-spacing) * 2);
+      background: var(--wf-surface-muted);
+      margin: calc(var(--wf-spacing) * 2) 0;
+    }
+
+    .wf-toc h2 {
+      margin: 0 0 var(--wf-spacing);
+      font-size: var(--wf-fz-lg);
+    }
+
+    .wf-toc ol {
+      margin: 0;
+      padding-left: 20px;
+      font-size: var(--wf-fz-base);
+    }
+
+    .wf-toc li {
+      margin-bottom: 4px;
+    }
+
+    .wf-toc a {
+      color: var(--wf-text-default);
+    }
+
+    .wf-section-block {
+      margin: calc(var(--wf-spacing) * 4) 0;
+    }
+
+    .wf-section-block > h2 {
+      margin-top: 0;
+      padding-top: calc(var(--wf-spacing) * 2);
+      border-top: var(--wf-border-width) dashed var(--wf-border-subtle);
+    }
+
+    .wf-scope-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: calc(var(--wf-spacing) * 2);
+    }
+
+    @media (max-width: 720px) {
+      .wf-scope-grid { grid-template-columns: 1fr; }
+    }
+
+    .wf-scope-grid h3 {
+      font-size: var(--wf-fz-base);
+      margin: 0 0 4px;
+    }
+
+    .wf-scope-grid p,
+    .wf-scope-grid ul {
+      margin: 0 0 var(--wf-spacing);
+      font-size: var(--wf-fz-sm);
+    }
+
+    .wf-variant-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: calc(var(--wf-spacing) * 2);
+    }
+
+    .wf-variant-col,
+    .wf-meta-col {
+      border: var(--wf-border-width) dashed var(--wf-border-subtle);
+      border-radius: var(--wf-radius);
+      padding: calc(var(--wf-spacing) * 2);
+      background: var(--wf-surface-default);
+      display: flex;
+      flex-direction: column;
+      gap: var(--wf-spacing);
+    }
+
+    .wf-variant-col h3,
+    .wf-meta-col h3 {
+      margin: 0;
+      font-size: var(--wf-fz-lg);
+    }
+
+    .wf-tagline {
+      font-size: var(--wf-fz-sm);
+      color: var(--wf-text-muted);
+      margin: 0;
+    }
+
+    .wf-screen-list {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .wf-screen-list li a {
+      display: block;
+      padding: 6px 8px;
+      border: 1px dashed var(--wf-border-subtle);
+      text-decoration: none;
+      color: var(--wf-text-default);
+    }
+
+    .wf-screen-list li a:hover,
+    .wf-screen-list li a:focus {
+      outline: 2px solid var(--wf-focus-ring);
+      background: var(--wf-surface-elevated);
+    }
+
+    .wf-surface-row {
+      border-bottom: 1px dashed var(--wf-border-subtle);
+      padding-bottom: 6px;
+    }
+
+    .wf-surface-row > .wf-surface-label {
+      font-weight: 700;
+      font-size: var(--wf-fz-sm);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .wf-fold-hint {
+      font-size: var(--wf-fz-sm);
+      color: var(--wf-text-muted);
+      font-style: italic;
+    }
+
+    .wf-meta-col h4 {
+      font-size: var(--wf-fz-base);
+      margin: var(--wf-spacing) 0 4px;
+    }
+
+    .wf-meta-col ul,
+    .wf-meta-col p,
+    .wf-meta-col dl {
+      margin: 0;
+      font-size: var(--wf-fz-sm);
+    }
+
+    .wf-meta-col ul {
+      padding-left: 18px;
+    }
+
+    .wf-meta-col dl dt {
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .wf-meta-col dl dd {
+      margin-left: 0;
+      color: var(--wf-text-muted);
+    }
+
+    .wf-matrix { width: 100%; border-collapse: collapse; }
+    .wf-matrix th,
+    .wf-matrix td {
+      border: var(--wf-border-width) dashed var(--wf-border-subtle);
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: left;
+    }
+    .wf-matrix th.row-label {
+      background: var(--wf-surface-muted);
+      width: 200px;
+      font-family: var(--wf-font-display);
+    }
+    .wf-matrix th.col-header {
+      background: var(--wf-surface-elevated);
+      font-family: var(--wf-font-display);
+      text-align: center;
+    }
+    .wf-matrix tr.wf-structure-row th.row-label {
+      font-family: inherit;
+      font-weight: 600;
+    }
+    .wf-matrix td.structure { text-align: center; }
+    .wf-matrix td.position { text-align: center; }
+    .wf-matrix td.position .wf-pos-label {
+      display: block;
+      font-weight: 700;
+    }
+    .wf-matrix td.position .wf-pos-num {
+      display: block;
+      font-size: var(--wf-fz-xs);
+      color: var(--wf-text-muted);
+      margin-top: 2px;
+    }
+    .wf-matrix td.position.neutral {
+      color: var(--wf-text-muted);
+    }
+    .wf-matrix tr.wf-group-head th {
+      background: var(--wf-surface-muted);
+      font-family: var(--wf-font-display);
+      font-size: var(--wf-fz-sm);
+    }
+
+    .wf-foot {
+      font-size: var(--wf-fz-xs);
+      color: var(--wf-text-muted);
+      text-align: right;
+      padding: var(--wf-spacing) 0;
+    }
+  </style>
+</head>
+<body>
+  <header class="wf-chrome">
+    <strong>approval-queue</strong>
+    <span class="wf-help">selected at <code>2026-06-15T07:32:07Z</code></span>
+    <span style="margin-left: auto;">
+      <a href="../../blueprints/approval-queue/blueprint.md" class="wf-btn">Blueprint</a>
+    </span>
+  </header>
+
+  <main class="wf-index-main">
+    <p class="wf-help" style="margin-top: 16px;">
+      This page is metadata only. Click any screen link in section 2 to open the
+      wireframe in a new tab; arrange tabs side-by-side via your browser's
+      native tab-drag to compare variants visually.
+    </p>
+
+    <nav class="wf-toc" aria-label="Contents">
+      <h2>Contents</h2>
+      <ol>
+        <li><a href="#scope-details">Scope details</a> — shared context across all variants</li>
+        <li><a href="#wireframes">Wireframes</a> — links to each variant's screens, side-by-side</li>
+        <li><a href="#variant-metadata">Variant metadata</a> — side-by-side comparison cards</li>
+        <li><a href="#trade-off-matrix">Trade-off matrix</a> — dimension positions</li>
+      </ol>
+    </nav>
+
+    <section id="scope-details" class="wf-section-block">
+      <h2>1. Scope details</h2>
+      <p class="wf-help">the approval queue with bulk-decision actions</p>
+      <div class="wf-scope-grid">
+        <div>
+          <h3>Requirement sources</h3>
+          <p>9 functional, 6 business rules, 4 UI needs, 3 goals, 4 task flows, 2 data shapes</p>
+          <h3>Personas available</h3>
+          <ul><li>Importer</li><li>Approver</li></ul>
+        </div>
+        <div>
+          <h3>Screen inventory</h3>
+          <p>3 logical surfaces: LS-01 Transaction review queue, LS-02 Transaction detail (non-column fields), LS-03 Approve/reject confirmation. Bulk multi-select is out of scope (AMD-67); actioning is one transaction at a time.</p>
+          <p><a href="../../blueprints/approval-queue/blueprint.md">View full blueprint (inventory + flow + trace)</a></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="wireframes" class="wf-section-block">
+      <h2>2. Wireframes</h2>
+      <p class="wf-help">
+        One column per variant. Screens are grouped by logical surface, in flow order. A folded surface (drawer / inline expand / modal) shows where it is rendered rather than a separate link. Every screen link opens in a new tab.
+      </p>
+      <div class="wf-variant-grid">
+        <section class="wf-variant-col">
+          <h3>SPACIOUS-DEFAULT</h3>
+          <p class="wf-tagline">Spacious</p>
+          <ul class="wf-screen-list">
+            <li class="wf-surface-row">
+              <span class="wf-surface-label">LS-01 — Transaction review queue</span>
+              <a href="SPACIOUS-DEFAULT/screen-01-transaction-queue.html" target="_blank" rel="noopener">S-01 — Transaction review queue</a>
+            </li>
+            <li class="wf-surface-row">
+              <span class="wf-surface-label">LS-02 — Transaction detail (non-column fields)</span>
+              <a href="SPACIOUS-DEFAULT/screen-02-transaction-detail.html" target="_blank" rel="noopener">S-02 — Transaction detail</a>
+            </li>
+            <li class="wf-surface-row">
+              <span class="wf-surface-label">LS-03 — Approve/reject confirmation</span>
+              <span class="wf-fold-hint">Shown as a modal on </span>
+              <a href="SPACIOUS-DEFAULT/screen-01-transaction-queue.html" target="_blank" rel="noopener">S-01 — Transaction review queue</a>
+            </li>
+          </ul>
+        </section>
+        <section class="wf-variant-col">
+          <h3>DENSE-LEAN</h3>
+          <p class="wf-tagline">Maximally dense</p>
+          <ul class="wf-screen-list">
+            <li class="wf-surface-row">
+              <span class="wf-surface-label">LS-01 — Transaction review queue</span>
+              <a href="DENSE-LEAN/screen-01-transaction-queue.html" target="_blank" rel="noopener">S-01 — Transaction review queue</a>
+            </li>
+            <li class="wf-surface-row">
+              <span class="wf-surface-label">LS-02 — Transaction detail (non-column fields)</span>
+              <span class="wf-fold-hint">Shown as an inline expand on </span>
+              <a href="DENSE-LEAN/screen-01-transaction-queue.html" target="_blank" rel="noopener">S-01 — Transaction review queue</a>
+            </li>
+            <li class="wf-surface-row">
+              <span class="wf-surface-label">LS-03 — Approve/reject confirmation</span>
+              <span class="wf-fold-hint">Shown as a modal on </span>
+              <a href="DENSE-LEAN/screen-01-transaction-queue.html" target="_blank" rel="noopener">S-01 — Transaction review queue</a>
+            </li>
+          </ul>
+        </section>
+      </div>
+    </section>
+
+    <section id="variant-metadata" class="wf-section-block">
+      <h2>3. Variant metadata</h2>
+      <p class="wf-help">
+        Side-by-side prose comparison — what each variant is built for, what it
+        does well, what it gives up, and when to pick it.
+      </p>
+      <div class="wf-variant-grid">
+        <section class="wf-meta-col">
+          <h3>SPACIOUS-DEFAULT</h3>
+          <h4>Built for</h4><p>Approver</p>
+          <h4>UX posture</h4><p>Error-Averse / High-Stakes</p>
+          <h4>Design philosophy</h4><p>Spacious deliberate review with modal confirm gates; for the Approver's high-stakes decisions.</p>
+          <h4>Strengths</h4>
+          <ul>
+            <li>Calm, spacious layout reduces misreading high-value records</li>
+            <li>Reject reason captured before the decision is final</li>
+            <li>Confirmation step guards against accidental approvals</li>
+          </ul>
+          <h4>Weaknesses</h4>
+          <ul>
+            <li>Slower per decision than a dense, scan-heavy layout</li>
+            <li>More clicks for reviewers handling large queues</li>
+            <li>Extra whitespace means less fits on screen at once</li>
+          </ul>
+          <h4>Trade-off</h4><p>Trades reviewing speed for fewer mistakes on irreversible, high-stakes decisions.</p>
+          <h4>Use when</h4><p>Approvers making final, irreversible decisions where a wrong call is costly.</p>
+          <h4>States per surface</h4>
+          <dl>
+            <dt>LS-01 — Transaction review queue</dt><dd>default | loading | empty | error | confirm-modal-open</dd>
+            <dt>LS-02 — Transaction detail (non-column fields)</dt><dd>default | loading | error</dd>
+            <dt>LS-03 — Approve/reject confirmation</dt><dd>default | loading | error</dd>
+          </dl>
+        </section>
+        <section class="wf-meta-col">
+          <h3>DENSE-LEAN</h3>
+          <h4>Built for</h4><p>Importer</p>
+          <h4>UX posture</h4><p>Analytical / Information-Dense</p>
+          <h4>Design philosophy</h4><p>Dense scannable table with inline row-expand detail; for the Importer's high-volume review.</p>
+          <h4>Strengths</h4>
+          <ul>
+            <li>Many transactions visible at once for fast scanning</li>
+            <li>Detail opens inline without leaving the queue</li>
+            <li>Compact rows keep more of the batch in view</li>
+          </ul>
+          <h4>Weaknesses</h4>
+          <ul>
+            <li>Tight rows are harder to read carefully</li>
+            <li>Less room for status and amount to stand out</li>
+            <li>Dense layout can feel busy on small screens</li>
+          </ul>
+          <h4>Trade-off</h4><p>Shows far more of the batch at once, but trades the calm spacing that makes careful single-record review easier.</p>
+          <h4>Use when</h4><p>High-volume reviewers scanning many imported transactions per file.</p>
+          <h4>States per surface</h4>
+          <dl>
+            <dt>LS-01 — Transaction review queue</dt><dd>default | loading | empty | error | row-expanded | confirm-modal-open</dd>
+            <dt>LS-02 — Transaction detail (non-column fields)</dt><dd>default | loading</dd>
+            <dt>LS-03 — Approve/reject confirmation</dt><dd>default | loading | error</dd>
+          </dl>
+        </section>
+      </div>
+    </section>
+
+    <section id="trade-off-matrix" class="wf-section-block">
+      <h2>4. Trade-off matrix</h2>
+      <p class="wf-help">
+        Each column is a variant. The structure rows name how each logical
+        surface is realized; the dimension rows show where the variants diverge,
+        with plain-English position labels and the signed position as a small
+        annotation.
+      </p>
+      <table class="wf-matrix">
+        <thead>
+          <tr><th class="row-label">Dimension</th><th class="col-header">SPACIOUS-DEFAULT</th><th class="col-header">DENSE-LEAN</th></tr>
+        </thead>
+        <tbody>
+          <tr><th class="row-label">Built for</th><td>Approver</td><td>Importer</td></tr>
+          <tr class="wf-group-head"><th colspan="3">Decomposition / structure</th></tr>
+          <tr class="wf-structure-row"><th class="row-label">LS-01 — Transaction review queue</th><td class="structure">Own screen</td><td class="structure">Own screen</td></tr>
+          <tr class="wf-structure-row"><th class="row-label">LS-02 — Transaction detail (non-column fields)</th><td class="structure">Own screen</td><td class="structure">Inline expand</td></tr>
+          <tr class="wf-structure-row"><th class="row-label">LS-03 — Approve/reject confirmation</th><td class="structure">Modal</td><td class="structure">Modal</td></tr>
+          <tr class="wf-group-head"><th colspan="3">Dimensions</th></tr>
+          <tr>
+            <th class="row-label">density-focus</th>
+            <td class="position"><span class="wf-pos-label">Spacious</span><span class="wf-pos-num">-1</span></td>
+            <td class="position"><span class="wf-pos-label">Maximally dense</span><span class="wf-pos-num">+2</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <p class="wf-foot">Drift report: clean — every variant's rendered output matches its authored surface_plan.</p>
+  </main>
+</body>
+</html>

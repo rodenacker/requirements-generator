@@ -1,0 +1,7 @@
+{
+  "scope_slug": "approval-queue",
+  "authored_at": "2026-06-15T08:04:23Z",
+  "blueprint_sha256": "b97419508a5f468743b6901110ad93dfc0b7bd5da7fd618e884f1f524bb0abf9",
+  "compared_variants": ["SPACIOUS-DEFAULT", "DENSE-LEAN"],
+  "drift_flags": []
+}

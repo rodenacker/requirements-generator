@@ -381,12 +381,12 @@
   <h1 id="top">10 BA Questions — Transaction Import &amp; Approval System</h1>
   <dl class="meta-grid">
     <div><dt>Domain</dt><dd>Enterprise financial transaction data management</dd></div>
-    <div><dt>Generated</dt><dd>2026-06-12T19:29:46Z</dd></div>
-    <div><dt>Source SHA-256</dt><dd><code>a8c551059a6affd50c20f2d4de43d7bf4d21e5aea9d81e954c56a96d8f3de214</code></dd></div>
+    <div><dt>Generated</dt><dd>2026-06-14T16:02:17Z</dd></div>
+    <div><dt>Source SHA-256</dt><dd><code>88eb974feca6569e8aae57ab9e112ecd3da89a60897c1f7d2758d10d5e431b98</code></dd></div>
     <div><dt>Reviewer</dt><dd>10 BA Questions Review (experienced Business Analyst lens, BABOK-aware)</dd></div>
     <div><dt>Total questions</dt><dd>10</dd></div>
-    <div><dt>Candidate pool</dt><dd>46 (≤ 50)</dd></div>
-    <div><dt>Category coverage</dt><dd>6 of 8 (C1, C2, C3, C5, C6, C7)</dd></div>
+    <div><dt>Candidate pool</dt><dd>40 (≤ 50)</dd></div>
+    <div><dt>Category coverage</dt><dd>5 of 8 (C1, C2, C5, C6, C8)</dd></div>
   </dl>
 </header>
 
@@ -415,8 +415,7 @@
 
 <section id="plain-terms" aria-label="In plain terms">
   <h2>In plain terms</h2>
-  <p>This review lists the ten most pressing questions a business analyst would put back to you before this requirements document goes to design or estimation — not defects to fix, but decisions the business still needs to make. Each question carries a priority (how urgent — blocking, major, or minor), a category (which of eight business-analysis gap areas it came from), and an anchor (the §N.N section it targets, or &#39;missing-section&#39; when the topic is absent from the document entirely); the ten were selected from a candidate pool (the larger set of 46 questions generated before the top ten were chosen).</p>
-  <p>One question is blocking: the activity-name-to-status mapping that drives every File Status display is never defined, so the file-log screens cannot be built faithfully until the business supplies it. The other nine are major — the unstated problem and its cost, a quantified definition of success, separation of duties, approval routing, the file source-and-format contract, failed-file and unparseable-row handling, and who consumes the export — each a default the team could guess but would carry real risk of getting wrong. Take these ten to your stakeholders and fold the answers back through <code>/requirements</code> before the next phase begins.</p>
+  <p>This review lists the ten most pressing questions a business analyst would put back to you before this requirements document goes to design or estimation — not defects to fix, but business decisions still to be made. Each carries a priority (how urgent — blocking, major, or minor), a category (which of the eight business-analysis gap areas it came from), and an anchor (the §N.N section it targets, or &#39;missing-section&#39; when the topic is absent from the document entirely); the ten were chosen from a candidate pool (the larger set of questions generated before the top ten were selected). This is a heavily hardened document — its seventy-five amendments have already closed most earlier gaps — so there are no blocking questions: the ten that remain are nine major and one minor. They cluster on business rules the document leaves open (whether approval is tiered by amount, whether transactions are routed to specific approvers, and what recourse exists for an erroneous terminal action), on what the data means (system-of-record ownership, mixed-currency handling, and what RecordCount actually counts), and on who owns the system plus the backend status contract it now depends on. Take these ten to your stakeholders and fold the answers back through <code>/requirements</code> before the next phase begins.</p>
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
 
@@ -425,12 +424,12 @@
   <p><strong>Total questions:</strong> 10</p>
   <p>
     <strong>Priority</strong> —
-    <span class="chip priority-blocking">Blocking 1</span>
+    <span class="chip priority-blocking">Blocking 0</span>
     <span class="chip priority-major">Major 9</span>
-    <span class="chip priority-minor">Minor 0</span>
+    <span class="chip priority-minor">Minor 1</span>
   </p>
-  <p><strong>Candidate pool size:</strong> 46 (≤ 50)</p>
-  <p><strong>Category coverage:</strong> 6 of 8 (C1, C2, C3, C5, C6, C7)</p>
+  <p><strong>Candidate pool size:</strong> 40 (≤ 50)</p>
+  <p><strong>Category coverage:</strong> 5 of 8 (C1, C2, C5, C6, C8)</p>
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
 
@@ -449,85 +448,85 @@
       </tr>
     </thead>
     <tbody>
-      <tr class="priority-blocking">
+      <tr class="priority-major">
         <td>1</td>
         <td><a href="#BAQ-01"><code>BAQ-01</code></a></td>
-        <td><span class="chip priority-blocking">blocking</span></td>
-        <td>C5 Business rules &amp; decisions</td>
-        <td><code>§6.2</code></td>
-        <td>What are the authoritative activity-name → File Status pairs behind the mapping §6.2 BR-08 relies on…</td>
+        <td><span class="chip priority-major">major</span></td>
+        <td>C1 Problem &amp; justification</td>
+        <td><code>missing-section: problem-justification</code></td>
+        <td>What is the current process for importing and approving transactions today, and what about it…</td>
       </tr>
       <tr class="priority-major">
         <td>2</td>
         <td><a href="#BAQ-02"><code>BAQ-02</code></a></td>
         <td><span class="chip priority-major">major</span></td>
-        <td>C1 Problem &amp; justification</td>
-        <td><code>§1</code></td>
-        <td>What is the current state of transaction import and approval today, and what makes it unsustainable…</td>
+        <td>C5 Business rules &amp; decisions</td>
+        <td><code>§6.2</code></td>
+        <td>Is transaction approval uniform for every Imported transaction, or do transactions above a monetary…</td>
       </tr>
       <tr class="priority-major">
         <td>3</td>
         <td><a href="#BAQ-03"><code>BAQ-03</code></a></td>
         <td><span class="chip priority-major">major</span></td>
-        <td>C7 Edge cases &amp; exception flows</td>
-        <td><code>§1.5</code></td>
-        <td>When a file fails processing, what does the business want the Importer to be able to do about it…</td>
+        <td>C5 Business rules &amp; decisions</td>
+        <td><code>§6.1</code></td>
+        <td>Can any Approver action any Imported transaction from a shared pool, or are transactions routed or…</td>
       </tr>
       <tr class="priority-major">
         <td>4</td>
         <td><a href="#BAQ-04"><code>BAQ-04</code></a></td>
         <td><span class="chip priority-major">major</span></td>
-        <td>C2 Stakeholders &amp; users</td>
-        <td><code>§6.7</code></td>
-        <td>Who consumes the exported transaction CSV, and does that consumer impose required columns or format…</td>
+        <td>C5 Business rules &amp; decisions</td>
+        <td><code>§2.3</code></td>
+        <td>When a transaction is approved or rejected in error, what is the business recourse, given that §2.3…</td>
       </tr>
       <tr class="priority-major">
         <td>5</td>
         <td><a href="#BAQ-05"><code>BAQ-05</code></a></td>
         <td><span class="chip priority-major">major</span></td>
-        <td>C5 Business rules &amp; decisions</td>
-        <td><code>§6.5</code></td>
-        <td>Is separation of duties a business rule — must a transaction&#39;s Approver differ from its Importer…</td>
+        <td>C2 Stakeholders &amp; users</td>
+        <td><code>§3</code></td>
+        <td>Beyond the two operator roles, who is the business owner accountable for this system&#39;s outcomes…</td>
       </tr>
       <tr class="priority-major">
         <td>6</td>
         <td><a href="#BAQ-06"><code>BAQ-06</code></a></td>
         <td><span class="chip priority-major">major</span></td>
-        <td>C5 Business rules &amp; decisions</td>
-        <td><code>§6.1</code></td>
-        <td>Can any Approver action any Imported transaction, or are transactions routed to specific approvers…</td>
+        <td>C6 Data, entities &amp; integrations</td>
+        <td><code>§2.1</code></td>
+        <td>Is this system the system of record for transactions, or are the uploaded files produced by an…</td>
       </tr>
       <tr class="priority-major">
         <td>7</td>
         <td><a href="#BAQ-07"><code>BAQ-07</code></a></td>
         <td><span class="chip priority-major">major</span></td>
         <td>C6 Data, entities &amp; integrations</td>
-        <td><code>§9</code></td>
-        <td>What is the authoritative source of the uploaded files, and who owns the canonical file format…</td>
+        <td><code>§7</code></td>
+        <td>Can a single file or the retained transaction set contain more than one Currency, and if so what is…</td>
       </tr>
       <tr class="priority-major">
         <td>8</td>
         <td><a href="#BAQ-08"><code>BAQ-08</code></a></td>
         <td><span class="chip priority-major">major</span></td>
-        <td>C7 Edge cases &amp; exception flows</td>
-        <td><code>missing-section: exception-flows</code></td>
-        <td>When an uploaded file has rows that cannot be parsed, what is the business policy for them…</td>
+        <td>C6 Data, entities &amp; integrations</td>
+        <td><code>§7</code></td>
+        <td>Does FileLog.RecordCount count every row in the uploaded file, or only the transactions that parsed…</td>
       </tr>
       <tr class="priority-major">
         <td>9</td>
         <td><a href="#BAQ-09"><code>BAQ-09</code></a></td>
         <td><span class="chip priority-major">major</span></td>
-        <td>C1 Problem &amp; justification</td>
-        <td><code>missing-section: problem-justification</code></td>
-        <td>What does the status quo cost in measurable terms that this system is expected to reduce…</td>
+        <td>C8 Assumptions, dependencies &amp; sequencing</td>
+        <td><code>§6.10</code></td>
+        <td>Is the File Status enum the frontend renders — Uploaded, Processing, Completed, Failed — a closed…</td>
       </tr>
-      <tr class="priority-major">
+      <tr class="priority-minor">
         <td>10</td>
         <td><a href="#BAQ-10"><code>BAQ-10</code></a></td>
-        <td><span class="chip priority-major">major</span></td>
-        <td>C3 Success &amp; acceptance criteria</td>
-        <td><code>§4.1</code></td>
-        <td>What quantified target defines success, and at what threshold is the business satisfied…</td>
+        <td><span class="chip priority-minor">minor</span></td>
+        <td>C1 Problem &amp; justification</td>
+        <td><code>§1</code></td>
+        <td>What event or pressure triggered this work now — a regulatory change, an audit finding, a rising…</td>
       </tr>
     </tbody>
   </table>
@@ -536,105 +535,105 @@
 
 <section id="questions">
   <h2>Questions</h2>
-  <article class="qcard priority-blocking" id="BAQ-01">
+  <article class="qcard priority-major" id="BAQ-01">
     <h3>
       <code>BAQ-01</code> —
-      <span class="chip priority-blocking">blocking</span> ·
-      C5 Business rules &amp; decisions ·
-      <code>§6.2</code>
+      <span class="chip priority-major">major</span> ·
+      C1 Problem &amp; justification ·
+      <code>missing-section: problem-justification</code>
     </h3>
-    <blockquote class="question"><p>What are the authoritative activity-name → File Status pairs behind the mapping that §6.2 BR-08 relies on and §9 flags as not enumerated?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> File Status (§2.3, BR-08) is the spine of the file-log overview every user sees, yet §9 records that the activity-name-to-status mapping is &#39;not enumerated in the corpus&#39;. Until the business supplies the activity-name → status pairs and names who maintains them, the Completed / Processing / Failed display cannot be built to reflect the real system, and any prototype mapping is a guess that may contradict production.</p>
+    <blockquote class="question"><p>What is the current process for importing and approving transactions today, and what about it — cost, error rate, delay, or risk — makes it unsustainable enough to justify building this system?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> The document specifies the solution — a dual-role import-and-approval frontend — in depth across seventy-five amendments, but never states the problem it replaces or what the status quo costs. Without that anchor the team cannot tell which of the seven in-scope screens relieves real pain and which is merely convenient, and scope trade-offs are made blind.</p>
   </article>
   <article class="qcard priority-major" id="BAQ-02">
     <h3>
       <code>BAQ-02</code> —
       <span class="chip priority-major">major</span> ·
-      C1 Problem &amp; justification ·
-      <code>§1</code>
+      C5 Business rules &amp; decisions ·
+      <code>§6.2</code>
     </h3>
-    <blockquote class="question"><p>What is the current state of transaction import and approval today, and what about it is costly or unsustainable enough to justify building this system?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> §1 describes the solution — a dual-role import-and-approval surface — but not the problem it displaces, so there is no shared statement of what the current approach costs or why it is unsustainable. Without that anchor, scope and priority decisions float free: the team cannot tell which features relieve the real pain and which are merely nice to have.</p>
+    <blockquote class="question"><p>Is transaction approval uniform for every Imported transaction, or do transactions above a monetary threshold — or of a particular type or currency — require additional or more-senior approval?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §6.2 defines approve and reject as a single uniform action with no amount-based tier, yet threshold-based authorisation is a near-universal control in financial transaction approval. If a tier exists, the approval workflow becomes multi-stage and RBAC gains an approval-limit dimension — a materially different build from the flat model the document implies.</p>
   </article>
   <article class="qcard priority-major" id="BAQ-03">
     <h3>
       <code>BAQ-03</code> —
       <span class="chip priority-major">major</span> ·
-      C7 Edge cases &amp; exception flows ·
-      <code>§1.5</code>
+      C5 Business rules &amp; decisions ·
+      <code>§6.1</code>
     </h3>
-    <blockquote class="question"><p>When a file fails processing (§2.5 Processing → Failed), what does the business want the Importer to be able to do — re-upload, request reprocessing, view the failure reason, escalate, or nothing in this release?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> §1.5 defers the Failed-file recovery flow as &#39;not yet defined&#39; while §3 records that the Importer&#39;s central fear is files failing with no clear reason — so the one path the primary user most dreads is the one the document leaves blank. The business&#39;s answer determines whether a whole recovery surface enters scope or the release ships with Failed as a dead end.</p>
+    <blockquote class="question"><p>Can any Approver action any Imported transaction from a shared pool, or are transactions routed or assigned to specific Approvers by file, amount, team, or owner?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §6.1 F-08 and the §6.5 RBAC matrix imply any Approver may action any Imported transaction, but the document never states whether transactions are routed to named approvers. Assignment introduces queues, ownership, and hand-off — a materially different workflow and Transaction-table design from a shared review pool.</p>
   </article>
   <article class="qcard priority-major" id="BAQ-04">
     <h3>
       <code>BAQ-04</code> —
       <span class="chip priority-major">major</span> ·
-      C2 Stakeholders &amp; users ·
-      <code>§6.7</code>
+      C5 Business rules &amp; decisions ·
+      <code>§2.3</code>
     </h3>
-    <blockquote class="question"><p>Who is the downstream consumer of the exported transaction CSV (§6.7 RPT-02), and does that consumer impose any required columns, format, or naming on the export?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> The filtered-transaction CSV (§6.7 RPT-02, F-11) leaves the system, but the document never names who consumes it or whether that consumer constrains the columns, format, or naming. If a downstream reconciliation system or auditor expects a fixed schema, the export is a contract rather than a convenience, and its column set must be confirmed before it is built.</p>
+    <blockquote class="question"><p>When a transaction is approved or rejected in error, what is the business recourse, given that §2.3 and BR-02 make the Approved and Rejected states terminal and immutable with no correction or reversal path?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> The Approver&#39;s stated fear in §3 is actioning the wrong transaction, yet every action is terminal and irreversible with no correction, reversal, or re-import flow defined. The business must say whether erroneous actions are absorbed downstream or need an in-system remedy — the answer decides whether a correction surface enters scope.</p>
   </article>
   <article class="qcard priority-major" id="BAQ-05">
     <h3>
       <code>BAQ-05</code> —
       <span class="chip priority-major">major</span> ·
-      C5 Business rules &amp; decisions ·
-      <code>§6.5</code>
+      C2 Stakeholders &amp; users ·
+      <code>§3</code>
     </h3>
-    <blockquote class="question"><p>Is separation of duties a business rule — must the Approver of a transaction be a different person from the Importer who uploaded its file?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> §1.6 states each user holds exactly one role, but the document never says whether separation of duties is a business rule — whether the person who imported a file may also approve its transactions. In a financial domain this is a core control; the answer decides whether maker-checker segregation must be reflected (or enforced) and reshapes RBAC and the approval workflow.</p>
+    <blockquote class="question"><p>Beyond the two operator roles, who is the business owner accountable for this system&#39;s outcomes, and who has the authority to sign off these requirements and accept the delivered system?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §3 describes the Importer and Approver who use the screens but names no decision-maker, budget owner, or sign-off authority. Without a named owner the open business decisions in this list have no one to route to, and acceptance of the delivered system has no defined approver.</p>
   </article>
   <article class="qcard priority-major" id="BAQ-06">
     <h3>
       <code>BAQ-06</code> —
       <span class="chip priority-major">major</span> ·
-      C5 Business rules &amp; decisions ·
-      <code>§6.1</code>
+      C6 Data, entities &amp; integrations ·
+      <code>§2.1</code>
     </h3>
-    <blockquote class="question"><p>Can any Approver action any Imported transaction, or does the business route transactions to specific approvers by file, amount, or team?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> The document implies any Approver can action any Imported transaction (§6.1 F-08, §6.5) but never states whether transactions are routed to specific approvers by file, amount, or team. Routing to a named approver is a fundamentally different workflow — queues, assignment, hand-off — than a shared pool, and the choice changes the transaction-table and approval design.</p>
+    <blockquote class="question"><p>Is this system the system of record for transactions, or are the uploaded files produced by an upstream ledger or banking system that remains authoritative for the underlying data?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> Transactions enter only via uploaded files (§2.1, §5 File Upload), which implies an upstream producer, but the document never says whether this system owns the transaction data or reviews a copy of it. The answer governs whether discrepancies, corrections, and re-imports are this system&#39;s concern or the upstream system&#39;s.</p>
   </article>
   <article class="qcard priority-major" id="BAQ-07">
     <h3>
       <code>BAQ-07</code> —
       <span class="chip priority-major">major</span> ·
       C6 Data, entities &amp; integrations ·
-      <code>§9</code>
+      <code>§7</code>
     </h3>
-    <blockquote class="question"><p>What is the authoritative upstream source of the uploaded transaction files, and who owns the canonical file format the system must accept, given the format disagreements §9 records?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> §9 records that the inputs disagree on transaction-type codes and account-number format, which signals there is no single agreed file-format contract. The business must name the authoritative upstream source and the canonical format the system must accept, or ingestion will be built against an assumption the file producers do not share.</p>
+    <blockquote class="question"><p>Can a single file or the retained transaction set contain more than one Currency, and if so what is the business rule for mixed currencies in the file summary counts and the CSV export?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §7 carries a free-form Currency field per transaction with no single-currency constraint, yet the file summary (RPT-01) and export (RPT-02) aggregate across transactions. If files can mix currencies, cross-currency totals are meaningless and the summary and export need per-currency grouping — a rule the document does not state.</p>
   </article>
   <article class="qcard priority-major" id="BAQ-08">
     <h3>
       <code>BAQ-08</code> —
       <span class="chip priority-major">major</span> ·
-      C7 Edge cases &amp; exception flows ·
-      <code>missing-section: exception-flows</code>
+      C6 Data, entities &amp; integrations ·
+      <code>§7</code>
     </h3>
-    <blockquote class="question"><p>When an uploaded file contains rows that cannot be parsed or fail the expected format, what is the business policy — reject the whole file, import the valid rows and drop the invalid ones, or hold the file for correction?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> §1.5 places file-validation-error review out of scope, but the document never states the business policy when an uploaded file contains rows that cannot be parsed. Reject-the-file, import-valid-rows-only, and hold-for-correction are materially different ingestion outcomes that change what RecordCount and File Status even mean.</p>
+    <blockquote class="question"><p>Does FileLog.RecordCount count every row in the uploaded file, or only the transactions that parsed successfully, and what should the user see when those two numbers differ?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §1.5 places file-validation-error review out of scope, so some rows may never become transactions, yet RecordCount is displayed (F-04) and drives the file summary (RPT-01) with no definition of what it counts. If RecordCount and the visible transaction count can diverge, a user will read a partially-ingested file as complete.</p>
   </article>
   <article class="qcard priority-major" id="BAQ-09">
     <h3>
       <code>BAQ-09</code> —
       <span class="chip priority-major">major</span> ·
-      C1 Problem &amp; justification ·
-      <code>missing-section: problem-justification</code>
+      C8 Assumptions, dependencies &amp; sequencing ·
+      <code>§6.10</code>
     </h3>
-    <blockquote class="question"><p>What does the status quo cost in measurable terms — manual rework hours, mis-keyed-transaction rates, or approval delays — that this system is expected to reduce?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> The goals are stated qualitatively (§4.1, &#39;files ingested without manual rework&#39;) with no baseline for what the status quo costs in rework hours, error rates, or approval delays. Without that baseline, success cannot be measured and the business case for individual features cannot be defended at estimation time.</p>
+    <blockquote class="question"><p>Is the File Status enum the frontend renders — Uploaded, Processing, Completed, Failed — a closed set the backend guarantees, or could the backend&#39;s activity-name-to-status derivation emit a value the frontend has no chip for?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> The amendments make File Status backend-owned and rendered verbatim (AMD-02, AMD-12, AMD-29), so the frontend now wholly depends on the backend&#39;s emitted enum matching the four §7 values. If that dependency is an unconfirmed assumption, an unmapped status would render as a blank or broken chip — a risk-bearing dependency that should be contracted, not assumed.</p>
   </article>
-  <article class="qcard priority-major" id="BAQ-10">
+  <article class="qcard priority-minor" id="BAQ-10">
     <h3>
       <code>BAQ-10</code> —
-      <span class="chip priority-major">major</span> ·
-      C3 Success &amp; acceptance criteria ·
-      <code>§4.1</code>
+      <span class="chip priority-minor">minor</span> ·
+      C1 Problem &amp; justification ·
+      <code>§1</code>
     </h3>
-    <blockquote class="question"><p>What quantified target defines success for this system (for example approval turnaround time, ingestion-without-rework rate, or error reduction), and at what threshold is the business satisfied?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> §4.1 lists quality signals as qualitative statements with no measurable threshold, so there is no agreed definition of when this system has done its job. A quantified target — approval turnaround, ingestion-without-rework rate, error reduction — is needed before the team can tell whether the build succeeded or where to concentrate effort.</p>
+    <blockquote class="question"><p>What event or pressure triggered this work now — a regulatory change, an audit finding, a rising error rate, or growth — that should set the timeline and the priority order of the goals?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §1 states the purpose as a capability (a file-driven ingestion-and-approval surface) but names no triggering event, so the relative urgency of the five goals is unanchored. Knowing why now lets the team sequence the seven screens against the real driver rather than guessing.</p>
   </article>
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
@@ -646,38 +645,38 @@
 
     <h4>Candidate pool</h4>
     <table><thead><tr><th>Stat</th><th>Value</th></tr></thead><tbody>
-      <tr><td>Candidates generated (Step 3)</td><td>46 (≤ 50)</td></tr>
-      <tr><td>Dropped: GR-NN match (Step 4)</td><td>0</td></tr>
+      <tr><td>Candidates generated (Step 3)</td><td>40 (≤ 50)</td></tr>
+      <tr><td>Dropped: GR-NN match (Step 4)</td><td>2</td></tr>
       <tr><td>Dropped: PI-NN match (Step 4)</td><td>1</td></tr>
-      <tr><td>Dropped: out-of-scope (Step 4)</td><td>1</td></tr>
+      <tr><td>Dropped: out-of-scope (Step 4)</td><td>2</td></tr>
       <tr><td>Dropped: UX-lens (Step 4)</td><td>2</td></tr>
-      <tr><td>Surviving candidates after filter</td><td>42</td></tr>
+      <tr><td>Surviving candidates after filter</td><td>33</td></tr>
       <tr><td>Selected (Step 5)</td><td>10</td></tr>
     </tbody></table>
 
     <h4>Category coverage</h4>
     <table><thead><tr><th>Category</th><th>Candidates generated</th><th>Candidates surviving filter</th><th>Selected</th></tr></thead><tbody>
       <tr><td>C1 Problem &amp; justification</td><td>5</td><td>5</td><td>2</td></tr>
-      <tr><td>C2 Stakeholders &amp; users</td><td>6</td><td>5</td><td>1</td></tr>
-      <tr><td>C3 Success &amp; acceptance criteria</td><td>5</td><td>4</td><td>1</td></tr>
-      <tr><td>C4 Scope &amp; MVP boundaries</td><td>5</td><td>5</td><td>0</td></tr>
-      <tr><td>C5 Business rules &amp; decisions</td><td>8</td><td>8</td><td>3</td></tr>
-      <tr><td>C6 Data, entities &amp; integrations</td><td>6</td><td>6</td><td>1</td></tr>
-      <tr><td>C7 Edge cases &amp; exception flows</td><td>5</td><td>4</td><td>2</td></tr>
-      <tr><td>C8 Assumptions, dependencies &amp; sequencing</td><td>6</td><td>5</td><td>0</td></tr>
-      <tr><td><strong>Coverage of selected</strong></td><td><strong>—</strong></td><td><strong>—</strong></td><td><strong>6 of 8</strong></td></tr>
+      <tr><td>C2 Stakeholders &amp; users</td><td>6</td><td>4</td><td>1</td></tr>
+      <tr><td>C3 Success &amp; acceptance criteria</td><td>4</td><td>4</td><td>0</td></tr>
+      <tr><td>C4 Scope &amp; MVP boundaries</td><td>4</td><td>4</td><td>0</td></tr>
+      <tr><td>C5 Business rules &amp; decisions</td><td>7</td><td>5</td><td>3</td></tr>
+      <tr><td>C6 Data, entities &amp; integrations</td><td>6</td><td>6</td><td>3</td></tr>
+      <tr><td>C7 Edge cases &amp; exception flows</td><td>4</td><td>2</td><td>0</td></tr>
+      <tr><td>C8 Assumptions, dependencies &amp; sequencing</td><td>4</td><td>3</td><td>1</td></tr>
+      <tr><td><strong>Coverage of selected</strong></td><td><strong>—</strong></td><td><strong>—</strong></td><td><strong>5 of 8</strong></td></tr>
     </tbody></table>
 
     <h4>Quality gates</h4>
     <table class="diagnostics-gates"><thead><tr><th>Gate</th><th>Result</th><th>Notes</th></tr></thead><tbody>
       <tr class="gate-pass"><td>1. Exactly 10 questions in final output</td><td><span class="chip gate-pass">PASS</span></td><td>10 questions selected (BAQ-01…BAQ-10).</td></tr>
-      <tr class="gate-pass"><td>2. Candidate pool size ≤ 50</td><td><span class="chip gate-pass">PASS</span></td><td>46 candidates generated.</td></tr>
-      <tr class="gate-pass"><td>3. Every question has a valid priority</td><td><span class="chip gate-pass">PASS</span></td><td>1 blocking, 9 major, 0 minor — all in {blocking, major, minor}.</td></tr>
+      <tr class="gate-pass"><td>2. Candidate pool size ≤ 50</td><td><span class="chip gate-pass">PASS</span></td><td>40 candidates generated.</td></tr>
+      <tr class="gate-pass"><td>3. Every question has a valid priority</td><td><span class="chip gate-pass">PASS</span></td><td>0 blocking, 9 major, 1 minor — all in {blocking, major, minor}.</td></tr>
       <tr class="gate-pass"><td>4. Every question has a 1–3 sentence rationale</td><td><span class="chip gate-pass">PASS</span></td><td>All ten carry a non-stub rationale.</td></tr>
-      <tr class="gate-pass"><td>5. Every question has valid provenance</td><td><span class="chip gate-pass">PASS</span></td><td>8 cite an existing §N.N; 2 use documented missing-section slugs (exception-flows, problem-justification).</td></tr>
+      <tr class="gate-pass"><td>5. Every question has valid provenance</td><td><span class="chip gate-pass">PASS</span></td><td>9 cite an existing §N.N; 1 uses the documented missing-section slug (problem-justification).</td></tr>
       <tr class="gate-pass"><td>6. No question resolved by an active GR-NN</td><td><span class="chip gate-pass">PASS</span></td><td>Re-ran the Step-4 GR filter against the selected ten — no matches.</td></tr>
-      <tr class="gate-pass"><td>7. No question out-of-scope per prototype-scope.md</td><td><span class="chip gate-pass">PASS</span></td><td>No selected question names a Not-Prototypable implementation topic.</td></tr>
-      <tr class="gate-pass"><td>8. Category coverage ≥ 5 of 8</td><td><span class="chip gate-pass">PASS</span></td><td>6 of 8 (C1, C2, C3, C5, C6, C7).</td></tr>
+      <tr class="gate-pass"><td>7. No question out-of-scope per prototype-scope.md</td><td><span class="chip gate-pass">PASS</span></td><td>No selected question names a Not-Prototypable implementation topic; BAQ-09 is an fe-facing-contract question.</td></tr>
+      <tr class="gate-pass"><td>8. Category coverage ≥ 5 of 8</td><td><span class="chip gate-pass">PASS</span></td><td>5 of 8 (C1, C2, C5, C6, C8).</td></tr>
       <tr class="gate-pass"><td>9. No UX-lens overlap</td><td><span class="chip gate-pass">PASS</span></td><td>Re-ran the Step-4 UX-lens filter against the selected ten — all are BA-framed (what / why / who / when / how-much).</td></tr>
     </tbody></table>
 

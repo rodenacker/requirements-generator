@@ -1089,6 +1089,172 @@ classDiagram
 
 **Amendment** `[CONSULTANT-STATED]`: Out of scope for the prototype: live (auto-refreshing) status progression on the File Log Overview. The prototype need not update files automatically as they move Uploaded → Processing → Completed/Failed; a manual-refresh model is acceptable and real-time updating is not required.
 
+### Run 2026-06-15 — from `input/ten-ba-questions-review-resolutions-2026-06-15.md` (review: `review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.html`)
+
+#### AMD-76 — What is the current process for importing and approving transactions today, and what about it…
+
+**Amends:** (net-new — supersedes nothing in this document)
+
+**Amendment** `[AI-INFERRED, CONSULTANT-CONFIRMED]`: Today transaction files are imported and approved through a manual, fragmented process — spreadsheets and ad-hoc tooling — that is slow, error-prone, and lacks a clear audit trail. This system replaces that process with a single role-based review surface in which Importers upload and track files and Approvers review and action transactions, giving the work a reliable, status-visible home. This status-quo baseline is a stated assumption to be validated with the client.
+
+**Grounding:** [assumption — confirm with client] — commits the document to a stated status-quo baseline that justifies the seven in-scope screens; the baseline must be validated with the client before it anchors scope trade-offs.
+
+#### AMD-77 — Is transaction approval uniform for every Imported transaction, or do transactions above a monetary…
+
+**Amends:** (net-new — supersedes nothing in this document)
+
+**Amendment** `[AI-INFERRED, CONSULTANT-CONFIRMED]`: Transaction approval is uniform: every Imported transaction is approved or rejected by a single Approver action regardless of amount, type, or currency. No monetary threshold, tiered authorisation, or approval-limit dimension applies in the MVP; the approval workflow stays a flat single-action model and no approval-limit field is added to the User or Role data.
+
+**Grounding:** [grounded: §6.2] — keeps the §6.2 flat single-action approve/reject model; commits the build to no multi-stage approval and no approval-limit dimension on RBAC.
+
+#### AMD-78 — Can any Approver action any Imported transaction from a shared pool, or are transactions routed or…
+
+**Amends:** (net-new — supersedes nothing in this document)
+
+**Amendment** `[AI-INFERRED, CONSULTANT-CONFIRMED]`: Any Approver may action any Imported transaction from a shared review pool; transactions are not routed or assigned to specific Approvers by file, amount, team, or owner. The Transaction Table is a shared work surface for all Approvers, with no assignment or ownership field and no per-approver queue. This is consistent with AMD-66 (the shared global/file-scoped review model) and AMD-70 (no acting-Approver attribution).
+
+**Grounding:** [grounded: §6.1] — keeps the shared pool implied by §6.1 F-08 and the §6.5 RBAC matrix; commits the build to no assignment field, no per-approver queue, and no hand-off/reassignment flow.
+
+#### AMD-79 — When a transaction is approved or rejected in error, what is the business recourse, given that §2.3…
+
+**Amends:** (net-new — supersedes nothing in this document)
+
+**Amendment** `[AI-INFERRED, CONSULTANT-CONFIRMED]`: Approve and reject are terminal and irreversible in the frontend, with no in-system correction, reversal, or re-action surface. An erroneous action is handled outside this system — by a backend correction or an upstream re-import — so the §2.3/BR-02 terminal-immutability invariant stands and erroneous-action recourse is an operational/backend concern. This is consistent with AMD-71 (the two-action model, with no third actioning outcome).
+
+**Grounding:** [grounded: §2.3] — preserves the §2.3/BR-02 terminal-immutable invariant; commits the build to no correction or reversal UI, with error recourse handled outside the system.
+
+#### AMD-80 — Beyond the two operator roles, who is the business owner accountable for this system's outcomes…
+
+**Amends:** (net-new — supersedes nothing in this document)
+
+**Amendment** `[AI-INFERRED, CONSULTANT-CONFIRMED]`: Naming the accountable business owner and the requirements sign-off / delivery-acceptance authority is a project-governance concern outside this frontend requirements document. The system models only the two operator personas, Importer and Approver; stakeholder governance — the accountable owner, requirements sign-off, and acceptance authority — is recorded in the PRD or project charter rather than in requirements.md, and no additional persona or RBAC role is added to §3 or §6.5 on its account.
+
+**Grounding:** [domain-default] — frontend requirements model the system's users, not project governance; commits the document to no new persona or RBAC role, with owner/sign-off tracked outside the FE spec.
+
+#### AMD-81 — Is this system the system of record for transactions, or are the uploaded files produced by an…
+
+**Amends:** (net-new — supersedes nothing in this document)
+
+**Amendment** `[AI-INFERRED, CONSULTANT-CONFIRMED]`: This system is not the system of record for transactions. Transactions originate from files produced by an upstream source — a ledger or banking system — that remains authoritative for the underlying data, and this system is a read-oriented review-and-approval surface that reflects that data (per §1, §2.1). Discrepancies, corrections, and re-imports are the upstream system's concern, not this system's. This is consistent with the §1 "reflect / read-oriented" framing, the BAQ-04 decision that erroneous-action recourse is external, and AMD-65 (no in-system Failed-file recovery).
+
+**Grounding:** [grounded: §2.1] — affirms the read-oriented review surface implied by §1 and §2.1; commits the build to no data-ownership or correction features, leaving discrepancy handling to the upstream system.
+
+#### AMD-82 — Can a single file or the retained transaction set contain more than one Currency, and if so what is…
+
+**Amends:** (net-new — supersedes nothing in this document)
+
+**Amendment** `[AI-INFERRED, CONSULTANT-CONFIRMED]`: A single file and the retained transaction set may contain multiple currencies; no single-currency constraint applies. No cross-currency aggregation is performed: the file summary (RPT-01) counts records by status and does not sum amounts, and the export (RPT-02) lists each transaction's own Amount and Currency per row. Mixed currencies therefore need no special grouping rule, and Currency remains a free-form per-transaction field displayed as-is.
+
+**Grounding:** [grounded: §7] — relies on RPT-01 counting records (not summing amounts) and RPT-02 exporting per-row values; commits the build to no per-currency grouping or currency-total feature.
+
+#### AMD-83 — Does FileLog.RecordCount count every row in the uploaded file, or only the transactions that parsed…
+
+**Amends:** (net-new — supersedes nothing in this document)
+
+**Amendment** `[AI-INFERRED, CONSULTANT-CONFIRMED]`: FileLog.RecordCount counts every row in the uploaded file, including rows that failed to parse. To prevent a partially-ingested file reading as complete, the file summary shows both the total row count and the count of successfully ingested transactions, surfacing any difference as an explicit "N of M rows ingested" indicator. The ingested-transaction count is a PROPOSED ADDITION to the FileLog summary (not currently a §7 property); it must be confirmed before the closed property set is treated as extended.
+
+**Grounding:** [domain-default] — showing ingested-versus-total is a standard file-ingestion transparency control; commits the build to a second count alongside RecordCount and a divergence indicator on the file summary.
+
+#### AMD-84 — Is the File Status enum the frontend renders — Uploaded, Processing, Completed, Failed — a closed…
+
+**Amends:** §7 FileLog Status enum (and the §6.10 File Logs contract) — "Status ∈ { Uploaded, Processing, Completed, Failed } (inferred, provisional)"
+
+**Amendment** `[AI-INFERRED, CONSULTANT-CONFIRMED]`: The four File Status values — Uploaded, Processing, Completed, Failed — are a closed set the backend contractually guarantees: the §6.10 consumed File Logs contract specifies that Status is always one of these four, so the frontend renders exactly one chip per value and no other value occurs. This converts the backend-owned "render verbatim" dependency recorded in AMD-02 / AMD-12 / AMD-29 into an explicit frontend-facing contract rather than an unconfirmed assumption; the File Status enum is no longer "inferred, provisional" but a contracted closed set, so no unknown-value fallback chip is required.
+
+**Grounding:** [grounded: AMD-29] — builds on the AMD-29 backend-owned, render-verbatim dependency; commits the build to treating the four-value File Status enum as a contracted §6.10 guarantee with no fallback-chip logic.
+
+#### AMD-85 — What event or pressure triggered this work now — a regulatory change, an audit finding, a rising…
+
+**Amends:** (net-new — supersedes nothing in this document)
+
+**Amendment** `[AI-INFERRED, CONSULTANT-CONFIRMED]`: No triggering event is stated in the corpus; the work is a capability-delivery initiative — building the file-driven ingestion-and-approval surface — with no external time pressure. Goal sequencing therefore follows the §4.1 goal priorities and the §3 persona needs rather than an external driver, and no deadline or urgency requirement enters scope.
+
+**Grounding:** [grounded: §1] — affirms §1's framing of the work as a capability; commits goal ordering to the §4.1 priorities and §3 persona fears, with no deadline/urgency requirement.
+
+### Run 2026-06-15 — from `input/ten-ux-questions-review-resolutions-2026-06-15.md` (review: `review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.html`)
+
+#### AMD-86 — Where the mandatory reject note is captured (inline / confirmation dialog / separate screen).
+
+**Amends:** (net-new — supersedes nothing in this document)
+
+**Amendment** `[AI-INFERRED, CONSULTANT-CONFIRMED]`: When an Approver rejects a transaction, the mandatory note is captured inside the approve/reject confirmation dialog — the confirmation gate GR-04 already requires. Rejecting opens that dialog with the mandatory note field, and the Approver enters the note and confirms in a single modal step; approve uses the same confirmation dialog with no note field. The note is not captured inline on the row or on a separate screen.
+
+**Grounding:** [grounded: §5] — realizes §5's "a note field is presented" within GR-04's existing confirmation gate; commits both actions to one confirmation-modal pattern, with reject adding a required-note field.
+
+#### AMD-87 — How an Approver learns that new Imported transactions are waiting.
+
+**Amends:** (net-new — supersedes nothing in this document)
+
+**Amendment** `[AI-INFERRED, CONSULTANT-CONFIRMED]`: An Approver discovers that new Imported transactions are waiting by opening or manually refreshing the Transaction Table. The system provides a visible manual-refresh control but no push notification, badge, or auto-updating count for new arrivals; the manual-refresh model already adopted for the File Log Overview extends to the Transaction Table.
+
+**Grounding:** [grounded: AMD-75] — applies AMD-75's manual-refresh decision to the Transaction Table; commits the build to a refresh control and no real-time or notification infrastructure.
+
+#### AMD-88 — Which role each shared screen is tuned for.
+
+**Amends:** (net-new — supersedes nothing in this document)
+
+**Amendment** `[AI-INFERRED, CONSULTANT-CONFIRMED]`: Each shared screen is tuned to the role whose core task it serves: the File Log Overview defaults to the Importer's ingestion-confirmation needs, and the Transaction Table defaults to the Approver's review-queue needs. There is no single global primary user across both screens; the default column set, density, and emphasis on each screen follow that screen's dominant §3 task.
+
+**Grounding:** [grounded: §3] — maps each shared screen to the persona whose driving §3 task it carries; commits the build to two per-screen default layouts and no per-role view branching.
+
+#### AMD-89 — The Approver's per-session review volume and cadence.
+
+**Amends:** (net-new — supersedes nothing in this document)
+
+**Amendment** `[AI-INFERRED, CONSULTANT-CONFIRMED]`: The Transaction Table's density and at-a-glance layout are tuned to the ~1,000-row planning working-set already adopted (the §10 / AMD-16 figure), using pagination and virtualization rather than a fixed per-session volume. The typical Approver's per-session transaction count and review cadence are not specified and are recorded as an open assumption to confirm with the client; approval remains an at-leisure task (per AMD-68).
+
+**Grounding:** [grounded: AMD-16] — rests density on the already-adopted ~1,000-row planning working-set; commits the build to pagination/virtualization sized to that figure, with per-session volume left an explicit unknown.
+
+#### AMD-90 — Whether an interrupted reject note is preserved or discarded.
+
+**Amends:** (net-new — supersedes nothing in this document)
+
+**Amendment** `[CONSULTANT-STATED]`: An in-progress rejection note is discarded when the Approver navigates away from the reject interaction, with no warning prompt and no draft preservation; re-opening reject starts with a blank note.
+
+**Grounding:** [assumption — confirm with client] — commits the build to silently discarding an unsaved mandatory rejection note on navigation; because the note is compliance-relevant, the absence of an unsaved-changes warning carries a silent-loss risk that should be validated with the client.
+
+#### AMD-91 — Scope cue and return path between file-scoped and global transaction views.
+
+**Amends:** (net-new — supersedes nothing in this document)
+
+**Amendment** `[AI-INFERRED, CONSULTANT-CONFIRMED]`: When the Transaction Table is scoped to a single file (drilled into via F-05), the screen shows a persistent scope indicator naming the file (for example "Showing: <FileName>") and a one-click control to return to the global transaction set (F-02); the global view shows no scope indicator. Both the file-scoped and global views remain available (per AMD-66).
+
+**Grounding:** [domain-default] — a persistent scope banner plus an explicit return control is the conventional master-detail drill pattern; commits the build to a file-scope indicator and a clear-scope/return affordance on the table.
+
+#### AMD-92 — Post-action row visibility and the active filter.
+
+**Amends:** (net-new — supersedes nothing in this document)
+
+**Amendment** `[AI-INFERRED, CONSULTANT-CONFIRMED]`: Immediately after an Approver approves or rejects a transaction, the row updates in place — its status chip changes and the approve/reject actions are removed (per §2.5) — and it remains visible if it still matches the active filter. If the active filter excludes the new status (for example a filter showing only Imported transactions), the row leaves the view on the next re-filter, and the existing action-result notification (NT-02) confirms the action so its disappearance is not read as data loss. Post-action row visibility therefore depends on the active filter.
+
+**Grounding:** [grounded: §2.5] — realizes §2.5's chip-change-and-action-removal as an in-place update governed by the active filter; commits the build to filter-driven post-action visibility plus the NT-02 action-result toast.
+
+#### AMD-93 — Where TransactionType, Description, and UserNote surface.
+
+**Amends:** AMD-04 (§7) — "Description, TransactionType, and UserNote are surfaced in the per-transaction detail view, not in the main transaction table row"
+
+**Amendment** `[AI-INFERRED, CONSULTANT-CONFIRMED]`: The Transaction fields outside the F-06 column set — TransactionType, Description, and UserNote — are surfaced via an expandable disclosure row on the Transaction Table: the main row keeps the F-06 columns (reference, date, account, amount, currency, status), and expanding the row reveals TransactionType, Description, and UserNote inline. No separate transaction detail view or screen is required; every Transaction field thus has a defined read location without a dedicated detail surface.
+
+**Grounding:** [grounded: AMD-73] — uses the design discretion AMD-73 grants (no mandated detail view) to place the non-column fields in an inline expandable row; commits the build to an expand-row interaction carrying TransactionType, Description, and UserNote.
+
+#### AMD-94 — Post-hoc visibility of the rejection note and action provenance.
+
+**Amends:** AMD-64 / AMD-70 — "the frontend does not record or display who approved or rejected a transaction" / "the prototype does not add an actor field to the §7 Transaction shape (which carries none)"
+
+**Amendment** `[CONSULTANT-STATED]`: Completed transactions carry a "view" link in the Transaction Table that opens a modal showing the action's audit detail. For a Rejected transaction the modal shows the rejecting user, the action date and time, and the rejection note (UserNote). For an Approved transaction the modal shows the approving user, the action date and time, and the other pertinent action detail. This makes the rejection reason — and the approval provenance — retrievable after the fact.
+
+This resolution requires action-attribution data the §7 Transaction shape does not currently carry: the acting user and the action date-time for approve and reject. These are PROPOSED ADDITIONS to the Transaction data shape (an acting-user reference and an action timestamp), to be confirmed before the closed property set is treated as extended; UserNote already exists in §7. The data must be supplied by the backend.
+
+**Grounding:** [assumption — confirm with client] — commits the build to a per-transaction action-audit modal reached from a "view" link, and to new acting-user and action-timestamp data on the Transaction shape; it reverses the prior decisions that acting-user attribution is out of frontend scope and depends on the backend supplying the actor and timestamp.
+
+#### AMD-95 — Upload progress determinacy and cancellation.
+
+**Amends:** (net-new — supersedes nothing in this document)
+
+**Amendment** `[AI-INFERRED, CONSULTANT-CONFIRMED]`: While a file is uploading (F-03), the upload shows a determinate progress bar (the percentage of the file sent) for large files, and the Importer can cancel an in-progress upload via a cancel control; cancelling aborts the upload and returns to the pre-upload state with no File Log created. Upload progress is determinate and cancellable.
+
+**Grounding:** [domain-default] — a determinate progress bar with a cancel affordance is the standard large-file upload pattern; commits the build to a determinate progress indicator and a clean abort path (simulated per PI-01).
+
 ---
 
 ## Prototype invariants

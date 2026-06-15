@@ -1,0 +1,29 @@
+{
+  "scope_slug": "approval-queue",
+  "variant_id": "SPACIOUS-DEFAULT",
+  "authored_at": "2026-06-15T00:00:00Z",
+  "persona_binding": "Approver",
+  "posture": "P4",
+  "posture_label": "Error-Averse / High-Stakes",
+  "design_philosophy": "Spacious deliberate review with modal confirm gates; for the Approver's high-stakes decisions.",
+  "dimension_positions": {
+    "speed-accuracy": 0,
+    "power-simplicity": 0,
+    "density-focus": -1,
+    "control-automation": 0,
+    "flexibility-consistency": 0,
+    "memorability-discoverability": 0
+  },
+  "strengths": [
+    "Calm, spacious layout reduces misreading high-value records",
+    "Reject reason captured before the decision is final",
+    "Confirmation step guards against accidental approvals"
+  ],
+  "weaknesses": [
+    "Slower per decision than a dense, scan-heavy layout",
+    "More clicks for reviewers handling large queues",
+    "Extra whitespace means less fits on screen at once"
+  ],
+  "tradeoffs": "Trades reviewing speed for fewer mistakes on irreversible, high-stakes decisions.",
+  "use_when": "Approvers making final, irreversible decisions where a wrong call is costly."
+}

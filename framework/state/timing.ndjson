@@ -219,3 +219,5 @@
 {"label":"review-iteration-1","type":"consultant_responded","stage":"merger","outcome":"accept","t":"2026-05-31T08:33:47.0603402Z"}
 {"type":"stage_end","stage":"merger","t":"2026-05-31T08:33:47.1090223Z"}
 {"type":"run_end","t":"2026-05-31T08:33:47.1172480Z"}
+{"type":"run_start","pipeline":"prototype","t":"2026-06-15T08:23:47.6653912Z"}
+{"type":"stage_start","stage":"scope","t":"2026-06-15T08:24:51.2727713Z"}

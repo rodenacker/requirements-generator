@@ -381,12 +381,12 @@
   <h1 id="top">10 UX Questions — Transaction Import &amp; Approval System</h1>
   <dl class="meta-grid">
     <div><dt>Domain</dt><dd>Enterprise financial transaction data management</dd></div>
-    <div><dt>Generated</dt><dd>2026-06-12T16:19:33Z</dd></div>
-    <div><dt>Source SHA-256</dt><dd><code>a8c551059a6affd50c20f2d4de43d7bf4d21e5aea9d81e954c56a96d8f3de214</code></dd></div>
+    <div><dt>Generated</dt><dd>2026-06-14T16:12:20Z</dd></div>
+    <div><dt>Source SHA-256</dt><dd><code>88eb974feca6569e8aae57ab9e112ecd3da89a60897c1f7d2758d10d5e431b98</code></dd></div>
     <div><dt>Reviewer</dt><dd>10 UX Questions Review (experienced UX designer lens)</dd></div>
     <div><dt>Total questions</dt><dd>10</dd></div>
-    <div><dt>Candidate pool</dt><dd>48 (≤ 50)</dd></div>
-    <div><dt>Category coverage</dt><dd>6 of 8 (C2, C3, C4, C5, C6, C7)</dd></div>
+    <div><dt>Candidate pool</dt><dd>44 (≤ 50)</dd></div>
+    <div><dt>Category coverage</dt><dd>6 of 8 (C1, C4, C5, C6, C7, C8)</dd></div>
   </dl>
 </header>
 
@@ -415,7 +415,7 @@
 
 <section id="plain-terms" aria-label="In plain terms">
   <h2>In plain terms</h2>
-  <p>This review reads the requirements as an experienced UX designer would before sketching the first screen, and lists the ten most pressing questions whose answers would change the design — drawn from a candidate pool (the up-to-50 questions generated, then filtered against the framework&#39;s built-in answers and scored) that here held 48. It found 3 blocking questions (priority — how pressing: blocking means the design cannot proceed because two readings would yield contradictory screens), 7 major (an answer changes design direction, but work can proceed on a stated default), and no minor ones, spanning 6 of the 8 UX gap categories (the areas a designer probes, from C1 Users &amp; segmentation to C8 Trust, transparency, audit). The three blocking questions are: when an Approver is &#39;done&#39; (a global pending queue versus a per-file review), whether transactions can be actioned in bulk or only one at a time, and how the acting user that G-02 requires can be shown when the Transaction shape carries no actor field. Resolve these three before wireframing — each forces a different primary screen — and carry the seven major questions into design as explicit, stated defaults. Every question is anchored to the section it concerns (the §N.N it targets, or a missing-section marker when a whole topic is absent from the document).</p>
+  <p>This review lists the ten most pressing questions an experienced UX designer would ask before sketching screens for this system — not defects, but design decisions the document leaves open. Each carries a priority (how pressing — blocking, major, or minor), a category (which of the eight UX gap areas it came from — C1 Users &amp; segmentation through C8 Trust, transparency, audit), and an anchor (the §N.N section it targets); the ten were chosen from a candidate pool (the larger set generated before scoring and selection). This document is heavily hardened — its seventy-five amendments, including ten that scoped earlier UX questions (bulk actioning, the completion boundary, a detail view, live refresh, and more) out of the prototype — so there are no blocking questions: the ten that remain are nine major and one minor. They concentrate on task-flow decisions the document still leaves to the designer (where the rejection note is entered, what happens to a row after it is actioned, how the file-scoped and global transaction views are told apart), on who the shared screens are tuned for and how heavily they are used, and on where secondary transaction fields and the rejection reason should surface. Resolve these before wireframing, or carry them into design as explicit, recorded assumptions.</p>
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
 
@@ -424,12 +424,12 @@
   <p><strong>Total questions:</strong> 10</p>
   <p>
     <strong>Priority</strong> —
-    <span class="chip priority-blocking">Blocking 3</span>
-    <span class="chip priority-major">Major 7</span>
-    <span class="chip priority-minor">Minor 0</span>
+    <span class="chip priority-blocking">Blocking 0</span>
+    <span class="chip priority-major">Major 9</span>
+    <span class="chip priority-minor">Minor 1</span>
   </p>
-  <p><strong>Candidate pool size:</strong> 48 (≤ 50)</p>
-  <p><strong>Category coverage:</strong> 6 of 8 (C2, C3, C4, C5, C6, C7)</p>
+  <p><strong>Candidate pool size:</strong> 44 (≤ 50)</p>
+  <p><strong>Category coverage:</strong> 6 of 8 (C1, C4, C5, C6, C7, C8)</p>
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
 
@@ -448,85 +448,85 @@
       </tr>
     </thead>
     <tbody>
-      <tr class="priority-blocking">
+      <tr class="priority-major">
         <td>1</td>
         <td><a href="#UXQ-01"><code>UXQ-01</code></a></td>
-        <td><span class="chip priority-blocking">blocking</span></td>
-        <td>C3 Goals &amp; success signals</td>
-        <td><code>§4.1</code></td>
-        <td>When is an Approver &#39;done&#39; for a cycle — when every Imported transaction across all files is actioned…</td>
+        <td><span class="chip priority-major">major</span></td>
+        <td>C4 Tasks, flows, decision points</td>
+        <td><code>§5</code></td>
+        <td>When an Approver rejects a transaction, is the mandatory note captured inline on the row, inside the…</td>
       </tr>
-      <tr class="priority-blocking">
+      <tr class="priority-major">
         <td>2</td>
         <td><a href="#UXQ-02"><code>UXQ-02</code></a></td>
-        <td><span class="chip priority-blocking">blocking</span></td>
-        <td>C4 Tasks, flows, decision points</td>
-        <td><code>§6.1</code></td>
-        <td>Can an Approver approve or reject several transactions in one action (multi-select), or is actioning…</td>
+        <td><span class="chip priority-major">major</span></td>
+        <td>C7 Collaboration &amp; concurrency</td>
+        <td><code>§6.8</code></td>
+        <td>How does an Approver learn that new Imported transactions are waiting to be reviewed — a notification…</td>
       </tr>
       <tr class="priority-major">
         <td>3</td>
         <td><a href="#UXQ-03"><code>UXQ-03</code></a></td>
         <td><span class="chip priority-major">major</span></td>
-        <td>C2 Context of use</td>
-        <td><code>missing-section: context-of-use</code></td>
-        <td>Is transaction approval bound by a daily cut-off or service-level deadline, or is it an at-leisure…</td>
+        <td>C1 Users &amp; segmentation</td>
+        <td><code>§5</code></td>
+        <td>The File Log Overview and the Transaction Table are shared by both Importer and Approver (§5) — which…</td>
       </tr>
       <tr class="priority-major">
         <td>4</td>
         <td><a href="#UXQ-04"><code>UXQ-04</code></a></td>
         <td><span class="chip priority-major">major</span></td>
-        <td>C5 Data &amp; content for decisions</td>
-        <td><code>§6.4</code></td>
-        <td>To judge a transaction, does the Approver need context from related records — other transactions from…</td>
+        <td>C1 Users &amp; segmentation</td>
+        <td><code>§3</code></td>
+        <td>How many transactions does a typical Approver review in one sitting, and how often — several times a…</td>
       </tr>
-      <tr class="priority-blocking">
+      <tr class="priority-major">
         <td>5</td>
         <td><a href="#UXQ-05"><code>UXQ-05</code></a></td>
-        <td><span class="chip priority-blocking">blocking</span></td>
-        <td>C7 Collaboration &amp; concurrency</td>
-        <td><code>§4.1</code></td>
-        <td>§4.1 G-02&#39;s quality signal says actions are recorded &#39;with the acting user&#39;, yet the §7 Transaction…</td>
+        <td><span class="chip priority-major">major</span></td>
+        <td>C4 Tasks, flows, decision points</td>
+        <td><code>§5</code></td>
+        <td>If an Approver starts rejecting a transaction, types part of the mandatory note, then navigates away…</td>
       </tr>
       <tr class="priority-major">
         <td>6</td>
         <td><a href="#UXQ-06"><code>UXQ-06</code></a></td>
         <td><span class="chip priority-major">major</span></td>
-        <td>C3 Goals &amp; success signals</td>
-        <td><code>§2.3</code></td>
-        <td>Beyond approve and reject, does an Approver ever need a third outcome — defer, skip, or flag-for-more…</td>
+        <td>C4 Tasks, flows, decision points</td>
+        <td><code>§6.1</code></td>
+        <td>When a user drills from a File Log row into that file&#39;s transactions (F-05) versus opening the…</td>
       </tr>
       <tr class="priority-major">
         <td>7</td>
         <td><a href="#UXQ-07"><code>UXQ-07</code></a></td>
         <td><span class="chip priority-major">major</span></td>
         <td>C4 Tasks, flows, decision points</td>
-        <td><code>§5</code></td>
-        <td>When an Approver lands on the Transaction Table (F-02), is it pre-filtered to actionable (Imported)…</td>
+        <td><code>§2.5</code></td>
+        <td>Immediately after an Approver approves or rejects a transaction, does the row remain visible in the…</td>
       </tr>
       <tr class="priority-major">
         <td>8</td>
         <td><a href="#UXQ-08"><code>UXQ-08</code></a></td>
         <td><span class="chip priority-major">major</span></td>
-        <td>C4 Tasks, flows, decision points</td>
+        <td>C5 Data &amp; content for decisions</td>
         <td><code>§7</code></td>
-        <td>Is there a transaction detail view reached by selecting a row — the §7 UserNote and Description fields…</td>
+        <td>Where should the Transaction fields not in the F-06 column set — TransactionType (Credit/Debit),…</td>
       </tr>
       <tr class="priority-major">
         <td>9</td>
         <td><a href="#UXQ-09"><code>UXQ-09</code></a></td>
         <td><span class="chip priority-major">major</span></td>
-        <td>C5 Data &amp; content for decisions</td>
-        <td><code>§6.4</code></td>
-        <td>At the approve/reject moment, which fields does the Approver actually need to see to decide — the six…</td>
+        <td>C8 Trust, transparency, audit</td>
+        <td><code>§7</code></td>
+        <td>When a transaction has been Rejected, can a user later see the rejection note that was captured, and…</td>
       </tr>
-      <tr class="priority-major">
+      <tr class="priority-minor">
         <td>10</td>
         <td><a href="#UXQ-10"><code>UXQ-10</code></a></td>
-        <td><span class="chip priority-major">major</span></td>
+        <td><span class="chip priority-minor">minor</span></td>
         <td>C6 Errors, edge cases, recovery</td>
-        <td><code>§5</code></td>
-        <td>On the File Log Overview, does the list reflect status progression live as it changes, or must the…</td>
+        <td><code>§6.1</code></td>
+        <td>While a file is uploading (F-03), what does progress look like for a large file, and can the Importer…</td>
       </tr>
     </tbody>
   </table>
@@ -535,105 +535,105 @@
 
 <section id="questions">
   <h2>Questions</h2>
-  <article class="qcard priority-blocking" id="UXQ-01">
+  <article class="qcard priority-major" id="UXQ-01">
     <h3>
       <code>UXQ-01</code> —
-      <span class="chip priority-blocking">blocking</span> ·
-      C3 Goals &amp; success signals ·
-      <code>§4.1</code>
+      <span class="chip priority-major">major</span> ·
+      C4 Tasks, flows, decision points ·
+      <code>§5</code>
     </h3>
-    <blockquote class="question"><p>When is an Approver &#39;done&#39; for a cycle — when every Imported transaction across all files is actioned (a global pending queue), or when every transaction in one file is actioned — given that they land on the global Transaction Table (F-02) but can also drill into a single file (F-05)?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> The unit of completion determines whether the Approver&#39;s home screen is a global pending queue or a file-scoped review — two structurally different primary surfaces. The designer cannot choose which screen the Approver opens to until this is settled.</p>
+    <blockquote class="question"><p>When an Approver rejects a transaction, is the mandatory note captured inline on the row, inside the approve/reject confirmation step, or on a separate screen — and does the same containment apply to the approve confirmation?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §5 Reject Transaction says a note field is presented and GR-04 already puts approve/reject behind a confirmation, but where the note is entered shapes the whole reject interaction — an inline cell, a field inside the confirmation dialog, and a dedicated step are three different layouts. The designer must settle this before sketching the table&#39;s primary action.</p>
   </article>
-  <article class="qcard priority-blocking" id="UXQ-02">
+  <article class="qcard priority-major" id="UXQ-02">
     <h3>
       <code>UXQ-02</code> —
-      <span class="chip priority-blocking">blocking</span> ·
-      C4 Tasks, flows, decision points ·
-      <code>§6.1</code>
+      <span class="chip priority-major">major</span> ·
+      C7 Collaboration &amp; concurrency ·
+      <code>§6.8</code>
     </h3>
-    <blockquote class="question"><p>Can an Approver approve or reject several transactions in one action (multi-select), or is actioning strictly one transaction at a time, as F-08 and F-09 describe?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> Bulk actioning changes the table&#39;s core mechanics — row selection, a bulk-action bar, and how the mandatory rejection note (BR-03) applies across many rows — versus a per-row-only design. The two layouts cannot both be the default.</p>
+    <blockquote class="question"><p>How does an Approver learn that new Imported transactions are waiting to be reviewed — a notification, a badge, a manual refresh, or simply re-opening the table — given §6.8 notifies on action results but not on new arrivals?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §6.8 defines notifications for upload and action results, and AMD-75 makes File Log status manual-refresh, but nothing says how the Approver discovers that fresh transactions need attention. The answer decides whether the design needs a new-items notification or badge, a refresh affordance, or nothing at all.</p>
   </article>
   <article class="qcard priority-major" id="UXQ-03">
     <h3>
       <code>UXQ-03</code> —
       <span class="chip priority-major">major</span> ·
-      C2 Context of use ·
-      <code>missing-section: context-of-use</code>
+      C1 Users &amp; segmentation ·
+      <code>§5</code>
     </h3>
-    <blockquote class="question"><p>Is transaction approval bound by a daily cut-off or service-level deadline (for example, all of a day&#39;s imports must be actioned by end of business), or is it an at-leisure task the Approver picks up when convenient?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> A deadline-driven task needs aging cues, a pending-count focus, and urgency sorting, whereas an at-leisure task is served by a plain list. The document declares no context of use, so the designer has nothing to default to.</p>
+    <blockquote class="question"><p>The File Log Overview and the Transaction Table are shared by both Importer and Approver (§5) — which role is the primary user that each shared screen should optimise its default layout and density for?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §5 marks both screens as shared but names no primary user, and the two roles approach them differently — an Importer confirming ingestion versus an Approver working a review queue. The default column set, density, and emphasis differ by which role the screen is tuned for.</p>
   </article>
   <article class="qcard priority-major" id="UXQ-04">
     <h3>
       <code>UXQ-04</code> —
       <span class="chip priority-major">major</span> ·
-      C5 Data &amp; content for decisions ·
-      <code>§6.4</code>
+      C1 Users &amp; segmentation ·
+      <code>§3</code>
     </h3>
-    <blockquote class="question"><p>To judge a transaction, does the Approver need context from related records — other transactions from the same AccountNumber, or the other transactions in the same file — visible at the moment of decision?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> A need for cross-record context would add a related-transactions panel or a comparison view that a single-row decision model omits entirely. The document specifies what each transaction stores but not what supports the approve/reject judgement.</p>
+    <blockquote class="question"><p>How many transactions does a typical Approver review in one sitting, and how often — several times a day or once a cycle — so the table density and at-a-glance layout can be tuned to the real working volume?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §3 describes the Approver as reviewing pending transactions per cycle without a volume or cadence, and §10 gives an overall band rather than a per-session figure. A high-volume several-times-a-day reviewer needs a dense, keyboard-fast table; an occasional reviewer needs more context per row.</p>
   </article>
-  <article class="qcard priority-blocking" id="UXQ-05">
+  <article class="qcard priority-major" id="UXQ-05">
     <h3>
       <code>UXQ-05</code> —
-      <span class="chip priority-blocking">blocking</span> ·
-      C7 Collaboration &amp; concurrency ·
-      <code>§4.1</code>
+      <span class="chip priority-major">major</span> ·
+      C4 Tasks, flows, decision points ·
+      <code>§5</code>
     </h3>
-    <blockquote class="question"><p>§4.1 G-02&#39;s quality signal says actions are recorded &#39;with the acting user&#39;, yet the §7 Transaction shape carries no actor field and no screen shows who actioned a transaction — where, and whether, is the acting Approver surfaced?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> The stated goal cannot be satisfied by the closed §7 property set, so the designer cannot show who actioned a transaction without the consultant resolving whether an actor field exists and where it appears. This is a contradiction between the goal and the data shape, not a styling choice.</p>
+    <blockquote class="question"><p>If an Approver starts rejecting a transaction, types part of the mandatory note, then navigates away and returns, is the in-progress note preserved or discarded?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §5 Reject Transaction treats the note as a single submit step and says nothing about an interrupted rejection. Whether the design must preserve a draft note (and signal that it did) versus discarding it changes the reject control and the user&#39;s confidence in leaving a row mid-action.</p>
   </article>
   <article class="qcard priority-major" id="UXQ-06">
     <h3>
       <code>UXQ-06</code> —
       <span class="chip priority-major">major</span> ·
-      C3 Goals &amp; success signals ·
-      <code>§2.3</code>
+      C4 Tasks, flows, decision points ·
+      <code>§6.1</code>
     </h3>
-    <blockquote class="question"><p>Beyond approve and reject, does an Approver ever need a third outcome — defer, skip, or flag-for-more-information — when they are uncertain about a transaction?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> A holding outcome would add a third action and a new lifecycle state, breaking the current two-action Imported → Approved/Rejected model and changing the row&#39;s action set. Designing only two actions forecloses an escape hatch the work may require.</p>
+    <blockquote class="question"><p>When a user drills from a File Log row into that file&#39;s transactions (F-05) versus opening the global Transaction Table (F-02), how does the screen show which scope is active, and how does the user return to the full set?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §6.1 F-05 allows drilling into one file&#39;s transactions while F-02/F-06 present the global table, but the document never says how the two views are visually distinguished or navigated between. Without a scope cue and a way back, a user cannot tell whether they are seeing one file or all transactions.</p>
   </article>
   <article class="qcard priority-major" id="UXQ-07">
     <h3>
       <code>UXQ-07</code> —
       <span class="chip priority-major">major</span> ·
       C4 Tasks, flows, decision points ·
-      <code>§5</code>
+      <code>§2.5</code>
     </h3>
-    <blockquote class="question"><p>When an Approver lands on the Transaction Table (F-02), is it pre-filtered to actionable (Imported) transactions, or does it show all statuses by default?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> The default filter on the Approver&#39;s primary screen decides whether they open straight into a focused work-queue or an everything-list they must narrow first. It sets the initial state of the most-used surface.</p>
+    <blockquote class="question"><p>Immediately after an Approver approves or rejects a transaction, does the row remain visible in the current view with its new status, or leave the view — and does that depend on the active filter?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §2.5 says the status chip changes and the approve/reject actions are removed, but not whether the row stays in the list or disappears. If the table is showing only Imported transactions the actioned row would vanish, which can feel like data loss; if it shows all statuses the row stays — a materially different post-action experience the designer must choose.</p>
   </article>
   <article class="qcard priority-major" id="UXQ-08">
     <h3>
       <code>UXQ-08</code> —
       <span class="chip priority-major">major</span> ·
-      C4 Tasks, flows, decision points ·
+      C5 Data &amp; content for decisions ·
       <code>§7</code>
     </h3>
-    <blockquote class="question"><p>Is there a transaction detail view reached by selecting a row — the §7 UserNote and Description fields are marked for &#39;detail&#39; display — or are all fields shown inline in the table, with no detail surface at all?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> §7 implies a detail surface that no task flow or UI feature need defines, leaving its existence unresolved. Whether a row opens a detail view changes the navigation model and what selecting a row does.</p>
+    <blockquote class="question"><p>Where should the Transaction fields not in the F-06 column set — TransactionType (Credit/Debit), Description, and UserNote — be surfaced, given AMD-73 leaves a dedicated detail view to design discretion?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §7 marks TransactionType as a chip, Description as a table column, and UserNote as detail, and AMD-04 places them in a detail view, yet AMD-73 says no detail view is mandated. The designer needs to know whether these three fields appear as extra columns, an expandable row, a side panel, or are omitted from the main surface.</p>
   </article>
   <article class="qcard priority-major" id="UXQ-09">
     <h3>
       <code>UXQ-09</code> —
       <span class="chip priority-major">major</span> ·
-      C5 Data &amp; content for decisions ·
-      <code>§6.4</code>
+      C8 Trust, transparency, audit ·
+      <code>§7</code>
     </h3>
-    <blockquote class="question"><p>At the approve/reject moment, which fields does the Approver actually need to see to decide — the six columns in F-06 (reference, date, account, amount, currency, status), or also Description, the rejection note, and the originating file?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> The decision-supporting field set determines what the confirmation step and any detail view must surface beyond the default columns. F-06 lists what is displayed, but not what the decision requires, and the two may differ.</p>
+    <blockquote class="question"><p>When a transaction has been Rejected, can a user later see the rejection note that was captured, and where — so the reason a transaction was rejected is visible after the fact?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §7 stores UserNote as detail-display and §6.2 BR-03 captures it at rejection, but nothing says the note is shown when reviewing a Rejected transaction afterwards. Whether the rejection reason is visible (and where) determines whether the system can answer the user&#39;s why-was-this-rejected question or strands the note as write-only data.</p>
   </article>
-  <article class="qcard priority-major" id="UXQ-10">
+  <article class="qcard priority-minor" id="UXQ-10">
     <h3>
       <code>UXQ-10</code> —
-      <span class="chip priority-major">major</span> ·
+      <span class="chip priority-minor">minor</span> ·
       C6 Errors, edge cases, recovery ·
-      <code>§5</code>
+      <code>§6.1</code>
     </h3>
-    <blockquote class="question"><p>On the File Log Overview, does the list reflect status progression (Uploaded → Processing → Completed/Failed) live as it changes, or must the Importer manually refresh to see a file leave Processing?</p></blockquote>
-    <p class="why"><strong>Why this matters.</strong> A live-updating list needs an auto-refreshing surface with an in-progress indicator, while a manual model needs a refresh control and a staleness cue — different interaction designs for the same screen. The document is silent on how the Importer learns that processing has finished.</p>
+    <blockquote class="question"><p>While a file is uploading (F-03), what does progress look like for a large file, and can the Importer cancel an in-progress upload before it completes?</p></blockquote>
+    <p class="why"><strong>Why this matters.</strong> §6.1 F-03 and UI-01 promise upload progress and a result but do not say whether the progress is determinate or whether a long upload can be cancelled. The answer tunes the upload control but does not reshape the screen, so it is a refinement-level decision.</p>
   </article>
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>
@@ -645,44 +645,41 @@
 
     <h4>Candidate pool</h4>
     <table><thead><tr><th>Stat</th><th>Value</th></tr></thead><tbody>
-      <tr><td>Candidates generated (Step 3)</td><td>48 (≤ 50)</td></tr>
-      <tr><td>Dropped: GR-NN match (Step 4)</td><td>1</td></tr>
-      <tr><td>Dropped: PI-NN match (Step 4)</td><td>1</td></tr>
-      <tr><td>Dropped: out-of-scope (Step 4)</td><td>0</td></tr>
-      <tr><td>Surviving candidates after filter</td><td>46</td></tr>
+      <tr><td>Candidates generated (Step 3)</td><td>44 (≤ 50)</td></tr>
+      <tr><td>Dropped: GR-NN match (Step 4)</td><td>8</td></tr>
+      <tr><td>Dropped: PI-NN match (Step 4)</td><td>2</td></tr>
+      <tr><td>Dropped: out-of-scope (Step 4)</td><td>2</td></tr>
+      <tr><td>Surviving candidates after filter</td><td>32</td></tr>
       <tr><td>Selected (Step 5)</td><td>10</td></tr>
     </tbody></table>
 
     <h4>Category coverage</h4>
     <table><thead><tr><th>Category</th><th>Candidates generated</th><th>Candidates surviving filter</th><th>Selected</th></tr></thead><tbody>
-      <tr><td>C1 Users &amp; segmentation</td><td>6</td><td>6</td><td>0</td></tr>
-      <tr><td>C2 Context of use</td><td>5</td><td>5</td><td>1</td></tr>
-      <tr><td>C3 Goals &amp; success signals</td><td>6</td><td>6</td><td>2</td></tr>
-      <tr><td>C4 Tasks, flows, decision points</td><td>8</td><td>8</td><td>3</td></tr>
-      <tr><td>C5 Data &amp; content for decisions</td><td>8</td><td>7</td><td>2</td></tr>
-      <tr><td>C6 Errors, edge cases, recovery</td><td>6</td><td>6</td><td>1</td></tr>
-      <tr><td>C7 Collaboration &amp; concurrency</td><td>5</td><td>4</td><td>1</td></tr>
-      <tr><td>C8 Trust, transparency, audit</td><td>4</td><td>4</td><td>0</td></tr>
+      <tr><td>C1 Users &amp; segmentation</td><td>6</td><td>6</td><td>2</td></tr>
+      <tr><td>C2 Context of use</td><td>5</td><td>4</td><td>0</td></tr>
+      <tr><td>C3 Goals &amp; success signals</td><td>5</td><td>5</td><td>0</td></tr>
+      <tr><td>C4 Tasks, flows, decision points</td><td>8</td><td>4</td><td>4</td></tr>
+      <tr><td>C5 Data &amp; content for decisions</td><td>7</td><td>6</td><td>1</td></tr>
+      <tr><td>C6 Errors, edge cases, recovery</td><td>6</td><td>2</td><td>1</td></tr>
+      <tr><td>C7 Collaboration &amp; concurrency</td><td>4</td><td>4</td><td>1</td></tr>
+      <tr><td>C8 Trust, transparency, audit</td><td>3</td><td>1</td><td>1</td></tr>
       <tr><td><strong>Coverage of selected</strong></td><td><strong>—</strong></td><td><strong>—</strong></td><td><strong>6 of 8</strong></td></tr>
     </tbody></table>
 
     <h4>Quality gates</h4>
     <table class="diagnostics-gates"><thead><tr><th>Gate</th><th>Result</th><th>Notes</th></tr></thead><tbody>
-      <tr class="gate-pass"><td>1. Exactly 10 questions in final output</td><td><span class="chip gate-pass">PASS</span></td><td>10 selected (UXQ-01 … UXQ-10).</td></tr>
-      <tr class="gate-pass"><td>2. Candidate pool size ≤ 50</td><td><span class="chip gate-pass">PASS</span></td><td>48 candidates generated at Step 3.</td></tr>
-      <tr class="gate-pass"><td>3. All priorities valid (blocking / major / minor)</td><td><span class="chip gate-pass">PASS</span></td><td>3 blocking, 7 major, 0 minor.</td></tr>
-      <tr class="gate-pass"><td>4. All rationales valid (1–3 sentences)</td><td><span class="chip gate-pass">PASS</span></td><td>Every selected question carries a 1–2 sentence design-impact rationale.</td></tr>
-      <tr class="gate-pass"><td>5. All anchors valid</td><td><span class="chip gate-pass">PASS</span></td><td>§4.1, §6.1, §6.4, §2.3, §5, §7 exist in the document; context-of-use is a documented missing-section slug.</td></tr>
-      <tr class="gate-pass"><td>6. No GR-NN re-asking</td><td><span class="chip gate-pass">PASS</span></td><td>No selected question is deterministically answered by an active GR-NN.</td></tr>
-      <tr class="gate-pass"><td>7. No out-of-scope topic</td><td><span class="chip gate-pass">PASS</span></td><td>Every selected question resolves to a UI decision within prototype scope.</td></tr>
-      <tr class="gate-pass"><td>8. Category coverage ≥ 5 of 8</td><td><span class="chip gate-pass">PASS</span></td><td>6 of 8 categories represented (C2, C3, C4, C5, C6, C7).</td></tr>
+      <tr class="gate-pass"><td>1. Exactly 10 questions in final output</td><td><span class="chip gate-pass">PASS</span></td><td>10 questions selected (UXQ-01…UXQ-10).</td></tr>
+      <tr class="gate-pass"><td>2. Candidate pool size ≤ 50</td><td><span class="chip gate-pass">PASS</span></td><td>44 candidates generated.</td></tr>
+      <tr class="gate-pass"><td>3. Every question has a valid priority</td><td><span class="chip gate-pass">PASS</span></td><td>0 blocking, 9 major, 1 minor — all in {blocking, major, minor}.</td></tr>
+      <tr class="gate-pass"><td>4. Every question has a 1–3 sentence rationale</td><td><span class="chip gate-pass">PASS</span></td><td>All ten carry a non-stub rationale.</td></tr>
+      <tr class="gate-pass"><td>5. Every question has valid provenance</td><td><span class="chip gate-pass">PASS</span></td><td>All ten cite an existing §N.N (§5, §6.8, §3, §6.1, §2.5, §7); no missing-section slugs needed.</td></tr>
+      <tr class="gate-pass"><td>6. No question resolved by an active GR-NN</td><td><span class="chip gate-pass">PASS</span></td><td>Re-ran the Step-4 GR filter against the selected ten — no matches (GR-04/05/08/09/10/11/12/14/16 all cleared).</td></tr>
+      <tr class="gate-pass"><td>7. No question out-of-scope per prototype-scope.md</td><td><span class="chip gate-pass">PASS</span></td><td>No selected question names a Not-Prototypable implementation topic; all are UI-surface decisions.</td></tr>
+      <tr class="gate-pass"><td>8. Category coverage ≥ 5 of 8</td><td><span class="chip gate-pass">PASS</span></td><td>6 of 8 (C1, C4, C5, C6, C7, C8).</td></tr>
     </tbody></table>
 
     <h4>Override log</h4>
     <p>All quality gates passed; no override invoked.</p>
-
-    <h4>Filter drops (Step 4)</h4>
-    <p>2 candidates dropped before scoring: 1 GR-match — a transaction-table pagination / page-size candidate, foreclosed by <code>GR-11</code> (pagination control always rendered; 5/10/20/50, default 20). 1 PI-match — a real-time &quot;another Approver is editing this row&quot; presence-indicator candidate, foreclosed by <code>PI-01</code> (server behaviour is simulated; multi-client presence is not exercised). 0 out-of-scope.</p>
   </details>
   <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
 </section>

@@ -1,0 +1,10 @@
+{
+  "run_started_at": "2026-06-15T08:23:47.6653912Z",
+  "status": "running",
+  "name_slug": null,
+  "scope_slug": null,
+  "pending_setup": null,
+  "events": [
+    { "agent": "scope-select", "event": "called", "at": "2026-06-15T08:24:51.2727713Z" }
+  ]
+}
