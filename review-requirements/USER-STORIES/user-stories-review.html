@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>User Stories Review — Transaction Import &amp; Approval System</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --fg: #1a1a1a;
+    --muted: #5a5a5a;
+    --border: #d4d4d4;
+    --border-strong: #8a8a8a;
+    --section-bg: #ffffff;
+    --code-bg: #f3f3f3;
+    --shadow-card: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+
+    --sev-blocker: #b91c1c;
+    --sev-blocker-bg: rgba(185, 28, 28, 0.10);
+    --sev-major: #c2410c;
+    --sev-major-bg: rgba(194, 65, 12, 0.10);
+    --sev-minor: #a16207;
+    --sev-minor-bg: rgba(161, 98, 7, 0.10);
+
+    --disp-patch: #15803d;
+    --disp-patch-bg: rgba(21, 128, 61, 0.10);
+    --disp-reject: #b91c1c;
+    --disp-reject-bg: rgba(185, 28, 28, 0.10);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 32px 64px;
+  }
+
+  /* Header */
+  header { margin-bottom: 24px; }
+  h1#top {
+    margin: 0 0 12px 0;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px 24px;
+    padding: 14px 18px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-card);
+    margin: 16px 0;
+    font-size: 13px;
+  }
+  .meta-grid > div { display: flex; flex-direction: column; gap: 2px; }
+  .meta-grid dt {
+    margin: 0;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  .meta-grid dd {
+    margin: 0;
+    font-size: 14px;
+    color: var(--fg);
+    word-break: break-all;
+  }
+
+  /* TOC */
+  .toc {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin: 0 0 32px 0;
+    padding: 12px 18px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    box-shadow: var(--shadow-card);
+    font-size: 13px;
+  }
+  .toc-label {
+    display: block;
+    margin: 0 0 6px 0;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  .toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    counter-reset: toc-item;
+  }
+  .toc li {
+    counter-increment: toc-item;
+  }
+  .toc li::before {
+    content: counter(toc-item) ". ";
+    color: var(--muted);
+    margin-right: 4px;
+  }
+  .toc a {
+    color: var(--fg);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--border-strong);
+    padding-bottom: 1px;
+  }
+  .toc a:hover { border-bottom-color: var(--fg); color: #000; }
+
+  /* Sections */
+  section {
+    margin: 32px 0;
+    padding: 20px 24px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-card);
+  }
+  section h2 {
+    margin: 0 0 16px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border-strong);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  section h3 {
+    margin: 20px 0 10px 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  section h4 {
+    margin: 16px 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  section > p.section-intro {
+    margin: 0 0 12px 0;
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+
+  /* Back-to-top */
+  .back-to-top {
+    margin: 24px 0 0 0;
+    text-align: right;
+    font-size: 12px;
+  }
+  .back-to-top a {
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--border-strong);
+    padding-bottom: 1px;
+  }
+  .back-to-top a:hover { color: var(--fg); border-bottom-color: var(--fg); }
+
+  /* In plain terms (human-readable lead — first section) */
+  #plain-terms { border-left: 4px solid var(--disp-patch); background: #f0fbfa; }
+  #plain-terms h2 { border-bottom-color: var(--disp-patch); }
+  #plain-terms p { margin: 0 0 4px 0; font-size: 15px; line-height: 1.55; }
+
+  /* Priority + severity chips */
+  .chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .chip.priority-blocking, .chip.sev-blocking { background: var(--sev-blocker-bg); color: var(--sev-blocker); }
+  .chip.priority-major, .chip.sev-major { background: var(--sev-major-bg); color: var(--sev-major); }
+  .chip.priority-minor, .chip.sev-minor { background: var(--sev-minor-bg); color: var(--sev-minor); }
+  .chip.gate-pass { background: var(--disp-patch-bg); color: var(--disp-patch); }
+  .chip.gate-fail { background: var(--disp-reject-bg); color: var(--disp-reject); }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  table caption {
+    text-align: left;
+    margin-bottom: 8px;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  thead {
+    background: #f3f3f3;
+    border-bottom: 2px solid var(--border-strong);
+  }
+  th {
+    text-align: left;
+    padding: 8px 10px;
+    font-weight: 600;
+    color: var(--fg);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:hover { background: #fafafa; }
+  td code, dd code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+  }
+
+  /* Triage table */
+  table.triage-table thead { position: sticky; top: 48px; z-index: 5; }
+  table.triage-table tr.priority-blocking { background: rgba(185, 28, 28, 0.04); }
+  table.triage-table td:nth-child(5) { min-width: 240px; }
+
+  /* Finding card */
+  article.finding {
+    margin: 16px 0;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    background: #fcfcfc;
+    box-shadow: 0 1px 1px rgba(0,0,0,.03);
+  }
+  article.finding.priority-blocking { border-left-color: var(--sev-blocker); }
+  article.finding.priority-major { border-left-color: var(--sev-major); }
+  article.finding.priority-minor { border-left-color: var(--sev-minor); }
+  article.finding h3 {
+    margin: 0 0 12px 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  article.finding h3 code {
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+  }
+  article.finding h4 {
+    margin: 12px 0 6px 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  blockquote.connextra {
+    margin: 0 0 6px 0;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border-strong);
+    border-radius: 4px;
+    background: #fbfbfb;
+  }
+  blockquote.connextra p { margin: 0; font-size: 14.5px; }
+  ul.issues {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 14px;
+  }
+  ul.issues > li { margin: 6px 0; }
+  ul.issues ul { margin: 2px 0 0 0; padding-left: 18px; color: var(--muted); }
+  .anchor { margin: 10px 0 0 0; font-size: 12.5px; color: var(--muted); }
+  .none { margin: 0; color: var(--muted); }
+
+  /* Diagnostics toggle */
+  details.diagnostics-toggle { margin: 0; }
+  details.diagnostics-toggle > summary {
+    cursor: pointer;
+    padding: 0;
+    list-style: none;
+  }
+  details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+  details.diagnostics-toggle > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  details.diagnostics-toggle > summary::before {
+    content: "▶";
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform 0.15s ease;
+    display: inline-block;
+  }
+  details.diagnostics-toggle[open] > summary::before { transform: rotate(90deg); }
+
+  /* Diagnostics table accents */
+  table.diagnostics-gates tr.gate-fail { background: rgba(185, 28, 28, 0.05); }
+
+  /* Legend bar (colour/provenance key, directly under the TOC) */
+  .legend-bar {
+    margin: 16px 0 24px;
+    padding: 10px 14px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 12.5px;
+  }
+  .legend {
+    margin: 12px 0 0 0;
+    padding: 10px 12px;
+    background: #f7f7f7;
+    border-left: 3px solid var(--border-strong);
+    border-radius: 0 4px 4px 0;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  /* Responsive */
+  @media (max-width: 720px) {
+    main { padding: 16px 16px 48px; }
+    h1#top { font-size: 22px; }
+    section { padding: 14px 14px; }
+    section h2 { font-size: 18px; }
+    .meta-grid { grid-template-columns: 1fr; gap: 6px 0; }
+    table { font-size: 12px; }
+    th, td { padding: 6px 6px; }
+    .toc { position: static; }
+  }
+  @media (max-width: 480px) {
+    body { font-size: 14px; }
+    h1#top { font-size: 19px; }
+    article.finding { padding: 12px 12px; }
+  }
+
+  /* Print */
+  @media print {
+    body { background: white; }
+    main { max-width: none; padding: 0; }
+    .toc, .back-to-top { display: none !important; }
+    section {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      box-shadow: none;
+      border: 1px solid #999;
+      margin: 12px 0;
+    }
+    article.finding {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      box-shadow: none;
+    }
+    details.diagnostics-toggle { display: block; }
+    details:not([open]) > *:not(summary) { display: block !important; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1 id="top">User Stories Review — Transaction Import &amp; Approval System</h1>
+  <dl class="meta-grid">
+    <div><dt>Domain</dt><dd>Enterprise financial transaction data management</dd></div>
+    <div><dt>Generated</dt><dd>2026-06-12T19:52:21Z</dd></div>
+    <div><dt>Source SHA-256</dt><dd><code>a8c551059a6affd50c20f2d4de43d7bf4d21e5aea9d81e954c56a96d8f3de214</code></dd></div>
+    <div><dt>Reviewer</dt><dd>User Stories Review (product-owner / BA lens; six-criterion story-quality audit)</dd></div>
+    <div><dt>Stories evaluated</dt><dd>6</dd></div>
+    <div><dt>Ready / Not ready</dt><dd>4 ready · 2 with findings</dd></div>
+    <div><dt>Criterion coverage</dt><dd>1 of 6 (Outcome-aligned)</dd></div>
+  </dl>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <span class="toc-label">Contents</span>
+  <ol>
+    <li><a href="#plain-terms">In plain terms</a></li>
+    <li><a href="#executive-summary">Executive Summary</a></li>
+    <li><a href="#triage">Triage</a></li>
+    <li><a href="#blocking">Blocking</a></li>
+    <li><a href="#major">Major</a></li>
+    <li><a href="#minor">Minor</a></li>
+    <li><a href="#diagnostics">Diagnostics</a></li>
+  </ol>
+</nav>
+
+<section id="plain-terms" aria-label="In plain terms">
+  <h2>In plain terms</h2>
+  <p>This is a story-quality audit: it checks every user story (a short &quot;As a … / I want … / so that …&quot; statement, known as the Connextra format) under §4.2 against six readiness criteria — the six quality tests a story must pass: Meaningful, Implementable, Testable, Coherent, Appropriately scoped, and Outcome-aligned (does the &quot;so that …&quot; clause name a real outcome?). Of the six stories evaluated, four are ready and two are not — one major finding and one minor finding (severity = how serious: major means the story is buildable but ambiguous; minor means a wording refinement). Both findings are the same kind of defect: the &quot;so that …&quot; benefit clause does not state a genuine outcome. US-04 (the Approver approve story) is major — its benefit clause &quot;so that it is marked Approved&quot; merely restates the action instead of saying why approval matters; US-06 (the Approver export story) is minor — &quot;so that I can use the data elsewhere&quot; leaves the actual use unspecified. Next step: rewrite those two benefit clauses to name a concrete business outcome before the stories go to design or estimation; the other four stories are ready as written.</p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section class="legend-bar" aria-label="Legend">
+  <p class="legend">
+    <strong>Priority legend.</strong>
+    <strong>blocking</strong> — the story cannot be built, tested, or accepted as written.
+    <strong>major</strong> — the story is buildable but ambiguous; multiple correct implementations are possible.
+    <strong>minor</strong> — refinement opportunity; a reasonable interpretation produces an acceptable story.
+  </p>
+  <p class="legend">
+    Source: <code>requirements/requirements.md &gt; §4.2 Stories by persona</code> only. Criteria: Meaningful · Implementable · Testable · Coherent · Appropriately scoped · Outcome-aligned. Ready stories are recorded in Diagnostics but not surfaced in the body.
+  </p>
+</section>
+
+<section id="executive-summary">
+  <h2>Executive Summary</h2>
+  <p><strong>Stories evaluated:</strong> 6</p>
+  <p><strong>Ready (passing all six criteria):</strong> 4</p>
+  <p><strong>Not ready (one or more findings):</strong> 2</p>
+  <p>
+    <strong>Priority</strong> —
+    <span class="chip priority-blocking">Blocking 0</span>
+    <span class="chip priority-major">Major 1</span>
+    <span class="chip priority-minor">Minor 1</span>
+  </p>
+  <p><strong>Personas covered:</strong> Importer, Approver</p>
+  <p><strong>Criterion coverage:</strong> 1 of 6 (Outcome-aligned)</p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="triage">
+  <h2>Triage</h2>
+  <p class="section-intro">Read this table top-to-bottom; findings are sorted by priority (blocking → major → minor), then by persona, then by anchor. The full reason and fix suggestion for each entry is in the corresponding <strong>Blocking / Major / Minor</strong> section below.</p>
+  <table class="triage-table">
+    <thead>
+      <tr>
+        <th>Priority</th>
+        <th>Story</th>
+        <th>Persona</th>
+        <th>Anchor</th>
+        <th>Criteria violated</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="priority-major">
+        <td><span class="chip priority-major">major</span></td>
+        <td><a href="#US-04"><code>US-04</code></a></td>
+        <td>Approver</td>
+        <td><code>§4.2 / Approver / story #1</code></td>
+        <td>Outcome-aligned</td>
+      </tr>
+      <tr class="priority-minor">
+        <td><span class="chip priority-minor">minor</span></td>
+        <td><a href="#US-06"><code>US-06</code></a></td>
+        <td>Approver</td>
+        <td><code>§4.2 / Approver / story #3</code></td>
+        <td>Outcome-aligned</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="blocking">
+  <h2>Blocking (0)</h2>
+  <p class="none"><em>None — no story carries a finding at this priority.</em></p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="major">
+  <h2>Major (1)</h2>
+  <article class="finding priority-major" id="US-04">
+    <h3>
+      <code>US-04</code> —
+      <span class="chip priority-major">major</span> ·
+      Approver
+    </h3>
+    <blockquote class="connextra"><p>As an Approver, I want to approve a transaction, so that it is marked Approved</p></blockquote>
+    <h4>Issues</h4>
+    <ul class="issues">
+      <li>
+        <strong>Outcome-aligned</strong> <span class="chip sev-major">major</span>:
+        The benefit clause &quot;so that it is marked Approved&quot; restates the direct result of the approve action rather than naming a distinct user or business outcome — approving a transaction is by definition marking it Approved, so the clause tells the team nothing about why the Approver wants the action. A reader cannot answer &quot;why approve?&quot; without re-reading the &quot;I want&quot; clause.
+        <ul><li><em>Fix:</em> Replace the benefit with the downstream value approval unlocks — e.g. the transaction is cleared for settlement, or it leaves the Approver&#39;s pending-review queue.</li></ul>
+      </li>
+    </ul>
+    <p class="anchor"><em>Anchor:</em> §4.2 / Approver / story #1</p>
+  </article>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="minor">
+  <h2>Minor (1)</h2>
+  <article class="finding priority-minor" id="US-06">
+    <h3>
+      <code>US-06</code> —
+      <span class="chip priority-minor">minor</span> ·
+      Approver
+    </h3>
+    <blockquote class="connextra"><p>As an Approver, I want to export the filtered transactions, so that I can use the data elsewhere</p></blockquote>
+    <h4>Issues</h4>
+    <ul class="issues">
+      <li>
+        <strong>Outcome-aligned</strong> <span class="chip sev-minor">minor</span>:
+        The benefit clause &quot;so that I can use the data elsewhere&quot; names an unspecified downstream use (&quot;elsewhere&quot;) rather than a concrete user or business outcome. Because the destination and purpose of the export are left open, the value it delivers cannot be assessed or tested against intent.
+        <ul><li><em>Fix:</em> Name the concrete downstream use the export serves — e.g. reconciliation in the team&#39;s accounting tool, or handing the filtered set to an external auditor.</li></ul>
+      </li>
+    </ul>
+    <p class="anchor"><em>Anchor:</em> §4.2 / Approver / story #3</p>
+  </article>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="diagnostics">
+  <h2>Diagnostics</h2>
+  <details class="diagnostics-toggle" open>
+    <summary>Show / hide diagnostics</summary>
+
+    <h4>Story counts</h4>
+    <table><thead><tr><th>Stat</th><th>Value</th></tr></thead><tbody>
+      <tr><td>Stories enumerated in §4.2</td><td>6</td></tr>
+      <tr><td>Stories evaluated</td><td>6</td></tr>
+      <tr><td>Stories passing all six criteria (ready)</td><td>4</td></tr>
+      <tr><td>Stories with findings (not ready)</td><td>2</td></tr>
+      <tr><td>Findings — blocking</td><td>0</td></tr>
+      <tr><td>Findings — major</td><td>1</td></tr>
+      <tr><td>Findings — minor</td><td>1</td></tr>
+    </tbody></table>
+
+    <h4>Per-criterion failure counts</h4>
+    <table><thead><tr><th>Criterion</th><th>Surviving issues</th></tr></thead><tbody>
+      <tr><td>Meaningful</td><td>0</td></tr>
+      <tr><td>Implementable</td><td>0</td></tr>
+      <tr><td>Testable</td><td>0</td></tr>
+      <tr><td>Coherent</td><td>0</td></tr>
+      <tr><td>Scoped</td><td>0</td></tr>
+      <tr><td>Outcome-aligned</td><td>2</td></tr>
+      <tr><td><strong>Criterion coverage</strong></td><td><strong>1 of 6</strong></td></tr>
+    </tbody></table>
+
+    <h4>Filter drops</h4>
+    <table><thead><tr><th>Filter source</th><th>Drops</th></tr></thead><tbody>
+      <tr><td>GR-NN match (Step 4 rule 1)</td><td>0</td></tr>
+      <tr><td>PI-NN match (Step 4 rule 2)</td><td>0</td></tr>
+      <tr><td>Scope filter (not applied)</td><td>— (every §4.2 story is in-scope by definition)</td></tr>
+      <tr><td>UX-lens drop (not applied)</td><td>— (criteria are orthogonal to UX/BA framing)</td></tr>
+    </tbody></table>
+
+    <h4>Quality gates</h4>
+    <table class="diagnostics-gates"><thead><tr><th>Gate</th><th>Result</th><th>Notes</th></tr></thead><tbody>
+      <tr class="gate-pass"><td>1. Every §4.2 story was evaluated</td><td><span class="chip gate-pass">PASS</span></td><td>6 of 6 enumerated stories evaluated.</td></tr>
+      <tr class="gate-pass"><td>2. Every finding has all required fields</td><td><span class="chip gate-pass">PASS</span></td><td>Both findings carry story ID, persona, anchor, Connextra text, headline priority, and ≥ 1 issue.</td></tr>
+      <tr class="gate-pass"><td>3. Every issue has all required fields</td><td><span class="chip gate-pass">PASS</span></td><td>Criterion, severity, a 1–3-sentence reason, and a 1–2-sentence fix are present on both issues.</td></tr>
+      <tr class="gate-pass"><td>4. No issue cites a criterion outside the six</td><td><span class="chip gate-pass">PASS</span></td><td>Both issues cite Outcome-aligned.</td></tr>
+      <tr class="gate-pass"><td>5. No issue is foreclosed by GR-NN or PI-NN</td><td><span class="chip gate-pass">PASS</span></td><td>Benefit-clause defects are not resolved by any active general rule or prototype invariant.</td></tr>
+      <tr class="gate-pass"><td>6. Headline-priority consistency</td><td><span class="chip gate-pass">PASS</span></td><td>US-04 major = max(major); US-06 minor = max(minor).</td></tr>
+      <tr class="gate-pass"><td>7. Sort order: priority → persona → anchor</td><td><span class="chip gate-pass">PASS</span></td><td>US-04 (major) precedes US-06 (minor); both Approver.</td></tr>
+      <tr class="gate-fail"><td>8. Criterion coverage ≥ 4 of 6</td><td><span class="chip gate-fail">WARN</span></td><td>Coverage is 1 of 6 (Outcome-aligned only). Narrow review — non-blocking warn, accepted by the consultant (see override log).</td></tr>
+      <tr class="gate-pass"><td>9. Diagnostics block completeness</td><td><span class="chip gate-pass">PASS</span></td><td>All required diagnostics fields present.</td></tr>
+    </tbody></table>
+
+    <h4>Override log</h4>
+    <p>Gate 8 (criterion coverage) fired its narrow-review WARN: coverage is 1 of 6 (Outcome-aligned only). The consultant chose <strong>Continue</strong> — the narrow coverage is honest signal on a small, well-formed story set whose only recurring weakness is benefit-clause (&quot;so that …&quot;) articulation; the other five criteria (Meaningful, Implementable, Testable, Coherent, Appropriately scoped) pass across all six stories, which carry explicit acceptance criteria, valid §3 persona references, valid §4.1 goal references, and single-verb scopes. Filter notes: scope-filter not-applicable (every §4.2 story is in-scope by construction); ux-lens-filter not-applicable (story-quality criteria are orthogonal to UX/BA framing). No hard gate was overridden — gates 1–7 and 9 all passed.</p>
+  </details>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,1270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adversarial Review — Enterprise financial transaction data management</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --fg: #1a1a1a;
+    --muted: #5a5a5a;
+    --border: #d4d4d4;
+    --border-strong: #8a8a8a;
+    --section-bg: #ffffff;
+    --code-bg: #f3f3f3;
+    --shadow-card: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+
+    --sev-blocker: #b91c1c;
+    --sev-blocker-bg: rgba(185, 28, 28, 0.10);
+    --sev-major: #c2410c;
+    --sev-major-bg: rgba(194, 65, 12, 0.10);
+    --sev-minor: #a16207;
+    --sev-minor-bg: rgba(161, 98, 7, 0.10);
+
+    --disp-patch: #15803d;
+    --disp-patch-bg: rgba(21, 128, 61, 0.10);
+    --disp-defer: #1d4ed8;
+    --disp-defer-bg: rgba(29, 78, 216, 0.10);
+    --disp-reject: #b91c1c;
+    --disp-reject-bg: rgba(185, 28, 28, 0.10);
+
+    --scope-fe: #0f766e;
+    --scope-fe-bg: rgba(15, 118, 110, 0.10);
+    --scope-contract: #6d28d9;
+    --scope-contract-bg: rgba(109, 40, 217, 0.10);
+    --scope-backend: #57534e;
+    --scope-backend-bg: rgba(87, 83, 78, 0.12);
+
+    --verdict-blocked-fg: #ffffff;
+    --verdict-blocked-bg: #991b1b;
+    --verdict-needs-fg: #ffffff;
+    --verdict-needs-bg: #c2410c;
+    --verdict-accepted-fg: #ffffff;
+    --verdict-accepted-bg: #15803d;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 32px 64px;
+  }
+
+  /* Header */
+  header { margin-bottom: 24px; }
+  h1#top {
+    margin: 0 0 12px 0;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px 24px;
+    padding: 14px 18px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-card);
+    margin: 16px 0;
+    font-size: 13px;
+  }
+  .meta-grid > div { display: flex; flex-direction: column; gap: 2px; }
+  .meta-grid dt {
+    margin: 0;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  .meta-grid dd {
+    margin: 0;
+    font-size: 14px;
+    color: var(--fg);
+    word-break: break-all;
+  }
+
+  /* TOC */
+  .toc {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin: 0 0 32px 0;
+    padding: 12px 18px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    box-shadow: var(--shadow-card);
+    font-size: 13px;
+  }
+  .toc-label {
+    display: block;
+    margin: 0 0 6px 0;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  .toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    counter-reset: toc-item;
+  }
+  .toc li {
+    counter-increment: toc-item;
+  }
+  .toc li::before {
+    content: counter(toc-item) ". ";
+    color: var(--muted);
+    margin-right: 4px;
+  }
+  .toc a {
+    color: var(--fg);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--border-strong);
+    padding-bottom: 1px;
+  }
+  .toc a:hover { border-bottom-color: var(--fg); color: #000; }
+
+  /* Sections */
+  section {
+    margin: 32px 0;
+    padding: 20px 24px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-card);
+  }
+  section h2 {
+    margin: 0 0 16px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border-strong);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  section h3 {
+    margin: 20px 0 10px 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  section h4 {
+    margin: 16px 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* Back-to-top */
+  .back-to-top {
+    margin: 24px 0 0 0;
+    text-align: right;
+    font-size: 12px;
+  }
+  .back-to-top a {
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--border-strong);
+    padding-bottom: 1px;
+  }
+  .back-to-top a:hover { color: var(--fg); border-bottom-color: var(--fg); }
+
+  /* In plain terms (human-readable lead — first section) */
+  #plain-terms { border-left: 4px solid var(--scope-fe); background: #f0fbfa; }
+  #plain-terms h2 { border-bottom-color: var(--scope-fe); }
+  #plain-terms p { margin: 0 0 4px 0; font-size: 15px; line-height: 1.55; }
+
+  /* Verdict banner */
+  .verdict {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+  }
+  .verdict-BLOCKED { background: var(--verdict-blocked-bg); color: var(--verdict-blocked-fg); }
+  .verdict-NEEDS-REVISION { background: var(--verdict-needs-bg); color: var(--verdict-needs-fg); }
+  .verdict-ACCEPTED-WITH-FIXES { background: var(--verdict-accepted-bg); color: var(--verdict-accepted-fg); }
+
+  /* Severity / disposition chips */
+  .chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .chip.severity-Blocker { background: var(--sev-blocker-bg); color: var(--sev-blocker); }
+  .chip.severity-Major { background: var(--sev-major-bg); color: var(--sev-major); }
+  .chip.severity-Minor { background: var(--sev-minor-bg); color: var(--sev-minor); }
+  .chip.disposition-Patch { background: var(--disp-patch-bg); color: var(--disp-patch); }
+  .chip.disposition-Defer { background: var(--disp-defer-bg); color: var(--disp-defer); }
+  .chip.disposition-Reject { background: var(--disp-reject-bg); color: var(--disp-reject); }
+  .chip.scope-fe-relevant { background: var(--scope-fe-bg); color: var(--scope-fe); }
+  .chip.scope-fe-facing-contract { background: var(--scope-contract-bg); color: var(--scope-contract); }
+  .chip.scope-backend-only { background: var(--scope-backend-bg); color: var(--scope-backend); }
+  .chip.gate-pass { background: var(--disp-patch-bg); color: var(--disp-patch); }
+  .chip.gate-fail { background: var(--disp-reject-bg); color: var(--disp-reject); }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  table caption {
+    text-align: left;
+    margin-bottom: 8px;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  thead {
+    background: #f3f3f3;
+    border-bottom: 2px solid var(--border-strong);
+  }
+  th {
+    text-align: left;
+    padding: 8px 10px;
+    font-weight: 600;
+    color: var(--fg);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:hover { background: #fafafa; }
+  td code, dd code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+  }
+
+  /* Findings table — full table */
+  table.findings-full thead { position: sticky; top: 48px; z-index: 5; }
+  table.findings-full td:nth-child(7) { min-width: 280px; }
+
+  /* Triage / Clusters */
+  table.triage-table tr.severity-Blocker { background: rgba(185, 28, 28, 0.04); }
+  .triage-overflow {
+    margin: 8px 0 0 0;
+    padding: 8px 12px;
+    background: var(--sev-blocker-bg);
+    color: var(--sev-blocker);
+    border-radius: 4px;
+    font-size: 13px;
+  }
+  .clusters-singletons {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* Findings list (per-dimension) */
+  .findings-list-header {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  article.finding {
+    margin: 16px 0;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    background: #fcfcfc;
+    box-shadow: 0 1px 1px rgba(0,0,0,.03);
+  }
+  article.finding.severity-Blocker { border-left-color: var(--sev-blocker); }
+  article.finding.severity-Major { border-left-color: var(--sev-major); }
+  article.finding.severity-Minor { border-left-color: var(--sev-minor); }
+  article.finding h4 {
+    margin: 0 0 12px 0;
+    padding: 0;
+    color: var(--fg);
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  article.finding h4 code {
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+  }
+
+  /* Finding fields (dl-grid) */
+  dl.finding-fields {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 8px 16px;
+    margin: 0;
+    font-size: 14px;
+  }
+  dl.finding-fields dt {
+    margin: 0;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding-top: 2px;
+  }
+  dl.finding-fields dd { margin: 0; word-break: break-word; }
+
+  /* Evidence blockquote */
+  blockquote.evidence {
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border-strong);
+    border-radius: 4px;
+    background: #fbfbfb;
+    overflow: hidden;
+  }
+  blockquote.evidence pre {
+    margin: 0;
+    padding: 10px 12px;
+    font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #333;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 320px;
+    overflow: auto;
+  }
+  blockquote.evidence.skipped-placeholder {
+    padding: 8px 12px;
+    font-style: italic;
+    color: var(--muted);
+    background: #f7f7f7;
+  }
+
+  /* Justification block */
+  .justification {
+    padding: 14px 18px;
+    background: var(--sev-major-bg);
+    border: 1px solid var(--sev-major);
+    border-radius: 6px;
+  }
+  .justification h3 {
+    margin: 0 0 8px 0;
+    color: var(--sev-major);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .justification p { margin: 0; }
+
+  /* Diagnostics toggle */
+  details.diagnostics-toggle { margin: 0; }
+  details.diagnostics-toggle > summary {
+    cursor: pointer;
+    padding: 0;
+    list-style: none;
+  }
+  details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+  details.diagnostics-toggle > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  details.diagnostics-toggle > summary::before {
+    content: "▶";
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform 0.15s ease;
+    display: inline-block;
+  }
+  details.diagnostics-toggle[open] > summary::before { transform: rotate(90deg); }
+
+  /* Diagnostics table accents */
+  table.diagnostics-gates tr.gate-fail { background: rgba(185, 28, 28, 0.05); }
+
+  /* Verdict legend */
+  .verdict-legend {
+    margin: 12px 0 0 0;
+    padding: 10px 12px;
+    background: #f7f7f7;
+    border-left: 3px solid var(--border-strong);
+    border-radius: 0 4px 4px 0;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  /* Responsive */
+  @media (max-width: 720px) {
+    main { padding: 16px 16px 48px; }
+    h1#top { font-size: 22px; }
+    section { padding: 14px 14px; }
+    section h2 { font-size: 18px; }
+    .meta-grid { grid-template-columns: 1fr; gap: 6px 0; }
+    dl.finding-fields { grid-template-columns: 1fr; gap: 4px 0; }
+    dl.finding-fields dt { padding-top: 6px; }
+    table { font-size: 12px; }
+    th, td { padding: 6px 6px; }
+    .toc { position: static; }
+  }
+  @media (max-width: 480px) {
+    body { font-size: 14px; }
+    h1#top { font-size: 19px; }
+    article.finding { padding: 12px 12px; }
+  }
+
+  /* Print */
+  @media print {
+    body { background: white; }
+    main { max-width: none; padding: 0; }
+    .toc, .back-to-top { display: none !important; }
+    section {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      box-shadow: none;
+      border: 1px solid #999;
+      margin: 12px 0;
+    }
+    article.finding {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      box-shadow: none;
+    }
+    details.diagnostics-toggle { display: block; }
+    details.diagnostics-toggle > summary > h3::before { display: none; }
+    details:not([open]) > *:not(summary) { display: block !important; }
+    blockquote.evidence pre { max-height: none; overflow: visible; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1 id="top">Adversarial Review — Enterprise financial transaction data management</h1>
+  <dl class="meta-grid">
+    <div><dt>Domain</dt><dd>Enterprise financial transaction data management</dd></div>
+    <div><dt>Generated</dt><dd>2026-06-12T15:30:01Z</dd></div>
+    <div><dt>Source SHA-256</dt><dd><code>a8c551059a6affd50c20f2d4de43d7bf4d21e5aea9d81e954c56a96d8f3de214</code></dd></div>
+    <div><dt>Reviewer</dt><dd>Adversarial Review (BMAD-style, strict mode)</dd></div>
+  </dl>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <span class="toc-label">Contents</span>
+  <ol>
+    <li><a href="#plain-terms">In plain terms</a></li>
+    <li><a href="#executive-summary">Executive Summary</a></li>
+    <li><a href="#triage">Triage</a></li>
+    <li><a href="#clusters">Clusters</a></li>
+    <li><a href="#findings-table">Findings Table</a></li>
+    <li><a href="#dim-1">Dimension 1 — Completeness &amp; Gaps</a></li>
+    <li><a href="#dim-2">Dimension 2 — Ambiguity &amp; Clarity</a></li>
+    <li><a href="#dim-3">Dimension 3 — Testability &amp; Verifiability</a></li>
+    <li><a href="#dim-4">Dimension 4 — Scope &amp; MVP Boundaries</a></li>
+    <li><a href="#dim-5">Dimension 5 — Dependency &amp; Ordering</a></li>
+    <li><a href="#dim-6">Dimension 6 — Consistency &amp; Internal Conflict</a></li>
+    <li><a href="#dim-7">Dimension 7 — Edge Cases &amp; Error Handling</a></li>
+    <li><a href="#dim-8">Dimension 8 — Feasibility &amp; Constraints</a></li>
+    <li><a href="#diagnostics">Diagnostics</a></li>
+  </ol>
+</nav>
+
+<section id="plain-terms" aria-label="In plain terms">
+  <h2>In plain terms</h2>
+  <p>This is an adversarial review — a deliberately skeptical pass that assumes the requirements document is flawed and hunts for specific, evidence-backed defects across eight lenses (called <em>dimensions</em>). It found 53 issues in the Transaction Import &amp; Approval System requirements: zero are Blockers (<em>severity</em> — how serious an issue is — runs Blocker, then Major, then Minor), 12 are Major, and 41 are Minor.</p>
+  <p>None of them block downstream design or code-generation, so the overall <em>verdict</em> (the readiness gate: BLOCKED / NEEDS-REVISION / ACCEPTED-WITH-FIXES) is NEEDS-REVISION, not BLOCKED — 34 issues are quick Patches (<em>disposition</em> — what to do about an issue — is Patch a small edit, Defer to a later pass, or Reject as blocking), 19 are Defer, and none are Reject.</p>
+  <p>The highest-leverage work clusters around a handful of root causes (a <em>cluster</em> is a set of findings sharing one underlying gap): the File-status derivation rule (the activity-name &rarr; status mapping) is never spelled out, step-up re-authentication is asserted but never wired into any screen or flow, and several thresholds (&quot;about one second&quot;, &quot;last group of digits&quot;, &quot;a baseline accessibility standard&quot;) are too vague to test.</p>
+  <p>Start with the 10-item Triage list, then work the clusters — and note that purely backend concerns (<em>scope class</em> backend-only: no screen surface) have been severity-capped so they cannot block this frontend prototype, while a few backend contracts the screens consume (scope class fe-facing-contract) keep their severity.</p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="executive-summary">
+  <h2>Executive Summary</h2>
+  <p><strong>Total findings:</strong> 53</p>
+  <p>
+    <strong>Severity</strong> —
+    <span class="chip severity-Blocker">Blocker 0</span>
+    <span class="chip severity-Major">Major 12</span>
+    <span class="chip severity-Minor">Minor 41</span>
+  </p>
+  <p>
+    <strong>Disposition</strong> —
+    <span class="chip disposition-Patch">Patch 34</span>
+    <span class="chip disposition-Defer">Defer 19</span>
+    <span class="chip disposition-Reject">Reject 0</span>
+  </p>
+  <p><span class="verdict verdict-NEEDS-REVISION">Verdict: NEEDS-REVISION</span></p>
+  <p class="verdict-legend">
+    <strong>Verdict legend.</strong>
+    <code>BLOCKED</code> — at least one Reject or Blocker; the requirements doc cannot be consumed downstream until resolved.
+    <code>NEEDS-REVISION</code> — findings present but none blocking.
+    <code>ACCEPTED-WITH-FIXES</code> — zero findings on all eight dimensions, every dimension carries a Justification block (rare under strict-BMAD).
+  </p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="triage">
+  <h2>Triage</h2>
+  <table class="triage-table">
+    <caption>Top issues to address first, ordered by severity. Resolve these before scanning the full Findings Table below. (Zero Rejects/Blockers after scope recalibration; this list is the 10 highest-leverage Major findings.)</caption>
+    <thead><tr><th>Rank</th><th>ID</th><th>Severity</th><th>Cluster</th><th>Location</th><th>Problem</th></tr></thead>
+    <tbody>
+      <tr class="severity-Major"><td>1</td><td><a href="#ADV-01"><code>ADV-01</code></a></td><td><span class="chip severity-Major">Major</span></td><td>CL-01</td><td>§6.6.1</td><td>§6.6.1 mandates step-up re-authentication for approve/reject, but no §6.1 functional requirement, §5 flow, or §6.4 UI feature need defines the step-up re-auth surface, so a stated security behaviour has no corresponding requirement.</td></tr>
+      <tr class="severity-Major"><td>2</td><td><a href="#ADV-11"><code>ADV-11</code></a></td><td><span class="chip severity-Major">Major</span></td><td>CL-05</td><td>§6.2 BR-07</td><td>&quot;last group of digits&quot; is ambiguous because §7 states AccountNumber is &quot;plain digits&quot; with no delimiter, so a UI implementer cannot determine where a &quot;group&quot; begins or how many digits it contains.</td></tr>
+      <tr class="severity-Major"><td>3</td><td><a href="#ADV-17"><code>ADV-17</code></a></td><td><span class="chip severity-Major">Major</span></td><td>CL-04</td><td>§6.1 F-08</td><td>The qualifier &quot;about one second&quot; has no decidable pass/fail boundary, so a tester cannot determine whether a 1.3s reflection passes or fails.</td></tr>
+      <tr class="severity-Major"><td>4</td><td><a href="#ADV-19"><code>ADV-19</code></a></td><td><span class="chip severity-Major">Major</span></td><td>CL-05</td><td>§6.1 F-13</td><td>&quot;last group of digits&quot; is undefined for a field stored as &quot;plain digits&quot; (§7) with no delimiter, so a tester cannot decide how many trailing digits must remain visible.</td></tr>
+      <tr class="severity-Major"><td>5</td><td><a href="#ADV-27"><code>ADV-27</code></a></td><td><span class="chip severity-Major">Major</span></td><td>CL-02</td><td>§7</td><td>The FileLog data shape derives the user-visible Status chip from a field LastExecutedActivityName that is never declared as a field on the FileLog shape (or any shape) in §7, so a frontend consumer cannot resolve the structure the status chip depends on.</td></tr>
+      <tr class="severity-Major"><td>6</td><td><a href="#ADV-28"><code>ADV-28</code></a></td><td><span class="chip severity-Major">Major</span></td><td></td><td>§5</td><td>The File Upload flow and F-03 require the form to capture FileSettingId and FileSettingName, but neither field appears on any §7 data shape, so the upload surface references structure the data model never defines.</td></tr>
+      <tr class="severity-Major"><td>7</td><td><a href="#ADV-33"><code>ADV-33</code></a></td><td><span class="chip severity-Major">Major</span></td><td></td><td>§6.5</td><td>The RBAC matrix grants the Importer Create (<code>C</code>) access on File Log, but §5 Flow: File Upload states &quot;the backend creates a File Log&quot; and §2.3 says the FE does not drive these transitions (backend-owned), so the FE consumer gets contradictory authority over who creates File Logs.</td></tr>
+      <tr class="severity-Major"><td>8</td><td><a href="#ADV-34"><code>ADV-34</code></a></td><td><span class="chip severity-Major">Major</span></td><td></td><td>§2.4</td><td>The class diagram models the generic <code>User</code> as actioning Transactions, but §2.2 restricts actioning to <code>Approver actions Transaction</code> and §6.5 RBAC gives the Importer no approve/reject, so the diagram contradicts the prose relationship and the access-control matrix.</td></tr>
+      <tr class="severity-Major"><td>9</td><td><a href="#ADV-38"><code>ADV-38</code></a></td><td><span class="chip severity-Major">Major</span></td><td></td><td>§6.4.5</td><td>The transaction-table list specifies a loading skeleton but no zero-items empty state for the case where the table genuinely contains no transactions (distinct from the §6.4.5 filter-yields-zero 'partial' row, which presupposes a non-empty source list).</td></tr>
+      <tr class="severity-Major"><td>10</td><td><a href="#ADV-39"><code>ADV-39</code></a></td><td><span class="chip severity-Major">Major</span></td><td></td><td>§6.4.5</td><td>Every data-loading surface specifies only a loading skeleton with no error variant, so a failed GET /v1/transactions (or file-logs) load has no defined UI state, leaving the frontend consumer with no behaviour to render on fetch failure.</td></tr>
+    </tbody>
+  </table>
+  <p class="triage-overflow">Triage capped at 10. Two further Major findings fall below the cut and are not listed here: <a href="#ADV-40"><code>ADV-40</code></a> (§6.1 F-03 — file upload names no max size / type / virus check) and <a href="#ADV-48"><code>ADV-48</code></a> (§6.6.4 — POPIA retention / consent / data-residency undefined). Both appear in the Findings Table and their dimension sections.</p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="clusters">
+  <h2>Clusters</h2>
+  <table class="clusters-table">
+    <caption>Findings sharing a root cause are grouped below. Each cluster lists its member finding IDs; the per-dimension sections still contain every finding in full detail.</caption>
+    <thead><tr><th>Cluster</th><th>Theme</th><th>Findings</th><th>Max severity</th></tr></thead>
+    <tbody>
+      <tr><td>CL-01</td><td>Step-up auth asserted in §6.6.1 but never wired into flows/UI</td><td><a href="#ADV-01"><code>ADV-01</code></a>, <a href="#ADV-24"><code>ADV-24</code></a>, <a href="#ADV-32"><code>ADV-32</code></a>, <a href="#ADV-35"><code>ADV-35</code></a>, <a href="#ADV-52"><code>ADV-52</code></a></td><td><span class="chip severity-Major">Major</span></td></tr>
+      <tr><td>CL-02</td><td>File-status derivation (activity-name &rarr; status) undefined</td><td><a href="#ADV-02"><code>ADV-02</code></a>, <a href="#ADV-12"><code>ADV-12</code></a>, <a href="#ADV-18"><code>ADV-18</code></a>, <a href="#ADV-27"><code>ADV-27</code></a>, <a href="#ADV-29"><code>ADV-29</code></a></td><td><span class="chip severity-Major">Major</span></td></tr>
+      <tr><td>CL-03</td><td>Failed File Log state has no recovery UI</td><td><a href="#ADV-07"><code>ADV-07</code></a>, <a href="#ADV-26"><code>ADV-26</code></a>, <a href="#ADV-44"><code>ADV-44</code></a></td><td><span class="chip severity-Minor">Minor</span></td></tr>
+      <tr><td>CL-04</td><td>Approve-reflect timing &quot;about one second&quot; unverifiable</td><td><a href="#ADV-09"><code>ADV-09</code></a>, <a href="#ADV-17"><code>ADV-17</code></a></td><td><span class="chip severity-Major">Major</span></td></tr>
+      <tr><td>CL-05</td><td>AccountNumber mask &quot;last group of digits&quot; undefined</td><td><a href="#ADV-11"><code>ADV-11</code></a>, <a href="#ADV-19"><code>ADV-19</code></a></td><td><span class="chip severity-Major">Major</span></td></tr>
+      <tr><td>CL-06</td><td>Accessibility target unnamed (no WCAG level)</td><td><a href="#ADV-13"><code>ADV-13</code></a>, <a href="#ADV-20"><code>ADV-20</code></a>, <a href="#ADV-46"><code>ADV-46</code></a></td><td><span class="chip severity-Minor">Minor</span></td></tr>
+      <tr><td>CL-07</td><td>F-16 &quot;welcome&quot; content unspecified</td><td><a href="#ADV-14"><code>ADV-14</code></a>, <a href="#ADV-21"><code>ADV-21</code></a></td><td><span class="chip severity-Minor">Minor</span></td></tr>
+      <tr><td>CL-08</td><td>Transaction volume band (10²–10⁴) inferred and behaviourally undefined</td><td><a href="#ADV-16"><code>ADV-16</code></a>, <a href="#ADV-41"><code>ADV-41</code></a>, <a href="#ADV-49"><code>ADV-49</code></a></td><td><span class="chip severity-Minor">Minor</span></td></tr>
+      <tr><td>CL-09</td><td>§6.6.2 render budget unanchored / conflicts with volume</td><td><a href="#ADV-37"><code>ADV-37</code></a>, <a href="#ADV-53"><code>ADV-53</code></a></td><td><span class="chip severity-Minor">Minor</span></td></tr>
+    </tbody>
+  </table>
+  <p class="clusters-singletons">26 findings stand on their own root cause and are not clustered: ADV-03, ADV-04, ADV-05, ADV-06, ADV-08, ADV-10, ADV-15, ADV-22, ADV-23, ADV-25, ADV-28, ADV-30, ADV-31, ADV-33, ADV-34, ADV-36, ADV-38, ADV-39, ADV-40, ADV-42, ADV-43, ADV-45, ADV-47, ADV-48, ADV-50, ADV-51.</p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="findings-table">
+  <h2>Findings Table</h2>
+  <table class="findings-full">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Dim</th>
+        <th>Severity</th>
+        <th>Disposition</th>
+        <th>Cluster</th>
+        <th>Location</th>
+        <th>Problem</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-01"><code>ADV-01</code></a></td><td>1</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-01</td><td>§6.6.1</td><td>§6.6.1 mandates step-up re-authentication for approve/reject, but no §6.1 functional requirement, §5 flow, or §6.4 UI feature need defines the step-up re-auth surface, so a stated security behaviour has no corresponding requirement.</td></tr>
+      <tr class="finding-row severity-Major disposition-Patch"><td><a href="#ADV-11"><code>ADV-11</code></a></td><td>2</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-05</td><td>§6.2 BR-07</td><td>&quot;last group of digits&quot; is ambiguous because §7 states AccountNumber is &quot;plain digits&quot; with no delimiter, so a UI implementer cannot determine where a &quot;group&quot; begins or how many digits it contains.</td></tr>
+      <tr class="finding-row severity-Major disposition-Patch"><td><a href="#ADV-17"><code>ADV-17</code></a></td><td>3</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-04</td><td>§6.1 F-08</td><td>The qualifier &quot;about one second&quot; has no decidable pass/fail boundary, so a tester cannot determine whether a 1.3s reflection passes or fails.</td></tr>
+      <tr class="finding-row severity-Major disposition-Patch"><td><a href="#ADV-19"><code>ADV-19</code></a></td><td>3</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-05</td><td>§6.1 F-13</td><td>&quot;last group of digits&quot; is undefined for a field stored as &quot;plain digits&quot; (§7) with no delimiter, so a tester cannot decide how many trailing digits must remain visible.</td></tr>
+      <tr class="finding-row severity-Major disposition-Patch"><td><a href="#ADV-27"><code>ADV-27</code></a></td><td>5</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-02</td><td>§7</td><td>The FileLog data shape derives the user-visible Status chip from a field LastExecutedActivityName that is never declared as a field on the FileLog shape (or any shape) in §7, so a frontend consumer cannot resolve the structure the status chip depends on.</td></tr>
+      <tr class="finding-row severity-Major disposition-Patch"><td><a href="#ADV-28"><code>ADV-28</code></a></td><td>5</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>§5</td><td>The File Upload flow and F-03 require the form to capture FileSettingId and FileSettingName, but neither field appears on any §7 data shape, so the upload surface references structure the data model never defines.</td></tr>
+      <tr class="finding-row severity-Major disposition-Patch"><td><a href="#ADV-33"><code>ADV-33</code></a></td><td>6</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>§6.5</td><td>The RBAC matrix grants the Importer Create (<code>C</code>) access on File Log, but §5 Flow: File Upload states &quot;the backend creates a File Log&quot; and §2.3 says the FE does not drive these transitions (backend-owned), so the FE consumer gets contradictory authority over who creates File Logs.</td></tr>
+      <tr class="finding-row severity-Major disposition-Patch"><td><a href="#ADV-34"><code>ADV-34</code></a></td><td>6</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>§2.4</td><td>The class diagram models the generic <code>User</code> as actioning Transactions, but §2.2 restricts actioning to <code>Approver actions Transaction</code> and §6.5 RBAC gives the Importer no approve/reject, so the diagram contradicts the prose relationship and the access-control matrix.</td></tr>
+      <tr class="finding-row severity-Major disposition-Patch"><td><a href="#ADV-38"><code>ADV-38</code></a></td><td>7</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>§6.4.5</td><td>The transaction-table list specifies a loading skeleton but no zero-items empty state for the case where the table genuinely contains no transactions (distinct from the §6.4.5 filter-yields-zero 'partial' row, which presupposes a non-empty source list).</td></tr>
+      <tr class="finding-row severity-Major disposition-Patch"><td><a href="#ADV-39"><code>ADV-39</code></a></td><td>7</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>§6.4.5</td><td>Every data-loading surface specifies only a loading skeleton with no error variant, so a failed GET /v1/transactions (or file-logs) load has no defined UI state, leaving the frontend consumer with no behaviour to render on fetch failure.</td></tr>
+      <tr class="finding-row severity-Major disposition-Patch"><td><a href="#ADV-40"><code>ADV-40</code></a></td><td>7</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>§6.1 F-03</td><td>The file-upload requirement names no maximum file size, no accepted file type/format, and no virus/content check — the canonical 'file upload with no max size, no failure mode' edge gap.</td></tr>
+      <tr class="finding-row severity-Major disposition-Defer"><td><a href="#ADV-48"><code>ADV-48</code></a></td><td>8</td><td><span class="chip severity-Major">Major</span></td><td><span class="chip disposition-Defer">Defer</span></td><td></td><td>§6.6.4</td><td>The document handles POPIA-bearing financial PII (AccountNumber, Amount, Currency, Email) but defines no retention window, consent flow, or data-residency treatment beyond on-screen masking, leaving the compliance posture incomplete.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-02"><code>ADV-02</code></a></td><td>1</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-02</td><td>§6.2 BR-08</td><td>BR-08's acceptance criterion depends on an activity-name-to-status mapping that is never enumerated anywhere in the doc (§9 itself flags &quot;mapping not enumerated in the corpus&quot;), so the rule has no pass/fail predicate and File Status cannot be derived.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-03"><code>ADV-03</code></a></td><td>1</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>§6.1 F-12</td><td>F-12's AC begins &quot;While a file summary is open&quot; but no §5 task flow or §6.4 UI feature need defines how/where a user opens a file summary, so the entry point for the feature is missing.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-04"><code>ADV-04</code></a></td><td>1</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>§6.1 F-06</td><td>Shape: Transaction defines Description, TransactionType, and UserNote as fields, but F-06 (and no other display requirement) names them, so three data-model properties have no documented read/display behaviour.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-05"><code>ADV-05</code></a></td><td>1</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>G-04</td><td>G-04's search/filter is realized as F-07 (Must) and UI-03 (Must) but the Importer story that closes G-04 is priority &quot;Should&quot;, leaving the goal's priority coverage internally inconsistent.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-06"><code>ADV-06</code></a></td><td>1</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td></td><td>§6.6</td><td>The non-functional section covers session UX, performance, compliance, and accessibility but states no observability/error-telemetry requirement (e.g. client error logging or failure reporting), so that NFR category is absent rather than implied.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-07"><code>ADV-07</code></a></td><td>1</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-03</td><td>§2.5</td><td>A File Log can reach the Failed state but the user-facing recovery flow is explicitly unspecified, leaving G-01 (&quot;track their processing&quot;) with no closed behaviour for the failure branch.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-08"><code>ADV-08</code></a></td><td>1</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td></td><td>§6.10</td><td>§6.10 lists eight consumed operations with fixture references but contracts no failure mode (error payload shape / FE error-state mapping) for any of them, so the integration surface's failure behaviour is uncontracted.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-09"><code>ADV-09</code></a></td><td>2</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-04</td><td>§6.1 F-08</td><td>&quot;about one second&quot; is a vague time window (the hedge &quot;about&quot; makes the performance acceptance criterion unverifiable — is 1.4s a pass or fail?).</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-10"><code>ADV-10</code></a></td><td>2</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>G-04</td><td>&quot;a few filter actions&quot; is a vague quantifier, leaving the goal's success threshold undefined.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-12"><code>ADV-12</code></a></td><td>2</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-02</td><td>§6.2 BR-08</td><td>The business rule references an &quot;activity-name-to-status mapping&quot; that is never enumerated, so a reader cannot determine which activity names yield Uploaded/Processing/Completed/Failed — §9 itself flags &quot;mapping not enumerated in the corpus&quot;.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-13"><code>ADV-13</code></a></td><td>2</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-06</td><td>§6.6.5</td><td>&quot;a baseline accessibility standard&quot; is vague — no named standard or level (e.g. WCAG 2.1 AA) is given, so the requirement is unverifiable.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-14"><code>ADV-14</code></a></td><td>2</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-07</td><td>§6.1 F-16</td><td>&quot;render the authenticated user's welcome&quot; uses an undefined noun (&quot;welcome&quot;) with no acceptance criterion specifying what content or surface this is.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-15"><code>ADV-15</code></a></td><td>2</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>§4.2</td><td>&quot;the required file-setting details&quot; is a vague noun phrase in the story objective; the reader must infer the closed set (FileSettingId, FileSettingName, FileName) from F-03 rather than seeing it here.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-16"><code>ADV-16</code></a></td><td>2</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-08</td><td>§10</td><td>The volume band &quot;10²–10⁴&quot; spans two orders of magnitude, making it a vague quantifier that cannot decisively drive the UI pattern selection §10 claims it governs (pagination vs virtualization decisions differ across that range).</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-18"><code>ADV-18</code></a></td><td>3</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-02</td><td>§9</td><td>BR-08 and Shape: FileLog.Status both depend on an activity-name-to-status mapping that the doc itself admits is not enumerated, so a tester cannot decide which Status any given LastExecutedActivityName must render.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-20"><code>ADV-20</code></a></td><td>3</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-06</td><td>§6.6.5</td><td>&quot;baseline accessibility standard&quot; names no level or version, so a tester has no enumerated criteria to assert conformance against.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-21"><code>ADV-21</code></a></td><td>3</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-07</td><td>§6.1 F-16</td><td>&quot;the authenticated user's welcome&quot; specifies no concrete UI element or content, so a tester cannot decide what a passing render must contain.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-22"><code>ADV-22</code></a></td><td>3</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>§6.4.5</td><td>&quot;Skeleton matching the target&quot; gives no decidable predicate for what the loading skeleton must show (row count, column structure), so its presence cannot be objectively pass/fail tested.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-23"><code>ADV-23</code></a></td><td>4</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>§6.1</td><td>F-16 carries priority &quot;Could&quot; but §1.5 declares the seven key screens as the explicit MVP set with no scope note placing &quot;Could&quot; items in or out of that MVP cut, so it straddles the MVP/post-MVP line.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-24"><code>ADV-24</code></a></td><td>4</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-01</td><td>§6.6.1</td><td>This MVP-scoping claim (&quot;No MFA prompt in the MVP&quot;) sits inside a block headed &quot;Application-build guidance — not a prototype design input,&quot; blurring whether MFA-absence is a binding MVP scope decision or merely advisory build guidance.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-25"><code>ADV-25</code></a></td><td>4</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>§1.5</td><td>The scope note pins the MVP to &quot;seven named key screens&quot; but the In bucket enumerates eight feature items (not screens), so the unit and count of the MVP boundary are inconsistent and the engineer cannot map features to the asserted seven-screen cut line.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-26"><code>ADV-26</code></a></td><td>4</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-03</td><td>§1.5</td><td>The single Deferred item is explicitly &quot;unspecified,&quot; so it is not estimable and provides no cut-line detail, yet §2.5's File Log matrix still renders the Failed state and notes &quot;recovery flow unspecified&quot; inline, mixing undefined deferred work into the active state model.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-29"><code>ADV-29</code></a></td><td>5</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-02</td><td>§9</td><td>The activity-name-to-status mapping that drives the File Log Status chip (BR-08, §2.3, §7) is referenced as load-bearing but is explicitly never enumerated anywhere in the doc, leaving the status-chip rendering rule undefined for a downstream consumer.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-30"><code>ADV-30</code></a></td><td>5</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>G-01</td><td>The goals catalogue never names the implicit dependency that G-02/G-03/G-04/G-05 all require an authenticated, role-routed session (F-01/F-02) and populated data (G-01), so the buildable order of goals is not discoverable from §4.1.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-31"><code>ADV-31</code></a></td><td>5</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>§6.1</td><td>F-11 operates on &quot;the filtered grid&quot; and is thus dependent on F-07 (client-side filtering) and F-06 (transaction display) existing, but no dependency note records that ordering, so an engineer could schedule export before the grid/filter capability.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-32"><code>ADV-32</code></a></td><td>5</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-01</td><td>§6.6.1</td><td>The session-UX block inserts a step-up re-auth requirement gating approve/reject, but no task flow (§5 Approve/Reject) or functional requirement defines a step-up auth interaction, so the approve/reject flows reference a re-auth concept the rest of the doc never models.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-35"><code>ADV-35</code></a></td><td>6</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-01</td><td>§6.6.1</td><td>§6.6.1 simultaneously asserts &quot;Step-up auth required for approve-class actions&quot; and &quot;No MFA prompt in the MVP,&quot; yet a step-up re-authentication challenge before approve/reject is itself an additional authentication prompt, leaving the two adjacent rows in tension about whether the MVP issues any secondary auth challenge.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-36"><code>ADV-36</code></a></td><td>6</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>§7</td><td>§7 marks Transaction.UserNote as Required = no, while §6.3 validation and §6.2 BR-03 make the note mandatory on reject, so a consumer reading the data shape sees an optional field that other sections treat as required in the reject path.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-37"><code>ADV-37</code></a></td><td>6</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-09</td><td>§6.6.2</td><td>§6.6.2 sets a p95 ≤ 500 ms render budget for the transaction table while §10 assumes a client-side band of up to 10⁴ retained transactions filtered/exported client-side, a volume that may exceed a 500 ms render budget and matches the classic NFR-vs-data-volume conflict.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-41"><code>ADV-41</code></a></td><td>7</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-08</td><td>§10</td><td>A maximum-size state is undefined: the assumed 10⁴ upper band has no specified behaviour (truncation notice, virtualization, or warning) when the client-side retained set approaches the band ceiling.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-42"><code>ADV-42</code></a></td><td>7</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>§6.3</td><td>The amount-range filter has a format-validation rule but the date-range filter (named in F-07 / UI-03) has no validation behaviour specified for a malformed or inverted (start &gt; end) date range.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-43"><code>ADV-43</code></a></td><td>7</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td></td><td>Flow: File Upload</td><td>Re-uploading the same file is not addressed — there is no duplicate-file detection or idempotency surface, so an Importer who submits the same file twice has undefined UI behaviour (PI-03 explicitly excludes idempotency enforcement, leaving the gap unaddressed even at the UI layer).</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-44"><code>ADV-44</code></a></td><td>7</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-03</td><td>§1.5</td><td>A File Log reaching the Failed terminal state (§2.5) has no recovery path — it is explicitly deferred — so the only edge for a failed ingestion is a status chip with no actionable next step for the Importer.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-45"><code>ADV-45</code></a></td><td>7</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td></td><td>Flow: Authentication</td><td>Authentication specifies only the invalid-credentials path; there is no defined UI for a login network failure/timeout, and password-reset (a standard recovery path) is absent from scope entirely.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-46"><code>ADV-46</code></a></td><td>8</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td>CL-06</td><td>§6.6.5</td><td>&quot;a baseline accessibility standard&quot; is not testable — no WCAG level, version, or conformance target is named, so an FE consumer cannot verify a11y states.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Patch"><td><a href="#ADV-47"><code>ADV-47</code></a></td><td>8</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Patch">Patch</span></td><td></td><td>§1.6</td><td>&quot;desktop browsers first&quot; names no concrete browser/version targets, so device-specific layout and rendering feasibility cannot be assessed or tested.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-49"><code>ADV-49</code></a></td><td>8</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-08</td><td>§10</td><td>The client-side retained-transaction band (10²–10⁴) that drives the §6.6.2 render budget and the §6.1 F-07 in-memory filtering is entirely inferred with no corpus source, so the load model underpinning client-side feasibility is unvalidated.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-50"><code>ADV-50</code></a></td><td>8</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td></td><td>§10</td><td>No cost, timeline, or team-size constraint is stated anywhere in the document (concurrency &quot;10¹&quot; describes runtime users, not delivery resourcing), so delivery feasibility cannot be assessed.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-51"><code>ADV-51</code></a></td><td>8</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td></td><td>§1.7</td><td>No operational requirements (logging, monitoring, alerting, backups, disaster recovery) are named anywhere, so the system is specified to run in production with an undefined operational posture (backend-only, Not Prototypable).</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-52"><code>ADV-52</code></a></td><td>8</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-01</td><td>§6.6.1</td><td>Step-up re-authentication for every approve/reject is asserted as an inferred default but has no supporting latency, UX, or session-mechanism detail, making its feasibility against the &quot;reflect within about one second&quot; approve budget (F-08) untested.</td></tr>
+      <tr class="finding-row severity-Minor disposition-Defer"><td><a href="#ADV-53"><code>ADV-53</code></a></td><td>8</td><td><span class="chip severity-Minor">Minor</span></td><td><span class="chip disposition-Defer">Defer</span></td><td>CL-09</td><td>§6.6.2</td><td>A p95 ≤ 500 ms render budget is asserted with no named stack, rendering strategy, or row-count basis (the 10⁴ upper band is itself inferred), so the threshold is unanchored and unverifiable.</td></tr>
+    </tbody>
+  </table>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-1">
+  <h2>Dimension 1 — Completeness &amp; Gaps</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+    <article class="finding severity-Major disposition-Defer" id="ADV-01">
+      <h4><code>ADV-01</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-fe-facing-contract">fe-facing-contract</span> · §6.6.1 mandates step-up re-authentication for approve/reject, but no §6.1 functional requirement, §5 flow, or §6.4 UI feature need defines the step-up re-auth surface, so a stated security behaviour has no corresponding requirement.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.6.1</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| Re-auth scope | Step-up auth required for approve-class actions (approve/reject) | inferred |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>§6.6.1 mandates step-up re-authentication for approve/reject, but no §6.1 functional requirement, §5 flow, or §6.4 UI feature need defines the step-up re-auth surface, so a stated security behaviour has no corresponding requirement.</dd>
+        <dt>Recommendation</dt><dd>Either add a functional requirement plus UI feature need (re-auth prompt surface, error state) covering step-up auth on approve/reject, or remove the §6.6.1 re-auth row if it is out of MVP scope.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-02">
+      <h4><code>ADV-02</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-backend-only">backend-only</span> · BR-08's acceptance criterion depends on an activity-name-to-status mapping that is never enumerated anywhere in the doc, so the rule has no pass/fail predicate and File Status cannot be derived.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.2 BR-08</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>When a File Log is shown, the system shall display the Status mapped from LastExecutedActivityName per the activity-name-to-status mapping.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>BR-08's acceptance criterion depends on an activity-name-to-status mapping that is never enumerated anywhere in the doc (§9 itself flags &quot;mapping not enumerated in the corpus&quot;), so the rule has no pass/fail predicate and File Status cannot be derived.</dd>
+        <dt>Recommendation</dt><dd>Enumerate the activity-name-to-status mapping (each LastExecutedActivityName value → File Status enum) in §2.3 or §7, or mark BR-08 as blocked pending the mapping rather than stating it as an enforceable rule.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-03">
+      <h4><code>ADV-03</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · F-12's AC begins &quot;While a file summary is open&quot; but no §5 task flow or §6.4 UI feature need defines how/where a user opens a file summary, so the entry point for the feature is missing.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.1 F-12</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| F-12 | Should | Display a file summary of total records and count by status [SRC: C-043] | While a file summary is open, the system shall show total records and a count of transactions by status. | → §6.7 RPT-01 | Supports → §4.1 G-05 |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>F-12's AC begins &quot;While a file summary is open&quot; but no §5 task flow or §6.4 UI feature need defines how/where a user opens a file summary, so the entry point for the feature is missing.</dd>
+        <dt>Recommendation</dt><dd>Add a §5 flow or a UI-NN feature need specifying the trigger and surface from which a file summary is opened (e.g. from a file-log row), and link F-12 to it.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-04">
+      <h4><code>ADV-04</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · Shape: Transaction defines Description, TransactionType, and UserNote as fields, but F-06 (and no other display requirement) names them, so three data-model properties have no documented read/display behaviour.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.1 F-06</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>While the transaction table is loaded, the system shall show reference, date, account, amount, currency, and status for each transaction.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>Shape: Transaction defines Description, TransactionType, and UserNote as fields, but F-06 (and no other display requirement) names them, so three data-model properties have no documented read/display behaviour.</dd>
+        <dt>Recommendation</dt><dd>State explicitly where Description, TransactionType, and UserNote are surfaced (e.g. detail row, chip) or mark them as not displayed in §7, so every Transaction field has documented read coverage.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-05">
+      <h4><code>ADV-05</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · G-04's search/filter is realized as F-07 (Must) and UI-03 (Must) but the Importer story that closes G-04 is priority &quot;Should&quot;, leaving the goal's priority coverage internally inconsistent.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>G-04</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| G-04 | Find specific transactions quickly via search and filter [SRC: C-042] | Target transactions located within a few filter actions | sub-level | | |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>G-04's search/filter is realized as F-07 (Must) and UI-03 (Must) but the Importer story that closes G-04 is priority &quot;Should&quot;, leaving the goal's priority coverage internally inconsistent.</dd>
+        <dt>Recommendation</dt><dd>Reconcile the priority: set the §4.2 Importer search/filter story to &quot;Must&quot; to match F-07/UI-03, or downgrade F-07/UI-03, so the goal-to-requirement priority chain is consistent.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-06">
+      <h4><code>ADV-06</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-backend-only">backend-only</span> · The non-functional section covers session UX, performance, compliance, and accessibility but states no observability/error-telemetry requirement, so that NFR category is absent rather than implied.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.6</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>## 6.6 Non-functional (FE-only)</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The non-functional section covers session UX, performance, compliance, and accessibility but states no observability/error-telemetry requirement (e.g. client error logging or failure reporting), so that NFR category is absent rather than implied.</dd>
+        <dt>Recommendation</dt><dd>Add an explicit observability NFR (even if scoped as backend-only/app-build guidance) or record an explicit decision that client-side observability is out of scope for the prototype.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-07">
+      <h4><code>ADV-07</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · A File Log can reach the Failed state but the user-facing recovery flow is explicitly unspecified, leaving G-01 with no closed behaviour for the failure branch.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§2.5</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| Processing → Failed | backend processing fails (out-of-FE-scope context) | processing encountered an error | File Status reflects Failed on the File Log list; recovery flow unspecified [SRC: C-069] |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>A File Log can reach the Failed state but the user-facing recovery flow is explicitly unspecified, leaving G-01 (&quot;track their processing&quot;) with no closed behaviour for the failure branch.</dd>
+        <dt>Recommendation</dt><dd>Either define the minimal Failed-file UI behaviour (e.g. surfaced error state and a no-op acknowledgement) or confirm in §1.5 Deferred that no Failed-state interaction ships in the MVP.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-08">
+      <h4><code>ADV-08</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-fe-facing-contract">fe-facing-contract</span> · §6.10 lists eight consumed operations with fixture references but contracts no failure mode for any of them, so the integration surface's failure behaviour is uncontracted.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.10</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>&gt; FE-facing only. Prototype sub-block (fixtures). Every operation maps to a §6.1 F-NN.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>§6.10 lists eight consumed operations with fixture references but contracts no failure mode (error payload shape / FE error-state mapping) for any of them, so the integration surface's failure behaviour is uncontracted.</dd>
+        <dt>Recommendation</dt><dd>Add a failure-mode column to §6.10 (or cross-reference §6.4.5 error states per operation) so each consumed operation names its error/empty response and the FE state it drives.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-2">
+  <h2>Dimension 2 — Ambiguity &amp; Clarity</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-09">
+      <h4><code>ADV-09</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · &quot;about one second&quot; is a vague time window — the hedge &quot;about&quot; makes the performance acceptance criterion unverifiable.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.1 F-08</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>the system shall set its status to Approved and reflect the change within about one second [SRC: C-040]</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;about one second&quot; is a vague time window (the hedge &quot;about&quot; makes the performance acceptance criterion unverifiable — is 1.4s a pass or fail?).</dd>
+        <dt>Recommendation</dt><dd>Replace &quot;within about one second&quot; with a precise bound, e.g. &quot;the status chip reflects the change within 1 s (p95)&quot;, consistent with the §6.6.2 render budget.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-10">
+      <h4><code>ADV-10</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · &quot;a few filter actions&quot; is a vague quantifier, leaving the goal's success threshold undefined.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>G-04</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>Target transactions located within a few filter actions</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;a few filter actions&quot; is a vague quantifier, leaving the goal's success threshold undefined.</dd>
+        <dt>Recommendation</dt><dd>Quantify the signal, e.g. &quot;located within at most 3 filter applications&quot;, or restate as a qualitative-only signal that does not imply a measurable count.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Patch" id="ADV-11">
+      <h4><code>ADV-11</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · &quot;last group of digits&quot; is ambiguous because §7 states AccountNumber is &quot;plain digits&quot; with no delimiter, so a UI implementer cannot determine where a &quot;group&quot; begins.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.2 BR-07</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>Where AccountNumber is displayed, the system shall mask all but the last group of digits [SRC: C-045]</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;last group of digits&quot; is ambiguous because §7 states AccountNumber is &quot;plain digits&quot; with no delimiter, so a UI implementer cannot determine where a &quot;group&quot; begins or how many digits it contains.</dd>
+        <dt>Recommendation</dt><dd>Define the group precisely, e.g. &quot;mask all but the last 4 digits&quot;, and reconcile with the §7 &quot;plain digits&quot; representation.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-12">
+      <h4><code>ADV-12</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-backend-only">backend-only</span> · The business rule references an &quot;activity-name-to-status mapping&quot; that is never enumerated, so a reader cannot determine which activity names yield which File status.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.2 BR-08</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>the system shall display the Status mapped from LastExecutedActivityName per the activity-name-to-status mapping</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The business rule references an &quot;activity-name-to-status mapping&quot; that is never enumerated, so a reader cannot determine which activity names yield Uploaded/Processing/Completed/Failed — §9 itself flags &quot;mapping not enumerated in the corpus&quot;.</dd>
+        <dt>Recommendation</dt><dd>Enumerate the activity-name-to-status mapping in §2.3 File Log (or a §7 derivation row), or explicitly mark the mapping as a deferred backend-owned input the FE renders verbatim.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-13">
+      <h4><code>ADV-13</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · &quot;a baseline accessibility standard&quot; is vague — no named standard or level (e.g. WCAG 2.1 AA) is given, so the requirement is unverifiable.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.6.5</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>The application targets desktop browsers first and meets a baseline accessibility standard [SRC: C-046]</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;a baseline accessibility standard&quot; is vague — no named standard or level (e.g. WCAG 2.1 AA) is given, so the requirement is unverifiable.</dd>
+        <dt>Recommendation</dt><dd>Name the target standard and conformance level explicitly, e.g. &quot;meets WCAG 2.1 AA&quot;.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-14">
+      <h4><code>ADV-14</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · &quot;render the authenticated user's welcome&quot; uses an undefined noun (&quot;welcome&quot;) with no acceptance criterion specifying what content or surface this is.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.1 F-16</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>the system shall verify session validity and render the authenticated user's welcome</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;render the authenticated user's welcome&quot; uses an undefined noun (&quot;welcome&quot;) with no acceptance criterion specifying what content or surface this is.</dd>
+        <dt>Recommendation</dt><dd>Define the &quot;welcome&quot; concretely, e.g. &quot;render the user's display name and role in the app header&quot;, with a testable acceptance criterion.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-15">
+      <h4><code>ADV-15</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · &quot;the required file-setting details&quot; is a vague noun phrase in the story objective; the reader must infer the closed set from F-03 rather than seeing it here.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§4.2</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>Objective | Select a file, supply the required file-setting details, and upload it [SRC: C-028]</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;the required file-setting details&quot; is a vague noun phrase in the story objective; the reader must infer the closed set (FileSettingId, FileSettingName, FileName) from F-03 rather than seeing it here.</dd>
+        <dt>Recommendation</dt><dd>Enumerate the required details inline (FileSettingId, FileSettingName, FileName) or add an explicit &quot;→ §6.1 F-03&quot; reference for the field list.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-16">
+      <h4><code>ADV-16</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · The volume band &quot;10²–10⁴&quot; spans two orders of magnitude, making it a vague quantifier that cannot decisively drive the UI pattern selection §10 claims it governs.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§10</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>no corpus-stated overall cap, so a client-side band of 10²–10⁴ retained transactions is assumed</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The volume band &quot;10²–10⁴&quot; spans two orders of magnitude, making it a vague quantifier that cannot decisively drive the UI pattern selection §10 claims it governs (pagination vs virtualization decisions differ across that range).</dd>
+        <dt>Recommendation</dt><dd>Narrow the assumed working-set to a single planning figure (e.g. &quot;assume ~1,000 retained transactions for pattern selection&quot;) and note the upper bound separately as a stress case.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-3">
+  <h2>Dimension 3 — Testability &amp; Verifiability</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+    <article class="finding severity-Major disposition-Patch" id="ADV-17">
+      <h4><code>ADV-17</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · The qualifier &quot;about one second&quot; has no decidable pass/fail boundary, so a tester cannot determine whether a 1.3s reflection passes or fails.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.1 F-08</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>the system shall set its status to Approved and reflect the change within about one second [SRC: C-040]</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The qualifier &quot;about one second&quot; has no decidable pass/fail boundary, so a tester cannot determine whether a 1.3s reflection passes or fails.</dd>
+        <dt>Recommendation</dt><dd>Replace &quot;about one second&quot; with a precise predicate such as &quot;the new status appears within 1000 ms (p95) of confirmation&quot;.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-18">
+      <h4><code>ADV-18</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-backend-only">backend-only</span> · BR-08 and Shape: FileLog.Status both depend on an activity-name-to-status mapping the doc admits is not enumerated, so a tester cannot decide which Status any LastExecutedActivityName must render.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§9</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| File status | Derived from LastExecutedActivityName via an activity-name-to-status mapping [SRC: C-068] | mapping not enumerated in the corpus |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>BR-08 and Shape: FileLog.Status both depend on an activity-name-to-status mapping that the doc itself admits is not enumerated, so a tester cannot decide which Status any given LastExecutedActivityName must render.</dd>
+        <dt>Recommendation</dt><dd>Enumerate the activity-name-to-status mapping table (each LastExecutedActivityName value → resulting Status) so BR-08's acceptance criterion becomes decidable from the doc alone.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Patch" id="ADV-19">
+      <h4><code>ADV-19</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · &quot;last group of digits&quot; is undefined for a field stored as &quot;plain digits&quot; (§7) with no delimiter, so a tester cannot decide how many trailing digits must remain visible.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.1 F-13</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>Where AccountNumber is displayed, the system shall mask all but its last group of digits [SRC: C-045].</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;last group of digits&quot; is undefined for a field stored as &quot;plain digits&quot; (§7) with no delimiter, so a tester cannot decide how many trailing digits must remain visible.</dd>
+        <dt>Recommendation</dt><dd>Specify the exact mask predicate (e.g. &quot;display only the last 4 digits, mask all preceding digits&quot;) in F-13 and BR-07.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-20">
+      <h4><code>ADV-20</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · &quot;baseline accessibility standard&quot; names no level or version, so a tester has no enumerated criteria to assert conformance against.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.6.5</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>The application targets desktop browsers first and meets a baseline accessibility standard [SRC: C-046].</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;baseline accessibility standard&quot; names no level or version, so a tester has no enumerated criteria to assert conformance against.</dd>
+        <dt>Recommendation</dt><dd>Name the concrete standard and level (e.g. &quot;WCAG 2.1 AA&quot;) so accessibility can be tested against an explicit checklist.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-21">
+      <h4><code>ADV-21</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · &quot;the authenticated user's welcome&quot; specifies no concrete UI element or content, so a tester cannot decide what a passing render must contain.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.1 F-16</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>When the application loads, the system shall verify session validity and render the authenticated user's welcome.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;the authenticated user's welcome&quot; specifies no concrete UI element or content, so a tester cannot decide what a passing render must contain.</dd>
+        <dt>Recommendation</dt><dd>Define the welcome's decidable content (e.g. &quot;render the user's FirstName and Role in the header&quot;).</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-22">
+      <h4><code>ADV-22</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · &quot;Skeleton matching the target&quot; gives no decidable predicate for what the loading skeleton must show, so its presence cannot be objectively pass/fail tested.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.4.5</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| → §6.1 F-06 | loading | Skeleton matching the target while transactions load | Wait for load to complete |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;Skeleton matching the target&quot; gives no decidable predicate for what the loading skeleton must show (row count, column structure), so its presence cannot be objectively pass/fail tested.</dd>
+        <dt>Recommendation</dt><dd>Specify the skeleton's testable shape (e.g. &quot;render N placeholder rows mirroring the transaction table's column count&quot;).</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-4">
+  <h2>Dimension 4 — Scope &amp; MVP Boundaries</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-23">
+      <h4><code>ADV-23</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · F-16 carries priority &quot;Could&quot; but §1.5 declares the seven key screens as the explicit MVP set with no scope note placing &quot;Could&quot; items in or out, so it straddles the MVP/post-MVP line.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.1</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| F-16 | Could | Verify session validity and render a welcome on page load</pre></blockquote></dd>
+        <dt>Problem</dt><dd>F-16 carries priority &quot;Could&quot; but §1.5 declares the seven key screens as the explicit MVP set with no scope note placing &quot;Could&quot; items in or out of that MVP cut, so it straddles the MVP/post-MVP line.</dd>
+        <dt>Recommendation</dt><dd>Add an explicit scope tag to F-16 (e.g. a §1.5 row or a Rationale note) stating whether &quot;Could&quot;-priority items are in-MVP or deferred.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-24">
+      <h4><code>ADV-24</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · This MVP-scoping claim (&quot;No MFA prompt in the MVP&quot;) sits inside an &quot;Application-build guidance — not a prototype design input&quot; block, blurring whether MFA-absence is a binding MVP decision or advisory.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.6.1</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| MFA prompt scope | No MFA prompt in the MVP | inferred |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>This MVP-scoping claim (&quot;No MFA prompt in the MVP&quot;) sits inside a block headed &quot;Application-build guidance — not a prototype design input,&quot; blurring whether MFA-absence is a binding MVP scope decision or merely advisory build guidance.</dd>
+        <dt>Recommendation</dt><dd>Move MVP in/out scope decisions about MFA into §1.5's In/Out/Deferred buckets and keep §6.6.1 to non-scoping budget values, or annotate the row to say the MVP framing is advisory only.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-25">
+      <h4><code>ADV-25</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · The scope note pins the MVP to &quot;seven named key screens&quot; but the In bucket enumerates eight feature items (not screens), so the unit and count of the MVP boundary are inconsistent.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§1.5</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>&gt; §1.5 is in-scope-only. The brief's seven named key screens are the explicit in-scope MVP set; anything outside that set is out of scope by default [SRC: C-047].</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The scope note pins the MVP to &quot;seven named key screens&quot; but the In bucket enumerates eight feature items (not screens), so the unit and count of the MVP boundary are inconsistent and the engineer cannot map features to the asserted seven-screen cut line.</dd>
+        <dt>Recommendation</dt><dd>Reconcile the In bucket with the seven-screen claim — either list the seven screens explicitly or restate the MVP boundary in terms of the In-bucket feature items.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-26">
+      <h4><code>ADV-26</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · The single Deferred item is explicitly &quot;unspecified,&quot; so it is not estimable, yet §2.5's File Log matrix still renders the Failed state inline, mixing undefined deferred work into the active state model.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§1.5</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| Deferred | User-facing recovery flow for a Failed file (unspecified, treated as not-yet-defined) [SRC: C-069] |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The single Deferred item is explicitly &quot;unspecified,&quot; so it is not estimable and provides no cut-line detail, yet §2.5's File Log matrix still renders the Failed state and notes &quot;recovery flow unspecified&quot; inline, mixing undefined deferred work into the active state model.</dd>
+        <dt>Recommendation</dt><dd>Either define a minimal placeholder behaviour for the Failed-file recovery flow or add a note in §2.5 explicitly marking the Failed terminal state as having no in-MVP recovery surface.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-5">
+  <h2>Dimension 5 — Dependency &amp; Ordering</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+    <article class="finding severity-Major disposition-Patch" id="ADV-27">
+      <h4><code>ADV-27</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-facing-contract">fe-facing-contract</span> · The FileLog shape derives the user-visible Status chip from a field LastExecutedActivityName that is never declared as a field on any §7 shape, so a frontend consumer cannot resolve the structure the chip depends on.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§7</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| Status | enum | yes | chip | derived from LastExecutedActivityName [SRC: C-068] |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The FileLog data shape derives the user-visible Status chip from a field LastExecutedActivityName that is never declared as a field on the FileLog shape (or any shape) in §7, so a frontend consumer cannot resolve the structure the status chip depends on.</dd>
+        <dt>Recommendation</dt><dd>Add LastExecutedActivityName as an explicit field (hidden, source) on the §7 Shape: FileLog so the derivation BR-08 references has a defined input.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Patch" id="ADV-28">
+      <h4><code>ADV-28</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · The File Upload flow and F-03 require the form to capture FileSettingId and FileSettingName, but neither field appears on any §7 data shape, so the upload surface references structure the data model never defines.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§5</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>(Provide FileSettingId, FileSettingName, FileName; required details captured) [SRC: C-028]</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The File Upload flow and F-03 require the form to capture FileSettingId and FileSettingName, but neither field appears on any §7 data shape, so the upload surface references structure the data model never defines.</dd>
+        <dt>Recommendation</dt><dd>Declare FileSettingId and FileSettingName as captured fields (on the FileLog shape or an upload-input shape) in §7 so the upload form's data-bound inputs have defined properties.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-29">
+      <h4><code>ADV-29</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-backend-only">backend-only</span> · The activity-name-to-status mapping that drives the File Log Status chip is referenced as load-bearing but is explicitly never enumerated, leaving the status-chip rendering rule undefined for a downstream consumer.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§9</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| File status | Derived from LastExecutedActivityName via an activity-name-to-status mapping [SRC: C-068] | mapping not enumerated in the corpus |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The activity-name-to-status mapping that drives the File Log Status chip (BR-08, §2.3, §7) is referenced as load-bearing but is explicitly never enumerated anywhere in the doc, leaving the status-chip rendering rule undefined for a downstream consumer.</dd>
+        <dt>Recommendation</dt><dd>Enumerate the activity-name-to-status mapping (even as an [AI-SUGGESTED] provisional table) so the FE can deterministically render File Log status, or mark the mapping deferred with an explicit placeholder behaviour.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-30">
+      <h4><code>ADV-30</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · The goals catalogue never names the implicit dependency that G-02/G-03/G-04/G-05 require an authenticated, role-routed session and populated data, so the buildable order of goals is not discoverable from §4.1.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>G-01</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| G-04 | Find specific transactions quickly via search and filter [SRC: C-042] | Target transactions located within a few filter actions | sub-level | | |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The goals catalogue never names the implicit dependency that G-02/G-03/G-04/G-05 all require an authenticated, role-routed session (F-01/F-02) and populated data (G-01), so the buildable order of goals is not discoverable from §4.1.</dd>
+        <dt>Recommendation</dt><dd>Add a dependency note to the goals catalogue (or to G-02..G-05) stating they presuppose authentication/role-routing and, for G-04/G-03, a loaded transaction set.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-31">
+      <h4><code>ADV-31</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · F-11 operates on &quot;the filtered grid&quot; and depends on F-07 and F-06 existing, but no dependency note records that ordering, so an engineer could schedule export before the grid/filter capability.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.1</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| F-11 | Must | Export the currently filtered transaction set to CSV, generated client-side [SRC: C-036] |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>F-11 operates on &quot;the filtered grid&quot; and is thus dependent on F-07 (client-side filtering) and F-06 (transaction display) existing, but no dependency note records that ordering, so an engineer could schedule export before the grid/filter capability.</dd>
+        <dt>Recommendation</dt><dd>Add an explicit dependency note to F-11 (e.g. &quot;depends on F-06 display and F-07 filtering&quot;) so the export build order is discoverable.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-32">
+      <h4><code>ADV-32</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-facing-contract">fe-facing-contract</span> · The session-UX block inserts a step-up re-auth requirement gating approve/reject, but no task flow or functional requirement defines a step-up auth interaction, so the flows reference a re-auth concept the doc never models.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.6.1</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| Re-auth scope | Step-up auth required for approve-class actions (approve/reject) | inferred |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The session-UX block inserts a step-up re-auth requirement gating approve/reject, but no task flow (§5 Approve/Reject) or functional requirement defines a step-up auth interaction, so the approve/reject flows reference a re-auth concept the rest of the doc never models.</dd>
+        <dt>Recommendation</dt><dd>Either add a step-up re-auth step/decision point to the Approve and Reject flows (and F-08/F-09) or scope-note this row as application-build-only with no prototype interaction, removing the dangling dependency.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-6">
+  <h2>Dimension 6 — Consistency &amp; Internal Conflict</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+    <article class="finding severity-Major disposition-Patch" id="ADV-33">
+      <h4><code>ADV-33</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · The RBAC matrix grants the Importer Create access on File Log, but the File Upload flow states &quot;the backend creates a File Log&quot; and §2.3 says the FE does not drive these transitions, so the FE gets contradictory authority over who creates File Logs.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.5</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| Importer | C R [SRC: C-020] | R [SRC: C-070] | R [SRC: C-071] | — [SRC: C-006] | X [SRC: C-024] | X [SRC: C-020] | X [SRC: C-029] | X [SRC: C-070] | X [SRC: C-042] | — [SRC: C-021] | — [SRC: C-021] | — [SRC: C-005] |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The RBAC matrix grants the Importer Create (<code>C</code>) access on File Log, but §5 Flow: File Upload states &quot;the backend creates a File Log&quot; and §2.3 says the FE does not drive these transitions (backend-owned), so the FE consumer gets contradictory authority over who creates File Logs.</dd>
+        <dt>Recommendation</dt><dd>Change the Importer's File Log cell from <code>C R</code> to <code>R</code> (the FE only triggers an upload; the backend creates the File Log), or add a <code>†</code> note clarifying that <code>C</code> denotes upload-initiated backend creation rather than an FE create capability.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Patch" id="ADV-34">
+      <h4><code>ADV-34</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · The class diagram models the generic User as actioning Transactions, but §2.2 restricts actioning to Approver and §6.5 RBAC gives the Importer no approve/reject, so the diagram contradicts the prose and the matrix.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§2.4</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>    User &quot;1&quot; --&gt; &quot;*&quot; Transaction : actions</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The class diagram models the generic <code>User</code> as actioning Transactions, but §2.2 restricts actioning to <code>Approver actions Transaction</code> and §6.5 RBAC gives the Importer no approve/reject, so the diagram contradicts the prose relationship and the access-control matrix.</dd>
+        <dt>Recommendation</dt><dd>Relabel the diagram edge to originate from the Approver role (or annotate the association as Approver-only) so it matches §2.2 and the §6.5 RBAC cells.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-35">
+      <h4><code>ADV-35</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-facing-contract">fe-facing-contract</span> · §6.6.1 asserts both &quot;Step-up auth required for approve-class actions&quot; and &quot;No MFA prompt in the MVP,&quot; leaving the two rows in tension about whether the MVP issues any secondary auth challenge.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.6.1</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| Re-auth scope | Step-up auth required for approve-class actions (approve/reject) | inferred |
+| Account lockout messaging | Generic locked-account message after repeated failed logins | inferred |
+| MFA prompt scope | No MFA prompt in the MVP | inferred |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>§6.6.1 simultaneously asserts &quot;Step-up auth required for approve-class actions&quot; and &quot;No MFA prompt in the MVP,&quot; yet a step-up re-authentication challenge before approve/reject is itself an additional authentication prompt, leaving the two adjacent rows in tension about whether the MVP issues any secondary auth challenge.</dd>
+        <dt>Recommendation</dt><dd>Clarify §6.6.1 by either scoping step-up auth out of the MVP to match the no-MFA row, or distinguishing password/session step-up from MFA so the two rows are explicitly non-overlapping.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-36">
+      <h4><code>ADV-36</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · §7 marks Transaction.UserNote as Required = no, while §6.3 validation and BR-03 make the note mandatory on reject, so the data shape shows an optional field other sections treat as required.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§7</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| UserNote | string | no | detail | note captured on rejection [SRC: C-055] |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>§7 marks Transaction.UserNote as Required = no, while §6.3 validation and §6.2 BR-03 make the note mandatory on reject, so a consumer reading the data shape sees an optional field that other sections treat as required in the reject path.</dd>
+        <dt>Recommendation</dt><dd>Amend the UserNote Notes cell to state it is conditionally required on reject (per §6.2 BR-03) so the shape-level optionality is qualified.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-37">
+      <h4><code>ADV-37</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-backend-only">backend-only</span> · §6.6.2 sets a p95 ≤ 500 ms render budget while §10 assumes up to 10⁴ retained transactions filtered/exported client-side, a volume that may exceed the budget — the classic NFR-vs-data-volume conflict.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.6.2</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| Render budget for largest list/table | p95 ≤ 500 ms for the transaction table | inferred |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>§6.6.2 sets a p95 ≤ 500 ms render budget for the transaction table while §10 assumes a client-side band of up to 10⁴ retained transactions filtered/exported client-side, a volume that may exceed a 500 ms render budget and matches the classic NFR-vs-data-volume conflict.</dd>
+        <dt>Recommendation</dt><dd>Either lower the assumed upper volume band, or note that client-side pagination (UI-07) bounds the rendered row count so the 500 ms budget applies per page rather than to the full 10⁴-row set.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-7">
+  <h2>Dimension 7 — Edge Cases &amp; Error Handling</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+    <article class="finding severity-Major disposition-Patch" id="ADV-38">
+      <h4><code>ADV-38</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · The transaction-table list specifies a loading skeleton but no zero-items empty state for when the table genuinely contains no transactions (distinct from the filter-yields-zero 'partial' row).</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.4.5</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| → §6.1 F-06 | loading | Skeleton matching the target while transactions load | Wait for load to complete |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The transaction-table list specifies a loading skeleton but no zero-items empty state for the case where the table genuinely contains no transactions (distinct from the §6.4.5 filter-yields-zero 'partial' row, which presupposes a non-empty source list).</dd>
+        <dt>Recommendation</dt><dd>Add a §6.4.5 row for §6.1 F-06 / Flow: Transaction Table with condition 'empty' specifying an entity-specific empty state for when no transactions exist at all.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Patch" id="ADV-39">
+      <h4><code>ADV-39</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · Every data-loading surface specifies only a loading skeleton with no error variant, so a failed list load has no defined UI state, leaving the frontend with no behaviour to render on fetch failure.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.4.5</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| → §6.1 F-06 | loading | Skeleton matching the target while transactions load | Wait for load to complete |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>Every data-loading surface specifies only a loading skeleton with no error variant, so a failed GET /v1/transactions (or file-logs) load has no defined UI state, leaving the frontend consumer with no behaviour to render on fetch failure.</dd>
+        <dt>Recommendation</dt><dd>Add a §6.4.5 'error' row for the list-load surfaces specifying a load-failure state with a retry affordance.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Patch" id="ADV-40">
+      <h4><code>ADV-40</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · The file-upload requirement names no maximum file size, no accepted file type/format, and no virus/content check — the canonical 'file upload with no max size, no failure mode' edge gap.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.1 F-03</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| F-03 | Must | Allow an Importer to upload a transaction file with FileSettingId, FileSettingName, and FileName [SRC: C-028] | When an Importer submits a file with the required details, the system shall display upload progress and a success or failure result. | → §5 Flow: File Upload | Supports → §4.1 G-01 |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The file-upload requirement names no maximum file size, no accepted file type/format, and no virus/content check — the canonical 'file upload with no max size, no failure mode' edge gap.</dd>
+        <dt>Recommendation</dt><dd>Add a §6.3 validation row (or F-03 acceptance criterion) specifying max file size, accepted extensions/MIME, and the inline error shown when a file is too large or of the wrong type.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-41">
+      <h4><code>ADV-41</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · A maximum-size state is undefined: the assumed 10⁴ upper band has no specified behaviour when the client-side retained set approaches the band ceiling.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§10</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| Data volume | ~20 transactions per imported file; no corpus-stated overall cap, so a client-side band of 10²–10⁴ retained transactions is assumed | inferred |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>A maximum-size state is undefined: the assumed 10⁴ upper band has no specified behaviour (truncation notice, virtualization, or warning) when the client-side retained set approaches the band ceiling.</dd>
+        <dt>Recommendation</dt><dd>Specify the expected UI behaviour at the upper bound of the assumed band (e.g. a 'showing first N' notice or guaranteed virtualized rendering) so the frontend has a defined max-size posture.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-42">
+      <h4><code>ADV-42</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · The amount-range filter has a format-validation rule but the date-range filter has no validation behaviour specified for a malformed or inverted (start &gt; end) date range.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.3</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| Transaction.Amount | format | Amount must be a number | &quot;Enter a valid amount.&quot; |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The amount-range filter has a format-validation rule but the date-range filter (named in F-07 / UI-03) has no validation behaviour specified for a malformed or inverted (start &gt; end) date range.</dd>
+        <dt>Recommendation</dt><dd>Add a §6.3 validation row for the date-range filter covering malformed dates and start-after-end ranges, with an inline error message.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-43">
+      <h4><code>ADV-43</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-fe-facing-contract">fe-facing-contract</span> · Re-uploading the same file is not addressed — there is no duplicate-file detection or idempotency surface, so a double submission has undefined UI behaviour (PI-03 excludes idempotency enforcement).</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>Flow: File Upload</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| Steps | (Select a file; file is staged for upload); (Provide FileSettingId, FileSettingName, FileName; required details captured) [SRC: C-028]; (Upload; the backend creates a File Log) [SRC: C-027]; (Upload result; success or failure feedback is shown) |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>Re-uploading the same file is not addressed — there is no duplicate-file detection or idempotency surface, so an Importer who submits the same file twice has undefined UI behaviour (PI-03 explicitly excludes idempotency enforcement, leaving the gap unaddressed even at the UI layer).</dd>
+        <dt>Recommendation</dt><dd>Specify whether a duplicate upload is silently allowed (creating a second File Log) or surfaced with a 'file already uploaded' warning, so the frontend has a defined re-submission behaviour.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-44">
+      <h4><code>ADV-44</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · A File Log reaching the Failed terminal state has no recovery path — explicitly deferred — so the only edge for a failed ingestion is a status chip with no actionable next step for the Importer.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§1.5</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| Deferred | User-facing recovery flow for a Failed file (unspecified, treated as not-yet-defined) [SRC: C-069] |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>A File Log reaching the Failed terminal state (§2.5) has no recovery path — it is explicitly deferred — so the only edge for a failed ingestion is a status chip with no actionable next step for the Importer.</dd>
+        <dt>Recommendation</dt><dd>At minimum specify a placeholder Failed-state UI (e.g. a disabled/explanatory notice naming who to contact) so the Failed status is not a dead end pending the deferred recovery flow.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-45">
+      <h4><code>ADV-45</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · Authentication specifies only the invalid-credentials path; there is no defined UI for a login network failure/timeout, and password-reset is absent from scope entirely.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>Flow: Authentication</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| Exception paths | {invalid credentials → generic 401 error message → user retries} [SRC: C-065] |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>Authentication specifies only the invalid-credentials path; there is no defined UI for a login network failure/timeout, and password-reset (a standard recovery path) is absent from scope entirely.</dd>
+        <dt>Recommendation</dt><dd>Add an exception path for login network failure (retry affordance) and explicitly mark password-reset as in/out of scope so its absence is deliberate rather than an omission.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="dim-8">
+  <h2>Dimension 8 — Feasibility &amp; Constraints</h2>
+  <div class="findings-list">
+    <h3 class="findings-list-header">Findings</h3>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-46">
+      <h4><code>ADV-46</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · &quot;a baseline accessibility standard&quot; is not testable — no WCAG level, version, or conformance target is named, so an FE consumer cannot verify a11y states.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.6.5</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>- The application targets desktop browsers first and meets a baseline accessibility standard [SRC: C-046].</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;a baseline accessibility standard&quot; is not testable — no WCAG level, version, or conformance target is named, so an FE consumer cannot verify a11y states.</dd>
+        <dt>Recommendation</dt><dd>Replace &quot;a baseline accessibility standard&quot; with an explicit, testable target such as &quot;WCAG 2.1 AA&quot;.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Patch" id="ADV-47">
+      <h4><code>ADV-47</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Patch">Patch</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · &quot;desktop browsers first&quot; names no concrete browser/version targets, so device-specific layout and rendering feasibility cannot be assessed or tested.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§1.6</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| Environment assumption | Users operate desktop browsers first; a baseline accessibility standard is met [SRC: C-046] | stated |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>&quot;desktop browsers first&quot; names no concrete browser/version targets, so device-specific layout and rendering feasibility cannot be assessed or tested.</dd>
+        <dt>Recommendation</dt><dd>Name explicit browser-target floors (e.g. &quot;Chrome ≥110, Firefox ≥110, Safari ≥16, no IE&quot;) and the supported viewport/device baseline.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Major disposition-Defer" id="ADV-48">
+      <h4><code>ADV-48</code> — <span class="chip severity-Major">Major</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-fe-facing-contract">fe-facing-contract</span> · The document handles POPIA-bearing financial PII but defines no retention window, consent flow, or data-residency treatment beyond on-screen masking, leaving the compliance posture incomplete.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.6.4</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>- The corpus claims no specific compliance regime; non-functional and compliance signals are stamped from domain defaults [SRC: C-067].</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The document handles POPIA-bearing financial PII (AccountNumber, Amount, Currency, Email) but defines no retention window, consent flow, or data-residency treatment beyond on-screen masking, leaving the compliance posture incomplete.</dd>
+        <dt>Recommendation</dt><dd>Add explicit POPIA treatment — a retention window, a consent-capture UI requirement, and a data-residency note — even if scoped as application-build guidance.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-49">
+      <h4><code>ADV-49</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-fe-relevant">fe-relevant</span> · The client-side retained-transaction band (10²–10⁴) that drives the render budget and in-memory filtering is entirely inferred with no corpus source, so the load model underpinning client-side feasibility is unvalidated.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§10</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| Data volume | ~20 transactions per imported file; no corpus-stated overall cap, so a client-side band of 10²–10⁴ retained transactions is assumed | inferred |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>The client-side retained-transaction band (10²–10⁴) that drives the §6.6.2 render budget and the §6.1 F-07 in-memory filtering is entirely inferred with no corpus source, so the load model underpinning client-side feasibility is unvalidated.</dd>
+        <dt>Recommendation</dt><dd>Confirm the upper-bound transaction count with the client (or flag it as a blocking assumption) so the client-side filter/pagination/render budgets rest on a validated load model.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-50">
+      <h4><code>ADV-50</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-backend-only">backend-only</span> · No cost, timeline, or team-size constraint is stated anywhere in the document, so delivery feasibility cannot be assessed.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§10</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>&gt; Volumes drive UI pattern selection only.</pre></blockquote></dd>
+        <dt>Problem</dt><dd>No cost, timeline, or team-size constraint is stated anywhere in the document (concurrency &quot;10¹&quot; describes runtime users, not delivery resourcing), so delivery feasibility cannot be assessed.</dd>
+        <dt>Recommendation</dt><dd>Add a brief delivery-constraints note (target timeline, team size, budget envelope) or explicitly record that these are out of scope for this spec.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-51">
+      <h4><code>ADV-51</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-backend-only">backend-only</span> · No operational requirements (logging, monitoring, alerting, backups, disaster recovery) are named anywhere, so the system is specified to run in production with an undefined operational posture.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§1.7</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| Capability category | Driving requirement(s) | Recommendation (optional) |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>No operational requirements (logging, monitoring, alerting, backups, disaster recovery) are named anywhere, so the system is specified to run in production with an undefined operational posture (backend-only, Not Prototypable).</dd>
+        <dt>Recommendation</dt><dd>Add an operational-requirements note (logging/monitoring/alerting/backup/DR expectations) under §1.7 application-build guidance, or explicitly scope it out.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-52">
+      <h4><code>ADV-52</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-fe-facing-contract">fe-facing-contract</span> · Step-up re-authentication for every approve/reject is asserted as an inferred default but has no supporting latency, UX, or session-mechanism detail, making its feasibility against the ~1s approve budget untested.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.6.1</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| Re-auth scope | Step-up auth required for approve-class actions (approve/reject) | inferred |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>Step-up re-authentication for every approve/reject is asserted as an inferred default but has no supporting latency, UX, or session-mechanism detail, making its feasibility against the &quot;reflect within about one second&quot; approve budget (F-08) untested.</dd>
+        <dt>Recommendation</dt><dd>Either confirm step-up auth is required (and reconcile it with the ~1s approve-reflect budget) or downgrade it to an explicit open question.</dd>
+      </dl>
+    </article>
+    <article class="finding severity-Minor disposition-Defer" id="ADV-53">
+      <h4><code>ADV-53</code> — <span class="chip severity-Minor">Minor</span> · <span class="chip disposition-Defer">Defer</span> · <span class="chip scope-backend-only">backend-only</span> · A p95 ≤ 500 ms render budget is asserted with no named stack, rendering strategy, or row-count basis, so the threshold is unanchored and unverifiable.</h4>
+      <dl class="finding-fields">
+        <dt>Location</dt><dd><code>§6.6.2</code></dd>
+        <dt>Evidence</dt><dd><blockquote class="evidence"><pre>| Render budget for largest list/table | p95 ≤ 500 ms for the transaction table | inferred |</pre></blockquote></dd>
+        <dt>Problem</dt><dd>A p95 ≤ 500 ms render budget is asserted with no named stack, rendering strategy, or row-count basis (the 10⁴ upper band is itself inferred), so the threshold is unanchored and unverifiable.</dd>
+        <dt>Recommendation</dt><dd>Tie the render budget to a stated row count and rendering approach (e.g. virtualised list at 10⁴ rows) or mark it explicitly provisional pending the validated volume.</dd>
+      </dl>
+    </article>
+  </div>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="diagnostics">
+  <h2>Diagnostics</h2>
+  <details class="diagnostics-toggle" open>
+    <summary>Show / hide diagnostics</summary>
+
+    <h4>Quality gates</h4>
+    <table class="diagnostics-gates">
+      <thead><tr><th>Gate</th><th>Result</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr class="gate-pass"><td>1. All findings have 8 schema fields populated</td><td><span class="chip gate-pass">PASS</span></td><td>53/53 findings carry ID, Dimension, Severity, Disposition, Location, Evidence, Problem, Recommendation.</td></tr>
+        <tr class="gate-pass"><td>2. Every finding's Dimension is exactly one integer 1–8</td><td><span class="chip gate-pass">PASS</span></td><td>No cross-dimension findings.</td></tr>
+        <tr class="gate-pass"><td>3. Severity ∈ {Blocker, Major, Minor}; backend-only ≤ cap (Minor under prototype)</td><td><span class="chip gate-pass">PASS</span></td><td>9 backend-only findings, all capped at Minor; no Blocker on any backend-only finding.</td></tr>
+        <tr class="gate-pass"><td>4. Disposition ∈ {Patch, Defer, Reject}; no backend-only is Reject</td><td><span class="chip gate-pass">PASS</span></td><td>No backend-only finding carries Reject (ADV-02 demoted Reject→Defer at Step 3s).</td></tr>
+        <tr class="gate-pass"><td>5. Every Evidence is verbatim from requirements.md, ≤5 lines</td><td><span class="chip gate-pass">PASS</span></td><td>All quotes validated as contiguous substrings; multi-line quotes only for ADV-34 (mermaid edge) and ADV-35 (three §6.6.1 rows).</td></tr>
+        <tr class="gate-pass"><td>6. Every Location anchor exists in the doc</td><td><span class="chip gate-pass">PASS</span></td><td>All §N.N / ID / flow / shape anchors resolved against the Step-2 anchor index.</td></tr>
+        <tr class="gate-pass"><td>7. Every dimension has ≥1 finding or a Justification block</td><td><span class="chip gate-pass">PASS</span></td><td>All eight dimensions returned ≥1 finding; no Justification blocks needed.</td></tr>
+        <tr class="gate-pass"><td>8. Every Justification block is ≥3 sentences and cites evidence</td><td><span class="chip gate-pass">PASS</span></td><td>Vacuously satisfied — no zero-finding dimensions.</td></tr>
+        <tr class="gate-pass"><td>9. Verdict consistent with post-recalibration tally</td><td><span class="chip gate-pass">PASS</span></td><td>0 Reject, 0 Blocker, 53 findings → NEEDS-REVISION.</td></tr>
+        <tr class="gate-pass"><td>10. Findings Table row count = sum of per-dimension counts</td><td><span class="chip gate-pass">PASS</span></td><td>53 table rows = 8+8+6+4+6+5+8+8.</td></tr>
+        <tr class="gate-pass"><td>11. REQUIREMENTS_SHA256 matches the Step-2 SHA-256</td><td><span class="chip gate-pass">PASS</span></td><td>a8c551059a6affd50c20f2d4de43d7bf4d21e5aea9d81e954c56a96d8f3de214.</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Coverage map</h4>
+    <table class="coverage-map">
+      <thead><tr><th>Dimension</th><th>Sections / IDs touched</th><th>Finding count</th></tr></thead>
+      <tbody>
+        <tr><td>1. Completeness &amp; Gaps</td><td>§6.6.1, §6.2 BR-08, §6.1 F-12, §6.1 F-06, G-04, §6.6, §2.5, §6.10</td><td>8</td></tr>
+        <tr><td>2. Ambiguity &amp; Clarity</td><td>§6.1 F-08, G-04, §6.2 BR-07, §6.2 BR-08, §6.6.5, §6.1 F-16, §4.2, §10</td><td>8</td></tr>
+        <tr><td>3. Testability &amp; Verifiability</td><td>§6.1 F-08, §9, §6.1 F-13, §6.6.5, §6.1 F-16, §6.4.5</td><td>6</td></tr>
+        <tr><td>4. Scope &amp; MVP Boundaries</td><td>§6.1 (F-16), §6.6.1, §1.5</td><td>4</td></tr>
+        <tr><td>5. Dependency &amp; Ordering</td><td>§7, §5, §9, §4.1 (G-01), §6.1 (F-11), §6.6.1</td><td>6</td></tr>
+        <tr><td>6. Consistency &amp; Internal Conflict</td><td>§6.5, §2.4, §6.6.1, §7, §6.6.2</td><td>5</td></tr>
+        <tr><td>7. Edge Cases &amp; Error Handling</td><td>§6.4.5, §6.1 F-03, §10, §6.3, Flow: File Upload, §1.5, Flow: Authentication</td><td>8</td></tr>
+        <tr><td>8. Feasibility &amp; Constraints</td><td>§6.6.5, §1.6, §6.6.4, §10, §1.7, §6.6.1, §6.6.2</td><td>8</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Strict-BMAD re-run log</h4>
+    <p>No dimensions triggered the strict-BMAD re-run rule. All eight dimension workers returned ≥1 finding on the first pass.</p>
+
+    <h4>Scope recalibration log</h4>
+    <p>Target: prototype (PI-01..PI-08 block present in requirements.md) — backend-only cap: Minor; backend-only Reject demoted to Defer.</p>
+    <table class="recalibration-log">
+      <thead><tr><th>ID</th><th>Scope class</th><th>Original</th><th>Adjusted</th><th>Foreclosing authority</th></tr></thead>
+      <tbody>
+        <tr><td><a href="#ADV-01"><code>ADV-01</code></a></td><td><span class="chip scope-fe-facing-contract">fe-facing-contract</span></td><td>Major / Reject</td><td>Major / Defer</td><td>prototype-scope.md §6.10 contract boundary (step-up auth is a backend contract surfaced as a re-auth prompt; §6.6.1 is app-build guidance, not a prototype input — does not block a FE consumer)</td></tr>
+        <tr><td><a href="#ADV-02"><code>ADV-02</code></a></td><td><span class="chip scope-backend-only">backend-only</span></td><td>Major / Reject</td><td>Minor / Defer</td><td>PI-01 (server behaviour simulated) / PI-06 (fixtures are the contract; the FE renders the fixture-supplied Status enum, not the activity-name mapping)</td></tr>
+        <tr><td><a href="#ADV-12"><code>ADV-12</code></a></td><td><span class="chip scope-backend-only">backend-only</span></td><td>Major / Defer</td><td>Minor / Defer</td><td>PI-01 (server behaviour simulated) — the activity-name→status derivation has no UI surface</td></tr>
+        <tr><td><a href="#ADV-18"><code>ADV-18</code></a></td><td><span class="chip scope-backend-only">backend-only</span></td><td>Major / Defer</td><td>Minor / Defer</td><td>PI-01 (server behaviour simulated) — the mapping is a backend derivation foreclosed under the prototype target</td></tr>
+      </tbody>
+    </table>
+    <p>The remaining 5 backend-only findings (ADV-06, ADV-29, ADV-37, ADV-50, ADV-51) and 7 fe-facing-contract findings (ADV-08, ADV-27, ADV-32, ADV-35, ADV-43, ADV-48, ADV-52) carry their scope-class chip but needed no rating change (already at or below the cap, and none carried Reject), so they produce no log row. Consultant may restore any capped rating in the Revise loop.</p>
+
+    <h4>Override log</h4>
+    <p>All quality gates passed; no override invoked.</p>
+  </details>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+</main>
+</body>
+</html>
