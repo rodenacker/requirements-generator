@@ -1,0 +1,985 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>First Principles Review — Transaction Import &amp; Approval System</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --fg: #1a1a1a;
+    --muted: #5a5a5a;
+    --border: #d4d4d4;
+    --border-strong: #8a8a8a;
+    --section-bg: #ffffff;
+    --code-bg: #f3f3f3;
+    --shadow-card: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+
+    --sev-blocker: #b91c1c;
+    --sev-blocker-bg: rgba(185, 28, 28, 0.10);
+    --sev-major: #c2410c;
+    --sev-major-bg: rgba(194, 65, 12, 0.10);
+    --sev-minor: #a16207;
+    --sev-minor-bg: rgba(161, 98, 7, 0.10);
+
+    --disp-patch: #15803d;
+    --disp-patch-bg: rgba(21, 128, 61, 0.10);
+    --disp-defer: #1d4ed8;
+    --disp-defer-bg: rgba(29, 78, 216, 0.10);
+    --disp-reject: #b91c1c;
+    --disp-reject-bg: rgba(185, 28, 28, 0.10);
+
+    --verdict-blocked-fg: #ffffff;
+    --verdict-blocked-bg: #991b1b;
+    --verdict-needs-fg: #ffffff;
+    --verdict-needs-bg: #c2410c;
+    --verdict-accepted-fg: #ffffff;
+    --verdict-accepted-bg: #15803d;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 32px 64px;
+  }
+
+  /* Header */
+  header { margin-bottom: 24px; }
+  h1#top {
+    margin: 0 0 12px 0;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px 24px;
+    padding: 14px 18px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-card);
+    margin: 16px 0;
+    font-size: 13px;
+  }
+  .meta-grid > div { display: flex; flex-direction: column; gap: 2px; }
+  .meta-grid dt {
+    margin: 0;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  .meta-grid dd {
+    margin: 0;
+    font-size: 14px;
+    color: var(--fg);
+    word-break: break-all;
+  }
+
+  /* TOC */
+  .toc {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin: 0 0 32px 0;
+    padding: 12px 18px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    box-shadow: var(--shadow-card);
+    font-size: 13px;
+  }
+  .toc-label {
+    display: block;
+    margin: 0 0 6px 0;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  .toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    counter-reset: toc-item;
+  }
+  .toc li {
+    counter-increment: toc-item;
+  }
+  .toc li::before {
+    content: counter(toc-item) ". ";
+    color: var(--muted);
+    margin-right: 4px;
+  }
+  .toc a {
+    color: var(--fg);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--border-strong);
+    padding-bottom: 1px;
+  }
+  .toc a:hover { border-bottom-color: var(--fg); color: #000; }
+
+  /* Sections */
+  section {
+    margin: 32px 0;
+    padding: 20px 24px;
+    background: var(--section-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow-card);
+  }
+  section h2 {
+    margin: 0 0 16px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border-strong);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  section h3 {
+    margin: 20px 0 10px 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  section h4 {
+    margin: 16px 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  section > p.section-intro {
+    margin: 0 0 12px 0;
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+
+  /* Back-to-top */
+  .back-to-top {
+    margin: 24px 0 0 0;
+    text-align: right;
+    font-size: 12px;
+  }
+  .back-to-top a {
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--border-strong);
+    padding-bottom: 1px;
+  }
+  .back-to-top a:hover { color: var(--fg); border-bottom-color: var(--fg); }
+
+  /* In plain terms (human-readable lead — first section) */
+  #plain-terms { border-left: 4px solid #0f766e; background: #f0fbfa; }
+  #plain-terms h2 { border-bottom-color: #0f766e; }
+  #plain-terms p { margin: 0 0 4px 0; font-size: 15px; line-height: 1.55; }
+
+  /* Verdict banner */
+  .verdict {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+  }
+  .verdict-BLOCKED { background: var(--verdict-blocked-bg); color: var(--verdict-blocked-fg); }
+  .verdict-NEEDS-REVISION { background: var(--verdict-needs-bg); color: var(--verdict-needs-fg); }
+  .verdict-ACCEPTED-WITH-CONCERNS { background: var(--verdict-accepted-bg); color: var(--verdict-accepted-fg); }
+
+  /* Severity chips */
+  .chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .chip.severity-Blocker { background: var(--sev-blocker-bg); color: var(--sev-blocker); }
+  .chip.severity-Major { background: var(--sev-major-bg); color: var(--sev-major); }
+  .chip.severity-Minor { background: var(--sev-minor-bg); color: var(--sev-minor); }
+  .chip.gate-pass { background: var(--disp-patch-bg); color: var(--disp-patch); }
+  .chip.gate-fail { background: var(--disp-reject-bg); color: var(--disp-reject); }
+
+  /* Score badge — green (high) to red (low) defensibility */
+  .score-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .score-0, .score-1 { background: var(--sev-blocker-bg); color: var(--sev-blocker); }
+  .score-2, .score-3 { background: var(--sev-major-bg); color: var(--sev-major); }
+  .score-4 { background: var(--sev-minor-bg); color: var(--sev-minor); }
+  .score-5, .score-6 { background: var(--disp-patch-bg); color: var(--disp-patch); }
+
+  /* Q-answer label */
+  .q-answer {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .q-yes-with-evidence { background: var(--disp-patch-bg); color: var(--disp-patch); }
+  .q-partial { background: var(--sev-minor-bg); color: var(--sev-minor); }
+  .q-no { background: var(--sev-blocker-bg); color: var(--sev-blocker); }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  table caption {
+    text-align: left;
+    margin-bottom: 8px;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  thead {
+    background: #f3f3f3;
+    border-bottom: 2px solid var(--border-strong);
+  }
+  th {
+    text-align: left;
+    padding: 8px 10px;
+    font-weight: 600;
+    color: var(--fg);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tbody tr:hover { background: #fafafa; }
+  td code, dd code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+  }
+
+  /* Ratings table — full table */
+  table.ratings-table thead { position: sticky; top: 48px; z-index: 5; }
+  table.ratings-table td:nth-child(7) { min-width: 240px; }
+
+  /* Cross-subject table */
+  table.cs-table tr.severity-Blocker { background: rgba(185, 28, 28, 0.04); }
+  table.cs-table td:nth-child(5) { min-width: 240px; }
+
+  /* Top-10 deep-dive item */
+  article.ttitem {
+    margin: 16px 0;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border-strong);
+    border-radius: 6px;
+    background: #fcfcfc;
+    box-shadow: 0 1px 1px rgba(0,0,0,.03);
+  }
+  article.ttitem h3 {
+    margin: 0 0 12px 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  article.ttitem h3 code {
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+  }
+  .q-block { margin: 8px 0 0 0; }
+  .q-head { margin: 12px 0 4px 0; font-size: 14px; }
+  .rec-action {
+    margin: 14px 0 0 0;
+    padding: 8px 12px;
+    background: #f7f7f7;
+    border-left: 3px solid var(--border-strong);
+    border-radius: 0 4px 4px 0;
+    font-size: 13.5px;
+  }
+
+  /* Orphan finding */
+  article.orphan {
+    margin: 16px 0;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--sev-blocker);
+    border-radius: 6px;
+    background: #fcfcfc;
+    box-shadow: 0 1px 1px rgba(0,0,0,.03);
+  }
+  article.orphan h3 {
+    margin: 0 0 12px 0;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  /* Finding fields (dl-grid) */
+  dl.finding-fields {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 8px 16px;
+    margin: 0;
+    font-size: 14px;
+  }
+  dl.finding-fields dt {
+    margin: 0;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding-top: 2px;
+  }
+  dl.finding-fields dd { margin: 0; word-break: break-word; }
+
+  /* Evidence blockquote */
+  blockquote.evidence {
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border-strong);
+    border-radius: 4px;
+    background: #fbfbfb;
+    overflow: hidden;
+  }
+  blockquote.evidence pre {
+    margin: 0;
+    padding: 10px 12px;
+    font-family: "SF Mono", Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #333;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 320px;
+    overflow: auto;
+  }
+
+  /* Diagnostics toggle */
+  details.diagnostics-toggle { margin: 0; }
+  details.diagnostics-toggle > summary {
+    cursor: pointer;
+    padding: 0;
+    list-style: none;
+  }
+  details.diagnostics-toggle > summary::-webkit-details-marker { display: none; }
+  details.diagnostics-toggle > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  details.diagnostics-toggle > summary::before {
+    content: "▶";
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform 0.15s ease;
+    display: inline-block;
+  }
+  details.diagnostics-toggle[open] > summary::before { transform: rotate(90deg); }
+
+  /* Diagnostics table accents */
+  table.diagnostics-gates tr.gate-fail { background: rgba(185, 28, 28, 0.05); }
+
+  /* Verdict legend */
+  .verdict-legend {
+    margin: 12px 0 0 0;
+    padding: 10px 12px;
+    background: #f7f7f7;
+    border-left: 3px solid var(--border-strong);
+    border-radius: 0 4px 4px 0;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  /* Responsive */
+  @media (max-width: 720px) {
+    main { padding: 16px 16px 48px; }
+    h1#top { font-size: 22px; }
+    section { padding: 14px 14px; }
+    section h2 { font-size: 18px; }
+    .meta-grid { grid-template-columns: 1fr; gap: 6px 0; }
+    dl.finding-fields { grid-template-columns: 1fr; gap: 4px 0; }
+    dl.finding-fields dt { padding-top: 6px; }
+    table { font-size: 12px; }
+    th, td { padding: 6px 6px; }
+    .toc { position: static; }
+  }
+  @media (max-width: 480px) {
+    body { font-size: 14px; }
+    h1#top { font-size: 19px; }
+    article.ttitem, article.orphan { padding: 12px 12px; }
+  }
+
+  /* Print */
+  @media print {
+    body { background: white; }
+    main { max-width: none; padding: 0; }
+    .toc, .back-to-top { display: none !important; }
+    section {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      box-shadow: none;
+      border: 1px solid #999;
+      margin: 12px 0;
+    }
+    article.ttitem, article.orphan {
+      page-break-inside: avoid;
+      break-inside: avoid;
+      box-shadow: none;
+    }
+    details.diagnostics-toggle { display: block; }
+    details:not([open]) > *:not(summary) { display: block !important; }
+    blockquote.evidence pre { max-height: none; overflow: visible; }
+    a { color: inherit; text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1 id="top">First Principles Review — Transaction Import &amp; Approval System</h1>
+  <dl class="meta-grid">
+    <div><dt>Domain</dt><dd>Enterprise financial transaction data management</dd></div>
+    <div><dt>Generated</dt><dd>2026-06-12T20:22:46Z</dd></div>
+    <div><dt>Source SHA-256</dt><dd><code>a8c551059a6affd50c20f2d4de43d7bf4d21e5aea9d81e954c56a96d8f3de214</code></dd></div>
+    <div><dt>Reviewer</dt><dd>First Principles Review (Aristotelian decomposition; 7-question defensibility audit)</dd></div>
+    <div><dt>Subjects rated</dt><dd>38</dd></div>
+    <div><dt>Orphans (Q7)</dt><dd>0</dd></div>
+    <div><dt>Cross-subject findings</dt><dd>2</dd></div>
+  </dl>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <span class="toc-label">Contents</span>
+  <ol>
+    <li><a href="#plain-terms">In plain terms</a></li>
+    <li><a href="#executive-summary">Executive Summary</a></li>
+    <li><a href="#top-ten">Top 10 Least Defensible</a></li>
+    <li><a href="#ratings">Full defensibility ratings</a></li>
+    <li><a href="#coverage">Critical missing artefacts</a></li>
+    <li><a href="#cross-subject">Cross-subject coherence findings</a></li>
+    <li><a href="#diagnostics">Diagnostics</a></li>
+  </ol>
+</nav>
+
+<section id="plain-terms" aria-label="In plain terms">
+  <h2>In plain terms</h2>
+  <p>This is a First Principles defensibility audit: it asks of every goal, story, requirement, and data entity in §4.1, §4.2, §6, and §7 whether it chains back to a stated business reality, and scores each 0–6 on the count of questions answered with verbatim evidence from the document (the <em>defensibility score</em>). Across 38 subjects the <em>verdict</em> (the overall gate: BLOCKED / NEEDS-REVISION / ACCEPTED-WITH-CONCERNS) is <strong>NEEDS-REVISION</strong>: there are no <em>orphans</em> (artefacts missing a required counterpart) and no contradictions, but every single subject&#39;s weakest point is the same question — Q2, &quot;which measurable business goal does it support?&quot; The §4.1 goals are written as capabilities (&quot;Upload transaction files and track their processing&quot;, &quot;Find specific transactions quickly via search and filter&quot;) rather than measurable business outcomes, so no artefact in the document can trace to a measured target. Two <em>cross-subject findings</em> (relations the subjects collectively cannot satisfy) surface separately: one <strong>major</strong> — goal G-02 commits to transactions being actioned &quot;with the acting user recorded&quot; but the Transaction shape carries no field for the acting user; one <strong>minor</strong> — the doc displays a Failed file state but defers the user&#39;s recovery path. Open this file in a browser and start from the Top 10 Least Defensible; the single highest-leverage fix is rewriting the §4.1 goals with measurable targets, which would lift the Q2 score of nearly every downstream artefact.</p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="executive-summary">
+  <h2>Executive Summary</h2>
+  <p><strong>Subjects rated:</strong> 38 — Goals (§4.1): <strong>5</strong> · Stories (§4.2): <strong>6</strong> · Requirements (§6): <strong>24</strong> · Entities (§7): <strong>3</strong></p>
+  <p><strong>Score histogram (out of 6):</strong> 0: 0 · 1: 0 · 2: 0 · 3: 6 · 4: 17 · 5: 15 · 6: 0</p>
+  <p><strong>Top 10 score range:</strong> min 3/6 … max 4/6</p>
+  <p><strong>Orphans (Q7 coverage):</strong> <strong>0</strong> — goal: 0 · persona: 0 · story: 0 · business-rule: 0 · entity: 0</p>
+  <p><strong>Cross-subject findings (CS1–CS5):</strong> <strong>2</strong> — blocking: 0 · major: 1 · minor: 1 — by lens: CS1: 0 · CS2: 0 · CS3: 1 · CS4: 1 · CS5: 0</p>
+  <p><span class="verdict verdict-NEEDS-REVISION">Verdict: NEEDS-REVISION</span></p>
+  <p class="verdict-legend">
+    <strong>Verdict legend.</strong>
+    <code>BLOCKED</code> — at least one orphan-goal, at least one <code>0/6</code> score, three-plus <code>≤2/6</code> scores, or at least one <code>blocking</code> cross-subject finding.
+    <code>NEEDS-REVISION</code> — Top-10 contains any <code>≤3/6</code> score but no blocking triggers.
+    <code>ACCEPTED-WITH-CONCERNS</code> — Top-10 minimum <code>≥4/6</code>, zero orphans, and no <code>blocking</code> cross-subject findings. Major and minor cross-subject findings do not block this verdict. First Principles never accepts unconditionally — the Top-10 always merits a look.
+  </p>
+  <p class="verdict-legend">
+    Source: <code>requirements/requirements.md</code> only. Subjects: every numbered item in §4.1, §4.2, §6, §7. Questions: Q1 <em>Why does this exist?</em> · Q2 <em>Which business goal?</em> · Q3 <em>Which problem?</em> · Q4 <em>What operational outcome?</em> · Q5 <em>Simplest valid way?</em> · Q6 <em>What if we remove it?</em> · Q7 <em>Anything critical missing?</em> (coverage pass). Scoring: count of <code>yes-with-evidence</code> answers across Q1–Q6 (0–6 integer). Cross-subject lenses CS1–CS5 audit collective coherence; findings carry severity, not score.
+  </p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="top-ten">
+  <h2>Top 10 Least Defensible</h2>
+  <p class="section-intro">Subjects with the weakest evidence-grounded justification chain, in ascending-score order (lowest first). Each entry deep-dives every Q1–Q6 answer with the verbatim evidence (or absence-reasoning) that produced the score.</p>
+
+  <article class="ttitem" id="BR-08">
+    <h3>1. <code>BR-08</code> — <span class="score-badge score-3">3/6</span> — weakest: Q2</h3>
+    <dl class="finding-fields">
+      <dt>Type</dt><dd>requirement</dd>
+      <dt>Anchor</dt><dd><code>§6 / BR-08</code></dd>
+      <dt>Statement</dt><dd><blockquote class="evidence"><pre>When a File Log is displayed, then its Status is derived from LastExecutedActivityName via an activity-name-to-status mapping</pre></blockquote></dd>
+    </dl>
+    <div class="q-block">
+      <p class="q-head"><strong>Q1 — Why does this exist?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>| BR-08 | When a File Log is displayed, then its Status is derived from LastExecutedActivityName via an activity-name-to-status mapping | cross-layer | When a File Log is shown, the system shall display the Status mapped from LastExecutedActivityName per the activity-name-to-status mapping. | → §2.3 File Log | major |</pre></blockquote>
+      <p class="q-head"><strong>Q2 — Which business goal does it support?</strong> <span class="q-answer q-partial">partial</span></p>
+      <blockquote class="evidence"><pre>The Source points to the §2.3 File Log domain invariant, not a measurable business goal; while File-Log tracking ties loosely to G-01, no measurable business outcome is reachable verbatim from the chain.</pre></blockquote>
+      <p class="q-head"><strong>Q3 — Which problem does it solve?</strong> <span class="q-answer q-partial">partial</span></p>
+      <blockquote class="evidence"><pre>The Importer fear of &quot;Files failing to ingest with no clear reason&quot; is the nearest §3 pain that a derived file Status addresses, but the link is inferable rather than stated for this rule.</pre></blockquote>
+      <p class="q-head"><strong>Q4 — What operational outcome does it improve?</strong> <span class="q-answer q-no">no</span></p>
+      <blockquote class="evidence"><pre>The acceptance criterion has no [SRC] backing and restates the rule (&quot;display the Status mapped from LastExecutedActivityName&quot;) without a measurable, testable threshold; §9 also notes the mapping is &quot;not enumerated in the corpus,&quot; so the AC is not measurably testable.</pre></blockquote>
+      <p class="q-head"><strong>Q5 — Is it the simplest valid way?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>When a File Log is displayed, then its Status is derived from LastExecutedActivityName via an activity-name-to-status mapping</pre></blockquote>
+      <p class="q-head"><strong>Q6 — What happens if we remove it?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>Removing BR-08 leaves File Log Status with no derivation rule, so F-04 would display an undefined status.
+File Status is derived from the LastExecutedActivityName field via an activity-name-to-status mapping [SRC: C-068]</pre></blockquote>
+    </div>
+    <p class="rec-action"><strong>Recommended action:</strong> clarify — Q4 fails: the acceptance criterion restates the rule and the activity-name-to-status mapping is unenumerated (§9), so there is no measurable test.</p>
+  </article>
+
+  <article class="ttitem" id="F-16">
+    <h3>2. <code>F-16</code> — <span class="score-badge score-3">3/6</span> — weakest: Q2</h3>
+    <dl class="finding-fields">
+      <dt>Type</dt><dd>requirement</dd>
+      <dt>Anchor</dt><dd><code>§6 / F-16</code></dd>
+      <dt>Statement</dt><dd><blockquote class="evidence"><pre>Verify session validity and render a welcome on page load</pre></blockquote></dd>
+    </dl>
+    <div class="q-block">
+      <p class="q-head"><strong>Q1 — Why does this exist?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>| F-16 | Could | Verify session validity and render a welcome on page load | When the application loads, the system shall verify session validity and render the authenticated user&#39;s welcome. | GET /v1/auth/userinfo | Serves → §3 Importer |</pre></blockquote>
+      <p class="q-head"><strong>Q2 — Which business goal does it support?</strong> <span class="q-answer q-no">no</span></p>
+      <blockquote class="evidence"><pre>The rationale &quot;Serves → §3 Importer&quot; points to a persona, not a measurable business goal; no G-NN is named or reachable.</pre></blockquote>
+      <p class="q-head"><strong>Q3 — Which problem does it solve?</strong> <span class="q-answer q-no">no</span></p>
+      <blockquote class="evidence"><pre>No §1/§3 friction is named that session-verification-on-load removes; it states an internal-system property rather than a user pain.</pre></blockquote>
+      <p class="q-head"><strong>Q4 — What operational outcome does it improve?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>When the application loads, the system shall verify session validity and render the authenticated user&#39;s welcome.</pre></blockquote>
+      <p class="q-head"><strong>Q5 — Is it the simplest valid way?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>Verify session validity and render a welcome on page load</pre></blockquote>
+      <p class="q-head"><strong>Q6 — What happens if we remove it?</strong> <span class="q-answer q-partial">partial</span></p>
+      <blockquote class="evidence"><pre>Removal would leave page load without an on-load session check or welcome, but the consequence is inferable rather than tied to a verbatim consequence-bearing quote beyond the AC restatement.</pre></blockquote>
+    </div>
+    <p class="rec-action"><strong>Recommended action:</strong> clarify — Q2 and Q3 fail: this &quot;Could&quot; requirement names neither a measurable goal nor a stated problem it solves.</p>
+  </article>
+
+  <article class="ttitem" id="US-06">
+    <h3>3. <code>US-06</code> — <span class="score-badge score-3">3/6</span> — weakest: Q2</h3>
+    <dl class="finding-fields">
+      <dt>Type</dt><dd>story</dd>
+      <dt>Anchor</dt><dd><code>§4.2 / Approver / story #3</code></dd>
+      <dt>Statement</dt><dd><blockquote class="evidence"><pre>As an Approver, I want to export the filtered transactions, so that I can use the data elsewhere</pre></blockquote></dd>
+    </dl>
+    <div class="q-block">
+      <p class="q-head"><strong>Q1 — Why does this exist?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>| Goal | → §4.1 G-03 |</pre></blockquote>
+      <p class="q-head"><strong>Q2 — Which business goal does it support?</strong> <span class="q-answer q-partial">partial</span></p>
+      <blockquote class="evidence"><pre>The story cites G-03 via its Goal row, but G-03 carries no measurable business outcome (it fails its own Q2), and the &quot;so that I can use the data elsewhere&quot; clause names no measurable outcome.</pre></blockquote>
+      <p class="q-head"><strong>Q3 — Which problem does it solve?</strong> <span class="q-answer q-no">no</span></p>
+      <blockquote class="evidence"><pre>The Approver&#39;s §3 stated fears are &quot;Approving or rejecting the wrong transaction&quot; — no stated pain about exporting or using data elsewhere that this story&#39;s I want addresses.</pre></blockquote>
+      <p class="q-head"><strong>Q4 — What operational outcome does it improve?</strong> <span class="q-answer q-no">no</span></p>
+      <blockquote class="evidence"><pre>The so that clause &quot;so that I can use the data elsewhere&quot; names no measurable operational outcome distinct from the export action; it is hortatory.</pre></blockquote>
+      <p class="q-head"><strong>Q5 — Is it the simplest valid way?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>Export the currently filtered transaction set to CSV [SRC: C-036]</pre></blockquote>
+      <p class="q-head"><strong>Q6 — What happens if we remove it?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>Removing export leaves no path to satisfy goal G-03, whose signal requires an exported CSV matching the filtered set.
+| G-03 | Export the filtered transaction set [SRC: C-005] | Exported CSV matches the on-screen filtered set | top-level | | |</pre></blockquote>
+    </div>
+    <p class="rec-action"><strong>Recommended action:</strong> clarify — Q3 and Q4 fail: the export story names no Approver pain it removes and no measurable outcome beyond &quot;use the data elsewhere.&quot;</p>
+  </article>
+
+  <article class="ttitem" id="US-03">
+    <h3>4. <code>US-03</code> — <span class="score-badge score-3">3/6</span> — weakest: Q2</h3>
+    <dl class="finding-fields">
+      <dt>Type</dt><dd>story</dd>
+      <dt>Anchor</dt><dd><code>§4.2 / Importer / story #3</code></dd>
+      <dt>Statement</dt><dd><blockquote class="evidence"><pre>As an Importer, I want to search and filter transactions, so that I can review the records of a file</pre></blockquote></dd>
+    </dl>
+    <div class="q-block">
+      <p class="q-head"><strong>Q1 — Why does this exist?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>| Goal | → §4.1 G-04 |</pre></blockquote>
+      <p class="q-head"><strong>Q2 — Which business goal does it support?</strong> <span class="q-answer q-partial">partial</span></p>
+      <blockquote class="evidence"><pre>The story cites G-04 via its Goal row, but G-04 carries no measurable business outcome (it fails its own Q2), and the &quot;so that I can review the records of a file&quot; clause names no measurable outcome.</pre></blockquote>
+      <p class="q-head"><strong>Q3 — Which problem does it solve?</strong> <span class="q-answer q-no">no</span></p>
+      <blockquote class="evidence"><pre>The Importer persona&#39;s stated pain concerns ingestion failure, not difficulty finding records, and the linked §5 Search &amp; Filtering flow states no friction the I want resolves.</pre></blockquote>
+      <p class="q-head"><strong>Q4 — What operational outcome does it improve?</strong> <span class="q-answer q-no">no</span></p>
+      <blockquote class="evidence"><pre>The &quot;so that I can review the records of a file&quot; clause restates review intent with no measurable outcome distinct from the I want.</pre></blockquote>
+      <p class="q-head"><strong>Q5 — Is it the simplest valid way?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>As an Importer, I want to search and filter transactions, so that I can review the records of a file</pre></blockquote>
+      <p class="q-head"><strong>Q6 — What happens if we remove it?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>Removing this story leaves the search/filter capability unanchored, breaking the requirement that provides client-side search and filtering of transactions.
+| F-07 | Must | Provide client-side search and filtering of transactions by status, file, date range, amount range, and free text [SRC: C-042]</pre></blockquote>
+    </div>
+    <p class="rec-action"><strong>Recommended action:</strong> clarify — Q3 and Q4 fail: no stated Importer pain about locating records and no measurable outcome in the &quot;so that&quot; clause.</p>
+  </article>
+
+  <article class="ttitem" id="G-03">
+    <h3>5. <code>G-03</code> — <span class="score-badge score-3">3/6</span> — weakest: Q2</h3>
+    <dl class="finding-fields">
+      <dt>Type</dt><dd>goal</dd>
+      <dt>Anchor</dt><dd><code>§4.1 / G-03</code></dd>
+      <dt>Statement</dt><dd><blockquote class="evidence"><pre>Export the filtered transaction set</pre></blockquote></dd>
+    </dl>
+    <div class="q-block">
+      <p class="q-head"><strong>Q1 — Why does this exist?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>lets Approvers review, approve or reject, and export transactions [SRC: C-005]</pre></blockquote>
+      <p class="q-head"><strong>Q2 — Which business goal does it support?</strong> <span class="q-answer q-no">no</span></p>
+      <blockquote class="evidence"><pre>The goal text &quot;Export the filtered transaction set&quot; names no KPI, measurable target, regulatory citation, or outcome verb.</pre></blockquote>
+      <p class="q-head"><strong>Q3 — Which problem does it solve?</strong> <span class="q-answer q-no">no</span></p>
+      <blockquote class="evidence"><pre>No §1 or §3 text names a current friction, manual workload, or complaint that exporting removes; the Approver persona&#39;s wants/fears concern review accuracy, not export.</pre></blockquote>
+      <p class="q-head"><strong>Q4 — What operational outcome does it improve?</strong> <span class="q-answer q-no">no</span></p>
+      <blockquote class="evidence"><pre>The quality signal &quot;Exported CSV matches the on-screen filtered set&quot; is a correctness property with no time, count, or threshold-bound measure.</pre></blockquote>
+      <p class="q-head"><strong>Q5 — Is it the simplest valid way?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>Export the filtered transaction set [SRC: C-005] | Exported CSV matches the on-screen filtered set</pre></blockquote>
+      <p class="q-head"><strong>Q6 — What happens if we remove it?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>Removing this goal leaves the CSV-export capability unanchored, breaking the requirement that produces a CSV from the filtered grid.
+| F-11 | Must | Export the currently filtered transaction set to CSV, generated client-side [SRC: C-036]</pre></blockquote>
+    </div>
+    <p class="rec-action"><strong>Recommended action:</strong> clarify — Q2/Q3/Q4 fail: the goal names no measurable outcome and no §1/§3 problem that export removes.</p>
+  </article>
+
+  <article class="ttitem" id="G-04">
+    <h3>6. <code>G-04</code> — <span class="score-badge score-3">3/6</span> — weakest: Q2</h3>
+    <dl class="finding-fields">
+      <dt>Type</dt><dd>goal</dd>
+      <dt>Anchor</dt><dd><code>§4.1 / G-04</code></dd>
+      <dt>Statement</dt><dd><blockquote class="evidence"><pre>Find specific transactions quickly via search and filter</pre></blockquote></dd>
+    </dl>
+    <div class="q-block">
+      <p class="q-head"><strong>Q1 — Why does this exist?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>| Driving forces — wants | Efficient review with clear status and quick actions |</pre></blockquote>
+      <p class="q-head"><strong>Q2 — Which business goal does it support?</strong> <span class="q-answer q-no">no</span></p>
+      <blockquote class="evidence"><pre>The adverb &quot;quickly&quot; is hortatory; the goal text carries no number, unit, percentage, time, or outcome verb naming a measurable business outcome.</pre></blockquote>
+      <p class="q-head"><strong>Q3 — Which problem does it solve?</strong> <span class="q-answer q-no">no</span></p>
+      <blockquote class="evidence"><pre>No §1 or §3 text names a current friction about locating transactions; the personas&#39; stated pains concern ingestion failure and wrong actioning, not search difficulty.</pre></blockquote>
+      <p class="q-head"><strong>Q4 — What operational outcome does it improve?</strong> <span class="q-answer q-no">no</span></p>
+      <blockquote class="evidence"><pre>The quality signal &quot;Target transactions located within a few filter actions&quot; uses &quot;a few&quot;, which is not a count-, time-, or threshold-bound measure.</pre></blockquote>
+      <p class="q-head"><strong>Q5 — Is it the simplest valid way?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>Find specific transactions quickly via search and filter [SRC: C-042] | Target transactions located within a few filter actions</pre></blockquote>
+      <p class="q-head"><strong>Q6 — What happens if we remove it?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>Removing this goal leaves the search-and-filter capability unanchored, breaking the requirement that filters transactions by status, file, date range, amount range, and free text.
+| F-07 | Must | Provide client-side search and filtering of transactions by status, file, date range, amount range, and free text [SRC: C-042]</pre></blockquote>
+    </div>
+    <p class="rec-action"><strong>Recommended action:</strong> clarify — Q2/Q3/Q4 fail: &quot;quickly&quot; and &quot;a few filter actions&quot; are hortatory, with no measurable target or stated problem.</p>
+  </article>
+
+  <article class="ttitem" id="EN-01">
+    <h3>7. <code>EN-01</code> — <span class="score-badge score-4">4/6</span> — weakest: Q2</h3>
+    <dl class="finding-fields">
+      <dt>Type</dt><dd>entity</dd>
+      <dt>Anchor</dt><dd><code>§7 / FileLog</code></dd>
+      <dt>Statement</dt><dd><blockquote class="evidence"><pre>Shape: FileLog</pre></blockquote></dd>
+    </dl>
+    <div class="q-block">
+      <p class="q-head"><strong>Q1 — Why does this exist?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>| F-04 | Must | Display the list of uploaded files with file name, process date, record count, and status [SRC: C-030] |</pre></blockquote>
+      <p class="q-head"><strong>Q2 — Which business goal does it support?</strong> <span class="q-answer q-partial">partial</span></p>
+      <blockquote class="evidence"><pre>FileLog is used by F-04, which Supports → §4.1 G-05, but G-05 carries no measurable business outcome (it fails its own Q2), so the chain reaches no measurable business goal.</pre></blockquote>
+      <p class="q-head"><strong>Q3 — Which problem does it solve?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>| G-01 | Upload transaction files and track their processing [SRC: C-002] | Files ingested without manual rework | top-level | | |</pre></blockquote>
+      <p class="q-head"><strong>Q4 — What operational outcome does it improve?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>While the file-log overview is open, the system shall show each file&#39;s name, process date, record count, and status.</pre></blockquote>
+      <p class="q-head"><strong>Q5 — Is it the simplest valid way?</strong> <span class="q-answer q-no">no</span></p>
+      <blockquote class="evidence"><pre>IsActive (boolean, hidden, &quot;internal active flag; not displayed&quot;) has no §6 requirement that reads, writes, or constrains it — an orphan attribute with no §6 reader.</pre></blockquote>
+      <p class="q-head"><strong>Q6 — What happens if we remove it?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>Removing the FileLog shape leaves F-04 with nothing to list or display.
+Display the list of uploaded files with file name, process date, record count, and status [SRC: C-030]</pre></blockquote>
+    </div>
+    <p class="rec-action"><strong>Recommended action:</strong> re-scope — Q5 fails: the IsActive attribute has no §6 reader or writer, so the entity is wider than the requirements need.</p>
+  </article>
+
+  <article class="ttitem" id="EN-02">
+    <h3>8. <code>EN-02</code> — <span class="score-badge score-4">4/6</span> — weakest: Q2</h3>
+    <dl class="finding-fields">
+      <dt>Type</dt><dd>entity</dd>
+      <dt>Anchor</dt><dd><code>§7 / Transaction</code></dd>
+      <dt>Statement</dt><dd><blockquote class="evidence"><pre>Shape: Transaction</pre></blockquote></dd>
+    </dl>
+    <div class="q-block">
+      <p class="q-head"><strong>Q1 — Why does this exist?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>| F-06 | Must | Display transactions with reference, date, account, amount, currency, and status [SRC: C-053] |</pre></blockquote>
+      <p class="q-head"><strong>Q2 — Which business goal does it support?</strong> <span class="q-answer q-partial">partial</span></p>
+      <blockquote class="evidence"><pre>Transaction is used by F-06, which Supports → §4.1 G-02, but G-02 carries no measurable business outcome (it fails its own Q2), so the chain reaches no measurable business goal.</pre></blockquote>
+      <p class="q-head"><strong>Q3 — Which problem does it solve?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>| Driving forces — fears | Approving or rejecting the wrong transaction |</pre></blockquote>
+      <p class="q-head"><strong>Q4 — What operational outcome does it improve?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>While the transaction table is loaded, the system shall show reference, date, account, amount, currency, and status for each transaction.</pre></blockquote>
+      <p class="q-head"><strong>Q5 — Is it the simplest valid way?</strong> <span class="q-answer q-no">no</span></p>
+      <blockquote class="evidence"><pre>Description (string, table-col, &quot;included in the displayed model&quot;) has no §6 requirement that reads, writes, or constrains it — F-06&#39;s column list (reference, date, account, amount, currency, status) omits Description, making it an orphan attribute with no §6 reader.</pre></blockquote>
+      <p class="q-head"><strong>Q6 — What happens if we remove it?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>Removing the Transaction shape leaves F-06 with nothing to display.
+Display transactions with reference, date, account, amount, currency, and status [SRC: C-053]</pre></blockquote>
+    </div>
+    <p class="rec-action"><strong>Recommended action:</strong> re-scope — Q5 fails: the Description attribute is in the displayed model but no §6 requirement lists it as a column.</p>
+  </article>
+
+  <article class="ttitem" id="EN-03">
+    <h3>9. <code>EN-03</code> — <span class="score-badge score-4">4/6</span> — weakest: Q2</h3>
+    <dl class="finding-fields">
+      <dt>Type</dt><dd>entity</dd>
+      <dt>Anchor</dt><dd><code>§7 / User</code></dd>
+      <dt>Statement</dt><dd><blockquote class="evidence"><pre>Shape: User</pre></blockquote></dd>
+    </dl>
+    <div class="q-block">
+      <p class="q-head"><strong>Q1 — Why does this exist?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>| F-01 | Must | Authenticate a user with email and password via POST /v1/auth/login [SRC: C-025] |</pre></blockquote>
+      <p class="q-head"><strong>Q2 — Which business goal does it support?</strong> <span class="q-answer q-partial">partial</span></p>
+      <blockquote class="evidence"><pre>F-01&#39;s Rationale is &quot;Serves → §3 Importer,&quot; a persona, not a measurable business goal; the User entity&#39;s authenticating requirement reaches no upstream G-NN naming a measurable business outcome.</pre></blockquote>
+      <p class="q-head"><strong>Q3 — Which problem does it solve?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>An authenticated person who holds one of the two application roles, Importer or Approver [SRC: C-011]</pre></blockquote>
+      <p class="q-head"><strong>Q4 — What operational outcome does it improve?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>When valid credentials are submitted, the system shall establish a session and route to a role landing.</pre></blockquote>
+      <p class="q-head"><strong>Q5 — Is it the simplest valid way?</strong> <span class="q-answer q-no">no</span></p>
+      <blockquote class="evidence"><pre>FirstName (string, detail, &quot;user given name&quot;) and LastName (string, detail, &quot;user surname&quot;) have no §6 requirement that reads, writes, or constrains them — F-16&#39;s &quot;render the authenticated user&#39;s welcome&quot; names no specific field, leaving these as orphan attributes with no §6 reader.</pre></blockquote>
+      <p class="q-head"><strong>Q6 — What happens if we remove it?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>Removing the User shape leaves F-01 with no identity to authenticate or role-gate.
+Authenticate a user with email and password via POST /v1/auth/login [SRC: C-025]</pre></blockquote>
+    </div>
+    <p class="rec-action"><strong>Recommended action:</strong> re-scope — Q5 fails: FirstName and LastName have no §6 reader; the welcome requirement names no field.</p>
+  </article>
+
+  <article class="ttitem" id="BR-06">
+    <h3>10. <code>BR-06</code> — <span class="score-badge score-4">4/6</span> — weakest: Q2</h3>
+    <dl class="finding-fields">
+      <dt>Type</dt><dd>requirement</dd>
+      <dt>Anchor</dt><dd><code>§6 / BR-06</code></dd>
+      <dt>Statement</dt><dd><blockquote class="evidence"><pre>When the user is an Approver, then upload must be hidden</pre></blockquote></dd>
+    </dl>
+    <div class="q-block">
+      <p class="q-head"><strong>Q1 — Why does this exist?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>| BR-06 | When the user is an Approver, then upload must be hidden | ui | Where the user is an Approver, the system shall hide upload [SRC: C-023]. | → §6.5 | major |</pre></blockquote>
+      <p class="q-head"><strong>Q2 — Which business goal does it support?</strong> <span class="q-answer q-partial">partial</span></p>
+      <blockquote class="evidence"><pre>The Source points to §6.5 RBAC, a role-permission anchor, not a measurable business outcome; no upstream G-NN naming a measurable goal is reachable.</pre></blockquote>
+      <p class="q-head"><strong>Q3 — Which problem does it solve?</strong> <span class="q-answer q-partial">partial</span></p>
+      <blockquote class="evidence"><pre>No §1/§3 friction names a pain that hiding upload from Approvers removes; the Approver persona&#39;s fear is about wrong approve/reject decisions, not about seeing an upload control, so the problem link is inferable but not stated.</pre></blockquote>
+      <p class="q-head"><strong>Q4 — What operational outcome does it improve?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>Where the user is an Approver, the system shall hide upload [SRC: C-023].</pre></blockquote>
+      <p class="q-head"><strong>Q5 — Is it the simplest valid way?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>When the user is an Approver, then upload must be hidden</pre></blockquote>
+      <p class="q-head"><strong>Q6 — What happens if we remove it?</strong> <span class="q-answer q-yes-with-evidence">yes-with-evidence</span></p>
+      <blockquote class="evidence"><pre>Removing BR-06 would expose the upload control to Approvers, contradicting the RBAC table.
+Where the user is an Approver, the system shall hide upload [SRC: C-023].</pre></blockquote>
+    </div>
+    <p class="rec-action"><strong>Recommended action:</strong> clarify — Q2 and Q3 are partial: the rule lands on the §6.5 RBAC table with no measurable goal and no stated §1/§3 pain.</p>
+  </article>
+
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="ratings">
+  <h2>Full defensibility ratings</h2>
+  <p class="section-intro">Every rated subject, in the same ascending-score sort order. Use this table to see the full distribution and to spot-check whether the entries just outside the Top-10 are clustered close to the cut. Note: every subject&#39;s weakest question is Q2 — see Diagnostics for why.</p>
+  <table class="ratings-table">
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>ID</th>
+        <th>Type</th>
+        <th>Anchor</th>
+        <th>Score</th>
+        <th>Weakest</th>
+        <th>Statement (truncated)</th>
+        <th>Recommended action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="score-3"><td>1</td><td><a href="#BR-08"><code>BR-08</code></a></td><td>requirement</td><td><code>§6 / BR-08</code></td><td><span class="score-badge score-3">3/6</span></td><td>Q2</td><td>When a File Log is displayed, then its Status is derived from LastExecu…</td><td>clarify</td></tr>
+      <tr class="score-3"><td>2</td><td><a href="#F-16"><code>F-16</code></a></td><td>requirement</td><td><code>§6 / F-16</code></td><td><span class="score-badge score-3">3/6</span></td><td>Q2</td><td>Verify session validity and render a welcome on page load</td><td>clarify</td></tr>
+      <tr class="score-3"><td>3</td><td><a href="#US-06"><code>US-06</code></a></td><td>story</td><td><code>§4.2 / Approver / story #3</code></td><td><span class="score-badge score-3">3/6</span></td><td>Q2</td><td>As an Approver, I want to export the filtered transactions, so that I…</td><td>clarify</td></tr>
+      <tr class="score-3"><td>4</td><td><a href="#US-03"><code>US-03</code></a></td><td>story</td><td><code>§4.2 / Importer / story #3</code></td><td><span class="score-badge score-3">3/6</span></td><td>Q2</td><td>As an Importer, I want to search and filter transactions, so that I c…</td><td>clarify</td></tr>
+      <tr class="score-3"><td>5</td><td><a href="#G-03"><code>G-03</code></a></td><td>goal</td><td><code>§4.1 / G-03</code></td><td><span class="score-badge score-3">3/6</span></td><td>Q2</td><td>Export the filtered transaction set</td><td>clarify</td></tr>
+      <tr class="score-3"><td>6</td><td><a href="#G-04"><code>G-04</code></a></td><td>goal</td><td><code>§4.1 / G-04</code></td><td><span class="score-badge score-3">3/6</span></td><td>Q2</td><td>Find specific transactions quickly via search and filter</td><td>clarify</td></tr>
+      <tr class="score-4"><td>7</td><td><a href="#EN-01"><code>EN-01</code></a></td><td>entity</td><td><code>§7 / FileLog</code></td><td><span class="score-badge score-4">4/6</span></td><td>Q2</td><td>Shape: FileLog</td><td>re-scope</td></tr>
+      <tr class="score-4"><td>8</td><td><a href="#EN-02"><code>EN-02</code></a></td><td>entity</td><td><code>§7 / Transaction</code></td><td><span class="score-badge score-4">4/6</span></td><td>Q2</td><td>Shape: Transaction</td><td>re-scope</td></tr>
+      <tr class="score-4"><td>9</td><td><a href="#EN-03"><code>EN-03</code></a></td><td>entity</td><td><code>§7 / User</code></td><td><span class="score-badge score-4">4/6</span></td><td>Q2</td><td>Shape: User</td><td>re-scope</td></tr>
+      <tr class="score-4"><td>10</td><td><a href="#BR-06"><code>BR-06</code></a></td><td>requirement</td><td><code>§6 / BR-06</code></td><td><span class="score-badge score-4">4/6</span></td><td>Q2</td><td>When the user is an Approver, then upload must be hidden</td><td>clarify</td></tr>
+      <tr class="score-4"><td>11</td><td><code>BR-07</code></td><td>requirement</td><td><code>§6 / BR-07</code></td><td><span class="score-badge score-4">4/6</span></td><td>Q2</td><td>When AccountNumber is shown, then all but its last group of digits mu…</td><td>clarify</td></tr>
+      <tr class="score-4"><td>12</td><td><code>F-01</code></td><td>requirement</td><td><code>§6 / F-01</code></td><td><span class="score-badge score-4">4/6</span></td><td>Q2</td><td>Authenticate a user with email and password via POST /v1/auth/login</td><td>clarify</td></tr>
+      <tr class="score-4"><td>13</td><td><code>F-02</code></td><td>requirement</td><td><code>§6 / F-02</code></td><td><span class="score-badge score-4">4/6</span></td><td>Q2</td><td>Route each role to its primary landing surface after login</td><td>clarify</td></tr>
+      <tr class="score-4"><td>14</td><td><code>F-05</code></td><td>requirement</td><td><code>§6 / F-05</code></td><td><span class="score-badge score-4">4/6</span></td><td>Q2</td><td>Allow drilling from a file-log row into that file&#39;s transactions</td><td>clarify</td></tr>
+      <tr class="score-4"><td>15</td><td><code>F-14</code></td><td>requirement</td><td><code>§6 / F-14</code></td><td><span class="score-badge score-4">4/6</span></td><td>Q2</td><td>Present transaction status as a status chip</td><td>clarify</td></tr>
+      <tr class="score-4"><td>16</td><td><code>F-15</code></td><td>requirement</td><td><code>§6 / F-15</code></td><td><span class="score-badge score-4">4/6</span></td><td>Q2</td><td>Allow a user to sign out and clear the session</td><td>clarify</td></tr>
+      <tr class="score-4"><td>17</td><td><code>US-04</code></td><td>story</td><td><code>§4.2 / Approver / story #1</code></td><td><span class="score-badge score-4">4/6</span></td><td>Q2</td><td>As an Approver, I want to approve a transaction, so that it is marked…</td><td>clarify</td></tr>
+      <tr class="score-4"><td>18</td><td><code>US-05</code></td><td>story</td><td><code>§4.2 / Approver / story #2</code></td><td><span class="score-badge score-4">4/6</span></td><td>Q2</td><td>As an Approver, I want to reject a transaction with a note, so that t…</td><td>clarify</td></tr>
+      <tr class="score-4"><td>19</td><td><code>US-01</code></td><td>story</td><td><code>§4.2 / Importer / story #1</code></td><td><span class="score-badge score-4">4/6</span></td><td>Q2</td><td>As an Importer, I want to upload a transaction file, so that its reco…</td><td>clarify</td></tr>
+      <tr class="score-4"><td>20</td><td><code>US-02</code></td><td>story</td><td><code>§4.2 / Importer / story #2</code></td><td><span class="score-badge score-4">4/6</span></td><td>Q2</td><td>As an Importer, I want to see uploaded files and their status, so tha…</td><td>clarify</td></tr>
+      <tr class="score-4"><td>21</td><td><code>G-01</code></td><td>goal</td><td><code>§4.1 / G-01</code></td><td><span class="score-badge score-4">4/6</span></td><td>Q2</td><td>Upload transaction files and track their processing</td><td>clarify</td></tr>
+      <tr class="score-4"><td>22</td><td><code>G-02</code></td><td>goal</td><td><code>§4.1 / G-02</code></td><td><span class="score-badge score-4">4/6</span></td><td>Q2</td><td>Review and action (approve/reject) transactions accurately</td><td>clarify</td></tr>
+      <tr class="score-4"><td>23</td><td><code>G-05</code></td><td>goal</td><td><code>§4.1 / G-05</code></td><td><span class="score-badge score-4">4/6</span></td><td>Q2</td><td>See transaction and file status at a glance</td><td>clarify</td></tr>
+      <tr class="score-5"><td>24</td><td><code>BR-01</code></td><td>requirement</td><td><code>§6 / BR-01</code></td><td><span class="score-badge score-5">5/6</span></td><td>Q2</td><td>When a transaction&#39;s status is not Imported, then approve and reject…</td><td>clarify</td></tr>
+      <tr class="score-5"><td>25</td><td><code>BR-02</code></td><td>requirement</td><td><code>§6 / BR-02</code></td><td><span class="score-badge score-5">5/6</span></td><td>Q2</td><td>When a transaction is Approved or Rejected, then its status is termin…</td><td>clarify</td></tr>
+      <tr class="score-5"><td>26</td><td><code>BR-03</code></td><td>requirement</td><td><code>§6 / BR-03</code></td><td><span class="score-badge score-5">5/6</span></td><td>Q2</td><td>When a transaction is rejected, then a note is mandatory</td><td>clarify</td></tr>
+      <tr class="score-5"><td>27</td><td><code>BR-04</code></td><td>requirement</td><td><code>§6 / BR-04</code></td><td><span class="score-badge score-5">5/6</span></td><td>Q2</td><td>When a transaction has already been actioned, then a second action m…</td><td>clarify</td></tr>
+      <tr class="score-5"><td>28</td><td><code>BR-05</code></td><td>requirement</td><td><code>§6 / BR-05</code></td><td><span class="score-badge score-5">5/6</span></td><td>Q2</td><td>When the user is an Importer, then approve and reject must be hidden</td><td>clarify</td></tr>
+      <tr class="score-5"><td>29</td><td><code>F-03</code></td><td>requirement</td><td><code>§6 / F-03</code></td><td><span class="score-badge score-5">5/6</span></td><td>Q2</td><td>Allow an Importer to upload a transaction file with FileSettingId, Fi…</td><td>clarify</td></tr>
+      <tr class="score-5"><td>30</td><td><code>F-04</code></td><td>requirement</td><td><code>§6 / F-04</code></td><td><span class="score-badge score-5">5/6</span></td><td>Q2</td><td>Display the list of uploaded files with file name, process date, reco…</td><td>clarify</td></tr>
+      <tr class="score-5"><td>31</td><td><code>F-06</code></td><td>requirement</td><td><code>§6 / F-06</code></td><td><span class="score-badge score-5">5/6</span></td><td>Q2</td><td>Display transactions with reference, date, account, amount, currency,…</td><td>clarify</td></tr>
+      <tr class="score-5"><td>32</td><td><code>F-07</code></td><td>requirement</td><td><code>§6 / F-07</code></td><td><span class="score-badge score-5">5/6</span></td><td>Q2</td><td>Provide client-side search and filtering of transactions by status, f…</td><td>clarify</td></tr>
+      <tr class="score-5"><td>33</td><td><code>F-08</code></td><td>requirement</td><td><code>§6 / F-08</code></td><td><span class="score-badge score-5">5/6</span></td><td>Q2</td><td>Allow an Approver to approve an Imported transaction</td><td>clarify</td></tr>
+      <tr class="score-5"><td>34</td><td><code>F-09</code></td><td>requirement</td><td><code>§6 / F-09</code></td><td><span class="score-badge score-5">5/6</span></td><td>Q2</td><td>Allow an Approver to reject an Imported transaction with a mandatory…</td><td>clarify</td></tr>
+      <tr class="score-5"><td>35</td><td><code>F-10</code></td><td>requirement</td><td><code>§6 / F-10</code></td><td><span class="score-badge score-5">5/6</span></td><td>Q2</td><td>Guard against acting on an already-actioned transaction</td><td>clarify</td></tr>
+      <tr class="score-5"><td>36</td><td><code>F-11</code></td><td>requirement</td><td><code>§6 / F-11</code></td><td><span class="score-badge score-5">5/6</span></td><td>Q2</td><td>Export the currently filtered transaction set to CSV, generated clien…</td><td>clarify</td></tr>
+      <tr class="score-5"><td>37</td><td><code>F-12</code></td><td>requirement</td><td><code>§6 / F-12</code></td><td><span class="score-badge score-5">5/6</span></td><td>Q2</td><td>Display a file summary of total records and count by status</td><td>clarify</td></tr>
+      <tr class="score-5"><td>38</td><td><code>F-13</code></td><td>requirement</td><td><code>§6 / F-13</code></td><td><span class="score-badge score-5">5/6</span></td><td>Q2</td><td>Mask AccountNumber on screen, showing only its last group of digits</td><td>clarify</td></tr>
+    </tbody>
+  </table>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="coverage">
+  <h2>Critical missing artefacts</h2>
+  <p class="section-intro">Q7 coverage findings. Each is a <code>blocking</code> orphan: an artefact that exists at one layer of the doc and should have a counterpart at another but doesn&#39;t.</p>
+  <p>No orphans — every goal has a requirement, every persona has a story, every story has a requirement, every business rule has a functional realisation, every entity is used by a requirement.</p>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="cross-subject">
+  <h2>Cross-subject coherence findings</h2>
+  <p class="section-intro">CS1–CS5 findings. Each cites ≥1 anchor in the doc and observes a relation the subjects collectively cannot satisfy: a contradiction between objectives, a hidden assumption or false constraint, a system-thinking or architectural-consequence gap, a missing operational reality, or a human-cost allocation problem. Findings carry severity (blocking / major / minor) rather than a per-subject score, and consequence sentences observe what the doc as written cannot deliver — they never prescribe what to add.</p>
+  <table class="cs-table">
+    <thead>
+      <tr>
+        <th>Lenses</th>
+        <th>Severity</th>
+        <th>Headline</th>
+        <th>Anchors</th>
+        <th>Evidence</th>
+        <th>Relation</th>
+        <th>Consequence</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="severity-Major">
+        <td>CS3</td>
+        <td><span class="chip severity-Major">major</span></td>
+        <td>Acting user not recorded on transactions</td>
+        <td><code>§4.1 / G-02</code><br><code>§7 / Transaction</code><br><code>§6 / F-09</code></td>
+        <td><blockquote class="evidence"><pre>§4.1 / G-02: Review and action (approve/reject) transactions accurately [SRC: C-022] | Transactions actioned correctly, with the acting user recorded
+§7 / Transaction: | UserNote | string | no | detail | note captured on rejection [SRC: C-055] |
+§6 / F-09: When a note is supplied, the system shall set status to Rejected and record the note [SRC: C-019].</pre></blockquote></td>
+        <td>G-02&#39;s quality signal commits to transactions being actioned &quot;with the acting user recorded&quot;, but the §7 Transaction shape carries no acting-user field and F-08/F-09 record only the status change and the rejection note.</td>
+        <td>The entity model and the approve/reject requirements as written cannot deliver G-02&#39;s &quot;acting user recorded&quot; signal, since no Transaction field or requirement captures who actioned a transaction.</td>
+      </tr>
+      <tr class="severity-Minor">
+        <td>CS4</td>
+        <td><span class="chip severity-Minor">minor</span></td>
+        <td>Failed file leaves no user recovery path</td>
+        <td><code>§1.5</code><br><code>§2.5 / File Log</code></td>
+        <td><blockquote class="evidence"><pre>§1.5: User-facing recovery flow for a Failed file (unspecified, treated as not-yet-defined) [SRC: C-069]
+§2.5 / File Log: | Processing → Failed | backend processing fails (out-of-FE-scope context) | processing encountered an error | File Status reflects Failed on the File Log list; recovery flow unspecified [SRC: C-069] |</pre></blockquote></td>
+        <td>The File Log lifecycle includes a Failed terminal state that F-04 surfaces on the file-log list, but §1.5 defers the user-facing recovery flow and §2.5 marks it &quot;recovery flow unspecified&quot;.</td>
+        <td>The doc displays a Failed file state but omits any requirement defining the user&#39;s next action, leaving a Failed file as a dead-end in the prototype.</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+<section id="diagnostics">
+  <h2>Diagnostics</h2>
+  <details class="diagnostics-toggle" open>
+    <summary>Show / hide diagnostics</summary>
+
+    <h4>Subject counts</h4>
+    <table><thead><tr><th>Stat</th><th>Value</th></tr></thead><tbody>
+      <tr><td>Subjects rated (total)</td><td>38</td></tr>
+      <tr><td>§4.1 goals rated</td><td>5</td></tr>
+      <tr><td>§4.2 stories rated</td><td>6</td></tr>
+      <tr><td>§6 requirements rated (BR + FR)</td><td>24</td></tr>
+      <tr><td>§7 entities rated</td><td>3</td></tr>
+    </tbody></table>
+
+    <h4>Score histogram</h4>
+    <table><thead><tr><th>Score</th><th>Count</th></tr></thead><tbody>
+      <tr><td>0/6</td><td>0</td></tr>
+      <tr><td>1/6</td><td>0</td></tr>
+      <tr><td>2/6</td><td>0</td></tr>
+      <tr><td>3/6</td><td>6</td></tr>
+      <tr><td>4/6</td><td>17</td></tr>
+      <tr><td>5/6</td><td>15</td></tr>
+      <tr><td>6/6</td><td>0</td></tr>
+    </tbody></table>
+
+    <h4>Weakest-question distribution</h4>
+    <table><thead><tr><th>Question</th><th>Count</th></tr></thead><tbody>
+      <tr><td>Q1 (Why does this exist?)</td><td>0</td></tr>
+      <tr><td>Q2 (Which business goal?)</td><td>38</td></tr>
+      <tr><td>Q3 (Which problem?)</td><td>0</td></tr>
+      <tr><td>Q4 (What operational outcome?)</td><td>0</td></tr>
+      <tr><td>Q5 (Simplest valid way?)</td><td>0</td></tr>
+      <tr><td>Q6 (What if we remove it?)</td><td>0</td></tr>
+    </tbody></table>
+    <p class="section-intro">Every subject answers Q1 with verbatim evidence (each artefact has a rationale / goal / source annotation), but no subject answers Q2 with evidence: every §4.1 goal states a capability rather than a measurable business outcome, so every downstream requirement, story, and entity that chains to a goal lands on a Q2-failing node. Q2 is therefore the universal weakest link.</p>
+
+    <h4>Coverage pass (Q7)</h4>
+    <table><thead><tr><th>Coverage relation</th><th>Result</th><th>Orphans</th></tr></thead><tbody>
+      <tr><td>Every §4.1 goal has ≥1 §6 requirement</td><td>PASS</td><td>0</td></tr>
+      <tr><td>Every §3 persona has ≥1 §4.2 story</td><td>PASS</td><td>0</td></tr>
+      <tr><td>Every §4.2 story has ≥1 §6 requirement</td><td>PASS</td><td>0</td></tr>
+      <tr><td>Every §6 BR-NN has ≥1 §6 FR realisation</td><td>PASS</td><td>0</td></tr>
+      <tr><td>Every §7 entity has ≥1 §6 reader/writer</td><td>PASS</td><td>0</td></tr>
+    </tbody></table>
+
+    <h4>Cross-subject pass (CS1–CS5)</h4>
+    <table><thead><tr><th>Lens</th><th>Result</th><th>Findings</th><th>Rescued</th><th>Highest severity</th></tr></thead><tbody>
+      <tr><td>CS1 (Contradictory Objectives)</td><td>PASS</td><td>0</td><td>0</td><td>—</td></tr>
+      <tr><td>CS2 (Hidden Assumptions / False Constraints)</td><td>PASS</td><td>0</td><td>0</td><td>—</td></tr>
+      <tr><td>CS3 (Missing System Thinking)</td><td>PASS</td><td>1</td><td>0</td><td>major</td></tr>
+      <tr><td>CS4 (Missing Operational Reality)</td><td>PASS</td><td>1</td><td>0</td><td>minor</td></tr>
+      <tr><td>CS5 (Human Cost Allocation)</td><td>PASS</td><td>0</td><td>0</td><td>—</td></tr>
+    </tbody></table>
+    <p class="section-intro">CS1 did not trigger (no mutually-exclusive outcomes or conflicting thresholds). CS2 did not trigger: the doc&#39;s §9 inconsistency register and §1.6 dependency list name the would-be hidden assumptions (login endpoint, TransactionType codes, AccountNumber form, activity-name-to-status mapping), so they are surfaced, not hidden. CS5 did not trigger: §3 names the Approver&#39;s accountability as the reason for the human approve/reject step.</p>
+
+    <h4>Filter drops &amp; rescues</h4>
+    <table><thead><tr><th>Filter source</th><th>Q3/Q5 drops</th><th>Q3/Q5 rescues</th><th>CS rescues</th></tr></thead><tbody>
+      <tr><td>GR-NN match (Step 6 rule 1)</td><td>0</td><td>0</td><td>0</td></tr>
+      <tr><td>PI-NN match (Step 6 rule 2)</td><td>0</td><td>0</td><td>0</td></tr>
+    </tbody></table>
+    <p class="section-intro">No Q5 over-specification answer was foreclosed by a GR-NN/PI-NN (the orphan-attribute Q5 findings on EN-01/EN-02/EN-03 and the mechanism Q5 finding on F-14 are not framework-resolved). The CS4 finding was checked for PI-01 rescue and retained: the deferred recovery is a user-facing workflow gap, not a day-2-operations concern PI-01 forecloses. <em>scope-filter: not-applicable</em> (every §4–§7 subject is in-scope by construction). <em>cross-methodology-filter: not-applicable</em> (the four sibling lenses are independent).</p>
+
+    <h4>Quality gates</h4>
+    <table class="diagnostics-gates"><thead><tr><th>Gate</th><th>Result</th><th>Notes</th></tr></thead><tbody>
+      <tr class="gate-pass"><td>1. Every §4–§7 subject was rated</td><td><span class="chip gate-pass">PASS</span></td><td>38 of 38 enumerated subjects rated.</td></tr>
+      <tr class="gate-pass"><td>2. Every rating has all six Q1–Q6 answers</td><td><span class="chip gate-pass">PASS</span></td><td>All 38 ratings carry six populated answer objects.</td></tr>
+      <tr class="gate-pass"><td>3. Every yes-with-evidence quote is verbatim</td><td><span class="chip gate-pass">PASS</span></td><td>Parent re-checked each evidence quote against the Step-2 read of requirements.md.</td></tr>
+      <tr class="gate-pass"><td>4. Every partial/no answer has a reasoning line</td><td><span class="chip gate-pass">PASS</span></td><td>All reasoning lines name a specific absent property; no stubs.</td></tr>
+      <tr class="gate-pass"><td>5. Every score ∈ {0..6}</td><td><span class="chip gate-pass">PASS</span></td><td>One worker arithmetic error corrected at merge (G-04: 2 → 3).</td></tr>
+      <tr class="gate-pass"><td>6. Every weakest-question marker ∈ {Q1..Q6}</td><td><span class="chip gate-pass">PASS</span></td><td>All 38 resolve to Q2 (Q1 universally yes, Q2 universally non-yes).</td></tr>
+      <tr class="gate-pass"><td>7. Top-10 has min(10, N) entries, sorted</td><td><span class="chip gate-pass">PASS</span></td><td>10 entries, ascending score then type (entity→requirement→story→goal) then anchor.</td></tr>
+      <tr class="gate-pass"><td>8. Coverage pass evaluated every layer</td><td><span class="chip gate-pass">PASS</span></td><td>All 5 relations applicable and evaluated; no not-applicable layer, so no warn.</td></tr>
+      <tr class="gate-pass"><td>9. Every orphan finding is blocking + anchored</td><td><span class="chip gate-pass">PASS</span></td><td>Vacuously satisfied — 0 orphans.</td></tr>
+      <tr class="gate-pass"><td>10. Verdict consistent with score + orphan + CS-blocking</td><td><span class="chip gate-pass">PASS</span></td><td>NEEDS-REVISION: Top-10 has ≤3/6; no orphan-goal, no 0/6, fewer than three ≤2/6, no blocking CS.</td></tr>
+      <tr class="gate-pass"><td>11. REQUIREMENTS_SHA256 equals the Step-2 SHA</td><td><span class="chip gate-pass">PASS</span></td><td>a8c5510…de214; all four workers confirmed the same SHA.</td></tr>
+      <tr class="gate-pass"><td>12. Every CS anchor + quote resolves / is verbatim</td><td><span class="chip gate-pass">PASS</span></td><td>CS3 and CS4 anchors exist; all evidence quotes are verbatim substrings.</td></tr>
+      <tr class="gate-pass"><td>13. Every CS consequence uses observational verbs only</td><td><span class="chip gate-pass">PASS</span></td><td>CS3 uses &quot;cannot&quot;; CS4 uses &quot;omits&quot;/&quot;leaving&quot;. No prescriptive verbs.</td></tr>
+      <tr class="gate-pass"><td>14. Every CS lens (CS1–CS5) was evaluated</td><td><span class="chip gate-pass">PASS</span></td><td>All five ran; CS1/CS2/CS5 returned zero findings.</td></tr>
+    </tbody></table>
+
+    <h4>Override log</h4>
+    <p>All quality gates passed; no override invoked. Two parent-side reconciliations were applied during the Step-4b merge (recorded here for transparency, not gate overrides): (1) a worker arithmetic correction — batch 1 reported G-04 as <code>2/6</code> but its answers contain three <code>yes-with-evidence</code>, corrected to <code>3/6</code> (gate 5); (2) cross-subject Q2 consistency — the Q2 rubric requires a cited goal to satisfy its own Q2, but every §4.1 goal fails Q2 (no measurable outcome), so nine subjects whose batch-isolated workers scored Q2 = <code>yes-with-evidence</code> by citing a goal (US-06, F-03, F-06, F-08, F-11, F-12, F-14, EN-01, EN-02) were re-marked Q2 = <code>partial</code>. Both partial and no count as zero, so the corrections lower those nine scores by one. Fan-out: 4 subject-batch workers (general-purpose, read-only), merged deterministically by subject_id; every subject_id present exactly once.</p>
+  </details>
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+</section>
+
+</main>
+</body>
+</html>

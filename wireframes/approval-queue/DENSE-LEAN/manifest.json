@@ -1,0 +1,56 @@
+{
+  "scope_slug": "approval-queue",
+  "variant_id": "DENSE-LEAN",
+  "authored_at": "2026-06-15T00:00:00Z",
+  "blueprint_sha256": "b97419508a5f468743b6901110ad93dfc0b7bd5da7fd618e884f1f524bb0abf9",
+  "screens": {
+    "S-01": {
+      "screen_file": "screen-01-transaction-queue.html",
+      "surface_id": "LS-01",
+      "realization": "standalone-screen",
+      "primary_pattern": "collections/table",
+      "primary_pattern_variant": "default",
+      "modifiers": ["wf-table--compact"],
+      "secondary_patterns": ["forms/search-and-filter", "feedback/empty-state", "navigation/pagination"],
+      "states_rendered": ["default", "loading", "empty", "error", "row-expanded", "confirm-modal-open"],
+      "data_src_targets": ["F-02", "F-05", "F-06", "F-07", "F-13", "F-14", "UI-03", "UI-04", "UI-05", "UI-07", "BR-01", "BR-05", "BR-07"],
+      "properties_declared": ["Transaction.Reference", "Transaction.TransactionDate", "Transaction.AccountNumber", "Transaction.Amount", "Transaction.Currency", "Transaction.Status"],
+      "properties_rendered": ["Transaction.Reference", "Transaction.TransactionDate", "Transaction.AccountNumber", "Transaction.Amount", "Transaction.Currency", "Transaction.Status"],
+      "notes": "Importer view (BR-05): approve/reject row actions role-gated absent; only the read-only expand/collapse disclosure toggle is shown. Bulk multi-select excluded (AMD-67) — no checkbox column, no bulk-action bar. AccountNumber masked to last 4 (F-13/BR-07). File-scope cue (AMD-91/F-05) rendered as navigational chrome, not a data-bound cell, since no F-05 property is in LS-01's closed set."
+    },
+    "LS-02": {
+      "screen_file": null,
+      "surface_id": "LS-02",
+      "realization": "inline-expand",
+      "host_surface": "LS-01",
+      "rendered_on": "S-01",
+      "host_state": "row-expanded",
+      "primary_pattern": "collections/detail-panel",
+      "primary_pattern_variant": "inline-expanded",
+      "modifiers": [],
+      "secondary_patterns": [],
+      "states_rendered": ["default", "loading"],
+      "data_src_targets": ["F-06"],
+      "properties_declared": ["Transaction.TransactionType", "Transaction.Description", "Transaction.UserNote"],
+      "properties_rendered": ["Transaction.TransactionType", "Transaction.Description", "Transaction.UserNote"],
+      "notes": "Folded inline-expand disclosure row on S-01 (AMD-93); carries its own data-src (F-06) and data-prop (LS-02 closed set), not the host's."
+    },
+    "LS-03": {
+      "screen_file": null,
+      "surface_id": "LS-03",
+      "realization": "modal",
+      "host_surface": "LS-01",
+      "rendered_on": "S-01",
+      "host_state": "confirm-modal-open",
+      "primary_pattern": "surfaces/modal-confirmation",
+      "primary_pattern_variant": "with-input",
+      "modifiers": [],
+      "secondary_patterns": [],
+      "states_rendered": ["default", "loading", "error"],
+      "data_src_targets": ["F-08", "F-09", "F-10", "UI-04", "BR-01", "BR-02", "BR-03", "BR-04"],
+      "properties_declared": ["Transaction.Reference", "Transaction.Amount", "Transaction.Status", "Transaction.UserNote"],
+      "properties_rendered": ["Transaction.Reference", "Transaction.Amount", "Transaction.Status", "Transaction.UserNote"],
+      "notes": "Folded modal sub-tree on S-01 with the mandatory reject-note input (AMD-86), terminal/irreversible warning (BR-02), stale-action guard (F-10/BR-04). Acts only on Imported transactions (BR-01). Role-gated: not reachable by the Importer (BR-05), rendered hidden so the audit trail is preserved. Carries its own data-src + data-prop (LS-03 closed set)."
+    }
+  }
+}

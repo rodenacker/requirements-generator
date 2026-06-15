@@ -1,0 +1,56 @@
+{
+  "scope_slug": "approval-queue",
+  "pipeline_origin": "wireframe",
+  "scope_mode": "intent",
+  "selected_at": "2026-06-15T07:32:07Z",
+  "requirements_sha256": "ce19084bc68ff601dc83fb465013aeda9ebe04abec819ed8f1eae60c453807cf",
+  "intent_description": "the approval queue with bulk-decision actions",
+  "sources": {
+    "functional": ["F-02", "F-05", "F-06", "F-07", "F-08", "F-09", "F-10", "F-13", "F-14"],
+    "business_rules": ["BR-01", "BR-02", "BR-03", "BR-04", "BR-05", "BR-07"],
+    "ui_needs": ["UI-03", "UI-04", "UI-05", "UI-07"],
+    "goals": ["G-02", "G-04", "G-05"],
+    "task_flows": ["§5 Flow: Transaction Table", "§5 Flow: Approve Transaction", "§5 Flow: Reject Transaction", "§5 Flow: Search & Filtering"],
+    "data_shapes": ["§7 Transaction", "§7 User"]
+  },
+  "personas_available": ["Importer", "Approver"],
+  "dimension_override": null,
+  "divergence_profile": {
+    "source": "recommended-confirmed",
+    "evidence_strength": "strong",
+    "dimensions": ["density-focus"],
+    "cardinality": 2,
+    "variant_bindings": [
+      {
+        "variant_index": 0,
+        "persona": "Importer",
+        "persona_goal_type": "read-only browsing",
+        "pole": "power",
+        "recommended_posture": "P3",
+        "posture_label": "Analytical / Information-Dense",
+        "rationale": "Daily Importer scans the transaction table to verify a file's ingested records; a dense, high-information layout suits fast at-a-glance review.",
+        "evidence": [
+          "§4.2 Importer story 'As an Importer, I want to search and filter transactions, so that I can review the records of a file'",
+          "§3 Importer 'Frequency of use | Regular, per import cycle'"
+        ]
+      },
+      {
+        "variant_index": 1,
+        "persona": "Approver",
+        "persona_goal_type": "transactional data entry",
+        "pole": "careful",
+        "recommended_posture": "P4",
+        "posture_label": "Error-Averse / High-Stakes",
+        "rationale": "Approver makes an irreversible approve/reject decision per transaction under accountability; a spacious, deliberate one-record focus reduces wrong-decision risk.",
+        "evidence": [
+          "§4.1 G-02 'Review and action (approve/reject) transactions accurately'",
+          "§3 Approver 'Driving forces — fears | Approving or rejecting the wrong transaction'"
+        ]
+      }
+    ],
+    "realization_recommendation": {
+      "read-only browsing": { "prefer": ["inline-drawer", "inline-expand", "modal"], "avoid": ["wizard-split"] },
+      "transactional data entry": { "prefer": ["modal", "standalone-screen"], "avoid": ["inline-expand"] }
+    }
+  }
+}
