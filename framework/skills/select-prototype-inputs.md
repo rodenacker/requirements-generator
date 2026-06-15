@@ -1,6 +1,6 @@
 # select-prototype-inputs.md
 
-**Purpose:** Present the consultant the `/prototype` input menu (rule 7) as a single numbered list across the optional source classes **B–E** (A = `requirements.md` is always included), parse a comma-separated multi-select, designate a **primary wireframe basis** when ≥1 wireframe variant is picked, capture confirmation, and write `prototypes/.specs/<name_slug>/supporting-inputs.json`. The selections are read by `prototype-spec-drafter.md` to ground the design spec; a designated primary wireframe variant additionally triggers the **wireframe-seeded fast path** (`design-philosophies.md` + the orchestrator).
+**Purpose:** Present the consultant the `/prototype` input menu (rule 7) as a single numbered list across the optional source classes **B–E** (A = `requirements.md` is always included; an informational **Brand source** line surfaces the design-system status — never a pick), parse a comma-separated multi-select, designate a **primary wireframe basis** when ≥1 wireframe variant is picked, capture confirmation, and write `prototypes/.specs/<name_slug>/supporting-inputs.json`. The selections are read by `prototype-spec-drafter.md` to ground the design spec; a designated primary wireframe variant additionally triggers the **wireframe-seeded fast path** (`design-philosophies.md` + the orchestrator).
 
 This skill is prototype-private. It borrows the print-and-parse + on-disk-presence-filter shape from `framework/skills/select-supporting-analyses.md` (which is wireframe-private and explicitly recommends `/prototype` author its own selector), extends it across four source classes with a static per-source `prototype_roles` mapping, and adds the primary-basis follow-up for wireframes.
 
@@ -13,6 +13,8 @@ This skill is prototype-private. It borrows the print-and-parse + on-disk-presen
 - `wireframes_dir` — default `"wireframes/"`; the skill reads `<wireframes_dir><scope_slug>/variants.json` (source D).
 - `manifest_path` — default `"requirements/source-manifest.json"` (source E).
 - `output_dir` — default `"prototypes/.specs/"`; the skill writes `<output_dir><name_slug>/supporting-inputs.json`.
+- `design_system_path` — default `"design-system/design-system.html"`. **Existence-only** (Glob); never read/parse the file here — parsing + theming is `framework/skills/extract-brand-theme.md`'s job at scaffold time.
+- `scaffold_marker_path` — default `"prototypes/.scaffold.json"`. **Existence-only** (Glob); its presence means the shared app's brand was already locked at the first scaffold and is not re-applied this run.
 
 ## Outputs
 
@@ -50,13 +52,22 @@ Role semantics (the drafter threads these): `data-binding` → §8 Property usag
 2. **Build source C (analyse-inputs).** Read `analyses_inputs_registry_path`; retain `status: mvp` rows whose `output_path` resolves on disk.
 3. **Build source D (wireframes).** Glob `<wireframes_dir><scope_slug>/variants.json`. If present, parse it and list each variant `{ variant_id, design_philosophy }`; compute each variant's `manifest_path` + `variant_position_path` under `<wireframes_dir><scope_slug>/<variant_id>/`. If absent → source D is empty.
 4. **Build source E (input docs).** Read `manifest_path` if present; list rows whose `tier != "Unsupported"` as `{ filename, original_path, tier }`.
-5. **Auto-proceed — all empty.** If B, C, D, E are all empty, print one plain-text line *"No optional inputs on disk; proceeding from `requirements.md` + the blueprint alone."*, jump to step 9 with empty sources, write the empty-sources JSON, verify, return `selected-none`. No `AskUserQuestion`.
+4b. **Brand-source status (existence-only).** Glob `design_system_path` → `ds_present`; Glob `scaffold_marker_path` → `brand_locked`. Do **not** open either file. These drive the single informational **Brand source** line printed in step 5 / step 6 (it is never a numbered pick and never enters `supporting-inputs.json`). The line text:
+
+    | `ds_present` | `brand_locked` | Brand source line |
+    |---|---|---|
+    | yes | no | `Brand source: design-system/design-system.html — present; will theme this prototype's brand at first scaffold.` |
+    | yes | yes | `Brand source: design-system/design-system.html — present; brand was locked at the first scaffold and is reused (not re-applied this run).` |
+    | no  | no | `Brand source: none found. Recommended — run /design-system first to brand-lock this prototype; otherwise you'll choose brand tokens (URL / paste / neutral defaults) at scaffold.` |
+    | no  | yes | `Brand source: none; the app's brand was locked at the first scaffold and is reused. (Running /design-system now won't re-theme existing prototypes.)` |
+5. **Auto-proceed — all empty.** If B, C, D, E are all empty, print one plain-text line *"No optional inputs on disk; proceeding from `requirements.md` + the blueprint alone."* **followed by the step-4b Brand source line** (so the design-system status is always surfaced even when the numbered menu is skipped), jump to step 9 with empty sources, write the empty-sources JSON, verify, return `selected-none`. No `AskUserQuestion`.
 6. **Build the combined numbered list.** Print, in source order B→C→D→E, a header per non-empty class and number the items **globally** starting at 1 (registry order within each class; do not re-sort). Always print the fixed pre-line for A. Shape:
 
     ```
     Inputs for prototype `<name_slug>` (scope `<scope_slug>`):
 
     A. requirements.md — always included (required).
+    <Brand source line — the step-4b row for the current ds_present/brand_locked state; informational, not a pick.>
 
     Analyse-requirement outputs (B):
     1. <name> — <description>   Output: <output_path>
@@ -102,6 +113,7 @@ Role semantics (the drafter threads these): `data-binding` → §8 Property usag
 ## Self-validation
 - The on-disk filter ran before the list was built for B and C; no absent analysis appears. Source D only lists variants present in `variants.json`. Source E excludes `Unsupported` rows.
 - A (requirements.md) is always represented as `sources.requirement.always = true`; it is never an optional pick.
+- The Brand source line was printed (on both the menu path and the all-empty auto-proceed path) with text matching the `ds_present`/`brand_locked` row; it carries no pick number and does not appear in `supporting-inputs.json`. The `supporting-inputs.json` schema is unchanged by this line.
 - Exactly one wireframe variant carries `primary_basis: true` iff ≥1 variant was selected and the consultant did not choose "None".
 - Every selected row carries its `prototype_roles` verbatim from the closed table.
 - The JSON write was verified; on `cancelled`, no JSON was written.
@@ -113,5 +125,6 @@ Role semantics (the drafter threads these): `data-binding` → §8 Property usag
 - Do not allow more than one `primary_basis: true` — the fast path needs a single basis.
 - Do not invent `prototype_roles` outside the closed enum; `context-only` never widens scope or the Property closed set.
 - Do not write outside `<output_dir><name_slug>/`.
-- Do not read the selected files' contents here — selection and consumption are separate concerns (the drafter consumes them).
+- Do not read the selected files' contents here — selection and consumption are separate concerns (the drafter consumes them). This includes the design-system: Glob it for existence only; never open or parse it (the brand is captured at orchestrator Step F1 and themed by `extract-brand-theme.md`).
+- Do not make the design-system a numbered/selectable item, give it a `prototype_role`, or add it to `supporting-inputs.json` — it is an informational Brand source line only.
 - Do not skip the confirmation step or write the JSON before confirmation.

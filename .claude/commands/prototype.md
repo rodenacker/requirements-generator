@@ -11,7 +11,7 @@ Follow the orchestrator exactly — one run produces **one** prototype, accumula
 3. `framework/agents/prototype-spec-drafter.md` — wait for the design-spec draft.
 4. `framework/agents/prototype-spec-resolver.md` — resolve the AI-suggestions (often none on the posture/wireframe-seeded path).
 5. `framework/agents/prototype-spec-merger.md` — wait for the finalised design spec to be accepted.
-6. Scaffold the shared app once (`framework/agents/prototype-app-scaffolder.md`) if not already scaffolded.
+6. Scaffold the shared app once (`framework/agents/prototype-app-scaffolder.md`) if not already scaffolded — this is where the brand is captured: a `design-system/design-system.html` (surfaced as the Brand source at input selection) themes the app, and if none exists you're recommended to run `/design-system` first.
 7. `framework/agents/prototype-generator.md` — generate the prototype (parallel per-surface), then verify (lint + typecheck + build + Playwright smoke).
 8. `framework/agents/prototype-landing-updater.md` — list the prototype on the single landing page.
 

@@ -58,7 +58,7 @@ Write `run_start` (with `"pipeline":"prototype"`) at the very start; `stage_star
 
 - **Step A2 — Prior-prototype detection.** Glob `blueprints/<scope_slug>/blueprint.md`. If present + fresh → mark blueprint reusable (skip A4). (A name-collision was already handled in Step A.)
 
-- **Step A3 — Input selection (A–E).** Invoke `framework/skills/select-prototype-inputs.md` (`scope_slug`, `name_slug`, default registry/wireframe/manifest paths, `output_dir: "prototypes/.specs/"`). `cancelled` → exit; `selected`/`selected-none` → proceed. Capture whether a wireframe `primary_basis` was designated (drives the fast path).
+- **Step A3 — Input selection (A–E).** Invoke `framework/skills/select-prototype-inputs.md` (`scope_slug`, `name_slug`, default registry/wireframe/manifest paths, `output_dir: "prototypes/.specs/"`; the defaults `design_system_path: "design-system/design-system.html"` + `scaffold_marker_path: "prototypes/.scaffold.json"` drive the skill's informational Brand source line). `cancelled` → exit; `selected`/`selected-none` → proceed. Capture whether a wireframe `primary_basis` was designated (drives the fast path).
 
 - **Step A4 — Blueprint (blueprint-only).** If no reusable blueprint: invoke `framework/agents/blueprint-architect.md` with `scope_slug`, `scope_path: blueprints/<scope_slug>/scope.json`, `blueprint_output_path: blueprints/<scope_slug>/blueprint.md`, `variants_output_path: null`, `analyses_inputs_path: prototypes/.specs/<name_slug>/supporting-inputs.json`, `mode: "create"`. Handback gate: `blueprint.md` exists + verified + any conditional gate resolved.
 
@@ -71,7 +71,9 @@ Write `run_start` (with `"pipeline":"prototype"`) at the very start; `stage_star
 - **Step E — FINALISE.** Invoke `framework/agents/prototype-spec-merger.md`. Handback gate: `design-spec.md` exists, zero residual resolution markers, §11 PI-checklist present, consultant accepted (or explicitly rejected → exit without claiming acceptance).
 
 - **Step F1 — Scaffold-if-needed (conditional, first run only).** Skip iff `prototypes/.scaffold.json` + `prototypes/package.json` + non-empty `prototypes/node_modules/` all present. Else:
-  1. **Brand capture** — if `design-system/design-system.html` exists, use source (a); else `AskUserQuestion` `{ reference-URL, paste-tokens, template-defaults }` to build `consultant_brand`.
+  1. **Brand capture** — if `design-system/design-system.html` exists, use source (a). Else `AskUserQuestion` `{ create-design-system-first (recommended), reference-URL, paste-tokens, template-defaults }`:
+     - **create-design-system-first** → exit cleanly with the plain-text line *"No design-system found. Run `/design-system` to produce `design-system/design-system.html`, then re-invoke `/prototype` — this run's scope, inputs, and spec are checkpointed and will resume at brand capture."* Do **not** scaffold, do **not** advance, do **not** write `status: setup-pending` (a clean exit like a Step-G Cancel; leave `status: "running"`). On re-invoke, Step 0 `continue` resumes here, and a now-present design-system is used as source (a).
+     - **reference-URL / paste-tokens / template-defaults** → build `consultant_brand` as before and proceed. (This gate only ever runs at the first scaffold — it is skipped once `.scaffold.json` exists — so the suggestion fires exactly where the shared app's brand is decided.)
   2. Invoke `framework/agents/prototype-app-scaffolder.md` (passing `consultant_brand`). On `RF-10 trigger` → surface `RF-10` `{ install-and-retry, abort }`; `install-and-retry` writes `status: setup-pending` + `pending_setup` and exits. On `RF-13 trigger` (hard) → surface + exit. On `scaffolded`/`already-scaffolded` → proceed.
 
 - **Step F2 — GENERATE.** Invoke `framework/agents/prototype-generator.md` (passing `prototype_identity`). The generator internally dispatches all owned-component surfaces as parallel per-surface sub-agents in a single wave (ceiling 8, non-interactive). Handback: `ok` → Step F4; `RF-11 trigger` → surface `RF-11` `{ install-and-retry, skip-smoke-with-warning, abort }` (install-and-retry writes `setup-pending` + exits; skip re-invokes the generator's verify with smoke disabled); `RF-12`/`failed` (hard) → surface + exit (broken route + spec left on disk; landing NOT updated).
@@ -116,6 +118,7 @@ Per step above. A gate not satisfied = do not write the stage's `completed` even
 - A per-prototype Reset never touched another prototype, the shared library, the scaffold, or the brand.
 - Every orchestrator `AskUserQuestion` is wrapped in `consultant_prompted`/`consultant_responded` timing events; `run_start`/`run_end` bracket the run.
 - On any RF surface, the correct status/pending_setup write (or none) was made per the registry.
+- On `create-design-system-first` at Step F1: exited cleanly without scaffolding and without writing `setup-pending` (not an RF predicate); `.scaffold.json` absent and the spec artefacts intact; re-invoke resumes at F1 (scaffold stage).
 - On the Step-G `Accept`, the context-hygiene completion tip (`framework/shared/context-hygiene.md`) was emitted to the consultant verbatim, on the success path only.
 
 ## Definition of Done
