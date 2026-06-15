@@ -1,16 +1,12 @@
 // Stores are registered here per-generation by prototype-generator (step-03).
-// Mutations persist in-session only (PI-02); rehydrate is manual because stores use skipHydration.
+// Until then these are import-safe no-ops so the empty app builds and the chrome can call them.
 
-import { useTransactionStore } from '@/stores/transaction-store'
-
-/** Rehydrates + seeds (if empty) every registered store. Idempotent. */
+/** Seeds all registered stores from fixtures (idempotent). No stores registered yet. */
 export function seedAllStores(): void {
-  void useTransactionStore.persist.rehydrate()
-  const txns = useTransactionStore.getState()
-  if (!txns.isLoaded || txns.items.length === 0) txns.seedFromFixtures()
+  /* no stores yet */
 }
 
-/** Resets every registered store to fixture data (PI-02 data-reset in the chrome). */
+/** Resets all registered stores to fixture data. No stores registered yet. */
 export function resetAllStores(): void {
-  useTransactionStore.getState().reset()
+  /* no stores yet */
 }

@@ -1,9 +1,0 @@
-{
-  "scaffolded_at": "2026-06-15T09:05:00Z",
-  "template_copied_from": "template/",
-  "brand_source": "template-defaults",
-  "brand_token_sha256": "19bebcb70020679bf2591cabb8f4970e6241debb1ac7d00e28d4cb71fff9ec69",
-  "node_version": "v26.2.0",
-  "app_ok": true,
-  "notes": "Completed in place: the prototypes/ scaffold tree (shell + chrome + registry + brand theme + clean-slate) was already committed (commit c95b3a4); this run ran npm install + a green empty-app build smoke and wrote this marker. No re-copy over the committed tree; no RF-13 halt (the tree was a complete committed scaffold, not a failed partial)."
-}
