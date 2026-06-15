@@ -404,7 +404,7 @@ resolve-review-drafter → characters/review-resolving.md,
        <fingerprint target per map row> [requirements/source-manifest.json (cond: exists) |
            requirements/requirements.md (pre-flighted); sha256 only — drift warning],
        assets/resolve-review/template-addendum.md [cond: Step 9b — requirements-doc rows, addendum opt-in],
-       requirements/requirements.md [cond: Step 5 — elicitation-with-options rows, bounded content read of cited sections + Amendments section; cond: Step 9b — full read + bounded Amendments-section write]
+       requirements/requirements.md [cond: Step 5 — requirements-doc elicitation-with-options rows only, bounded content read of cited sections + Amendments section (source-manifest elicitation-with-options rows do NO Step-5 read); cond: Step 9b — full read + bounded Amendments-section write, requirements-doc rows only]
 ```
 
 **Notes (unique):**
