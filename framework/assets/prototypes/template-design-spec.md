@@ -91,7 +91,7 @@
 
 ## 7. Component inventory (shared set)
 
-<!-- guidance: every task component MUST come from the shared set (rule 15). List shared components composed per surface, marking reuse vs new. NEW components are authored into the SHARED library (atoms/molecules/organisms/templates/domain), never private to this prototype. See shared-component-conventions.md. -->
+<!-- guidance: every task component MUST come from the shared set (rule 15). List shared components composed per surface, marking reuse vs new. NEW components are authored into the SHARED library (atoms/molecules/organisms/templates/domain), never private to this prototype. See shared-component-conventions.md. On a wireframe fast path, components are projected from the basis variant's settled pattern picks via shared-component-conventions.md §7 and tagged [SRC: WF:<variant>] (reuse-vs-new is the generator driver's call). -->
 
 | Surface | Shared components composed | Reuse / New | Atomic tier (if new) |
 |---|---|---|---|
@@ -121,7 +121,7 @@
 <!-- guidance: how a reviewer judges the prototype delivered its purpose, PLUS the verify-gate acceptance. -->
 - {{UX success criteria tied to §2 purpose}}
 - [ ] Playwright smoke: route `/{{name-slug}}` loads, no console errors, primary CTA clickable.
-- [ ] `npm run lint` + `tsc --noEmit` + `next build` pass.
+- [ ] `npm run lint` + `tsc --noEmit` pass.
 
 ## 11. Prototype invariants checklist
 

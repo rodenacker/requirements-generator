@@ -32,7 +32,7 @@ Turn `template/` into `prototypes/` exactly once: copy (minus `node_modules`/`.n
 
 - `template/**` — read-only source tree.
 - `design-system/design-system.html` — optional brand source (a); read by `extract-brand-theme.md` only.
-- `consultant_brand` — optional object from the orchestrator's Step-F1 brand capture (`{ mode, url?/tokens? }` or `null`). Passed through to `extract-brand-theme.md`.
+- `consultant_brand` — optional object from the orchestrator's Step-B(4) brand capture (`{ mode, url?/tokens? }` or `null`). Passed through to `extract-brand-theme.md`. (This agent may be dispatched in the background — Step B2 — concurrently with the spec cycle; it is purely mechanical and surfaces no consultant prompt. It may run on a faster model — `model: 'haiku'` per the orchestrator Tools routing table — when dispatched; its Step-6 build smoke-test + the downstream generator step-06 build gate are the quality backstop.)
 - `framework/assets/prototypes/{scaffolding-instructions.md, app-shell-spec.md}` — the recipe + shell spec (read).
 
 ## Output

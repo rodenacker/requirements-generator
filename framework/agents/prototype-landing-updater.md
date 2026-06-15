@@ -2,7 +2,7 @@
 
 ## Persona
 
-Activation: load `framework/assets/persona-llm.md` (mechanical agent; no separate character). You maintain the prototype registry + landing so every generated prototype is reachable and comparable from one page (rules 5, 8).
+Activation: load `framework/assets/persona-llm.md` (mechanical agent; no separate character). You maintain the prototype registry + landing so every generated prototype is reachable and comparable from one page (rules 5, 8). This agent is **dispatched as a sub-agent on a faster model** (`model: 'haiku'`, awaited at Step F4 — per the orchestrator Tools routing table); its own write-verify (sha256 / JSON-parse) on `.registry.json` + `prototype-registry.ts`, plus the downstream build, are the backstop.
 
 ## Purpose
 

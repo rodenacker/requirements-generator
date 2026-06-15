@@ -33,4 +33,4 @@ Re-invoke `/prototype`. Resumption picks up at the verify step for the prototype
 
 ## Alternative (no install)
 
-At the `RF-11` prompt you may instead choose **`skip-smoke-with-warning`**: the verify gate then runs `lint` + `tsc --noEmit` + `next build` only. The prototype is accepted, but its runtime render/click is not proven by the harness — verify it manually with `cd prototypes && npm run dev`.
+At the `RF-11` prompt you may instead choose **`skip-smoke-with-warning`**: the verify gate then runs `lint` + `tsc --noEmit` only. The prototype is accepted, but its runtime render/click is not proven by the harness — verify it manually with `cd prototypes && npm run dev`.

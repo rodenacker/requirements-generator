@@ -14,7 +14,11 @@ The gate fires if **any** of these predicates is true (from in-memory state capt
 - `pattern_coverage.verdict == "gap"` (one or more surfaces with no catalogue pattern fit; AI-SUGGESTED stubs needed).
 - `validation.surface_plan_gap == true` (step-5's `surface_plan` authoring named a pattern or `primary_pattern_variant` absent from the catalogue, hit a `(dimension × realization)` incoherence, or hit a no-fold-of-fold / inapplicable-realization violation, that its one-shot self-revision could not resolve).
 
-Otherwise the gate does **not** fire (auto-accept path); skip to 7.4.
+Otherwise the gate does **not** fire (auto-accept path); skip to 7.4 — identical in both `defer_gate` modes.
+
+**Surfacing mode (only when the gate fires):**
+- `defer_gate: false` (default; `/wireframe` and any foreground re-invocation) → execute 7.2 / 7.3 (interactive `AskUserQuestion`, loop to accept/cancel).
+- `defer_gate: true` (background invocation by `/prototype`) → do **not** execute 7.2 / 7.3 and do **not** call `AskUserQuestion`. Execute **7.2-D** instead.
 
 ## 7.2 Fire the conditional gate
 
@@ -61,6 +65,20 @@ Compose a structured prompt for `AskUserQuestion`:
 
 The orchestrator does not advance to Stage 3 on any of the three exit paths (Narrow scope / Escalate / Cancel).
 
+## 7.2-D Deferred handback (`defer_gate: true`)
+
+Reached only when the gate fires under `defer_gate: true` (a background `/prototype` dispatch that cannot surface an in-thread prompt). Do **not** prompt, do **not** loop. Return a structured `gate-needed` handback for the calling orchestrator to resolve foreground:
+
+```
+gate-needed {
+  predicates: [ <the firing predicate(s): "bijection" | "conflict" | "pattern-coverage-gap" | "surface_plan_gap"> ],
+  summary: "<the same multi-line plain-text preamble 7.2 would have composed — orphan source IDs, conflict pairs, gap surface IDs + descriptions>",
+  blueprint_on_disk: <true if step-6 wrote blueprint.md on this create run, else false>
+}
+```
+
+Leave the `blueprint.md` written at step 6 on disk — it is a valid artefact; the gate concerns consultant acceptance of structural warnings, not artefact validity. Still compose the 7.4 summary block and include it in the returned handback text so the orchestrator's join is informative, then end the run. **Orchestrator contract:** on `gate-needed` the orchestrator does **not** write the `blueprint-architect` `completed` event; it re-invokes this agent **foreground with `defer_gate: false`** (otherwise identical parameters) to resolve the gate interactively via 7.2 / 7.3, exactly as a normal `/wireframe` run would. The happy path (no gate) never reaches here.
+
 ## 7.4 Compose the architect's in-thread summary
 
 Whether or not the gate fired, emit a single Unicorn-voice summary block to the consultant:
@@ -85,7 +103,7 @@ Handing back to /wireframe for Stage 3 (parallel variant generation).
 
 ## 7.5 Hand back
 
-The architect's run is complete. Step 5's variants.json (if `wrote_variants` is true) and step 4's blueprint.md (if `mode = "create"`) are on disk and verify-artifact-write'd. The orchestrator's Stage-2 handback gate (see `framework/orchestrators/wireframe-orch.md > Handback gates`) is now satisfiable.
+The architect's run is complete. Step 5's variants.json (if `wrote_variants` is true) and step 4's blueprint.md (if `mode = "create"`) are on disk and verify-artifact-write'd. The orchestrator's Stage-2 handback gate (see `framework/orchestrators/wireframe-orch.md > Handback gates`) is now satisfiable. On a `/prototype` background dispatch (`defer_gate: true`), the handback signal is either `ok` (happy path — blueprint on disk) or `gate-needed` (see 7.2-D); the orchestrator joins it at its Step C and either writes `completed` or re-invokes foreground to resolve the gate.
 
 ---
 

@@ -44,7 +44,7 @@ Exactly one of:
 | D wireframes | (variant) | `realization-basis` |
 | E input docs | (file) | `context-only` |
 
-Role semantics (the drafter threads these): `data-binding` → §8 Property usage; `validation-rules` → visual validation in forms (PI-03); `workflow-steps` → §6 flows; `cta-set` → per-surface primary actions; `state-chips` → status displays; `copy-vocabulary` → labels/help/errors; `posture-evidence` → posture/position rationale (§3/§4); `realization-basis` → per-surface realizations seeded from a wireframe variant's `surface_plan` (§5, fast path); `context-only` → background reference, never widens scope or the Property closed set.
+Role semantics (the drafter threads these): `data-binding` → §8 Property usage; `validation-rules` → visual validation in forms (PI-03); `workflow-steps` → §6 flows; `cta-set` → per-surface primary actions; `state-chips` → status displays; `copy-vocabulary` → labels/help/errors; `posture-evidence` → posture/position rationale (§3/§4); `realization-basis` → per-surface realizations **and** component inventory seeded from a wireframe variant's `surface_plan` (§5 realizations + §7 components projected via `shared-component-conventions.md §7`, fast path); `context-only` → background reference, never widens scope or the Property closed set.
 
 ## Procedure
 

@@ -144,11 +144,11 @@ This ID is retained — never renumbered or deleted — per the append-only stab
 
 **Severity:** pause.
 
-**Trigger:** `framework/skills/verify-prototype-build.md`'s smoke phase finds the Playwright browser binaries are not installed (`@playwright/test` is a dependency of the app, but `npx playwright install` has not been run — the launch errors with an "Executable doesn't exist" class message). Distinct from `RF-10` because the toolchain is present and the build already passed; only the runtime browser is missing, and a degraded path (skip the smoke) exists.
+**Trigger:** `framework/skills/verify-prototype-build.md`'s smoke phase finds the Playwright browser binaries are not installed (`@playwright/test` is a dependency of the app, but `npx playwright install` has not been run — the launch errors with an "Executable doesn't exist" class message). Distinct from `RF-10` because the toolchain is present and lint/typecheck already passed; only the runtime browser is missing, and a degraded path (skip the smoke) exists.
 
 **Surface:** `AskUserQuestion` with the choice set `{ install-and-retry, skip-smoke-with-warning, abort }` plus an "Other" override. The question text must include the install instructions path (`advice_path`) and the verbatim fidelity warning for the skip option.
 - `install-and-retry` — the verify skill surfaces the advice path in its return; the orchestrator writes `status: "setup-pending"` + `pending_setup: { predicate: "RF-11", advice_path: "framework/shared/setup-instructions/playwright-browsers.md", since: <ISO-8601 UTC> }` to `framework/state/.prototype-progress.json` and exits cleanly. The generated route + spec remain on disk; re-invoke resumes at verify. Highest-assurance outcome.
-- `skip-smoke-with-warning` — the verify gate degrades to `lint` + `tsc --noEmit` + `next build` only; the runtime smoke is skipped. The verify skill returns `pass-with-warning`; the landing-updater records `smoke_skipped: true` for that prototype. Lower assurance — runtime render/click is not proven.
+- `skip-smoke-with-warning` — the verify gate degrades to `lint` + `tsc --noEmit` only; the runtime smoke is skipped. The verify skill returns `pass-with-warning`; the landing-updater records `smoke_skipped: true` for that prototype. Lower assurance — runtime render/click is not proven.
 - `abort` — the verify skill returns a structured fail; the orchestrator does not advance to the landing update.
 
 **Recovery:** `install-and-retry` exits cleanly so the consultant installs browsers per `framework/shared/setup-instructions/playwright-browsers.md` and re-invokes. `skip-smoke-with-warning` continues; `abort` halts.
@@ -159,7 +159,7 @@ This ID is retained — never renumbered or deleted — per the append-only stab
 
 **Severity:** hard.
 
-**Trigger:** `framework/skills/verify-prototype-build.md` reports a failing phase (`lint`, `tsc --noEmit`, `next build`, or Playwright smoke) and the `prototype-generator`'s bounded retry budget (N = 2 regenerations of the offending surface) is exhausted with the failure persisting. Distinct from `RF-04` (single-artefact write-verification) — this is a failure of the **assembled app** to compile/lint/render.
+**Trigger:** `framework/skills/verify-prototype-build.md` reports a failing phase (`lint`, `tsc --noEmit`, or Playwright smoke) and the `prototype-generator`'s bounded retry budget (N = 2 regenerations of the offending surface) is exhausted with the failure persisting. Distinct from `RF-04` (single-artefact write-verification) — this is a failure of the **assembled app** to compile/lint/render.
 
 **Surface:** Plain-text halt. The agent emits exactly one line — *"Aborting to protect your work — the prototype `<name-slug>` failed `<phase>` after 2 regeneration attempts: `<last error summary>`. Inspect the spec / shared components and re-invoke `/prototype`."* — and fails its handback. The generated (broken) route + spec remain on disk for inspection; the landing is **not** updated to list a broken prototype.
 
