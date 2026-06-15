@@ -7,8 +7,8 @@
 - [3. Commands](#3-commands) 
     - [`/start`](#31-start) 
     - [`/design-system`](#32-design-system)
-    - [`/requirements`](#33-requirements)
-    - [`/generate-prd`](#34-generate-prd)
+    - [`/generate-prd`](#33-generate-prd)
+    - [`/requirements`](#34-requirements)
     - [`/analyse-inputs`](#35-analyse-inputs)
     - [`/review-inputs`](#36-review-inputs)
     - [`/analyse-requirement`](#37-analyse-requirement)
@@ -28,8 +28,8 @@
 A Claude Code workspace for consultants and business analysts. Drop the client material you've been given into `input/`, run a slash command, and get back a handoff-ready artefact — a structured spec, a PRD, a lens analysis or review, low-fi wireframes, or a clickable prototype. Used together, the commands turn a loose pile of client material into a comprehensive, traceable set of **frontend requirements** for building internal, enterprise-level **data-management applications**. The twelve commands:
 
 - **`/start`** — pick which command to run.
-- **`/requirements`** — turn the loose pile of briefs, decks, screenshots, spreadsheets and PDFs into a clean, structured `requirements.md`.
 - **`/generate-prd`** — a human-audience PRD from the same inputs: problem, success metrics, hypotheses, MVP phasing, risks, stakeholders.
+- **`/requirements`** — turn the loose pile of briefs, decks, screenshots, spreadsheets and PDFs into a clean, structured `requirements.md`.
 - **`/design-system`** — a brand-token brief (colours, typography, effects) for a designer, optionally extracted from a reference URL.
 - **`/analyse-inputs`** — re-express the raw inputs through a lens *before* drafting (thematic map, journey, JTBD, object map, swim-lane, affinity, task analysis, opportunity-solution tree, glossary, user-goal, business-context).
 - **`/analyse-requirement`** — re-express the spec through a lens (object map, data model, use cases, sequence/state/activity diagram, journeys, task flows, five-whys, glossary, CRUD coverage, MVP story map, trade-off dimensions).
@@ -84,17 +84,17 @@ A brand-token brief for a designer in one run — useful when the designer is bl
 
 **You get** `design-system/design-system.html` — a self-contained document you open via `file://`: colour swatches, type specimens at their actual sizes, shadow/motion samples, and contrast-validation pairs, each token annotated with its provenance (*extracted from the URL* vs *inferred from the domain*). It also embeds a machine-readable token JSON block, so a downstream tool (Figma plugin, CSS generator, LLM pipeline) can consume the values directly.
 
-### 3.3 `/requirements`
-
-Turn the loose pile of client material into a clean, structured requirements spec. Drop the files into `input/` first, then run it.
-
-**You get** `requirements/requirements.md` — a structured spec where every item is traceable either to something you provided or to a domain-default rule the framework applies (e.g. accessibility, security, error-handling). Anything the system can't confidently fill in is resolved through the Q&A, so the final doc reads as a clean, signed-off spec.
-
-### 3.4 `/generate-prd`
+### 3.3 `/generate-prd`
 
 A strategic, human-audience PRD from the same client inputs — problem framing, success metrics, hypotheses, MVP phasing, risks, stakeholders. Run it when a sponsor needs the *why* (not the *what-the-FE-must-do* that `/requirements` produces). Fully independent of `/requirements` — run it before, after, or alongside, with no state collision.
 
 **You get** `prd/prd.md`. Citation IDs are namespaced (`PC-NNN` / `PAI-NNN`) so the PRD never visually collides with a requirements doc you run alongside it.
+
+### 3.4 `/requirements`
+
+Turn the loose pile of client material into a clean, structured requirements spec. Drop the files into `input/` first, then run it.
+
+**You get** `requirements/requirements.md` — a structured spec where every item is traceable either to something you provided or to a domain-default rule the framework applies (e.g. accessibility, security, error-handling). Anything the system can't confidently fill in is resolved through the Q&A, so the final doc reads as a clean, signed-off spec.
 
 ### 3.5 `/analyse-inputs`
 
