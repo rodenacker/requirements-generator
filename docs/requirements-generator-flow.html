@@ -521,7 +521,7 @@
 
     <!-- ===== Blocks ===== -->
     <!-- Row 1: Inputs spine -->
-    <a class="block opt"   href="#input-reviews"   style="left: 20px;  top: 70px;"><span class="cmd">/review-inputs</span><span class="label">critique the raw corpus</span><span class="count">4 methodologies</span></a>
+    <a class="block opt"   href="#input-reviews"   style="left: 20px;  top: 70px;"><span class="cmd">/review-inputs</span><span class="label">critique the raw corpus</span><span class="count">6 methodologies</span></a>
     <div class="block folder"                      style="left: 380px; top: 70px;"><span class="cmd">input/</span><span class="label">briefs · decks · PDFs · screenshots</span></div>
     <a class="block opt"   href="#input-analyses"  style="left: 740px; top: 70px;"><span class="cmd">/analyse-inputs</span><span class="label">derive models from raw inputs</span><span class="count">11 methodologies</span></a>
 
@@ -713,7 +713,7 @@
     <div class="head-left">
       <span class="head-cmd">/review-inputs</span>
       <span class="head-role">Optional · pre-requirements</span>
-      <span class="head-count">· 4 methodologies</span>
+      <span class="head-count">· 6 methodologies</span>
     </div>
     <a class="back-link" href="#flowchart">↑ Back to flowchart</a>
   </summary>
@@ -755,6 +755,24 @@
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When you want a visual, drafter-aligned gap map with <em>pre-drafted</em> shall-form candidate requirements. Complementary to <em>completeness-review</em>.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-inputs/GAP-ANALYSIS/gap-analysis.html</code> — inline-SVG coverage heatmap, gap-matrix table by dimension × MoSCoW. Every Must/Should gap ships a shall-form Candidate Requirement.</div></div>
         <div class="field"><span class="field-label">How to use</span><div class="field-body"><strong>Copy <code>gap-analysis.html</code> directly into <code>input/</code></strong> and re-run <code>/requirements</code> — the drafter cites it via its filename and absorbs the candidate requirements. Edit any rows you reject before re-ingestion.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>ten-ba-questions</h4>
+        <div class="role">Top-10 BA gaps in the corpus</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Before <code>/requirements</code> when you want the most consequential business-analysis gaps <em>named</em> rather than an exhaustive coverage audit — pick <em>completeness-review</em> or <em>gap-analysis</em> when you want every gap mapped.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-inputs/TEN-BA-QUESTIONS/ten-ba-questions-review.html</code> — the ten most pressing stakeholder questions the gathered material leaves unanswered, ranked by business impact across eight BA gap categories, each sourced to an input file or marked absent-from-corpus.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Take the ten questions to your stakeholders and fold the answers into <code>input/</code> before re-running <code>/requirements</code> — or feed the artefact to <code>/resolve-review</code> to turn the answers into an approved input document.</div></div>
+      </div>
+
+      <div class="card opt">
+        <h4>ten-ux-questions</h4>
+        <div class="role">Top-10 UX gaps in the corpus</div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">When to use</span><div class="field-body">Before <code>/requirements</code> when you want the most consequential UX-discovery gaps <em>named</em> — its sibling <em>ten-ba-questions</em> covers the business-analysis gaps (scope, rules, data ownership); pick <em>completeness-review</em> or <em>gap-analysis</em> when you want every gap mapped.</div></div>
+        <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html</code> — the ten most pressing design questions the material leaves unanswered, ranked by design impact across eight UX gap categories (users &amp; segmentation, context of use, goals &amp; success signals, task flows &amp; decision points, decision-supporting data, errors &amp; recovery, collaboration, trust &amp; audit).</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Take the ten questions to stakeholders and users and fold the answers into <code>input/</code> before re-running <code>/requirements</code> — or feed the artefact to <code>/resolve-review</code> to turn the answers into an approved input document.</div></div>
       </div>
 
     </div>
@@ -1283,7 +1301,7 @@
 </details>
 
 <footer>
-  <p>Last updated 2026-06-11 · See <a href="./CLAUDE.md">CLAUDE.md</a> for the full project contract · Future-status methodologies omitted; promotions land via PR.</p>
+  <p>Last updated 2026-06-15 · See <a href="./CLAUDE.md">CLAUDE.md</a> for the full project contract · Future-status methodologies omitted; promotions land via PR.</p>
 </footer>
 
 </div>

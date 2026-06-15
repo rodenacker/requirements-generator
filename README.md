@@ -33,8 +33,8 @@ A Claude Code workspace for consultants and business analysts. Drop the client m
 - **`/design-system`** — a brand-token brief (colours, typography, effects) for a designer, optionally extracted from a reference URL.
 - **`/analyse-inputs`** — re-express the raw inputs through a lens *before* drafting (thematic map, journey, JTBD, object map, swim-lane, affinity, task analysis, opportunity-solution tree, glossary, user-goal, business-context).
 - **`/analyse-requirement`** — re-express the spec through a lens (object map, data model, use cases, sequence/state/activity diagram, journeys, task flows, five-whys, glossary, CRUD coverage, MVP story map, trade-off dimensions).
-- **`/review-inputs`** — find what's missing or wrong in the raw inputs (adversarial, completeness, ambiguity, gap analysis).
-- **`/review-requirement`** — find what's missing or wrong in the spec (adversarial, first-principles, user-stories, ten BA / UX questions).
+- **`/review-inputs`** — find what's missing or wrong in the raw inputs (adversarial, completeness, ambiguity, gap analysis, ten BA / UX questions).
+- **`/review-requirement`** — find what's missing or wrong in the spec (adversarial, first-principles, user-stories, ten BA / UX questions, requirements quality, requirements traceability).
 - **`/wireframe`** — 2–3 parallel low-fi HTML wireframe variants for a scope of the spec, each a divergent UX position, fully requirement-ID traceable.
 - **`/prototype`** — one clickable, client-side hi-fi React/Next.js prototype for a scope, accumulating in a single shared app; the brand is fixed across all prototypes while a selectable UX posture diverges the layout.
 - **`/export-application`** — export the finished `requirements.md` as an application-audience document for handoff outside this workspace: prototype scaffolding stripped, backend-contract pointers in place, provenance-stamped against the exact source version.
@@ -150,8 +150,10 @@ Find what's missing or wrong in the raw inputs *before* you draft — a punch-li
 | An **authority-grounded completeness sweep** (IEEE 29148 / Volere / BABOK / Wiegers / ISO 25010) across ten dimensions, with stakeholder elicitation questions per finding           | `completeness-review` |
 | The **lexical, syntactic, referential, vague, subjective, weak-verb, and optionality ambiguities** (Berry/Kamsties + Femmer) with ready-to-paste elicitation questions per finding   | `ambiguity-review`    |
 | A **template-bijection gap delta** measured against the drafter's own template, with a shall-form Candidate Requirement per Must/Should gap ready for `/requirements` re-ingestion   | `gap-analysis`        |
+| The **ten most consequential business-analysis questions** the raw inputs leave unanswered, ranked by business impact across eight BA gap categories, each sourced to a file or marked absent-from-corpus | `ten-ba-questions`    |
+| The **ten most consequential UX-discovery questions** the raw inputs leave unanswered, ranked by design impact across eight UX gap categories (users, context, goals, task flows, supporting data, errors, collaboration, trust) | `ten-ux-questions`    |
 
-**You get** one artefact per run under `review-inputs/<METHOD>/` — markdown punch-lists for most; `gap-analysis.html` carries an inline-SVG coverage heatmap and is designed to be copied back into `input/` so `/requirements` picks up its shall-form Candidate Requirements on the next run.
+**You get** one self-contained HTML artefact per run under `review-inputs/<METHOD>/`; `gap-analysis.html` additionally carries an inline-SVG coverage heatmap and is designed to be copied back into `input/` so `/requirements` picks up its shall-form Candidate Requirements on the next run.
 
 ### 3.8 `/review-requirement`
 
@@ -164,6 +166,8 @@ Find what's missing or wrong in the spec *before* you hand it over — a second 
 | A **strict critique** of what's wrong, with a Patch / Defer / Reject decision per finding so you know what to do about each        | `adversarial`       |
 | Whether each requirement is **defensible against business rationale**, so weak items get cut or strengthened before design         | `first-principles`  |
 | Which **user stories aren't ready** for design or estimation, so they can be reworked before they enter the backlog                | `user-stories`      |
+| Whether **every requirement is well-formed** against the ISO 29148 standard (singular, unambiguous, verifiable, conforming, complete) — a per-characteristic heatmap with EARS-form rewrites for the ambiguous and compound ones | `requirements-quality` |
+| Which facts **trace to a real source** (or an accepted AI-suggestion) and which **trace to nothing** — orphans, broken citations, and dropped content that leaked through | `requirements-traceability` |
 
 **You get** one HTML artefact per run under `review-requirements/<METHOD>/` (e.g. `ADVERSARIAL/adversarial-review.html`). Treat it as a punch-list: fix the findings you accept in `requirements.md`, then re-run for a fresh pass.
 
