@@ -15,4 +15,4 @@ Follow the orchestrator exactly — one run produces **one** prototype, accumula
 7. `framework/agents/prototype-generator.md` — generate the prototype (parallel per-surface), then verify (lint + typecheck + build + Playwright smoke).
 8. `framework/agents/prototype-landing-updater.md` — list the prototype on the single landing page.
 
-Honour every handback gate and refusal predicate (`RF-04`, `RF-05`, `RF-10`..`RF-13`) defined in the orchestrator. Do not perform any task not listed in the orchestrator. Outputs live under `prototypes/` (the Next.js app + landing) and `prototypes/.specs/<name-slug>/` (the design spec); the shared blueprint lives under `blueprints/<scope-slug>/`.
+Honour every handback gate and refusal predicate (`RF-04`, `RF-10`..`RF-13`) defined in the orchestrator. Do not perform any task not listed in the orchestrator. Outputs live under `prototypes/` (the Next.js app + landing) and `prototypes/.specs/<name-slug>/` (the design spec); the shared blueprint lives under `blueprints/<scope-slug>/`.

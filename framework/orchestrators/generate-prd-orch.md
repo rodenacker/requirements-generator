@@ -46,7 +46,7 @@ The pipeline is **fully independent of `requirements/requirements.md`**. The PRD
     ```
 
 - The `events` array is append-only within a run. `event` is one of `called` or `completed`. `agent` is one of `input-handler`, `prd-drafter`, `prd-resolver`, `prd-merger`. (The `input-handler` agent file is `framework/agents/input-handler.md` — shared with `/requirements`, `/analyse-inputs`, and `/review-inputs`; the prefix-free name reflects its cross-pipeline status.)
-- `status` is one of `"running" | "setup-pending" | "context-bloated" | "complete"`. Default is `"running"`. The orchestrator writes `"setup-pending"` when `RF-01 dependency_missing` fires with a `continue-later` choice; `"context-bloated"` when `RF-05 prior_stage_context_bloated` fires with a `continue-later` choice; `"complete"` after the merger's `completed` event is written and its handback gate is satisfied.
+- `status` is one of `"running" | "setup-pending" | "complete"`. Default is `"running"`. The orchestrator writes `"setup-pending"` when `RF-01 dependency_missing` fires with a `continue-later` choice; `"complete"` after the merger's `completed` event is written and its handback gate is satisfied.
 - `pending_setup` is `null` unless `status = "setup-pending"`. Shape when populated: `{ "predicate": "RF-01", "advice_path": "framework/shared/setup-instructions/markitdown.md", "since": "<ISO-8601 UTC>" }`.
 - The orchestrator writes a `called` event immediately before invoking each agent and a `completed` event immediately after that agent's handback gate is met. No other component writes to this file, except the `input-handler` agent, which writes `status` and `pending_setup` on the `RF-01 continue-later` branch (because this orchestrator passes `progress_path: "framework/state/.prd-progress.json"` at Step 1).
 - An agent is considered **completed for the run** if and only if a `completed` event for that agent exists in `events` **and** its expected artefact exists on disk:
@@ -68,7 +68,7 @@ This progress file is distinct from `framework/state/.progress.json` (which is o
     - `{"t":"<iso>","type":"consultant_responded","stage":"orchestrator","label":"wait-for-input-files"}` — written immediately after the consultant's response to the Step 0a prompt, on both the `continue` and `cancel` branches.
     - `{"t":"<iso>","type":"stage_start","stage":"<agent-short-name>"}` — written immediately before invoking each agent. `<agent-short-name>` is one of `input-handler`, `prd-drafter`, `prd-resolver`, `prd-merger`.
     - `{"t":"<iso>","type":"stage_end","stage":"<agent-short-name>"}` — written immediately after each agent's handback gate is met.
-    - `{"t":"<iso>","type":"run_end"}` — written once at the end of every orchestrator invocation: after the merger's `stage_end` event on a clean completion, **and** before exiting on the `RF-01 continue-later`, `RF-05 continue-later`, or `Step 0a cancel` branches so paused and cancelled runs have a closing event too.
+    - `{"t":"<iso>","type":"run_end"}` — written once at the end of every orchestrator invocation: after the merger's `stage_end` event on a clean completion, **and** before exiting on the `RF-01 continue-later` or `Step 0a cancel` branches so paused and cancelled runs have a closing event too.
 - The drafter writes its own `substep_start` / `substep_end` events per `framework/agents/prd-drafter.md > Timing log (sub-steps)`, nested inside the orchestrator's `stage_start` (stage=`prd-drafter`) / `stage_end` pair. The merger writes its own `consultant_prompted` / `consultant_responded` events (stage=`prd-merger`) per `framework/agents/prd-merger.md > Timing log`. The orchestrator does not write events on either agent's behalf.
 - **Halt-signal contract.** A `_start` event without a matching `_end` event indicates the writer halted inside that interval. Downstream consumers must treat the orphan as load-bearing.
 - **Append idiom** (PowerShell):
@@ -90,19 +90,13 @@ This progress file is distinct from `framework/state/.progress.json` (which is o
 
    **Note.** The PRD pipeline does **not** invoke `framework/skills/set-build-target.md` after the input-handler completes. The `target` field on the manifest is set by the `/requirements` orchestrator's Step 1b when that pipeline runs; the PRD pipeline reads the field as informational reference in §1 metadata but does not branch on it. If the manifest's `target` is `null` (the PRD pipeline runs before `/requirements` has set it, or runs in a workspace where `/requirements` will never run), the PRD drafter surfaces "to-be-determined" in §1 metadata's Build target reference field — this is normal and not a failure.
 
-2. **Draft** — run the context-bloat guard first (see below), then write a `called` event for `prd-drafter` to `.prd-progress.json` and append a `stage_start` event (stage=`prd-drafter`) to `timing.ndjson`, then invoke `framework/agents/prd-drafter.md` in the foreground. Wait until that agent reports the draft is accepted (handback gate below). On handback, write a `completed` event for `prd-drafter` to `.prd-progress.json` and append a `stage_end` event to `timing.ndjson`.
+2. **Draft** — write a `called` event for `prd-drafter` to `.prd-progress.json` and append a `stage_start` event (stage=`prd-drafter`) to `timing.ndjson`, then invoke `framework/agents/prd-drafter.md` in the foreground. Wait until that agent reports the draft is accepted (handback gate below). On handback, write a `completed` event for `prd-drafter` to `.prd-progress.json` and append a `stage_end` event to `timing.ndjson`.
 
-3. **Resolve** — run the context-bloat guard first, then write a `called` event for `prd-resolver` to `.prd-progress.json` and append a `stage_start` event (stage=`prd-resolver`) to `timing.ndjson`, then invoke `framework/agents/prd-resolver.md` in the foreground. Wait until that agent reports the last question has been answered (or accept-all-remaining was chosen) and the answers file is complete per its self-validation. On handback, write a `completed` event for `prd-resolver` to `.prd-progress.json` and append a `stage_end` event to `timing.ndjson`.
+3. **Resolve** — write a `called` event for `prd-resolver` to `.prd-progress.json` and append a `stage_start` event (stage=`prd-resolver`) to `timing.ndjson`, then invoke `framework/agents/prd-resolver.md` in the foreground. Wait until that agent reports the last question has been answered (or accept-all-remaining was chosen) and the answers file is complete per its self-validation. On handback, write a `completed` event for `prd-resolver` to `.prd-progress.json` and append a `stage_end` event to `timing.ndjson`.
 
-4. **Merge** — run the context-bloat guard first, then write a `called` event for `prd-merger` to `.prd-progress.json` and append a `stage_start` event (stage=`prd-merger`) to `timing.ndjson`, then invoke `framework/agents/prd-merger.md` in the foreground. Wait until that agent reports the merged PRD is accepted. On handback, write a `completed` event for `prd-merger` to `.prd-progress.json`, set `status: "complete"`, append a `stage_end` event to `timing.ndjson`, then append a `run_end` event as the final action of the pipeline.
+4. **Merge** — write a `called` event for `prd-merger` to `.prd-progress.json` and append a `stage_start` event (stage=`prd-merger`) to `timing.ndjson`, then invoke `framework/agents/prd-merger.md` in the foreground. Wait until that agent reports the merged PRD is accepted. On handback, write a `completed` event for `prd-merger` to `.prd-progress.json`, set `status: "complete"`, append a `stage_end` event to `timing.ndjson`, then append a `run_end` event as the final action of the pipeline. Finally, emit the context-hygiene completion tip (`framework/shared/context-hygiene.md`, verbatim plain text) to the consultant — only on this successful-completion path, never on a cancel or refusal-halt branch.
 
 Each step is strictly sequential. Do not start a step until the previous step has handed control back.
-
-### Context-bloat guard
-
-Immediately before each `called` event after the input-handler's `completed` event has been written (i.e. before steps 2, 3, and 4), call `framework/skills/check-context-bloat.md` with `artefact_dir = prd/`, `manifest_path = requirements/source-manifest.json`, and `progress_path = framework/state/.prd-progress.json`. On `ok`, proceed normally. On `RF-05 trigger`, surface the predicate per `framework/shared/refusal-registry.md > RF-05` via `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`.
-- `proceed-without-clear` — write the `called` event and proceed.
-- `continue-later` — write `status: "context-bloated"` to `framework/state/.prd-progress.json`, do not write the `called` event, append a `run_end` event to `framework/state/timing.ndjson`, and exit cleanly. The consultant runs `/clear` and re-invokes `/generate-prd`; rerun detection resumes at the same step.
 
 ## Startup: detect prior progress
 
@@ -115,7 +109,7 @@ Run this once, at the very start of every invocation, before Step 1.
     - `prd/prd.md`
 2. **Classify.**
     - **No progress detected** — `framework/state/.prd-progress.json` is absent or has an empty `events` array, **and** none of the four artefacts above exists.
-    - **Some progress detected** — anything else. If `status = "setup-pending"` or `status = "context-bloated"`, surface that state in the prompt text.
+    - **Some progress detected** — anything else. If `status = "setup-pending"`, surface that state in the prompt text.
 3. **Prompt the consultant.** Use `AskUserQuestion` with the appropriate choice set:
     - **No progress detected** — present a single-option prompt: `{ start-fresh }`. State plainly that no prior progress was found and a fresh run will begin.
     - **Some progress detected** — present a two-option prompt: `{ continue, start-fresh }`. In the question text, summarise what was found.
@@ -186,8 +180,8 @@ If a gate is not met, do not advance and do not write a `completed` event. Surfa
 - `framework/agents/prd-drafter.md`
 - `framework/agents/prd-resolver.md`
 - `framework/agents/prd-merger.md`
-- `framework/skills/check-context-bloat.md` — invoked before each `called` event after the input-handler completes.
-- `framework/shared/refusal-registry.md` — `RF-01`, `RF-03`, `RF-04`, `RF-05` semantics surfaced by this orchestrator and by the input-handler.
+- `framework/shared/refusal-registry.md` — `RF-01`, `RF-03`, `RF-04` semantics surfaced by this orchestrator and by the input-handler.
+- `framework/shared/context-hygiene.md` — the canonical `/clear` completion tip emitted on successful completion (end of step 4).
 - `framework/state/.prd-progress.json` (read at startup, written by this orchestrator across the run)
 - `requirements/source-manifest.json` (existence check at startup; otherwise managed by the input-handler)
 
@@ -203,7 +197,7 @@ If a gate is not met, do not advance and do not write a `completed` event. Surfa
 - Write — create `framework/state/.prd-progress.json` on first run and overwrite it during a start-fresh reset.
 - Edit — append `called` and `completed` events and update the `status` and `pending_setup` fields on `framework/state/.prd-progress.json` as the pipeline progresses.
 - Bash — run `git add` / `git commit` during the start-fresh reset, and delete the five generated artefacts (`prd/prd-draft.md`, `prd/draft-claims.ndjson`, `prd/draft-claims-verification.ndjson`, `prd/consultant-answers.md`, `prd/prd.md`), and the three resolver working-state sidecars (`framework/state/prd-resolver-manifest.ndjson`, `framework/state/prd-resolver-answers.ndjson`, `framework/state/prd-resolver-cursor.json`). Also used to append events to `framework/state/timing.ndjson` via the PowerShell `Add-Content` idiom documented in **Timing log** — append-only; never use Bash to read, edit, rewrite, or delete `timing.ndjson`. Never use destructive operations beyond those explicitly named paths. Never push or skip hooks.
-- AskUserQuestion — prompt the consultant at startup with the `{ start-fresh }` or `{ continue, start-fresh }` choice set; at Step 0a with the `{ continue, cancel }` choice set; and to surface `RF-05 prior_stage_context_bloated` with the `{ proceed-without-clear, continue-later }` choice set when the context-bloat guard fires.
+- AskUserQuestion — prompt the consultant at startup with the `{ start-fresh }` or `{ continue, start-fresh }` choice set; and at Step 0a with the `{ continue, cancel }` choice set.
 
 The orchestrator's tools are limited to the operations above.
 
@@ -213,7 +207,7 @@ The orchestrator's tools are limited to the operations above.
 - Step 0a (input-ready prompt) ran on first entry and was correctly skipped on a `continue` rerun where the input-handler already had a `completed` event.
 - Step 1 (input-handler) ran on every invocation regardless of prior `completed` events; the agent's own step 0 made the create / refresh / no-op / halt decision; the orchestrator did not branch on manifest state.
 - Steps 1, 2, 3, and 4 each completed in order, with their respective handback gate met.
-- The context-bloat guard ran immediately before the `called` event for each of steps 2, 3, and 4.
+- On successful completion, the context-hygiene completion tip (`framework/shared/context-hygiene.md`) was emitted to the consultant verbatim, on the success path only.
 - For each agent that ran in this invocation, `framework/state/.prd-progress.json` contains both a `called` event and a `completed` event in that order.
 - For each agent that ran in this invocation, `framework/state/timing.ndjson` contains a matching `stage_start` / `stage_end` pair in order. The current invocation begins with a `run_start` event (with `pipeline: "generate-prd"`) and ends with a `run_end` event.
 - For each agent whose work was reused via `continue`, the prior `completed` event was preserved untouched and the agent was not re-invoked.
@@ -243,7 +237,6 @@ The orchestrator's tools are limited to the operations above.
 - Do not skip Step 0a (input-ready prompt) on a fresh run, and do not run it on a rerun where the input-handler already has a `completed` event for this run.
 - Do not skip Step 1 (input-handler) on any path that proceeds past Step 0a. Step 1 runs on every invocation regardless of prior `completed` events — the input-handler's own step-0 freshness check is what catches input-folder drift on a `continue` rerun. Skipping based on a prior `completed` event re-introduces silent stale-blindness.
 - Do not branch Step 1 on whether `requirements/source-manifest.json` exists, parses, is fresh, or is stale. The orchestrator calls the input-handler uniformly; the agent owns the create / refresh / no-op / halt decision at its step 0. Re-introducing per-orchestrator branching here duplicates instructions the input-handler already owns.
-- Do not skip the context-bloat guard before any of steps 2, 3, or 4.
 - Do not run the reset procedure when no prior progress was detected, and do not run it when the consultant chose `continue`.
 - Do not delete `requirements/source-manifest.json`, `input/*.converted.md`, or anything under `requirements/` during a reset. Those belong to other pipelines.
 - Do not delete anything in `framework/state/` other than the three named PRD resolver sidecars and the progress file overwrite. In particular, `framework/state/timing.ndjson`, `framework/state/.progress.json`, and `framework/state/resolver-*` are off-limits during a PRD reset.
@@ -251,5 +244,5 @@ The orchestrator's tools are limited to the operations above.
 - Do not write a `completed` event before the corresponding handback gate is met.
 - Do not read, rewrite, truncate, or delete `framework/state/timing.ndjson`. The orchestrator only appends to it via the `Add-Content` idiom documented in **Timing log**.
 - Do not pair a `stage_start` with a `called` for one agent and forget the other.
-- Do not advance past `Input-handle` while `framework/state/.prd-progress.json > status` is `"setup-pending"` or `"context-bloated"`.
+- Do not advance past `Input-handle` while `framework/state/.prd-progress.json > status` is `"setup-pending"`.
 - Do not append a `## Prototype invariants` block under any circumstance. The PRD pipeline does not consume `framework/shared/prototype-invariants.md`.

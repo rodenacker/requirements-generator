@@ -58,25 +58,11 @@ Add new predicates by appending; never renumber.
 
 **Recovery:** The consultant inspects the failure (disk full, read-only filesystem, hook interference) and re-invokes the pipeline. The orchestrator's rerun detection picks up the partial state.
 
-## RF-05 — prior_stage_context_bloated
+## RF-05 — prior_stage_context_bloated  [RETIRED 2026-06-15]
 
-**Severity:** pause.
+**Status:** Retired. The context-bloat preflight feature — the `framework/skills/check-context-bloat.md` skill, this predicate, and the `context-bloated` progress-status value — was removed on 2026-06-15. The heuristic summed on-disk artefact bytes as a proxy for *conversation* context, but the two are decoupled: the bytes are identical across a `/clear`, so the gate false-fired on every run of any mature project (where `requirements/` routinely exceeds the old 500 KB ceiling). It is replaced by non-blocking `/clear` suggestions emitted at each pipeline's success terminal — see `framework/shared/context-hygiene.md`.
 
-**Trigger:** `framework/skills/check-context-bloat.md` reports the bloat heuristic exceeded. Surfaced by both orchestrators that call the skill, with caller-specific recovery semantics described in **Surface variants** below.
-
-**Surface:** `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`. The `proceed-without-clear` branch always advances; the `continue-later` branch always exits cleanly. What differs between callers is whether `continue-later` writes a `status` field to `framework/state/.progress.json` before exiting.
-
-### Surface variants
-
-- **requirements-orch variant** — fired immediately before each `called` event after the input-handler's `completed` event has been written. Skill is invoked with `artefact_dir = requirements/`, `manifest_path = requirements/source-manifest.json`, `progress_path = framework/state/.progress.json`.
-    - `proceed-without-clear` — the orchestrator writes the `called` event and proceeds. The override is recorded by the `called` event itself; no additional sidecar.
-    - `continue-later` — the orchestrator writes `status: "context-bloated"` to `framework/state/.progress.json`, does **not** write the `called` event, and exits cleanly. The consultant runs `/clear` and re-invokes `/requirements`; rerun detection resumes at the same step.
-
-- **design-system-orch variant** — fired once at startup in step-0b (after the prior-artefact gate, before the styler is invoked). Skill is invoked with the same three parameter values as the requirements variant — the design-system pipeline uses prior `/requirements` state on disk as a proxy for in-conversation bloat. The design-system pipeline has no progress file of its own and is bound by a no-write-outside-`design-system/` invariant, so this variant deliberately omits the `status` write.
-    - `proceed-without-clear` — the orchestrator proceeds to step 1 and invokes the styler.
-    - `continue-later` — the orchestrator surfaces a *"run `/clear` and re-invoke `/design-system`"* message and exits cleanly. **No write to `framework/state/.progress.json`.** No `design-system/` side effects. This mirrors the RF-06 `install-and-retry` pattern, which already documents that the design-system pipeline cannot write to `framework/state/.progress.json`.
-
-**Recovery:** The standard path is `/clear` then re-invoke the same orchestrator. `proceed-without-clear` is the override for short cases where the consultant judges the bloat tolerable.
+This ID is retained — never renumbered or deleted — per the append-only stable-ID invariant. **No orchestrator surfaces it.** Do not reuse `RF-05` for a new predicate; append a new `RF-NN` instead.
 
 ## RF-06 — style_extraction_dependency_missing
 
@@ -128,7 +114,7 @@ Add new predicates by appending; never renumber.
 
 **Severity:** pause.
 
-**Trigger:** The blueprint-architect's step-02 block 2.6 encountered a `selections[i]` whose sidecar is absent on disk (`sidecar_present == false` or the file is missing) AND whose prose `output_path` is larger than 60 KB on disk. Loading the prose whole would impose unacceptable architect-side context cost; the consultant is asked to regenerate the analyser so a structured sidecar is available. The 60 KB threshold is set per `framework/assets/analyses/sidecar-schema.md > Section 3.3` and reflects the largest acceptable single-analysis context contribution under the `bytes_total` ceiling enforced by `framework/skills/check-context-bloat.md` (whose default and per-caller overrides are defined there only — not restated here).
+**Trigger:** The blueprint-architect's step-02 block 2.6 encountered a `selections[i]` whose sidecar is absent on disk (`sidecar_present == false` or the file is missing) AND whose prose `output_path` is larger than 60 KB on disk. Loading the prose whole would impose unacceptable architect-side context cost; the consultant is asked to regenerate the analyser so a structured sidecar is available. The 60 KB threshold is set per `framework/assets/analyses/sidecar-schema.md > Section 3.3` and reflects the largest acceptable single-analysis context contribution to the architect's read budget.
 
 **Surface:** `AskUserQuestion` with the choice set `{ regenerate-and-retry, proceed-with-bounded-read, cancel }` plus an "Other" override.
 
@@ -138,7 +124,7 @@ Add new predicates by appending; never renumber.
 
 **Recovery:** `regenerate-and-retry` exits cleanly so the consultant re-runs `/analyse-requirement <method>` (which under the per-method follow-up rollout will emit the sidecar). `proceed-with-bounded-read` continues the run with the documented degraded-fidelity caveat. `cancel` exits cleanly.
 
-**Refusal-registry schema field:** none specific. Distinct from `RF-05` because the bloat measurement is per-selection at architect-read time, not aggregated `artefact_dir` bytes at orchestrator-preflight time; distinct from `RF-08` because the sidecar is absent (one-cycle-deprecation legacy path), not stale (sha256 mismatch).
+**Refusal-registry schema field:** none specific. Distinct from `RF-08` because the sidecar is absent (one-cycle-deprecation legacy path), not stale (sha256 mismatch). The measurement is per-selection at architect-read time, not aggregated bytes at an orchestrator preflight.
 
 ## RF-10 — node_toolchain_missing
 
@@ -198,5 +184,5 @@ Add new predicates by appending; never renumber.
 - Do not invent a predicate ID. If no `RF-NN` covers the condition, append a new entry rather than overload an existing one.
 - Do not surface a `pause` predicate via plain-text halt. The choice set is the contract — without it, the consultant cannot machine-readably resume.
 - Do not surface a `hard` predicate via `AskUserQuestion`. There is no meaningful choice when prior work is at risk; halting cleanly is the only safe response.
-- Do not write `status: setup-pending` or `status: context-bloated` for any predicate other than `RF-01`, `RF-10`, `RF-11` (setup-pending) and `RF-05` (context-bloated) respectively. The `pending_setup` block is reserved for those setup-required pauses: `RF-01` writes it to `framework/state/.progress.json`; `RF-10` / `RF-11` write it to `framework/state/.prototype-progress.json` (the prototype-orch's own progress file). A future predicate must explicitly register here before writing `pending_setup`. `RF-05`'s `status: context-bloated` write is specific to the **requirements-orch surface variant**; the **design-system-orch variant** of `RF-05` deliberately does not write, for the same reason `RF-06` does not — the design-system pipeline is bound by a no-write-outside-`design-system/` invariant. RF-06 deliberately does **not** write to `framework/state/.progress.json` either; its `install-and-retry` path surfaces the advice in the handback message instead. RF-09 deliberately does **not** write either — the wireframe pipeline is bound by a no-write-outside-`wireframes/`-and-`blueprints/` invariant, and the consultant's Stage-1b `analyses-inputs.json` is reused on re-invocation via the wireframe-orch's prior-set detection.
+- Do not write `status: setup-pending` for any predicate other than `RF-01`, `RF-10`, `RF-11`. The `pending_setup` block is reserved for those setup-required pauses: `RF-01` writes it to `framework/state/.progress.json`; `RF-10` / `RF-11` write it to `framework/state/.prototype-progress.json` (the prototype-orch's own progress file). A future predicate must explicitly register here before writing `pending_setup`. RF-06 deliberately does **not** write to `framework/state/.progress.json`; its `install-and-retry` path surfaces the advice in the handback message instead. RF-09 deliberately does **not** write either — the wireframe pipeline is bound by a no-write-outside-`wireframes/`-and-`blueprints/` invariant, and the consultant's Stage-1b `analyses-inputs.json` is reused on re-invocation via the wireframe-orch's prior-set detection.
 - Do not silently downgrade a `hard` predicate to `pause`. `RF-04` halts; conflating it with a pausable refusal hides write failures.

@@ -86,7 +86,7 @@ The orchestrator-owned decision point where a finished agent's artefacts are val
 Not to be confused with: **preflight gate** (runs *before* agent work).
 
 ### Preflight gate
-An early orchestrator check before any agent runs — prerequisite presence, context-bloat (`check-context-bloat`), prior-progress detection, overwrite/continue choice.
+An early orchestrator check before any agent runs — prerequisite presence, prior-progress detection, overwrite/continue choice.
 
 ---
 

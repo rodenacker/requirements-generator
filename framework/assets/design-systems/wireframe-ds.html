@@ -286,9 +286,9 @@ template-screen.html's link slot.
     .wf-banner[data-tone="success"] { border-color: var(--wf-state-success); }
 
     .wf-toast {
-      position: fixed;
-      top: var(--wf-spacing);
-      right: var(--wf-spacing);
+      /* Inline in wireframes (no fixed overlay) so it never covers chrome/buttons.
+         Wireframes render all states in document flow with no JS to toggle them;
+         a position:fixed toast would float over and block the chrome header. */
       max-width: 320px;
       background: var(--wf-surface-elevated);
       border-color: var(--wf-border-emphasis);
@@ -311,7 +311,11 @@ template-screen.html's link slot.
       box-shadow: 0 0 0 2px var(--wf-text-default);
     }
     .wf-modal-backdrop {
-      position: fixed; inset: 0; background: rgba(26,26,26,0.1);  /* off-black tint; pure black excluded */
+      /* Hidden in wireframes: all states render inline and there is no JS to toggle
+         a live modal, so a fixed full-viewport backdrop would only block every click.
+         The modal panel (.wf-modal) renders inline as its own state and carries the
+         signal; the backdrop has no content to inspect. */
+      display: none;
     }
 
     /* Persona / role-switcher chrome (per PI invariants) */

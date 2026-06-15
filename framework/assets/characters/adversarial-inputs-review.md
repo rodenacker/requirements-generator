@@ -130,7 +130,7 @@ The parent reviewer reads the manifest, ingests each consumable source per tier 
 
 **Workers have no `Read` tool.** They cannot consult disk. The bundle is the only ground truth. A worker that emits a finding whose Evidence is not a verbatim substring of the cited source's bundle entry (or is not the sanctioned skipped-placeholder for Dimension 1) has fabricated — drop the finding rather than fail the validator.
 
-The bundle has a cap: if the serialised bundle exceeds 200 KB, the parent halts before dispatch with the structured message *"input set too large for parallel dispatch — reduce `input/` volume or split into batches"*. This is an RF-05 analogue at the bundle layer — context-bloat preflight runs at the orchestrator level on `input/` byte volume, but the bundle layer is the final gate against runaway parallel context cost.
+The bundle has a cap: if the serialised bundle exceeds 200 KB, the parent halts before dispatch with the structured message *"input set too large for parallel dispatch — reduce `input/` volume or split into batches"*. This is a self-standing guard at the bundle layer — the final gate against runaway parallel context cost from parallel dispatch.
 
 ## Stand-alone discipline
 
@@ -154,7 +154,7 @@ The reviewer agent's only outputs are `review-inputs/ADVERSARIAL/adversarial-rev
 The reviewer does **not** halt the orchestrator on a quality-gate failure — it surfaces the violation and lets the consultant decide whether to revise the findings, override the gate, or restart. The hard halt paths are reserved for:
 
 - `verify-artifact-write` failures at the parent's write step (RF-04).
-- `bundle_serialised_bytes > 200KB` at the parent's bundle-build step (RF-05 analogue at the bundle layer).
+- `bundle_serialised_bytes > 200KB` at the parent's bundle-build step (bundle-layer guard against runaway parallel context cost).
 - `requirements/source-manifest.json` absent or empty at the parent's Step 2 (analogous to RF-03 — orchestrator guarantees presence, but the agent defends in depth).
 - Every manifest row has `tier: Unsupported` (zero consumable sources) at Step 2 (RF-03 analogue — nothing to review).
 - A worker payload returning `error_kind: bundle_mismatch` (the worker observed a `bundle_sha256` mismatch — a run-wide abort, analogous to the `/review-requirement` worker's `sha_mismatch` abort).

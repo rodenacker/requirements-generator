@@ -16,8 +16,8 @@ Ten transitive load/read/invoke trees, one per orchestrator. Source of truth for
 - **No cycles** in any subtree.
 - **Pipeline output artefacts are produced, not loaded** → never drawn as edges (e.g. `requirements/requirements.md`, `prd/prd.md`, manifests, draft sidecars). A pipeline's own read target (e.g. analysers/reviewers reading `requirements/requirements.md`) is implicit, not drawn.
 - **No `pattern-catalogue/` "see also" pointers** drawn — except graph 8, where `pattern-catalogue/_index.md` is a real direct read.
-- **Write isolation.** Each pipeline writes only its own output dir. Two documented cross-pipeline write exceptions, both inherited from shared agents: `input-handler.md` writes `requirements/source-manifest.json` + `input/*.converted.md` (create/refresh modes only); `blueprint-architect.md` writes `blueprints/<slug>/{scope.json, blueprint.md}`. Orchestrator step-0b preflight has read-only access to `requirements/`, `requirements/source-manifest.json`, `state/.progress.json`.
-- **check-context-bloat.md** → `refusal-registry.md`, `state/.progress.json` (existence/byte check only; callers never write `.progress.json`). `artefact_dir` = `input/` for the two `*-inputs` pipelines, else `requirements/`.
+- **Write isolation.** Each pipeline writes only its own output dir. Two documented cross-pipeline write exceptions, both inherited from shared agents: `input-handler.md` writes `requirements/source-manifest.json` + `input/*.converted.md` (create/refresh modes only); `blueprint-architect.md` writes `blueprints/<slug>/{scope.json, blueprint.md}`.
+- **context-hygiene.md** → emitted verbatim by each orchestrator at its successful-completion terminal (the non-blocking `/clear` tip; replaces the retired context-bloat preflight). Read-only; no writes.
 - **verify-artifact-write.md** → `refusal-registry.md`, called from every agent's write step. Shared across all orchestrators (one file on disk).
 - **Registry-driven orchs (graphs 3, 4, 5, 6).** `<selector> → registry.md` is the discovery edge; `orch → agent_*` edges are runtime invocation paths. Adding an MVP method = new registry row + asset fan-out + one `orch → agent` edge; **zero orchestrator edits**.
 
@@ -42,7 +42,7 @@ Per-caller `progress_path`: requirements = `.progress.json`; generate-prd = `.pr
 
 ```
 orch → input-handler, requirements-drafter, requirements-resolver, requirements-merger,
-       check-context-bloat, refusal-registry, state/.progress.json,
+       context-hygiene, refusal-registry, state/.progress.json,
        set-build-target [cond: manifest.target null/absent]
 set-build-target → verify-artifact-write
 input-handler ⇒ @input-handler-subtree (progress_path=.progress.json)
@@ -68,7 +68,7 @@ requirements-merger → prototype-invariants.md
 ## 2. design-system-orch.md · 30 nodes / 41 edges / depth 5
 
 ```
-orch → design-system-styler, check-context-bloat, refusal-registry, state/.progress.json
+orch → design-system-styler, context-hygiene, refusal-registry
 design-system-styler → steps/step-01-activate … step-07-handback,
        characters/style-extraction.md, persona-llm.md
   step-01-activate → characters/style-extraction.md
@@ -89,14 +89,14 @@ preflight-mcp → refusal-registry
 - `template-design-system.html` shared by `step-06` (operative loader) and `prompt-templates/artifact-generation.md` (which tells step-06 to read it).
 - `data/component-catalogue.md` (step-06 only) owns the Components CSS + per-family `Live demo` / `States matrix` HTML; step-06 token-substitutes token refs into the template placeholders.
 - `design-system-standards.html` names `template-design-spec.md` only in prose → not an edge. (`.md` sibling is the human-edit SoT; styler reads only the `.html`.)
-- orch reads `requirements/` as the bloat proxy (step-0b); styler subtree itself reaches nothing in `requirements/`, `state/`, or the shared policy files.
+- The styler subtree reaches nothing in `requirements/`, `state/`, or the shared policy files; the orchestrator no longer reads `requirements/` or `state/` either (the context-bloat preflight was retired).
 
 ---
 
 ## 3. review-requirement-orch.md · 51 nodes / 71 edges / depth 3
 
 ```
-orch → analysis-selector, check-context-bloat, refusal-registry,
+orch → analysis-selector, context-hygiene, refusal-registry,
        + 7 reviewers: adversarial, first-principles, ten-ux-questions,
          ten-ba-questions, user-stories, requirements-quality, requirements-traceability
 analysis-selector → reviews/registry.md  [shared selector, review labels; Globs each row's output_path for ✓/★ marks]
@@ -134,7 +134,7 @@ grounding-verifier → draft-claims, source-manifest, <input source files>  [Pas
 ## 4. analyse-requirement-orch.md · 24 nodes / 28 edges / depth 3
 
 ```
-orch → analysis-selector, check-context-bloat, refusal-registry,
+orch → analysis-selector, context-hygiene, refusal-registry,
        + 15 analysers: ooux, jtbd, use-cases, data-model, user-journeys,
          sequence-diagram, state-diagram, activity-diagram, task-flows,
          five-whys, glossary, opportunity-solution-trees, crud-coverage,
@@ -157,7 +157,7 @@ state-diagram-analyser → svg-overlap-check.md
 ## 5. analyse-inputs-orch.md · 66 nodes / 83 edges / depth 4
 
 ```
-orch → analysis-selector, check-context-bloat, input-handler, refusal-registry,
+orch → analysis-selector, context-hygiene, input-handler, refusal-registry,
        + 11 analysers: thematic-analysis, opportunity-solution-trees, journey-mapping,
          task-analysis, jtbd, ooux, swim-lane-process-mapping, affinity-mapping,
          user-goal-analysis, business-context-definition, glossary
@@ -205,11 +205,11 @@ deltas:
 
 ---
 
-## 6. review-inputs-orch.md · 34 nodes / 44 edges / depth 4
+## 6. review-inputs-orch.md · 44 nodes / 62 edges / depth 4
 
 ```
-orch → analysis-selector, check-context-bloat, input-handler, refusal-registry,
-       + 4 reviewers: adversarial, ambiguity, completeness, gap-analysis
+orch → analysis-selector, context-hygiene, input-handler, refusal-registry,
+       + 6 reviewers: adversarial, ambiguity, completeness, gap-analysis, ten-ba-questions, ten-ux-questions
 analysis-selector → reviews-inputs/registry.md
 input-handler ⇒ @input-handler-subtree (progress_path=null)
 
@@ -226,13 +226,21 @@ deltas:
   gap-analysis   +reviews-inputs/template-gap-analysis.html, +topics-requirements.md [step 3],
                  +general-rules                          [step 3]
                  +prototype-scope  [cond: target=prototype, step 3]
+  ten-ba-questions +reviews-inputs/template-ten-ba-questions.html,
+                 +reviews/ten-ux-questions-reference.md  [step5 UX-lens filter],
+                 +general-rules +prototype-invariants +prototype-scope  [step5 filters],
+                 [single-pass, NO workers — reads manifest + sources directly, 8-category 50→10 rank-and-select]
+  ten-ux-questions +reviews-inputs/template-ten-ux-questions.html,
+                 +reviews-inputs/ten-ba-questions-reference.md  [step5 BA-lens filter — symmetric inverse of ten-ba-questions],
+                 +general-rules +prototype-invariants +prototype-scope  [step5 filters],
+                 [single-pass, NO workers — reads manifest + sources directly, 8-category 50→10 rank-and-select]
 ```
 
 **Notes (unique):**
 - `analysis-selector.md` shared with graphs 4 + 5; here it gets `list_label:"reviews"` + `verb_label:"review"`.
 - adversarial fans out 6 parallel **tool-less** workers (parent inlines a frozen evidence bundle + quote indices, so workers need no disk access). adversarial + ambiguity are full-overwrite per run (no additive merge), unlike graph-5 analysers.
 - `gap-analysis → topics-requirements.md` is the **only graph-6 edge** touching that file (otherwise read only by drafter + completeness-gap-pass in graph 1); the `Dimension` column is read verbatim. gap-analysis emits a drafter-ingestible `Candidate Requirement` column.
-- completeness is now a self-contained HTML report whose 10×N coverage matrix is an HTML table (no heatmap); gap-analysis adds an inline-SVG coverage heatmap. All four reviewers carry `map_skill: null`. `reviews-inputs/registry.md` has no `future` rows (the stub roadmap was retired — planned methods live in `plans/`).
+- completeness is now a self-contained HTML report whose 10×N coverage matrix is an HTML table (no heatmap); gap-analysis adds an inline-SVG coverage heatmap. ten-ba-questions is single-pass (no workers; reads the manifest + sources directly) and reuses the requirements-side `reviews/ten-ux-questions-reference.md` read-only as its UX-lens filter; ten-ux-questions is its orthogonal UX twin — also single-pass, reusing the inputs-side `reviews-inputs/ten-ba-questions-reference.md` read-only as its BA-lens filter (the symmetric inverse, so the two question reviews never overlap). All six reviewers carry `map_skill: null`. `reviews-inputs/registry.md` has no `future` rows (the stub roadmap was retired — planned methods live in `plans/`).
 
 ---
 
@@ -240,7 +248,7 @@ deltas:
 
 ```
 orch → input-handler, prd-drafter, prd-resolver, prd-merger,
-       check-context-bloat, refusal-registry, state/.prd-progress.json
+       context-hygiene, refusal-registry, state/.prd-progress.json
 input-handler ⇒ @input-handler-subtree (progress_path=.prd-progress.json)
 prd-drafter → template-prd.md, characters/prd-drafting.md, refusal-registry.md,
        verify-artifact-write, completeness-gap-pass-prd.md, grounding-verifier.md
@@ -261,7 +269,7 @@ prd-merger  → characters/prd-finalising.md
 ## 8. wireframe-orch.md · 44 nodes / 66 edges / depth 4
 
 ```
-orch → scope-selector, select-supporting-analyses, check-context-bloat,
+orch → scope-selector, select-supporting-analyses, context-hygiene,
        check-wireframe-set-freshness, blueprint-architect, wireframe-variant-generator,
        wireframe-comparator, refusal-registry
 
@@ -270,7 +278,7 @@ scope-selector → verify-artifact-write, wireframes/divergence-heuristics.md
                           wireframes/position-vocabulary.md,
                           wireframes/design-philosophies.md  [§4b posture lookup]
 select-supporting-analyses → analyses/registry.md, analyses/sidecar-schema.md,
-       verify-artifact-write, check-context-bloat,
+       verify-artifact-write,
        [writes per-scope] wireframes/<slug>/analyses-inputs.json
 
 blueprint-architect → steps/step-01-activate … step-07-handback,
@@ -320,7 +328,7 @@ wireframe-comparator → characters/wireframe-comparator.md, persona-llm.md,
 ## 9. prototype-orch.md · one-prototype-per-run; generates a real Next.js app
 
 ```
-orch → scope-selector, select-prototype-inputs, check-context-bloat,
+orch → scope-selector, select-prototype-inputs, context-hygiene,
        blueprint-architect, prototype-spec-drafter, prototype-spec-resolver, prototype-spec-merger,
        prototype-app-scaffolder, prototype-generator, prototype-landing-updater,
        refusal-registry, state/.prototype-progress.json
@@ -328,7 +336,7 @@ orch → scope-selector, select-prototype-inputs, check-context-bloat,
 scope-selector → verify-artifact-write   [propose_divergence_axes:false → NO divergence-heuristics edge]
 select-prototype-inputs → analyses/registry.md, analyses-inputs/registry.md, analyses/sidecar-schema.md,
        wireframes/<slug>/variants.json, requirements/source-manifest.json,
-       verify-artifact-write, check-context-bloat,
+       verify-artifact-write,
        [writes] prototypes/.specs/<name-slug>/supporting-inputs.json
 blueprint-architect → (see graph 8; invoked with variants_output_path:null → blueprint-only, writes
        blueprints/<slug>/blueprint.md, NO variants.json)
@@ -367,7 +375,7 @@ prototype-landing-updater → wireframes/position-vocabulary.md, verify-artifact
 ## 10. export-application-orch.md · 8 nodes / 9 edges / depth 2
 
 ```
-orch → export-application-exporter, check-context-bloat, refusal-registry,
+orch → export-application-exporter, context-hygiene, refusal-registry,
        requirements/requirements.md [read: step-0 gate + step-0a sha256]
 export-application-exporter → characters/application-exporting.md, verify-artifact-write,
        requirements/requirements.md [read: full, sole content input]
@@ -379,12 +387,12 @@ export-application-exporter → characters/application-exporting.md, verify-arti
 - **Freshness anchor:** the export embeds the source's sha256; step 0a compares embedded vs current and recommends Keep (match) or Regenerate (mismatch/garbled). Regenerate is checkpoint-then-delete.
 - Prerequisite gate exits when the source is missing/empty or already `Target: application`; non-final `Status` is a **soft** gate (the merger does not stamp it).
 - `requirements/draft-claims.ndjson` is existence-probed only (never read) — the provenance legend tells external consumers to bundle it.
-- Write scope: `export-application/` only. The step-0b context-bloat preflight is called **without** `manifest_path`.
+- Write scope: `export-application/` only.
 
 ## 11. resolve-review-orch.md · 13 nodes / 17 edges / depth 3
 
 ```
-orch → resolve-review-drafter, refusal-registry,
+orch → resolve-review-drafter, context-hygiene, refusal-registry,
        review-inputs/*/*.html + review-requirements/*/*.html [Glob + byte sizes: step-0 artefact picker],
        assets/resolve-review/methodology-map.md [read: step-0 map gate],
        resolve-review/resolutions-draft.md [existence: step-1 stale-draft gate; rm -f on Discard],
@@ -396,7 +404,7 @@ resolve-review-drafter → characters/review-resolving.md,
        <fingerprint target per map row> [requirements/source-manifest.json (cond: exists) |
            requirements/requirements.md (pre-flighted); sha256 only — drift warning],
        assets/resolve-review/template-addendum.md [cond: Step 9b — requirements-doc rows, addendum opt-in],
-       requirements/requirements.md [cond: Step 5 — elicitation-with-options rows, bounded content read of cited sections + Amendments section; cond: Step 9b — full read + bounded Amendments-section write]
+       requirements/requirements.md [cond: Step 5 — requirements-doc elicitation-with-options rows only, bounded content read of cited sections + Amendments section (source-manifest elicitation-with-options rows do NO Step-5 read); cond: Step 9b — full read + bounded Amendments-section write, requirements-doc rows only]
 ```
 
 **Notes (unique):**
@@ -406,4 +414,4 @@ resolve-review-drafter → characters/review-resolving.md,
 - **Anti-laundering contract:** every AI-inferred resolution is confirmed by an explicit consultant affirmative — per finding (`AskUserQuestion`, one finding per question, ≤4 per call) or the explicit "Accept all remaining as drafted" choice; never silently or by default. Origin markers `[CONSULTANT-STATED]` / `[AI-INFERRED, CONSULTANT-CONFIRMED]` + a mandatory per-resolution Supersedes line (canonical definitions: `assets/resolve-review/template-resolutions.md`).
 - **Step-0 resolved-status tag:** the orchestrator reads the provenance-table head of `input/*-resolutions-*.md` files (bounded, read-only) and tags each picker entry `resolved (date)` / `not yet resolved` by matching the recorded `Source review` path — its only `input/` read, persisting nothing (the pipeline stays stateless).
 - The input-handler is **never** invoked; the Step-2 fingerprint target is hashed (drift warning), never parsed. Pickup of the new `input/` file is the next manifest create/refresh's job.
-- The context-bloat preflight is **deliberately omitted** (the skill sums only `.md`/`.json`; the artefacts here are `.html`) — replaced by a step-0 >300 KB size advisory.
+- Context-load management is a step-0 >300 KB size advisory (no preflight gate — the context-bloat preflight was retired system-wide).

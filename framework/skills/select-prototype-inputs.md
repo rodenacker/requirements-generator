@@ -96,7 +96,7 @@ Role semantics (the drafter threads these): `data-binding` → §8 Property usag
     ```
 
     Empty classes are empty arrays. `prototype_roles` per row is verbatim from the static table. Compute sha256, Write, then `framework/skills/verify-artifact-write.md` with `expected_min_bytes: 64`. On `RF-04 trigger`, surface and return without advancing.
-10. **Context-bloat re-check.** On non-empty selections, estimate architect/drafter-side cost (analysis sidecars at 20 KB; legacy prose at on-disk size; wireframe `variant-position.json` ~small; input docs at on-disk size). If the sum exceeds 200 KB, surface `AskUserQuestion` `{ Re-pick, Proceed anyway, Cancel }` (mirrors `select-supporting-analyses.md` step 10).
+10. **Selection-size re-check.** On non-empty selections, estimate architect/drafter-side cost (analysis sidecars at 20 KB; legacy prose at on-disk size; wireframe `variant-position.json` ~small; input docs at on-disk size). If the sum exceeds 200 KB, surface `AskUserQuestion` `{ Re-pick, Proceed anyway, Cancel }` (mirrors `select-supporting-analyses.md` step 10).
 11. **Return** `selected` | `selected-none` | `cancelled`.
 
 ## Self-validation

@@ -42,11 +42,13 @@ Marker legend (canonical):
       reasoning carries a grounding tag (see below) — the tag, not a new marker, carries
       the trust signal for how well-grounded the resolution is.
   Grounding tag (elicitation-with-options resolutions only)
-      Exactly one of: "[grounded: <anchor>]" (the resolution stands on a cited §N.N /
-      F-NN / BR-NN / existing AMD-NN of requirements.md), "[domain-default]" (an
-      enterprise financial-transaction data-management convention — maker-checker,
-      four-eyes, SLA cut-offs, reconciliation consumers, …), or "[assumption — confirm
-      with client]". Carried on the optional "Grounding" line of the resolution block,
+      Exactly one of: "[grounded: <anchor>]" (the resolution stands on a cited anchor —
+      a §N.N / F-NN / BR-NN / existing AMD-NN of requirements.md for requirements-sourced
+      resolutions, or the input filename the review card cites, e.g. "[grounded: brief.docx]",
+      for inputs-sourced resolutions), "[domain-default]" (an enterprise financial-transaction
+      data-management convention — maker-checker, four-eyes, SLA cut-offs, reconciliation
+      consumers, …), or "[assumption — confirm with client]". Carried on the optional
+      "Grounding" line of the resolution block,
       together with a one-line implication. Present for every elicitation-with-options
       resolution (consultant-stated or AI-inferred); omitted for all other resolution
       semantics.
@@ -111,7 +113,7 @@ close an elicited gap also carry a **grounding tag** on their Grounding line.
 
 <!-- Grounding line — emit ONLY for elicitation-with-options (gap-surfacing question)
      resolutions; omit the whole line for every other resolution semantics. -->
-**Grounding:** {{[grounded: <§N.N / F-NN / BR-NN / AMD-NN>] | [domain-default] | [assumption — confirm with client]}} — {{one-line implication: what adopting this resolution commits the design/build to}}
+**Grounding:** {{[grounded: <§N.N / F-NN / BR-NN / AMD-NN, or the input filename the card cites>] | [domain-default] | [assumption — confirm with client]}} — {{one-line implication: what adopting this resolution commits the design/build to}}
 
 **Supersedes:** {{This supersedes the statement in `<filename>` regarding {{X}}. | (supersedes nothing — net-new information)}}
 

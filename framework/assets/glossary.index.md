@@ -42,7 +42,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Orphan (traceability) | A final-doc fact/requirement that traces to no provenance class; the headline defect of the REQUIREMENTS-TRACEABILITY review. | `reviews/requirements-traceability-reference.md` |
 | Physical screen | A concrete screen produced by realizing a logical surface (`S-NN`). | `realization-strategies.md` |
 | Position | Signed `-2..+2` stance on one trade-off dimension; labelled, never shown as notation. | `position-vocabulary.md` |
-| Preflight gate | Orchestrator check before any agent runs (prereqs, bloat, prior progress). | orchestrators |
+| Preflight gate | Orchestrator check before any agent runs (prereqs, prior progress). | orchestrators |
 | Progress file | Per-orchestrator JSON tracking `called`/`completed` per agent for resume. | orchestrator Tools |
 | Properties closed set | Blueprint's per-surface list of allowed data properties; the anti-fabrication boundary. | `blueprint-architect.md` |
 | Prototype | One hi-fi clickable client-side realization of a scope; accrues in one shared app. | `prototype-orch.md` |

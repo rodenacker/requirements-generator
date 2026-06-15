@@ -108,6 +108,96 @@ methodologies:
       Impact × Confidence; options: Ratify-as-is / Edit (Other free text) / Reject-skip.
       Ratify → [AI-INFERRED, CONSULTANT-CONFIRMED]; Edit → [CONSULTANT-STATED]. Won't
       rows carrying the deferred sentinel degrade to: State a resolution (Other) / Skip.
+  # The two question-style rows below use `elicitation-with-options` (gap-surfacing peer flow),
+  # mirroring their review-requirements twins but grounded in the input corpus: provenance is
+  # [SRC: <filename>] / absent-from-corpus (not §N.N), fingerprint is the manifest sha, output is a
+  # new input/ file, and there is no requirements.md amendment (source-manifest rows skip Step 9b).
+  - method_dir: TEN-BA-QUESTIONS
+    method_slug: ten-ba-questions
+    filename_stem: ten-ba-questions-inputs-review-resolutions
+    id_prefix: BAQ
+    parse_source: html-articles
+    json_block_id: null
+    finding_selector: 'article whose class list contains "qcard", id attribute = question ID (BAQ-NN, rank order BAQ-01..BAQ-10)'
+    heading_shape: '<h3><code>{ID}</code> — priority chip · {category-id} {category-label} · <code>{[SRC: <filename>] or absent-from-corpus}</code></h3>'
+    one_liner_source: 'first line of the question text (<blockquote class="question">), truncated as in the triage table'
+    evidence_shape: 'no source quote — the finding IS a question: <blockquote class="question"><p>{question text verbatim}</p></blockquote>; the heading provenance is "[SRC: <filename>]" (a consumed input file) or "absent-from-corpus" (optionally "absent-from-corpus: <topic>")'
+    payload_fields: '<blockquote class="question"> question text + <p class="why"> rationale ("Why this matters")'
+    verbatim_anchor: question text + rationale (the question itself is the durable anchor — the corpus does not answer it, so there is no corpus quote)
+    severity_vocab: [blocking, major, minor]
+    severity_keyword_map: { "all blockers": blocking }
+    fingerprint_label: "Manifest SHA-256"
+    fingerprint_compares_to: source-manifest
+    resolution_semantics: elicitation-with-options
+    ask_shape: >-
+      Elicitation-with-options ask. Act as a critical senior BA peer and strategic thinking
+      partner: the question card names an open gap an experienced analyst would raise about the raw
+      input corpus, not a defect to patch. Per finding: (1) restate the gap and its business/design
+      consequence in one line; (2) draft ≥2 — target 3 — genuinely distinct candidate enrichments
+      spanning the realistic decision space (never one real option padded with strawmen), each a
+      declarative, corpus-ready resolution statement (what the resolutions input file would assert)
+      + a one-line Implication (what choosing it commits the design/build to) + exactly one
+      grounding tag: "[grounded: <input filename>]" (the card's own cited [SRC: <filename>], used
+      only when the card's question/rationale text carries the grounding — never name a file the
+      card does not cite, and do not read input files to manufacture a tag), "[domain-default]" (an
+      enterprise financial-transaction data-management convention — maker-checker, four-eyes, SLA
+      cut-offs, reconciliation consumers, …), or "[assumption — confirm with client]"; grounding
+      skews to [domain-default] / [assumption …] because the corpus does not answer the question by
+      construction. A candidate proposing a new data shape states it as a PROPOSED ADDITION, never
+      as already present in the corpus. (3) present via AskUserQuestion — up to 3 candidates as
+      selectable options + Skip (respect the 4-option widget cap). The always-present free-text
+      "Other" is the "state your own answer" path; out-of-scope is DEMOTED — never a button,
+      reached only by the consultant typing "out of scope" into the free-text path. Mark one
+      candidate "(Recommended)" only when defensible, with a one-line why in the question body.
+      Markers: selecting a drafted candidate → [AI-INFERRED, CONSULTANT-CONFIRMED] (this finding
+      only — never bulk, no accept-all for this flow); typing/editing an answer, or typing "out of
+      scope", → [CONSULTANT-STATED]; Skip → skipped. Every resolved finding carries its grounding
+      tag (the tag, not a new marker, is the trust signal). Supersession names the card's cited
+      input file ([SRC: <filename>]) when the chosen resolution changes a fact stated there;
+      absent-from-corpus cards are net-new by construction.
+  - method_dir: TEN-UX-QUESTIONS
+    method_slug: ten-ux-questions
+    filename_stem: ten-ux-questions-inputs-review-resolutions
+    id_prefix: UXQ
+    parse_source: html-articles
+    json_block_id: null
+    finding_selector: 'article whose class list contains "qcard", id attribute = question ID (UXQ-NN, rank order UXQ-01..UXQ-10)'
+    heading_shape: '<h3><code>{ID}</code> — priority chip · {category-id} {category-label} · <code>{[SRC: <filename>] or absent-from-corpus}</code></h3>'
+    one_liner_source: 'first line of the question text (<blockquote class="question">), truncated as in the triage table'
+    evidence_shape: 'no source quote — the finding IS a question: <blockquote class="question"><p>{question text verbatim}</p></blockquote>; the heading provenance is "[SRC: <filename>]" (a consumed input file) or "absent-from-corpus" (optionally "absent-from-corpus: <topic>")'
+    payload_fields: '<blockquote class="question"> question text + <p class="why"> rationale ("Why this matters")'
+    verbatim_anchor: question text + rationale (the question itself is the durable anchor — the corpus does not answer it, so there is no corpus quote)
+    severity_vocab: [blocking, major, minor]
+    severity_keyword_map: { "all blockers": blocking }
+    fingerprint_label: "Manifest SHA-256"
+    fingerprint_compares_to: source-manifest
+    resolution_semantics: elicitation-with-options
+    ask_shape: >-
+      Elicitation-with-options ask. Act as a critical senior UX peer and strategic thinking
+      partner: the question card names an open gap an experienced designer would raise about the raw
+      input corpus, not a defect to patch. Per finding: (1) restate the gap and its business/design
+      consequence in one line; (2) draft ≥2 — target 3 — genuinely distinct candidate enrichments
+      spanning the realistic decision space (never one real option padded with strawmen), each a
+      declarative, corpus-ready resolution statement (what the resolutions input file would assert)
+      + a one-line Implication (what choosing it commits the design/build to) + exactly one
+      grounding tag: "[grounded: <input filename>]" (the card's own cited [SRC: <filename>], used
+      only when the card's question/rationale text carries the grounding — never name a file the
+      card does not cite, and do not read input files to manufacture a tag), "[domain-default]" (an
+      enterprise financial-transaction data-management convention — maker-checker, four-eyes, SLA
+      cut-offs, reconciliation consumers, …), or "[assumption — confirm with client]"; grounding
+      skews to [domain-default] / [assumption …] because the corpus does not answer the question by
+      construction. A candidate proposing a new data shape states it as a PROPOSED ADDITION, never
+      as already present in the corpus. (3) present via AskUserQuestion — up to 3 candidates as
+      selectable options + Skip (respect the 4-option widget cap). The always-present free-text
+      "Other" is the "state your own answer" path; out-of-scope is DEMOTED — never a button,
+      reached only by the consultant typing "out of scope" into the free-text path. Mark one
+      candidate "(Recommended)" only when defensible, with a one-line why in the question body.
+      Markers: selecting a drafted candidate → [AI-INFERRED, CONSULTANT-CONFIRMED] (this finding
+      only — never bulk, no accept-all for this flow); typing/editing an answer, or typing "out of
+      scope", → [CONSULTANT-STATED]; Skip → skipped. Every resolved finding carries its grounding
+      tag (the tag, not a new marker, is the trust signal). Supersession names the card's cited
+      input file ([SRC: <filename>]) when the chosen resolution changes a fact stated there;
+      absent-from-corpus cards are net-new by construction.
   # ---- /review-requirement rows (root-qualified keys; fingerprint = requirements.md sha) ----
   - method_dir: review-requirements/ADVERSARIAL
     method_slug: adversarial
@@ -162,10 +252,12 @@ methodologies:
       (Other free text) / Mark out-of-scope / Skip. Findings-list display: ttitem entries
       show "score N/6" in place of a severity word (orphans are all blocking). Supersession
       names `requirements/requirements.md` + the finding's anchor.
-  # The two question-style rows below use `elicitation-with-options` (gap-surfacing peer
-  # flow). Other elicitation rows (COMPLETENESS-REVIEW; the elicitation halves of the
-  # kind-dispatched FIRST-PRINCIPLES and REQUIREMENTS-QUALITY rows; REQUIREMENTS-TRACEABILITY)
-  # MAY adopt it later but stay `answer-elicitation` for now — out of scope here.
+  # The two review-requirements question-style rows below use `elicitation-with-options`
+  # (gap-surfacing peer flow), as do the two review-inputs TEN-BA-QUESTIONS / TEN-UX-QUESTIONS
+  # rows above (grounded in the input corpus rather than requirements.md). Other elicitation rows
+  # (COMPLETENESS-REVIEW; the elicitation halves of the kind-dispatched FIRST-PRINCIPLES and
+  # REQUIREMENTS-QUALITY rows; REQUIREMENTS-TRACEABILITY) MAY adopt it later but stay
+  # `answer-elicitation` for now — out of scope here.
   - method_dir: review-requirements/TEN-BA-QUESTIONS
     method_slug: ten-ba-questions
     filename_stem: ten-ba-questions-review-resolutions
@@ -359,7 +451,7 @@ methodologies:
 - `severity_keyword_map` — free-text selection keywords accepted at the drafter's Step 4 multi-pick (e.g. `all blockers`), each mapping to a single vocab value meaning "every finding at that value".
 - `fingerprint_label` — the header `<dt>` label carrying the review's source fingerprint (`Manifest SHA-256` / `Manifest fingerprint` for review-inputs rows; `Source SHA-256` / `Requirements fingerprint` for review-requirements rows). Used by the drafter's Step-2 drift check.
 - `fingerprint_compares_to` — closed enum naming what the drafter's Step-2 drift check hashes for comparison: `source-manifest` (`requirements/source-manifest.json`, review-inputs rows) or `requirements-doc` (`requirements/requirements.md`, review-requirements rows). For `requirements-doc` rows the drafter also pre-flights that `requirements/requirements.md` exists, and its Step 9b addendum branch is armed (see the drafter).
-- `resolution_semantics` — closed enum naming the resolution flow: `apply-recommendation` | `answer-elicitation` | `elicitation-with-options` | `pick-interpretation` | `ratify-candidate` | `kind-dispatched` (the row's findings come in more than one structural kind; the `ask_shape` names per kind which flow applies — confirmation for kinds with an actionable payload, elicitation for observational kinds). `elicitation-with-options` is the **gap-surfacing** flow for question-style methodologies: the finding is an open question an experienced BA/UX peer would raise, so the drafter does not merely collect a free-text answer — it drafts ≥2 (target 3) genuinely distinct, grounded candidate enrichments (each with a one-line implication and exactly one grounding tag — `[grounded: <anchor>]` / `[domain-default]` / `[assumption — confirm with client]`), reconciles them against prior decisions, and presents them as selectable options with out-of-scope demoted to the free-text path (full flow in the drafter's Step 5; trust signal carried by the grounding tag, not a new marker). New methodologies may reuse an existing value or append a new one **here** (with its `ask_shape` describing the flow); the drafter's Step 5 executes whatever the row describes. **Scope note:** only `review-requirements/TEN-BA-QUESTIONS` and `review-requirements/TEN-UX-QUESTIONS` use `elicitation-with-options` today; the other elicitation rows (`COMPLETENESS-REVIEW`, the elicitation halves of the `kind-dispatched` `review-requirements/FIRST-PRINCIPLES` and `review-requirements/REQUIREMENTS-QUALITY`, and `review-requirements/REQUIREMENTS-TRACEABILITY`) **may** adopt it later but retain `answer-elicitation` for now.
+- `resolution_semantics` — closed enum naming the resolution flow: `apply-recommendation` | `answer-elicitation` | `elicitation-with-options` | `pick-interpretation` | `ratify-candidate` | `kind-dispatched` (the row's findings come in more than one structural kind; the `ask_shape` names per kind which flow applies — confirmation for kinds with an actionable payload, elicitation for observational kinds). `elicitation-with-options` is the **gap-surfacing** flow for question-style methodologies: the finding is an open question an experienced BA/UX peer would raise, so the drafter does not merely collect a free-text answer — it drafts ≥2 (target 3) genuinely distinct, grounded candidate enrichments (each with a one-line implication and exactly one grounding tag — `[grounded: <anchor>]` / `[domain-default]` / `[assumption — confirm with client]`), reconciles them against prior decisions, and presents them as selectable options with out-of-scope demoted to the free-text path (full flow in the drafter's Step 5; trust signal carried by the grounding tag, not a new marker). New methodologies may reuse an existing value or append a new one **here** (with its `ask_shape` describing the flow); the drafter's Step 5 executes whatever the row describes. The grounding-tag `<anchor>` resolves per the row's source: requirements.md anchors (`§N.N / F-NN / BR-NN / AMD-NN`) for `requirements-doc` rows, an input filename (the card's cited `[SRC: <filename>]`) for `source-manifest` rows. **Scope note:** four rows use `elicitation-with-options` today — `review-requirements/TEN-BA-QUESTIONS`, `review-requirements/TEN-UX-QUESTIONS` (grounded in requirements.md via the drafter's Step-5 read), and the review-inputs `TEN-BA-QUESTIONS`, `TEN-UX-QUESTIONS` (grounded in the input corpus: the card's own `[SRC: <filename>]` citation + domain defaults, no Step-5 read); the other elicitation rows (`COMPLETENESS-REVIEW`, the elicitation halves of the `kind-dispatched` `review-requirements/FIRST-PRINCIPLES` and `review-requirements/REQUIREMENTS-QUALITY`, and `review-requirements/REQUIREMENTS-TRACEABILITY`) **may** adopt it later but retain `answer-elicitation` for now.
 - `ask_shape` — one short paragraph specifying the per-finding `AskUserQuestion`: what is presented, the option set, and which option maps to which origin marker (`[CONSULTANT-STATED]` / `[AI-INFERRED, CONSULTANT-CONFIRMED]`, and — for `elicitation-with-options` rows — the grounding tag; all canonically defined in `framework/assets/resolve-review/template-resolutions.md`). Every flow must include a Skip option, and every flow in which the drafted content originates from the review (not the consultant) must be confirmed by an explicit consultant affirmative — per finding, or via the explicit accept-all-remaining choice — never silently or by default.
 
 **Adding a new methodology (per-PR steps):**
