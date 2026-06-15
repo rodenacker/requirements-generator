@@ -74,7 +74,7 @@ This pipeline is single-shot and short: no `.progress.json`, no timing NDJSON, n
             - **Discard** — `Bash rm -f resolve-review/resolutions-draft.md` and proceed to step 2. **No git checkpoint** — deliberate divergence from the per-methodology Reset-procedure convention: the draft was never consultant-accepted, so there is no ratified prior state to preserve.
             - **Cancel** — output: *"Keeping the stale draft for inspection. Nothing changed."* Exit cleanly, zero writes.
 2. **Invoke the drafter** — invoke `framework/agents/resolve-review-drafter.md` in the foreground with `review_path`, `methodology_key`, and `map_path: "framework/assets/resolve-review/methodology-map.md"`. Wait until the agent hands back per its Definition of Done.
-3. **Done** — single-shot: declare done per the handback gate below. There is no selection loop; to resolve another review (or the same review again — output files accumulate side-by-side), the consultant re-invokes `/resolve-review`.
+3. **Done** — single-shot: declare done per the handback gate below. On an **accepted run** (not a clean-exit or `RF-04` halt), emit the context-hygiene completion tip (`framework/shared/context-hygiene.md`, verbatim plain text) to the consultant. There is no selection loop; to resolve another review (or the same review again — output files accumulate side-by-side), the consultant re-invokes `/resolve-review`.
 
 ## Handback gate
 
@@ -93,6 +93,7 @@ If neither is satisfied — including an `RF-04` halt at the agent's Step 7, Ste
 - `resolve-review/resolutions-draft.md` — the step-1 stale-draft existence check.
 - `framework/agents/resolve-review-drafter.md` — the agent invoked at step 2.
 - `framework/shared/refusal-registry.md` — `RF-04` semantics surfaced by the drafter at its write steps (via `framework/skills/verify-artifact-write.md`). This orchestrator surfaces no refusal directly.
+- `framework/shared/context-hygiene.md` — the canonical `/clear` completion tip emitted on an accepted run (step 3).
 
 ## Output
 
@@ -107,10 +108,6 @@ If neither is satisfied — including an `RF-04` halt at the agent's Step 7, Ste
 
 The orchestrator's tools are limited to the operations above. Every other read or write belongs to the drafter, which uses the tools listed in its own agent file.
 
-## Context-bloat preflight — deliberately omitted
-
-This orchestrator does **not** call `framework/skills/check-context-bloat.md`. Two reasons: (a) the skill sums only `.md`/`.json` files under `artefact_dir`, so the review artefacts this pipeline actually loads (`.html`) are invisible to it — every plausible invocation would measure ~0 relevant bytes; (b) the pipeline's real context load is the single chosen artefact, which the step-0 size advisory already surfaces. A degraded run costs one `/clear` + re-invoke; persisting nothing makes that recovery free. If the skill ever grows an extensions parameter, revisit.
-
 ## Self-validation (run before declaring done)
 
 - Step 0 ran first: on zero artefacts the friendly exit fired and nothing else ran; on cancel (including the third invalid reply) the orchestrator exited cleanly with nothing written; on selection both `review_path` and `methodology_key` were captured and the map gate passed (or the friendly no-row exit fired).
@@ -118,7 +115,7 @@ This orchestrator does **not** call `framework/skills/check-context-bloat.md`. T
 - The step-0 resolved-status scan read only the provenance-table heads of `input/*-resolutions-*.md` (nothing else under `input/`, no finding content); each artefact's resolved/not-yet tag was derived by matching its repo-relative path against a recorded `Source review` path.
 - Step 1 ran on every path that passed step 0: the Discard branch deleted only `resolve-review/resolutions-draft.md` (no git checkpoint, by design); the Cancel branch exited with zero writes.
 - The drafter was invoked exactly once, in the foreground, with all three parameters; it was never dispatched via the Agent / Task tool.
-- The handback gate was met before declaring done — accepted-run conditions or a documented clean exit; an `RF-04` halt was not papered over.
+- The handback gate was met before declaring done — accepted-run conditions or a documented clean exit; an `RF-04` halt was not papered over. On an accepted run, the context-hygiene completion tip (`framework/shared/context-hygiene.md`) was emitted verbatim, on the success path only.
 - No file was written outside `resolve-review/`, the drafter's single new `input/` file, and (Step 9b, review-requirements-sourced runs only) the drafter's bounded Amendments-section write to `requirements/requirements.md`. Nothing under `framework/state/` was written. The input-handler was not invoked. Neither `requirements/source-manifest.json` nor `requirements/requirements.md` was read by the orchestrator.
 
 ## Definition of Done
@@ -137,7 +134,7 @@ The pipeline is done when exactly one of:
 - Do not surface the step-0 artefact list via `AskUserQuestion` — printed numbered list with the analysis-selector reply mechanics only.
 - Do not surface the per-finding resolution asks or the accept/revise/restart prompt from the orchestrator. Both belong to the drafter.
 - Do not invoke the drafter as a background / sub / async agent. Foreground, same thread, always.
-- Do not invoke the input-handler, `framework/skills/set-build-target.md`, or `framework/skills/check-context-bloat.md` (the latter's omission is deliberate — see the dedicated section).
+- Do not invoke the input-handler or `framework/skills/set-build-target.md`.
 - Do not write `framework/state/.progress.json` or `framework/state/timing.ndjson` on any branch.
 - Do not hardcode any methodology name in control flow. Discovery is by `Glob`; consumability is the map gate; everything downstream resolves from the map row. The orchestrator must work unchanged when a map row is added.
 - Do not git-checkpoint the stale draft before discarding it — it was never consultant-accepted (documented divergence from the Reset-procedure convention). Equally: do not delete it without the consultant's explicit Discard.

@@ -18,7 +18,7 @@ Same shape as `framework/state/.progress.json`:
 ```json
 {
   "run_started_at": "<ISO-8601 UTC>",
-  "status": "running | setup-pending | context-bloated | complete",
+  "status": "running | setup-pending | complete",
   "name_slug": "<the in-flight prototype's slug, or null before Step A>",
   "scope_slug": "<the in-flight scope, or null>",
   "pending_setup": null,
@@ -26,7 +26,7 @@ Same shape as `framework/state/.progress.json`:
 }
 ```
 
-- `status`: `setup-pending` is written on `RF-10`/`RF-11` (`pending_setup: { predicate, advice_path, since }`); `context-bloated` on `RF-05 continue-later`; `complete` on the Step-G accept.
+- `status`: `setup-pending` is written on `RF-10`/`RF-11` (`pending_setup: { predicate, advice_path, since }`); `complete` on the Step-G accept.
 - `events`: append-only within a run; `agent` ∈ `scope-select, input-select, blueprint-architect, prototype-spec-drafter, prototype-spec-resolver, prototype-spec-merger, prototype-app-scaffolder, prototype-generator, prototype-landing-updater`. A stage is **completed for the run** iff its `completed` event exists **and** its on-disk artefact for the in-flight `name_slug` exists.
 
 Agent → artefact ladder (for resumability), keyed on `name_slug` / `scope_slug`:
@@ -48,11 +48,9 @@ Write `run_start` (with `"pipeline":"prototype"`) at the very start; `stage_star
 
 - **run_start** → append timing.
 
-- **Step 0 — Resumability.** Read `.prototype-progress.json` (if present) + the artefact ladder for its `name_slug`. Classify: no prior in-flight run (file absent/empty + no in-flight artefacts) → single-option `{ start-fresh }`; in-flight run detected → `{ continue, start-fresh }` summarising which stages completed for that `name_slug`, which are interrupted, any inconsistency. If `status ∈ {setup-pending, context-bloated}`, surface that. **continue** → resume at the first stage whose completed-and-artefact pair is unsatisfied for the in-flight `name_slug`. **start-fresh** → per-prototype Reset (below) for the in-flight `name_slug`, then Step 0b. (Completed prior prototypes in `.registry.json` are untouched by either branch.)
+- **Step 0 — Resumability.** Read `.prototype-progress.json` (if present) + the artefact ladder for its `name_slug`. Classify: no prior in-flight run (file absent/empty + no in-flight artefacts) → single-option `{ start-fresh }`; in-flight run detected → `{ continue, start-fresh }` summarising which stages completed for that `name_slug`, which are interrupted, any inconsistency. If `status = setup-pending`, surface that. **continue** → resume at the first stage whose completed-and-artefact pair is unsatisfied for the in-flight `name_slug`. **start-fresh** → per-prototype Reset (below) for the in-flight `name_slug`, then Step 0b. (Completed prior prototypes in `.registry.json` are untouched by either branch.)
 
 - **Step 0b — Prerequisite.** `requirements/requirements.md` exists + non-empty; else plain-text *"`requirements/requirements.md` is required — run `/requirements` first."* and exit. (No skill invocation.)
-
-- **Step 0c — Context-bloat preflight.** Invoke `framework/skills/check-context-bloat.md` (`artefact_dir: "prototypes/.specs/"`, `progress_path: "framework/state/.prototype-progress.json"`). On `RF-05 trigger` → `{ proceed-without-clear, continue-later }`; `continue-later` writes `status: "context-bloated"` and exits (this pipeline owns its progress file).
 
 - **Step A — Scope + name + identity.**
   1. Invoke `framework/skills/scope-selector.md` (`output_dir: "blueprints/"`, `pipeline_name: "prototype"`, `propose_divergence_axes: false`). `cancelled` → exit. Capture `scope_slug`; write its `called`/`completed` events.
@@ -66,7 +64,7 @@ Write `run_start` (with `"pipeline":"prototype"`) at the very start; `stage_star
 
 - **Step B — Purpose + posture + positions.** Orchestrator-owned `AskUserQuestion`(s): (1) purpose prose; (2) pick a posture from `framework/assets/wireframes/design-philosophies.md` (render the six with one-line essences; **P6 not pre-selected — require a one-line mixed-population justification if chosen**); (3) accept the posture's D1–D5 defaults or tune them (render labels from `position-vocabulary.md`; validate against `tradeoff-dimensions-registry.md §4/§5` — a hard conflict re-prompts). **If a wireframe `primary_basis` was designated in A3, pre-fill (2)+(3) from that variant's `variant-position.json` — read its `posture` field directly** (wireframe variants are now posture-bound; no "nearest posture" mapping) and adopt its `dimension_positions` as the defaults; the consultant confirms/tweaks. (If the basis variant predates posture-binding and its `posture` is `null`, fall back to picking a posture from the menu as in (2).) Assemble `prototype_identity = { name, name_slug, scope_slug, posture, dimension_positions, primary_persona, purpose_prose, wireframe_basis }`.
 
-- **Step C — Spec DRAFT.** Context-bloat guard, then invoke `framework/agents/prototype-spec-drafter.md` (passing `prototype_identity`). Handback gate: `design-spec-draft.md` + `design-spec-claims.ndjson` exist; reference-integrity passed.
+- **Step C — Spec DRAFT.** Invoke `framework/agents/prototype-spec-drafter.md` (passing `prototype_identity`). Handback gate: `design-spec-draft.md` + `design-spec-claims.ndjson` exist; reference-integrity passed.
 
 - **Step D — RESOLVE.** Invoke `framework/agents/prototype-spec-resolver.md`. Handback gate: `design-spec-answers.md` exists with one entry per `[AI-SUGGESTED]` ID (or the empty-set auto-complete).
 
@@ -82,7 +80,7 @@ Write `run_start` (with `"pipeline":"prototype"`) at the very start; `stage_star
 
 - **Step F4 — Landing update.** Invoke `framework/agents/prototype-landing-updater.md` (passing `prototype_identity` + the generator handback). Handback gate: `.registry.json` upserted + `prototype-registry.ts` regenerated + verified.
 
-- **Step G — Accept gate.** Orchestrator-owned `AskUserQuestion` `{ Accept, Cancel }`. **Accept** → write `prototype-landing-updater`'s `completed` event, set `status: "complete"`, append `run_end`. **Cancel** → leave artefacts on disk, exit cleanly (re-invoke resumes).
+- **Step G — Accept gate.** Orchestrator-owned `AskUserQuestion` `{ Accept, Cancel }`. **Accept** → write `prototype-landing-updater`'s `completed` event, set `status: "complete"`, append `run_end`, then emit the context-hygiene completion tip (`framework/shared/context-hygiene.md`, verbatim plain text) to the consultant. **Cancel** → leave artefacts on disk, exit cleanly (re-invoke resumes).
 
 ## Resumability & Reset
 
@@ -106,8 +104,9 @@ Per step above. A gate not satisfied = do not write the stage's `completed` even
 - Write/Edit — `.prototype-progress.json` only (status, events, name/scope slugs).
 - Bash — append timing events (PowerShell `Add-Content`); the git-checkpoint commit + scoped deletes during Reset. Never destructive outside the Reset delete list.
 - AskUserQuestion — Step 0 branch, name capture, collision, brand capture, posture/positions (Step B), RF surfaces, Step-G accept.
-- Skills — `scope-selector.md`, `select-prototype-inputs.md`, `check-context-bloat.md`.
+- Skills — `scope-selector.md`, `select-prototype-inputs.md`.
 - Agents (foreground) — `blueprint-architect.md`, `prototype-spec-{drafter,resolver,merger}.md`, `prototype-app-scaffolder.md`, `prototype-generator.md`, `prototype-landing-updater.md`.
+- Shared — `framework/shared/context-hygiene.md` (the `/clear` completion tip emitted at the Step-G accept).
 
 ## Self-validation
 
@@ -117,6 +116,7 @@ Per step above. A gate not satisfied = do not write the stage's `completed` even
 - A per-prototype Reset never touched another prototype, the shared library, the scaffold, or the brand.
 - Every orchestrator `AskUserQuestion` is wrapped in `consultant_prompted`/`consultant_responded` timing events; `run_start`/`run_end` bracket the run.
 - On any RF surface, the correct status/pending_setup write (or none) was made per the registry.
+- On the Step-G `Accept`, the context-hygiene completion tip (`framework/shared/context-hygiene.md`) was emitted to the consultant verbatim, on the success path only.
 
 ## Definition of Done
 
@@ -130,5 +130,5 @@ Per step above. A gate not satisfied = do not write the stage's `completed` even
 - Do not delete or reorder other prototypes during a per-prototype Reset; do not `git add` `node_modules`/`.next`.
 - Do not run the generator's sub-agents yourself — the generator owns the parallel dispatch; the orchestrator invokes the generator foreground.
 - Do not advance past a handback gate that is unsatisfied, and do not write a `completed` event without its on-disk artefact.
-- Do not write `status: setup-pending`/`context-bloated` for any predicate other than `RF-10`/`RF-11` and `RF-05` respectively.
+- Do not write `status: setup-pending` for any predicate other than `RF-10`/`RF-11`.
 - Do not use background agents for any interactive surface.

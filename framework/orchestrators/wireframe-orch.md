@@ -31,7 +31,6 @@ This orchestrator and its skills / agents are isolated from the `/requirements`,
 The orchestrator does **read** the following pipeline-external paths:
 
 - `requirements/requirements.md` — the prerequisite gate (existence + non-empty). Read-only.
-- `requirements/`, `framework/state/.progress.json` — **only** as preflight inputs to step 0b's context-bloat skill (existence and byte-size only; called **without** `manifest_path`, so `requirements/source-manifest.json` is not read). Same narrow exception as in `framework/orchestrators/design-system-orch.md` and `framework/orchestrators/analyse-requirement-orch.md`.
 
 The blueprint-architect itself reads `requirements/requirements.md` (in full) plus its scope-restricted slices, the §3 personas block, the pattern catalogue at `framework/assets/pattern-catalogue/`, the canonical trade-off dimensions at `framework/assets/trade-off-dimensions.md`, the wireframe-specific tradeoff-dimensions-registry at `framework/assets/wireframes/tradeoff-dimensions-registry.md`, the Stage-1b selection at `wireframes/<scope-slug>/analyses-inputs.json` (if present), and per selection either `selections[i].sidecar_path` (the ≤ 20 KB structured JSON projection per `framework/assets/analyses/sidecar-schema.md`, preferred — sidecar branch) or `selections[i].output_path` (the prose artefact, only on the legacy-fallback branch when no sidecar exists, capped at 60 KB by `RF-09`), and (legacy fallback when `analyses-inputs.json` is absent and the file happens to exist) `analyse-requirements/TRADE-OFF-DIMENSIONS/trade-off-matrix.html` as an optional dimension-applicability input. See `framework/agents/blueprint-architect.md > Inputs`.
 
@@ -47,11 +46,7 @@ Unlike `requirements-orch.md`, this orchestrator does **not** maintain a `.progr
 
 0. **Prerequisite gate** — `Read requirements/requirements.md`.
     - If the file does not exist, OR exists but is empty (zero bytes after trim): emit the single plain-text line *"`requirements/requirements.md` is required to run `/wireframe`. Run `/requirements` first to produce it, then re-invoke `/wireframe`."* and exit cleanly. Do **not** invoke any skill or agent, do **not** prompt the consultant, do **not** write any file. This is a hard, recovery-by-re-invoke exit — analogous in spirit to `RF-04`'s plain-text halt, but specific to this orchestrator's prerequisite.
-    - If the file exists and is non-empty: advance to step 0b.
-
-0b. **Preflight: context-bloat check** — performed only when step 0 did not exit. Call `framework/skills/check-context-bloat.md` with `artefact_dir = requirements/` and `progress_path = framework/state/.progress.json` — **no `manifest_path`** (the architect reads `requirements.md` plus the selected analyses sidecars, never the raw `input/` corpus, so the manifest's input bytes and `row_count` would be noise; the architect's own per-selection sidecar budget is enforced separately at `framework/skills/select-supporting-analyses.md` step 10). On `ok`, proceed to step 0c. On `RF-05 trigger`, surface the predicate per `framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` (wireframe-orch surface variant, see below) via `AskUserQuestion` with the choice set `{ proceed-without-clear, continue-later }`.
-    - `proceed-without-clear` — proceed to step 0c.
-    - `continue-later` — output: *"Conversation context looks bloated from prior pipeline state. Run `/clear` and re-invoke `/wireframe` for a clean run."* and exit cleanly. Do **not** write `framework/state/.progress.json` — the wireframe pipeline is bound by the no-write-outside-`wireframes/`-and-`blueprints/` invariant. Do **not** modify any path under `wireframes/` or `blueprints/`.
+    - If the file exists and is non-empty: advance to step 0c.
 
 0c. **Scope-slug capture and prior-set detection** — invoke `framework/skills/scope-selector.md` with `output_dir = blueprints/`, `pipeline_name = "wireframe"`, `propose_divergence_axes = true`. The skill captures the scope-slug (via a dedicated naming prompt before mode selection) **and** writes `blueprints/<scope-slug>/scope.json` per its dual-mode (structural / free-form) procedure, persisting a goal/persona-driven `divergence_profile` into `scope.json` because `propose_divergence_axes` is `true` (a future `/prototype` would pass `false` and the skill would omit it). On `selected`, capture the returned `scope_slug` into in-memory variable `chosen.scope_slug` and advance to step 0d. On `cancelled`, emit *"Cancelled. No wireframe set produced."* and exit cleanly.
 
@@ -122,7 +117,7 @@ Branch:
 - **Accept** — declare done.
 - **Cancel** — output: *"Wireframe set for `{{chosen.scope_slug}}` left as-is. Re-invoke `/wireframe` with Overwrite or the Advanced → Regenerate variants only path to redo."* and exit (the Stage-4 handback gate is not met by the orchestrator's Definition of Done, but the artefacts remain on disk for forensic inspection).
 
-After 4b's Accept response, the orchestrator declares done.
+After 4b's Accept response, the orchestrator emits the context-hygiene completion tip (`framework/shared/context-hygiene.md`, verbatim plain text) and declares done.
 
 ## Per-scope Reset procedures (overwrite or regenerate-variants)
 
@@ -206,14 +201,13 @@ If any of the above is not satisfied at its stage, do not advance to the next st
 
 - `framework/skills/scope-selector.md` — invoked at step 0c (always, with `propose_divergence_axes = true` so the skill persists a goal/persona-driven `divergence_profile` into `scope.json` for the architect's Stage-2 divergence precedence) and step 1 (verification only on `mode = "create"`).
 - `framework/skills/select-supporting-analyses.md` — invoked at Stage 1b's Capture-path only (skipped on the Reuse-path).
-- `framework/skills/check-context-bloat.md` — invoked once at step 0b before any wireframe-pipeline work; invoked again transitively by `select-supporting-analyses.md` at its post-write context-bloat re-check.
 - `framework/skills/check-pattern-coverage.md` — invoked transitively by the blueprint-architect.
 - `framework/agents/blueprint-architect.md` — the cross-pipeline architect agent invoked at Stage 2.
 - `framework/agents/wireframe-variant-generator.md` — the wireframe-private variant generator dispatched N times in parallel at Stage 3.
 - `framework/agents/wireframe-comparator.md` — the wireframe-private comparator agent invoked at Stage 4.
-- `requirements/requirements.md` — read at step 0 (existence + non-empty check). This is the orchestrator's only direct read under `requirements/` outside the step-0b preflight.
-- `framework/shared/refusal-registry.md` — `RF-04` (write-verify) and `RF-05` (wireframe-orch surface variant) semantics surfaced by this orchestrator and by its agents at their write steps.
-- `requirements/`, `framework/state/.progress.json` — read **only** as preflight inputs to step 0b's context-bloat skill (called without `manifest_path`). See the stand-alone constraint above.
+- `requirements/requirements.md` — read at step 0 (existence + non-empty check). This is the orchestrator's only direct read under `requirements/`.
+- `framework/shared/refusal-registry.md` — `RF-04` (write-verify) semantics surfaced by this orchestrator and by its agents at their write steps.
+- `framework/shared/context-hygiene.md` — the canonical `/clear` completion tip emitted on successful completion (after the Stage-4b accept).
 
 ## Output
 
@@ -227,28 +221,17 @@ This orchestrator produces no artefacts of its own. Each Stage produces its own 
 
 ## Tools
 
-- `Read` — check whether `requirements/requirements.md` exists and is non-empty at step 0; check whether `blueprints/<chosen.scope_slug>/scope.json` exists (existence + JSON-parse) at step 1 verification; check whether `wireframes/<chosen.scope_slug>/analyses-inputs.json` exists (existence + JSON-parse) at Stage 1b's Reuse-path detection; read `framework/state/.progress.json` and the `.md` / `.json` files directly under `requirements/` (existence and byte size only) as preflight inputs to the step-0b context-bloat skill (no `manifest_path` is passed, so `requirements/source-manifest.json` is not read); read `wireframes/<chosen.scope_slug>/variants.json` to enumerate variants for Stage-3 dispatch. No other reads outside the skills' / agents' input paths are permitted.
+- `Read` — check whether `requirements/requirements.md` exists and is non-empty at step 0; check whether `blueprints/<chosen.scope_slug>/scope.json` exists (existence + JSON-parse) at step 1 verification; check whether `wireframes/<chosen.scope_slug>/analyses-inputs.json` exists (existence + JSON-parse) at Stage 1b's Reuse-path detection; read `wireframes/<chosen.scope_slug>/variants.json` to enumerate variants for Stage-3 dispatch. No other reads outside the skills' / agents' input paths are permitted.
 - `Glob` — at step 0d, check for prior-set existence under `blueprints/<chosen.scope_slug>/` and `wireframes/<chosen.scope_slug>/`. No other Glob usage.
 - `Bash` — git checkpoint commit + `rm -rf` / `rm -f` of scoped per-scope directories during the Reset procedures only. No other Bash usage. Never use destructive operations beyond the explicitly named paths. Never push or skip hooks.
 - `Agent` — dispatch the parallel `wireframe-variant-generator` sub-agents at Stage 3, in a single message with N tool calls (N ≤ 4 hard cap). The Agent tool is **not** used for any other stage.
-- `AskUserQuestion` — surface (1) the step-0d primary `{ Overwrite, Keep, Advanced, Cancel }` prompt when a prior set exists; (2) the step-0d secondary `{ Regenerate variants only, Add a variant, Back, Cancel }` Advanced prompt when the consultant picked Advanced; (3) the `RF-05 { proceed-without-clear, continue-later }` prompt when the step-0b preflight returns `RF-05 trigger`; (4) the Stage-3 `{ Retry, Skip, Cancel }` prompt on a failed sub-agent; (5) the Stage-4b `{ Accept, Cancel }` final accept prompt after the comparator hands back `ok`. The intent prompt, the confirmation gate, the structural/free-form pickers (now opt-in branches), the Stage-1b Confirm-Edit-Cancel / context-bloat prompts (the zero-on-disk case auto-proceeds without a prompt), and the architect's conditional gate belong to the respective skills / agents — the orchestrator does not surface them directly.
+- `AskUserQuestion` — surface (1) the step-0d primary `{ Overwrite, Keep, Advanced, Cancel }` prompt when a prior set exists; (2) the step-0d secondary `{ Regenerate variants only, Add a variant, Back, Cancel }` Advanced prompt when the consultant picked Advanced; (3) the Stage-3 `{ Retry, Skip, Cancel }` prompt on a failed sub-agent; (4) the Stage-4b `{ Accept, Cancel }` final accept prompt after the comparator hands back `ok`. The intent prompt, the confirmation gate, the structural/free-form pickers (now opt-in branches), the Stage-1b Confirm-Edit-Cancel / selection-size prompts (the zero-on-disk case auto-proceeds without a prompt), and the architect's conditional gate belong to the respective skills / agents — the orchestrator does not surface them directly.
 
 The orchestrator's tools are limited to the operations above. Every other read or write of wireframe / blueprint content belongs to the invoked skill or agent; each uses the tools listed in its own file.
-
-## RF-05 — wireframe-orch surface variant
-
-`framework/shared/refusal-registry.md > RF-05 prior_stage_context_bloated` is defined with named surface variants (`requirements-orch`, `design-system-orch`, plus `analyse-requirement-orch` as an in-flight third variant). The `/wireframe` pipeline uses a **fourth surface variant** identical in shape to the `design-system-orch` variant:
-
-- Fired once at step 0b, immediately after the step-0 prerequisite gate passes and before the scope-selector runs.
-- `proceed-without-clear` advances; `continue-later` exits cleanly with a *"run `/clear` and re-invoke `/wireframe`"* message.
-- **No write to `framework/state/.progress.json`** on either branch. The `/wireframe` pipeline is bound by the no-write-outside-`wireframes/`-and-`blueprints/` invariant; the registry's wireframe-orch surface variant for `RF-05` deliberately omits the `status: context-bloated` write that the requirements-orch variant performs.
-
-When the registry file is next revised, append a fourth surface-variant block for `wireframe-orch` to keep that document in sync. The runtime contract is captured here and in `framework/orchestrators/wireframe-orch.md > Pipeline > step 0b` as the operational source of truth.
 
 ## Self-validation (run before declaring done)
 
 - Step 0 ran. `requirements/requirements.md` exists and is non-empty. If it did not, the orchestrator exited cleanly with the prerequisite message and no skill / agent was invoked.
-- Step 0b ran on every path that did not exit at step 0, and the consultant's `RF-05` choice (if surfaced) was honoured: `proceed-without-clear` advanced; `continue-later` exited cleanly without writing `framework/state/.progress.json` and without modifying `wireframes/` or `blueprints/`.
 - Step 0c ran. The scope-selector was invoked with `propose_divergence_axes = true` (so `scope.json` carries a `divergence_profile` for the architect's Stage-2 divergence precedence), returned exactly one of `selected | cancelled`, and the orchestrator branched accordingly.
 - Step 0d ran. The consultant's choice was honoured: the primary 4-option prompt (`Overwrite`, `Keep`, `Advanced`, `Cancel`) advanced to the secondary 4-option Advanced prompt (`Regenerate variants only`, `Add a variant`, `Back`, `Cancel`) only when `Advanced` was picked; the consultant's terminal choice on the primary or secondary prompt was honoured.
 - Stage 1b ran on every path that did not exit at step 0d. Either (Reuse-path) `wireframes/<chosen.scope_slug>/analyses-inputs.json` already existed and parsed (no skill invocation, no consultant prompt), or (Capture-path) `framework/skills/select-supporting-analyses.md` was invoked and returned `selected` / `selected-none` / `cancelled` — the orchestrator branched accordingly. On `cancelled` the orchestrator exited cleanly.
@@ -257,7 +240,7 @@ When the registry file is next revised, append a fourth surface-variant block fo
 - Stage 2 (architect) ran on every non-exiting path; its handback gate was met (artefacts written, verify pass, conditional gate either not fired or resolved). The variant distinctness check was satisfied on `dimension_positions` **OR** the `surface_plan` realization-vector (two variants identical on positions but distinct on decomposition are valid); every variant carried a `surface_plan` keyed 1:1 to the blueprint's `LS-NN` surface inventory with realizations drawn from each surface's `Allowed realizations` and catalogue-valid patterns. The architect surfaced no routine variant-composition prompts (those were removed; composition is deterministic from `scope.json > divergence_profile` / `dimension_override` + `domain-defaults.md`).
 - Stage 3 (variant generators) ran via `Agent` tool with ≤4 parallel calls in a single message. Every sub-agent's handback gate was met — its physical-screen existence was keyed to **that variant's `surface_plan`** (standalone surfaces → one file, wizard-split → N sub-screen files, folded surfaces → no own file, rendered as a host_state on the host screen; ordinal `screen-NN` gaps from folded surfaces are expected); no per-variant `wireframes.html` was authored; per-variant directory contains only the `surface_plan`-derived screen files + DS + two JSON sidecars — OR the consultant explicitly accepted a `Skip` or `Cancel` at the per-failure prompt.
 - Stage 4 (comparator) ran on every non-cancelled path; its handback gate was met (two artefacts written: index.html, _drift.json — both verify pass; the §4 matrix carries a "Decomposition / structure" row group keyed by `LS-NN` alongside the dimension rows, and §2 is grouped by logical surface with host hints for folded surfaces; comparator returned `ok`; legacy `comparison.html` was cleaned if present). The comparator surfaced no accept loop.
-- Stage 4b (orchestrator accept) ran on every non-cancelled path; the consultant chose `Accept` or `Cancel` at the orchestrator-owned final prompt.
+- Stage 4b (orchestrator accept) ran on every non-cancelled path; the consultant chose `Accept` or `Cancel` at the orchestrator-owned final prompt. On `Accept`, the context-hygiene completion tip (`framework/shared/context-hygiene.md`) was emitted to the consultant verbatim, on the success path only.
 - No file was written outside `wireframes/<chosen.scope_slug>/` and `blueprints/<chosen.scope_slug>/` (excluding the step-0d git checkpoint commits, which are git-history writes, not filesystem artefacts under a state directory).
 - The scope-selector, blueprint-architect, and wireframe-comparator were run in the foreground, never via the Agent / Task / fork / sub-agent mechanism. The wireframe-variant-generator was the **only** agent dispatched via the Agent tool, and only at Stage 3.
 
@@ -266,7 +249,6 @@ When the registry file is next revised, append a fourth surface-variant block fo
 - Either the consultant chose `Keep` or `Cancel` at step 0d (primary or secondary Advanced prompt) (and the orchestrator exited cleanly), or
 - The consultant chose `cancelled` at the scope-selector at step 0c (and the orchestrator exited cleanly), or
 - The consultant chose `cancelled` at the Stage-1b supporting-analyses selector (Capture-path; and the orchestrator exited cleanly), or
-- The consultant chose `continue-later` at the step-0b RF-05 prompt (and the orchestrator exited cleanly with no state write), or
 - The consultant chose `Cancel` at the Stage-4b final accept prompt (and the orchestrator exited cleanly with artefacts left on disk for forensic inspection), or
 - The prerequisite gate at step 0 fired (and the orchestrator exited cleanly with the `requirements.md is required` message), or
 - All four stages plus Stage 1b ran to handback (with consultant accepts at Stages 1 and 2; Stage 1b returned `selected` / `selected-none` on Capture-path or detected a parseable file on Reuse-path; sub-agent successes or explicitly accepted skips at Stage 3; comparator returned `ok`), and the Stage-4b accept gate returned `Accept`, leaving `wireframes/<chosen.scope_slug>/{analyses-inputs.json, index.html, _drift.json}` (no `comparison.html` — the trade-off matrix lives inside `index.html` §4) and per-variant subdirectories (each containing the variant's `screen-NN-*.html` files, `wireframe-ds.css`, `manifest.json`, `variant-position.json` — **no `wireframes.html`**) on disk, all verify-artifact-write'd. The per-variant screen-file set is derived from **that variant's `surface_plan`**, not the blueprint inventory: one file per `standalone-screen` surface, N sub-screen files per `wizard-split` surface, and **no** file for a folded surface (`inline-drawer` / `inline-expand` / `modal`, which renders as a host_state on its host surface's screen) — so ordinal gaps in `screen-NN` numbering are expected when a surface is folded.
@@ -275,7 +257,7 @@ When the registry file is next revised, append a fourth surface-variant block fo
 
 - Do not perform any task other than the steps listed above.
 - Do not advance past any stage's handback gate before it is met.
-- Do not read, write, or edit any wireframe or blueprint artefact directly. The orchestrator's only direct disk operations are the existence checks (Read / Glob), the per-scope Reset procedures (Bash rm + git commit), the step-0b preflight reads, the Stage-1b reuse-path existence check on `wireframes/<chosen.scope_slug>/analyses-inputs.json`, and the Stage-3 variants.json read for dispatch enumeration. Every other read or write belongs to the invoked skill or agent.
+- Do not read, write, or edit any wireframe or blueprint artefact directly. The orchestrator's only direct disk operations are the existence checks (Read / Glob), the per-scope Reset procedures (Bash rm + git commit), the Stage-1b reuse-path existence check on `wireframes/<chosen.scope_slug>/analyses-inputs.json`, and the Stage-3 variants.json read for dispatch enumeration. Every other read or write belongs to the invoked skill or agent.
 - Do not invoke `select-supporting-analyses` on the Reuse-path. The Reuse-path is a pure existence + parse check by the orchestrator; re-running the selector would re-prompt the consultant unnecessarily on `Regenerate variants only` and `Add a variant` flows.
 - Do not let the Stage-1b skill write outside `wireframes/<chosen.scope_slug>/`. The skill's `output_dir` parameter is fixed to `"wireframes/"`; any deviation breaks the wireframe-private write-isolation invariant.
 - Do not call any skill, asset, or tool not invoked transitively by the skills / agents or listed in this orchestrator's **Tools** section.
@@ -285,9 +267,7 @@ When the registry file is next revised, append a fourth surface-variant block fo
 - Do not delete anything outside `blueprints/<chosen.scope_slug>/` and `wireframes/<chosen.scope_slug>/` during any reset. The Reset procedures are scoped to one scope-slug per invocation.
 - Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the checkpoint commits.
 - Do not maintain a `.progress.json` file. This orchestrator is multi-stage but single-pass; resumability is achieved by per-scope on-disk detection at step 0d.
-- Do not skip step 0b on a path that did not exit at step 0. The preflight is the only place where prior-conversation bloat is detected before any wireframe work runs.
-- Do not write `framework/state/.progress.json` on the `RF-05 continue-later` branch. The wireframe pipeline is bound by the no-write-outside-`wireframes/`-and-`blueprints/` invariant.
-- Do not read `framework/state/` or `framework/shared/` outside the narrow exceptions documented in **Stand-alone constraint** (the step-0b preflight inputs and the refusal-registry references that downstream agents transitively load).
+- Do not read `framework/state/` or `framework/shared/` outside the refusal-registry references that downstream agents transitively load, per **Stand-alone constraint**.
 - Do not surface the step-0c intent prompt, confirmation gate, or any Edit-scope / Edit-dimensions sub-prompts from within this orchestrator. Those belong to the scope-selector skill; surfacing them inline duplicates the skill's logic and breaks the cross-pipeline reuse contract (`/prototype` must be able to invoke the same skill with a different `pipeline_name` without orchestrator-level edits leaking).
 - Do not surface the Stage 2 conditional gate from within this orchestrator. It belongs to the architect's handback step.
 - Do not surface a comparator accept/revise/restart loop. That loop has been removed; the orchestrator owns the Stage-4b accept gate (a single Accept / Cancel prompt) and the comparator hands back `ok` after its three writes without any AskUserQuestion of its own.

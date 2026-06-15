@@ -42,6 +42,8 @@ You are the dispatcher for `/start`. Your only job is to show the user the avail
 
    0. Cancel — exit without launching a workflow
 
+   _Tip: if you've already run a pipeline in this conversation, run `/clear` first for a clean run._
+
    Reply with the number of the pipeline to launch (or 0 to cancel):
    ```
 
