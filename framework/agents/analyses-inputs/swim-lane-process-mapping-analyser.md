@@ -51,7 +51,7 @@ The in-memory `model` (every process, actor, step, handoff, disconnect, gap entr
 This agent reads:
 
 - `requirements/source-manifest.json` (read once in Step 2; the orchestrator's Step 1 input-handler invocation guarantees its presence).
-- For each manifest row whose `tier != "Unsupported"`: the file at `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`).
+- For each manifest row whose `tier != "Unsupported"`: the read path resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text`, `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`.
 - `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` (read once in Step 3 if present, for additive merge).
 - `framework/assets/characters/swim-lane-process-mapping-inputs-analysis.md` (the character — loaded once in Step 1).
 - `framework/assets/analyses-inputs/swim-lane-process-mapping-reference.md` (the methodology — read once in Step 1).
@@ -81,9 +81,9 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - `Read requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_sha256` for the embedded JSON metadata block and the drift cursor.
 - Parse the manifest. Capture `target` field if present (`prototype` | `application`); else default to `"(not declared in manifest)"`.
-- Iterate rows; for each row, dispatch by `tier`:
+- Iterate rows; for each row, resolve the read path via the Read-path resolution rule in `framework/skills/build-source-manifest.md` (if `converted_sibling` is non-null, read it; otherwise read `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
-  - `Native-multimodal` → `Read row.original_path` (the Read tool surfaces image bytes via Claude's multimodal vision); transcribe visible text and structurally significant observations to a per-source notes buffer; capture `(filename, tier, sha256[:8], visual_notes)` to `consumed_rows`. **Process diagrams, BPMN sketches, whiteboard photos, flowcharts are high-leverage sources for this analyser** — they often carry explicit handoff structure the prose lacks. Pay particular attention to: numbered steps, arrow directions, role labels on lanes, branch labels on decision points, swim-lane partition boundaries, message annotations on edges.
+  - `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler. The description already enumerates the swim-lane-relevant material it depicts: actors / lanes, process steps, handoffs and their trigger events, decision branches, and the payloads that cross lane boundaries. Treat it as the canonical text source; do **not** re-interpret pixels. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. **Process diagrams, BPMN sketches, whiteboard photos, flowcharts are high-leverage sources for this analyser** — they often carry explicit handoff structure the prose lacks, and the frozen description surfaces it as text: numbered steps, arrow directions, role labels on lanes, branch labels on decision points, swim-lane partition boundaries, and message annotations on edges are all transcribed and structured.
   - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
 - If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `input/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
@@ -119,12 +119,12 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 ### Step 4 — Round 1: Process discovery
 
-For each row in `consumed_rows`, scan the content (text or transcribed visual notes) for **process candidates** — sequences of steps that involve ≥ 2 actors with at least one explicit handoff. Signals:
+For each row in `consumed_rows`, scan the content (raw text for `Native-text` rows, or the frozen description text for the visual / converted tiers) for **process candidates** — sequences of steps that involve ≥ 2 actors with at least one explicit handoff. Signals:
 
 - Numbered workflows ("1. User submits ... 2. Finance validates ... 3. Manager approves ...").
 - Section headers naming workflows ("Expense submission", "Customer onboarding", "Dispute resolution", "Escalation path").
 - Verb chains crossing actor mentions ("the user uploads X, then finance validates Y and forwards to the manager").
-- Process diagrams in `Native-multimodal` rows — these often carry explicit lane partitioning that the prose lacks.
+- Process diagrams described in `Native-multimodal` / `Vector-renderable` frozen descriptions — these often carry explicit lane partitioning that the prose lacks.
 
 A process candidate is:
 
@@ -189,7 +189,7 @@ State the actor-extraction outcome aloud:
 
 ### Step 6 — Round 3: Step extraction + typing
 
-For each process, walk the source spans (text + transcribed visual notes) and extract steps in **evidenced order**:
+For each process, walk the source spans (raw text for `Native-text` rows, or the frozen description text for the visual / converted tiers) and extract steps in **evidenced order**:
 
 ```
 {
@@ -505,7 +505,7 @@ Output the final handback line:
 ## Inputs
 
 - `requirements/source-manifest.json` — the manifest. Read once in Step 2.
-- Each manifest row's `original_path` (`Native-text` / `Native-multimodal`) or `converted_sibling` (`Supported-via-MCP`). Read in Step 2.
+- Each manifest row's resolved read path per the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text`, `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`. Read in Step 2.
 - `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` — prior run's artefact. Read once in Step 3 if present.
 - `framework/assets/characters/swim-lane-process-mapping-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/swim-lane-process-mapping-reference.md` — the methodology reference. Read once in Step 1.
@@ -548,7 +548,7 @@ Before handing back, verify all of the following against the written artefact an
 - The trailing `<section class="next-steps">` contains the Disconnect-Register-as-elicitation message and the copy-to-input instruction.
 - **No occurrence of `[AI-SUGGESTED]` on any disconnect trigger event description.** Search the rendered artefact: every `tr.dc-row` `description` cell is `[AI-SUGGESTED]`-free; the description names the missing element, not a fabricated guess.
 - **No occurrence of silent `clean` classification.** Every `tr.dc-row.dc-clean` cites all four cleanliness elements (named source step, trigger, receiver, payload) in its `description` or has source citations supporting each element verbatim. Spot-check at least 3 `clean` rows for this property.
-- No file under `requirements/` other than `requirements/source-manifest.json` AND each manifest-enumerated source file's `original_path` or `converted_sibling` was read.
+- No file under `requirements/` other than `requirements/source-manifest.json` AND each manifest-enumerated source file's resolved read path (`original_path` for `Native-text`; `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`, per the Read-path resolution rule in `framework/skills/build-source-manifest.md`) was read.
 - No file under `framework/state/` was read. No file under `framework/shared/` was read.
 - The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, in which case Accept in Step 12 is still required to declare done).
 

@@ -24,17 +24,21 @@ Ten transitive load/read/invoke trees, one per orchestrator. Source of truth for
 ### `@input-handler-subtree` (graphs 1, 5, 6, 7 — one set of files on disk)
 
 ```
-input-handler.md → check-manifest-freshness.md, classify-input-tier.md, preflight-mcp.md,
-                   convert-input-file.md, build-source-manifest.md, verify-artifact-write.md,
-                   refusal-registry.md, setup-instructions/markitdown.md
-  classify-input-tier → convert-input-file
-  preflight-mcp       → refusal-registry
-  convert-input-file  → verify-artifact-write, refusal-registry
-  build-source-manifest → verify-artifact-write
-  verify-artifact-write → refusal-registry
+input-handler.md → check-manifest-freshness.md, classify-input-tier.md, preflight-mcp.md, preflight-cli.md,
+                   convert-input-file.md, describe-visual-input.md, render-visual-to-raster.md,
+                   build-source-manifest.md, verify-artifact-write.md,
+                   refusal-registry.md, setup-instructions/markitdown.md, setup-instructions/visual-render.md
+  classify-input-tier     → convert-input-file
+  preflight-mcp           → refusal-registry
+  preflight-cli           → refusal-registry
+  convert-input-file      → verify-artifact-write, refusal-registry
+  render-visual-to-raster → (Bash render to scratch raster; no skill edges)
+  describe-visual-input   → template-visual-description.md, verify-artifact-write, refusal-registry
+  build-source-manifest   → verify-artifact-write
+  verify-artifact-write   → refusal-registry
 ```
 
-Per-caller `progress_path`: requirements = `.progress.json`; generate-prd = `.prd-progress.json`; analyse-inputs / review-inputs = `null` (suppresses the agent's `RF-01 continue-later` write). `check-manifest-freshness` runs at step 0 (create / refresh / no-op / halt decision) whenever a manifest exists; the other five skills run at steps 3–6 on create/refresh only.
+Per-caller `progress_path`: requirements = `.progress.json`; generate-prd = `.prd-progress.json`; analyse-inputs / review-inputs = `null` (suppresses the agent's `RF-01 continue-later` write). `check-manifest-freshness` runs at step 0 (create / refresh / no-op / halt decision) whenever a manifest exists; the conversion/description skills run at steps 3–6 on create/refresh only. `preflight-mcp` runs at step 4a only when a `Supported-via-MCP` row exists; `preflight-cli` runs at step 4b only when a `Vector-renderable` row exists. `convert-input-file` handles `Supported-via-MCP`; `describe-visual-input` handles `Native-multimodal` and (after `render-visual-to-raster`) `Vector-renderable`.
 
 ---
 

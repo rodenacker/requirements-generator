@@ -61,7 +61,7 @@ The JTBD-X six rounds map to twelve workflow steps. The mapping is one-to-one fo
 This agent reads:
 
 - `requirements/source-manifest.json` (read once in Step 2; the orchestrator's Step 1 input-handler invocation guarantees its presence).
-- For each manifest row whose `tier != "Unsupported"`: the file at `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`).
+- For each manifest row whose `tier != "Unsupported"`: the read path resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text`, `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`.
 - `analyse-inputs/JTBD/jtbd-job-map.html` (read once in Step 3 if present, for additive merge).
 - `framework/assets/characters/jtbd-inputs-analysis.md` (the character — loaded once in Step 1).
 - `framework/assets/analyses-inputs/jtbd-reference.md` (the methodology — read once in Step 1).
@@ -89,16 +89,16 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 ### Step 2 — Read manifest & per-tier file ingest
 
 - `Read requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_fingerprint` for the artefact's meta-comment and the cursor field.
-- Parse the manifest. Iterate rows; for each row, dispatch by `tier`:
+- Parse the manifest. Iterate rows; for each row, resolve the read path via the Read-path resolution rule in `framework/skills/build-source-manifest.md` (if `converted_sibling` is non-null, read it; otherwise read `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
-  - `Native-multimodal` → `Read row.original_path` (the Read tool surfaces image bytes via Claude's multimodal vision); transcribe the visible text and structurally significant observations (whiteboard layout, sticky-note clusters, slide structure, screenshot annotations, etc.) to a per-source notes buffer; capture `(filename, tier, sha256[:8], visual_notes)` to `consumed_rows`.
+  - `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler. The description already transcribes the visible text and enumerates the JTBD-relevant material it depicts (whiteboard layout, sticky-note clusters, slide structure, screenshot annotations — actors, situations, motivations are transcribed and structured). Treat it as the canonical text source; do **not** re-interpret pixels. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
 - If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no manifest rows at all), halt with the structured error: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `input/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
 - If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row is `Unsupported`), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `input/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
 - State the per-tier ingest decisions aloud:
 
-  > *"Step 2: read manifest (`manifest_fingerprint = <first 12 chars>…`). 4 consumable rows: `brief.docx` (Supported-via-MCP, reading `input/brief.docx.converted.md`), `whiteboard-photo.png` (Native-multimodal, reading `input/whiteboard-photo.png` with vision), `interview-notes.md` (Native-text), `slack-export.md` (Native-text). 1 skipped row: `proposal.pages` (Unsupported, reason: `markitdown: failed — Apple Pages format not supported`)."*
+  > *"Step 2: read manifest (`manifest_fingerprint = <first 12 chars>…`). 4 consumable rows: `brief.docx` (Supported-via-MCP, reading `input/brief.docx.converted.md`), `whiteboard-photo.png` (Native-multimodal, reading `input/whiteboard-photo.png.converted.md` — the frozen description), `interview-notes.md` (Native-text), `slack-export.md` (Native-text). 1 skipped row: `proposal.pages` (Unsupported, reason: `markitdown: failed — Apple Pages format not supported`)."*
 
 ### Step 3 — Detect prior artefact (additive vs re-extract)
 
@@ -126,7 +126,7 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 ### Step 4 — Round 1: Situations & Actors
 
-- For each row in `consumed_rows`, walk the content (text or transcribed visual notes) and extract candidate `(actor, situation)` pairs:
+- For each row in `consumed_rows`, walk the content (raw text for `Native-text` rows, or the frozen description text for the visual / converted tiers) and extract candidate `(actor, situation)` pairs:
 
   ```
   {
@@ -141,7 +141,7 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
   ```
 
 - Actor sources, in priority order: role titles named in input prose; first-person actor reference in interview notes; descriptor fallback (lift the prose phrase verbatim if no role title is named).
-- Situation sources: verbatim or near-verbatim extracts from input prose, slide-deck text, or transcribed visual notes. Reject vague phrases at this stage (saves work in Round 2): *"when using the app"*, *"when using the system"*, *"during a session"*, *"when the user opens the system"*, *"in general"*, *"sometimes"*. If a source describes a situation only via a vague phrase, do not invent a concrete one — drop the candidate and surface the source in Diagnostics as a low-yield row.
+- Situation sources: verbatim or near-verbatim extracts from input prose, slide-deck text, or the frozen description text of a visual source. Reject vague phrases at this stage (saves work in Round 2): *"when using the app"*, *"when using the system"*, *"during a session"*, *"when the user opens the system"*, *"in general"*, *"sometimes"*. If a source describes a situation only via a vague phrase, do not invent a concrete one — drop the candidate and surface the source in Diagnostics as a low-yield row.
 - Synonyms and near-duplicates are kept at this stage; dedup happens in Round 2.
 - State per-source candidate counts aloud:
 
@@ -419,7 +419,7 @@ Output the final handback line:
 ## Inputs
 
 - `requirements/source-manifest.json` — the manifest enumerating consumable input files. Read once in Step 2. The orchestrator's Step 1 input-handler invocation guarantees its presence.
-- Each manifest row's `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`). Read in Step 2.
+- Each manifest row's resolved read path per the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text`, `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`. Read in Step 2.
 - `analyse-inputs/JTBD/jtbd-job-map.html` — the prior run's artefact. Read once in Step 3 if present; absent on first run.
 - `framework/assets/characters/jtbd-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/jtbd-reference.md` — the methodology reference. Read once in Step 1.
@@ -460,7 +460,7 @@ Before handing back, verify all of the following against the written artefact an
 - The opportunity matrix renders one `<table class="opportunity-matrix">` with 5 row-headers + 5 cells per row (25 data cells); every `final_jobs` row is rendered as exactly one `<span class="job-chip">` in the cell matching its `(importance, satisfaction)` pair.
 - The Diagnostics block contains: the summary `<p>`, the provenance `<p>`, the outcomes `<p>`, the scoring `<p>`, the forces `<p>`, the Source roster — Consumed `<table class="source-roster">` (one row per `consumed_rows` entry), the Source roster — Skipped `<table>` or the *"(no skipped rows at this run)"* paragraph, the Quality gates `<ul>` (7 `<li>`), and the Run history `<ul>` with `run_count` bullets.
 - No occurrence of the literal string `[AI-SUGGESTED]` anywhere in the artefact.
-- No file under `requirements/` other than `requirements/source-manifest.json` AND each manifest-enumerated source file's `original_path` or `converted_sibling` was read.
+- No file under `requirements/` other than `requirements/source-manifest.json` AND each manifest-enumerated source file's resolved read path (`original_path` for `Native-text`; `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`, per the Read-path resolution rule in `framework/skills/build-source-manifest.md`) was read.
 - No file under `framework/state/` was read. No file under `framework/shared/` was read. The sibling artefact at `analyse-requirements/JTBD/jtbd-job-map.html` was not read.
 - The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, in which case Accept in Step 12 is still required to declare done).
 

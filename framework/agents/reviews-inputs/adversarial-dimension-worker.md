@@ -14,7 +14,7 @@ Apply Dimension `N`'s checks literally and exhaustively to the inlined evidence 
 
 This agent reads **nothing from disk**. It has **no `Read` tool**. The bundle inlined into the spawning prompt is the only source of truth.
 
-This is **stricter** than the `/review-requirement` adversarial dimension worker, which scopes `Read` to `requirements/requirements.md` only. The reason: the input-side bundle is built by the parent from up to 25 heterogeneous manifest-enumerated source files (some Native-text, some `.converted.md` siblings, some Native-multimodal transcribed by the parent into text). Giving each worker a Read tool would mean 7× duplicate reads of every source file and 7× duplicate multimodal vision calls — wasteful and non-deterministic. Pushing all I/O to the parent and inlining a single frozen snapshot means workers are deterministic leaf agents over a known input.
+This is **stricter** than the `/review-requirement` adversarial dimension worker, which scopes `Read` to `requirements/requirements.md` only. The reason: the input-side bundle is built by the parent from up to 25 heterogeneous manifest-enumerated source files (some `Native-text` read from `original_path`, the rest read from their `converted_sibling` — `.converted.md` markitdown renderings for `Supported-via-MCP`, frozen textual descriptions for `Native-multimodal` / `Vector-renderable`). Giving each worker a Read tool would mean 6× duplicate reads of every source file — wasteful and non-deterministic. Pushing all I/O to the parent and inlining a single frozen snapshot means workers are deterministic leaf agents over a known input.
 
 The invariant is enforced by the agent's `Tools` list — **no tools at all** other than the implicit ability to compose a JSON response.
 
@@ -30,12 +30,12 @@ The invariant is enforced by the agent's `Tools` list — **no tools at all** ot
     ```json
     {
       "filename": "<basename + extension>",
-      "tier": "Native-text | Native-multimodal-transcribed-by-parent | Supported-via-MCP",
+      "tier": "Native-text | Native-multimodal | Vector-renderable | Supported-via-MCP",
       "original_sha256": "<hex>",
       "text_or_transcription": "<the content the worker reasons over>"
     }
     ```
-    For `Native-text`, `text_or_transcription` is the file's bytes as text. For `Supported-via-MCP`, it is the `.converted.md` sibling's content. For `Native-multimodal-transcribed-by-parent`, it is the parent's verbatim transcription of visible text and structural observations (mockup labels, KPI values on whiteboards, annotated feature lists) — the worker cannot see image bytes itself.
+    `text_or_transcription` is the text of the file the parent read per the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text` (the file's bytes as text), and `converted_sibling` otherwise. For `Supported-via-MCP` the sibling is the `.converted.md` markitdown rendering; for `Native-multimodal` / `Vector-renderable` it is a frozen textual description of the visual prepared by the input-handler (visible text, labels, KPI values, table contents, status/error states, plus a structured what/how breakdown). Either way the worker receives ordinary text and never sees image bytes itself.
 - **Per-source quote index** — `{{QUOTE_INDEX_BY_FILENAME_JSON}}` — a JSON map `{filename → [verbatim substrings]}`. The worker validates that any `evidence` field it emits is a verbatim substring of the cited source's entry in this index. Anti-fabrication invariant: an evidence string not in the matching index slice is fabricated; drop the finding rather than emit it.
 - **Skipped-roster JSON** — `{{SKIPPED_ROSTER_JSON}}` — a JSON array `[{"filename": "...", "reason": "..."}, ...]` enumerating manifest rows with `tier: Unsupported`. Used **only** by Dimension 1: a stakeholder mentioned in the Bundle JSON but with their only voice in an `Unsupported`-tier file is a finding that cites the skipped filename. Other dimensions ignore the skipped roster.
 - **Manifest snapshot** — `{{MANIFEST_SNAPSHOT_JSON}}` — the manifest's row list (for context only; the bundle is the operative input).

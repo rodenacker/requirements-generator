@@ -54,7 +54,7 @@ This reference operationalises BMAD's rule with explicit input-set dimensions, a
 The reviewer reads:
 
 - `requirements/source-manifest.json` (the manifest enumerating consumable input files; read once at the parent reviewer's Step 2).
-- For each manifest row whose `tier != "Unsupported"`: the file at `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`). Read once by the parent at Step 3.
+- For each manifest row whose `tier != "Unsupported"`, the file selected by the Read-path resolution rule in `framework/skills/build-source-manifest.md` (read `converted_sibling` when non-null, else `original_path` — only `Native-text` is read at `original_path`). For `Native-multimodal` / `Vector-renderable` rows the `converted_sibling` is a frozen textual description prepared by the input-handler — it already captures labels, field captions, table contents, status/error states, KPI values, and a structured breakdown; treat it as the canonical text source and do **not** re-interpret pixels. `Supported-via-MCP` rows read the markitdown sibling. Read once by the parent at Step 3.
 - `framework/assets/characters/adversarial-inputs-review.md` (the character — loaded once at activation by the parent).
 - `framework/assets/reviews-inputs/adversarial-reference.md` (this file — loaded once at activation by the parent).
 - `framework/assets/reviews-inputs/template-adversarial.html` (the HTML scaffold — read once at render time by the parent).

@@ -50,7 +50,7 @@ This reference's **yardstick = `framework/assets/topics-requirements.md`** — t
 
 **To-Be:** `framework/assets/topics-requirements.md` — the project's canonical list of topics every `/requirements` artefact must cover, with per-topic emit predicates, Tier A/B/C/D completeness rules, and per-topic `Dimension` values (SPoT). 30+ topics spanning §0.1, §1, §1.5, …, §10.
 
-**As-Is:** the raw consultant input set enumerated by `requirements/source-manifest.json` — every manifest row whose `tier != "Unsupported"` is read once via its `original_path` (Native tiers) or `converted_sibling` (Supported-via-MCP tier).
+**As-Is:** the raw consultant input set enumerated by `requirements/source-manifest.json` — every manifest row whose `tier != "Unsupported"` is read once per the Read-path resolution rule in `framework/skills/build-source-manifest.md` (`converted_sibling` when non-null, else `original_path` — only `Native-text` is read at `original_path`). For `Native-multimodal` / `Vector-renderable` rows the `converted_sibling` is a frozen textual description prepared by the input-handler (labels, field captions, table contents, status/error states, KPI values, structured breakdown); treat it as the canonical text source and do **not** re-interpret pixels.
 
 **The gap** = the per-topic delta. For every topic the reviewer walks the six-step decision tree in §4 below and assigns one of six coverage states. Two of those states (`Missing` and `Partial`) produce `GAP-NN` rows in the artefact; the other four (`Covered`, `Standard-rule`, `Out-of-scope`, `N/A`) appear in the coverage matrix and per-dimension narrative but carry no `GAP-NN`.
 
@@ -309,7 +309,7 @@ Embedded as `<script type="application/json" id="gap-analysis-meta">` in the pro
   ],
   "source_roster": {
     "consumed": [
-      {"filename": "<basename>", "tier": "Native-text | Native-multimodal | Supported-via-MCP", "sha256_short": "<8-hex>"}
+      {"filename": "<basename>", "tier": "Native-text | Native-multimodal | Vector-renderable | Supported-via-MCP", "sha256_short": "<8-hex>"}
     ],
     "skipped": [
       {"filename": "<basename>", "reason": "<from manifest>"}

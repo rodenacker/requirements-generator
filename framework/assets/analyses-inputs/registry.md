@@ -383,7 +383,7 @@ methodologies:
 1. Pick a candidate from `plans/` (see `plans/README.md` for the roadmap) and follow its build checklist, or author a brand-new methodology. The row is appended with `status: mvp` at step 7.
 2. Author the analyser agent at `framework/agents/analyses-inputs/<method>-analyser.md`. Each analyser:
     - Reads `requirements/source-manifest.json` once at Step 2 to enumerate sources.
-    - For each manifest row where `tier != "Unsupported"`: Read the file at `original_path` (for `Native-text` and `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`). For `Native-multimodal`, the Read tool surfaces image bytes as multimodal input automatically.
+    - For each manifest row where `tier != "Unsupported"`: Read the file per the **Read-path resolution** rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null (a markitdown rendering for `Supported-via-MCP`; a frozen textual description for `Native-multimodal` and `Vector-renderable`), otherwise `original_path` (only `Native-text`). Do **not** re-interpret image pixels — the frozen description sibling is the canonical text surface for visual inputs. Cite the manifest row's `filename` (the original's name) in `[SRC: <filename>]` markers regardless of which path was read.
     - Skips manifest rows with `tier == "Unsupported"` and records the reason in the artefact's diagnostics block.
     - Cites source-of-fact in the artefact body using `[SRC: <filename>]` markers (filename payload, not the requirements pipeline's `C-NNN` sidecar IDs).
     - Records a source-roster section in the artefact listing every filename consumed and every skipped filename with reason.

@@ -122,9 +122,12 @@ A term can legitimately hold more than one settled meaning **across distinct bou
 
 The analyser reads the manifest once, then each consumable source per its tier (identical to every other inputs-side analyser):
 
-- `Native-text` / `Native-multimodal` → `Read row.original_path` (multimodal surfaces image bytes; transcribe visible text + structurally significant observations).
+- `Native-text` → `Read row.original_path` as text.
+- `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` — a frozen textual description of the visual prepared by the input-handler; it already enumerates the visible text + structurally significant observations. Treat it as the canonical text source; do **not** re-interpret pixels.
 - `Supported-via-MCP` → `Read row.converted_sibling` (already converted by the input-handler; never re-invoke markitdown).
 - `Unsupported` → skip; record `(filename, reason)` for the Skipped roster.
+
+Per the Read-path resolution rule in `framework/skills/build-source-manifest.md`: read `converted_sibling` whenever it is non-null, otherwise `original_path`.
 
 Raw inputs have **no `§N.M` section structure** — citations are `[SRC: <filename>]` against the manifest row's `filename`, optionally with a short locator phrase in prose.
 

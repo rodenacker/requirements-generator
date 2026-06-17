@@ -71,7 +71,7 @@ The synthesis is this reference's own contribution: integrate BABOK's Elicitatio
 The reviewer reads **only** the following:
 
 - `requirements/source-manifest.json` — the manifest enumerating consumable input files. Read once at Step 2. This is the entry point to the critique target.
-- The files the manifest enumerates — for each row where `tier != "Unsupported"`: the file at `original_path` (for `Native-text` and `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`). Read once per row at Step 3. These are the critique target.
+- The files the manifest enumerates — for each row where `tier != "Unsupported"`, the file selected by the Read-path resolution rule in `framework/skills/build-source-manifest.md` (read `converted_sibling` when non-null, else `original_path` — only `Native-text` is read at `original_path`). For `Native-multimodal` / `Vector-renderable` rows the `converted_sibling` is a frozen textual description prepared by the input-handler — it already captures labels, field captions, table contents, status/error states, KPI values, and a structured breakdown; treat it as the canonical text source and do **not** re-interpret pixels. `Supported-via-MCP` rows read the markitdown sibling. Read once per row at Step 3. These are the critique target.
 - `framework/assets/characters/ten-ba-questions-inputs-review.md` — the character file. Read once at Step 1.
 - `framework/assets/reviews-inputs/ten-ba-questions-reference.md` — this document. Read once at Step 1.
 - `framework/assets/reviews-inputs/template-ten-ba-questions.html` — the HTML scaffold. Read once at Step 8 (render).

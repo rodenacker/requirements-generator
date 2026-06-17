@@ -4,7 +4,7 @@
 
 **Inputs (caller-supplied):**
 - `claims_path` — **required** — repo-relative path to the drafter's claims sidecar (NDJSON, one JSON object per non-empty line). Defaults are not supplied; the caller must pass `requirements/draft-claims.ndjson`.
-- `manifest_path` — **required** — path to `requirements/source-manifest.json`. Used to derive the allowlist of valid `source_file` paths (every row's `original_path` for `Native-text` / `Native-multimodal`, every row's `converted_sibling` for `Supported-via-MCP`; `Unsupported` rows contribute nothing).
+- `manifest_path` — **required** — path to `requirements/source-manifest.json`. Used to derive the allowlist of valid `source_file` paths per the **Read-path resolution** rule in `framework/skills/build-source-manifest.md` (every row's `converted_sibling` when non-null — `Native-multimodal`, `Vector-renderable`, `Supported-via-MCP`; otherwise its `original_path` — `Native-text`; `Unsupported` rows contribute nothing). This matches what the drafter records as `source_file`, so a visual-derived claim's `source_file` is the frozen description sibling.
 - `draft_path` — **required** — path to `requirements/requirements-draft.md`. Used to extract the set of `[SRC: C-NNN]` tags present in the draft body for the bidirectional cross-check.
 - `verification_path` — **required** — path the skill writes its NDJSON output to. Defaults are not supplied; the caller passes `requirements/draft-claims-verification.ndjson`.
 
@@ -25,8 +25,7 @@ The skill itself does not surface refusal predicates. The drafter consumes the o
 ### Pass 0 — load
 
 1. `Read` `manifest_path` and parse JSON. Build the `allowlist` set:
-   - For each row with `tier ∈ {"Native-text", "Native-multimodal"}`: add `original_path`.
-   - For each row with `tier = "Supported-via-MCP"`: add `converted_sibling`.
+   - For each row: add `converted_sibling` when it is non-null (`Native-multimodal`, `Vector-renderable`, `Supported-via-MCP`); otherwise add `original_path` (`Native-text`). (The **Read-path resolution** rule — the same path the drafter records as `source_file`.)
    - Skip rows with `tier = "Unsupported"`.
 2. `Read` `claims_path`. Parse each non-empty line as one JSON object: `{claim_id, draft_locator, claim_text, source_file, source_quote}`. Build `sidecar` keyed by `claim_id`. A duplicate `claim_id` is a FAIL with reason `duplicate_claim_id` recorded against the second-and-later occurrence; the first occurrence still runs Pass 1.
 3. `Read` `draft_path`. Extract every `[SRC: C-NNN]` token via Grep with pattern `\[SRC: C-\d{3}\]`. Build `draft_ids` as a set of the `C-NNN` strings.

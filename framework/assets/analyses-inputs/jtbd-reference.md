@@ -2,7 +2,7 @@
 
 # JTBD reference (input-analysis variant)
 
-> **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json`; extract actor + situation candidates from input prose, slide-deck text, and transcribed visual notes (Round 1); write canonical *"When `<situation>`, I want to `<motivation>`, so I can `<outcome>`."* statements (Round 2); classify Functional / Emotional / Social (Round 3); refine outcomes against measurable signals in the inputs (Round 4); score Importance × Satisfaction (Round 5); group into clusters and capture the four forces of progress where the inputs name them (Round 6). Every job carries `[SRC: <filename>]` citations. Outcomes without anchorable measures carry `(no-metric-in-inputs)`. Scores without anchorable signals carry `consultant-assigned-no-signal`. Forces with no input mention render as `not-named-in-inputs`. Across re-runs the artefact is **additive**: prior job cards, cluster headings, and force lines are preserved; new manifest content extends them.
+> **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json`; extract actor + situation candidates from input prose, slide-deck text, and the frozen visual descriptions (Round 1); write canonical *"When `<situation>`, I want to `<motivation>`, so I can `<outcome>`."* statements (Round 2); classify Functional / Emotional / Social (Round 3); refine outcomes against measurable signals in the inputs (Round 4); score Importance × Satisfaction (Round 5); group into clusters and capture the four forces of progress where the inputs name them (Round 6). Every job carries `[SRC: <filename>]` citations. Outcomes without anchorable measures carry `(no-metric-in-inputs)`. Scores without anchorable signals carry `consultant-assigned-no-signal`. Forces with no input mention render as `not-named-in-inputs`. Across re-runs the artefact is **additive**: prior job cards, cluster headings, and force lines are preserved; new manifest content extends them.
 
 **Output file:** `analyse-inputs/JTBD/jtbd-job-map.html` — a self-contained HTML job-card grid + opportunity matrix using `framework/assets/analyses-inputs/template-jtbd.html` as scaffold.
 
@@ -78,7 +78,7 @@ Six rounds, executed in order. The analyser does not skip rounds and does not co
 Read every consumable manifest row in full per its tier:
 
 - `Native-text` → `Read original_path` directly as text.
-- `Native-multimodal` → `Read original_path`; the Read tool surfaces image bytes automatically; the analyser transcribes visible text and structurally significant observations (whiteboard photos, sticky-note shots, screenshot captures of interview slides, etc.) to memory.
+- `Native-multimodal` / `Vector-renderable` → `Read converted_sibling` — a frozen textual description of the visual prepared by the input-handler; it already enumerates the visible text and structurally significant observations (whiteboard photos, sticky-note shots, screenshot captures of interview slides, etc.). Treat it as the canonical text source; do **not** re-interpret pixels.
 - `Supported-via-MCP` → `Read converted_sibling` (the `.converted.md`) — the input-handler has already converted the source via markitdown; the analyser does not re-invoke conversion.
 - `Unsupported` → skipped; record the row in `skipped_rows` with the manifest's `conversions_applied` value as the reason.
 
@@ -102,7 +102,7 @@ Extract every actor + every situation candidate. Each candidate carries:
 
 **No `[derived-actor]` marker.** Unlike the requirements-doc-lensing sibling JTBD analyser, this analyser does not distinguish `from-personas` vs `derived-actor` because raw inputs have no canonical persona section. All actors are `[SRC: <filename>]`-cited.
 
-**Situation sources.** Each candidate situation is a verbatim or near-verbatim extract from input prose, slide-deck text, or transcribed visual notes. Forbidden vague phrases (rejected in Round 2 and as Gate 1): *"when using the app"*, *"when using the system"*, *"during a session"*, *"when the user opens the system"*, *"in general"*, *"sometimes"*.
+**Situation sources.** Each candidate situation is a verbatim or near-verbatim extract from input prose, slide-deck text, or the frozen visual descriptions. Forbidden vague phrases (rejected in Round 2 and as Gate 1): *"when using the app"*, *"when using the system"*, *"during a session"*, *"when the user opens the system"*, *"in general"*, *"sometimes"*.
 
 **Output of Round 1:** an unfiltered candidate `{actor, situation, actor_source_filename, situation_source_filename}` list. Synonyms and near-duplicates are kept at this stage; deduplication happens in Round 2.
 
@@ -251,7 +251,7 @@ State the cluster + force shape aloud:
 
 | Marker | Used in artefact section | Payload | Meaning |
 |---|---|---|---|
-| `[SRC: <filename>]` | Actor row chip, situation source chip, motivation source (rare; usually inherited from situation), outcome measure source (when measurable), force quoted phrase | basename including extension, matching a manifest row's `filename` field | The cited actor / situation / outcome / force phrase is anchored to this manifest source; the phrase is verbatim or a minimally rephrased lift from the row's content (or, for `Native-multimodal` rows, from the transcribed visual notes the analyser captured at Round 1) |
+| `[SRC: <filename>]` | Actor row chip, situation source chip, motivation source (rare; usually inherited from situation), outcome measure source (when measurable), force quoted phrase | basename including extension, matching a manifest row's `filename` field | The cited actor / situation / outcome / force phrase is anchored to this manifest source; the phrase is verbatim or a minimally rephrased lift from the row's content (or, for `Native-multimodal` / `Vector-renderable` rows, from the frozen textual description the input-handler prepared) |
 | `(no-metric-in-inputs)` | Outcome clause | (literal string, no payload) | The outcome clause has no anchorable unit of measure from input prose; carries a best-effort intent phrase plus the marker |
 | `consultant-assigned-no-signal` | Importance dot row, Satisfaction dot row (rendered in Diagnostics not on the card) | (literal string) | The score has no anchorable signal from input prose; defaults to 3 |
 | `not-named-in-inputs` | Forces strip | (literal string) | The named force has no lexical mention in any consumed source; renders with the `not-named` CSS class (muted italic) |
@@ -293,7 +293,8 @@ The analyser reads exactly the files the manifest enumerates, plus the prior art
 | Tier | Source location | Read mechanism |
 |---|---|---|
 | `Native-text` | `original_path` | `Read` directly as text |
-| `Native-multimodal` | `original_path` | `Read` — Claude's vision surfaces image bytes; transcribe visible text/structure to a per-source notes buffer |
+| `Native-multimodal` | `converted_sibling` | `Read` the frozen textual description (do **not** re-interpret pixels) |
+| `Vector-renderable` | `converted_sibling` | `Read` the frozen textual description (do **not** re-interpret pixels) |
 | `Supported-via-MCP` | `converted_sibling` | `Read` the `.converted.md` (markitdown's output, produced by input-handler) |
 | `Unsupported` | — | Skipped; recorded in the Diagnostics block's Source roster > Skipped table |
 

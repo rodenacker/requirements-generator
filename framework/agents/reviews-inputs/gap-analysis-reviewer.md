@@ -21,7 +21,7 @@ The pipeline is **full overwrite** per run — each run's artefact reflects only
 This agent reads:
 
 - `requirements/source-manifest.json` (once, at Step 2).
-- For each manifest row where `tier != "Unsupported"`: the file at `original_path` (for `Native-text` and `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`). Read once per row at Step 2.
+- For each manifest row where `tier != "Unsupported"`: the file resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` when `converted_sibling` is null (`Native-text`), otherwise `converted_sibling` (`Native-multimodal`, `Vector-renderable`, `Supported-via-MCP`). Read once per row at Step 2.
 - `framework/assets/characters/gap-analysis-inputs-review.md` (the character — loaded at activation).
 - `framework/assets/reviews-inputs/gap-analysis-reference.md` (the methodology — loaded at activation).
 - `framework/assets/reviews-inputs/template-gap-analysis.html` (the HTML scaffold — loaded at activation).
@@ -59,9 +59,9 @@ Twelve steps in order (four operational + eight rounds). Do not skip steps; do n
 - Parse the manifest's row list. Classify rows:
     - `consumable_rows` = rows where `tier != "Unsupported"` — these will be ingested below.
     - `skipped_rows` = rows where `tier == "Unsupported"` — these contribute to the skipped roster only.
-- For each row in `consumable_rows`, dispatch by `tier`:
+- For each row in `consumable_rows`, resolve the read path per the Read-path resolution rule in `framework/skills/build-source-manifest.md` (`original_path` when `converted_sibling` is null, otherwise `converted_sibling`):
     - **`Native-text`** → `Read row.original_path` as text. Capture `(filename, tier: "Native-text", original_sha256: row.sha256, text: <file content as string>)` into the in-memory `corpus` list.
-    - **`Native-multimodal`** → `Read row.original_path` (the Read tool surfaces image bytes via Claude's multimodal vision). Transcribe into the corpus the visible text and structurally significant observations: mockup labels, KPI values written on whiteboards, annotated feature lists, button labels, form-field captions, table contents, status indicators, error states. Verbatim where text is clearly readable; literal observation for non-text structure. Capture `(filename, tier: "Native-multimodal-transcribed", original_sha256: row.sha256, text: <transcription>)` into the corpus.
+    - **`Native-multimodal`** / **`Vector-renderable`** → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler (it already captures labels, field captions, table contents, status/error states, KPI values, and a structured what/how breakdown). Treat it as the canonical text source; do **not** re-interpret pixels and do **not** read `row.original_path`. Capture `(filename, tier: row.tier, original_sha256: row.sha256, text: <converted sibling content>)` into the corpus.
     - **`Supported-via-MCP`** → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown; the `.converted.md` sibling is the contract). Do **not** re-invoke `markitdown-mcp`. Capture `(filename, tier: "Supported-via-MCP", original_sha256: row.sha256, text: <converted sibling content>)` into the corpus.
 - If `corpus` is empty (zero consumable rows), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `input/` and re-invoke `/requirements` (which rebuilds the manifest) before retrying `/review-inputs` → gap-analysis."* — analogous to `RF-03`.
 - Build the **skipped roster** as a list `[{"filename": row.filename, "reason": row.conversions_applied}, ...]` for every `skipped_rows[*]` entry.
@@ -311,7 +311,7 @@ Use `AskUserQuestion`:
 ## Inputs
 
 - `requirements/source-manifest.json` — the manifest enumerating consumable input files and carrying the `target` field. Read once at Step 2.
-- Each manifest row's `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`) — read once per row at Step 2.
+- Each manifest row's read-path resolved per the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text` (null `converted_sibling`), `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` — read once per row at Step 2. The agent does **not** read `original_path` for any row carrying a non-null `converted_sibling` (the `.converted.md` sibling is the contract).
 - `framework/assets/characters/gap-analysis-inputs-review.md` — the reviewer's stance. Loaded once at Step 1.
 - `framework/assets/reviews-inputs/gap-analysis-reference.md` — the methodology reference. Loaded once at Step 1.
 - `framework/assets/reviews-inputs/template-gap-analysis.html` — the HTML scaffold. Loaded once at Step 1.

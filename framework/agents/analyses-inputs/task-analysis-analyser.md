@@ -52,7 +52,7 @@ The in-memory `tree` (the list of every node, every Plan, every information_requ
 This agent reads:
 
 - `requirements/source-manifest.json` (read once in Step 2; the orchestrator's Step 1 input-handler invocation guarantees its presence).
-- For each manifest row whose `tier != "Unsupported"`: the file at `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`).
+- For each manifest row whose `tier != "Unsupported"`: the read path resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text`, `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`.
 - `analyse-inputs/TASK-ANALYSIS/task-analysis.html` (read once in Step 3 if present, for additive merge).
 - `framework/assets/characters/task-analysis-inputs-analysis.md` (the character — loaded once in Step 1).
 - `framework/assets/analyses-inputs/task-analysis-reference.md` (the methodology — read once in Step 1).
@@ -80,9 +80,9 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - `Read requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_sha256` for the embedded JSON metadata block and the drift cursor.
 - Parse the manifest. Capture `target` field if present (`prototype` | `application`); else default to `"(not declared in manifest)"`.
-- Iterate rows; for each row, dispatch by `tier`:
+- Iterate rows; for each row, resolve the read path via the Read-path resolution rule in `framework/skills/build-source-manifest.md` (if `converted_sibling` is non-null, read it; otherwise read `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
-  - `Native-multimodal` → `Read row.original_path` (the Read tool surfaces image bytes via Claude's multimodal vision); transcribe visible text and structurally significant observations to a per-source notes buffer; capture `(filename, tier, sha256[:8], visual_notes)` to `consumed_rows`. Diagrams, flowcharts, and wireframes often carry coordination logic — pay particular attention to numbered steps, arrow directions, branch labels, and loop notations.
+  - `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler. The description already enumerates the task-analysis-relevant items: actors, the tasks they perform, ordered steps, branch/loop coordination, and states. Treat it as the canonical text source; do **not** re-interpret pixels. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Diagrams, flowcharts, and wireframes often carry coordination logic — the description's transcription surfaces numbered steps, arrow directions, branch labels, and loop notations as text.
   - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
 - If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `input/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
@@ -117,7 +117,7 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 ### Step 4 — Round 1: Root-goal identification
 
-For each row in `consumed_rows`, scan the content (text or transcribed visual notes) for **user-goal statements** — imperative verbs with the user as subject, nominalised goal phrases ("expense submission", "claim approval", "customer onboarding"), section headers naming user tasks, or numbered workflows whose endpoint is a user accomplishment.
+For each row in `consumed_rows`, scan the content (raw text for `Native-text` rows, or the frozen description text for the visual / converted tiers) for **user-goal statements** — imperative verbs with the user as subject, nominalised goal phrases ("expense submission", "claim approval", "customer onboarding"), section headers naming user tasks, or numbered workflows whose endpoint is a user accomplishment.
 
 A goal-frame candidate is:
 
@@ -437,7 +437,7 @@ Output the final handback line:
 ## Inputs
 
 - `requirements/source-manifest.json` — the manifest. Read once in Step 2.
-- Each manifest row's `original_path` (`Native-text` / `Native-multimodal`) or `converted_sibling` (`Supported-via-MCP`). Read in Step 2.
+- Each manifest row's resolved read path per the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text`, `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`. Read in Step 2.
 - `analyse-inputs/TASK-ANALYSIS/task-analysis.html` — prior run's artefact. Read once in Step 3 if present.
 - `framework/assets/characters/task-analysis-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/task-analysis-reference.md` — the methodology reference. Read once in Step 1.
@@ -479,7 +479,7 @@ Before handing back, verify all of the following against the written artefact an
 - The trailing `<section class="next-steps">` contains the copy-to-input instruction and the markitdown-conversion explanation.
 - **No occurrence of `[AI-SUGGESTED]` on any terminal operation.** Search the rendered artefact: every `<li class="hta-terminal">` and every `<tr class="info-row">` is `[AI-SUGGESTED]`-free.
 - **No occurrence of `plan-type-sequence` paired with `plan.inferred: true` and no source citations.** A silent-`sequence` Plan is a confabulation; the three-tier escalation produces `plan-type-discretionary` (Tier 2) or surfaces a `[GAP-PLAN-SILENT]` (Tier 1) instead.
-- No file under `requirements/` other than `requirements/source-manifest.json` AND each manifest-enumerated source file's `original_path` or `converted_sibling` was read.
+- No file under `requirements/` other than `requirements/source-manifest.json` AND each manifest-enumerated source file's resolved read path (`original_path` for `Native-text`; `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`, per the Read-path resolution rule in `framework/skills/build-source-manifest.md`) was read.
 - No file under `framework/state/` was read. No file under `framework/shared/` was read.
 - The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, in which case Accept in Step 12 is still required to declare done).
 

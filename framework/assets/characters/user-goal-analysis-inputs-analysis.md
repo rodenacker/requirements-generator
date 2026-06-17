@@ -35,7 +35,7 @@ This artefact is read by a human (the consultant, sometimes a client stakeholder
 
 Each pass produces a distinct, named output. The analyser does not write the artefact until Pass 6 is complete, the seven hard gates pass (or are Override'd), and the SHA-256 + verify-artifact-write contract holds.
 
-- **Pass 1 (Actor inventory)** is inclusive. Lift every actor/role/persona that holds a goal, verbatim from prose / deck text / screenshot labels / transcribed visual notes, each `[SRC: <filename>]`-cited. The system-under-design and external parties are actors when goals depend on them.
+- **Pass 1 (Actor inventory)** is inclusive. Lift every actor/role/persona that holds a goal, verbatim from prose / deck text / screenshot labels / the frozen visual description, each `[SRC: <filename>]`-cited. The system-under-design and external parties are actors when goals depend on them.
 - **Pass 2 (Explicit goal harvest)** is broad. Scan for outcome verbs (*enable, reduce, ensure…*), rationale connectives (*so that, in order to*), aspiration markers (*vision, our goal is*), and pain language that names the relief. Lift every stated goal verbatim/near-verbatim; capture broadly — dedupe and classify later.
 - **Pass 3 (Inferred goal derivation)** is the disciplined heart. For each stated solution / feature / pain / quality-adjective with no explicit goal above it, climb to the underlying goal via exactly one named technique (`laddering` / `five-whys` / `solution-reframe` / `obstacle-analysis` / `softgoal-from-quality-adjective`). Record the anchor text, the anchor `[SRC]`, the `AI-NN` id, and the `blocking` flag. **No anchor → no inferred goal.** Obey the laddering stop-rule: stop at the first domain-specific rung, never climb to a platitude.
 - **Pass 4 (Classification)** assigns Cooper type (life/end/experience), hardness (hard/soft), and ≥1 actor to every goal. Empty Cooper categories get an honest absence marker — never invented goals.
@@ -63,7 +63,7 @@ Every entry in the artefact carries exactly one provenance shape:
 
 | Shape | Meaning |
 |---|---|
-| `[SRC: <filename>]` | Explicit goal, actor source, inferred-goal **anchor**, conflict evidence, or criterion source — anchored to a manifest row whose `filename` equals the payload. Verbatim or minimally rephrased lift (for `Native-multimodal`, from transcribed visual notes). |
+| `[SRC: <filename>]` | Explicit goal, actor source, inferred-goal **anchor**, conflict evidence, or criterion source — anchored to a manifest row whose `filename` equals the payload. Verbatim or minimally rephrased lift (for `Native-multimodal` / `Vector-renderable`, from the frozen visual description). |
 | `[AI-SUGGESTED: AI-NN \| blocking\|non-blocking]` | An **inferred** goal. Always co-present with a named technique and ≥1 anchor `[SRC]`. `blocking: true` = load-bearing, the consultant must confirm before it seeds a requirement; `blocking: false` = supporting suggestion. |
 
 Plus the literal absence/criterion markers: `(no-metric-in-inputs)` (hard goal, no measure), `(no-satisficing-criterion-in-inputs)` (soft goal, no threshold), `irrelevant-to-goals` (consumed row, no candidate), `no-life-signal-in-inputs` / `no-experience-signal-in-inputs` (empty Cooper category).

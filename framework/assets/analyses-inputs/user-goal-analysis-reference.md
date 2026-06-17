@@ -2,7 +2,7 @@
 
 # User Goal Analysis reference (input-analysis variant)
 
-> **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json`; inventory the actors who hold goals (Pass 1); harvest every **explicitly stated** goal from input prose, deck text, and transcribed visual notes (Pass 2); derive **inferred** goals by laddering UP from stated solutions / pain-points / quality-adjectives via one named technique — anchored to a source, never from world knowledge (Pass 3); classify each goal by Cooper type + hardness + actor (Pass 4); arrange goals into a KAOS-style AND/OR refinement hierarchy and attach them to actors (Pass 5); write canonical *"`<Actor>` wants to `<outcome>` so that `<higher-level goal>`."* statements, run the SMART-ish quality gate, and surface goal conflicts (Pass 6). Every **explicit** goal carries `[SRC: <filename>]`. Every **inferred** goal carries `[AI-SUGGESTED: AI-NN | blocking|non-blocking]` PLUS the anchor `[SRC: <filename>]` it was laddered from PLUS the named technique used. Hard goals without an anchorable measure carry `(no-metric-in-inputs)`; soft goals without a threshold carry `(no-satisficing-criterion-in-inputs)`. Across re-runs the artefact is **additive**: prior goal cards, the hierarchy, and the actor map are preserved; new manifest content extends them.
+> **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json`; inventory the actors who hold goals (Pass 1); harvest every **explicitly stated** goal from input prose, deck text, and the frozen visual descriptions (Pass 2); derive **inferred** goals by laddering UP from stated solutions / pain-points / quality-adjectives via one named technique — anchored to a source, never from world knowledge (Pass 3); classify each goal by Cooper type + hardness + actor (Pass 4); arrange goals into a KAOS-style AND/OR refinement hierarchy and attach them to actors (Pass 5); write canonical *"`<Actor>` wants to `<outcome>` so that `<higher-level goal>`."* statements, run the SMART-ish quality gate, and surface goal conflicts (Pass 6). Every **explicit** goal carries `[SRC: <filename>]`. Every **inferred** goal carries `[AI-SUGGESTED: AI-NN | blocking|non-blocking]` PLUS the anchor `[SRC: <filename>]` it was laddered from PLUS the named technique used. Hard goals without an anchorable measure carry `(no-metric-in-inputs)`; soft goals without a threshold carry `(no-satisficing-criterion-in-inputs)`. Across re-runs the artefact is **additive**: prior goal cards, the hierarchy, and the actor map are preserved; new manifest content extends them.
 
 **Output file:** `analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` — a self-contained, readability-optimised HTML goal register using `framework/assets/analyses-inputs/template-user-goal-analysis.html` as scaffold.
 
@@ -86,7 +86,7 @@ Six passes, executed in order. The analyser does not skip or collapse passes —
 
 ### Pass 1 — Actor inventory
 
-Read every consumable manifest row in full per its tier (`Native-text` / `Native-multimodal` → `original_path`; `Supported-via-MCP` → `converted_sibling`; `Unsupported` → skipped + recorded). Lift every actor / role / persona that **holds a goal** — verbatim or near-verbatim from input prose, deck text, screenshot labels, or transcribed visual notes. Each actor carries:
+Read every consumable manifest row in full per its tier (`Native-text` → `original_path`; `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` → `converted_sibling`; `Unsupported` → skipped + recorded — see the Read-path resolution rule in `framework/skills/build-source-manifest.md`). The `converted_sibling` for a visual tier is a frozen textual description prepared by the input-handler; treat it as the canonical text source and do **not** re-interpret pixels. Lift every actor / role / persona that **holds a goal** — verbatim or near-verbatim from input prose, deck text, screenshot labels, or the frozen visual description. Each actor carries:
 
 ```
 { actor_id, name, source_filenames: [<filename>], kind }   // kind ∈ {role, system, external-party}
@@ -190,7 +190,7 @@ Each inferred goal records **exactly one** technique. Adding a technique means a
 
 | Marker | Used in artefact section | Payload | Meaning |
 |---|---|---|---|
-| `[SRC: <filename>]` | Explicit goal card, actor chip source, inferred-goal **anchor**, conflict evidence, criterion source | basename incl. extension, matching a manifest row's `filename` field | The cited goal / actor / anchor / evidence is anchored to this manifest source; the phrase is verbatim or a minimally rephrased lift (or, for `Native-multimodal`, from the transcribed visual notes captured at Pass 1). |
+| `[SRC: <filename>]` | Explicit goal card, actor chip source, inferred-goal **anchor**, conflict evidence, criterion source | basename incl. extension, matching a manifest row's `filename` field | The cited goal / actor / anchor / evidence is anchored to this manifest source; the phrase is verbatim or a minimally rephrased lift (or, for `Native-multimodal` / `Vector-renderable`, from the frozen textual description the input-handler prepared). |
 | `[AI-SUGGESTED: AI-NN \| blocking\|non-blocking]` | Inferred goal card | `AI-NN` local id + blocking flag | The goal was **inferred**, not stated. Always co-present with a named technique and ≥1 anchor `[SRC: <filename>]`. The blocking flag drives downstream resolver treatment. |
 | `(no-metric-in-inputs)` | Criterion line on a **hard** goal | (literal string) | The hard goal has no anchorable success measure in input prose; carries a best-effort intent phrase plus the marker. |
 | `(no-satisficing-criterion-in-inputs)` | Criterion line on a **soft** goal | (literal string) | The soft goal has no anchorable satisficing threshold in input prose. |
@@ -232,7 +232,8 @@ The analyser reads exactly the files the manifest enumerates, plus the prior art
 | Tier | Source location | Read mechanism |
 |---|---|---|
 | `Native-text` | `original_path` | `Read` directly as text |
-| `Native-multimodal` | `original_path` | `Read` — vision surfaces image bytes; transcribe visible text/structure to a per-source notes buffer |
+| `Native-multimodal` | `converted_sibling` | `Read` the frozen textual description (do **not** re-interpret pixels) |
+| `Vector-renderable` | `converted_sibling` | `Read` the frozen textual description (do **not** re-interpret pixels) |
 | `Supported-via-MCP` | `converted_sibling` | `Read` the `.converted.md` (markitdown's output, produced by input-handler) |
 | `Unsupported` | — | Skipped; recorded in Diagnostics > Source roster > Skipped |
 

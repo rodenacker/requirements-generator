@@ -143,7 +143,7 @@ Writing a defective review silently is the worst failure mode — the consultant
 
 ## Provenance discipline
 
-Every finding carries a verbatim quote from the cited source as its Evidence field. For `Native-text` and `Supported-via-MCP` sources, the quote is verbatim from the file content (the agent reads `.converted.md` siblings for the latter). For `Native-multimodal` sources, the quote is verbatim from the agent's transcription of visible text into the corpus at Step 3.
+Every finding carries a verbatim quote from the cited source as its Evidence field. The agent reads each consumable row via the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null, else `original_path` (only `Native-text`). For `Native-text` sources the quote is verbatim from the file bytes; for visual (`Native-multimodal` / `Vector-renderable`) and `Supported-via-MCP` sources the quote is verbatim from the frozen `.converted.md` description/conversion sibling the agent read at Step 3 (do NOT re-interpret pixels).
 
 The reviewer does not paraphrase, summarise, or compress evidence. If a finding spans more than 5 lines of source, decompose into multiple findings each citing its own ≤5-line slice.
 
@@ -154,7 +154,7 @@ Per the `/analyse-inputs` and parallel `/review-inputs` adversarial conventions:
 The Ambiguity inputs-side reviewer reads:
 
 - `requirements/source-manifest.json` (once, at Step 2).
-- For each manifest row where `tier != "Unsupported"`: the file at `original_path` (Native tiers) or `converted_sibling` (Supported-via-MCP tier) — once per row at Step 3.
+- For each manifest row where `tier != "Unsupported"`: the file at `converted_sibling` when non-null, else `original_path` (only `Native-text`) — per the Read-path resolution rule in `framework/skills/build-source-manifest.md`; once per row at Step 3.
 - This character file and the reference (`ambiguity-reference.md`) at activation.
 
 It does **not** read:

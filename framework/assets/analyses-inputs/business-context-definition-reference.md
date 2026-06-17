@@ -2,7 +2,7 @@
 
 # Business Context Definition reference (input-analysis variant)
 
-> **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json`; inventory the organisational entities that hold motivation — sponsor, owning business unit, affected stakeholders, external forces (Pass 1); harvest every **explicitly stated** Business Problem, Business Need, Business Goal, Objective, and Problem Statement from input prose, deck text, and transcribed visual notes (Pass 2); derive **inferred** items by laddering along the problem→need→goal chain via one named technique — anchored to a source, never from world knowledge (Pass 3); classify each item into exactly one bucket, type the goals against the BMM Ends ladder, and tag each need problem-/opportunity-driven (Pass 4); assemble the problem→need→goal→problem-statement causal chain (Five-Whys per problem; KAOS AND/OR refinement of goals into objectives) (Pass 5); write canonical statements, frame the human-centered POV+HMW Problem Statement, run the seven hard gates, and surface goal/need conflicts (Pass 6). Every **explicit** item carries `[SRC: <filename>]`. Every **inferred** item carries `[AI-SUGGESTED: AI-NN | blocking|non-blocking]` PLUS the anchor `[SRC: <filename>]` it was laddered from PLUS the named technique used. Objectives without an anchorable target carry `(no-target-in-inputs)`. Across re-runs the artefact is **additive**: prior cards, the causal chain, and the goal hierarchy are preserved; new manifest content extends them.
+> **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json`; inventory the organisational entities that hold motivation — sponsor, owning business unit, affected stakeholders, external forces (Pass 1); harvest every **explicitly stated** Business Problem, Business Need, Business Goal, Objective, and Problem Statement from input prose, deck text, and the frozen visual descriptions (Pass 2); derive **inferred** items by laddering along the problem→need→goal chain via one named technique — anchored to a source, never from world knowledge (Pass 3); classify each item into exactly one bucket, type the goals against the BMM Ends ladder, and tag each need problem-/opportunity-driven (Pass 4); assemble the problem→need→goal→problem-statement causal chain (Five-Whys per problem; KAOS AND/OR refinement of goals into objectives) (Pass 5); write canonical statements, frame the human-centered POV+HMW Problem Statement, run the seven hard gates, and surface goal/need conflicts (Pass 6). Every **explicit** item carries `[SRC: <filename>]`. Every **inferred** item carries `[AI-SUGGESTED: AI-NN | blocking|non-blocking]` PLUS the anchor `[SRC: <filename>]` it was laddered from PLUS the named technique used. Objectives without an anchorable target carry `(no-target-in-inputs)`. Across re-runs the artefact is **additive**: prior cards, the causal chain, and the goal hierarchy are preserved; new manifest content extends them.
 
 **Output file:** `analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html` — a self-contained, readability-optimised HTML business-context report using `framework/assets/analyses-inputs/template-business-context-definition.html` as scaffold, carrying the four mandated artefacts (Business Needs Assessment, Business Problem Statement, Business Goals collection, Problem Statement) plus the causal chain that links them.
 
@@ -140,7 +140,7 @@ Six passes, executed in order. The analyser does not skip or collapse passes —
 
 ### Pass 1 — Sponsor & context inventory
 
-Read every consumable manifest row in full per its tier (`Native-text` / `Native-multimodal` → `original_path`; `Supported-via-MCP` → `converted_sibling`; `Unsupported` → skipped + recorded). Lift every **organisational entity** that holds or shapes motivation — verbatim or near-verbatim. Each entity carries:
+Read every consumable manifest row in full per its tier (`Native-text` → `original_path`; `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` → `converted_sibling`; `Unsupported` → skipped + recorded — see the Read-path resolution rule in `framework/skills/build-source-manifest.md`). The `converted_sibling` for a visual tier is a frozen textual description prepared by the input-handler; treat it as the canonical text source and do **not** re-interpret pixels. Lift every **organisational entity** that holds or shapes motivation — verbatim or near-verbatim. Each entity carries:
 
 ```
 { org_id, name, kind, source_filenames: [<filename>] }   // kind ∈ {sponsor, business-unit, stakeholder, external-force}
@@ -249,7 +249,7 @@ Each inferred item records **exactly one** technique. Adding a technique means a
 
 | Marker | Used in artefact section | Payload | Meaning |
 |---|---|---|---|
-| `[SRC: <filename>]` | Explicit item card, org-entity source, inferred-item **anchor**, why-chain rung, tension evidence | basename incl. extension, matching a manifest row's `filename` field | The cited item / entity / anchor / evidence is anchored to this manifest source; the phrase is verbatim or a minimally rephrased lift (or, for `Native-multimodal`, from transcribed visual notes). |
+| `[SRC: <filename>]` | Explicit item card, org-entity source, inferred-item **anchor**, why-chain rung, tension evidence | basename incl. extension, matching a manifest row's `filename` field | The cited item / entity / anchor / evidence is anchored to this manifest source; the phrase is verbatim or a minimally rephrased lift (or, for `Native-multimodal` / `Vector-renderable`, from the frozen textual description the input-handler prepared). |
 | `[AI-SUGGESTED: AI-NN \| blocking\|non-blocking]` | Inferred item card | `AI-NN` local id + blocking flag | The item was **inferred**, not stated. Always co-present with a named technique and ≥1 anchor `[SRC: <filename>]`. The blocking flag drives downstream resolver treatment. |
 | `(no-target-in-inputs)` | Objective card | (literal string) | An Objective has no anchorable measurable target/deadline in input prose; carries a best-effort intent phrase plus the marker. |
 | `irrelevant-to-business-context` | Diagnostics > Source roster | (literal string + one-line reason) | A consumed manifest row yielded no business-context candidate. Surfaces silent skips, mirroring OOUX Gate 8 / User Goal Analysis G7. |
@@ -293,7 +293,8 @@ The analyser reads exactly the files the manifest enumerates, plus the prior art
 | Tier | Source location | Read mechanism |
 |---|---|---|
 | `Native-text` | `original_path` | `Read` directly as text |
-| `Native-multimodal` | `original_path` | `Read` — vision surfaces image bytes; transcribe visible text/structure to a per-source notes buffer |
+| `Native-multimodal` | `converted_sibling` | `Read` the frozen textual description (do **not** re-interpret pixels) |
+| `Vector-renderable` | `converted_sibling` | `Read` the frozen textual description (do **not** re-interpret pixels) |
 | `Supported-via-MCP` | `converted_sibling` | `Read` the `.converted.md` (markitdown's output, produced by input-handler) |
 | `Unsupported` | — | Skipped; recorded in Diagnostics > Source roster > Skipped |
 

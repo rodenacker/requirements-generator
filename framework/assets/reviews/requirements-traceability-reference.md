@@ -67,11 +67,11 @@ Every other `/review-requirement` lens is **stand-alone** — it reads `requirem
 | `framework/state/resolver-answers.ndjson` | how each `AI-NNN` was resolved (the consultant's answer) | `{id, status, resolved_value, reason}`, `status ∈ {confirmed, accepted-as-is, corrected, dropped}` (requirements-resolver) |
 | `requirements/consultant-answers.md` | human-readable corroboration of the resolutions | narrative (drafter/orchestrator) |
 | `requirements/source-manifest.json` | the allowlist of valid `source_file` paths + the original input files | input-handler |
-| the input files (`original_path` / `converted_sibling`) | **the trace terminus** — the real document a quote must be found in | — |
+| the input files (read per the Read-path resolution rule in `framework/skills/build-source-manifest.md`: `converted_sibling` when non-null, else `original_path`) | **the trace terminus** — the real document a quote must be found in | — |
 
 ### The trace chain terminates at the origin, not at an intermediate ledger
 
-- **To the original input document:** final fact → `[SRC: C-NNN]` → `draft-claims.ndjson` (verbatim quote + `source_file`) → the quote must still be a **verbatim substring of the actual input file** named in `source-manifest.json`. The ledger is the index; the verification fires against the real source.
+- **To the original input document:** final fact → `[SRC: C-NNN]` → `draft-claims.ndjson` (verbatim quote + `source_file`) → the quote must still be a **verbatim substring of the actual input file** named in `source-manifest.json`, read per the Read-path resolution rule in `framework/skills/build-source-manifest.md` (`converted_sibling` when non-null, else `original_path`). The ledger is the index; the verification fires against the real source. For a `[SRC]` quote drawn from a visual source (`Native-multimodal` / `Vector-renderable`), this matches the quote against the **frozen textual description** the input-handler prepared — verifiable text — rather than image pixels, which a substring matcher could never confirm.
 - **To the consultant's actual answer:** final fact → draft `[AI-SUGGESTED: AI-NNN]` → `resolver-answers.ndjson` (`confirmed`/`accepted-as-is`/`corrected` + `resolved_value`), corroborated by `consultant-answers.md`.
 
 ---

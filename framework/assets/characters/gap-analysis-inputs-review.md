@@ -164,7 +164,7 @@ Per the `/review-inputs` convention: citations live in the Evidence column only;
 The Gap Analysis reviewer reads:
 
 - `requirements/source-manifest.json` (once, at Step 2 — to enumerate consumable sources and read the `target` field).
-- For each manifest row where `tier != "Unsupported"`: the file at `original_path` (Native tiers) or `converted_sibling` (Supported-via-MCP tier) — once per row at Step 2.
+- For each manifest row where `tier != "Unsupported"`: the file at `converted_sibling` when non-null, else `original_path` (only `Native-text`) — per the Read-path resolution rule in `framework/skills/build-source-manifest.md`; once per row at Step 2.
 - This character file and the reference (`gap-analysis-reference.md`) at activation (Step 1).
 - `framework/assets/topics-requirements.md` — once at Step 3. Source of the canonical topic list, the `Dimension` column (per-topic classification, SPoT), and the Tier A/B/C/D bijection rules (for the Confidence-honesty rule).
 - `framework/shared/general-rules.md` — once at Step 3. Source of `GR-NN` ids for the `Standard-rule` coverage state.

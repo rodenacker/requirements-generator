@@ -62,11 +62,13 @@ Affinity mapping is the right tool when the corpus is messy enough that the cons
 Affinity mapping on the inputs side is **a bottom-up synthesis lens onto raw consultant material**, not a re-clustering of an already-coded corpus. The analyser starts from `requirements/source-manifest.json` and reads every row whose `tier != "Unsupported"`:
 
 - `Native-text` → read `row.original_path` as text.
-- `Native-multimodal` → read `row.original_path` as image bytes (Claude's multimodal vision); transcribe visible text + structurally significant observations (object labels on diagrams, screen artefact text, whiteboard contents). Multimodal transcription is permitted; fabrication is not. The boundary: a note's text must be supported by what is *literally visible or written* in the source, not extrapolated.
+- `Native-multimodal` / `Vector-renderable` → read `row.converted_sibling` — a frozen textual description of the visual prepared by the input-handler; it already enumerates the visible text + structurally significant observations (object labels on diagrams, screen artefact text, whiteboard contents). Treat it as the canonical text source; do **not** re-interpret pixels. The boundary: a note's text must be supported by what is *literally present* in the description, not extrapolated.
 - `Supported-via-MCP` → read `row.converted_sibling` as text (markitdown-converted by the input-handler at orchestrator Step 1).
 - `Unsupported` → skip; record `(filename, reason)` in the source roster's Skipped table.
 
-There is no §2.1 anchor to fall back to. Every note traces verbatim (or via narrowly-bounded multimodal transcription) to exactly one source filename. If the manifest enumerates zero consumable rows, the analyser halts with an RF-03 analogue rather than producing an empty map.
+Per the Read-path resolution rule in `framework/skills/build-source-manifest.md`: read `converted_sibling` whenever it is non-null, otherwise `original_path`.
+
+There is no §2.1 anchor to fall back to. Every note traces verbatim (or via a narrowly-bounded lift from the frozen description) to exactly one source filename. If the manifest enumerates zero consumable rows, the analyser halts with an RF-03 analogue rather than producing an empty map.
 
 ---
 
@@ -76,7 +78,7 @@ Six rounds, executed in order. The analyser does not skip rounds and does not co
 
 ### Round 1 — Note extraction (no clustering)
 
-For each row in `consumed_rows`, scan the content (text or transcribed visual notes) for **atomic notes** — single citable observations / claims / utterances. One observation per note. **No grouping is allowed in this round** — extraction-only suppresses anchoring on a partially-read corpus.
+For each row in `consumed_rows`, scan the content (prose text, or the frozen visual description for visual rows) for **atomic notes** — single citable observations / claims / utterances. One observation per note. **No grouping is allowed in this round** — extraction-only suppresses anchoring on a partially-read corpus.
 
 A note is:
 
@@ -279,7 +281,7 @@ Plus the `<head>` carries a small `<script type="application/json" id="affinity-
   "source_roster": {
     "consumed": [
       { "filename": "<basename>",
-        "tier": "Native-text | Native-multimodal | Supported-via-MCP",
+        "tier": "Native-text | Native-multimodal | Vector-renderable | Supported-via-MCP",
         "sha256": "<first 8 chars>",
         "note_count": <int ≥ 0> }
     ],

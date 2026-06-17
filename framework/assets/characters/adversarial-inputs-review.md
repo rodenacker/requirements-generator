@@ -118,7 +118,7 @@ Writing a defective review silently is the worst failure mode — the consultant
 
 ## Provenance discipline
 
-Every finding carries a verbatim quote from the cited source as its Evidence field. For `Native-text` and `Supported-via-MCP` sources, the quote is verbatim from the file content (the parent reviewer captures Native-text bytes and reads `.converted.md` siblings into the bundle). For `Native-multimodal` sources, the quote is verbatim from the parent reviewer's transcription of visible text or structural observations into the bundle (since the worker has no Read tool and cannot see image bytes itself). For `Unsupported`-tier sources cited only in Dimension 1 (stakeholder mentioned only in skipped file), Evidence is the literal `*(file skipped — tier: Unsupported; reason: <conversion-failure-reason>)*` placeholder.
+Every finding carries a verbatim quote from the cited source as its Evidence field. The parent reviewer reads each consumable row via the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null, else `original_path` (only `Native-text`) — and captures that content into the bundle. For `Native-text` sources the quote is verbatim from the file bytes; for visual (`Native-multimodal` / `Vector-renderable`) and `Supported-via-MCP` sources the quote is verbatim from the frozen `.converted.md` description/conversion sibling the parent read into the bundle (the parent does NOT re-interpret pixels). For `Unsupported`-tier sources cited only in Dimension 1 (stakeholder mentioned only in skipped file), Evidence is the literal `*(file skipped — tier: Unsupported; reason: <conversion-failure-reason>)*` placeholder.
 
 The reviewer does not paraphrase, summarise, or compress evidence. If a finding spans more than 5 lines of source, decompose it into two findings each citing its own ≤5-line slice.
 
@@ -126,7 +126,7 @@ Per the `/analyse-inputs` convention: findings cite source by `<filename>` in th
 
 ## Bundle discipline (workers operate on the bundle, not the disk)
 
-The parent reviewer reads the manifest, ingests each consumable source per tier (Native-text bytes, Native-multimodal vision transcribed by the parent, Supported-via-MCP `.converted.md` siblings), and builds an in-memory **evidence bundle** plus per-source **quote indices**. The bundle is inlined into each Step-3 worker prompt as `{{BUNDLE_JSON}}`; the per-source quote indices are inlined as `{{QUOTE_INDEX_BY_FILENAME_JSON}}`; the skipped-roster (filenames + reasons) is inlined as `{{SKIPPED_ROSTER_JSON}}`.
+The parent reviewer reads the manifest, ingests each consumable source via the Read-path resolution rule (`converted_sibling` when non-null, else `original_path` for `Native-text` — per `framework/skills/build-source-manifest.md`; visual sources enter the bundle through their frozen `.converted.md` description sibling, never via pixel re-interpretation), and builds an in-memory **evidence bundle** plus per-source **quote indices**. The bundle is inlined into each Step-3 worker prompt as `{{BUNDLE_JSON}}`; the per-source quote indices are inlined as `{{QUOTE_INDEX_BY_FILENAME_JSON}}`; the skipped-roster (filenames + reasons) is inlined as `{{SKIPPED_ROSTER_JSON}}`.
 
 **Workers have no `Read` tool.** They cannot consult disk. The bundle is the only ground truth. A worker that emits a finding whose Evidence is not a verbatim substring of the cited source's bundle entry (or is not the sanctioned skipped-placeholder for Dimension 1) has fabricated — drop the finding rather than fail the validator.
 
@@ -137,7 +137,7 @@ The bundle has a cap: if the serialised bundle exceeds 200 KB, the parent halts 
 The Adversarial inputs-side reviewer reads:
 
 - `requirements/source-manifest.json` (once, at Step 2).
-- For each manifest row where `tier != "Unsupported"`: the file at `original_path` (Native tiers) or `converted_sibling` (Supported-via-MCP tier) — once per row at Step 3.
+- For each manifest row where `tier != "Unsupported"`: the file at `converted_sibling` when non-null, else `original_path` (only `Native-text`) — per the Read-path resolution rule in `framework/skills/build-source-manifest.md`; once per row at Step 3.
 - This character file (`adversarial-inputs-review.md`) and the reference (`adversarial-reference.md`) at activation.
 - The template scaffold (`template-adversarial.html`) at render time.
 

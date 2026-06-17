@@ -275,7 +275,7 @@ Every node, every Plan, every terminal operation, every information-requirement 
 The analyser walks the manifest in this order:
 
 1. **`Native-text` rows** → read `original_path` directly as text. The richest source for verb extraction.
-2. **`Native-multimodal` rows** → read `original_path` (Claude vision surfaces image bytes). Transcribe visible text and structurally significant observations. Diagrams (flowcharts, wireframes) often carry coordination logic.
+2. **`Native-multimodal` / `Vector-renderable` rows** → read `converted_sibling` — a frozen textual description of the visual prepared by the input-handler; it already enumerates the visible text and structurally significant observations. Treat it as the canonical text source; do **not** re-interpret pixels. Diagrams (flowcharts, wireframes) often carry coordination logic that their descriptions surface.
 3. **`Supported-via-MCP` rows** → read `converted_sibling` (the `.converted.md` that the input-handler produced via markitdown). Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract.
 4. **`Unsupported` rows** → skipped; recorded in `Source roster > Skipped` with the manifest's `conversions_applied` reason.
 

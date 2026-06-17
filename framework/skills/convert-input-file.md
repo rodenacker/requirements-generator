@@ -45,7 +45,7 @@ This skill does not surface `RF-02 input_format_unsupported` directly. `RF-02` i
 
 ## Anti-Patterns
 
-- Do not call this skill on a tier other than `Supported-via-MCP`. Native-text and Native-multimodal files are `Read` directly by the drafter; passing them through markitdown loses fidelity (text gets re-flowed; images lose multimodal context).
+- Do not call this skill on a tier other than `Supported-via-MCP`. `Native-text` files are `Read` directly; `Native-multimodal` and `Vector-renderable` files go through `framework/skills/describe-visual-input.md` (vectors are rendered first via `framework/skills/render-visual-to-raster.md`). Passing any of them through markitdown loses fidelity (text gets re-flowed; images lose their visual semantics).
 - Do not call this skill before `preflight-mcp.md` has confirmed the tool is available. Doing so risks a runtime failure inside the conversion call rather than a clean `RF-01` surface.
 - Do not invent sibling paths outside `input/`. The drafter's manifest contract assumes `converted_sibling` is co-located with the original under `input/`; placing the sibling under `requirements/` or `framework/state/` breaks rerun detection (input content-hash deltas) and the orchestrator's reset procedure.
 - Do not skip `verify-artifact-write.md`. The conversion's markdown string can be megabytes for a `.pptx` deck; truncated writes are real and silent.

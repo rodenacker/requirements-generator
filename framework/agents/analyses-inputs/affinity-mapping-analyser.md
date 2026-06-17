@@ -62,7 +62,7 @@ The in-memory `model` (notes + Pass-1 clusters + Pass-2 assignments + Jaccard va
 This agent reads:
 
 - `requirements/source-manifest.json` (read once in Step 2; the orchestrator's Step 1 input-handler invocation guarantees its presence).
-- For each manifest row whose `tier != "Unsupported"`: the file at `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`).
+- For each manifest row whose `tier != "Unsupported"`: the file resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null (`Supported-via-MCP`, `Native-multimodal`, `Vector-renderable`), else `original_path` (`Native-text`).
 - `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` (read once in Step 3 if present, for additive merge / drift detection).
 - `framework/assets/characters/affinity-mapping-inputs-analysis.md` (the character — loaded once in Step 1).
 - `framework/assets/analyses-inputs/affinity-mapping-reference.md` (the methodology — read once in Step 1).
@@ -96,10 +96,9 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - `Read requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_sha256` for the embedded JSON metadata block, the body JSON, and the drift cursor.
 - Parse the manifest. Capture `target` field if present (`prototype` | `application`); else default to `"(not declared in manifest)"`. Capture `domain` field if present in manifest meta; else `null` (the mindmap root falls back to `Affinity Map`).
-- Iterate rows; for each row, dispatch by `tier`:
+- Iterate rows; for each row, apply the Read-path resolution rule in `framework/skills/build-source-manifest.md` (read `converted_sibling` when non-null, else `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
-  - `Native-multimodal` → `Read row.original_path` (the Read tool surfaces image bytes via Claude's multimodal vision); transcribe **visible text + structurally significant observations** (object labels on diagrams, ERD entity names, sticky-note captions on whiteboard photos, screen-mock copy that names data fields or actions) to a per-source notes buffer. Capture `(filename, tier, sha256[:8], visual_notes)` to `consumed_rows`. **Multimodal transcription is not "fabrication"** — but extrapolating *unwritten / unvisible* claims from a multimodal source is. The boundary: a Round 1 note's text must be supported by what is literally visible or written in the source, not extrapolated from surrounding context the source does not contain.
-  - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract.
+  - `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` → `Read row.converted_sibling` as text — a frozen textual description (vision description for `Native-multimodal` / `Vector-renderable`; markitdown rendering for `Supported-via-MCP`) prepared by the input-handler. Treat it as the canonical text source; do **not** re-interpret pixels or re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract. The description already carries a faithful transcription (object labels, ERD entity names, sticky-note captions, screen-mock copy naming data fields or actions) plus a structured what/how breakdown. **The boundary still holds at the note level:** a Round 1 note's text must be supported by what the frozen description actually records, not extrapolated from surrounding context the description does not contain. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
 - If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `input/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
 - If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `input/` and re-invoke `/analyse-inputs`."*
@@ -142,7 +141,7 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 ### Step 4 — Round 1: Note extraction (no clustering)
 
-For each row in `consumed_rows` (or, on `drift_mode == "append-new-notes-only"`, only the new / changed rows since the prior run, identified by `sha256` mismatch row-by-row), scan the content (text or transcribed visual notes) for **atomic notes** per the reference's Round 1 rules.
+For each row in `consumed_rows` (or, on `drift_mode == "append-new-notes-only"`, only the new / changed rows since the prior run, identified by `sha256` mismatch row-by-row), scan the content (source text, or the frozen description for converted-sibling rows) for **atomic notes** per the reference's Round 1 rules.
 
 A note is:
 
@@ -156,7 +155,7 @@ A note is:
 }
 ```
 
-- **No invented notes.** Every note has exactly one `source_filename` matching `consumed_rows[*].filename` exactly. Multimodal transcription per Step 2 is not fabrication; extrapolation is.
+- **No invented notes.** Every note has exactly one `source_filename` matching `consumed_rows[*].filename` exactly. For converted-sibling rows, a note's text must be supported by what the frozen description actually records; extrapolating beyond it is fabrication.
 - **Atomicity is the load-bearing constraint.** A compound source line like *"users cannot tell which records are current and cannot see who edited them"* decomposes into two notes, each with its own id and citation. Gate 2 enforces this.
 - **Include near-duplicates from different sources.** Cross-source mentions are signal; they affect cluster size and confidence later.
 - **Per-source running tally.** For each consumed row, increment `notes_contributed[filename]`. Rows still at zero after the full pass are candidates for the `irrelevant-to-domain` log (Gate 8).
@@ -560,7 +559,7 @@ Output the final handback line:
 ## Inputs
 
 - `requirements/source-manifest.json` — the manifest. Read once in Step 2.
-- Each manifest row's `original_path` (`Native-text` / `Native-multimodal`) or `converted_sibling` (`Supported-via-MCP`). Read in Step 2.
+- Each manifest row's read-path per the Read-path resolution rule in `framework/skills/build-source-manifest.md`: `converted_sibling` when non-null (`Supported-via-MCP` / `Native-multimodal` / `Vector-renderable`), else `original_path` (`Native-text`). Read in Step 2.
 - `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` — prior run's artefact. Read once in Step 3 if present.
 - `framework/assets/characters/affinity-mapping-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/affinity-mapping-reference.md` — the methodology reference. Read once in Step 1.
@@ -575,7 +574,7 @@ Output the final handback line:
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the template scaffold, the manifest, each manifest-enumerated source file, the prior artefact (if present), and the in-memory composed HTML for the sha256 read-back. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.**
+- `Read` — read the character file, the reference asset, the template scaffold, the manifest, each manifest-enumerated source file (via the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null, else `original_path`), the prior artefact (if present), and the in-memory composed HTML for the sha256 read-back. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.**
 - `Write` — write `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` and the transient `/tmp/affinity-mapping-<run-id>/*.json` and `*.mmd` files.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 11's re-render path. The agent does not `Edit` the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
 - `Bash` (POSIX) / `PowerShell` (Windows) — `mkdir -p /tmp/affinity-mapping-<run-id>` (run scratch dir for the two-pass JSON + the `svg-overlap-check` report; ensure it exists before the first scratch write) and `mkdir -p analyse-inputs/AFFINITY-MAPPING` (Step 11 output dir); `rm -rf /tmp/affinity-mapping-<run-id>` (Step 12 cleanup on Accept). No `mmdc` / Mermaid-render dependency — the diagrams are pre-rendered inline SVG.
@@ -631,7 +630,7 @@ Before handing back, verify all of the following against the written artefact an
 
 - **Do not read any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files.** The stand-alone-ish constraint is the agent's most load-bearing invariant. The merged `requirements/requirements.md` is not an input to this analyser; the inputs-side affinity-mapping operates on raw material, not synthesised requirements.
 - **Do not read `framework/state/` or `framework/shared/` for any purpose.** Pipeline state and shared rules are not inputs-side affinity-mapping inputs (refusal-registry / general-rule textual references are links, not file loads).
-- **Do not invent notes.** Every note has provenance traceable to exactly one consumed source. Multimodal transcription (visible text + structurally significant observations) is not fabrication; extrapolation is. The boundary: a note's text must be supported by what is literally visible or written in the source.
+- **Do not invent notes.** Every note has provenance traceable to exactly one consumed source. For converted-sibling rows, reading the frozen description is not fabrication; extrapolation beyond it is. The boundary: a note's text must be supported by what the source text or the frozen description actually records.
 - **Do not collapse the six rounds into a single pass.** Each round produces a distinct in-memory output; the round-by-round structure is what makes the analysis reviewable and what enables the sub-agent isolation in Round 3.
 - **Do not skip the Pass-2 sub-agent invocation in Step 6 on a fresh / re-run-full mode.** Pass-2 is the load-bearing anti-anchoring control; skipping it produces clusters anchored to the order notes were read in Pass-1, not to genuine conceptual similarity. The only sanctioned skip paths are `drift_mode == "append-new-notes-only"` (incremental additions where the existing structure is the anchor by design) and the degraded `pass-2-skipped` path on two sub-agent JSON-parse failures (surfaced explicitly in Step 12 with a Revise recommendation).
 - **Do not include Pass-1 cluster labels, assignments, or counts in the Pass-2 sub-agent's prompt.** This is the anti-anchoring invariant. In-context "ignore Pass-1" prompting is theatre — Pass-1 information must not reach the sub-agent's context at all.

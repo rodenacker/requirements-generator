@@ -48,7 +48,7 @@ This three-way classification is the methodology's load-bearing pipeline contrib
 The reviewer reads:
 
 - `requirements/source-manifest.json` (the manifest enumerating consumable input files; read once at the reviewer's Step 2). The `target` field (`prototype` | `application` | `null`) governs which scope predicate applies at the disposition step.
-- For each manifest row whose `tier != "Unsupported"`: the file at `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`). Read once by the reviewer at Step 3.
+- For each manifest row whose `tier != "Unsupported"`, the file selected by the Read-path resolution rule in `framework/skills/build-source-manifest.md` (read `converted_sibling` when non-null, else `original_path` — only `Native-text` is read at `original_path`). For `Native-multimodal` / `Vector-renderable` rows the `converted_sibling` is a frozen textual description prepared by the input-handler — it already captures labels, field captions, table contents, status/error states, KPI values, and a structured breakdown; treat it as the canonical text source and do **not** re-interpret pixels. `Supported-via-MCP` rows read the markitdown sibling. Read once by the reviewer at Step 3.
 - `framework/assets/characters/completeness-inputs-review.md` (the character — loaded once at activation).
 - `framework/assets/reviews-inputs/completeness-reference.md` (this file — loaded once at activation).
 - `framework/shared/general-rules.md` — loaded **read-only** at the disposition step (Step 14). Authoritative source of `GR-NN` ids the reviewer maps `Standard-Rule-Applies`-disposition findings against. The reviewer does **not** invent `GR-NN` ids — only existing rules are referenced.

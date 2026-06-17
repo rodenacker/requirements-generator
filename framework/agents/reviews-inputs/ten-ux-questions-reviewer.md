@@ -17,7 +17,7 @@ The agent is **single-pass**: source-ingest, candidate-generation, filter, score
 This agent reads:
 
 - `requirements/source-manifest.json` (once, at Step 2).
-- For each manifest row where `tier != "Unsupported"`: the file at `original_path` (for `Native-text` and `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`). Read once per row at Step 3.
+- For each manifest row where `tier != "Unsupported"`: the file resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` when `converted_sibling` is null (`Native-text`), otherwise `converted_sibling` (`Native-multimodal`, `Vector-renderable`, `Supported-via-MCP`). Read once per row at Step 3.
 - `framework/assets/characters/ten-ux-questions-inputs-review.md` (the character — loaded at activation).
 - `framework/assets/reviews-inputs/ten-ux-questions-reference.md` (the methodology — read at activation).
 - `framework/assets/reviews-inputs/template-ten-ux-questions.html` (the self-contained HTML scaffold — read once at Step 8).
@@ -62,10 +62,10 @@ Steps in order. Do not skip steps; do not collapse steps. Each step's success is
 
 ### Step 3 — Per-source ingest (build the corpus, the consumed-filename set, and the skipped roster)
 
-For each row in `consumable_rows`, dispatch by `tier`:
+For each row in `consumable_rows`, resolve the read path per the Read-path resolution rule in `framework/skills/build-source-manifest.md` (`original_path` when `converted_sibling` is null, otherwise `converted_sibling`):
 
 - **`Native-text`** → `Read row.original_path` as text. Hold `(filename, tier, sha256, content)` in the in-memory corpus.
-- **`Native-multimodal`** → `Read row.original_path` (the Read tool surfaces image bytes via Claude's multimodal vision). Transcribe into the corpus the visible text and structurally significant observations: mockup labels, KPI values written on whiteboards, annotated feature lists, button labels, form-field captions, table contents, status indicators, error states visible in screenshots. Hold `(filename, tier, sha256, transcription)`.
+- **`Native-multimodal`** / **`Vector-renderable`** → `Read row.converted_sibling` — a frozen textual description of the visual prepared by the input-handler (it already captures labels, field captions, table contents, status/error states, KPI values, and a structured what/how breakdown). Treat it as the canonical text source; do **not** re-interpret pixels and do **not** read `row.original_path`. Hold `(filename, tier, sha256, description)`.
 - **`Supported-via-MCP`** → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown; the `.converted.md` sibling is the contract). Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` path is authoritative. Hold `(filename, tier, sha256, converted_content)`.
 
 After the ingest:
@@ -77,7 +77,7 @@ After the ingest:
 
 State the Step-3 result aloud in one short line, naming the ingested sources and any skips, e.g.:
 
-> *"Step 3 — ingested 4 consumable sources: `brief.docx` (Supported-via-MCP, reading `input/brief.docx.converted.md`), `whiteboard-photo.png` (Native-multimodal, transcribed), `workshop-notes.md` (Native-text), `interview-transcript.md` (Native-text). 1 skipped: `proposal.pages` (Unsupported, reason: `markitdown: failed — Apple Pages format not supported`)."*
+> *"Step 3 — ingested 4 consumable sources: `brief.docx` (Supported-via-MCP, reading `input/brief.docx.converted.md`), `whiteboard-photo.png` (Native-multimodal, reading the frozen description `input/whiteboard-photo.png.converted.md`), `workshop-notes.md` (Native-text), `interview-transcript.md` (Native-text). 1 skipped: `proposal.pages` (Unsupported, reason: `markitdown: failed — Apple Pages format not supported`)."*
 
 ### Step 3a — Corpus-size note (defence-in-depth, no hard cap)
 
@@ -284,7 +284,7 @@ Output the final handback line:
 ## Inputs
 
 - `requirements/source-manifest.json` — the manifest enumerating consumable input files. Read once in Step 2. The orchestrator's Step 1 manifest preflight guarantees existence.
-- Each manifest row's `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`) — read once per row at Step 3. The agent does **not** read `original_path` for `Supported-via-MCP` rows (the `.converted.md` sibling is the contract).
+- Each manifest row's read-path resolved per the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text` (null `converted_sibling`), `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` — read once per row at Step 3. The agent does **not** read `original_path` for any row carrying a non-null `converted_sibling` (the `.converted.md` sibling is the contract).
 - `framework/assets/characters/ten-ux-questions-inputs-review.md` — the reviewer's stance. Loaded once in Step 1.
 - `framework/assets/reviews-inputs/ten-ux-questions-reference.md` — the methodology reference. Read once in Step 1.
 - `framework/assets/reviews-inputs/template-ten-ux-questions.html` — the self-contained HTML scaffold. Read once in Step 8.
@@ -307,7 +307,7 @@ Section order in the rendered artefact:
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the template scaffold, the manifest (`requirements/source-manifest.json`), each manifest-enumerated source file (`original_path` for Native tiers, `converted_sibling` for Supported-via-MCP), and (at Step 5 only) the four filter sources (`framework/shared/general-rules.md`, `framework/shared/prototype-invariants.md`, `framework/shared/prototype-scope.md`, `framework/assets/reviews-inputs/ten-ba-questions-reference.md`). **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `analyse-requirements/`, `analyse-inputs/`, `review-requirements/`, `review-inputs/<OTHER-METHOD>/`; not against `framework/state/`; not against any other path under `framework/shared/`; not against any path under `framework/assets/reviews/`; not against any other path under `framework/assets/reviews-inputs/` other than its own reference, its own template, and the BA reference.** The stand-alone-ish constraint is enforced by tool-list scope.
+- `Read` — read the character file, the reference asset, the template scaffold, the manifest (`requirements/source-manifest.json`), each manifest-enumerated source file (resolved per the Read-path resolution rule in `framework/skills/build-source-manifest.md`: `original_path` for `Native-text`, `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`), and (at Step 5 only) the four filter sources (`framework/shared/general-rules.md`, `framework/shared/prototype-invariants.md`, `framework/shared/prototype-scope.md`, `framework/assets/reviews-inputs/ten-ba-questions-reference.md`). **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `analyse-requirements/`, `analyse-inputs/`, `review-requirements/`, `review-inputs/<OTHER-METHOD>/`; not against `framework/state/`; not against any other path under `framework/shared/`; not against any path under `framework/assets/reviews/`; not against any other path under `framework/assets/reviews-inputs/` other than its own reference, its own template, and the BA reference.** The stand-alone-ish constraint is enforced by tool-list scope.
 - `Write` — write `review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 8's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
 - `Bash` / `PowerShell` — `mkdir -p review-inputs/TEN-UX-QUESTIONS` (POSIX) or `New-Item -ItemType Directory -Force review-inputs/TEN-UX-QUESTIONS` (Windows) at Step 9 setup. No other shell usage.

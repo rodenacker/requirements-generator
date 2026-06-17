@@ -246,7 +246,7 @@ Each round produces a distinct, named in-memory output. The analyser does not wr
 
 - For each row in `consumed_rows`, scan the content for **process candidates** — sequences of steps that involve ≥ 2 actors with at least one explicit handoff. Signals:
   - Numbered workflows ("1. User submits ... 2. Finance validates ... 3. Manager approves ...").
-  - Process diagrams in `Native-multimodal` rows (the Read tool surfaces image bytes — transcribe steps and arrows).
+  - Process diagrams in `Native-multimodal` / `Vector-renderable` rows (read the row's frozen textual description — the input-handler has already enumerated the steps and arrows; do **not** re-interpret pixels).
   - Section headers naming workflows ("Expense submission", "Customer onboarding", "Dispute resolution").
   - Verb chains crossing actor mentions ("the user uploads X, then finance validates Y and forwards to the manager").
 - A process candidate is `{candidate_id, candidate_display_name, source_filenames, source_quote, evidence_strength: high|medium|low}`.
@@ -365,7 +365,7 @@ Every node, every actor, every handoff, every disconnect, and every gap carries 
 The analyser walks the manifest in this order:
 
 1. **`Native-text` rows** → read `original_path` directly as text. The richest source for actor and verb extraction.
-2. **`Native-multimodal` rows** → read `original_path` (Claude vision surfaces image bytes). Transcribe visible text and structurally significant observations. Process diagrams, BPMN sketches, whiteboard photos often carry the explicit handoff structure the prose lacks — these are high-leverage sources for this analyser.
+2. **`Native-multimodal` / `Vector-renderable` rows** → read `converted_sibling` — a frozen textual description of the visual prepared by the input-handler; it already enumerates the visible text and structurally significant observations. Treat it as the canonical text source; do **not** re-interpret pixels. Process diagrams, BPMN sketches, whiteboard photos often carry the explicit handoff structure the prose lacks — their descriptions are high-leverage sources for this analyser.
 3. **`Supported-via-MCP` rows** → read `converted_sibling` (the `.converted.md` that the input-handler produced via markitdown). Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract.
 4. **`Unsupported` rows** → skipped; recorded in `Source roster > Skipped` with the manifest's `conversions_applied` reason.
 

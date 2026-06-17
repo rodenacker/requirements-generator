@@ -204,7 +204,7 @@ Per the `/analyse-inputs` and parallel `/review-inputs` conventions: findings ci
 The Completeness inputs-side reviewer reads:
 
 - `requirements/source-manifest.json` (once, at Step 2 — to enumerate consumable sources and read the `target` field).
-- For each manifest row where `tier != "Unsupported"`: the file at `original_path` (Native tiers) or `converted_sibling` (Supported-via-MCP tier) — once per row at Step 3.
+- For each manifest row where `tier != "Unsupported"`: the file at `converted_sibling` when non-null, else `original_path` (only `Native-text`) — per the Read-path resolution rule in `framework/skills/build-source-manifest.md`; once per row at Step 3.
 - This character file and the reference (`completeness-reference.md`) at activation.
 - `framework/shared/general-rules.md` — once at the disposition-assignment step (Step 15 of the agent), read-only, to map `Standard-Rule-Applies` findings.
 - `framework/shared/prototype-scope.md` — once at the disposition-assignment step (Step 15), read-only, **only** when the manifest's `target == "prototype"`. On `target == "application"` or `target == null`, this file is not loaded.

@@ -83,7 +83,7 @@ The artefact has a fixed top-to-bottom shape, optimised for **diagrams-first rev
 Walk every consumable manifest row in full and enumerate named actors / user roles. Sources are tier-driven:
 
 - `Native-text` → `Read original_path` directly.
-- `Native-multimodal` → `Read original_path`; Claude's vision surfaces image bytes; transcribe visible text and structurally significant observations.
+- `Native-multimodal` / `Vector-renderable` → `Read converted_sibling` — a frozen textual description of the visual prepared by the input-handler; it already enumerates the visible text and structurally significant observations. Treat it as the canonical text source; do **not** re-interpret pixels.
 - `Supported-via-MCP` → `Read converted_sibling` (the `.converted.md`).
 - `Unsupported` → skipped; record in the Consumed/Skipped roster.
 
@@ -301,7 +301,8 @@ The analyser reads exactly the files the manifest enumerates, plus the prior art
 | Tier | Source location | Read mechanism |
 |---|---|---|
 | `Native-text` | `original_path` | `Read` directly as text |
-| `Native-multimodal` | `original_path` | `Read` — Claude's vision surfaces image bytes; transcribe visible text and structure |
+| `Native-multimodal` | `converted_sibling` | `Read` the frozen textual description (do **not** re-interpret pixels) |
+| `Vector-renderable` | `converted_sibling` | `Read` the frozen textual description (do **not** re-interpret pixels) |
 | `Supported-via-MCP` | `converted_sibling` | `Read` the `.converted.md` (markitdown's output, produced by input-handler) |
 | `Unsupported` | — | Skipped; recorded in `Source roster > Skipped` |
 

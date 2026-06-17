@@ -73,7 +73,7 @@ The Torres OST six-stage discipline (Outcome → Opportunities → Solutions →
 This agent reads:
 
 - `requirements/source-manifest.json` (read once in Step 2; the orchestrator's Step 1 input-handler invocation guarantees its presence).
-- For each manifest row whose `tier != "Unsupported"`: the file at `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`).
+- For each manifest row whose `tier != "Unsupported"`: the file resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null (`Supported-via-MCP`, `Native-multimodal`, `Vector-renderable`), else `original_path` (`Native-text`).
 - `analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` (read once in Step 3 if present, for additive merge).
 - `framework/assets/analyses-inputs/template-opportunity-solution-trees.html` (the HTML template scaffold — read once in Step 1, substituted at Step 10).
 - `framework/assets/characters/opportunity-solution-trees-inputs-analysis.md` (the character — loaded once in Step 1).
@@ -102,16 +102,15 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 ### Step 2 — Read manifest & per-tier file ingest
 
 - `Read requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_fingerprint` for the artefact's header line and the cursor field.
-- Parse the manifest. Iterate rows; for each row, dispatch by `tier`:
+- Parse the manifest. Iterate rows; for each row, apply the Read-path resolution rule in `framework/skills/build-source-manifest.md` (read `converted_sibling` when non-null, else `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
-  - `Native-multimodal` → `Read row.original_path` (the Read tool surfaces image bytes via Claude's multimodal vision); transcribe the visible text and structurally significant observations (mockup labels, KPI values written on whiteboards, annotated feature lists) to a per-source notes buffer; capture `(filename, tier, sha256[:8], visual_notes)` to `consumed_rows`.
-  - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract.
+  - `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` → `Read row.converted_sibling` as text — a frozen textual description (vision description for `Native-multimodal` / `Vector-renderable`; markitdown rendering for `Supported-via-MCP`) prepared by the input-handler. Treat it as the canonical text source; do **not** re-interpret pixels or re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract. The description already carries a faithful transcription plus a structured what/how breakdown (objects, fields, relationships, actors, tasks, flows, states, business rules, advisory IA/layout/styling), so it supplies the outcome / opportunity / solution / assumption-test signals this analyser extracts. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
 - If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no manifest rows at all), halt with the structured error: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `input/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
 - If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row is `Unsupported`), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `input/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
 - State the per-tier ingest decisions aloud:
 
-  > *"Step 2: read manifest (`manifest_fingerprint = <first 12 chars>…`). 4 consumable rows: `brief.docx` (Supported-via-MCP, reading `input/brief.docx.converted.md`), `whiteboard-photo.png` (Native-multimodal, reading `input/whiteboard-photo.png` with vision), `workshop-notes.md` (Native-text), `interview-transcript.md` (Native-text). 1 skipped row: `proposal.pages` (Unsupported, reason: `markitdown: failed — Apple Pages format not supported`)."*
+  > *"Step 2: read manifest (`manifest_fingerprint = <first 12 chars>…`). 4 consumable rows: `brief.docx` (Supported-via-MCP, reading `input/brief.docx.converted.md`), `whiteboard-photo.png` (Native-multimodal, reading the frozen description `input/whiteboard-photo.png.converted.md`), `workshop-notes.md` (Native-text), `interview-transcript.md` (Native-text). 1 skipped row: `proposal.pages` (Unsupported, reason: `markitdown: failed — Apple Pages format not supported`)."*
 
 ### Step 3 — Detect prior artefact (additive vs re-extract)
 
@@ -139,7 +138,7 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 ### Step 4 — Round 1: Outcome extraction
 
-- For each row in `consumed_rows`, walk the content (text or transcribed visual notes) for outcome-like signals:
+- For each row in `consumed_rows`, walk the content (source text, or the frozen description for converted-sibling rows) for outcome-like signals:
   - KPI / metric tables (e.g., *"reduce churn to 5%"*, *"95th-percentile latency < 300 ms"*).
   - Goal statements (*"we want to …"*, *"the project will be successful when …"*, *"this initiative aims to …"*, *"our objective is to …"*).
   - Success-criteria slides / sections.
@@ -462,7 +461,7 @@ Output the final handback line:
 ## Inputs
 
 - `requirements/source-manifest.json` — the manifest enumerating consumable input files. Read once in Step 2. The orchestrator's Step 1 input-handler invocation guarantees its presence.
-- Each manifest row's `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`). Read in Step 2.
+- Each manifest row's read-path per the Read-path resolution rule in `framework/skills/build-source-manifest.md`: `converted_sibling` when non-null (`Supported-via-MCP` / `Native-multimodal` / `Vector-renderable`), else `original_path` (`Native-text`). Read in Step 2.
 - `analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html` — the prior run's artefact. Read once in Step 3 if present; absent on first run.
 - `framework/assets/analyses-inputs/template-opportunity-solution-trees.html` — the HTML template scaffold. Read once in Step 1; populated by `{{PLACEHOLDER}}` substitution at Step 10.
 - `framework/assets/characters/opportunity-solution-trees-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
@@ -477,7 +476,7 @@ Output the final handback line:
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the HTML template scaffold (`framework/assets/analyses-inputs/template-opportunity-solution-trees.html`), the manifest, each manifest-enumerated source file (via `original_path` or `converted_sibling`), and (if present) the prior OST artefact, plus the skills it invokes (`framework/skills/render-layered-tree-svg.md` at Step 10B and `framework/skills/verify-artifact-write.md` at Step 11). **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.** The stand-alone-ish constraint is enforced by tool-list scope.
+- `Read` — read the character file, the reference asset, the HTML template scaffold (`framework/assets/analyses-inputs/template-opportunity-solution-trees.html`), the manifest, each manifest-enumerated source file (via the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null, else `original_path`), and (if present) the prior OST artefact, plus the skills it invokes (`framework/skills/render-layered-tree-svg.md` at Step 10B and `framework/skills/verify-artifact-write.md` at Step 11). **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.** The stand-alone-ish constraint is enforced by tool-list scope.
 - `Write` — write `analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 10's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
 - `Bash` / `PowerShell` — `mkdir -p analyse-inputs/OPPORTUNITY-SOLUTION-TREES` (POSIX) or `New-Item -ItemType Directory -Force analyse-inputs/OPPORTUNITY-SOLUTION-TREES` (Windows) at Step 11 setup. No other shell usage; no `mmdc` invocation.

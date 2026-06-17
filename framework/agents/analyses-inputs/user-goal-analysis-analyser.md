@@ -67,7 +67,7 @@ The six-pass process maps to twelve workflow steps. The mapping is one-to-one fo
 This agent reads:
 
 - `requirements/source-manifest.json` (read once in Step 2; the orchestrator's Step 1 input-handler invocation guarantees its presence).
-- For each manifest row whose `tier != "Unsupported"`: the file at `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`).
+- For each manifest row whose `tier != "Unsupported"`: the file resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null (`Supported-via-MCP`, `Native-multimodal`, `Vector-renderable`), else `original_path` (`Native-text`).
 - `analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` (read once in Step 3 if present, for additive merge).
 - `framework/assets/characters/user-goal-analysis-inputs-analysis.md` (the character — loaded once in Step 1).
 - `framework/assets/analyses-inputs/user-goal-analysis-reference.md` (the methodology — read once in Step 1).
@@ -93,16 +93,15 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 ### Step 2 — Read manifest & per-tier file ingest
 
 - `Read requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_fingerprint` for the artefact's meta-comment and the cursor field.
-- Parse the manifest. Iterate rows; for each row, dispatch by `tier`:
+- Parse the manifest. Iterate rows; for each row, apply the Read-path resolution rule in `framework/skills/build-source-manifest.md` (read `converted_sibling` when non-null, else `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
-  - `Native-multimodal` → `Read row.original_path` (the Read tool surfaces image bytes via Claude's multimodal vision); transcribe visible text and structurally significant observations (whiteboard layout, sticky-note clusters, slide structure, screenshot annotations) to a per-source notes buffer; capture `(filename, tier, sha256[:8], visual_notes)` to `consumed_rows`.
-  - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp`.
+  - `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` → `Read row.converted_sibling` as text — a frozen textual description (vision description for `Native-multimodal` / `Vector-renderable`; markitdown rendering for `Supported-via-MCP`) prepared by the input-handler. Treat it as the canonical text source; do **not** re-interpret pixels or re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract. The description already carries a faithful transcription plus a structured what/how breakdown (objects, fields, relationships, actors, tasks, flows, states, business rules, advisory IA/layout/styling), so it supplies the actors, explicit-goal, and inference-anchor signals this analyser harvests. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
 - If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no manifest rows at all), halt with: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `input/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; hard halt analogous to RF-03.
 - If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row is `Unsupported`), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `input/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
 - State the per-tier ingest decisions aloud, e.g.:
 
-  > *"Step 2: read manifest (`manifest_fingerprint = <first 12 chars>…`). 4 consumable rows: `brief.docx` (Supported-via-MCP, reading `input/brief.docx.converted.md`), `whiteboard-photo.png` (Native-multimodal, vision), `interview-notes.md` (Native-text), `pricing-sheet.xlsx` (Supported-via-MCP). 1 skipped row: `proposal.pages` (Unsupported, reason: `markitdown: Apple Pages not supported`)."*
+  > *"Step 2: read manifest (`manifest_fingerprint = <first 12 chars>…`). 4 consumable rows: `brief.docx` (Supported-via-MCP, reading `input/brief.docx.converted.md`), `whiteboard-photo.png` (Native-multimodal, reading the frozen description `input/whiteboard-photo.png.converted.md`), `interview-notes.md` (Native-text), `pricing-sheet.xlsx` (Supported-via-MCP). 1 skipped row: `proposal.pages` (Unsupported, reason: `markitdown: Apple Pages not supported`)."*
 
 ### Step 3 — Detect prior artefact (additive vs re-extract)
 
@@ -128,7 +127,7 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 ### Step 4 — Pass 1: Actor inventory
 
-- For each row in `consumed_rows`, walk the content (text or transcribed visual notes) and extract every actor / role / persona that **holds a goal**:
+- For each row in `consumed_rows`, walk the content (source text, or the frozen description for converted-sibling rows) and extract every actor / role / persona that **holds a goal**:
 
   ```
   {
@@ -370,7 +369,7 @@ The loop continues until the consultant chooses Accept (or hand-back fails on a 
 ## Inputs
 
 - `requirements/source-manifest.json` — the manifest enumerating consumable input files. Read once in Step 2.
-- Each manifest row's `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`). Read in Step 2.
+- Each manifest row's read-path per the Read-path resolution rule in `framework/skills/build-source-manifest.md`: `converted_sibling` when non-null (`Supported-via-MCP` / `Native-multimodal` / `Vector-renderable`), else `original_path` (`Native-text`). Read in Step 2.
 - `analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` — the prior run's artefact. Read once in Step 3 if present.
 - `framework/assets/characters/user-goal-analysis-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/user-goal-analysis-reference.md` — the methodology reference. Read once in Step 1.
@@ -382,7 +381,7 @@ The loop continues until the consultant chooses Accept (or hand-back fails on a 
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the template, the manifest, each manifest-enumerated source file (via `original_path` or `converted_sibling`), and (if present) the prior artefact. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.** The stand-alone-ish constraint is enforced by tool-list scope.
+- `Read` — read the character file, the reference asset, the template, the manifest, each manifest-enumerated source file (via the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null, else `original_path`), and (if present) the prior artefact. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.** The stand-alone-ish constraint is enforced by tool-list scope.
 - `Write` — write `analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 10's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
 - `Bash` — `mkdir -p analyse-inputs/USER-GOAL-ANALYSIS` (or PowerShell equivalent — Step 11 setup). No other Bash usage.

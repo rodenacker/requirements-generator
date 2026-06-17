@@ -16,13 +16,13 @@ Add new predicates by appending; never renumber.
 
 **Severity:** pause.
 
-**Trigger:** A required external tool is not in the available tool list at preflight time. MVP scope: `mcp__markitdown__convert_to_markdown` is required when at least one input file's tier is `Supported-via-MCP`.
+**Trigger:** A required external dependency — an **MCP-backed tool** or a **CLI binary** — is not available at preflight time. Two MVP cases: (a) `mcp__markitdown__convert_to_markdown` (probed via `framework/skills/preflight-mcp.md`) is required when at least one input file's tier is `Supported-via-MCP`; (b) a vector renderer (probed via `framework/skills/preflight-cli.md`) is required when at least one input file's tier is `Vector-renderable`. The predicate is dependency-agnostic; the surfacing caller supplies the `advice_path` of the specific dependency.
 
 **Surface:** `AskUserQuestion` with the choice set `{ continue-skip, continue-later }` plus an "Other" override.
-- `continue-skip` — the agent proceeds with the missing tool absent; every file that needed the tool reclassifies to `Unsupported` for this run and is recorded in the manifest with `conversions_applied: "skipped — RF-01"`.
-- `continue-later` — the agent writes `status: setup-pending` and `pending_setup: { predicate: "RF-01", advice_path: "framework/shared/setup-instructions/markitdown.md", since: <ISO-8601 UTC> }` to `framework/state/.progress.json` and exits cleanly. The consultant installs the dependency and re-invokes the pipeline.
+- `continue-skip` — the agent proceeds with the missing dependency absent; every file that needed it reclassifies to `Unsupported` for this run and is recorded in the manifest with `conversions_applied: "skipped — RF-01"`.
+- `continue-later` — the agent writes `status: setup-pending` and `pending_setup: { predicate: "RF-01", advice_path: "<the probed dependency's advice_path>", since: <ISO-8601 UTC> }` to `framework/state/.progress.json` and exits cleanly. The consultant installs the dependency and re-invokes the pipeline. (The `advice_path` is `framework/shared/setup-instructions/markitdown.md` for the markitdown case, `framework/shared/setup-instructions/visual-render.md` for the vector-renderer case.)
 
-**Recovery:** Read `framework/shared/setup-instructions/markitdown.md`. The `advice_path` is also surfaced in the question text.
+**Recovery:** Read the `advice_path` surfaced in the question text — `framework/shared/setup-instructions/markitdown.md` (markitdown) or `framework/shared/setup-instructions/visual-render.md` (vector renderer).
 
 **Refusal-registry schema field:** `setup_instructions_path` — the absolute repo-relative path to the install copy. Used only by `RF-01` for now; reserved for future predicates that point at out-of-band setup steps.
 

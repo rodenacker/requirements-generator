@@ -14,10 +14,10 @@ The PRD pipeline is **fully independent of `requirements/requirements.md`**. Thi
 
 ## Workflow
 
-1. *(Timing — emit standalone `substep_start[read-inputs]` before this step's first action; see **Timing log (sub-steps)**.)* Read `requirements/source-manifest.json`. For each row in `rows`:
-    - If `tier ∈ {"Native-text", "Native-multimodal"}` — `Read` `original_path` once into context.
-    - If `tier = "Supported-via-MCP"` — `Read` `converted_sibling` once into context. Do not read the original; the sibling is the drafter-facing surface.
-    - If `tier = "Unsupported"` — skip. The row is a forensic record only.
+1. *(Timing — emit standalone `substep_start[read-inputs]` before this step's first action; see **Timing log (sub-steps)**.)* Read `requirements/source-manifest.json`. Read each row per the **Read-path resolution** rule in `framework/skills/build-source-manifest.md`:
+    - `Native-text` — `Read` `original_path` once into context (it carries no `converted_sibling`).
+    - `Native-multimodal`, `Vector-renderable`, `Supported-via-MCP` — `Read` `converted_sibling` once into context. Do not read the original; the sibling (frozen vision description for the two visual tiers, markitdown rendering for `Supported-via-MCP`) is the drafter-facing surface.
+    - `Unsupported` — skip. The row is a forensic record only.
    The manifest is the sole enumeration of inputs; do not Glob `input/` directly. The manifest's root-level `target` field is informational only for the PRD pipeline — it is surfaced in §1 metadata's `Build target reference` field but does not branch any decision tree.
 
 2. Extract facts mentally by template section as you read; do not re-read inputs per section.
@@ -56,7 +56,7 @@ This agent writes its own `substep_start` / `substep_end` events to `framework/s
 
     | `substep` | Workflow step(s) | Start boundary | End boundary |
     |---|---|---|---|
-    | `read-inputs` | Step 1 | before reading `requirements/source-manifest.json` | after every manifest-registered file has been Read into context |
+    | `read-inputs` | Step 1 | before reading `requirements/source-manifest.json` | after every manifest-registered file has been Read into context per the **Read-path resolution** rule (`Native-text` via `original_path`; `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` via `converted_sibling`) |
     | `populate-template` | Steps 2–3 | immediately after `read-inputs`'s `substep_end` | after the top-to-bottom template population pass completes, before `gap-pass` begins |
     | `gap-pass` | Step 5 | before invoking `framework/skills/completeness-gap-pass-prd.md` | after every gap-pass tuple has been applied (markers + fabricated elements written into the in-memory draft) |
     | `write-draft` | Step 6 | before running Self-validation for the first time on the draft Write | after `verify-artifact-write` for `prd/prd-draft.md` returns `pass` |
@@ -130,8 +130,8 @@ One JSON object per non-empty line, in `claim_id` order, written by step 6a afte
 - `claim_id` — must match the `[SRC: PC-NNN]` tag at the same locator in the draft body. Unique within the file. **PRD-namespaced (`PC-`)** to avoid visual collision with requirements-pipeline `C-NNN` IDs.
 - `draft_locator` — §-path to the field (e.g., `§5.2.metric[M-03].baseline`, `§7.1.persona[Underwriter].day_summary`).
 - `claim_text` — the field value as it appears in the draft body, **excluding** the trailing `[SRC: PC-NNN]` tag.
-- `source_file` — must be a path listed in `requirements/source-manifest.json` (the row's `original_path` for Native tiers, the row's `converted_sibling` for Supported-via-MCP).
-- `source_quote` — a **verbatim substring** of `source_file`'s contents. The grounding-verifier matches this as literal bytes; whitespace, punctuation, and casing are not normalised.
+- `source_file` — must be a path listed in `requirements/source-manifest.json`: the row's `converted_sibling` when non-null, else its `original_path` (per the **Read-path resolution** rule — i.e. `original_path` only for `Native-text`).
+- `source_quote` — a **verbatim substring** of `source_file`'s contents. The grounding-verifier matches this as literal bytes; whitespace, punctuation, and casing are not normalised. For a visual input this substring is drawn from the frozen description text in the `converted_sibling` — so visual-derived claims now carry verifiable text quotes.
 
 If a field cannot be grounded with a verbatim substring of any manifest-listed source, it MUST instead carry an `[AI-SUGGESTED]` marker — there is no third path. This is the load-bearing fall-through that keeps the citation system closed.
 
@@ -148,7 +148,7 @@ The grounding-verifier emits one or more NDJSON lines per FAIL. Reasons and reme
 
 ## Inputs
 
-- `requirements/source-manifest.json` — the sole enumeration of input files. The drafter Reads every row's `original_path` (Native tiers) or `converted_sibling` (Supported-via-MCP) and skips Unsupported rows.
+- `requirements/source-manifest.json` — the sole enumeration of input files. The drafter Reads each row per the **Read-path resolution** rule in `framework/skills/build-source-manifest.md` (`converted_sibling` when non-null — `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`; else `original_path` — `Native-text`) and skips Unsupported rows.
 - The files registered in the manifest, under `input/`.
 - `framework/assets/template-prd.md` — the canonical structure to populate.
 - `framework/assets/topics-prd.md` — bijection invariants (used by the gap-pass skill).
@@ -168,7 +168,7 @@ This agent does **not** read `framework/shared/general-rules.md` or `framework/s
 
 ## Tools
 
-- Read — read `requirements/source-manifest.json`, the manifest-registered input files (originals for Native tiers, `*.converted.md` siblings for Supported-via-MCP), the template, `framework/skills/completeness-gap-pass-prd.md`, the just-written draft for the post-Write verification, and `prd/draft-claims-verification.ndjson` to consume the grounding-verifier's output at step 6b.
+- Read — read `requirements/source-manifest.json`, the manifest-registered input files (per the **Read-path resolution** rule: `original_path` for `Native-text`, the `*.converted.md` sibling for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`), the template, `framework/skills/completeness-gap-pass-prd.md`, the just-written draft for the post-Write verification, and `prd/draft-claims-verification.ndjson` to consume the grounding-verifier's output at step 6b.
 - Grep — cross-check the populated draft, including the `\[SRC: PC-\d{3}\]` tag enumeration used by the grounding-verifier and by self-validation, and the post-Write `GR-20` blocklist Grep over §8 only.
 - Write — emit `prd/prd-draft.md` and `prd/draft-claims.ndjson`.
 - Edit — apply gap-pass tuples to the populated draft (insert markers, fabricated elements) at **Workflow** step 5, and at **Workflow** step 6b apply remediations to the draft and the sidecar (substitute citations or convert fields to `[AI-SUGGESTED]`) so the rest of the draft does not need to be rewritten.
@@ -180,12 +180,12 @@ If any check fails, fix the draft (or sidecar, where indicated) and re-run.
 
 Most bullets are checked **before** the Write at **Workflow** step 6 — they assert in-memory invariants of the draft. A small number reference post-Write artefacts (the claims sidecar at step 6a, the verifier output at step 6b) and are satisfied at the workflow step indicated in the bullet itself.
 
-- `requirements/source-manifest.json` was read; every row with `tier ∈ {"Native-text", "Native-multimodal"}` had its `original_path` Read; every row with `tier = "Supported-via-MCP"` had its `converted_sibling` Read; every row with `tier = "Unsupported"` was skipped. No file under `input/` was Read except via the manifest.
+- `requirements/source-manifest.json` was read; every row was read per the **Read-path resolution** rule (`Native-text` via `original_path`; `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` via `converted_sibling`); every row with `tier = "Unsupported"` was skipped. No file under `input/` was Read except via the manifest.
 - Template structure preserved; no `{{placeholders}}` remain; every field populated.
 - Every inferred value carries exactly one `[AI-SUGGESTED: PAI-NNN | blocking|non-blocking]` marker with a unique PAI-NNN ID and a single classification from `{blocking, non-blocking}`. Stated-from-input values carry no marker. **Stated-from-input values in the **Citation scope** carry exactly one trailing `[SRC: PC-NNN]` tag with a unique, monotonically assigned id; no field carries both a marker and a `[SRC:]` tag.**
 - **No forbidden markers.** Grep over the draft body for `\[STANDARD-RULE:|\[OUT-OF-SCOPE:|\[REQ:` returns zero matches. The PRD pipeline does not emit those marker classes.
 - **Grounding (sidecar exists and parses)** — satisfied at **Workflow** step 6a: `prd/draft-claims.ndjson` exists, every non-empty line parses as a single JSON object with the keys `{claim_id, draft_locator, claim_text, source_file, source_quote}`, and `claim_id` values are unique within the file.
-- **Grounding (bidirectional cross-check + verbatim substring)** — satisfied at **Workflow** step 6b: every `source_file` is a path listed in `requirements/source-manifest.json`; every `source_quote` is a verbatim substring of its `source_file`'s contents; every `[SRC: PC-NNN]` tag in the draft body has exactly one matching `claim_id` in the sidecar and vice-versa. The canonical assertion is `framework/skills/grounding-verifier.md` returning a summary line with `failed: 0` on its last invocation. If a verbatim substring cannot be produced for a field, that field MUST instead carry an `[AI-SUGGESTED]` marker (and no `[SRC:]` tag).
+- **Grounding (bidirectional cross-check + verbatim substring)** — satisfied at **Workflow** step 6b: every `source_file` is a path listed in `requirements/source-manifest.json` (the row's `converted_sibling` when non-null, else its `original_path`, per the **Read-path resolution** rule); every `source_quote` is a verbatim substring of its `source_file`'s contents; every `[SRC: PC-NNN]` tag in the draft body has exactly one matching `claim_id` in the sidecar and vice-versa. The canonical assertion is `framework/skills/grounding-verifier.md` returning a summary line with `failed: 0` on its last invocation. If a verbatim substring cannot be produced for a field, that field MUST instead carry an `[AI-SUGGESTED]` marker (and no `[SRC:]` tag).
 - **Bijection invariants (Tier A from `topics-prd.md`):**
     - **B1** Every §5.2 M-NN cites at least one §2 problem or §6 hypothesis.
     - **B2** Every §6.1 H-NN row's `Falsification condition` cell is non-empty.
@@ -213,8 +213,8 @@ Most bullets are checked **before** the Write at **Workflow** step 6 — they as
 
 ## Anti-Patterns
 
-- Do not Glob `input/` directly. Read only the files registered in `requirements/source-manifest.json`.
-- Do not Read the original of a `Supported-via-MCP` row. The `*.converted.md` sibling is the drafter-facing surface.
+- Do not Glob `input/` directly. Read only the files registered in `requirements/source-manifest.json`, per the **Read-path resolution** rule.
+- Do not Read the original of ANY row that carries a non-null `converted_sibling`. The `*.converted.md` sibling is the drafter-facing surface; re-interpreting an image's or vector's pixels when its frozen description sibling exists defeats the single-interpretation contract.
 - Do not skip `framework/skills/verify-artifact-write.md` after writing the draft at step 6. A truncated draft that schema-validates against itself in memory will fail the resolver in confusing ways far from the failure site. (The sidecar at step 6a does **not** get a `verify-artifact-write` — the grounding-verifier at step 6b reads the sidecar deterministically in the immediate next sub-step and reports `ndjson_parse_error` on corruption, so the verifier is the substantive sidecar check.)
 - Do not change the structure of the PRD template.
 - Do not leave fields blank — when inputs are silent, walk the **Classification** decision tree to apply the `[AI-SUGGESTED]` marker.

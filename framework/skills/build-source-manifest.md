@@ -7,7 +7,9 @@
 - `inherited_target` — string or `null`. Optional, default `null`. Must be one of `"prototype"`, `"application"`, or `null`. When non-null, emit as the manifest's root-level `target` field instead of `null`; the input-handler passes this only on a refresh (when an existing manifest's `target` is being preserved across a rebuild) — see `framework/agents/input-handler.md` step 0. When omitted or `null`, the manifest's `target` field is emitted as `null` (today's behaviour on create / first build).
 - The list of classified rows produced by `framework/skills/classify-input-tier.md`.
 - For each `Supported-via-MCP` row that converted successfully: the sibling path returned by `framework/skills/convert-input-file.md` and that skill's `conversions_applied` string.
-- For each `Supported-via-MCP` row that failed conversion: the row's tier is rewritten to `Unsupported` and `conversions_applied` carries the failure sub-tag (`failed — encrypted` or `failed — corrupt`).
+- For each `Native-multimodal` (raster) row that described successfully: the sibling path returned by `framework/skills/describe-visual-input.md` and that skill's `conversions_applied` string (`vision-described[; ...]`).
+- For each `Vector-renderable` row that rendered + described successfully: the sibling path returned by `framework/skills/describe-visual-input.md` (fed the raster from `framework/skills/render-visual-to-raster.md`) and its `conversions_applied` string (`vision-described; rendered-from-vector; render-tool=<name>`).
+- For each row that failed conversion/description/render: the row's tier is rewritten to `Unsupported` and `conversions_applied` carries the failure sub-tag (`failed — encrypted`, `failed — corrupt`, `failed — vision`, or `failed — render`).
 - For each `Unsupported` row (originally Unsupported or demoted from a failed conversion): no conversion is attempted.
 
 **Outputs:**
@@ -27,12 +29,12 @@
   "rows": [
     {
       "filename": "<basename>",
-      "tier": "Native-text | Native-multimodal | Supported-via-MCP | Unsupported",
+      "tier": "Native-text | Native-multimodal | Vector-renderable | Supported-via-MCP | Unsupported",
       "kind": "primary",
       "sha256": "<hex of original_path file bytes>",
-      "conversions_applied": "none | markitdown-mcp[; sub-tag...] | failed — <reason>",
+      "conversions_applied": "none | markitdown-mcp[; sub-tag...] | vision-described[; sub-tag...] | failed — <reason>",
       "original_path": "input/<basename>",
-      "converted_sibling": "input/<basename>.converted.md | null"
+      "converted_sibling": "input/<basename>.converted.md | input/<filename-with-ext>.converted.md | null"
     }
   ]
 }
@@ -40,13 +42,21 @@
 
 Field rules:
 - `filename` — basename only, including extension.
-- `tier` — exactly one of the four documented values.
+- `tier` — exactly one of the five documented values (`Native-text`, `Native-multimodal`, `Vector-renderable`, `Supported-via-MCP`, `Unsupported`).
 - `kind` — `"primary"` for every row in this MVP. The `"derived"` value is reserved for future extensions (style assets, UI evidence) and is not produced today.
 - `sha256` — hex digest of the bytes of `original_path` on disk at manifest-build time. Used by `framework/skills/check-manifest-freshness.md` to detect input drift on a re-invocation.
-- `conversions_applied` — `"none"` for Native-text, Native-multimodal, and originally-Unsupported rows. `"markitdown-mcp[; sub-tag...]"` for successful conversions. `"failed — <reason>"` for `Supported-via-MCP` rows whose conversion failed (the row's tier in the same emit is `"Unsupported"`).
+- `conversions_applied` — `"none"` for Native-text and originally-Unsupported rows. `"markitdown-mcp[; sub-tag...]"` for successful `Supported-via-MCP` conversions. `"vision-described[; sub-tag...]"` for successful `Native-multimodal` (raster) descriptions and `Vector-renderable` descriptions; on a `Vector-renderable` row the sub-tags carry `rendered-from-vector` and `render-tool=<name>`. `"failed — <reason>"` for rows whose conversion/description failed (the row's tier in the same emit is `"Unsupported"`); reasons include `markitdown` failures (`failed — encrypted`, `failed — corrupt`), `failed — vision` (the describer could not interpret the image), and `failed — render` (the vector renderer could not produce a raster).
 - `original_path` — repo-relative.
-- `converted_sibling` — repo-relative path of the `*.converted.md` sibling for successful `Supported-via-MCP` rows; `null` otherwise.
+- `converted_sibling` — repo-relative path of the `*.converted.md` sibling that downstream consumers read **instead of** `original_path`. Non-null for three row kinds: successful `Supported-via-MCP` rows (markitdown rendering), described `Native-multimodal` rows (frozen vision description), and rendered `Vector-renderable` rows (frozen vision description of the rendered raster). `null` for `Native-text` and `Unsupported` rows. **Naming convention:** `Supported-via-MCP` siblings *replace* the extension (`spec.docx` → `spec.converted.md`); `Native-multimodal` and `Vector-renderable` siblings *append* to the full filename (`chart.png` → `chart.png.converted.md`, `flow.svg` → `flow.svg.converted.md`) so a visual never collides with a same-stem Office file's sibling. Both forms match the `*.converted.md` glob used by freshness/reset.
 - `target` — exactly one of `"prototype"`, `"application"`, or `null`. On a **create** invocation (input-handler's first build for a manifest, called with `inherited_target: null` or omitted), this skill emits `null` — the target has not yet been set at manifest-build time. On a **refresh** invocation (input-handler's `mode = "refresh"` branch, called with a non-null `inherited_target` captured from the pre-rebuild manifest), this skill emits the inherited value verbatim — preservation across the rebuild, never origination. The `/requirements` orchestrator's Step 1b is the only place that *originates* a `target` value (via `framework/skills/set-build-target.md`, auto-set to `"prototype"` after the consultant accepts the manifest). The `/generate-prd`, `/analyse-inputs`, and `/review-inputs` orchestrators never invoke `set-build-target.md`; on a first-mover invocation of any of those three pipelines, `target` stays `null` indefinitely (and is preserved as `null` across any subsequent refresh). Downstream `/requirements`-pipeline agents (drafter, merger) Read this field on a legacy manifest that omits the field entirely and treat the absence as `"prototype"` (one-time additive migration; no rewrite). The resolver does not Read this field — its behaviour is target-agnostic. Input-analysers under `/analyse-inputs` and input-reviewers under `/review-inputs` ignore this field entirely. The `/generate-prd` drafter Reads the field as informational reference in §1 metadata but does not branch on it.
+
+## Read-path resolution (canonical)
+
+This skill is the canonical home of the rule every downstream input-consumer follows to decide which file to read for a manifest row. Consumers (the `/requirements` drafter, the `/generate-prd` drafter, every `/analyse-inputs` analyser, every `/review-inputs` reviewer) **reference this rule rather than re-deriving a per-tier branch**:
+
+> **Read-path resolution.** For each manifest row: if `converted_sibling` is non-null, read `converted_sibling`; otherwise read `original_path`. Skip rows with `tier: "Unsupported"`.
+
+The rule is intentionally tier-agnostic: a consumer never needs to know *why* a sibling exists (markitdown conversion, frozen vision description, or rendered-then-described vector). The sibling is always the consumer-facing surface when present. This means a row's `original_path` is read only for `Native-text` (which never carries a sibling) — every other consumable row is read through `converted_sibling`. Consumers must **not** read the `original_path` of a row that carries a non-null `converted_sibling` (e.g. re-interpreting an image's pixels when a frozen description exists defeats the single-interpretation contract).
 
 ## Row-construction algorithm
 
@@ -55,7 +65,10 @@ For each classified row from `classify-input-tier.md`, in input-order:
 1. Compute `sha256` of the bytes at `original_path`.
 2. Fill `filename`, `original_path`, `kind: "primary"`.
 3. Branch on tier:
-    - `Native-text` or `Native-multimodal` — `tier` as classified, `conversions_applied: "none"`, `converted_sibling: null`.
+    - `Native-text` — `tier` as classified, `conversions_applied: "none"`, `converted_sibling: null`.
+    - `Native-multimodal` and description succeeded — `tier: "Native-multimodal"`, `conversions_applied: "vision-described[; sub-tag...]"`, `converted_sibling: "input/<filename-with-ext>.converted.md"`.
+    - `Vector-renderable` and render+description succeeded — `tier: "Vector-renderable"`, `conversions_applied: "vision-described; rendered-from-vector; render-tool=<name>"`, `converted_sibling: "input/<filename-with-ext>.converted.md"`.
+    - `Native-multimodal` description failed or `Vector-renderable` render/description failed — `tier: "Unsupported"`, `conversions_applied: "failed — vision"` or `"failed — render"`, `converted_sibling: null`.
     - `Supported-via-MCP` and conversion succeeded — `tier: "Supported-via-MCP"`, `conversions_applied: "markitdown-mcp[; sub-tag...]"`, `converted_sibling: "input/<basename>.converted.md"`.
     - `Supported-via-MCP` and conversion failed — `tier: "Unsupported"`, `conversions_applied: "failed — <reason>"`, `converted_sibling: null`.
     - `Unsupported` (originally) — `tier: "Unsupported"`, `conversions_applied: "none"`, `converted_sibling: null`.
@@ -66,8 +79,8 @@ After all rows are constructed, set `schema_version: 1`, `generated_at: <ISO-860
 
 - Every input file from the classifier produced exactly one row.
 - Every row has all seven fields, with the correct types per the schema.
-- For every row with `tier = "Supported-via-MCP"`, `converted_sibling` is non-null and points to an existing file under `input/`.
-- For every row with `tier ≠ "Supported-via-MCP"`, `converted_sibling` is `null`.
+- For every row with `tier ∈ {"Supported-via-MCP", "Native-multimodal", "Vector-renderable"}`, `converted_sibling` is non-null and points to an existing file under `input/` (markitdown rendering for Supported-via-MCP; frozen vision description for the other two).
+- For every row with `tier ∈ {"Native-text", "Unsupported"}`, `converted_sibling` is `null`.
 - `schema_version` is `1`. `generated_at` parses as ISO-8601 UTC. `target` equals the caller-supplied `inherited_target` (which is `null` on create, or one of `"prototype"` / `"application"` on refresh).
 - The manifest is written via `Write` and verified via `framework/skills/verify-artifact-write.md` with `expected_min_bytes` set to the byte length of the smallest legal manifest (a manifest with `rows: []` is the lower bound — the input-handler only reaches this skill when `input/` is non-empty, but the schema permits it).
 

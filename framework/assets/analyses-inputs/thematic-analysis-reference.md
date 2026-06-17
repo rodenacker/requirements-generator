@@ -74,7 +74,7 @@ The artefact has a fixed top-to-bottom shape:
 Read every consumable manifest row in full. The manifest's `tier` field drives the read mechanism:
 
 - `Native-text` → `Read original_path` directly as text.
-- `Native-multimodal` → `Read original_path`; the Read tool surfaces image bytes automatically; the analyser transcribes visible text and structurally significant observations to memory.
+- `Native-multimodal` / `Vector-renderable` → `Read converted_sibling` — a frozen textual description of the visual prepared by the input-handler; it already enumerates the visible text and structurally significant observations. Treat it as the canonical text source; do **not** re-interpret pixels.
 - `Supported-via-MCP` → `Read converted_sibling` (the `.converted.md`) — the input-handler has already converted the source via markitdown; the analyser does not re-invoke conversion.
 - `Unsupported` → skipped; record the row in `skipped_rows` with the manifest's `conversions_applied` value as the reason.
 
@@ -255,7 +255,8 @@ The analyser reads exactly the files the manifest enumerates, plus the prior art
 | Tier | Source location | Read mechanism |
 |---|---|---|
 | `Native-text` | `original_path` | `Read` directly as text |
-| `Native-multimodal` | `original_path` | `Read` — Claude's vision surfaces image bytes; transcribe visible text/structure |
+| `Native-multimodal` | `converted_sibling` | `Read` the frozen textual description (do **not** re-interpret pixels) |
+| `Vector-renderable` | `converted_sibling` | `Read` the frozen textual description (do **not** re-interpret pixels) |
 | `Supported-via-MCP` | `converted_sibling` | `Read` the `.converted.md` (markitdown's output, produced by input-handler) |
 | `Unsupported` | — | Skipped; recorded in `Source roster > Skipped` |
 

@@ -170,7 +170,7 @@ Walk every consumable source for feature mentions, system asks, capability reque
 - Workshop notes ("the system should …", "we need a way to …").
 - Slide deck feature slides.
 - Interview transcripts ("can the tool let me …").
-- Annotated mockups / wireframes (Native-multimodal sources surface this via vision).
+- Annotated mockups / wireframes (`Native-multimodal` / `Vector-renderable` sources surface this through their frozen textual description).
 
 For each candidate Solution, capture:
 
@@ -344,7 +344,8 @@ The analyser reads exactly the files the manifest enumerates, plus the prior art
 | Tier | Source location | Read mechanism |
 |---|---|---|
 | `Native-text` | `original_path` | `Read` directly as text |
-| `Native-multimodal` | `original_path` | `Read` — Claude's vision surfaces image bytes; transcribe visible text / annotations / mockup labels |
+| `Native-multimodal` | `converted_sibling` | `Read` the frozen textual description — annotations / mockup labels enumerated by the input-handler (do **not** re-interpret pixels) |
+| `Vector-renderable` | `converted_sibling` | `Read` the frozen textual description — annotations / mockup labels enumerated by the input-handler (do **not** re-interpret pixels) |
 | `Supported-via-MCP` | `converted_sibling` | `Read` the `.converted.md` (markitdown's output, produced by input-handler) |
 | `Unsupported` | — | Skipped; recorded in `Source roster > Skipped` |
 

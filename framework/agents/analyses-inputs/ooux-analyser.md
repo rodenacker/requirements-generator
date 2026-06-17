@@ -59,7 +59,7 @@ The in-memory `model` (objects + relationships + CTAs + attributes + CCPs + syno
 This agent reads:
 
 - `requirements/source-manifest.json` (read once in Step 2; the orchestrator's Step 1 input-handler invocation guarantees its presence).
-- For each manifest row whose `tier != "Unsupported"`: the file at `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`).
+- For each manifest row whose `tier != "Unsupported"`: the read path resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text`, `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`.
 - `analyse-inputs/OOUX/ooux-object-map.html` (read once in Step 3 if present, for additive merge / drift detection).
 - `framework/assets/characters/ooux-inputs-analysis.md` (the character — loaded once in Step 1).
 - `framework/assets/analyses-inputs/ooux-reference.md` (the methodology — read once in Step 1).
@@ -88,9 +88,9 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 - `Read requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_sha256` for the embedded JSON metadata block, the body JSON, and the drift cursor.
 - Parse the manifest. Capture `target` field if present (`prototype` | `application`); else default to `"(not declared in manifest)"`.
-- Iterate rows; for each row, dispatch by `tier`:
+- Iterate rows; for each row, resolve the read path via the Read-path resolution rule in `framework/skills/build-source-manifest.md` (if `converted_sibling` is non-null, read it; otherwise read `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
-  - `Native-multimodal` → `Read row.original_path` (the Read tool surfaces image bytes via Claude's multimodal vision); transcribe visible text and structurally significant observations (object labels on diagrams, ERD entity names, screen artefact names that imply backing objects) to a per-source notes buffer; capture `(filename, tier, sha256[:8], visual_notes)` to `consumed_rows`. **Multimodal sources can be high-leverage for OOUX** — ERD diagrams, domain model sketches, and whiteboard photos often carry explicit entity names and relationships that prose lacks.
+  - `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler. The description already contains a faithful transcription plus a structured what/how breakdown that enumerates the OOUX-relevant items: objects, their attributes, relationships and cardinality, plus actors and CTAs. Treat it as the canonical text source; do **not** re-interpret pixels. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. **Visual sources can be high-leverage for OOUX** — ERD diagrams, domain model sketches, and whiteboard photos often carry explicit entity names and relationships that prose lacks, and the frozen description surfaces them as enumerated text.
   - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
 - If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `input/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
@@ -126,7 +126,7 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 ### Step 4 — Round 1: Discovery
 
-For each row in `consumed_rows`, scan the content (text or transcribed visual notes) for **candidate noun phrases** — business entities, content types, user-facing concepts.
+For each row in `consumed_rows`, scan the content (raw text for `Native-text` rows, or the frozen description text for the visual / converted tiers) for **candidate noun phrases** — business entities, content types, user-facing concepts.
 
 A candidate is:
 
@@ -143,7 +143,7 @@ A candidate is:
 
 - **No invented candidates.** Every candidate has exactly one `source_filename` matching a `consumed_rows[*].filename` exactly.
 - **Include synonyms and near-duplicates.** Round 2 deduplicates; Round 1 is inclusive.
-- **Multimodal extraction.** For `Native-multimodal` rows, treat the transcribed visual notes as the source content. Entity labels on ERD diagrams, object names on domain models, screen artefact names on wireframes — all count as candidates. Cite the originating `filename` (the image's filename, not a synthesised name).
+- **Visual extraction.** For `Native-multimodal` / `Vector-renderable` rows, treat the frozen description text in `converted_sibling` as the source content. The description's transcription and structured breakdown already surface entity labels from ERD diagrams, object names on domain models, and screen artefact names on wireframes — all count as candidates. Cite the originating `filename` (the original visual's filename, not the sibling path, not a synthesised name).
 - **Per-source running tally** so Gate 8 can fire later: for each consumed row, increment `nouns_contributed[filename]`. Rows where `nouns_contributed[filename] == 0` after the full pass are candidates for the `irrelevant-to-domain` log unless Round 2's synonym merge picks up nouns from them.
 
 State the discovery outcome aloud:
@@ -260,7 +260,7 @@ Each attribute:
 }
 ```
 
-- **Pull from:** explicit attribute lists in interview notes, brief sections describing screens with field lists, ERD-like content in `Native-multimodal` sources, constraint / validation language.
+- **Pull from:** explicit attribute lists in interview notes, brief sections describing screens with field lists, ERD-like content described in `Native-multimodal` / `Vector-renderable` frozen descriptions, constraint / validation language.
 - **Cite the source** — every attribute has ≥ 1 source filename.
 - **If an attribute is a reference to another object on the map**, set the corresponding relationship's `also_nested = true` in the in-memory relationships list (this drives the nested-relationship sticky-note rendering).
 
@@ -409,7 +409,7 @@ Output the final handback line:
 ## Inputs
 
 - `requirements/source-manifest.json` — the manifest. Read once in Step 2.
-- Each manifest row's `original_path` (`Native-text` / `Native-multimodal`) or `converted_sibling` (`Supported-via-MCP`). Read in Step 2.
+- Each manifest row's resolved read path per the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text`, `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`. Read in Step 2.
 - `analyse-inputs/OOUX/ooux-object-map.html` — prior run's artefact. Read once in Step 3 if present.
 - `framework/assets/characters/ooux-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/ooux-reference.md` — the methodology reference. Read once in Step 1.
@@ -451,7 +451,7 @@ Before handing back, verify all of the following against the written artefact an
 - Every consultant-supplied string in HTML body content is HTML-escaped (`<` → `&lt;`, `&` → `&amp;`, etc.).
 - The synonym-merge log in diagnostics has exactly `{{SYNONYM_MERGE_COUNT}}` entries (or the empty-list placeholder). Every entry names a canonical, ≥ 2 literal terms (when not an `unresolved-merge-candidate`), ≥ 1 source filename, and a heuristic.
 - The irrelevant-to-domain log in diagnostics has exactly `{{IRRELEVANT_ROW_COUNT}}` entries (or the empty-list placeholder). Every entry names a filename matching a `consumed_rows[*].filename` and a one-line reason.
-- No file under `requirements/` other than `requirements/source-manifest.json` AND each manifest-enumerated source file's `original_path` or `converted_sibling` was read.
+- No file under `requirements/` other than `requirements/source-manifest.json` AND each manifest-enumerated source file's resolved read path (`original_path` for `Native-text`; `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`, per the Read-path resolution rule in `framework/skills/build-source-manifest.md`) was read.
 - No file under `framework/state/` was read. No file under `framework/shared/` was read.
 - No file under `analyse-requirements/` was read (this is the inputs-side analyser; the requirements-side OOUX artefact is not an input).
 - The consultant has chosen Accept in Step 12 (or the Step 10 Override path was taken, in which case Accept in Step 12 is still required to declare done).

@@ -46,7 +46,7 @@ The methodology has six rounds (per the reference); the workflow has twelve step
 This agent reads:
 
 - `requirements/source-manifest.json` (read once in Step 2; the orchestrator's Step 1 input-handler invocation guarantees its presence).
-- For each manifest row whose `tier != "Unsupported"`: the file at `original_path` (for `Native-text` / `Native-multimodal`) or `converted_sibling` (for `Supported-via-MCP`).
+- For each manifest row whose `tier != "Unsupported"`: the file resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null (`Supported-via-MCP`, `Native-multimodal`, `Vector-renderable`), else `original_path` (`Native-text`).
 - `analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` (read once in Step 3 if present, for additive merge).
 - `framework/assets/characters/journey-mapping-inputs-analysis.md` (the character — loaded once in Step 1).
 - `framework/assets/analyses-inputs/journey-mapping-reference.md` (the methodology — read once in Step 1).
@@ -73,10 +73,9 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 ### Step 2 — Read manifest & per-tier file ingest
 
 - `Read requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_sha256` for the embedded JSON metadata block.
-- Parse the manifest. Iterate rows; for each row, dispatch by `tier`:
+- Parse the manifest. Iterate rows; for each row, apply the Read-path resolution rule in `framework/skills/build-source-manifest.md` (read `converted_sibling` when non-null, else `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
-  - `Native-multimodal` → `Read row.original_path` (the Read tool surfaces image bytes via Claude's multimodal vision); transcribe visible text and structurally significant observations to a per-source notes buffer; capture `(filename, tier, sha256[:8], visual_notes)` to `consumed_rows`.
-  - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract.
+  - `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` → `Read row.converted_sibling` as text — a frozen textual description (vision description for `Native-multimodal` / `Vector-renderable`; markitdown rendering for `Supported-via-MCP`) prepared by the input-handler. Treat it as the canonical text source; do **not** re-interpret pixels or re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
 - If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `input/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
 - If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `input/` and re-invoke `/analyse-inputs`."*
@@ -110,7 +109,7 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 ### Step 4 — Round 1: Persona discovery
 
-For each row in `consumed_rows`, scan the content (text or transcribed visual notes) for named actors / user roles. A persona candidate is:
+For each row in `consumed_rows`, scan the content (source text, or the frozen description for converted-sibling rows) for named actors / user roles. A persona candidate is:
 
 ```
 {
@@ -540,7 +539,7 @@ Output the final handback line:
 ## Inputs
 
 - `requirements/source-manifest.json` — the manifest. Read once in Step 2.
-- Each manifest row's `original_path` (`Native-text` / `Native-multimodal`) or `converted_sibling` (`Supported-via-MCP`). Read in Step 2.
+- Each manifest row's read-path per the Read-path resolution rule in `framework/skills/build-source-manifest.md`: `converted_sibling` when non-null (`Supported-via-MCP` / `Native-multimodal` / `Vector-renderable`), else `original_path` (`Native-text`). Read in Step 2.
 - `analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` — prior run's artefact. Read once in Step 3 if present.
 - `framework/assets/characters/journey-mapping-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/journey-mapping-reference.md` — the methodology reference. Read once in Step 1.
@@ -552,7 +551,7 @@ Output the final handback line:
 
 ## Tools
 
-- `Read` — read the character file, the reference asset, the template scaffold, the manifest, each manifest-enumerated source file, and (if present) the prior journey-mapping artefact. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.**
+- `Read` — read the character file, the reference asset, the template scaffold, the manifest, each manifest-enumerated source file (via the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `converted_sibling` when non-null, else `original_path`), and (if present) the prior journey-mapping artefact. **Read is not authorised against any path under `requirements/` other than `requirements/source-manifest.json` and the manifest-enumerated source files; not against `framework/state/`; not against `framework/shared/`; not against other analyses' artefacts.**
 - `Write` — write `analyse-inputs/JOURNEY-MAPPING/journey-mapping.html`.
 - `Edit` — apply consultant-supplied revisions to the in-memory representation, then re-Write via Step 10's re-render path. The agent does not Edit the artefact in place across a Revise loop; it re-renders and re-Writes to preserve the sha256-verified-write invariant.
 - `Bash` — `mkdir -p analyse-inputs/JOURNEY-MAPPING` (Step 11 setup). No other Bash usage. On Windows-only environments, the agent uses the PowerShell `New-Item` equivalent.

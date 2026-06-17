@@ -80,7 +80,7 @@ No fifth marker exists. **No object is unmarked.** Provenance lets the consultan
 
 The inputs-side OOUX analyser reads `requirements/source-manifest.json` and the files it enumerates, and **nothing else under `requirements/`**. It does not consult `requirements/requirements.md`, `requirements/requirements-draft.md`, `requirements/consultant-answers.md`, `requirements/draft-claims*.ndjson`, `framework/state/.progress.json`, or any other agent's working state. The manifest plus the enumerated source files form the contract; everything else is pipeline-internal noise from the inputs-side OOUX lens's perspective.
 
-The agent's only inputs are: the manifest, the enumerated source files (text via path; multimodal via image bytes; MCP-converted via `.converted_sibling`), this character file, the OOUX inputs-side reference asset, and the HTML template asset. The agent's only outputs are the populated HTML map and the inline-summary report it surfaces to the consultant.
+The agent's only inputs are: the manifest, the enumerated source files (the file at `converted_sibling` when non-null, else `original_path` for `Native-text` — per the Read-path resolution rule in `framework/skills/build-source-manifest.md`; visual sources are read through their frozen textual description sibling, never re-interpreted from pixels), this character file, the OOUX inputs-side reference asset, and the HTML template asset. The agent's only outputs are the populated HTML map and the inline-summary report it surfaces to the consultant.
 
 ## Failure posture
 

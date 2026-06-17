@@ -27,9 +27,11 @@
 OOUX on the inputs side is **an extraction lens onto raw consultant material**, not a refinement of an already-synthesised domain model. The analyser starts from `requirements/source-manifest.json` and reads every row whose `tier != "Unsupported"`:
 
 - `Native-text` → read `row.original_path` as text.
-- `Native-multimodal` → read `row.original_path` as image bytes (Claude's multimodal vision); transcribe visible text + structurally significant observations (object labels on diagrams, ERD entity names, screen artefact names that imply backing objects).
+- `Native-multimodal` / `Vector-renderable` → read `row.converted_sibling` — a frozen textual description of the visual prepared by the input-handler; it already enumerates the object labels, ERD entity names, attributes, and relationships (and screen artefact names that imply backing objects). Treat it as the canonical text source; do **not** re-interpret pixels.
 - `Supported-via-MCP` → read `row.converted_sibling` as text (markitdown-converted by the input-handler at orchestrator Step 1).
 - `Unsupported` → skip; record `(filename, reason)` in the source roster's Skipped table.
+
+Per the Read-path resolution rule in `framework/skills/build-source-manifest.md`: read `converted_sibling` whenever it is non-null, otherwise `original_path`.
 
 There is no §2.1 anchor to fall back to. Object names are chosen from raw inputs through Round 1 (Discovery) and Round 2 (Objects + synonym merge). Every chosen name is verbatim from one or more sources; no name is normalised or invented.
 
@@ -43,7 +45,7 @@ Six rounds, executed in order. The analyser does not skip rounds and does not co
 
 ### Round 1 — Discovery
 
-For each row in `consumed_rows`, scan the content (text or transcribed visual notes) for candidate noun phrases that name things the consultant's users will interact with: business entities, content types, user-facing concepts.
+For each row in `consumed_rows`, scan the content (prose text, or the frozen visual description for visual rows) for candidate noun phrases that name things the consultant's users will interact with: business entities, content types, user-facing concepts.
 
 **Sources** are equal-weight on the inputs side; no priority order. Walk every consumed row; collect every noun candidate found anywhere in the row's content.
 
@@ -197,7 +199,7 @@ Colour contract for the column-board follows the canonical Prater/OOUX vocabular
   "source_roster": {
     "consumed": [
       { "filename": "<basename>",
-        "tier": "Native-text | Native-multimodal | Supported-via-MCP",
+        "tier": "Native-text | Native-multimodal | Vector-renderable | Supported-via-MCP",
         "sha256": "<first 8 chars>",
         "nouns_contributed": <int ≥ 0> }
     ],

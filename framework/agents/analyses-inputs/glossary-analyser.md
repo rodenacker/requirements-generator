@@ -69,7 +69,7 @@ The five analytical rounds map onto twelve workflow steps (the five rounds plus 
 This agent reads:
 
 - `requirements/source-manifest.json` (read once in Step 2; the orchestrator's Step 1 input-handler invocation guarantees its presence).
-- For each manifest row whose `tier != "Unsupported"`: the file at `original_path` (`Native-text` / `Native-multimodal`) or `converted_sibling` (`Supported-via-MCP`).
+- For each manifest row whose `tier != "Unsupported"`: the read path resolved by the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text`, `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`.
 - `analyse-inputs/GLOSSARY/glossary.html` (read once in Step 3 if present, for additive merge).
 - `framework/assets/characters/glossary-inputs-analysis.md` (the character — loaded once in Step 1).
 - `framework/assets/analyses-inputs/glossary-reference.md` (the methodology — read once in Step 1).
@@ -95,9 +95,9 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 ### Step 2 — Read manifest & per-tier file ingest
 
 - `Read requirements/source-manifest.json` in full. Compute the SHA-256 of the file's bytes; this is `manifest_fingerprint` for the artefact's meta-comment and the cursor field.
-- Parse the manifest. Iterate rows; for each, dispatch by `tier`:
+- Parse the manifest. Iterate rows; for each, resolve the read path via the Read-path resolution rule in `framework/skills/build-source-manifest.md` (if `converted_sibling` is non-null, read it; otherwise read `original_path`; skip `Unsupported`):
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
-  - `Native-multimodal` → `Read row.original_path` (the Read tool surfaces image bytes via Claude's multimodal vision); transcribe visible text + structurally significant observations (glossary slides, definition tables, org charts, screenshot annotations) to a per-source notes buffer; capture `(filename, tier, sha256[:8], visual_notes)` to `consumed_rows`.
+  - `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler. The description already transcribes the visible text and enumerates the glossary-relevant material it depicts (glossary slides, definition tables, org charts, screenshot annotations are transcribed verbatim and structured). Treat it as the canonical text source; do **not** re-interpret pixels. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp`.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
 - If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no rows at all), halt with: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `input/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; hard halt analogous to RF-03.
@@ -128,7 +128,7 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
 
 ### Step 4 — Round 1: Candidate-term extraction (multi-source, source-tuple-mandatory)
 
-- For each row in `consumed_rows`, walk the content (text or transcribed visual notes) and harvest **candidate terms**. Each candidate record:
+- For each row in `consumed_rows`, walk the content (raw text for `Native-text` rows, or the frozen description text for the visual / converted tiers) and harvest **candidate terms**. Each candidate record:
 
   ```
   {
@@ -359,7 +359,7 @@ The loop continues until the consultant chooses Accept (or hand-back fails on a 
 ## Inputs
 
 - `requirements/source-manifest.json` — the manifest enumerating consumable input files. Read once in Step 2.
-- Each manifest row's `original_path` (`Native-text` / `Native-multimodal`) or `converted_sibling` (`Supported-via-MCP`). Read in Step 2.
+- Each manifest row's resolved read path per the Read-path resolution rule in `framework/skills/build-source-manifest.md` — `original_path` for `Native-text`, `converted_sibling` for `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`. Read in Step 2.
 - `analyse-inputs/GLOSSARY/glossary.html` — the prior run's artefact. Read once in Step 3 if present.
 - `framework/assets/characters/glossary-inputs-analysis.md` — the analyser's stance. Loaded once in Step 1.
 - `framework/assets/analyses-inputs/glossary-reference.md` — the methodology reference. Read once in Step 1.
