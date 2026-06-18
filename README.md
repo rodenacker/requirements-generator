@@ -25,43 +25,40 @@
 
 ## 1. Overview
 
-A Claude Code workspace for consultants and business analysts. Drop the client material you've been given into `input/`, run a slash command, and get back a handoff-ready artefact — a structured spec, a PRD, a lens analysis or review, low-fi wireframes, or a clickable prototype. Used together, the commands turn a loose pile of client material into a comprehensive, traceable set of **frontend requirements** for building internal, enterprise-level **data-management applications**. The twelve commands:
+Drop the client material you've been given into `input/`, run a slash command, and get back handoff-ready artefacts:
 
-- **`/start`**<br>Pick a command to run.
-- **`/design-system`**<br>A brand-token brief (colours, typography, effects) for a designer, optionally extracted from a reference URL.
-- **`/generate-prd`**<br>A human-audience PRD from the same inputs: problem, success metrics, hypotheses, MVP phasing, risks, stakeholders.
-- **`/requirements`**<br>Turn the loose pile of briefs, decks, screenshots, spreadsheets and PDFs into a clean, structured `requirements.md`.
-- **`/analyse-inputs`**<br>Re-express the raw inputs through a lens *before* drafting (thematic map, journey, JTBD, object map, swim-lane, affinity, task analysis, opportunity-solution tree, glossary, user-goal, business-context).
-- **`/review-inputs`**<br>Find what's missing or wrong in the raw inputs (adversarial, completeness, ambiguity, gap analysis, ten BA / UX questions).
-- **`/analyse-requirement`**<br>Re-express the spec through a lens (object map, data model, use cases, sequence/state/activity diagram, journeys, task flows, five-whys, glossary, CRUD coverage, MVP story map, trade-off dimensions).
-- **`/review-requirement`**<br>Find what's missing or wrong in the spec (adversarial, first-principles, user-stories, ten BA / UX questions, requirements quality, requirements traceability).
-- **`/resolve-review`**<br>Walk through the findings of a review you've already run, decide what to do about each one, and save your decisions as a new input document the next `/requirements` run picks up.
-- **`/wireframe`**<br>2–3 parallel low-fi HTML wireframe variants for a scope of the spec, each a divergent UX position, fully requirement-ID traceable.
-- **`/prototype`**<br>One clickable, client-side hi-fi React/Next.js prototype for a scope, accumulating in a single shared app; the brand is fixed across all prototypes while a selectable UX posture diverges the layout.
-- **`/export-application`**<br>Export the finished `requirements.md` as an application-audience document for handoff outside this workspace: prototype scaffolding stripped, backend-contract pointers in place, provenance-stamped against the exact source version.
+- Structured Requirements Document
+- Product Requirement Document (PRD)
+- Business or UX Design Analyses
+- Business or UX Design Reviews
+- Low-fi wireframes
+- Clickable prototypes
 
-`/analyse-requirement`, `/review-requirement`, `/wireframe`, `/prototype`, and `/export-application` read `requirements/requirements.md` — run `/requirements` first. `/analyse-inputs` and `/review-inputs` read the raw `input/` files via a shared manifest. `/resolve-review` reads an existing review artefact — run `/review-inputs` or `/review-requirement` first. `/start`, `/requirements`, `/generate-prd`, and `/design-system` are stand-alone.
+Also generate a complete design system for brand-accurate prototype- and application-styling from a URL.
 
-For a visual map of how the commands connect — the base spine, the optional review/analysis lenses, and the final design/build layer — see the interactive **[system flowchart](https://rodenacker.github.io/requirements-generator/docs/requirements-generator-flow.html)**. Open it in a browser and click any block for that pipeline's full description, including a card per methodology.
+Used together, the commands turn a loose pile of client material into a comprehensive, traceable set of **frontend requirements** for building internal, enterprise-level **data-management applications**. The twelve commands:
+
+Here is a visual map of how the commands connect:<br>
+**[system flowchart](https://rodenacker.github.io/requirements-generator/docs/requirements-generator-flow.html)**
 
 ## 2. When to use which command
 
-| You're at this moment in the engagement…                                          | Run this                                                                       | Why                                                                              |
-| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
-| Client just sent a pile of attachments and asked for a spec                       | `/requirements`                                                                | Turns the inputs into a structured doc you can iterate.                          |
-| A stakeholder is asking for the *why* — problem, metrics, MVP phasing, risks      | `/generate-prd`                                                                | Strategic human-audience PRD from the same inputs.                               |
-| You want to dig into the raw material before drafting                             | `/analyse-inputs` → e.g. `thematic-analysis`, `journey-mapping`, `jtbd`        | Pattern, journey, or motivation lens on the raw inputs. Re-feedable to `/requirements`. |
-| You sense the raw inputs are thin, ambiguous, or contradictory                    | `/review-inputs` → `completeness-review` or `gap-analysis`                     | Authority-grounded or template-aligned punch-list before drafting.               |
-| Designer is waiting on a brand brief                                              | `/design-system`                                                               | One run produces a complete colour + typography + effects brief.                 |
-| About to brief a developer on data structure                                      | `/analyse-requirement` → `data-model`                                          | Surfaces the entities, fields, and relationships the spec already implies.       |
-| Worried a CRUD-heavy spec has forgotten operations or ungranted rights            | `/analyse-requirement` → `crud-coverage`                                       | Matrix flagging missing create/read/update/delete paths and lifecycle holes.     |
-| About to brief a designer on screens and navigation                               | `/analyse-requirement` → `ooux` or `use-cases`                                 | Surfaces the objects + CTAs, or the actor goals + flows.                         |
-| You sense something is missing in the spec but can't articulate it                | `/review-requirement` → `ten-ba-questions` or `ten-ux-questions`               | Surfaces the unasked questions in the consultant's blind spot.                   |
-| You need to defend the spec to a sceptical stakeholder                            | `/review-requirement` → `adversarial`                                          | Strict critique with a Patch / Defer / Reject decision per finding.              |
-| You've run a review and want its findings *acted on*, not just listed             | `/resolve-review`                                                              | Walks the findings with you and writes your approved resolutions into `input/`.  |
-| You want to show 2–3 divergent screen options before committing to a high-fi mock | `/wireframe`                                                                   | Low-fi HTML variants tied to requirement IDs; compare side-by-side via tabs.     |
-| You want something the client can actually click through, not just look at        | `/prototype`                                                                   | Hi-fi client-side React app on fixture data; brand-locked, UX diverges by posture. |
-| The spec is settled and a dev team outside this workspace needs the build-ready version | `/export-application`                                                    | Strips the prototype scaffolding and stamps provenance — a clean handoff document. |
+| Run                                                                       | When                                          | Result                                                                              |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `/requirements`                                                                | Client just sent a pile of attachments                       | Turns the inputs into a structured doc you can iterate.                          |
+| `/generate-prd`                                                                | A stakeholder is asking for the *why* — problem, metrics, MVP phasing, risks      | Strategic human-audience PRD from the same inputs.                               |
+| `/analyse-inputs` → e.g. `thematic-analysis`, `journey-mapping`, `jtbd`        | You want to dig into the raw material before drafting                             | Pattern, journey, or motivation lens on the raw inputs. Re-feedable to `/requirements`. |
+| `/review-inputs` → `completeness-review` or `gap-analysis`                     | You sense the raw inputs are thin, ambiguous, or contradictory                    | Authority-grounded or template-aligned punch-list before drafting.               |
+| `/design-system`                                                               | Designer is waiting on a brand brief                                              | One run produces a complete colour + typography + effects brief.                 |
+| `/analyse-requirement` → `data-model`                                          | About to brief a developer on data structure                                      | Surfaces the entities, fields, and relationships the spec already implies.       |
+| `/analyse-requirement` → `crud-coverage`                                       | Worried a CRUD-heavy spec has forgotten operations or ungranted rights            | Matrix flagging missing create/read/update/delete paths and lifecycle holes.     |
+| `/analyse-requirement` → `ooux` or `use-cases`                                 | About to brief a designer on screens and navigation                               | Surfaces the objects + CTAs, or the actor goals + flows.                         |
+| `/review-requirement` → `ten-ba-questions` or `ten-ux-questions`               | You sense something is missing in the spec but can't articulate it                | Surfaces the unasked questions in the consultant's blind spot.                   |
+| `/review-requirement` → `adversarial`                                          | You need to defend the spec to a sceptical stakeholder                            | Strict critique with a Patch / Defer / Reject decision per finding.              |
+| `/resolve-review`                                                              | You've run a review and want its findings *acted on*, not just listed             | Walks the findings with you and writes your approved resolutions into `input/`.  |
+| `/wireframe`                                                                   | You want to show 2–3 divergent screen options before committing to a high-fi mock | Low-fi HTML variants tied to requirement IDs; compare side-by-side via tabs.     |
+| `/prototype`                                                                   | You want something the client can actually click through, not just look at        | Hi-fi client-side React app on fixture data; brand-locked, UX diverges by posture. |
+| `/export-application`                                                    | The spec is settled and a dev team outside this workspace needs the build-ready version | Strips the prototype scaffolding and stamps provenance — a clean handoff document. |
 
 ## 3. Commands
 
