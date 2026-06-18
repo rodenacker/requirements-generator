@@ -1,0 +1,59 @@
+flowchart TD
+    Start(["/prototype"]) --> S0{"Step 0: resume?"}
+    S0 -->|continue| RESUME["Resume at first<br/>unsatisfied stage"]
+    S0 -->|start-fresh| S0b
+    RESUME -.-> S0b
+    S0b{"Step 0b:<br/>requirements.md exists?"} -->|no| ExitReq(["Exit: run /requirements"])
+    S0b -->|yes| A
+
+    subgraph IDENT [Step A - scope and identity]
+        A["scope-selector<br/>-> scope_slug"] --> A2["Name prototype<br/>-> name_slug"]
+        A2 --> A3["select-prototype-inputs<br/>wireframe? analyses? brand?"]
+    end
+
+    A3 --> A4{"Reusable<br/>blueprint?"}
+    A4 --> B
+    A4 -.->|"if none: dispatch BG"| BG_BP[["A4: blueprint-architect<br/>BACKGROUND, defer_gate"]]
+    BG_BP -.->|"join at Step C"| C
+
+    B["Step B - INTERACTIVE GATE<br/>purpose + posture + D1-D5 positions<br/>pre-filled from wireframe basis if any<br/>+ brand only if unscaffolded"]
+    B -.->|"no design-system + create-first"| ExitDS(["Exit: run /design-system,<br/>resume at B"])
+    B --> B2{"Scaffolded<br/>already?"}
+    B2 --> C
+    B2 -.->|"if not: dispatch BG (Haiku)"| BG_SC[["B2: scaffolder BACKGROUND<br/>copy template/ + brand<br/>+ shell + build"]]
+    BG_SC -.->|"join at F1"| F1
+
+    C["Step C: join blueprint,<br/>then spec-drafter<br/>-> design-spec-draft.md"] --> FP{"spec_fast_path?<br/>0 AI-SUGGESTED markers"}
+    FP -->|"false: standard"| D["Step D: spec-resolver<br/>Q and A on AI-SUGGESTED"]
+    D --> E_std["Step E: spec-merger<br/>mode standard<br/>accept/edit/reject loop"]
+    FP -->|"true: fast"| E_mech["Step E: spec-merger<br/>mode mechanical<br/>NO prompt"]
+    E_std --> F1
+    E_mech --> F1
+
+    F1["Step F1: ensure scaffold done<br/>join BG or run foreground"]
+    F1 -.->|"RF-10: no Node >=20"| Setup(["setup-pending"])
+    F1 --> F2d
+
+    subgraph GEN [Step F2-F3 generator]
+        F2d["Driver: data layer<br/>types, fixtures, stores, seed"] --> F2w[["Parallel per-surface sub-agents<br/>ceiling 8: components + routes"]]
+        F2w --> F2c["Driver composes coupled routes<br/>root hub, layout, folds, wizards"]
+        F2c --> F3{"verify build:<br/>lint + tsc + next build + smoke"}
+        F3 -->|structured-fail| RETRY["retry <=2:<br/>regen offending surface"]
+        RETRY --> F3
+    end
+
+    F3 -.->|"RF-11: no Playwright"| Skip["skip smoke<br/>with warning"]
+    F3 -.->|"RF-12: exhausted"| Hard(["Hard halt"])
+    F3 -->|"pass / pass-with-warning"| F4
+    Skip --> F4
+
+    F4["Step F4: landing-updater<br/>Haiku, upsert registry + registry.ts"] --> G{"Step G:<br/>accept?"}
+    G -->|Accept| Done(["status complete<br/>run_end + /clear tip"])
+    G -->|Cancel| CancelExit(["Exit, artefacts kept,<br/>resumable"])
+
+    classDef bg fill:#1f2937,stroke:#60a5fa,color:#fff;
+    classDef gate fill:#3b0764,stroke:#c084fc,color:#fff;
+    classDef exit fill:#450a0a,stroke:#f87171,color:#fff;
+    class BG_BP,BG_SC,F2w bg;
+    class S0,S0b,A4,B,B2,FP,F3,G gate;
+    class ExitReq,ExitDS,Setup,Hard,Done,CancelExit exit;
