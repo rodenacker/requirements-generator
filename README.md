@@ -45,7 +45,7 @@ Here is a visual map of how the commands connect:<br>
 
 | Run                                                                       | When                                          | Result                                                                              |
 | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `/requirements`                                                                | Client just sent a pile of attachments                       | Turns inputs into a structured doc you can use for prototyping or Stadium 8.                          |
+| `/requirements`                                                                | Client just sent a pile of attachments                       | Turns inputs into a structured doc you can use for prototyping. Export with `/export-application` for Stadium 8.                          |
 | `/design-system`                                                               | Designer is waiting on a brand brief                                              | One run produces a complete colour + typography + effects brief for prototyping or Stadium 8.                 |
 | `/generate-prd`                                                                | A stakeholder is asking for the *why* — problem, metrics, MVP phasing, risks      | Strategic PRD from the inputs.                               |
 | `/review-inputs` → `adversarial`                                               | You want a tough critique of the raw inputs before drafting                       | Six-dimension critique of the raw input set — coverage, ambiguity, cross-source conflict, costly silences. |
@@ -134,23 +134,23 @@ Find what's missing or wrong in the raw inputs *before* you draft — a punch-li
 
 Go deeper into what your requirements doc already contains: pick a lens and the framework re-expresses `requirements.md` through it as a stand-alone artefact you can share with a designer or developer.
 
-| If you want to see…                                                                                                            | Pick                            | What it's called                |
-| ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------- | ------------------------------- |
-| The **things** in your spec (customers, accounts, applications) and what users can do with each                                | `ooux`                          | _object map_                    |
-| What **users are actually trying to get done** — their jobs and the outcomes they want                                         | `jtbd`                          | _jobs-to-be-done_               |
-| **Each user's goals** and the step-by-step flows they take to reach them                                                       | `use-cases`                     | _use cases_                     |
-| The **data structure** — what records exist, what fields they have, how they relate, plus optional ERDs                        | `data-model`                    | _logical data model_            |
-| Whether **every entity has create / read / update / delete coverage** — a matrix flagging forgotten operations, lifecycle holes, and rights granted but never delivered | `crud-coverage`                 | _CRUD coverage matrix_          |
-| **How the parts of the system talk** to each other across a scenario (front-end ↔ back-end ↔ external services)                | `sequence-diagram`              | _UML sequence diagram_          |
-| The **lifecycle of a record** — what statuses it moves through and what triggers each transition                               | `state-diagram`                 | _UML state diagram_             |
-| A **multi-actor process flow** with branches, parallel paths, and who does what                                                | `activity-diagram`              | _UML activity diagram_          |
-| The **user's experience phases** with pain-points and opportunities at each step                                               | `user-journeys`                 | _user journey map_              |
-| The **goal-decomposition and step-by-step paths** users take, ready for wizards / form sequences                               | `task-flows`                    | _task flows_                    |
-| Whether the doc's **features ladder up to its outcomes**, and where unaddressed opportunities or missing assumption-tests sit  | `opportunity-solution-trees`    | _opportunity-solution tree_     |
-| **Where to draw the MVP line** — what ships first and what waits — as a user-story map with a proposed release slice, paired with a MoSCoW priority board | `mvp-slicing`                   | _user-story map + MoSCoW board_ |
-| Whether each requirement's **rationale chain** drills down to a user goal, business driver, or external mandate                | `five-whys`                     | _five-whys_                     |
-| An alphabetical, **citation-bound vocabulary inventory** before designing copy, labels, status pills, or role surfaces         | `glossary`                      | _glossary_                      |
-| Each user goal scored against **UX trade-off dimensions** (Speed vs Accuracy, Simplicity vs Power, Automation vs Control, …)   | `trade-off-dimension-analysis`  | _trade-off-dimension matrix_    |
+| Pick                            | What it's called                | If you want to see…                                                                                                            |
+| ------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `ooux`                          | _object map_                    | The **things** in your spec (customers, accounts, applications) and what users can do with each                                |
+| `jtbd`                          | _jobs-to-be-done_               | What **users are actually trying to get done** — their jobs and the outcomes they want                                         |
+| `use-cases`                     | _use cases_                     | **Each user's goals** and the step-by-step flows they take to reach them                                                       |
+| `data-model`                    | _logical data model_            | The **data structure** — what records exist, what fields they have, how they relate, plus optional ERDs                        |
+| `crud-coverage`                 | _CRUD coverage matrix_          | Whether **every entity has create / read / update / delete coverage** — a matrix flagging forgotten operations, lifecycle holes, and rights granted but never delivered |
+| `sequence-diagram`              | _UML sequence diagram_          | **How the parts of the system talk** to each other across a scenario (front-end ↔ back-end ↔ external services)                |
+| `state-diagram`                 | _UML state diagram_             | The **lifecycle of a record** — what statuses it moves through and what triggers each transition                               |
+| `activity-diagram`              | _UML activity diagram_          | A **multi-actor process flow** with branches, parallel paths, and who does what                                                |
+| `user-journeys`                 | _user journey map_              | The **user's experience phases** with pain-points and opportunities at each step                                               |
+| `task-flows`                    | _task flows_                    | The **goal-decomposition and step-by-step paths** users take, ready for wizards / form sequences                               |
+| `opportunity-solution-trees`    | _opportunity-solution tree_     | Whether the doc's **features ladder up to its outcomes**, and where unaddressed opportunities or missing assumption-tests sit  |
+| `mvp-slicing`                   | _user-story map + MoSCoW board_ | **Where to draw the MVP line** — what ships first and what waits — as a user-story map with a proposed release slice, paired with a MoSCoW priority board |
+| `five-whys`                     | _five-whys_                     | Whether each requirement's **rationale chain** drills down to a user goal, business driver, or external mandate                |
+| `glossary`                      | _glossary_                      | An alphabetical, **citation-bound vocabulary inventory** before designing copy, labels, status pills, or role surfaces         |
+| `trade-off-dimension-analysis`  | _trade-off-dimension matrix_    | Each user goal scored against **UX trade-off dimensions** (Speed vs Accuracy, Simplicity vs Power, Automation vs Control, …)   |
 
 **You get** one HTML artefact per run under `analyse-requirements/<METHOD>/` (e.g. `OOUX/ooux-object-map.html`, `FIVE-WHYS/five-whys.html`) — formatted to share directly with whoever needed the insight.
 
@@ -158,15 +158,15 @@ Go deeper into what your requirements doc already contains: pick a lens and the 
 
 Find what's missing or wrong in the spec *before* you hand it over — a second pair of eyes before estimation, a design brief, or a sceptical stakeholder.
 
-| If you want to see…                                                                                                                | Pick                |
-| ---------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| The **stakeholder questions** the spec hasn't yet answered — questions an experienced BA would ask before design or estimation     | `ten-ba-questions`  |
-| The **design-blocking gaps** an experienced UX designer would flag before they start designing                                     | `ten-ux-questions`  |
-| A **strict critique** of what's wrong, with a Patch / Defer / Reject decision per finding so you know what to do about each        | `adversarial`       |
-| Whether each requirement is **defensible against business rationale**, so weak items get cut or strengthened before design         | `first-principles`  |
-| Which **user stories aren't ready** for design or estimation, so they can be reworked before they enter the backlog                | `user-stories`      |
-| Whether **every requirement is well-formed** against the ISO 29148 standard (singular, unambiguous, verifiable, conforming, complete) — a per-characteristic heatmap with EARS-form rewrites for the ambiguous and compound ones | `requirements-quality` |
-| Which facts **trace to a real source** (or an accepted AI-suggestion) and which **trace to nothing** — orphans, broken citations, and dropped content that leaked through | `requirements-traceability` |
+| Pick                | If you want to see…                                                                                                                |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `ten-ba-questions`  | The **stakeholder questions** the spec hasn't yet answered — questions an experienced BA would ask before design or estimation     |
+| `ten-ux-questions`  | The **design-blocking gaps** an experienced UX designer would flag before they start designing                                     |
+| `adversarial`       | A **strict critique** of what's wrong, with a Patch / Defer / Reject decision per finding so you know what to do about each        |
+| `first-principles`  | Whether each requirement is **defensible against business rationale**, so weak items get cut or strengthened before design         |
+| `user-stories`      | Which **user stories aren't ready** for design or estimation, so they can be reworked before they enter the backlog                |
+| `requirements-quality` | Whether **every requirement is well-formed** against the ISO 29148 standard (singular, unambiguous, verifiable, conforming, complete) — a per-characteristic heatmap with EARS-form rewrites for the ambiguous and compound ones |
+| `requirements-traceability` | Which facts **trace to a real source** (or an accepted AI-suggestion) and which **trace to nothing** — orphans, broken citations, and dropped content that leaked through |
 
 **You get** one HTML artefact per run under `review-requirements/<METHOD>/` (e.g. `ADVERSARIAL/adversarial-review.html`). Treat it as a punch-list: fix the findings you accept in `requirements.md`, then re-run for a fresh pass.
 
