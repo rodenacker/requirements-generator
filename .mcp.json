@@ -4,6 +4,15 @@
       "command": "markitdown-mcp",
       "args": [],
       "type": "stdio"
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ],
+      "env": {}
     }
   }
 }
