@@ -60,19 +60,15 @@ Reached when preflight returned `ok`. Sets `{{extraction_method}} = "playwright"
    ```
    mcp__playwright__browser_navigate({ url: "{{reference_url}}" })
    ```
-3. Settle for late-loading styles (CSS-in-JS injection — styled-components, emotion, vanilla-extract, etc.):
+3. Settle for late-loading styles (CSS-in-JS injection — styled-components, emotion, vanilla-extract, etc.) and return an HTML-validity flag in the **same** call (no separate HTML capture — the full `outerHTML` is never consumed on the Playwright path):
    ```
    mcp__playwright__browser_evaluate({
-     function: "async () => { await document.fonts.ready; await new Promise(r => setTimeout(r, 1500)); return true; }"
+     function: "async () => { await document.fonts.ready; await new Promise(r => setTimeout(r, 1500)); return { settled: true, isHtmlDoc: !!document.querySelector('html') || !!document.querySelector('head') || !!document.doctype }; }"
    })
    ```
-4. Capture the rendered HTML:
-   ```
-   mcp__playwright__browser_evaluate({ function: "() => document.documentElement.outerHTML" })
-   ```
-   Store the result as `{{homepage_html}}`.
+   Store the returned `isHtmlDoc` flag.
 
-**Validation:** verify `{{homepage_html}}` contains `<html`, `<!doctype`, or `<head` (case-insensitive). If not (JSON, plain text, binary):
+**Validation:** if the returned `isHtmlDoc` flag is false (the live DOM has no `<html>` / `<head>` / doctype — e.g. JSON, plain text, binary):
 
 - Log: "Fetched content from {{reference_url}} is not HTML (likely an API endpoint or non-web-page URL)"
 - Set `{{extraction_status}} = "fetch_failed"`
@@ -246,7 +242,6 @@ Concatenate the synthetic `:root` block (from §4.A.6) with `{{eval_payload}}.ra
 
 Store the final results in agent memory:
 
-- `{{homepage_html}}` — full rendered HTML (only if needed by step-05; typically discarded after this step).
 - `{{primary_css_content}}` — synthetic `:root` block + raw CSS.
 - `{{custom_properties}}` — filtered brand custom properties (resolved values).
 - `{{sample_elements}}` — computed styles for body / h1–h6 / link / button / input.

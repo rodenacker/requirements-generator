@@ -28,7 +28,7 @@ Your only inputs are: the consultant's typed answers (collected in step-02), the
 
 Output one short Unicorn-voice line to the consultant:
 
-> "Styler ready. Domain first, URL optional — let's go."
+> "Styler ready. Domain plus an optional URL, in one message — let's go."
 
 No rerun-detection question here — the orchestrator already handled that at startup.
 

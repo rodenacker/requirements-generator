@@ -1,6 +1,6 @@
 ---
 name: step-05-brand-extraction
-description: 'Orchestrate brand extraction by loading data files in sequence and applying extraction logic to {{primary_css_content}}.'
+description: 'Orchestrate brand extraction by loading data files together (one batched read) and applying extraction logic to {{primary_css_content}}.'
 # Variables referenced (inherited from agent):
 # prompt_brand_extraction: 'framework/agents/design-system-styler/prompt-templates/brand-extraction.md'
 # data_color_rules: 'framework/agents/design-system-styler/data/color-extraction-rules.md'
@@ -31,18 +31,27 @@ Read CSS content from disk (not from in-memory state of step-04):
 
 ## Extraction Orchestration
 
-Load and apply data files in this exact sequence. Each file is read, its instructions applied to `{{primary_css_content}}`, then released before loading the next.
+Read all six data files in a **single batched message** (the harness runs the reads concurrently) — they are independent, so there is no reason to serialise the reads:
 
-### 1. Load Extraction Overview
+- `framework/agents/design-system-styler/prompt-templates/brand-extraction.md` (extraction overview + Section 7 output format)
+- `framework/agents/design-system-styler/data/insufficient-data-handling.md`
+- `framework/agents/design-system-styler/data/color-extraction-rules.md`
+- `framework/agents/design-system-styler/data/font-rules.md`
+- `framework/agents/design-system-styler/data/typography-scale-rules.md`
+- `framework/agents/design-system-styler/data/shadow-motion-rules.md`
 
-Read `framework/agents/design-system-styler/prompt-templates/brand-extraction.md` for:
+With all six in context, apply their rules to `{{primary_css_content}}` in the reasoning order below — **critically, the insufficient-data gate (section 2) first**: if it short-circuits, route to `step-05b-domain-inference.md` *before* doing any colour / typography / effect extraction. (`contrast-validation.md` is **not** read here — contrast validation is a step-05b concern, run against the final token set after the domain-inference fill.)
 
-- Extraction purpose and the data-file load order.
+### 1. Extraction Overview (already loaded)
+
+From `brand-extraction.md` (read in the batch above), use:
+
+- Extraction purpose and the data-file application order.
 - Section 7 output format — the target structure for in-memory extraction results.
 
 ### 2. Insufficient-Data Check
 
-Read `framework/agents/design-system-styler/data/insufficient-data-handling.md` and apply its threshold check:
+Apply `insufficient-data-handling.md` (already loaded) — its threshold check:
 
 - Count distinct non-white/non-black hex colors in `{{primary_css_content}}`.
 - **If fewer than 3:** Set `{{extraction_status}} = "insufficient_data"`, log the diagnostic, and skip to `step-05b-domain-inference.md`. Do NOT halt.
@@ -50,7 +59,7 @@ Read `framework/agents/design-system-styler/data/insufficient-data-handling.md` 
 
 ### 3. Colour Extraction (7 brand tokens)
 
-Read `framework/agents/design-system-styler/data/color-extraction-rules.md` and apply:
+Apply `color-extraction-rules.md` (already loaded):
 
 - Section 1: CSS Analysis Strategy.
 - Section 2: Colour Extraction (collect, normalize to `#RRGGBB`, deduplicate, rank).
@@ -62,11 +71,11 @@ Store: `{{extracted_colors}}` as the structure defined in `brand-extraction.md` 
 
 ### 4. Typography — Families
 
-Read `framework/agents/design-system-styler/data/font-rules.md` and apply Section 4 to extract `heading_family`, `heading_weight`, `body_family`, `body_weight`. Tokens that could not be extracted remain `null`.
+Apply `font-rules.md` (already loaded) Section 4 to extract `heading_family`, `heading_weight`, `body_family`, `body_weight`. Tokens that could not be extracted remain `null`.
 
 ### 5. Typography — Scale, Weights, Line-Heights
 
-Read `framework/agents/design-system-styler/data/typography-scale-rules.md` and apply Sections A–C to extract:
+Apply `typography-scale-rules.md` (already loaded) Sections A–C to extract:
 
 - 8 size tokens (`size_xs` … `size_4xl`)
 - font weights (already covered by Section 4 — re-confirm against the heading/body-weight heuristics if those weren't found)
@@ -76,7 +85,7 @@ Apply the coverage threshold from Section A: if fewer than 3 of the 8 size token
 
 ### 6. Effects — Shadows and Motion
 
-Read `framework/agents/design-system-styler/data/shadow-motion-rules.md` and apply:
+Apply `shadow-motion-rules.md` (already loaded):
 
 - Section E to extract `shadow_sm`, `shadow_md`, `shadow_lg`.
 - Section F to extract `dur_fast`, `dur_base`, `dur_slow`, `easing_standard`.

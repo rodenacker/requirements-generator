@@ -154,7 +154,7 @@ Four pairs: `text on background`, `text on surface`, `text-muted on background`,
 
 The component visualisation section is sourced from `framework/agents/design-system-styler/data/component-catalogue.md` — the single source of truth for which components render, in what order, and how. Defer all per-component schema decisions to the catalogue itself; this prompt template only describes the read / extract / substitute mechanic.
 
-**Read order in step-06:** read this prompt template → read the HTML template → **read the catalogue** → render JSON + visual snippets in memory → render the component buffers → substitute everything → pre-write self-check → Write → verify.
+**Read order in step-06:** read all four inputs together (this prompt template, the HTML template, the catalogue, and the standards appendix) → render JSON + visual snippets in memory → render the component buffers → substitute everything (including the verbatim standards appendix) → pre-write self-check → Write → verify.
 
 **Render order:** parse the catalogue's `## Render order` list. Each numbered bullet is a family slug; render families in list order. A slug whose line starts with `<!--` or `#` is skipped (the family is not rendered). This is the consultant's hook for cheaply toggling families on / off without touching any other file.
 

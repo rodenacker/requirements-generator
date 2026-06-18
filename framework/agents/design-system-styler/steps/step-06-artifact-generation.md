@@ -11,11 +11,18 @@ description: 'Build the JSON token block, render the visual sections, populate t
 
 # Step 6: Generate the Artefact
 
-Read the artifact-generation prompt template:
+## 0. Read inputs (batched)
 
-```
-Read tool: framework/agents/design-system-styler/prompt-templates/artifact-generation.md
-```
+Read all four static render inputs in a **single batched message** (the harness runs the reads concurrently); none depends on another, so there is no reason to serialise the reads:
+
+- `framework/agents/design-system-styler/prompt-templates/artifact-generation.md` — the generation instructions applied below.
+- `framework/assets/template-design-system.html` — the structural base (§A).
+- `framework/agents/design-system-styler/data/component-catalogue.md` — the Components section source (§A / §B.4).
+- `framework/assets/design-system-standards.html` — the static standards appendix (§B-bis).
+
+**If `design-system-standards.html` cannot be read** (absent or unreadable), halt — do not write a partial artefact. (This is the same guard previously stated in §B-bis; it now applies to the batched read.)
+
+With all four in context, apply the artifact-generation prompt's instructions in the order below.
 
 **Inputs (in-memory after step-05b):**
 
@@ -29,9 +36,9 @@ Read tool: framework/agents/design-system-styler/prompt-templates/artifact-gener
 
 ## A. Source the Template and the Component Catalogue
 
-Read `framework/assets/template-design-system.html`. Use it as the structural base. Replace every `{{placeholder}}` with the corresponding in-memory value. Do not insert, remove, or reorder sections.
+Use `template-design-system.html` (read in Section 0) as the structural base. Replace every `{{placeholder}}` with the corresponding in-memory value. Do not insert, remove, or reorder sections.
 
-Then read `framework/agents/design-system-styler/data/component-catalogue.md`. The catalogue owns the **Components** section content (the single `css` block and every family's `Live demo` + `States matrix` HTML snippets). Step-06 substitutes its content into the template's `{{COMPONENT_STYLES}}` and `{{COMPONENT_SPECIMENS}}` placeholders — see Section B.4 below for the substitution procedure.
+The component catalogue `component-catalogue.md` (also read in Section 0) owns the **Components** section content (the single `css` block and every family's `Live demo` + `States matrix` HTML snippets). Step-06 substitutes its content into the template's `{{COMPONENT_STYLES}}` and `{{COMPONENT_SPECIMENS}}` placeholders — see Section B.4 below for the substitution procedure.
 
 ## B. Apply the Artifact-Generation Prompt
 
@@ -62,11 +69,10 @@ The artefact is generated even when `{{extraction_status}}` ≠ `"success"`. The
 
 ## B-bis. Append the Static Standards Appendix
 
-After the template is fully rendered (all placeholders replaced except `{{STANDARDS_BLOCK}}`) and before the pre-write self-check, substitute the static standards file:
+After the template is fully rendered (all placeholders replaced except `{{STANDARDS_BLOCK}}`) and before the pre-write self-check, substitute the static standards file (`design-system-standards.html`, read in Section 0):
 
-1. Read `framework/assets/design-system-standards.html`.
-2. Substitute its **full contents verbatim** into the `{{STANDARDS_BLOCK}}` placeholder. The standards file opens with its own HTML comment block and a `<section id="standards" class="standards">` wrapper, so it slots in cleanly after the contrast section.
-3. **Do not modify the standards content.** No placeholder substitution, no rewording, no truncation. It is static reference material that ships verbatim with every output. If the file cannot be read, halt — do not write a partial artefact.
+1. Substitute its **full contents verbatim** into the `{{STANDARDS_BLOCK}}` placeholder. The standards file opens with its own HTML comment block and a `<section id="standards" class="standards">` wrapper, so it slots in cleanly after the contrast section.
+2. **Do not modify the standards content.** No placeholder substitution, no rewording, no truncation. It is static reference material that ships verbatim with every output. (The read-failure halt is handled in Section 0.)
 
 ## C. Pre-Write Self-Check
 

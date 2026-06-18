@@ -24,17 +24,17 @@ The only inputs are: the consultant's typed answers (collected in step-02), the 
 Steps live under `framework/agents/design-system-styler/steps/`. Read each step file fully before executing it; advance only as the step file directs. Steps in execution order:
 
 1. `step-01-activate.md` — Load the character file. Re-affirm the stand-alone constraint. Announce readiness.
-2. `step-02-inputs.md` — Collect `{{domain}}` (required, free-text) and `{{reference_url}}` (optional) via `AskUserQuestion`.
+2. `step-02-inputs.md` — Collect `{{domain}}` (required, free-text) and `{{reference_url}}` (optional) in a single prose prompt (no `AskUserQuestion` in step-02).
 3. *Step 3 (re-run gating) is intentionally absent in this agent — the orchestrator handles it at startup.*
 4. `step-04-site-fetching.md` — Playwright fetch (preferred): resize to desktop viewport → navigate → settle → aggregate stylesheets + computed `:root` + sample elements. Falls back to two-pass WebFetch only when the consultant elects it at the preflight prompt (RF-06). Skipped entirely if `{{reference_url}}` is null.
-5. `step-05-brand-extraction.md` — Apply data files in sequence to extract colours, typography, effects from `{{primary_css_content}}`. Status colours never extracted here.
+5. `step-05-brand-extraction.md` — Apply data files (read in one batch) to extract colours, typography, effects from `{{primary_css_content}}`. Status colours never extracted here.
 5b. `step-05b-domain-inference.md` — Always runs. Synthesises a Voice statement from `{{domain}}` and infers every unset token per-run via `prompt-templates/domain-inference.md`. Runs WCAG AA contrast validation across the final token set with auto-adjustment.
 6. `step-06-artifact-generation.md` — Build the JSON token block, render the visual section snippets (swatches, type specimens, shadow / motion / contrast specimens), render the component visualisation section by reading `framework/agents/design-system-styler/data/component-catalogue.md` and token-substituting the catalogue's CSS + HTML snippets into the template's `{{COMPONENT_STYLES}}` and `{{COMPONENT_SPECIMENS}}` placeholders, populate `framework/assets/template-design-system.html`, append `framework/assets/design-system-standards.html` verbatim, write to `design-system/design-system.html`, verify the write via `framework/skills/verify-artifact-write.md`.
 7. `step-07-handback.md` — Present the Unicorn-voice summary. Run the accept/revise/restart loop. Clean up `design-system/.workspace/`. Hand back to the orchestrator.
 
 ## Inputs
 
-- Consultant typed answers (via `AskUserQuestion` in step-02): `{{domain}}`, `{{reference_url}}` (optional). The step-04 preflight may surface a second `AskUserQuestion` (RF-06 three-way choice) if Playwright MCP is not installed.
+- Consultant typed answers (via a single prose prompt in step-02): `{{domain}}`, `{{reference_url}}` (optional). The step-04 preflight may surface an `AskUserQuestion` (RF-06 three-way choice) if Playwright MCP is not installed.
 - Fetched CSS content (only if a URL was given): `{{primary_css_content}}`, persisted in `design-system/.workspace/css-content.txt` between steps.
 - Computed-style payload (only on the Playwright path): persisted in `design-system/.workspace/computed-tokens.json`. Contains `customProperties` (filtered brand tokens), `frameworkProperties` (filtered framework noise), and `sampleElements` (computed styles for body / h1–h6 / link / button / input). **Absent on the WebFetch fallback path** — the rules files detect this and use legacy text-pattern matching exclusively.
 - Domain-inference contract: `framework/agents/design-system-styler/prompt-templates/domain-inference.md` (loaded by step-05b).
@@ -55,10 +55,10 @@ Steps live under `framework/agents/design-system-styler/steps/`. Read each step 
 - `Write` — write `design-system/.workspace/css-content.txt`, `design-system/.workspace/computed-tokens.json` (Playwright path only), `design-system/.workspace/metadata.json`, and `design-system/design-system.html`.
 - `Edit` — apply consultant-supplied revisions to `design-system/design-system.html` during the accept/revise loop in step-07. For substantive token revisions, prefer `Restart` (which re-runs from step-02 with adjusted inputs) over hand-editing, since the JSON block and the visual sections must stay in sync.
 - `Bash` — `mkdir -p design-system/.workspace`, `mkdir -p design-system`, and `rm -rf design-system/.workspace` for the cleanup step. No other Bash usage.
-- `AskUserQuestion` — collect `{{domain}}` and `{{reference_url}}` in step-02; surface the RF-06 three-way choice in step-04 if Playwright MCP is missing; present the accept/revise/restart prompt in step-07.
+- `AskUserQuestion` — surface the RF-06 three-way choice in step-04 if Playwright MCP is missing; present the accept/revise/restart prompt in step-07.
 - `mcp__playwright__browser_resize` — set the viewport to 1440x900 before navigation in step-04, so captured tokens reflect desktop breakpoints.
 - `mcp__playwright__browser_navigate` — Pass 1 of the Playwright path in step-04 (load `{{reference_url}}`).
-- `mcp__playwright__browser_evaluate` — Pass 1 (HTML capture, settling wait) and Pass 2 (stylesheet aggregation + computed-style sampling) in step-04.
+- `mcp__playwright__browser_evaluate` — Pass 1 (settling wait + HTML-validity flag) and Pass 2 (stylesheet aggregation + computed-style sampling) in step-04.
 - `mcp__playwright__browser_network_request` — CORS fallback in step-04: fetch cross-origin stylesheets that `document.styleSheets` could not read.
 - `mcp__playwright__browser_close` — close the browser at the end of step-04 (or on early exit due to `fetch_failed` / `no_css`).
 - `WebFetch` — **fallback path only**, used in step-04 when the consultant explicitly selects "Use WebFetch instead" at the RF-06 preflight prompt. Not the default. Preserved so the run can still complete on machines without Playwright when the consultant accepts the degraded fidelity.

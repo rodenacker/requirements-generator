@@ -10,18 +10,19 @@ Ported from v3 b3-style-extractor and extended for the v7b-test token scope (sta
 
 ## Data File References
 
-The extraction logic is organized into focused data files, loaded by step-05 in this sequence:
+The extraction logic is organized into focused data files. Step-05 reads them **in one batched message**; the application order below is what's preserved (the insufficient-data gate first, so it can short-circuit before any extraction reasoning):
 
 | Order | Data File | Content |
 |-------|-----------|---------|
-| 1 | `data/insufficient-data-handling.md` | Minimum 3-color threshold check (Section 8). Loaded first; if threshold fails, all extraction is skipped and every token is routed to step-05b. |
-| 2 | `data/color-extraction-rules.md` | CSS analysis strategy, colour extraction and normalization, colour-to-token mapping heuristics for the 7 brand tokens (Sections 1-3). Status colours are explicitly NOT extracted here — they always fall through to step-05b. |
-| 3 | `data/font-rules.md` | Font family extraction (Section 4). Border-radius extraction has been removed from this rules file. |
-| 4 | `data/typography-scale-rules.md` | Font-size scale, font-weight, line-height extraction (Sections A–C). |
-| 5 | `data/shadow-motion-rules.md` | `box-shadow` elevation tokens, `transition-duration`, `transition-timing-function` (Sections E–F). |
-| 6 | `data/contrast-validation.md` | WCAG AA contrast ratio validation and adjustment strategy (Section 6). |
+| 1 | `prompt-templates/brand-extraction.md` (this file) | Extraction overview + the Section 7 output format. |
+| 2 | `data/insufficient-data-handling.md` | Minimum 3-color threshold check (Section 8). Applied first; if threshold fails, all extraction is skipped and every token is routed to step-05b. |
+| 3 | `data/color-extraction-rules.md` | CSS analysis strategy, colour extraction and normalization, colour-to-token mapping heuristics for the 7 brand tokens (Sections 1-3). Status colours are explicitly NOT extracted here — they always fall through to step-05b. |
+| 4 | `data/font-rules.md` | Font family extraction (Section 4). Border-radius extraction has been removed from this rules file. |
+| 5 | `data/typography-scale-rules.md` | Font-size scale, font-weight, line-height extraction (Sections A–C). |
+| 6 | `data/shadow-motion-rules.md` | `box-shadow` elevation tokens, `transition-duration`, `transition-timing-function` (Sections E–F). |
+| — | `data/contrast-validation.md` | WCAG AA contrast ratio validation and adjustment strategy (Section 6). **Read by step-05b, not step-05** — it validates the final token set (extracted *and* domain-inferred), so it runs after the domain-inference fill. |
 
-**Note:** This table reflects the actual execution order in step-05. The insufficient-data check runs before colour extraction to avoid unnecessary work when CSS lacks sufficient data. Contrast validation runs last so it can validate against any token (extracted *or* domain-inferred) — step-05b runs *before* contrast validation in the step-05 ordering.
+**Note:** The six step-05 files are read in one batch; the application order in the table above is what's preserved. The insufficient-data gate is applied before colour extraction so it can short-circuit before any extraction reasoning when the CSS lacks sufficient data. Contrast validation (`contrast-validation.md`) is a step-05b concern, applied last so it can validate against any token (extracted *or* domain-inferred).
 
 ---
 
