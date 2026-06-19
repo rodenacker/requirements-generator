@@ -32,7 +32,7 @@ With all four in context, apply the artifact-generation prompt's instructions in
 - `{{extracted_effects}}` — 7 effect tokens
 - `{{contrast_validation}}` — 4 pair ratios + adjustments line
 - `{{voice}}` — one-line Voice statement synthesised in step-05b
-- `{{extraction_status}}`, `{{extraction_date}}`, `{{domain}}`, `{{reference_url}}`, `{{css_source_type}}`, `{{css_source_url}}`
+- `{{extraction_status}}`, `{{extraction_date}}`, `{{domain}}`, `{{domain_provenance}}`, `{{reference_url}}`, `{{css_source_type}}`, `{{css_source_url}}`
 
 ## A. Source the Template and the Component Catalogue
 
@@ -82,6 +82,7 @@ Before calling `Write`:
 - Confirm: every `{{placeholder}}` has been replaced. No literal `{{...}}` substrings remain. (The standards block contains no placeholders. The catalogue's token references — `{{colours.…}}`, `{{typography.…}}`, `{{effects.…}}` — must also be fully substituted; any survivor indicates a typo in the catalogue or a missing token in the in-memory set, and is a hard halt.)
 - Confirm: the `<script type="application/json" id="design-tokens">` block is present, and its inner content is **valid JSON** — parse it back in memory to verify. If parsing fails, halt and do not Write.
 - Confirm: the JSON `meta`, `colours`, `typography`, `effects`, and `contrast` keys are all present.
+- Confirm: `meta.domain_provenance` is present and is one of `suggested-from-url-accepted | suggested-from-url-overridden | consultant-typed`.
 - Confirm: every `prov` value in the JSON is one of `extracted-from-url` or `inferred-from-domain`. No third marker.
 - Confirm: status-colour entries (success/warning/error/info) all carry `prov: "inferred-from-domain"` regardless of the URL outcome.
 - Confirm: the document closes with `</body>\n</html>` (the template's literal closing tags are intact and not duplicated).

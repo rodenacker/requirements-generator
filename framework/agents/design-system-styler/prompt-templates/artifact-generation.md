@@ -51,6 +51,7 @@ The `{{TOKENS_JSON}}` placeholder receives a JSON-serialised object with five to
 {
   "meta": {
     "domain": "{{domain}}",
+    "domain_provenance": "{{domain_provenance}}",
     "reference_url": "{{reference_url_or_null}}",
     "extraction_date": "{{extraction_date}}",
     "extraction_status": "{{extraction_status}}",
@@ -64,7 +65,8 @@ The `{{TOKENS_JSON}}` placeholder receives a JSON-serialised object with five to
 }
 ```
 
-- `meta.domain`: consultant's typed domain string, lowercased and trimmed in step-02. Drives the Voice synthesis in step-05b.
+- `meta.domain`: the domain string, lowercased and trimmed — set in step-04b (suggested from the fetched page and confirmed, or typed directly when no URL/signals). Drives the Voice synthesis in step-05b.
+- `meta.domain_provenance`: how the domain was chosen — one of `suggested-from-url-accepted` (consultant accepted the page-derived suggestion), `suggested-from-url-overridden` (a suggestion was offered but the consultant picked an alternative or typed their own), or `consultant-typed` (no signals; domain entered via the prose prompt).
 - `meta.reference_url`: the URL the consultant supplied, or `null` if they skipped the URL prompt.
 - `meta.extraction_date`: ISO date (e.g. `2026-05-04`).
 - `meta.extraction_status`: one of `success | no_url | fetch_failed | no_css | css_fetch_failed | insufficient_data | workspace_read_failed | playwright_unavailable`. Still write the artefact even on non-success — the doc is complete (every unset token domain-inferred in step-05b); the status records *why* the URL path didn't yield extracted values.

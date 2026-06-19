@@ -14,7 +14,13 @@ description: 'Orchestrate brand extraction by loading data files together (one b
 
 # Step 5: Brand Extraction (URL-driven)
 
-**Skip condition:** if step-04 set a non-success `{{extraction_status}}` (`fetch_failed`, `no_css`, `css_fetch_failed`), or step-02 set `{{extraction_status}} = "no_url"`, skip this step entirely and route to `step-05b-domain-inference.md`. Step 5b will infer every token per-run from the `{{domain}}`.
+**Skip condition:** this step runs **only** when step-04 captured CSS to extract from. Skip it entirely and route to `step-05b-domain-inference.md` whenever **any** of the following holds (every run now reaches this step via step-04b, so this guard must catch every no-CSS path):
+
+- `{{reference_url}}` is null (consultant skipped the URL), or
+- `{{extraction_status}}` is set to any non-CSS value — `no_url`, `fetch_failed`, `no_css`, `css_fetch_failed`, or `playwright_unavailable` (the RF-06 *Drop URL* / unavailable path), or
+- no `design-system/.workspace/css-content.txt` was written (equivalently, `{{primary_css_content}}` is unavailable).
+
+In all those cases, step 5b infers every token per-run from the `{{domain}}` set in step-04b. (Note: `{{extraction_status}}` is not yet `"success"` at this point — step-04 deliberately defers setting it; on the happy path it is unset here and set to `"success"` after extraction.)
 
 ## Workspace Read
 

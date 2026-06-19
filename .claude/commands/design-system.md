@@ -1,5 +1,5 @@
 ---
-description: Run the design-system styler (domain + optional URL → design tokens) end-to-end.
+description: Run the design-system styler (URL → suggested domain → design tokens) end-to-end.
 ---
 
 Launch the design-system orchestrator at `framework/orchestrators/design-system-orch.md`.

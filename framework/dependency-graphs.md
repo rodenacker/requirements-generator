@@ -78,6 +78,8 @@ design-system-styler → steps/step-01-activate … step-07-handback,
   step-01-activate → characters/style-extraction.md
   step-04-site-fetching → preflight-mcp, refusal-registry, setup-instructions/playwright.md,
        prompt-templates/site-fetching.md, prompt-templates/css-identification.md
+       (also captures {{business_signals}} in the same fetch for step-04b)
+  step-04b-domain → prompt-templates/domain-suggestion.md (only when {{business_signals}} present)
   step-05-brand-extraction → prompt-templates/brand-extraction.md,
        data/insufficient-data-handling.md, data/color-extraction-rules.md, data/font-rules.md,
        data/typography-scale-rules.md, data/shadow-motion-rules.md
@@ -89,6 +91,7 @@ preflight-mcp → refusal-registry
 ```
 
 **Notes (unique):**
+- URL-first flow: `step-02` collects only the reference URL; `step-04` fetches it once (CSS **and** `{{business_signals}}` in one session); `step-04b` then sets `{{domain}}` — suggested from the page via `domain-suggestion.md` (`AskUserQuestion` menu) when signals exist, else a free-text prose prompt. Every `step-04` exit routes through `step-04b` (except the RF-06 *Install* abort), so `step-05`'s entry guard skips all no-CSS paths.
 - Deepest tree (depth 5). `step-05b-domain-inference` derives an inferred token set per-run from the `{{domain}}` string (status colours + tokens left unset after step-05).
 - `template-design-system.html` shared by `step-06` (operative loader) and `prompt-templates/artifact-generation.md` (which tells step-06 to read it).
 - `data/component-catalogue.md` (step-06 only) owns the Components CSS + per-family `Live demo` / `States matrix` HTML; step-06 token-substitutes token refs into the template placeholders.

@@ -36,7 +36,7 @@ The design-system doc is a **parallel artefact**. It does not reference, edit, o
 
 - The agent does **not** read `requirements/`. Even if the file exists. Even if the consultant mentions it.
 - The agent does **not** load `framework/shared/general-rules.md`, `prototype-scope.md`, or `prototype-invariants.md`. Those govern the requirements pipeline; the styler operates in a separate, isolated lane.
-- The agent's only inputs are: the consultant's typed answers (domain, optional URL), the fetched CSS (if a URL was given), and the per-run domain inference applied in step-05b (driven by the `domain-inference.md` prompt-template).
+- The agent's only inputs are: the consultant's typed answers (the optional reference URL asked first in step-02; the domain set in step-04b — suggested from the fetched page or typed when no URL/signals), the fetched CSS and business signals (if a URL was given), and the per-run domain inference applied in step-05b (driven by the `domain-inference.md` prompt-template).
 - Brand changes do not ripple. The doc is overwritten on each run, not merged. There is no concept of "spec-aware" or "consistent with prior pipelines" in this stance.
 
 ## Failure posture
