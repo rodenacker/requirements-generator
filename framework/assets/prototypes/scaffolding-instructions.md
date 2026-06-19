@@ -10,16 +10,18 @@
 
 ## 1. Idempotency gate (check before doing anything)
 
-The scaffold is **done** iff ALL hold:
+The scaffold is **fully done** iff ALL hold:
 - `prototypes/.scaffold.json` exists and parses;
 - `prototypes/package.json` exists;
 - `prototypes/node_modules/` exists and is non-empty.
 
-If done → return `already-scaffolded` (no copy, no install, no writes).
+If fully done → return `already-scaffolded` (no copy, no install, no writes).
 
-`prototypes/` is committed to the repo as a **never-run baseline** holding only the folder marker `.gitkeep` (every file the pipeline generates is git-ignored). A `prototypes/` containing **nothing but `.gitkeep`** therefore counts as *absent* — proceed to copy (the copy merges into the dir and leaves `.gitkeep` in place).
+**A valid `prototypes/.scaffold.json` is the discriminator: its presence means the tree is a real scaffold, never a partial one.** Prototype source is **tracked in git** (only `prototypes/node_modules/` + `prototypes/.next/` are ignored). So a checkout that has not yet installed deps — a fresh clone, a second machine, CI, or after clearing `node_modules/` — presents a **valid scaffold that only needs install**: `.scaffold.json` parses **and** `package.json` exists, but `node_modules/` is empty/absent. This is **not** a failed scaffold → return `needs-install` (no copy, no re-author; the calling agent runs `npm install` + build smoke against the already-present source).
 
-If real scaffold files are present (e.g. `src/`, `package.json`) but the done-conditions above are not all met (e.g. `.scaffold.json` missing) → treat as a failed prior scaffold: surface `RF-13` (hard) so the consultant can remove `prototypes/` (down to `.gitkeep`) and retry clean. Never copy *over* a partial tree — but a `.gitkeep`-only tree is **not** partial.
+A `prototypes/` containing **nothing but `.gitkeep`** (the never-run baseline folder marker) counts as *absent* → proceed to copy (the copy merges into the dir and leaves `.gitkeep` in place).
+
+If real scaffold files are present (e.g. `src/`, `package.json`) **without** a valid `prototypes/.scaffold.json` → treat as a failed prior scaffold: surface `RF-13` (hard) so the consultant can remove `prototypes/` (down to `.gitkeep`) and retry clean. Never copy *over* a partial tree — but a `.gitkeep`-only tree is **not** partial, and a tree with a valid `.scaffold.json` is `needs-install`/`already-scaffolded`, never `RF-13`.
 
 ## 2. Copy set
 

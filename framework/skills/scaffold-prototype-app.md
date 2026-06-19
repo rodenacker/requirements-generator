@@ -14,13 +14,16 @@
 Exactly one of:
 - **`copied`** — `app_dir` did not previously exist as a valid scaffold (it was absent, or contained **only** the committed `.gitkeep` folder marker — the repo's never-run baseline); the tree was copied (exclude list honoured) and the three clean-slate files rewritten. The agent proceeds to brand + shell + install.
 - **`already-scaffolded`** — the idempotency gate passed (`.scaffold.json` + `package.json` + non-empty `node_modules/` all present). No copy performed. The agent skips the entire scaffold step.
-- **`RF-13 trigger`** — a *partial* `app_dir` was found — real scaffold files (e.g. `src/`, `package.json`) present **without** a valid `.scaffold.json` (a failed prior scaffold). A `.gitkeep`-only tree is **not** partial — it is the never-run baseline and returns `copied`, not this. The skill does not copy over a genuine partial tree; it surfaces `RF-13` per `framework/shared/refusal-registry.md` so the consultant removes the partial tree (down to `.gitkeep`) and retries clean.
+- **`needs-install`** — a **valid committed scaffold** is present (`.scaffold.json` parses + `package.json` exists) but `node_modules/` is empty/absent (a fresh clone / second machine / CI / cleared deps). No copy, no clean-slate, no re-author — the source is already on disk. The agent runs `npm install` + build smoke against it and returns `scaffolded`.
+- **`RF-13 trigger`** — a *partial* `app_dir` was found — real scaffold files (e.g. `src/`, `package.json`) present **without** a valid `.scaffold.json` (a failed prior scaffold). A `.gitkeep`-only tree is **not** partial (it is the never-run baseline → `copied`); a tree **with** a valid `.scaffold.json` is **not** partial either (→ `already-scaffolded`/`needs-install`). The skill does not copy over a genuine partial tree; it surfaces `RF-13` per `framework/shared/refusal-registry.md` so the consultant removes the partial tree (down to `.gitkeep`) and retries clean.
 
 ## Procedure
 
-1. **Idempotency gate** (`scaffolding-instructions.md §1`). Glob/Test. When assessing whether `app_dir/` "exists," **ignore the `.gitkeep` folder marker** — the repo commits `app_dir/` as a never-run baseline holding only `.gitkeep` (all generated content is git-ignored), so a `.gitkeep`-only tree counts as *absent*:
-   - If `app_dir/.scaffold.json` parses **and** `app_dir/package.json` exists **and** `app_dir/node_modules/` is non-empty → return `already-scaffolded`.
-   - Else if `app_dir/` contains real entries (anything other than `.gitkeep`) but the above is not fully satisfied → return `RF-13 trigger` (partial/failed prior scaffold; do not copy over it).
+1. **Idempotency gate** (`scaffolding-instructions.md §1`). Glob/Test. When assessing whether `app_dir/` "exists," **ignore the `.gitkeep` folder marker** — the never-run baseline holds only `.gitkeep`, so a `.gitkeep`-only tree counts as *absent*. (`app_dir/` source is tracked in git; only `node_modules/` + `.next/` are ignored.) A **valid `.scaffold.json` is the discriminator** — its presence means a real scaffold, never a partial one:
+   - If `app_dir/.scaffold.json` parses **and** `app_dir/package.json` exists:
+     - `app_dir/node_modules/` non-empty → return `already-scaffolded`.
+     - else (`node_modules/` empty/absent) → return `needs-install` (valid committed scaffold checked out without deps; no copy, no rewrite).
+   - Else if `app_dir/` contains real entries (anything other than `.gitkeep`) → return `RF-13 trigger` (partial/failed prior scaffold: real files without a valid `.scaffold.json`; do not copy over it).
    - Else (`app_dir/` absent, or contains only `.gitkeep`) → proceed to copy.
 2. **Copy with exclude list** (`§2`). Copy the entire `template_dir` tree into `app_dir`, excluding directories `node_modules/`, `.next/`, `.git/` and files matching `_example-*` (i.e. `src/stores/_example-store.ts`, `src/data/fixtures/_example-data.json`). On Windows use `robocopy "<template_dir>" "<app_dir>" /E /XD node_modules .next .git /XF _example-*` (or an equivalent file-by-file copy). The copy **merges** into the existing `app_dir`, leaving the committed `.gitkeep` in place (`template_dir` has no `.gitkeep`, so nothing is overwritten). Treat a copy failure as fatal → return `RF-13 trigger`.
 3. **Clean-slate rewrites** (`§3`) — so the store-less tree builds:
@@ -38,10 +41,11 @@ Exactly one of:
 ## Self-validation
 - On `copied`: no `_example-*` files exist under `app_dir`; no `node_modules`/`.next`/`.git` were copied; the three clean-slate files exist and are import-safe; each was verified.
 - On `already-scaffolded`: no writes were performed.
+- On `needs-install`: no copy/rewrite performed; a valid `.scaffold.json` + `package.json` were present and `node_modules/` was empty/absent.
 - On `RF-13 trigger`: no copy was performed over the partial tree.
 
 ## Anti-patterns
 - Do not copy `node_modules/` — it is reinstalled by the agent (and is git-ignored).
 - Do not run `npm install`, author brand/shell, or write `.scaffold.json` here — those are the agent's steps (after this skill returns `copied`).
-- Do not copy over a partial `app_dir` (real scaffold files without a valid `.scaffold.json`) — return `RF-13` so the consultant retries clean. A `.gitkeep`-only `app_dir` is the never-run baseline, **not** partial — copy into it.
+- Do not copy over a partial `app_dir` (real scaffold files without a valid `.scaffold.json`) — return `RF-13` so the consultant retries clean. A `.gitkeep`-only `app_dir` is the never-run baseline, **not** partial — copy into it; a tree with a valid `.scaffold.json` but no `node_modules/` is **not** partial either — return `needs-install`, never `RF-13`.
 - Do not exclude config files (`package-lock.json`, `next.config.ts`, `tsconfig.json`, `playwright.config.ts`, etc.) — the app needs them verbatim.

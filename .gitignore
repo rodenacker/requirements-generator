@@ -19,6 +19,6 @@
 # local-only implementation plans — not checked in
 plans/
 
-# prototype app — generated under prototypes/; regenerated per machine from template/, never checked in
-prototypes/*
-!prototypes/.gitkeep
+# prototype app — source is tracked; only per-machine build/runtime artefacts are ignored
+prototypes/node_modules/
+prototypes/.next/

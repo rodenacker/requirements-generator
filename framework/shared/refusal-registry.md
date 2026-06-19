@@ -171,7 +171,7 @@ This ID is retained — never renumbered or deleted — per the append-only stab
 
 **Severity:** hard.
 
-**Trigger:** The `prototype-app-scaffolder` failed irrecoverably — the copy failed, `npm install` failed, or the empty-app build smoke (`scaffolding-instructions.md §6`) failed after one retry; OR a partial `prototypes/` tree — real scaffold files without a valid `.scaffold.json` — was detected (`scaffolding-instructions.md §1`). A `prototypes/` holding only the committed `.gitkeep` never-run marker is **not** partial and does **not** trigger this (it is treated as absent → scaffold proceeds).
+**Trigger:** The `prototype-app-scaffolder` failed irrecoverably — the copy failed, `npm install` failed, or the empty-app build smoke (`scaffolding-instructions.md §6`) failed after one retry; OR a partial `prototypes/` tree — real scaffold files without a valid `.scaffold.json` — was detected (`scaffolding-instructions.md §1`). A `prototypes/` holding only the committed `.gitkeep` never-run marker is **not** partial and does **not** trigger this (it is treated as absent → scaffold proceeds). A tree **with** a valid `.scaffold.json` is also **not** partial: if `node_modules/` is absent (committed scaffold checked out without deps) it is `needs-install` (install only), not this.
 
 **Surface:** Plain-text halt. The agent emits exactly one line — *"Aborting — scaffolding `prototypes/` failed at `<step>`: `<error>`. `.scaffold.json` was not written; remove any partial `prototypes/` tree and re-invoke `/prototype` to retry clean."* — and fails its handback. Because `.scaffold.json` is **not** written, the next run's idempotency gate treats the app as un-scaffolded.
 
