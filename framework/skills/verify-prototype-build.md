@@ -11,6 +11,7 @@
 - `app_dir` — `"prototypes/"`. Required.
 - `name_slug` — the prototype's route segment. Required.
 - `route` — `"/<name_slug>"`. Required.
+- `attempt` — the verify attempt number (1 on first call; the generator's bounded-retry increments it on re-invocation). Optional, default `1`. Stamped onto the phase timing events so a clean run is distinguishable from an N-attempt one.
 
 ## Outputs
 
@@ -46,6 +47,20 @@ Exactly one of:
     - Test failure (assertion failed) → `structured-fail {phase:"smoke"}` with the failing assertion message.
     - Pass → continue.
 5. **Return** `pass` (or `pass-with-warning` when the smoke was skipped).
+
+## Timing log (sub-steps)
+
+Wrap each phase that actually runs in a `substep_start`/`substep_end` pair appended to `framework/state/timing.ndjson` (`stage: "verify"`, `run_id` from the caller's context). This is the **canonical owner** of the verify substep vocabulary: `substep ∈ { lint, typecheck, smoke }` (add `build` here if the `build` phase is ever restored — see the "Why no production build" note). Stamp `attempt` (from Inputs) on **both** events, and `outcome: "pass"|"fail"` on the `substep_end`. The verify-phase durations are the system's **"real compute"** signal — what the timing reporter sums into the compute bucket.
+
+- A phase that **fails and short-circuits** still emits its `substep_end` with `outcome:"fail"` (a known result, not a halt) and the later phases simply do not run (no orphan). The orphan-`substep_start`-is-halt-signal contract applies only to an *unexpected* abort mid-phase.
+- Same append-only PowerShell `Add-Content` idiom, timestamp capture, and paired-adjacent batching as `framework/agents/requirements-drafter.md > Timing log (sub-steps)`. Observability only; never read or gate on it.
+
+```powershell
+$now = (Get-Date).ToUniversalTime().ToString('o')
+@{t=$now; type='substep_start'; stage='verify'; substep='lint'; attempt=1; run_id='<run_id-from-context>'} | ConvertTo-Json -Compress | Add-Content -Path framework/state/timing.ndjson
+# … run `npm run lint` …
+@{t=(Get-Date).ToUniversalTime().ToString('o'); type='substep_end'; stage='verify'; substep='lint'; attempt=1; outcome='pass'; run_id='<run_id-from-context>'} | ConvertTo-Json -Compress | Add-Content -Path framework/state/timing.ndjson
+```
 
 ## Self-validation
 - Phases ran in order; the first failure short-circuits and is returned with its phase + a bounded excerpt.

@@ -27,6 +27,22 @@ This explicit partition is what makes the parallel dispatch safe: classification
 6. `steps/step-06-verify-build.md` — invoke `framework/skills/verify-prototype-build.md`; on `structured-fail`, bounded retry (≤2) regenerating only the offending surface (re-run its sub-agent + re-compose); on `RF-11`, return the trigger to the orchestrator; on exhaustion, surface `RF-12` (hard).
 7. `steps/step-07-handback.md` — final self-validation (files vs spec, anti-fabrication, baseline, invariants); hand back `ok` (verify `pass`/`pass-with-warning`) or `failed {structured}`.
 
+## Timing log (sub-steps)
+
+The generator is the **canonical owner** of the `stage:"generator"` substep vocabulary. Emit `substep_start`/`substep_end` to `framework/state/timing.ndjson` (`run_id` from context) — **mandatory, observability only** (never read or gate on it). The generation stage is the system's largest **"LLM generation"** signal; these substeps are what let the timing reporter break it down. Substeps:
+
+| `substep` | Emitted by (driver step) | Wraps |
+|---|---|---|
+| `data-layer` | step-03 | the driver authoring types + fixtures + stores + seed registration |
+| `surface-wave` | step-04 | the whole parallel dispatch → await-all → collect (one span per wave; multiple if >8 surfaces batch) |
+| `render-surface` | step-04 (driver, **after** join) | one span **per surface**, carrying `surface:"<LS-NN>"` — see race-safety below |
+| `route-compose` | step-05 | the driver composing coupled routes + shared `layout.tsx` |
+| `retry-surface` | step-06 | one bounded-retry regeneration of a single surface, carrying `surface:"<LS-NN>"` + `attempt:N` |
+
+- **`surface` field** (defined here, canonical): the `LS-NN` logical-surface id a substep pertains to. Present on `render-surface` and `retry-surface`.
+- **Race-safety (critical).** The parallel per-surface sub-agents **must not** append to `timing.ndjson` themselves — concurrent `Add-Content` from up to 8 agents would interleave and corrupt the file. Instead each sub-agent **self-measures** its own start/end and returns `{started, ended}` (ISO timestamps) in its route manifest; the **driver** emits the paired `render-surface` events after the wave joins, serially. Only the driver thread ever writes the log.
+- Same append-only PowerShell `Add-Content` idiom, timestamp capture, paired-adjacent batching, and orphan-`substep_start`-is-halt-signal contract as `framework/agents/requirements-drafter.md > Timing log (sub-steps)`.
+
 ## Inputs
 
 - `prototypes/.specs/<name_slug>/design-spec.md` — the finalised build instruction (read).
@@ -41,7 +57,7 @@ This explicit partition is what makes the parallel dispatch safe: classification
 - Cross-cutting data layer additions (`types`, `fixtures`, `stores`, `seed.ts`).
 - The route tree under `prototypes/src/app/<name_slug>/**` (coupled routes + shared `layout.tsx` by the driver; standalone secondary pages by their sub-agents).
 - The smoke spec `prototypes/e2e/<name_slug>.smoke.spec.ts` (via the verify skill).
-- `framework/state/timing.ndjson` — appended `stage_start`/`stage_end` are orchestrator-owned; the generator may emit `substep_*` (`stage: "generator"`) per the same idiom as other agents (optional, observability only).
+- `framework/state/timing.ndjson` — appended `stage_start`/`stage_end` are orchestrator-owned; the generator emits `substep_*` (`stage: "generator"`) per the **Timing log (sub-steps)** section above (mandatory, observability only).
 - Handback signal: `ok` | `RF-11 trigger` | `RF-12` (hard) | `failed {structured}`.
 
 ## Tools

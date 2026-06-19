@@ -2,6 +2,8 @@
 
 **Goal:** Assemble the **driver-owned** routes under `src/app/<name_slug>/**` and the shared intra-prototype nav, composing shared components into each coupled surface's realization. Standalone secondary surfaces authored their own route in their sub-agent (step-04 / `step-sub-render-surface.md`); the driver only **consumes** their route manifests here. Collision-free with sub-agents (the disjoint `owned_files` partition, step-02).
 
+**Timing:** emit `substep_start` (`stage:"generator"`, `substep:"route-compose"`) before step 1 and `substep_end` after step 6, per `prototype-generator.md > Timing log (sub-steps)`.
+
 For the prototype's surfaces (using the manifests from step-04 + reused components + the `route_map` from step-02):
 
 1. **Who owns which route** (`route_map`, step-02; realization enum in `framework/assets/wireframes/realization-strategies.md`):

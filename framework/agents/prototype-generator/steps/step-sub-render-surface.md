@@ -15,6 +15,7 @@
 
 ## Render contract
 
+0. **Timing (self-measure only).** Capture an ISO start timestamp at activation (`(Get-Date).ToUniversalTime().ToString('o')`) and an end timestamp immediately before returning; report them as `started`/`ended` in the manifest. **Do not append to `framework/state/timing.ndjson` yourself** — concurrent writes from parallel sub-agents would corrupt it; the driver emits your `render-surface` span from these values after the wave joins (see `prototype-generator.md > Timing log`).
 1. Compose each owned component from shared `ui/` primitives + existing shared components, themed by the fixed brand tokens (no new palette/type/radius — D1).
 2. Apply the **posture + positions** to layout/density/disclosure/interaction only (e.g. dense table at D3+, inline-edit at D1+/P1, wizard step at P2, calm whitespace at P5). Realize the surface per its `realization`. For a **fold/wizard** surface (`owned_route_file` null) you produce only the component(s) the drawer/modal/expand/wizard-step needs — the driver wires them into the host/wizard route in step-05.
 3. **Anti-fabrication:** every data-bound element binds to a Property in `data_bindings` (the blueprint closed set) and carries `data-prop="Entity.Field"` (or `F-NN:Param`). No invented fields. UI-only controls (search/sort/pagination/filters/save/cancel/density-toggle) are exempt and carry no `data-prop`. This applies to your components **and** to your route page (step 4).
@@ -31,7 +32,7 @@
 
 ## Return (route manifest)
 
-`{ surface_id, files_written: [...], components_created: [...], components_reused: [...], props_bound: ["Entity.Field", ...], states_rendered: ["default","loading","empty","error", ...], baseline_ok: true }` — and, **when you authored a route**, also `{ route_written: "<owned_route_file>", primary_cta_present: true|false (false only if the surface has no primary action), outbound_links: ["<route_path>", ...] }`. Or `failed { surface_id, reason }` (e.g. a binding not in the closed set, an unrenderable realization, a `route_map` target you could not wire). The driver consumes the manifest in `step-05` (to skip re-authoring an already-written standalone route, or to compose a driver-owned one) and in `step-07` to self-validate.
+`{ surface_id, files_written: [...], components_created: [...], components_reused: [...], props_bound: ["Entity.Field", ...], states_rendered: ["default","loading","empty","error", ...], baseline_ok: true, started: "<iso>", ended: "<iso>" }` — and, **when you authored a route**, also `{ route_written: "<owned_route_file>", primary_cta_present: true|false (false only if the surface has no primary action), outbound_links: ["<route_path>", ...] }`. Or `failed { surface_id, reason }` (e.g. a binding not in the closed set, an unrenderable realization, a `route_map` target you could not wire). The driver consumes the manifest in `step-05` (to skip re-authoring an already-written standalone route, or to compose a driver-owned one) and in `step-07` to self-validate.
 
 ## Anti-patterns
 

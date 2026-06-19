@@ -2,6 +2,8 @@
 
 **Goal:** Author the cross-cutting data layer **before** any sub-agent dispatch, so parallel sub-agents see a consistent, complete data layer (driver-owned; collision-safety).
 
+**Timing:** emit `substep_start` (`stage:"generator"`, `substep:"data-layer"`) before step 1 and `substep_end` after step 4, per `prototype-generator.md > Timing log (sub-steps)`.
+
 For each entity in the render plan (additively — never overwrite an existing entity's artefacts):
 
 1. **Type** — add/extend the entity interface in `src/types/index.ts`. Fields = exactly the blueprint Property closed set for that entity (no fabricated fields).
