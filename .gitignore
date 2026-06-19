@@ -19,6 +19,6 @@
 # local-only implementation plans — not checked in
 plans/
 
-# prototype app — generated Next.js app under prototypes/; deps + build output are not checked in
-prototypes/node_modules/
-prototypes/.next/
+# prototype app — generated under prototypes/; regenerated per machine from template/, never checked in
+prototypes/*
+!prototypes/.gitkeep

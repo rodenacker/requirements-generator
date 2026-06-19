@@ -15,7 +15,11 @@ The scaffold is **done** iff ALL hold:
 - `prototypes/package.json` exists;
 - `prototypes/node_modules/` exists and is non-empty.
 
-If done → return `already-scaffolded` (no copy, no install, no writes). If partially present (e.g. `.scaffold.json` missing but `prototypes/` exists) → treat as a failed prior scaffold: surface `RF-13` (hard) so the consultant can remove `prototypes/` and retry clean. Never copy *over* a partial tree.
+If done → return `already-scaffolded` (no copy, no install, no writes).
+
+`prototypes/` is committed to the repo as a **never-run baseline** holding only the folder marker `.gitkeep` (every file the pipeline generates is git-ignored). A `prototypes/` containing **nothing but `.gitkeep`** therefore counts as *absent* — proceed to copy (the copy merges into the dir and leaves `.gitkeep` in place).
+
+If real scaffold files are present (e.g. `src/`, `package.json`) but the done-conditions above are not all met (e.g. `.scaffold.json` missing) → treat as a failed prior scaffold: surface `RF-13` (hard) so the consultant can remove `prototypes/` (down to `.gitkeep`) and retry clean. Never copy *over* a partial tree — but a `.gitkeep`-only tree is **not** partial.
 
 ## 2. Copy set
 
@@ -80,7 +84,7 @@ Verify via `verify-artifact-write.md`. `brand_token_sha256` lets later runs dete
 
 ## Anti-patterns
 - Do not copy `node_modules/` (slow, non-portable, must stay gitignored). Always `npm install`.
-- Do not scaffold over a partial `prototypes/` tree — surface `RF-13` instead.
+- Do not scaffold over a partial `prototypes/` tree (real files, no valid `.scaffold.json`) — surface `RF-13` instead. A `.gitkeep`-only tree is the never-run baseline, not partial — scaffold into it.
 - Do not re-scaffold on later runs — the idempotency gate (§1) must short-circuit.
 - Do not author routes or stores here — scaffolding produces only plumbing + clean slate + shell/chrome/empty-landing. Routes/stores/components are the generator's job.
 - Do not invent brand tokens here — brand comes from `extract-brand-theme.md` (source a→b→c).

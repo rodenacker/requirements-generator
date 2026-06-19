@@ -13,7 +13,7 @@ Turn `template/` into `prototypes/` exactly once: copy (minus `node_modules`/`.n
 - **Step 1 — Node preflight.** Run `node --version` and `npm --version` via Bash. If Node/npm is absent or the Node major version is `< 20`, return `RF-10 trigger` (do **not** copy anything). The orchestrator surfaces `RF-10` and writes `status: setup-pending` to `framework/state/.prototype-progress.json` per the registry. This check is first so a missing toolchain never leaves a half-copied tree.
 - **Step 2 — Copy + clean-slate.** Invoke `framework/skills/scaffold-prototype-app.md` with `template_dir: "template/"`, `app_dir: "prototypes/"`.
     - `already-scaffolded` → return `already-scaffolded` immediately (this agent should not have been invoked; the orchestrator's Step-F1 skip gate normally prevents it — return cleanly).
-    - `RF-13 trigger` → emit the `RF-13` plain-text halt line and fail handback (partial prior tree; consultant removes it and retries).
+    - `RF-13 trigger` → emit the `RF-13` plain-text halt line and fail handback (genuine partial prior tree — real files without a valid `.scaffold.json`; consultant removes it down to `.gitkeep` and retries). A `.gitkeep`-only `prototypes/` returns `copied`, not this.
     - `copied` → proceed.
 - **Step 3 — Brand theme.** Invoke `framework/skills/extract-brand-theme.md` with `app_dir: "prototypes/"`, `design_system_path: "design-system/design-system.html"`, and the `consultant_brand` object passed in by the orchestrator (or `null`). Capture the returned `{ source, theme_path, token_sha256 }`. On `RF-04 trigger`, halt per the registry.
 - **Step 4 — Author shell + chrome + landing.** Per `app-shell-spec.md`, author (Write) and verify (via `framework/skills/verify-artifact-write.md`) exactly these files in `prototypes/`:
@@ -66,7 +66,7 @@ Turn `template/` into `prototypes/` exactly once: copy (minus `node_modules`/`.n
 
 - Do not author any prototype route, component, store, fixture, or type — scaffolding produces plumbing + clean slate + shell only. Routes/stores/components are the generator's job.
 - Do not copy `node_modules/` or commit it; always `npm install` (and it stays git-ignored).
-- Do not scaffold over a partial `prototypes/` tree — return `RF-13`.
+- Do not scaffold over a *partial* `prototypes/` tree (real files, no valid `.scaffold.json`) — return `RF-13`. A `.gitkeep`-only tree is the never-run baseline, not partial.
 - Do not re-run on an already-scaffolded app — return `already-scaffolded`.
 - Do not write to `framework/state/*` — the orchestrator owns progress; this agent only signals `RF-10`/`RF-13` and the orchestrator records state.
 - Do not vary the brand per prototype or invent posture parameters — brand is uniform and set once (D1).
