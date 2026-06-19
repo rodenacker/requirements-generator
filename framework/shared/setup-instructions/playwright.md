@@ -8,16 +8,18 @@ The design-system styler reads real stylesheet text and computed styles from the
 
 ## Install
 
-The Playwright MCP server runs via `npx`. Register it with Claude Code:
+The Playwright MCP server runs via `npx`. The repo's `.mcp.json` already registers it, pinned and configured to drive the **browser already installed on your machine** (no downloaded Chromium):
 
 ```
-claude mcp add playwright -- npx -y @playwright/mcp@latest
+npx -y @playwright/mcp@0.0.76 --browser chrome
 ```
 
-Then install the Chromium browser binary the server uses:
+`--browser chrome` makes the server use your installed Google Chrome — resolved at launch from the standard install locations (`%LOCALAPPDATA%`, `%PROGRAMFILES%`, `%PROGRAMFILES(X86)%` on Windows) — so **no `npx playwright install` is required**. On a Windows machine without Chrome, change `chrome` to `msedge` (Edge is preinstalled on Windows 10/11); for a non-standard Chrome location use `--executable-path <path>` instead.
+
+To register it manually instead of via `.mcp.json`:
 
 ```
-npx playwright install chromium
+claude mcp add playwright -- npx -y @playwright/mcp@0.0.76 --browser chrome
 ```
 
 Restart Claude Code so the MCP server is loaded into the session.
@@ -32,7 +34,7 @@ After restarting, the styler's preflight runs automatically the next time the co
 ## Troubleshooting
 
 - **`playwright` not in `claude mcp list` after install** — Claude Code caches the MCP server list at session start. Quit and restart Claude Code, do not just reload the workspace.
-- **`Executable doesn't exist` when navigating** — the Chromium binary is missing. Run `npx playwright install chromium` (or `npx playwright install --with-deps chromium` on Linux to also pull system libraries).
+- **`Executable doesn't exist` / `Chromium distribution 'chrome' is not found`** — the server cannot locate an installed Chrome. Confirm Chrome is installed in a standard location, switch the server's `--browser` arg to `msedge` (always present on Windows), or point it at the binary with `--executable-path <path>`. Only as a last resort, fall back to a downloaded browser with `npx playwright install chromium`.
 - **Navigation hangs / times out on a specific site** — the page may have an infinite-load resource. Re-run with a different reference URL, or fall back to the WebFetch path at the preflight prompt.
 - **`browser_evaluate` returns an empty payload** — the page likely uses CSS-in-JS injected after `load`. The styler already includes a 1.5s settling wait plus `document.fonts.ready`; if a site needs more, that is a per-site quirk and the consultant should choose the WebFetch fallback.
 - **Sandbox / permissions issues on Windows** — Chromium occasionally fails to launch under restricted profiles. Run Claude Code from a terminal with normal user privileges (not elevated, not sandboxed).

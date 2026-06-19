@@ -227,10 +227,10 @@ Setup notes and troubleshooting: `framework/shared/setup-instructions/markitdown
 Needed only for `/design-system` when you want it to pull colours/typography from a live website (instead of inferring everything from the domain string). Install **Node.js 20+** (<https://nodejs.org/>; verify with `node --version`), then prime the browser-driver:
 
 ```
-npx -y @playwright/mcp@latest --help
+npx -y @playwright/mcp@0.0.76 --help
 ```
 
-Restart Claude Code afterwards so the browser driver registers.
+Restart Claude Code afterwards so the browser driver registers. The server is configured (in `.mcp.json`) to drive your **installed Google Chrome** (`--browser chrome`), so there's no separate browser binary to download.
 
 Without it, `/design-system` still works — you just skip the reference URL when asked, and every token gets inferred from the domain string. If you do supply a URL without Playwright installed, the command offers a lower-fidelity web-fetch fallback or a clean exit while you install.
 
@@ -244,7 +244,7 @@ Needed only for `/prototype`, which scaffolds and builds a real Next.js app unde
 winget install OpenJS.NodeJS.LTS
 ```
 
-The first `/prototype` run installs the app's dependencies (`npm install`) once inside `prototypes/`; the cost is amortised across every prototype you generate afterwards. The build-and-verify step also runs a Playwright smoke check — if the browser binaries aren't present, the command tells you what to install and offers to skip the smoke check with a warning or pause while you install.
+The first `/prototype` run installs the app's dependencies (`npm install`) once inside `prototypes/`; the cost is amortised across every prototype you generate afterwards. The build-and-verify step also runs a Playwright smoke check, driven by a browser **already installed on your machine** (Chrome by default; set `PLAYWRIGHT_CHANNEL=msedge` to use Windows' preinstalled Edge) — no separate browser download. If no Chrome/Edge can be found, the command offers to skip the smoke check with a warning or tells you how to point it at a browser.
 
 If Node.js is missing when you launch `/prototype`, the command tells you exactly what to install and resumes at the scaffold step after you do.
 

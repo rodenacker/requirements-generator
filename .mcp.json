@@ -10,7 +10,9 @@
       "command": "npx",
       "args": [
         "-y",
-        "@playwright/mcp@latest"
+        "@playwright/mcp@0.0.76",
+        "--browser",
+        "chrome"
       ],
       "env": {}
     }
