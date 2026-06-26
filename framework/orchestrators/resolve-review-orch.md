@@ -26,8 +26,8 @@ This orchestrator and its drafter agent are **isolated from every other pipeline
 
 **Writes (allowed):**
 - `resolve-review/resolutions-draft.md` — the drafter's staged draft (transient; deleted by the drafter on successful finalise, or by this orchestrator's step-1 Discard branch).
-- `input/<filename_stem>-<date>[-N].md` — exactly one NEW file per accepted run, written by the drafter at its Step 9. This is the **third documented cross-pipeline write exception** (per `CLAUDE.md` §3): additive only — no existing `input/` file is ever modified, overwritten, or deleted.
-- `requirements/requirements.md` — written by the **drafter** at its Step 9b only (review-requirements-sourced runs, consultant opt-in): the **fourth documented cross-pipeline write exception** (per `CLAUDE.md` §3), bounded to inserting/extending the single `## Amendments (pending re-merge)` section, always after the paired `input/` write verified.
+- `input/<filename_stem>-<date>[-N].md` — exactly one NEW file per accepted run, written by the drafter at its Step 9. This is the **third documented cross-pipeline write exception** (per `docs/maintenance.md > Stand-alone constraints (write isolation)`): additive only — no existing `input/` file is ever modified, overwritten, or deleted.
+- `requirements/requirements.md` — written by the **drafter** at its Step 9b only (review-requirements-sourced runs, consultant opt-in): the **fourth documented cross-pipeline write exception** (per `docs/maintenance.md > Stand-alone constraints (write isolation)`), bounded to inserting/extending the single `## Amendments (pending re-merge)` section, always after the paired `input/` write verified.
 - `framework/state/.progress.json` / `framework/state/timing.ndjson` — **not** written by this orchestrator on any branch. No progress file, no timing events.
 
 **Reads (allowed):**

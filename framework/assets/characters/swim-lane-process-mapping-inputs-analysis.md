@@ -192,4 +192,4 @@ The discipline:
 - **`[AI-SUGGESTED: AI-NNN | blocking]` markers** flow into the resolver as consultant questions using the shared namespace grammar — no schema changes downstream.
 - **Disconnect Register rows with `consultant_follow_up: yes`** become resolver-pipeline `AI-NNN` questions when the artefact is re-ingested.
 - **The trailing Next-steps banner** instructs the consultant on the copy-into-`input/` pathway and emphasises that the Disconnect Register is the artefact's primary elicitation value — closing disconnects is the most leveraged consultant action.
-- **The analyser does not auto-copy** — the `/analyse-inputs` write-isolation rule (CLAUDE.md §"Stand-alone constraints") forbids it.
+- **The analyser does not auto-copy** — the `/analyse-inputs` write-isolation rule (docs/maintenance.md > Stand-alone constraints (write isolation)) forbids it.

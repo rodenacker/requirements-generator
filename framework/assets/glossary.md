@@ -8,7 +8,7 @@
 
 **Out of scope (for now).** Pure domain-modelling / output-description vocabulary the system *uses inside artefacts* — Domain Model, Concept, Aggregate, Ubiquitous Language, object map, ORCA, CCP, and the atomic-UI element ladder (Atom / Molecule / Organism) — is **not** defined here. It belongs to a later output-vocabulary effort; the methodology references (`framework/assets/analyses/*-reference.md`, the OOUX object map) remain its canonical sources until then.
 
-**Canonical-source rule (CLAUDE.md §3).** This file is the single defining source for the *system-terminology* vocabulary below. Where a term is also a **schema field** or **stable-ID family** owned by another file, the entry gives a one-line gloss and points to that owner with `Canonical source:` rather than restating its schema.
+**Canonical-source rule (docs/maintenance.md > Canonical-source rule).** This file is the single defining source for the *system-terminology* vocabulary below. Where a term is also a **schema field** or **stable-ID family** owned by another file, the entry gives a one-line gloss and points to that owner with `Canonical source:` rather than restating its schema.
 
 **How to use (token-efficient path).** Consult the slim lookup table `framework/assets/glossary.index.md` for the canonical term and a one-line gloss; **read the matching `### Term` entry here only on demand** when you need the full definition or a disambiguation. When extending/changing/describing the system, use these terms exactly and do **not** coin synonyms for defined concepts.
 
@@ -24,24 +24,24 @@ Canonical source: `CLAUDE.md §1` · entrypoints in `.claude/commands/`.
 
 ### Orchestrator
 The control-flow owner of a pipeline (`framework/orchestrators/<verb>-orch.md`). Runs preflight gates, sequences agents in the foreground, owns progress/timing state, handback gates, and reset. Never edits content artefacts.
-Canonical source: `CLAUDE.md §2` (separation of concerns).
+Canonical source: `docs/maintenance.md > Separation of concerns`.
 Not to be confused with: an **agent** (which produces content) — an orchestrator only directs.
 
 ### Agent
 A persona+workflow `.md` file the LLM reads and *adopts* to produce one content artefact. Cross-pipeline agents carry no pipeline prefix (`input-handler.md`, `blueprint-architect.md`); pipeline-private agents are `<pipeline>-<role>.md`. Writes only within its scoped output paths.
-Canonical source: `CLAUDE.md §2`.
+Canonical source: `docs/maintenance.md > Separation of concerns`.
 
 ### Skill
 A reusable, parameterised unit of agent behaviour (`framework/skills/<verb-noun>.md`). Caller-agnostic; returns a structured result (`pass | RF-NN trigger | row | ok`). No file I/O outside its declared inputs/outputs.
-Canonical source: `CLAUDE.md §2`.
+Canonical source: `docs/maintenance.md > Separation of concerns`.
 
 ### Asset
 Read-only reference content under `framework/assets/` — templates, registries, taxonomies, characters, pattern catalogue, this glossary. Mutated only by appending.
-Canonical source: `CLAUDE.md §2`.
+Canonical source: `docs/maintenance.md > Separation of concerns`.
 
 ### Shared
 Cross-pipeline invariants under `framework/shared/` — general rules, refusals, prototype invariants, scope, setup-instructions. Read-only; mutated only by appending new IDs.
-Canonical source: `CLAUDE.md §2`.
+Canonical source: `docs/maintenance.md > Separation of concerns`.
 
 ### Character
 A persona file under `framework/assets/characters/` defining the stance, voice, and constraints an agent adopts for a stage. Distinct from a *target-user persona* (the product's end user).
@@ -203,7 +203,7 @@ A single asserted fact or design decision in a draft, recorded in an NDJSON side
 
 ### Citation (`[SRC: …]`)
 The inline marker grounding a claim in a source: `[SRC: C-NNN]` (requirements draft + final doc, sidecar-backed by `draft-claims.ndjson`), `[SRC: <filename>]` (analyse/review-inputs, a manifest row), or design-spec refs to requirement IDs / `LS-NN` / wireframe variants. **Retained** in the final `requirements.md` by the merger as inline provenance for downstream LLM consumers — only the resolution markers (`[AI-SUGGESTED]`/`[STANDARD-RULE]`/`[OUT-OF-SCOPE]`) are stripped; the `draft-claims.ndjson` sidecar stays the authoritative store of the verbatim source quotes.
-Canonical source: marker legend in `CLAUDE.md §3` (Naming patterns); retention rule in `framework/agents/requirements-merger.md`.
+Canonical source: marker legend in `CLAUDE.md > Markers in content`; retention rule in `framework/agents/requirements-merger.md`.
 
 ### Grounding
 The act of linking a claim to a real source. A grounded claim cites an input (`[SRC]`) or a named provenance marker; an ungrounded fabricated fact is a self-validation failure.
@@ -230,7 +230,7 @@ Canonical source: `CLAUDE.md §1` + `framework/assets/prototypes/shared-componen
 
 ### Provenance markers
 The closed set of inline tags carrying *why a value is what it is*: `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` (LLM inference needing resolution), `[STANDARD-RULE: GR-NN]` (deterministic, resolver skips), `[OUT-OF-SCOPE: domain-default]` (prototype-only exclusion), `[POSTURE-DEFAULT]` (value fixed by the chosen UX posture, resolver skips, merger strips).
-Canonical source: marker legend in `CLAUDE.md §3`.
+Canonical source: marker legend in `CLAUDE.md > Markers in content`.
 
 ### General rule (GR-NN)
 A deterministic, reusable design/answer rule (`framework/shared/general-rules.md`) the resolver applies without asking the consultant (surfaced via `[STANDARD-RULE: GR-NN]`). Append-only; never renumber.

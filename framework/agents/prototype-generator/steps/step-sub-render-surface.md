@@ -28,7 +28,7 @@
    - re-assert anti-fabrication on the page (`data-prop` ∈ closed set), same as for components.
    The chrome already carries `data-testid="proto-chrome"` (from the app-level layout — do not re-stamp it).
 5. **Baseline floor** (`ux_baseline_subset` from `ux-baseline-checklist.md`): render the three states (empty/loading/error) where the surface is a collection or async action; keyboard-operable + visible focus; name/role/value on controls; not-colour-alone for status; ≥24px targets. Self-check before writing.
-6. **No per-write verify.** Your writes (components + your one route page) are all compile-covered — `tsc --noEmit` + the Playwright smoke gate (`step-06`) catch a truncated or malformed write as a localized error the bounded-retry loop diagnoses by file path. Do **not** run `verify-artifact-write.md` on them (the option-08 compile-covered exception — see `CLAUDE.md §2`). Self-check the render before returning instead.
+6. **No per-write verify.** Your writes (components + your one route page) are all compile-covered — `tsc --noEmit` + the Playwright smoke gate (`step-06`) catch a truncated or malformed write as a localized error the bounded-retry loop diagnoses by file path. Do **not** run `verify-artifact-write.md` on them (the option-08 compile-covered exception — see `CLAUDE.md > Constraints`). Self-check the render before returning instead.
 
 ## Return (route manifest)
 

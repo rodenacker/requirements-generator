@@ -7,7 +7,7 @@
 - The sidecar envelope (top-level keys, drift detection, truncation flags).
 - The per-role payload shapes keyed by the closed-enum `architect_roles` declared in `framework/skills/select-supporting-analyses.md > Static method → architect_roles mapping`.
 
-Per `CLAUDE.md > Canonical-source rule`, every other file that uses the sidecar schema references this file rather than re-defining it.
+Per `docs/maintenance.md > Canonical-source rule`, every other file that uses the sidecar schema references this file rather than re-defining it.
 
 **Status.** Infrastructure-first ship: the architect's step-02 reads sidecars when present and falls back to bounded full-Read of the prose otherwise (see `framework/shared/refusal-registry.md > RF-09`). Per-method analysers add sidecar emission in follow-up PRs (one method per PR, starting with the largest on-disk artefacts).
 

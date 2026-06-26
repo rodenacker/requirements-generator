@@ -430,7 +430,7 @@ All five are documented in the literature or framework conventions; each maps to
 Two additional anti-patterns are framework-wide:
 
 6. **Do not bundle external CDN / fonts / JS.** The artefact is self-contained — inline CSS, pre-rendered inline `<svg>` diagrams (no Mermaid runtime, no CDN), no fonts, no external resources. (Frame-wide invariant; mirrors `activity-diagram`.)
-7. **Do not auto-copy the artefact to `input/`.** The agent's write-isolation rule (CLAUDE.md §"Stand-alone constraints") forbids `/analyse-inputs` from writing outside `analyse-inputs/<METHOD>/*`. The trailing **Next steps** banner in the artefact instructs the consultant to copy manually; the analyser does not.
+7. **Do not auto-copy the artefact to `input/`.** The agent's write-isolation rule (docs/maintenance.md > Stand-alone constraints (write isolation)) forbids `/analyse-inputs` from writing outside `analyse-inputs/<METHOD>/*`. The trailing **Next steps** banner in the artefact instructs the consultant to copy manually; the analyser does not.
 
 ---
 

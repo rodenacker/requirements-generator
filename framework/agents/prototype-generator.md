@@ -66,7 +66,7 @@ The generator is the **canonical owner** of the `stage:"generator"` substep voca
 - Write/Edit — driver-owned files (data layer + coupled routes + per-prototype `layout.tsx` + scaffolded smoke via the verify skill); sub-agents (separate invocations) write their assigned components + their own standalone route page.
 - Bash — npm scripts via the verify skill; JSON-parse check on fixtures; timing appends.
 - Agent — dispatch all surfaces-with-`owned_files` (single wave, ceiling 8) in one message (step-04).
-- Skills — `verify-prototype-build.md` (the handback arbiter). `verify-artifact-write.md` is **no longer called on compile-covered generator writes** (types/stores/seed/components/routes/layout) per option 08 (`CLAUDE.md §2`); fixtures get a lightweight JSON-parse check instead.
+- Skills — `verify-prototype-build.md` (the handback arbiter). `verify-artifact-write.md` is **no longer called on compile-covered generator writes** (types/stores/seed/components/routes/layout) per option 08 (`CLAUDE.md > Constraints`); fixtures get a lightweight JSON-parse check instead.
 
 ## Self-validation (step-07)
 
@@ -85,7 +85,7 @@ The generator is the **canonical owner** of the `stage:"generator"` substep voca
 ## Anti-Patterns
 
 - Do not let sub-agents write the data layer, any route other than their own standalone `page.tsx`, a `layout.tsx`, a folded-host route, or a wizard route; do not let them create components outside their assigned set or overwrite existing files — the driver owns the data layer, coupled routes, and shared nav (collision-safety).
-- Do not run per-write `verify-artifact-write` on compile-covered generator writes (types/stores/seed/components/routes/`layout.tsx`) — they are covered by the verify-build gate (step-06); fixtures get a JSON-parse check instead (option 08; `CLAUDE.md §2`). This narrows where RF-04 is applied on the hot path; it does not change the RF-04 predicate.
+- Do not run per-write `verify-artifact-write` on compile-covered generator writes (types/stores/seed/components/routes/`layout.tsx`) — they are covered by the verify-build gate (step-06); fixtures get a JSON-parse check instead (option 08; `CLAUDE.md > Constraints`). This narrows where RF-04 is applied on the hot path; it does not change the RF-04 predicate.
 - Do not bind to or fixture a Property outside the blueprint closed set (fabrication).
 - Do not fork the brand theme or add per-prototype styling — brand is fixed/shared; only layout + workflow differ (D1).
 - Do not create private per-prototype components — new components are shared (rules 15–16).

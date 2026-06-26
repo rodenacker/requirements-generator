@@ -19,6 +19,6 @@ For the prototype's surfaces (using the manifests from step-04 + reused componen
    - `data-testid="primary-cta"` on the surface's primary action (verify-skill smoke contract); the chrome already carries `data-testid="proto-chrome"`.
 4. **Route metadata:** set each driver-owned route's `<title>`/metadata to the prototype name.
 5. Bind every data element on driver-owned routes with `data-prop="Entity.Field"` (closed set) — re-assert anti-fabrication at composition time.
-6. **No per-write verify on routes.** Route files (and the per-prototype `layout.tsx`) are compile-covered — `tsc --noEmit` + the Playwright smoke gate (`step-06`) catch a bad write as a localized error the bounded-retry loop diagnoses by file path. Do **not** run `verify-artifact-write.md` on them (the option-08 compile-covered exception — see `CLAUDE.md §2`).
+6. **No per-write verify on routes.** Route files (and the per-prototype `layout.tsx`) are compile-covered — `tsc --noEmit` + the Playwright smoke gate (`step-06`) catch a bad write as a localized error the bounded-retry loop diagnoses by file path. Do **not** run `verify-artifact-write.md` on them (the option-08 compile-covered exception — see `CLAUDE.md > Constraints`).
 
 Proceed to `step-06-verify-build.md`.

@@ -162,4 +162,4 @@ The discipline:
 - **YAML structured block survives** because it lives in `<pre><code>`, not `<script type="application/json">`. Markitdown strips script tags but preserves `<pre><code>` blocks.
 - **`[SRC: <filename>]` markers survive** because they are plain text inside cells and tree nodes, not HTML attributes.
 - **`[AI-SUGGESTED: AI-NNN | blocking]` markers** flow into the resolver as consultant questions using the shared namespace grammar — no schema changes downstream.
-- **The trailing Next-steps banner** instructs the consultant how to do the copy. The analyser does **not** auto-copy — the `/analyse-inputs` write-isolation rule (CLAUDE.md §"Stand-alone constraints") forbids it.
+- **The trailing Next-steps banner** instructs the consultant how to do the copy. The analyser does **not** auto-copy — the `/analyse-inputs` write-isolation rule (docs/maintenance.md > Stand-alone constraints (write isolation)) forbids it.
