@@ -6,6 +6,8 @@ Install copy referenced by `RF-07 mermaid_render_dependency_missing` in `framewo
 
 ## Install
 
+**Fastest:** `/setup mmdc` (or `/setup`) installs and verifies this for you.
+
 ```
 npm install -g @mermaid-js/mermaid-cli
 ```

@@ -9,7 +9,7 @@
 
 **Outputs:** exactly one of:
 - `ok` — at least one candidate binary is on `PATH`. Returns the resolved binary name(s) so the caller/render skill knows which renderer to use. The agent advances.
-- `<rf_predicate> trigger` — no candidate binary is found. The agent surfaces the predicate per `framework/shared/refusal-registry.md > <rf_predicate>`, including the `advice_path` in the question text. The skill returns the trigger; the *caller* applies the registry entry.
+- `<rf_predicate> trigger` — no candidate binary is found. The agent surfaces the predicate per `framework/shared/refusal-registry.md > <rf_predicate>`, including the `advice_path` in the question text. The skill returns the trigger; the *caller* applies the registry entry. (For `RF-01`, that choice set includes `install-now`, which runs the matching `framework/tools/setup-environment.ps1 -Component <X>` on the consultant's behalf.)
 
 **Used by:**
 - `framework/agents/input-handler.md` — step 4b, once per session, when at least one row is `Vector-renderable`. Uses default `rf_predicate = RF-01`, `advice_path = framework/shared/setup-instructions/visual-render.md`. Shared across `/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`.

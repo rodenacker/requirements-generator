@@ -6,6 +6,8 @@
 
 ## Install
 
+**Fastest:** `/setup node` (or `/setup`) detects and installs this for you, then reports.
+
 **Windows (recommended — winget):**
 ```powershell
 winget install OpenJS.NodeJS.LTS

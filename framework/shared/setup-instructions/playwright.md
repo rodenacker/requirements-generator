@@ -8,6 +8,8 @@ The design-system styler reads real stylesheet text and computed styles from the
 
 ## Install
 
+**Fastest:** `/setup playwright` (or `/setup`) warms the `npx` cache for the server and verifies the MCP tool is callable. The manual equivalent is below.
+
 The Playwright MCP server runs via `npx`. The repo's `.mcp.json` already registers it, pinned and configured to drive the **browser already installed on your machine** (no downloaded Chromium):
 
 ```

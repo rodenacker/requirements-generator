@@ -226,6 +226,8 @@ Export the finished spec as an **application-audience document** you can hand to
 
 Install once on your workstation. Versions below are floors — newer is fine.
 
+**Fastest path — run `/setup`.** It detects, installs (user-scoped, so a fresh repo clone never re-installs), configures, and tests everything below in one go, then prints a status table and tells you if a restart is needed. Run `/setup` for the full core set, or target one piece with e.g. `/setup markitdown`. The manual steps in §5.1–§5.4 are the equivalents `/setup` runs for you, and double as troubleshooting.
+
 ### 5.1 First-time install (one-off)
 
 The three pieces every command needs:
@@ -236,13 +238,15 @@ The three pieces every command needs:
 
 ### 5.2 To handle Word, Excel, PowerPoint, and PDF inputs
 
-Needed for any command that reads `input/` (`/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`) when your client sends Office or PDF files (typical). Install **Python 3.10+** (<https://www.python.org/>; verify with `python --version`), then install **markitdown**:
+Needed for any command that reads `input/` (`/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`) when your client sends Office or PDF files (typical). Easiest: `/setup markitdown`. Manually: install **Python 3.10+** (<https://www.python.org/>; verify with `python --version`), then install **markitdown with its Office/PDF converters** plus the MCP server:
 
 ```
-pip install markitdown-mcp==0.0.1a4
+pip install "markitdown[docx,pptx,xlsx,xls,pdf,outlook]"
+pip install --no-deps markitdown-mcp==0.0.1a4
+pip install "mcp~=1.8.0"
 ```
 
-Restart Claude Code afterwards so the converter picks up.
+The scoped extras are what make `.pptx`/`.xlsx`/`.xls`/`.pdf` convert — bare `markitdown-mcp` handles only `.docx`. The `--no-deps` avoids a dependency conflict on newer Python; see `framework/shared/setup-instructions/markitdown.md` for why. Restart Claude Code afterwards so the converter picks up.
 
 Without it, the input-reading commands still work on plain text, YAML/XML, .drawio diagrams, and images. They only stop if they actually encounter a `.docx`, `.xlsx`, `.pptx`, or `.pdf` in your inputs — and then they tell you exactly what to install and resume after you do.
 

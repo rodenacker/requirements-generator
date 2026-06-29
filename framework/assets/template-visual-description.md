@@ -9,7 +9,7 @@
 |---|---|
 | Source file | {{original-filename}} |
 | Diagram type | {{ui-mockup \| wireframe \| screenshot \| erd \| flowchart \| use-case-diagram \| sequence-diagram \| activity-diagram \| state-diagram \| org-chart \| dashboard \| whiteboard \| other-visual}} |
-| Rendered from vector? | {{no \| yes — via <render-tool>}} |
+| Rendered from vector? | {{no \| yes — via <render-tool> \| no — decoded from .drawio XML (geometry inferred)}} |
 
 **Marker legend** (canonical set only — never invent a marker):
 - `[SRC: <original-filename>]` — an item the visual **shows** (authoritative *what*). Cites the original consultant-dropped filename.

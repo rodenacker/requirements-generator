@@ -35,7 +35,8 @@ A multi-page source (multi-page `.drawio`/`.vsdx`) renders its first/primary pag
 
 ## Refusal handling
 
-- This skill surfaces **no** refusal directly. Renderer **absence** is handled upstream by `preflight-cli.md` → `RF-01` at input-handler step 4b. Renderer **failure at render time** (corrupt file, unsupported variant, `.vsdx` LibreOffice can't open) returns `failed — render`, which the input-handler treats as a per-file demotion to `Unsupported` (mirroring `convert-input-file.md`'s `failed — corrupt`). The manifest's `RF-02`/`RF-03` logic then applies at the manifest level.
+- This skill surfaces **no** refusal directly. Renderer **absence** is handled upstream by `preflight-cli.md` → `RF-01` at input-handler step 4b (for the renderer-gated `.svg`/`.vsdx` formats — `.drawio` is not gated). Renderer **failure at render time** (corrupt file, unsupported variant, `.vsdx` LibreOffice can't open) returns `failed — render`, which the input-handler treats as a per-file demotion to `Unsupported` (mirroring `convert-input-file.md`'s `failed — corrupt`). The manifest's `RF-02`/`RF-03` logic then applies at the manifest level.
+- **`.drawio` exception:** for a `.drawio` row, the input-handler does **not** demote on `failed — render` (or when the `drawio` binary is absent so this skill is never called) — it falls back to `framework/skills/decode-drawio-xml.md`, which reads the diagram's mxGraph XML directly and writes the same description sibling at lower (geometry-inferred) fidelity. Demotion to `Unsupported` happens only if that fallback also fails.
 
 ## Self-validation
 

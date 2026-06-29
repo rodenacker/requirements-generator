@@ -2,11 +2,15 @@
 
 Install copy referenced by `RF-01 dependency_missing` in `framework/shared/refusal-registry.md`. Surfaced to the consultant when the input-handler's step-4b preflight (`framework/skills/preflight-cli.md`) finds **no** vector-renderer binary on `PATH` and at least one input file's tier is `Vector-renderable` (`.svg`, `.drawio`, `.vsdx`).
 
-The renderer turns a vector diagram into a raster so the system can produce a faithful textual description of it. Without it, `.svg`/`.drawio`/`.vsdx` files are recorded as `Unsupported` for the run (their geometry — ERD cardinality, flow direction, swim-lane partitioning — cannot be reliably read from raw XML).
+The renderer turns a vector diagram into a raster so the system can produce a faithful textual description of it. Without it, `.svg`/`.vsdx` files are recorded as `Unsupported` for the run (their geometry — ERD cardinality, flow direction, swim-lane partitioning — cannot be reliably read from raw XML).
+
+**`.drawio` degrades gracefully — it does not need a renderer to be usable.** When `drawio` is absent (or a render fails), the input-handler falls back to reading the diagram's mxGraph XML directly (`framework/skills/decode-drawio-xml.md`): explicit content — node/entity labels, edge connectivity, and cardinality/direction read from edge-style tokens — is captured authoritatively, while anything that depends on visual geometry (lane membership, positional grouping) is flagged as inferred (`[AI-SUGGESTED]`) rather than asserted. Installing draw.io Desktop is still preferred (the rendered-then-vision path reads geometry directly, at full fidelity), but a missing draw.io no longer loses the file.
 
 You only need the renderer(s) for the formats you actually drop in `input/`. The preflight succeeds if **any** suitable binary is found.
 
 ## Install
+
+**Fastest for `.drawio`:** `/setup drawio` installs draw.io Desktop if needed and — the part that trips people up on Windows — writes the `drawio` PATH shim for you (and adds its folder to your user PATH), then a Claude Code restart makes `drawio` resolve. For `.svg` / `.vsdx`, `/setup inkscape` / `/setup libreoffice` install those renderers. The manual steps below are the equivalents.
 
 Pick per the formats you use (any one satisfies its row):
 

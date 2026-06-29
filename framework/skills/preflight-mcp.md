@@ -9,7 +9,7 @@
 
 **Outputs:** exactly one of:
 - `ok` — the tool is in the available tool list. The agent advances.
-- `<rf_predicate> trigger` — the tool is absent. The agent surfaces the predicate per `framework/shared/refusal-registry.md > <rf_predicate>`, including the `advice_path` in the question text. The skill itself does not pick the surface mechanism — it returns the trigger and the *caller* applies the registry entry.
+- `<rf_predicate> trigger` — the tool is absent. The agent surfaces the predicate per `framework/shared/refusal-registry.md > <rf_predicate>`, including the `advice_path` in the question text. The skill itself does not pick the surface mechanism — it returns the trigger and the *caller* applies the registry entry. (For `RF-01` markitdown, that choice set includes `install-now`, which runs `framework/tools/setup-environment.ps1 -Component markitdown` on the consultant's behalf; restart still required for the MCP server to reload.)
 
 **Used by:**
 - `framework/agents/input-handler.md` — called once per session after classification, when at least one row is `Supported-via-MCP`. Uses default `rf_predicate = RF-01`. Shared between `/requirements` and `/analyse-inputs`.

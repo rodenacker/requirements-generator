@@ -4,6 +4,8 @@
 
 **Why:** The `/prototype` verify gate runs a small **Playwright smoke test** (route loads, no console errors, primary CTA clickable) to prove the generated prototype is genuinely clickable (rule 13). `@playwright/test` ships as a dev dependency of the prototype app, and the app's `playwright.config.ts` **auto-detects a Chromium-family browser at config-load time** rather than relying on a downloaded Chromium. On any machine with Google Chrome or Microsoft Edge installed (i.e. essentially every Windows/macOS dev machine), **no separate browser install is needed**.
 
+> **`/setup` does not cover this.** `/setup playwright` warms the **MCP server** (`/design-system` URL extraction) — a different concern. The `/prototype` smoke-test browser auto-detects your installed Chrome/Edge (below), so there is normally nothing for `/setup` to install here.
+
 ## Normal case — nothing to install
 
 `prototypes/playwright.config.ts` (copied verbatim from `template/playwright.config.ts`) resolves the browser in this priority order, synchronously, when the config loads:
