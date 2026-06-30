@@ -26,6 +26,7 @@
     - Dotfiles (paths whose basename begins with `.`).
     - Any path the consultant has reserved as a scratch file by prefixing it with `.`.
     - `*.converted.md` siblings — these are input-handler outputs, not consultant-dropped originals. (Same exclusion the input-handler applies at its own enumeration step.)
+    - **Stadium application units** — `*.stadium` pointer files, and every path under a directory that directly contains `administration.db` (a deployed Stadium 6 app folder). These are never manifest rows: the input-handler's Step S turns them into `input/<AppName>.stadium-assets/*.md` assets (which **are** enumerated here as ordinary files). Including the app folder/pointer would generate spurious `added` drift on every run. (Same exclusion the input-handler applies at its Step-1 enumeration.)
     Call this set `disk_files` (set of repo-relative paths of the same shape as the manifest's `original_path` field).
 
 3. **Extract manifest rows.** From the parsed manifest, build `manifest_files` — the set of every row's `original_path`, regardless of `tier`. Unsupported rows are included; the freshness check is about whether the manifest's *enumeration* still matches disk, not about whether files are consumable.
@@ -46,7 +47,7 @@
 ## Self-validation
 
 - The manifest was parsed via JSON-decode and conformed to the schema in `framework/skills/build-source-manifest.md > Schema` before any comparison ran.
-- The `disk_files` enumeration applied all three documented exclusions (dotfiles, scratch-prefixed, `*.converted.md` siblings).
+- The `disk_files` enumeration applied all four documented exclusions (dotfiles, scratch-prefixed, `*.converted.md` siblings, Stadium application units).
 - For every file in `manifest_files ∩ disk_files`, a sha256 was computed against the current bytes and compared.
 - The returned verdict is exactly one of `fresh`, `stale`, or `corrupt-manifest`.
 - When the verdict is `stale`, at least one of `removed`, `added`, or `modified` is non-empty. When the verdict is `fresh`, all three are empty.

@@ -277,6 +277,25 @@ Canonical source: `framework/assets/analyses/sidecar-schema.md`.
 The classification of an input file by how it can be ingested — Native, Supported-via-MCP, Unsupported — set by `classify-input-tier` and recorded on the manifest row; governs conversion and `RF-01` pauses.
 Canonical source: `framework/skills/classify-input-tier.md`.
 
+### Stadium-app (input unit)
+A deployed Twenty57 Stadium 6 low-code web app dropped into `input/` — either as a folder (`administration.db` + `App_Data/Updates/*.sapz` + `ClientApp/`) or as a one-line `*.stadium` pointer file naming such a folder — treated as a single input *unit* rather than a per-file tier row. Detected by the input-handler's **Step S** pre-pass, extracted once, then **excluded** from manifest enumeration; only its extracted assets become manifest rows.
+Canonical source: `framework/agents/input-handler.md` (Step S) + `framework/skills/extract-stadium-app.md`.
+Not to be confused with: **input tier** (a per-file ingest classification) — a Stadium-app is a unit that is extracted into ordinary `Native-text` files, not itself a tier.
+
+### Stadium extractor
+The sanctioned runtime-code helper `framework/tools/extract_stadium_app.py` (stdlib-only Python) that shards a Stadium-app into its category assets (deterministic Phase A) — invoked by `extract-stadium-app.md`, whose Phase B adds bounded advisory `[AI-SUGGESTED]` assets. An ingestion runtime-code exception, sibling to the markitdown/inkscape ingestion CLIs.
+Canonical source: `framework/skills/extract-stadium-app.md` (wraps the tool).
+Not to be confused with: the **observability** tools under `framework/tools/` (e.g. `timing-report.mjs`), which only read state and never produce pipeline inputs.
+
+### Category asset (`.stadium-assets`)
+One of the lean, citation-ready requirement files the Stadium extractor writes under `input/<AppName>.stadium-assets/` (`<stem>.stadium.{overview,data-model,…}.md` Tier-1 + the advisory Phase-B assets). Each is an ordinary `Native-text` input the normal pipelines consume; the consultant may hand-edit them (the processed-ledger preserves edits).
+Canonical source: `framework/skills/extract-stadium-app.md` + `framework/assets/stadium/asset-schemas.md`.
+Not to be confused with: the app-domain **Stadium glossary** (`framework/assets/stadium/glossary.md`) — that is reference knowledge, not an extracted per-app asset.
+
+### Processed-ledger
+The runtime ledger `framework/state/.stadium-processed.json`, keyed by `app_id` (the app folder basename, equal to its Stadium `FileGuid`), recording which Stadium-apps have been extracted. An already-ledgered app is skipped at Step S (process-once contract), protecting consultant hand-edits to its category assets.
+Canonical source: `framework/agents/input-handler.md` (Step S).
+
 ---
 
 ## 7 · People & roles

@@ -16,6 +16,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Blueprint | Shared scope IR: logical surfaces + closed sets + allowed realizations; no patterns/realization chosen. | `blueprint-architect.md` |
 | Brand | Fixed visual identity applied uniformly across all prototypes (one `theme.css`). | `prototypes/app-shell-spec.md` |
 | Build target | Manifest output-mode field, auto-set to prototype (fixtures); application = legacy value / export-time concern (`/export-application`). | `prototype-invariants.md` PI-06 |
+| Category asset (`.stadium-assets`) | Lean citation-ready `Native-text` file the Stadium extractor writes under `input/<AppName>.stadium-assets/`; consumed by the normal pipelines. | `skills/extract-stadium-app.md` |
 | Character | Persona file giving an agent its stance/voice; not a product persona. | `assets/characters/` |
 | Checkpoint | Preserved partial state (often a git commit) before a destructive step. | — |
 | Citation (`[SRC: …]`) | Inline marker grounding a claim in an input source; retained in the final `requirements.md` as downstream provenance (only resolution markers are stripped). | `CLAUDE.md > Markers in content` |
@@ -43,6 +44,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Physical screen | A concrete screen produced by realizing a logical surface (`S-NN`). | `realization-strategies.md` |
 | Position | Signed `-2..+2` stance on one trade-off dimension; labelled, never shown as notation. | `position-vocabulary.md` |
 | Preflight gate | Orchestrator check before any agent runs (prereqs, prior progress). | orchestrators |
+| Processed-ledger | Runtime `state/.stadium-processed.json` keyed by `app_id`; skips already-extracted Stadium-apps (process-once). | `agents/input-handler.md` (Step S) |
 | Progress file | Per-orchestrator JSON tracking `called`/`completed` per agent for resume. | orchestrator Tools |
 | Properties closed set | Blueprint's per-surface list of allowed data properties; the anti-fabrication boundary. | `blueprint-architect.md` |
 | Prototype | One hi-fi clickable client-side realization of a scope; accrues in one shared app. | `prototype-orch.md` |
@@ -63,6 +65,8 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Sidecar | Compact machine-readable companion to a prose artefact (claims/projection JSON). | `analyses/sidecar-schema.md` |
 | Skill | Reusable parameterised unit of agent behaviour returning a structured result. | `docs/maintenance.md > Separation of concerns` |
 | Source-manifest | Canonical input record (`source-manifest.json`); owned solely by the input-handler. | `agents/input-handler.md` |
+| Stadium extractor | Runtime-code helper (`tools/extract_stadium_app.py`) that shards a Stadium-app into category assets; an ingestion exception. | `skills/extract-stadium-app.md` |
+| Stadium-app (input unit) | A deployed Twenty57 Stadium 6 app dropped into `input/`; detected/excluded at Step S and extracted once. | `agents/input-handler.md` (Step S) |
 | Store | Client-side state container a prototype reads/writes, initialised from fixtures. | `shared-component-conventions.md` |
 | surface_plan | Per-variant JSON authoring realization + pattern picks + screens per `LS-NN`. | `blueprint-architect.md` |
 | Target-user (persona) | A persona of the product under design (`requirements.md §3`); not the consultant. | `requirements.md §3` |
