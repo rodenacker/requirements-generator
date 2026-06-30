@@ -32,17 +32,19 @@ ORDER BY p.Name, r.Name;
 
 A page absent from `PageRole` has no role grant recorded. `Pages` columns: `Id, Name, IsStartPage`. `Roles` columns: `Id, Name, NormalizedName`.
 
-### User × Role — `Users ⋈ UserRole ⋈ Roles`
+### Users — counts only (identities are PII and are NOT extracted)
+
+**Policy:** actual user data is **not** extracted. Per-user identifiers (`UserName`, `Name`, `Email`, and the `PasswordHash` / `SecurityStamp` secrets) are never read into any asset or into `model.json`. The requirements need the **role / permission model**, not who the individuals are.
+
+The extractor reads `Users` only to compute two non-identifying aggregates:
 
 ```sql
-SELECT u.UserName, u.Email, u.IsAdministrator, r.Name AS role
-FROM Users u
-LEFT JOIN UserRole ur ON ur.UserId = u.Id
-LEFT JOIN Roles r ON r.Id = ur.RoleId
-ORDER BY u.UserName;
+SELECT COUNT(*) AS user_count,
+       SUM(CASE WHEN IsAdministrator = 1 THEN 1 ELSE 0 END) AS admin_count
+FROM Users;
 ```
 
-`Users` columns: `Id, UserName, Name, Email, PasswordHash, SecurityStamp, IsAdministrator, NormalizedUserName, NormalizedEmail, UniqueId`. **`Users.IsAdministrator`** (bool) = a global admin who bypasses page-role checks. The extractor surfaces only `username / name / email / is_administrator` — never `PasswordHash`/`SecurityStamp`. Users are usually a tiny set (often the developer + a couple of test accounts), not the real user base.
+`Users` columns (reference only): `Id, UserName, Name, Email, PasswordHash, SecurityStamp, IsAdministrator, NormalizedUserName, NormalizedEmail, UniqueId`. **`Users.IsAdministrator`** (bool) = a global admin who bypasses page-role checks — surfaced only via the `admin_count` aggregate. The `UserRole` junction is **not** projected (it ties specific identities to roles); the actor model the requirements consume is the **role list** + the **page × role matrix** above.
 
 ### `Connections` — connection strings (passwords MUST be redacted)
 
@@ -61,6 +63,6 @@ Columns: `Id, Name, DefaultValue, ConnectionString`. These are the **live** conn
 
 ### Deploy history & identity
 
-- **`ApplicationUpdates`** — one row per deployment (`Id, UserId, Username, DesignerVersion, DateTime`). The extractor selects the **latest** `.sapz` by joining each package's GUID filename to this table's `DateTime` (newest wins); it also reports the deploy history and "last published by / when".
-- **`AuditLogs`** — change log (`Id, ChangedOn, ChangedBy, Source, Type, Action, OldValue, NewValue`). Forensic; surfaced as a flat list.
+- **`ApplicationUpdates`** — one row per deployment (`Id, UserId, Username, DesignerVersion, DateTime`). The extractor selects the **latest** `.sapz` by joining each package's GUID filename to this table's `DateTime` (newest wins) and reports deploy history as **version + date only** — the publisher `Username` / `UserId` are identities (PII) and are **not** extracted.
+- **`AuditLogs`** — change log (`Id, ChangedOn, ChangedBy, Source, Type, Action, OldValue, NewValue`). Surfaced as a flat list of **`changed_on` / `type` / `action` only** — `ChangedBy`, `Source`, `OldValue`, `NewValue` can carry user identifiers or record values and are **not** extracted.
 - **`Applications`** — one row identifying the app (`FileGuid, Name, WebApiKey`). **`FileGuid`** is the app's stable identity and **equals the app folder name**. `WebApiKey` is a secret — do not emit.

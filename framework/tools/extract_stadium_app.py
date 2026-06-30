@@ -153,8 +153,9 @@ def select_design_model(app_dir, workdir):
     if os.path.exists(admin):
         try:
             c = sqlite3.connect(admin); c.row_factory = sqlite3.Row
-            for r in c.execute("SELECT Id, DateTime, DesignerVersion, Username FROM ApplicationUpdates"):
-                order[str(r["Id"]).lower()] = (r["DateTime"], r["DesignerVersion"], r["Username"])
+            # Username (publisher identity) is intentionally NOT read — PII, not needed.
+            for r in c.execute("SELECT Id, DateTime, DesignerVersion FROM ApplicationUpdates"):
+                order[str(r["Id"]).lower()] = (r["DateTime"], r["DesignerVersion"])
             c.close()
         except Exception:
             pass
@@ -178,8 +179,7 @@ def select_design_model(app_dir, workdir):
         "all_deployments": [
             {"id": os.path.splitext(os.path.basename(p))[0],
              "datetime": order.get(os.path.splitext(os.path.basename(p))[0].lower(), [None])[0],
-             "designer_version": order.get(os.path.splitext(os.path.basename(p))[0].lower(), [None, None])[1] if order.get(os.path.splitext(os.path.basename(p))[0].lower()) else None,
-             "user": order.get(os.path.splitext(os.path.basename(p))[0].lower(), [None, None, None])[2] if order.get(os.path.splitext(os.path.basename(p))[0].lower()) else None}
+             "designer_version": order.get(os.path.splitext(os.path.basename(p))[0].lower(), [None, None])[1] if order.get(os.path.splitext(os.path.basename(p))[0].lower()) else None}
             for p in sapz
         ],
         "embedded_files_dir": os.path.join(dest, "EmbeddedFiles"),
@@ -492,7 +492,7 @@ def read_design_model(sqlitedata):
 # --------------------------------------------------------------------------- admin db (security)
 
 def read_admin_db(app_dir):
-    out = {"roles": [], "page_access": {}, "users": [], "connections": [], "deploy_history": [], "audit_log": []}
+    out = {"roles": [], "page_access": {}, "user_count": 0, "admin_count": 0, "connections": [], "deploy_history": [], "audit_log": []}
     admin = os.path.join(app_dir, "administration.db")
     if not os.path.exists(admin):
         return out
@@ -504,9 +504,12 @@ def read_admin_db(app_dir):
         for r in c.execute("SELECT PageId,RoleId FROM PageRole"):
             pg = pages.get(str(r["PageId"]), str(r["PageId"]))
             out["page_access"].setdefault(pg, []).append(roles.get(str(r["RoleId"]), str(r["RoleId"])))
-        for r in c.execute("SELECT UserName,Name,Email,IsAdministrator FROM Users"):
-            out["users"].append({"username": r["UserName"], "name": r["Name"],
-                                 "email": r["Email"], "is_administrator": bool(r["IsAdministrator"])})
+        # Actual user identities (UserName / Name / Email) are intentionally NOT extracted —
+        # they are PII and are not needed for requirements. Only aggregate counts are kept;
+        # roles + page-level permissions (above) are the actor model the requirements need.
+        urows = list(c.execute("SELECT IsAdministrator FROM Users"))
+        out["user_count"] = len(urows)
+        out["admin_count"] = sum(1 for r in urows if r["IsAdministrator"])
         try:
             arow = c.execute("SELECT Name,FileGuid FROM Applications LIMIT 1").fetchone()
             if arow:
@@ -516,11 +519,14 @@ def read_admin_db(app_dir):
             pass
         for r in c.execute("SELECT Name,ConnectionString FROM Connections"):
             out["connections"].append({"name": r["Name"], "connection_string": sanitize_conn(r["ConnectionString"])})
-        for r in c.execute("SELECT Username,DesignerVersion,DateTime FROM ApplicationUpdates ORDER BY DateTime"):
-            out["deploy_history"].append({"user": r["Username"], "designer_version": r["DesignerVersion"], "datetime": r["DateTime"]})
+        # Publisher username is a real identity (PII) — not extracted; keep only version + date.
+        for r in c.execute("SELECT DesignerVersion,DateTime FROM ApplicationUpdates ORDER BY DateTime"):
+            out["deploy_history"].append({"designer_version": r["DesignerVersion"], "datetime": r["DateTime"]})
         try:
-            for r in c.execute("SELECT ChangedOn,Source,Type,Action FROM AuditLogs ORDER BY ChangedOn"):
-                out["audit_log"].append(dict(r))
+            # AuditLogs.ChangedBy / Source can carry user identifiers — keep only the
+            # non-identifying shape (when something changed, and of what kind).
+            for r in c.execute("SELECT ChangedOn,Type,Action FROM AuditLogs ORDER BY ChangedOn"):
+                out["audit_log"].append({"changed_on": r["ChangedOn"], "type": r["Type"], "action": r["Action"]})
         except Exception:
             pass
         c.close()
@@ -683,7 +689,7 @@ def write_inventory_md(model, admin, cfg, stack, assets, deploy_meta, path):
     L.append(f"- Roles: {', '.join(admin.get('roles', [])) or '—'}")
     for pg, rs in admin.get("page_access", {}).items():
         L.append(f"- `{pg}` → {', '.join(sorted(set(rs)))}")
-    L.append(f"- Users: {len(admin.get('users', []))} (admins: {sum(1 for u in admin.get('users', []) if u.get('is_administrator'))})")
+    L.append(f"- Users: {admin.get('user_count', 0)} (admins: {admin.get('admin_count', 0)})")
     L.append("")
 
     L.append("## Styling sources (read in full for the design system)")
@@ -922,7 +928,7 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
     dh = model.get("deploy_history", []) or []
     if dh:
         last = dh[-1]
-        L.append(f"- Last published: {last.get('datetime')} by {last.get('user')} (designer {last.get('designer_version')}) [from administration.db]")
+        L.append(f"- Last published: {last.get('datetime')} (designer {last.get('designer_version')}) [from administration.db]")
     L.append("\n## Tier-B — inferred domain (advisory)")
     dom_hint = ", ".join(sorted(entities.keys())[:8]) or "—"
     L.append(f"- Candidate domain entities (from data operations): {dom_hint} `[AI-SUGGESTED: domain inference]`")
@@ -1036,10 +1042,8 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
     pa = security.get("page_access", {}) or {}
     for pg in sorted(pa):
         L.append(f"| {pg} | {', '.join(sorted(set(pa[pg]))) or '—'} |")
-    L.append("\n## Tier-A — users (sanitized)\n")
-    for u in security.get("users", []) or []:
-        adm = " · admin" if u.get("is_administrator") else ""
-        L.append(f"- {u.get('username')}{adm} [from admin.db: Users]")
+    L.append("\n## Tier-A — user population (counts only; identities not extracted)\n")
+    L.append(f"- {security.get('user_count', 0)} user account(s), of which {security.get('admin_count', 0)} hold the administrator flag. Individual user identities (name / email) are intentionally **not** extracted — PII, and not needed for requirements; the roles + page-access matrix above is the actor model. [from admin.db: Users]")
     W("access-control", "\n".join(L))
 
     # ======================================================================= surfaces
@@ -1201,7 +1205,8 @@ def main():
             "authentication_type": cfg.get("AuthenticationType"),
             "roles": admin.get("roles", []),
             "page_access": admin.get("page_access", {}),
-            "users": admin.get("users", []),
+            "user_count": admin.get("user_count", 0),
+            "admin_count": admin.get("admin_count", 0),
         }
         for p in model.get("pages", []):
             p["roles"] = admin.get("page_access", {}).get(p["name"], [])

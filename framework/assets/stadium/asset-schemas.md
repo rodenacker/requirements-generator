@@ -56,7 +56,7 @@ What each asset contains and where it feeds:
 | `data-model` | Tier-A entities + typed fields (`Entity.Field : Type [from connector: …]`), the CRUD matrix, Tier-B status-field lifecycle hint | §7 (data shapes — the closed property set) + §2 |
 | `data-sources` | Connectors, ConnectorFunctions, redacted connection strings, SQL + typed params — **handoff-only backend contract** | §6.10 (fixtures→contract pointers) + §1.7; never a prototype design input |
 | `business-rules` | Scripts → ordered action sequences (ExecuteConnector/SetValue/Navigate/…), validators + required fields | §6 (functions, business rules, behaviour) |
-| `access-control` | Auth type, roles, the Page×Role matrix, sanitized users (admins flagged) | §3 (actors/personas) + §6.5 (access rules) |
+| `access-control` | Auth type, roles, the Page×Role matrix, and user/admin **counts only** (individual user identities — name/email — are PII and are NOT extracted) | §3 (actors/personas) + §6.5 (access rules) |
 | `surfaces` | Per-page control trees (layout + controls + visible text), templates, best-effort screen↔entity guesses | §6.4 (surfaces) + `/wireframe` (surface decomposition) |
 | `navigation` | Templates (master pages), `NavigateToPage` edges, Tier-B affordances | §5 (IA/navigation) + `/wireframe` IA |
 | `glossary` | Verbatim visible terms (labels, headings, buttons, titles) | `/analyse-inputs` GLOSSARY methodology (domain vocabulary) |
