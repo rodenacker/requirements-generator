@@ -499,7 +499,7 @@
 
 <header class="hero">
   <h1>Requirements Generator — System Flowchart</h1>
-  <p>How the eleven slash commands fit together. <strong>Base</strong> pipelines produce the core deliverables — requirements, PRD, design system, low-fi wireframes, and finally a hi-fi clickable prototype. <strong>Optional</strong> pipelines lens the material at two moments — before <code>/requirements</code> (input reviews &amp; analyses, PRD) and after it (requirement reviews &amp; analyses). <code>/resolve-review</code> closes the review loop: it turns accepted findings from either review pipeline into a consultant-approved input document for the next <code>/requirements</code> run. The design / build layer runs last: <code>/wireframe</code> explores low-fi directions, then <code>/prototype</code> builds the chosen direction into a clickable React app. When the spec settles, <code>/export-application</code> re-projects it as an application-audience handoff document. Click any block in the flowchart to expand its description below.</p>
+  <p>How the twelve slash commands fit together. <strong>Base</strong> pipelines produce the core deliverables — requirements, PRD, design system, low-fi wireframes, and finally a hi-fi clickable prototype. <strong>Optional</strong> pipelines lens the material at two moments — before <code>/requirements</code> (input reviews &amp; analyses, PRD) and after it (requirement reviews &amp; analyses). When the client hands over a Stadium 6 low-code app rather than documents, <code>/ingest-stadium</code> extracts it into ordinary input assets before any of this begins. <code>/resolve-review</code> closes the review loop: it turns accepted findings from either review pipeline into a consultant-approved input document for the next <code>/requirements</code> run. The design / build layer runs last: <code>/wireframe</code> explores low-fi directions, then <code>/prototype</code> builds the chosen direction into a clickable React app. When the spec settles, <code>/export-application</code> re-projects it as an application-audience handoff document. Click any block in the flowchart to expand its description below.</p>
 </header>
 
 <nav class="toc">
@@ -706,6 +706,27 @@
   <button type="button" onclick="document.querySelectorAll('details.acc').forEach(d => d.open = true)">Expand all</button>
   <button type="button" onclick="document.querySelectorAll('details.acc').forEach(d => d.open = false)">Collapse all</button>
 </div>
+
+<!-- 3pre — /ingest-stadium -->
+<details class="acc base" id="ingest-stadium">
+  <summary>
+    <div class="head-left">
+      <span class="head-cmd">/ingest-stadium</span>
+      <span class="head-role">Base · pre-requirements · input preparation</span>
+    </div>
+    <a class="back-link" href="#flowchart">↑ Back to flowchart</a>
+  </summary>
+  <div class="acc-body">
+    <div class="card base solo">
+      <h4>/ingest-stadium</h4>
+      <div class="role">Stadium 6 app → citation-ready input assets</div>
+      <div class="field"><span class="field-label">Inputs</span><div class="field-body">A <strong>Stadium 6 application</strong> dropped in <code>input/</code> — a deployed app folder (<code>administration.db</code> + <code>App_Data/Updates/*.sapz</code> + <code>ClientApp/</code>) or a one-line <code>*.stadium</code> pointer naming its path. Runs a bundled, standard-library-only Python extractor.</div></div>
+      <div class="field"><span class="field-label">When to use</span><div class="field-body">First, whenever the client's material is a Stadium low-code app rather than (or alongside) documents. Extraction happens <strong>once per app</strong> — a process-once ledger skips an already-ingested app unless you deliberately re-ingest via the prompt, so your hand-edits to the assets are never silently overwritten.</div></div>
+      <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>input/&lt;AppName&gt;.stadium-assets/</code> — twelve lean, citation-ready assets (ten deterministic category files: overview, data model, data sources, business rules, access control, surfaces, navigation, glossary, design signals, modules; plus two advisory <code>[AI-SUGGESTED]</code> ones: task flows, quality signals). A forensic <code>model.json</code> lands under <code>framework/state/</code> and is never manifested.</div></div>
+      <div class="field"><span class="field-label">How to use</span><div class="field-body">Nothing further — the assets are ordinary <code>Native-text</code> inputs. The next <code>/requirements</code> (or <code>/generate-prd</code> / <code>/analyse-inputs</code> / <code>/review-inputs</code>) run enumerates them automatically; those commands exclude the raw app folder and nudge you here if they spot an un-ingested app.</div></div>
+    </div>
+  </div>
+</details>
 
 <!-- 3a — /review-inputs -->
 <details class="acc opt" id="input-reviews">

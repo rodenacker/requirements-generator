@@ -27,24 +27,21 @@ Ten transitive load/read/invoke trees, one per orchestrator. Source of truth for
 input-handler.md → check-manifest-freshness.md, classify-input-tier.md, preflight-mcp.md, preflight-cli.md,
                    convert-input-file.md, describe-visual-input.md, render-visual-to-raster.md,
                    build-source-manifest.md, verify-artifact-write.md,
-                   extract-stadium-app.md [cond: Step S — Stadium unit present],
                    refusal-registry.md, setup-instructions/markitdown.md, setup-instructions/visual-render.md,
-                   setup-instructions/stadium.md [cond: Step S], state/.stadium-processed.json [Step S ledger]
+                   state/.stadium-processed.json [Step S: read-only, for the un-ingested nudge]
   classify-input-tier     → convert-input-file
   preflight-mcp           → refusal-registry
-  preflight-cli           → refusal-registry   [also probes python at Step S before the Stadium extractor]
+  preflight-cli           → refusal-registry
   convert-input-file      → verify-artifact-write, refusal-registry
   render-visual-to-raster → (Bash render to scratch raster; no skill edges)
   describe-visual-input   → template-visual-description.md, verify-artifact-write, refusal-registry
   build-source-manifest   → verify-artifact-write
-  extract-stadium-app     → tools/extract_stadium_app.py, assets/stadium/* (--kb module glosses),
-                            verify-artifact-write, refusal-registry (RF-01)
   check-manifest-freshness → (Step-S exclusion: a left-in-place Stadium app folder / *.stadium pointer is
                             not counted as disk drift)
   verify-artifact-write   → refusal-registry
 ```
 
-Per-caller `progress_path`: requirements = `.progress.json`; generate-prd = `.prd-progress.json`; analyse-inputs / review-inputs = `null` (suppresses the agent's `RF-01 continue-later` write). `check-manifest-freshness` runs at step 0 (create / refresh / no-op / halt decision) whenever a manifest exists; the conversion/description skills run at steps 3–6 on create/refresh only. `preflight-mcp` runs at step 4a only when a `Supported-via-MCP` row exists; `preflight-cli` runs at step 4b only when a `Vector-renderable` row exists. `convert-input-file` handles `Supported-via-MCP`; `describe-visual-input` handles `Native-multimodal` and (after `render-visual-to-raster`) `Vector-renderable`. **Step S** (pre-enumeration) runs only when a Stadium unit (an app folder or a `*.stadium` pointer) is present: it preflights `python` (`preflight-cli`, `RF-01`), invokes `extract-stadium-app` (which shells out to `tools/extract_stadium_app.py` and reads `assets/stadium/*` for module glosses) to write `input/<AppName>.stadium-assets/*.md` + the forensic `state/stadium/<app-id>/model.json`, writes the `state/.stadium-processed.json` ledger keyed by `app_id` (already-ledgered apps are skipped), and excludes the app folder/pointer from both enumeration (step 1) and the freshness check (step 0). The extracted assets are ordinary `Native-text` rows.
+Per-caller `progress_path`: requirements = `.progress.json`; generate-prd = `.prd-progress.json`; analyse-inputs / review-inputs = `null` (suppresses the agent's `RF-01 continue-later` write). `check-manifest-freshness` runs at step 0 (create / refresh / no-op / halt decision) whenever a manifest exists; the conversion/description skills run at steps 3–6 on create/refresh only. `preflight-mcp` runs at step 4a only when a `Supported-via-MCP` row exists; `preflight-cli` runs at step 4b only when a `Vector-renderable` row exists. `convert-input-file` handles `Supported-via-MCP`; `describe-visual-input` handles `Native-multimodal` and (after `render-visual-to-raster`) `Vector-renderable`. **Step S** (pre-enumeration) runs only when a Stadium unit (an app folder or a `*.stadium` pointer) is present: it **excludes** the app folder/pointer from both enumeration (step 1) and the freshness check (step 0), and reads `state/.stadium-processed.json` (read-only) to **nudge** the consultant to run `/ingest-stadium` when the app is not yet ledgered. It **no longer extracts** — Stadium extraction moved to the standalone `/ingest-stadium` command (graph 12). The extracted `input/<AppName>.stadium-assets/*.md` assets (produced by that command) are ordinary `Native-text` rows enumerated normally.
 
 ---
 
@@ -72,7 +69,7 @@ requirements-merger → prototype-invariants.md
 - drafter's `derive-architectural-implications` substep uses an **inline** capability catalogue declared in `requirements-drafter.md` → not a file edge. Rows emitted as `[AI-SUGGESTED: non-blocking]`, refined in resolver Phase 2. Runs on every run.
 - merger **retains** `[SRC: C-NNN]` tags in final `requirements.md`; `draft-claims.ndjson` stays authoritative for verbatim quotes (grounding re-verification).
 - `template-requirements.md`'s `<!-- format: -->` / `<!-- guidance: -->` directives survive the merger strip (which only matches `[AI-SUGGESTED]`/`[STANDARD-RULE]`/`[OUT-OF-SCOPE]`/blocking-suffix/`AI-NNN`/`GR-NN`) — they are part of the published spec.
-- drafter reads `stadium/asset-schemas.md` **only when** the scope includes `input/<AppName>.stadium-assets/*.md` rows (extracted by input-handler Step S); it routes those assets' advisory / Tier-B lines to `[AI-SUGGESTED]`, never `[SRC]`.
+- drafter reads `stadium/asset-schemas.md` **only when** the scope includes `input/<AppName>.stadium-assets/*.md` rows (extracted by `/ingest-stadium`); it routes those assets' advisory / Tier-B lines to `[AI-SUGGESTED]`, never `[SRC]`.
 - `characters/requirements-qa.md` is a stub (no transitive deps).
 
 ---
@@ -435,3 +432,25 @@ resolve-review-drafter → characters/review-resolving.md,
 - **Step-0 resolved-status tag:** the orchestrator reads the provenance-table head of `input/*-resolutions-*.md` files (bounded, read-only) and tags each picker entry `resolved (date)` / `not yet resolved` by matching the recorded `Source review` path — its only `input/` read, persisting nothing (the pipeline stays stateless).
 - The input-handler is **never** invoked; the Step-2 fingerprint target is hashed (drift warning), never parsed. Pickup of the new `input/` file is the next manifest create/refresh's job.
 - Context-load management is a step-0 >300 KB size advisory (no preflight gate — the context-bloat preflight was retired system-wide).
+
+---
+
+## 12. ingest-stadium-orch.md · 9 nodes / 11 edges / depth 3
+
+```
+orch → stadium-ingestor, context-hygiene, refusal-registry,
+       verify-artifact-write [re-ingest reset: ledger re-write],
+       state/.stadium-processed.json [read: startup partition + re-ingest reset]
+stadium-ingestor → extract-stadium-app, preflight-cli, verify-artifact-write, refusal-registry,
+       setup-instructions/stadium.md, state/.stadium-processed.json [read/write: ledger]
+  extract-stadium-app → tools/extract_stadium_app.py, assets/stadium/* (--kb module glosses),
+                        verify-artifact-write, refusal-registry
+  preflight-cli       → refusal-registry
+  verify-artifact-write → refusal-registry
+```
+
+**Notes (unique):**
+- **Standalone, single-agent, no progress file** (design-system / export-application precedent). Resumability = the processed-ledger's process-once contract: a re-run skips already-ingested apps; an interrupted extract leaves the app un-ledgered for a clean retry.
+- **The relocated Step S.** The `stadium-ingestor` agent is the former input-handler Step-S *extraction* logic, now first-class: detect Stadium units in `input/`, skip already-ledgered apps, preflight `python` (`preflight-cli`, `RF-01` → `setup-instructions/stadium.md`), invoke `extract-stadium-app` (→ `tools/extract_stadium_app.py`, `assets/stadium/*` via `--kb`), and write `state/.stadium-processed.json` keyed by `app_id` (+ the forensic `state/stadium/<app-id>/model.json` via the skill). It writes **no** source manifest — the produced `input/<AppName>.stadium-assets/*.md` assets are enumerated as ordinary `Native-text` rows by the next input-handler run.
+- **Re-ingest gate + reset (orchestrator-owned).** At startup the orch scans `input/*.stadium` + `input/*/administration.db`, reads the ledger, and for each already-ledgered app surfaces `{ Skip, Re-ingest, Cancel }`. On `Re-ingest` it git-checkpoints then deletes the app's `input/<AppName>.stadium-assets/` + `state/stadium/<app-id>/` + its ledger entry (re-written via `verify-artifact-write`), so the agent re-extracts it as new — the same "delete-so-the-agent-redoes-it" reset shape as design-system's overwrite.
+- **Write scope:** `input/<AppName>.stadium-assets/**`, `state/.stadium-processed.json`, `state/stadium/**`. Never `requirements/`. The input-handler's Step S separately excludes the raw app folder/pointer from manifest enumeration + the freshness check and nudges when a dropped app is un-ingested (see `@input-handler-subtree`).

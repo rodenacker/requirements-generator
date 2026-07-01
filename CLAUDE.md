@@ -10,7 +10,7 @@
 
 ## 1. Project purpose & division of labour
 
-**What.** Consultant-driven Claude Code workspace. Twelve slash commands — each a prompt-only pipeline of markdown orchestrators + agents + skills — turn loose client material into structured artefacts, wireframes, and clickable prototypes. Together these build a comprehensive, citation-grounded set of **frontend requirements** for generating internal, enterprise-level **data-management applications**. No runtime code: every "agent" is an `.md` file Claude reads and adopts as persona (the one exception: `/prototype` *generates* a real client-side Next.js app under `prototypes/`).
+**What.** Consultant-driven Claude Code workspace. Thirteen slash commands — each a prompt-only pipeline of markdown orchestrators + agents + skills — turn loose client material into structured artefacts, wireframes, and clickable prototypes. Together these build a comprehensive, citation-grounded set of **frontend requirements** for generating internal, enterprise-level **data-management applications**. No runtime code: every "agent" is an `.md` file Claude reads and adopts as persona (exceptions: `/prototype` *generates* a real client-side Next.js app under `prototypes/`; `/ingest-stadium` runs a real Python extractor, `framework/tools/extract_stadium_app.py`, over a Stadium 6 app).
 
 **Division of labour (what vs how).** Mine **everything** relevant from the inputs — both *what* and *how*. The distinction between them is one of **authority**, not of source:
 
@@ -23,6 +23,7 @@
 | Command | Produces |
 |---|---|
 | `/start` | Dispatcher — lists the other commands and launches the chosen one. |
+| `/ingest-stadium` | Extracts a **Stadium 6 application** dropped in `input/` (deployed app folder or one-line `*.stadium` pointer) into lean, citation-ready per-app assets under `input/<App>.stadium-assets/` (10 deterministic + 2 advisory category assets + a forensic `model.json`), via `framework/tools/extract_stadium_app.py`. Process-once via a FileGuid-keyed ledger, with a re-ingest gate. The assets are consumed by every input pipeline (`/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`) as ordinary `Native-text` inputs; the input-handler excludes the raw app folder/pointer and nudges if an un-ingested app is dropped. |
 | `/requirements` | LLM-audience FE spec (`requirements/requirements.md`). |
 | `/generate-prd` | Human-audience PRD (`prd/prd.md`) — strategic framing, success metrics, hypotheses, MVP phasing, risks, stakeholders. Independent of `/requirements`; can run before/after/alongside. |
 | `/design-system` | Brand-token brief (`design-system/design-system.html`). |

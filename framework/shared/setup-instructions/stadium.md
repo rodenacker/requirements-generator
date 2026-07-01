@@ -1,6 +1,6 @@
 # Stadium extractor (Python) — Setup Instructions
 
-Install copy referenced by `RF-01 dependency_missing` in `framework/shared/refusal-registry.md`. Surfaced to the consultant when a **Stadium 6 application** is detected in `input/` (a deployed app folder, or a `*.stadium` pointer) but the input-handler's preflight does not find a Python 3 interpreter on `PATH`.
+Install copy referenced by `RF-01 dependency_missing` in `framework/shared/refusal-registry.md`. Surfaced to the consultant when a **Stadium 6 application** is ingested via the `/ingest-stadium` command (its `framework/agents/stadium-ingestor.md` agent) — a deployed app folder, or a `*.stadium` pointer — but the ingestor's Python preflight does not find a Python 3 interpreter on `PATH`.
 
 The Stadium extractor (`framework/tools/extract_stadium_app.py`) is **Python-3 standard-library only** — no `pip install` is needed. It reads SQLite (`sqlite3`), unzips the `.sapz` (`zipfile`), and emits markdown/JSON. The only requirement is that a Python 3 interpreter is reachable.
 
@@ -37,7 +37,7 @@ and confirm ten `test.stadium.*.md` files appear in `<scratch-dir>`.
 
 ## Troubleshooting
 
-- **`python: command not found` but Python is installed** — the interpreter is not on `PATH`, or it is registered as `python3` only. Re-run `/setup python`, or add the install dir to `PATH`. The input-handler probes both `python` and `python3`.
+- **`python: command not found` but Python is installed** — the interpreter is not on `PATH`, or it is registered as `python3` only. Re-run `/setup python`, or add the install dir to `PATH`. The `stadium-ingestor` probes both `python` and `python3`.
 - **`sqlite3` import error** — extremely rare; `sqlite3` ships with CPython. A custom minimal build may omit it — install a standard CPython distribution.
 - **Extraction runs but emits a `degraded-no-sapz` / `degraded-no-admin-db` note** — not a setup problem: the app folder is missing its design package or admin DB; the extractor still emits what it can.
 

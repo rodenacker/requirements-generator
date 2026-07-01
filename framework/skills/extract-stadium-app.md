@@ -1,6 +1,6 @@
 # extract-stadium-app.md
 
-**Purpose:** Convert one detected **Stadium 6 application** (a deployed app folder, or the path a `*.stadium` pointer resolves to) into a set of lean, citation-ready **requirement assets** written into `input/`. This is the Stadium analogue of `convert-input-file.md` / `describe-visual-input.md`: a deterministic converter that produces markdown siblings the downstream pipelines read as ordinary `Native-text` inputs. It runs **once per app** — the caller (the input-handler pre-pass) skips already-processed apps via the processed-ledger.
+**Purpose:** Convert one detected **Stadium 6 application** (a deployed app folder, or the path a `*.stadium` pointer resolves to) into a set of lean, citation-ready **requirement assets** written into `input/`. This is the Stadium analogue of `convert-input-file.md` / `describe-visual-input.md`: a deterministic converter that produces markdown siblings the downstream pipelines read as ordinary `Native-text` inputs. It runs **once per app** — the caller (`/ingest-stadium`'s `stadium-ingestor` agent) skips already-processed apps via the processed-ledger.
 
 Two phases:
 - **Phase A — deterministic (Python).** Shell out to `framework/tools/extract_stadium_app.py --emit-assets`, which does **all** sharding/projection in Python and emits the Tier-1 assets (overview, data-model, data-sources, business-rules, access-control, surfaces, navigation, glossary, design-signals, modules) plus the full forensic `model.json` to the state dir. The LLM never loads `model.json`.
@@ -20,7 +20,7 @@ The skill does **not** author requirements, personas, or business-purpose narrat
 
 A structured row returned to the caller:
 - `{ status: "ok", assets: [<basenames>], app_name: <str>, file_guid: <str> }` — Phase A and B both succeeded; the Tier-1 + Tier-2 assets exist under `assets_dir` and were write-verified (Tier-2) / parse-checked (Tier-1).
-- `{ status: "failed", reason: "stadium-extract" }` — the extractor exited non-zero (the caller demotes/records `conversions_applied: "failed — stadium-extract"` and writes no assets).
+- `{ status: "failed", reason: "stadium-extract" }` — the extractor exited non-zero (the caller records `failed — stadium-extract` in its per-app summary and writes no assets; the app stays un-ledgered so a later run retries).
 
 On disk: `assets_dir/<stem>.stadium.<category>.md` for the ten Tier-1 categories + the two Tier-2 categories; `assets_dir/embedded/` for any extracted brand assets (logo, embedded docs); and the forensic `model.json` at `model_out`. The Stadium app folder itself is **never** written to or copied.
 
@@ -67,5 +67,5 @@ On disk: `assets_dir/<stem>.stadium.<category>.md` for the ten Tier-1 categories
 - Do not author business purpose, personas/target users, or final user stories here. Those are deliberately left to `/generate-prd`, `/requirements`, and `/analyse-inputs` to avoid double-inference; over-reaching here would smuggle unfounded `[AI-SUGGESTED]` facts into every downstream pipeline.
 - Do not `[SRC]`-cite anything in the Tier-2 assets. They are advisory; only the deterministic Tier-1 assets carry authoritative, quotable facts.
 - Do not write into the Stadium app folder, copy it into `input/`, or modify it. Only `assets_dir` (under `input/`) and `model_out` (under `framework/state/`) are written.
-- Do not update the processed-ledger from this skill. Ledger lifecycle (check-before / write-after) is owned by the input-handler pre-pass, so a failed extraction never marks an app as processed.
+- Do not update the processed-ledger from this skill. Ledger lifecycle (check-before / write-after) is owned by the caller (`/ingest-stadium`'s `stadium-ingestor` agent), so a failed extraction never marks an app as processed.
 - Do not reproduce the app's screens as wireframes/HTML. Visual structure is captured as advisory signals in `surfaces.md`/`navigation.md` only; the system holds design authority over the *how* (per the canonical doctrine in `CLAUDE.md`).

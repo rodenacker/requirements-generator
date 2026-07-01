@@ -278,8 +278,8 @@ The classification of an input file by how it can be ingested — Native, Suppor
 Canonical source: `framework/skills/classify-input-tier.md`.
 
 ### Stadium-app (input unit)
-A deployed Twenty57 Stadium 6 low-code web app dropped into `input/` — either as a folder (`administration.db` + `App_Data/Updates/*.sapz` + `ClientApp/`) or as a one-line `*.stadium` pointer file naming such a folder — treated as a single input *unit* rather than a per-file tier row. Detected by the input-handler's **Step S** pre-pass, extracted once, then **excluded** from manifest enumeration; only its extracted assets become manifest rows.
-Canonical source: `framework/agents/input-handler.md` (Step S) + `framework/skills/extract-stadium-app.md`.
+A deployed Twenty57 Stadium 6 low-code web app dropped into `input/` — either as a folder (`administration.db` + `App_Data/Updates/*.sapz` + `ClientApp/`) or as a one-line `*.stadium` pointer file naming such a folder — treated as a single input *unit* rather than a per-file tier row. Extracted once by the standalone `/ingest-stadium` command; the input-handler's **Step S** pre-pass separately **excludes** it from manifest enumeration + the freshness check and **nudges** the consultant when it is un-ingested. Only its extracted assets become manifest rows.
+Canonical source: `framework/orchestrators/ingest-stadium-orch.md` + `framework/agents/stadium-ingestor.md` + `framework/skills/extract-stadium-app.md` (extraction); `framework/agents/input-handler.md` (Step S exclusion + nudge).
 Not to be confused with: **input tier** (a per-file ingest classification) — a Stadium-app is a unit that is extracted into ordinary `Native-text` files, not itself a tier.
 
 ### Stadium extractor
@@ -293,8 +293,17 @@ Canonical source: `framework/skills/extract-stadium-app.md` + `framework/assets/
 Not to be confused with: the app-domain **Stadium glossary** (`framework/assets/stadium/glossary.md`) — that is reference knowledge, not an extracted per-app asset.
 
 ### Processed-ledger
-The runtime ledger `framework/state/.stadium-processed.json`, keyed by `app_id` (the app folder basename, equal to its Stadium `FileGuid`), recording which Stadium-apps have been extracted. An already-ledgered app is skipped at Step S (process-once contract), protecting consultant hand-edits to its category assets.
-Canonical source: `framework/agents/input-handler.md` (Step S).
+The runtime ledger `framework/state/.stadium-processed.json`, keyed by `app_id` (the app folder basename, equal to its Stadium `FileGuid`), recording which Stadium-apps have been extracted. An already-ledgered app is skipped by the `stadium-ingestor` (process-once contract), protecting consultant hand-edits to its category assets, unless the consultant re-ingests it via the orchestrator's re-ingest gate (which removes the entry). Read read-only by the input-handler's Step S for the un-ingested nudge.
+Canonical source: `framework/agents/stadium-ingestor.md` (writes it) + `framework/orchestrators/ingest-stadium-orch.md` (re-ingest reset removes an entry).
+
+### Stadium ingestion command (`/ingest-stadium`)
+The standalone command that turns a **Stadium-app (input unit)** dropped in `input/` into its **category assets** — the sole trigger for Stadium extraction (formerly the input-handler's Step S pre-pass). A thin command shim launches `framework/orchestrators/ingest-stadium-orch.md`, which runs the **Stadium ingestor** agent in the foreground and surfaces the per-app re-ingest gate. Standalone: it never touches `requirements/` state or builds the source manifest — the produced assets are picked up as ordinary `Native-text` inputs by the next input-consuming pipeline run.
+Canonical source: `.claude/commands/ingest-stadium.md` + `framework/orchestrators/ingest-stadium-orch.md`.
+Not to be confused with: the input-handler's **Step S** — which no longer extracts; it only excludes the raw app folder/pointer and nudges.
+
+### Stadium ingestor
+The agent `framework/agents/stadium-ingestor.md` that owns the per-app extraction lifecycle for `/ingest-stadium`: detect Stadium units, skip already-ledgered apps (process-once), preflight Python (`RF-01`), delegate to the **Stadium extractor** via `extract-stadium-app.md`, and write the **processed-ledger**. It is the standalone home of the logic formerly in the input-handler's Step S.
+Canonical source: `framework/agents/stadium-ingestor.md`.
 
 ---
 

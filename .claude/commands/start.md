@@ -18,16 +18,17 @@ You are the dispatcher for `/start`. Your only job is to show the user the avail
 2. **Order the commands.** Present the discovered commands in this fixed display order:
 
    1. `setup`
-   2. `requirements`
-   3. `generate-prd`
-   4. `design-system`
-   5. `review-inputs`
-   6. `resolve-review`
-   7. `analyse-inputs`
-   8. `review-requirement`
-   9. `analyse-requirement`
-   10. `wireframe`
-   11. `prototype`
+   2. `ingest-stadium`
+   3. `requirements`
+   4. `generate-prd`
+   5. `design-system`
+   6. `review-inputs`
+   7. `resolve-review`
+   8. `analyse-inputs`
+   9. `review-requirement`
+   10. `analyse-requirement`
+   11. `wireframe`
+   12. `prototype`
 
    Any discovered command **not** in this list (e.g. a newly added command) is appended after the fixed list, in discovery order. Any name in the fixed list that was **not** discovered on disk is silently skipped (do not print a dead entry). This keeps the menu fresh while honouring the consultant's preferred ordering.
 

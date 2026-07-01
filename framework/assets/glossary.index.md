@@ -44,7 +44,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Physical screen | A concrete screen produced by realizing a logical surface (`S-NN`). | `realization-strategies.md` |
 | Position | Signed `-2..+2` stance on one trade-off dimension; labelled, never shown as notation. | `position-vocabulary.md` |
 | Preflight gate | Orchestrator check before any agent runs (prereqs, prior progress). | orchestrators |
-| Processed-ledger | Runtime `state/.stadium-processed.json` keyed by `app_id`; skips already-extracted Stadium-apps (process-once). | `agents/input-handler.md` (Step S) |
+| Processed-ledger | Runtime `state/.stadium-processed.json` keyed by `app_id`; skips already-extracted Stadium-apps (process-once). | `agents/stadium-ingestor.md` |
 | Progress file | Per-orchestrator JSON tracking `called`/`completed` per agent for resume. | orchestrator Tools |
 | Properties closed set | Blueprint's per-surface list of allowed data properties; the anti-fabrication boundary. | `blueprint-architect.md` |
 | Prototype | One hi-fi clickable client-side realization of a scope; accrues in one shared app. | `prototype-orch.md` |
@@ -66,7 +66,9 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Skill | Reusable parameterised unit of agent behaviour returning a structured result. | `docs/maintenance.md > Separation of concerns` |
 | Source-manifest | Canonical input record (`source-manifest.json`); owned solely by the input-handler. | `agents/input-handler.md` |
 | Stadium extractor | Runtime-code helper (`tools/extract_stadium_app.py`) that shards a Stadium-app into category assets; an ingestion exception. | `skills/extract-stadium-app.md` |
-| Stadium-app (input unit) | A deployed Twenty57 Stadium 6 app dropped into `input/`; detected/excluded at Step S and extracted once. | `agents/input-handler.md` (Step S) |
+| Stadium ingestion command (`/ingest-stadium`) | Standalone command that extracts a Stadium-app into its category assets; sole trigger for Stadium extraction. | `orchestrators/ingest-stadium-orch.md` |
+| Stadium ingestor | Agent owning per-app Stadium extraction for `/ingest-stadium` (detect, skip-if-ledgered, preflight, extract, write ledger). | `agents/stadium-ingestor.md` |
+| Stadium-app (input unit) | A deployed Twenty57 Stadium 6 app dropped into `input/`; extracted once by `/ingest-stadium`; excluded + nudged at the input-handler's Step S. | `agents/stadium-ingestor.md` |
 | Store | Client-side state container a prototype reads/writes, initialised from fixtures. | `shared-component-conventions.md` |
 | surface_plan | Per-variant JSON authoring realization + pattern picks + screens per `LS-NN`. | `blueprint-architect.md` |
 | Target-user (persona) | A persona of the product under design (`requirements.md §3`); not the consultant. | `requirements.md §3` |

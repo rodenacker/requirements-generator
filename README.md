@@ -7,22 +7,24 @@
 - [3. When to use which command](#3-when-to-use-which-command)
 - [4. Commands](#4-commands)
     - [`/start`](#41-start)
-    - [`/design-system`](#42-design-system)
-    - [`/generate-prd`](#43-generate-prd)
-    - [`/requirements`](#44-requirements)
-    - [`/analyse-inputs`](#45-analyse-inputs)
-    - [`/review-inputs`](#46-review-inputs)
-    - [`/analyse-requirement`](#47-analyse-requirement)
-    - [`/review-requirement`](#48-review-requirement)
-    - [`/resolve-review`](#49-resolve-review)
-    - [`/wireframe`](#410-wireframe)
-    - [`/prototype`](#411-prototype)
-    - [`/export-application`](#412-export-application)
+    - [`/ingest-stadium`](#42-ingest-stadium)
+    - [`/design-system`](#43-design-system)
+    - [`/generate-prd`](#44-generate-prd)
+    - [`/requirements`](#45-requirements)
+    - [`/analyse-inputs`](#46-analyse-inputs)
+    - [`/review-inputs`](#47-review-inputs)
+    - [`/analyse-requirement`](#48-analyse-requirement)
+    - [`/review-requirement`](#49-review-requirement)
+    - [`/resolve-review`](#410-resolve-review)
+    - [`/wireframe`](#411-wireframe)
+    - [`/prototype`](#412-prototype)
+    - [`/export-application`](#413-export-application)
 - [5. Setup](#5-setup)
     - [5.1 First-time install](#51-first-time-install-one-off)
     - [5.2 Office & PDF inputs](#52-to-handle-word-excel-powerpoint-and-pdf-inputs)
     - [5.3 Tokens from a URL](#53-to-extract-design-tokens-from-a-reference-url)
     - [5.4 Prototypes](#54-to-generate-clickable-prototypes)
+    - [5.5 Stadium apps](#55-to-ingest-stadium-6-apps)
 
 ## 1. Overview
 
@@ -37,7 +39,7 @@ Drop the client material you've been given into `input/`, run a slash command, a
 
 Also generate a complete design system for brand-accurate prototype- and application-styling from a URL.
 
-Used together, the commands turn a loose pile of client material into a comprehensive, traceable set of **frontend requirements** for building internal, enterprise-level **data-management applications**. The twelve commands:
+Used together, the commands turn a loose pile of client material into a comprehensive, traceable set of **frontend requirements** for building internal, enterprise-level **data-management applications**. The thirteen commands:
 
 Here is a visual map of how the commands connect:<br>
 **[system flowchart](https://rodenacker.github.io/requirements-generator/docs/requirements-generator-flow.html)**
@@ -72,6 +74,7 @@ This repository is a **template**. You don't work in the shared copy — you cre
 | Run                                                                       | When                                          | Result                                                                              |
 | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | `/requirements`                                                                | Client just sent a pile of attachments                       | Turns inputs into a structured doc you can use for prototyping. Export with `/export-application` for Stadium 8.                          |
+| `/ingest-stadium`                                                              | Client handed you a Stadium 6 low-code app, not just documents | Extracts the app into citation-ready assets under `input/` that `/requirements` and the other input commands then read like any other material. Run it before `/requirements`. |
 | `/design-system`                                                               | Designer is waiting on a brand brief                                              | One run produces a complete colour + typography + effects brief for prototyping or Stadium 8.                 |
 | `/generate-prd`                                                                | A stakeholder is asking for the *why* — problem, metrics, MVP phasing, risks      | Strategic PRD from the inputs.                               |
 | `/review-inputs` → `adversarial`                                               | You want a tough critique of the raw inputs before drafting                       | Six-dimension critique of the raw input set — coverage, ambiguity, cross-source conflict, costly silences. |
@@ -103,25 +106,33 @@ The [system flowchart](https://rodenacker.github.io/requirements-generator/docs/
 
 Run it inside Claude Code to pick from a menu instead of remembering command names — it lists the commands with their one-liners and launches the one you select.
 
-### 4.2 `/design-system`
+### 4.2 `/ingest-stadium`
+
+Turn a **Stadium 6 application** into inputs the other commands can read. When a client hands you a deployed Stadium low-code app instead of (or alongside) documents, drop it into `input/` — either the deployed app folder or a one-line `*.stadium` pointer file naming its path — and run this first. It extracts the app **once** into a set of lean, citation-ready requirement assets that `/requirements`, `/generate-prd`, `/analyse-inputs`, and `/review-inputs` then consume like any other input material.
+
+Each app is processed once — a ledger records what's already been ingested, and re-ingesting is a deliberate, prompted choice — so your hand-edits to the extracted assets are never silently overwritten. The raw app folder itself is left out of every other command's input set; only the extracted assets are read (the other input commands nudge you to run this if they spot an un-ingested app). Runs a bundled Python extractor — see §5.5.
+
+**You get** `input/<AppName>.stadium-assets/` — twelve per-app assets (ten deterministic category files covering the data model, sources, business rules, access control, surfaces, navigation, and more, plus two advisory ones), ready to be picked up on the next `/requirements` (or `/generate-prd` / `/analyse-inputs` / `/review-inputs`) run.
+
+### 4.3 `/design-system`
 
 A brand-token brief for a designer in one run — useful when the designer is blocked on visual direction and you need to send something concrete today. Two questions on launch: a required **Domain** (free text, e.g. `loan-origination-portal` — the token set is inferred per-run, no fixed lookup table) and an optional **Reference URL** (a real browser opens at desktop size and extracts the actual colours, typography, and effects from the live CSS; without one, every token is inferred from the domain string alone).
 
 **You get** `design-system/design-system.html` — a self-contained document you open via `file://`: colour swatches, type specimens at their actual sizes, shadow/motion samples, and contrast-validation pairs, each token annotated with its provenance (*extracted from the URL* vs *inferred from the domain*). It also embeds a machine-readable token JSON block, so a downstream tool (Figma plugin, CSS generator, LLM pipeline) can consume the values directly.
 
-### 4.3 `/generate-prd`
+### 4.4 `/generate-prd`
 
 A strategic, human-audience PRD from the same client inputs — problem framing, success metrics, hypotheses, MVP phasing, risks, stakeholders. Run it when a sponsor needs the *why* (not the *what-the-FE-must-do* that `/requirements` produces). Fully independent of `/requirements` — run it before, after, or alongside, with no state collision.
 
 **You get** `prd/prd.md`. Citation IDs are namespaced (`PC-NNN` / `PAI-NNN`) so the PRD never visually collides with a requirements doc you run alongside it.
 
-### 4.4 `/requirements`
+### 4.5 `/requirements`
 
 Turn the loose pile of client material into a clean, structured requirements spec. Drop the files into `input/` first, then run it.
 
 **You get** `requirements/requirements.md` — a structured spec where every item is traceable either to something you provided or to a domain-default rule the framework applies (e.g. accessibility, security, error-handling). Anything the system can't confidently fill in is resolved through the Q&A, so the final doc reads as a clean, signed-off spec.
 
-### 4.5 `/analyse-inputs`
+### 4.6 `/analyse-inputs`
 
 Go deeper into the raw inputs *before* drafting: pick an analytical lens and the framework re-expresses your `input/` material through it as a stand-alone artefact. Each one is designed to be **copied back into `input/`** so `/requirements` consumes it on the next run. Requires a non-empty `input/`; shares the source manifest with `/requirements`.
 
@@ -141,7 +152,7 @@ Go deeper into the raw inputs *before* drafting: pick an analytical lens and the
 
 **You get** one artefact per run under `analyse-inputs/<METHOD>/`, mostly self-contained HTML that survives a markitdown HTML→MD round-trip (the embedded JSON / YAML / Mermaid bodies are the load-bearing re-ingestion contract).
 
-### 4.6 `/review-inputs`
+### 4.7 `/review-inputs`
 
 Find what's missing or wrong in the raw inputs *before* you draft — a punch-list you act on before `/requirements` runs. Use it when the inputs feel thin, ambiguous, or contradictory.
 
@@ -156,7 +167,7 @@ Find what's missing or wrong in the raw inputs *before* you draft — a punch-li
 
 **You get** one self-contained HTML artefact per run under `review-inputs/<METHOD>/`; `gap-analysis.html` additionally carries an inline-SVG coverage heatmap and is designed to be copied back into `input/` so `/requirements` picks up its shall-form Candidate Requirements on the next run.
 
-### 4.7 `/analyse-requirement`
+### 4.8 `/analyse-requirement`
 
 Go deeper into what your requirements doc already contains: pick a lens and the framework re-expresses `requirements.md` through it as a stand-alone artefact you can share with a designer or developer.
 
@@ -180,7 +191,7 @@ Go deeper into what your requirements doc already contains: pick a lens and the 
 
 **You get** one HTML artefact per run under `analyse-requirements/<METHOD>/` (e.g. `OOUX/ooux-object-map.html`, `FIVE-WHYS/five-whys.html`) — formatted to share directly with whoever needed the insight.
 
-### 4.8 `/review-requirement`
+### 4.9 `/review-requirement`
 
 Find what's missing or wrong in the spec *before* you hand it over — a second pair of eyes before estimation, a design brief, or a sceptical stakeholder.
 
@@ -196,7 +207,7 @@ Find what's missing or wrong in the spec *before* you hand it over — a second 
 
 **You get** one HTML artefact per run under `review-requirements/<METHOD>/` (e.g. `ADVERSARIAL/adversarial-review.html`). Treat it as a punch-list: fix the findings you accept in `requirements.md`, then re-run for a fresh pass.
 
-### 4.9 `/resolve-review`
+### 4.10 `/resolve-review`
 
 Turn the findings of a review you've already run into something the pipeline can consume. A review artefact is a punch-list; this command walks you through acting on it — you pick the review (any `/review-inputs` or `/review-requirement` artefact on disk), pick which findings to address, and resolve each one in turn. Anything the system infers on your behalf is confirmed with you by an explicit affirmative before it's recorded — per finding, or in one go via an explicit *Accept all remaining as drafted* choice — nothing is silently assumed. The approved resolutions are then written as a **new dated document into `input/`** (existing input files are never modified or overwritten), so the next `/requirements` run ingests your decisions like any other client material.
 
@@ -204,19 +215,19 @@ When the review you picked critiques the *spec* (a `/review-requirement` artefac
 
 **You get** one new `input/<review-name>-<date>.md` per run — a consultant-approved resolutions document in which every resolution is marked as stated by you or AI-inferred-and-confirmed by you. One run resolves one review; re-run it for another (the output files accumulate side-by-side).
 
-### 4.10 `/wireframe`
+### 4.11 `/wireframe`
 
 2–3 parallel low-fi HTML wireframe variants for a scope of `requirements.md`. Each variant adopts a divergent position on a UX trade-off dimension (density vs focus, speed vs accuracy, automation vs control, …), is bound to a persona, and traces every interactive element back to a requirement ID. You scope the run and optionally pick supporting analyses you've already produced via `/analyse-requirement` (only ones actually on disk are offered); the variants then generate in parallel, so a 2-variant scope takes about the same wall time as one.
 
 **You get** `wireframes/<scope-slug>/` — a metadata-only `index.html` landing (side-by-side variant columns of screen links plus a trade-off matrix that explains *why* the variants differ) and per-screen HTML files carrying `data-src` (requirement ID) and `data-prop` (data-shape) traceability. Open the landing, click a screen link to open it in a new tab, then drag tabs into separate windows to compare directly.
 
-### 4.11 `/prototype`
+### 4.12 `/prototype`
 
 One clickable, client-side hi-fi prototype of a scope of `requirements.md` per run, accumulating in a **single shared React/Next.js app** under `prototypes/`. The look and feel is **brand-locked and identical across every prototype** (one theme — from `/design-system` if you've run it, otherwise defaults you confirm); what differs is pure UX — a named posture plus trade-off positions reshape the layout and workflows. You scope and name the run, optionally seed it from an analysis or a wireframe variant (a wireframe basis pre-fills the posture and positions), then pick the posture and positions. It runs entirely in the browser against fixture data — there is no backend.
 
 **You get** a shared Next.js app under `prototypes/`: a landing page (`src/app/page.tsx`) listing every prototype grouped by scope, the clickable routes for this one (`src/app/<name-slug>/`), and shared theme / components / fixtures that grow additively across runs. Run `npm run dev` inside `prototypes/` and open the landing — a role switcher and a data-reset control are built into the chrome, so you can hand the running app to a client to click through. (The first run scaffolds the app and runs `npm install` once; later runs reuse it and are much faster.)
 
-### 4.12 `/export-application`
+### 4.13 `/export-application`
 
 Export the finished spec as an **application-audience document** you can hand to a dev team outside this workspace. Run it once the requirements have settled — after the analyses, reviews, wireframes, and any manual refinements have shaped `requirements.md` into what you actually want built. It's a pure export of the spec **as it exists at that moment**: nothing is generated or invented at export time. The prototype-only scaffolding is removed (the prototype-invariants appendix), fixture references become backend-contract pointers (with a placeholder path to rebind once a backend requirements document exists), and a provenance block is stamped in — including a fingerprint of the exact `requirements.md` version it came from, so a re-run can tell you whether the export is stale. The architectural implications, session-policy, performance-budget, and rationale content is already in the spec (drafted and confirmed during `/requirements`) and carries through untouched.
 
@@ -279,3 +290,11 @@ The first `/prototype` run installs the app's dependencies (`npm install`) once 
 If Node.js is missing when you launch `/prototype`, the command tells you exactly what to install and resumes at the scaffold step after you do.
 
 Setup notes and troubleshooting: `framework/shared/setup-instructions/node-toolchain.md`.
+
+### 5.5 To ingest Stadium 6 apps
+
+Needed only for `/ingest-stadium`, which runs a bundled Python extractor over a Stadium app dropped in `input/`. The extractor is **standard-library only** — there are no packages to install — so if you already installed **Python 3.10+** for Office/PDF inputs (§5.2), you're done. Otherwise install Python (<https://www.python.org/>; verify with `python --version`), or run `/setup python`.
+
+If Python is missing when you launch `/ingest-stadium`, the command tells you exactly what to install and resumes after you do.
+
+Setup notes and troubleshooting: `framework/shared/setup-instructions/stadium.md`.
