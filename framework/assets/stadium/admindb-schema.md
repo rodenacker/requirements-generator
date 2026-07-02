@@ -32,6 +32,13 @@ ORDER BY p.Name, r.Name;
 
 A page absent from `PageRole` has no role grant recorded. `Pages` columns: `Id, Name, IsStartPage`. `Roles` columns: `Id, Name, NormalizedName`.
 
+### `Pages` as the authoritative view / task / feature inventory (not only the RBAC join)
+
+The extractor reads the **whole** `Pages` table (`SELECT Id, Name, IsStartPage`), not merely the rows appearing in `PageRole` — it is the app's complete surface inventory (`read_admin_db` → `out["pages"]`, feeding the `surfaces` asset's 0b "View / task / feature inventory" table). Two facts make it load-bearing:
+
+- **It out-covers both the design model and the captured nav graph.** `Pages` equals the `.sapz` surfaces where both exist, and is a **superset** when the design model is thin (some pages exist only in `administration.db`, e.g. admin-only tools). It also out-covers navigation: many pages are reachable only by JS-computed nav, so the captured `NavigateToPage` edge set is a *floor* (e.g. PaymentsApp: 22 pages, only 10 reachable via captured edges). The inventory table's `Reachable via nav?` column surfaces exactly that gap; unreached pages are **orphans**, not missing pages.
+- **A name-suffix taxonomy classifies ~36% of pages (Tier-B).** The `Inferred kind` column reads a classifying suffix where present — `View`=list · `Details/Detail/Edit`=detail · `Add`=create · `Setup/Settings/Config`=configure · `Pool/Queue`=work-queue · `Dashboard`=landing · `Report(s)/Enquiries`=reporting · `Capture/Upload/Review`=workflow step. The other ~64% are bare entity nouns → `entity-maintenance`. This is a **Tier-B `[AI-SUGGESTED]`** reading (a fallible rule over ~36% coverage); `Page` / `Start?` / `Design surface?` / `Reachable?` are Tier-A facts. `IsStartPage` is read here (not only from the design model) so pages that exist **only** in `administration.db` still report their start flag.
+
 ### Users — counts only (identities are PII and are NOT extracted)
 
 **Policy:** actual user data is **not** extracted. Per-user identifiers (`UserName`, `Name`, `Email`, and the `PasswordHash` / `SecurityStamp` secrets) are never read into any asset or into `model.json`. The requirements need the **role / permission model**, not who the individuals are.

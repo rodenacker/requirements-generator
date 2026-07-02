@@ -1,0 +1,86 @@
+{
+  "_about": "Phase-1 golden fixture: proves ExecutionPath->Actions ordering + Decision->IfPath->{Conditions,Actions}.",
+  "_source_app": "785d3104-7f1a-4d0d-9689-566e0c21295b",
+  "_source_package": "9edc4a95-3fde-45b4-899a-2a59d1c23452.sapz",
+  "script": {
+    "name": "MemberUpdate.Load",
+    "id": "f28413ac-2a55-4731-9f3d-72bdbc9f685a",
+    "execution_path_id": "45fa7ebb-4792-4006-a580-0cb7c4ebe265"
+  },
+  "action_count": 10,
+  "action_sequence": [
+    "ExecuteConnector",
+    "SetValue",
+    "ExecuteConnector",
+    "SetValue",
+    "SetValue",
+    "SetValue",
+    "SetValue",
+    "SetValue",
+    "SetValue",
+    "SetValue"
+  ],
+  "actions": [
+    {
+      "id": "091c604c-3083-4616-b164-b57b0929b956",
+      "type": "ExecuteConnector",
+      "name": "Members_CitiesSelect",
+      "table": "ScriptItem"
+    },
+    {
+      "id": "04e70b1a-364b-4634-8a44-958e9d199c8d",
+      "type": "SetValue",
+      "name": "SetCitiesDDValue",
+      "table": "ScriptItem"
+    },
+    {
+      "id": "3b045740-6230-4c29-bff6-774fd6a2db2e",
+      "type": "ExecuteConnector",
+      "name": "Members_MemberSelect",
+      "table": "ScriptItem"
+    },
+    {
+      "id": "845310cf-9766-4320-8686-f30c7e79e879",
+      "type": "SetValue",
+      "name": "SetFirstNameValue",
+      "table": "ScriptItem"
+    },
+    {
+      "id": "0d9cc4b4-f566-491a-b48a-66de76df7ae5",
+      "type": "SetValue",
+      "name": "SetLastNameValue",
+      "table": "ScriptItem"
+    },
+    {
+      "id": "86f4c0de-34a2-4883-b046-86cf51bbbd51",
+      "type": "SetValue",
+      "name": "SetEmailValue",
+      "table": "ScriptItem"
+    },
+    {
+      "id": "7a1ebfe0-697a-4bdf-834f-f0c682a3a4ce",
+      "type": "SetValue",
+      "name": "SetPasswordValue",
+      "table": "ScriptItem"
+    },
+    {
+      "id": "ea8aca54-1154-4776-bdbc-2310c29ee9a1",
+      "type": "SetValue",
+      "name": "SetDOBValue",
+      "table": "ScriptItem"
+    },
+    {
+      "id": "fcae080c-ddae-4b98-8468-48a560a838ca",
+      "type": "SetValue",
+      "name": "SetCityValue",
+      "table": "ScriptItem"
+    },
+    {
+      "id": "ca39d0dc-26b9-4cd1-a096-2322071d2271",
+      "type": "SetValue",
+      "name": "SetSubscribedValue",
+      "table": "ScriptItem"
+    }
+  ],
+  "decision_sample": null
+}

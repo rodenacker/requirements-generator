@@ -22,6 +22,39 @@ A `ConnectorFunction` is not always a SQL query. Two other flavours are first-cl
 - **Stored procedures** (`type == StoredProcedure`) — the function `Text` is only the **proc name** (`dbo.prc_Stadium_WO_Select`), so SQL parsing sees nothing. The **entity + operation** come from the name pattern `<prefix>_[Stadium_]<Entity>[_<qual>]_<Op>` (prefix ∈ {sp, prc, usp, fn, udf, proc}; rightmost op-keyword wins), and the **fields are the parameters** (minus the `Success`/`Message`/`RaiseExceptions` envelope). The name pattern is an **empirical Twenty57 convention, not a platform guarantee** — a proc whose name yields no entity/op is listed under a Tier-B "unclassified stored procedures" heading, never fabricated.
 - **Web-service functions** (`type == WebServiceFunction`) — props carry `HttpMethod` (0=GET,1=POST,2=PUT,3=DELETE), `Path`, and `BodyType`/`ResponseType` **GuidReferences**. The **entity name** resolves via `NamedItemID → CustomType.Name` (e.g. `fullmember`, `payment`); the **fields** come from the function's own bound `Parameter(Body) → StructDataType → Field*` (request) and `DataResult(ResponseBody) → StructDataType → Field*` (response). The CRUD verb comes from the **path/name keyword** first (the corpus uses semantic `GET /deletemember`), falling back to the HTTP method. Field *types* are usually the weak `System.Object` here, so web-service fields are reliable by **name**, omitted by type.
 
+## The script / action (behavioural) model — how app behaviour is stored
+
+The `.sapz` also holds the **complete behavioural model** (not just the data model), and the extractor now walks it structurally (`build_action_tree` in `extract_stadium_app.py`, emitted as `scripts[].tree` alongside the flat back-compat `scripts[].actions`). The shapes:
+
+- **Script → ExecutionPath → Actions.** A `Script` row (cols `IsEventHandlerScript, Name, ID, ParentID` — **no** `JsonData`) has exactly one child of type `Twenty57.Stadium.API.Scripts.ExecutionPath` whose `props["Actions"]` is the **ordered GUID list of the script's root actions**, in execution order. (Golden: MemberAdmin `MemberUpdate.Load` → 10 ordered actions — `__fixtures__/execpath-memberadmin-memberupdate-load.json`.) The flat `collect_actions` DFS is *approximately* right for linear scripts but **scrambles branches**, so the tree walk keys off the `ExecutionPath.Actions` order instead.
+- **Decision → ExecutionPaths → IfPath → {Conditions, Actions}.** A `Decision.Decision` action carries `ShowElse` (bool) + `props["ExecutionPaths"]` (ordered GUID list) → `Decision.IfPath` nodes. Each `IfPath` carries `props["Actions"]` (that branch's ordered steps) + `props["Conditions"]` (predicate GUID list). Branch actions may themselves be `Decision`s (nesting confirmed; the walker caps depth and de-dupes with a `seen` set). The trailing **else** branch is a plain `ExecutionPath` node (no `Conditions`), present only when `ShowElse=True` — keyed off the type-suffix, not an `IfPath`.
+- **Condition shape.** A `Conditions` GUID resolves to a `UniqueItemExpando` of type `Twenty57.Stadium.Actions.Decision.Condition` with props `{Value1: GuidReference{NamedItemID→control/field/variable}, Operator: <int enum>, Value2, Join: <int AND/OR>}`. A predicate reads `<operand> <op> <value>`; compound conditions join with each condition's own `Join` word.
+- **Irreducible opacity.** A `JavaScript` action is an opaque escape hatch — its body cannot be resolved, so it renders `[opaque: custom JS]`; JS-computed navigation (`jsGETCurrentURl` / custom JS) is not a captured edge, rendered `[gap: JS-computed nav]`. Never bridged by a guess.
+
+### GUID normalization (the `bytes_le` rule)
+
+Table `ID`/`ParentID` columns are stored as **.NET binary GUID blobs** (`bytes_le`, mixed-endian), but the `Actions`/`Conditions`/`ExecutionPaths` **values** inside a `JsonData` prop bag are **string GUIDs**. Both must canonicalize to the same form before an id-index lookup: `str(uuid.UUID(bytes_le=<blob>))` for a 16-byte blob, `str(uuid.UUID(<string>))` for a string. The extractor's `norm_guid` handles both — always normalize *both* sides of a lookup (a raw un-normalized Actions string resolves to nothing, which is the classic false-negative that makes the behavioural model look empty).
+
+### `Decision.Condition` Operator / Join enum table
+
+The `Operator` and `Join` ints were decoded empirically over the 20-app corpus (correlating each condition's int against the operator phrase Stadium embeds in its auto-generated Decision node names — e.g. `…GreaterThanOrEquals0`, `dec…OrBefore` — plus literal-value samples). **Standard comparison ordering.** Any unmapped code degrades to `op<N>` / `join<N>` — never a wrong symbol.
+
+| `Operator` | Symbol | Confidence |
+|:---:|:---:|---|
+| 0 | `==` | corpus-confirmed |
+| 1 | `!=` | best-guess (consultant-approved 2026-07-02) |
+| 2 | `<` | best-guess |
+| 3 | `<=` | corpus-confirmed (`dec…OrBefore` names) |
+| 4 | `>` | best-guess |
+| 5 | `>=` | corpus-confirmed |
+
+| `Join` | Word | Frequency |
+|:---:|:---:|---|
+| 0 | `AND` | dominant (1495×) |
+| 1 | `OR` | 43× |
+
+Codes live in `DECISION_OP_SYMBOLS` / `DECISION_JOIN_SYMBOLS` near the top of `extract_stadium_app.py`. (`op1`/`op2`/`op4` are the un-confirmed best-guesses; if a future corpus contradicts them, only these three change.)
+
 ## AVOID — the noise
 
 - **`JsonData` property bags / `all_props`.** Every control/action node carries a `JsonData` blob of `{Name, ValueType, Value}` property items. Useful key props (Text, Required, Visible, …) are already extracted; the *full* bag is huge and almost entirely redundant with the deployed source. The forensic `model.json` keeps `all_props` for completeness — do not load it into the requirements flow.
@@ -30,4 +63,4 @@ A `ConnectorFunction` is not always a SQL query. Two other flavours are first-cl
 
 ## Net
 
-Read the `.sapz` for the **clean typed data dictionary + unmangled names**; get **entity names + CRUD** from **three reconciled sources** — SQL tables/views, stored-proc names, and web-service CustomType refs (`reconcile_entities`, union by normalized name); get **field types** by precedence design-model `SimpleDataType` > SQL/proc `DbType` > web-service > omit-if-`Object`; get **security** from `administration.db`; get **modules + custom CSS** from the deployed `ClientApp`/`wwwroot`. No single source has everything — the extractor fuses them, which is why it reads the app folder, not just the `.sapz`.
+Read the `.sapz` for the **clean typed data dictionary + unmangled names**; get **entity names + CRUD** from **three reconciled sources** — SQL tables/views, stored-proc names, and web-service CustomType refs (`reconcile_entities`, union by normalized name); get **field types** by precedence design-model `SimpleDataType` > SQL/proc `DbType` > web-service > omit-if-`Object`; get the **behavioural model** (branch-structured scripts + guard conditions + notification/state signals) from the script/action model above, resolved via `norm_guid`; get **security** from `administration.db`; get **modules + custom CSS** from the deployed `ClientApp`/`wwwroot`. No single source has everything — the extractor fuses them, which is why it reads the app folder, not just the `.sapz`.

@@ -1,0 +1,197 @@
+{
+  "_about": "Phase-1 golden fixture: proves ExecutionPath->Actions ordering + Decision->IfPath->{Conditions,Actions}.",
+  "_source_app": "87ea91de-6125-4686-8437-806216cb0ec0",
+  "_source_package": "3f1ddf96-3519-47b8-905d-b44703776f78.sapz",
+  "script": {
+    "name": "btnNext.Click",
+    "id": "c21a2e11-a2f4-416f-9819-2396e2f242d9",
+    "execution_path_id": "6e250253-d62f-428b-a148-4c841472181f"
+  },
+  "action_count": 2,
+  "action_sequence": [
+    "CallScript",
+    "Decision"
+  ],
+  "actions": [
+    {
+      "id": "33b6def2-116d-498d-8fb2-dc7cd1b28ece",
+      "type": "CallScript",
+      "name": "Validate",
+      "table": "ScriptItem"
+    },
+    {
+      "id": "71719d68-a400-4fb7-9f8b-ee647c9c4859",
+      "type": "Decision",
+      "name": "Decision",
+      "table": "ScriptItem",
+      "ShowElse": true,
+      "branches": [
+        {
+          "ifpath_id": "907b9902-fc5e-469c-981a-fe61c23b9157",
+          "type": "IfPath",
+          "conditions": [
+            {
+              "id": "46976481-718f-434f-88d5-a33fb113b4c3",
+              "type": "Condition",
+              "Value1": "Valid",
+              "Operator": 0,
+              "Value2": "true",
+              "Join": 0
+            }
+          ],
+          "actions": [
+            {
+              "id": "376bed48-370d-4e1d-bedf-56a8b1c3d572",
+              "type": "ExecuteConnector",
+              "name": "IDB_get_CheckModularInformationExists",
+              "table": "ScriptItem"
+            },
+            {
+              "id": "98fd5009-488d-4d7d-9bbd-96e425f71e70",
+              "type": "Decision",
+              "name": "dc_InsertOrUpdate",
+              "table": "ScriptItem",
+              "ShowElse": true,
+              "branches": [
+                {
+                  "ifpath_id": "256b964f-bd66-4001-82db-95dad7d8e54b",
+                  "type": "IfPath",
+                  "conditions": [
+                    {
+                      "id": "bab68bb7-beab-45a1-b490-804546f525d7",
+                      "type": "Condition",
+                      "Value1": "ModularInformationExists",
+                      "Operator": 0,
+                      "Value2": "1",
+                      "Join": 0
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "id": "555ee850-36a7-48a4-b9a6-bded39a4d703",
+                      "type": "ExecuteConnector",
+                      "name": "IDB_Prc_ModularInformation_Update",
+                      "table": "ScriptItem"
+                    },
+                    {
+                      "id": "afa87197-b7c9-4593-8ef0-9c1a2b26b88d",
+                      "type": "Notification",
+                      "name": "Notification1",
+                      "table": "ScriptItem"
+                    },
+                    {
+                      "id": "1c9c2c56-793d-417c-a816-168807408503",
+                      "type": "NavigateToPage",
+                      "name": "NavigateToPage1",
+                      "table": "ScriptItem"
+                    }
+                  ]
+                },
+                {
+                  "ifpath_id": "775e34b6-e053-4649-8cac-5d949a295d6a",
+                  "type": "ExecutionPath",
+                  "conditions": [],
+                  "actions": [
+                    {
+                      "id": "410625f1-7ba4-4fbf-973a-a00a8aee3be4",
+                      "type": "ExecuteConnector",
+                      "name": "IDB_Prc_ModularInformation_Insert",
+                      "table": "ScriptItem"
+                    },
+                    {
+                      "id": "ceccd6b2-d1f4-4c7e-86f1-f47083ccc002",
+                      "type": "Notification",
+                      "name": "Notification",
+                      "table": "ScriptItem"
+                    },
+                    {
+                      "id": "a8044aa4-ffa0-47f2-9c73-031f9f93d560",
+                      "type": "NavigateToPage",
+                      "name": "NavigateToPage",
+                      "table": "ScriptItem"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "fee9c7b7-09cd-4870-8880-eadf14f7dcb9",
+              "type": "ExecuteConnector",
+              "name": "IDB_sp_Create_Application_Steps_UpdateValid",
+              "table": "ScriptItem"
+            }
+          ]
+        },
+        {
+          "ifpath_id": "dfa853ac-66c7-42a0-b412-54c6123e9da9",
+          "type": "ExecutionPath",
+          "conditions": [],
+          "actions": [
+            {
+              "id": "48db69a2-3031-49aa-a2c4-974e792e1db1",
+              "type": "Notification",
+              "name": "Notification2",
+              "table": "ScriptItem"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "decision_sample": {
+    "id": "186b3157-79ba-49ea-b780-cbf6c9bdf7c8",
+    "type": "Decision",
+    "name": "Decision",
+    "table": "ScriptItem",
+    "ShowElse": true,
+    "branches": [
+      {
+        "ifpath_id": "a60c6dc1-afcf-4d73-bd8d-b8e9917126c3",
+        "type": "IfPath",
+        "conditions": [
+          {
+            "id": "b29e0404-29e0-4359-aac3-b1665070a807",
+            "type": "Condition",
+            "Value1": "NextActionSequence",
+            "Operator": 2,
+            "Value2": "50",
+            "Join": 0
+          }
+        ],
+        "actions": [
+          {
+            "id": "3007caa1-f77b-477e-808f-b09e8db66ae9",
+            "type": "SetValue",
+            "name": "SetApplicationID",
+            "table": "ScriptItem"
+          },
+          {
+            "id": "ec4e706f-0819-4d1b-a967-acfb47bc81fe",
+            "type": "SetValue",
+            "name": "SetValueWOID",
+            "table": "ScriptItem"
+          },
+          {
+            "id": "b7d7b2b2-0878-4b3c-a5a8-865a2c707afe",
+            "type": "NavigateToPage",
+            "name": "NavigateToPage",
+            "table": "ScriptItem"
+          }
+        ]
+      },
+      {
+        "ifpath_id": "cf8742ff-e818-4331-b97d-cdf2c0e31468",
+        "type": "ExecutionPath",
+        "conditions": [],
+        "actions": [
+          {
+            "id": "6e27e10c-d96a-425c-ae81-bafc4f31cd97",
+            "type": "Notification",
+            "name": "Notification",
+            "table": "ScriptItem"
+          }
+        ]
+      }
+    ]
+  }
+}

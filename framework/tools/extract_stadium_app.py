@@ -43,6 +43,26 @@ def norm_guid(v):
     except Exception:
         return s
 
+# Stadium Decision.Condition int enums, decoded empirically over the 20-app corpus by correlating
+# each condition's Operator int against the operator PHRASE Stadium embeds in its auto-generated
+# Decision node names (e.g. `DecisionCF...GreaterThanOrEquals0`, `dec...OrBefore`) + literal-value
+# samples. Standard comparison ordering. op0/op3/op5 corpus-confirmed; op1/op2/op4 best-guess
+# (consultant-approved, 2026-07-02). Any unmapped code degrades to `op<N>` — never a wrong symbol.
+DECISION_OP_SYMBOLS = {0: "==", 1: "!=", 2: "<", 3: "<=", 4: ">", 5: ">="}
+DECISION_JOIN_SYMBOLS = {0: "AND", 1: "OR"}   # 0 dominant (1495x); 1 = OR (43x)
+
+def op_symbol(v):
+    try:
+        return DECISION_OP_SYMBOLS.get(int(v), f"op{v}")
+    except (TypeError, ValueError):
+        return f"op{v}"
+
+def join_word(v):
+    try:
+        return DECISION_JOIN_SYMBOLS.get(int(v), f"join{v}")
+    except (TypeError, ValueError):
+        return f"join{v}"
+
 def friendly_type(translation_type):
     """'Twenty57.Stadium.Controls.Label, Twenty57...' -> 'Label'."""
     if not translation_type:
@@ -519,6 +539,92 @@ def read_design_model(sqlitedata):
                 s[k] = nm[:300]
         return s
 
+    # ----- 1a/1b: branch-structured action tree via the ExecutionPath reference-walk.
+    # The flat `actions` list built by collect_actions (below) is a DFS over the ScriptItem tree —
+    # it is APPROXIMATELY right for linear scripts but SCRAMBLES branches (a validation-fail
+    # notification prints after the happy-path navigate) and captures NO guard conditions. This adds
+    # a parallel `tree` that preserves execution order, branch structure, and predicates. The flat
+    # `actions` is kept UNTOUCHED (nav-edge + affordance readers depend on it — Phase-1 back-compat).
+    #
+    # Shape (proven against golden fixtures, framework/tools/__fixtures__/):
+    #   A Script has one child of type ...Scripts.ExecutionPath whose props["Actions"] is the ordered
+    #   GUID list of its root actions. A Decision.Decision action carries props["ExecutionPaths"] ->
+    #   IfPath nodes (props: Conditions + Actions) plus, when ShowElse, a trailing ExecutionPath node
+    #   (the else branch: Actions, no Conditions). A Conditions GUID -> a ...Decision.Condition expando
+    #   {Value1, Operator, Value2, Join}. Every GUID is normalised before lookup (norm_guid handles
+    #   the string-vs-blob mix). JavaScript actions are opaque (branch resolution cannot see inside).
+    TREE_DEPTH_CAP = 12
+
+    def _exec_path_child(parent_id):
+        """The root ExecutionPath node directly under a Script."""
+        for cid in children.get(norm_guid(parent_id), []):
+            e = registry.get(cid)
+            tt = ((e or {}).get("translation_type") or "").split(",")[0].strip()
+            if e and tt.endswith("ExecutionPath"):
+                return e
+        return None
+
+    def _render_condition(cond_id):
+        """Resolve a Condition expando GUID -> {value1, op, value2, join, text}. 1b."""
+        e = registry.get(norm_guid(cond_id))
+        if not e:
+            return None
+        p = e.get("props") or {}
+        v1 = _ref_name(p.get("Value1"))
+        v2 = _ref_name(p.get("Value2"))
+        sym = op_symbol(p.get("Operator"))
+        return {"value1": v1, "op": sym, "op_raw": p.get("Operator"),
+                "value2": v2, "join": join_word(p.get("Join")), "join_raw": p.get("Join"),
+                "text": f"{v1 if v1 is not None else '?'} {sym} {v2 if v2 is not None else '?'}"}
+
+    def _predicate_text(cond_ids):
+        """Join an IfPath's conditions into one predicate, using each condition's own Join word
+        (the first condition's Join is the leading, unused, connector)."""
+        conds = [c for c in (_render_condition(cid) for cid in (cond_ids or [])) if c]
+        if not conds:
+            return None
+        out = conds[0]["text"]
+        for c in conds[1:]:
+            out += f" {c['join']} {c['text']}"
+        return out
+
+    def _walk_action(aid, depth, seen):
+        aid = norm_guid(aid)
+        e = registry.get(aid)
+        if not e:
+            return {"action": "?", "missing": True}
+        if aid in seen or depth > TREE_DEPTH_CAP:
+            return {"action": e.get("type"), "name": e.get("name"), "truncated": True}
+        seen.add(aid)
+        aprops = {k: v for k, v in (e.get("props") or {}).items() if not str(k).startswith("$")}
+        node = {"action": e.get("type"), "name": e.get("name"), "summary": summarise_action(aprops)}
+        if e.get("type") == "JavaScript":
+            node["opaque"] = True
+        if e.get("type") == "Decision":
+            node["decision"] = True
+            node["show_else"] = bool(aprops.get("ShowElse"))
+            branches = []
+            for ep_id in (aprops.get("ExecutionPaths") or []):
+                ep = registry.get(norm_guid(ep_id))
+                if not ep:
+                    continue
+                epp = ep.get("props") or {}
+                is_if = ((ep.get("translation_type") or "").split(",")[0].strip().endswith("IfPath"))
+                branches.append({
+                    "kind": "if" if is_if else "else",
+                    "predicate": _predicate_text(epp.get("Conditions")) if is_if else None,
+                    "steps": [_walk_action(a, depth + 1, seen) for a in (epp.get("Actions") or [])],
+                })
+            node["branches"] = branches
+        return node
+
+    def build_action_tree(script_id):
+        ep = _exec_path_child(script_id)
+        if not ep:
+            return []
+        seen = set()
+        return [_walk_action(a, 0, seen) for a in ((ep.get("props") or {}).get("Actions") or [])]
+
     scripts = []
     for e in scripts_e:
         sid = e["id"]
@@ -542,13 +648,17 @@ def read_design_model(sqlitedata):
             "is_event_handler": bool(e["raw"].get("IsEventHandlerScript")),
             "owner": owner, "owner_kind": owner_kind,
             "actions": actions,
+            "tree": build_action_tree(sid),   # 1a: branch-structured, condition-bearing (additive)
         })
     model["scripts"] = scripts
 
     # ----- Session variables, custom types, validators
     model["session_variables"] = [{"name": e["name"], "props": e["props"]} for e in sessvars_e]
     model["custom_types"] = [{"name": e["name"], "props": e["props"]} for e in customtypes_e]
-    model["validators"] = [{"name": e["name"], "type": e["type"], "props": e["props"]} for e in validators_e]
+    # `summary` resolves any GuidReference / message props via the registry (reused by the 0f
+    # validator render in emit_assets, which has no registry access). Additive; `props` retained.
+    model["validators"] = [{"name": e["name"], "type": e["type"], "props": e["props"],
+                            "summary": summarise_action(e["props"])} for e in validators_e]
 
     # ----- Styling
     stylerules = []
@@ -601,18 +711,33 @@ def read_design_model(sqlitedata):
 # --------------------------------------------------------------------------- admin db (security)
 
 def read_admin_db(app_dir):
-    out = {"roles": [], "page_access": {}, "user_count": 0, "admin_count": 0, "connections": [], "deploy_history": [], "audit_log": []}
+    out = {"roles": [], "page_access": {}, "pages": [], "pagerole_count": 0, "user_count": 0, "admin_count": 0, "connections": [], "deploy_history": [], "audit_log": []}
     admin = os.path.join(app_dir, "administration.db")
     if not os.path.exists(admin):
         return out
     try:
         c = sqlite3.connect(admin); c.row_factory = sqlite3.Row
-        pages = {str(r["Id"]): r["Name"] for r in c.execute("SELECT Id,Name FROM Pages")}
+        # Full Pages table (0b view/task inventory) — IsStartPage added; the WHOLE list is kept
+        # (not just PageRole-joined pages), so admin-only surfaces surface too. Defensive: fall
+        # back to the old shape if IsStartPage is absent.
+        pages, pages_full = {}, []
+        try:
+            for r in c.execute("SELECT Id,Name,IsStartPage FROM Pages"):
+                pages[str(r["Id"])] = r["Name"]
+                pages_full.append({"name": r["Name"], "is_start_page": bool(r["IsStartPage"])})
+        except Exception:
+            for r in c.execute("SELECT Id,Name FROM Pages"):
+                pages[str(r["Id"])] = r["Name"]
+                pages_full.append({"name": r["Name"], "is_start_page": False})
+        out["pages"] = pages_full
         roles = {str(r["Id"]): r["Name"] for r in c.execute("SELECT Id,Name FROM Roles")}
         out["roles"] = sorted(roles.values())
+        pr_count = 0
         for r in c.execute("SELECT PageId,RoleId FROM PageRole"):
+            pr_count += 1
             pg = pages.get(str(r["PageId"]), str(r["PageId"]))
             out["page_access"].setdefault(pg, []).append(roles.get(str(r["RoleId"]), str(r["RoleId"])))
+        out["pagerole_count"] = pr_count  # 0d branch predicate: len(roles) > 1 or pagerole_count > 1
         # Actual user identities (UserName / Name / Email) are intentionally NOT extracted —
         # they are PII and are not needed for requirements. Only aggregate counts are kept;
         # roles + page-level permissions (above) are the actor model the requirements need.
@@ -1232,6 +1357,220 @@ def _prov_header(model, category, extra=None):
     L += ["---", ""]
     return "\n".join(L)
 
+# --------------------------------------------------------------------------- Phase-0 behavioural render helpers
+# Render-only enrichment (0a–0h): classifiers + joins over data the extractor ALREADY captured
+# (control text, script names, action props, admin-db pages). No new source extraction here.
+# Everything provably in the source is Tier-A ([SRC]-quotable); every interpretation is Tier-B
+# ([AI-SUGGESTED]) and never [SRC]-citable.
+
+# PII guard (CLAUDE.md invariant: never emit an email address). Redacts email addresses from any
+# RENDERED text — notification/dialog messages, SetValue values (apps hardcode default sender
+# addresses), validator messages — keeping the shape visible. Applied only at .md render; the
+# forensic model.json's scripts[].actions stay raw (Phase-1 back-compat requires them untouched,
+# and model.json is read by no downstream pipeline).
+_EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+def _redact_pii(s):
+    return _EMAIL_RE.sub("<redacted-email>", s) if isinstance(s, str) else s
+
+# 0a — notification severity. Verified corpus mapping: 1 = success, 3 = error; every other code
+# (0, 2, …) is the safe "info" default — never assert success/error on an unmapped code.
+def _notif_severity(v):
+    try:
+        n = int(v)
+    except (TypeError, ValueError):
+        return None
+    return {1: "success", 3: "error"}.get(n, "info")
+
+def _notif_message(props):
+    """Human message text of a Notification/DisplayMessageBox action, VERBATIM. Reads the raw
+    props (NOT the lossy action `summary`, which resolves a message's placeholder to a bare control
+    name); prefers a literal string, else the Expression `FormatString` (expression syntax kept)."""
+    if not isinstance(props, dict):
+        return None
+    for key in ("Message", "Title"):
+        v = props.get(key)
+        if isinstance(v, str) and v.strip():
+            return _flat(v)[:300]
+        if isinstance(v, dict):
+            fs = v.get("FormatString")
+            if isinstance(fs, str) and fs.strip():
+                return _flat(fs)[:300]
+    return None
+
+# 0g — trigger classification. The event token is literally the trailing dotted segment of the
+# script name (btnNext.Click, MembersDataGrid.Delete.Click, Members.Load). Fact, not inference.
+_USER_EVENTS = {"click": "clicks", "change": "changes", "select": "selects", "input": "enters text in",
+                "blur": "leaves", "focus": "focuses", "check": "toggles", "keyup": "types in",
+                "keydown": "types in", "dblclick": "double-clicks", "clicked": "clicks"}
+
+def _script_trigger(name):
+    """(class, event_token, gesture_verb). class ∈ {user-initiated, automatic-on-open, other …}."""
+    parts = (name or "").split(".")
+    last = parts[-1].lower() if len(parts) > 1 else ""
+    if last == "load":
+        return "automatic-on-open", last, None
+    if last in _USER_EVENTS:
+        return "user-initiated", last, _USER_EVENTS[last]
+    if len(parts) <= 1:
+        return "other (helper script)", "", None
+    return "other (timer / lifecycle)", last, None
+
+# 0e — action-verb taxonomy (corpus-observed + plan set; bounded, OQ4 default). A label carrying
+# one of these verbs is a candidate user *task* (Tier-B). Pure UI chrome (nav/pagination/commit/
+# list-controls) is exempt, mirroring the wireframe pipeline's UI-only exemption.
+_ACTION_VERBS = {"approve", "reject", "submit", "create", "add", "delete", "remove", "assign",
+                 "reassign", "export", "download", "upload", "capture", "review", "confirm",
+                 "edit", "update", "generate", "accept", "link", "view", "send", "print",
+                 "import", "archive", "allocate", "vet", "vetting", "reconcile", "publish"}
+_UI_CHROME_LABELS = {"save", "cancel", "close", "back", "next", "previous", "prev", "ok",
+                     "save draft", "apply filters", "clear filters", "clear", "search", "filter",
+                     "refresh", "first", "last", "home", "<", ">", "«", "»"}
+_ACTIONABLE_TYPES = {"Button", "LinkButton", "Hyperlink", "Link", "ImageButton"}
+
+def _label_verb(label):
+    """First action verb appearing as a whole word in a control label (else None)."""
+    for w in re.findall(r"[A-Za-z]+", (label or "").lower()):
+        if w in _ACTION_VERBS:
+            return w
+    return None
+
+def _is_ui_chrome(label):
+    return (label or "").strip().lower() in _UI_CHROME_LABELS
+
+# 0b — page-kind taxonomy from a name suffix (~36% of corpus names carry one; the rest are bare
+# entity nouns → per-entity maintenance surfaces). Tier-B [AI-SUGGESTED].
+_PAGE_KIND_SUFFIXES = [
+    (("dashboard",), "landing"),
+    (("view",), "list"),
+    (("details", "detail", "edit"), "detail"),
+    (("add",), "create"),
+    (("setup", "settings", "config"), "configure"),
+    (("pool", "queue"), "work-queue"),
+    (("reports", "report", "enquiries", "enquiry"), "reporting"),
+    (("capture", "upload", "review"), "workflow-step"),
+]
+
+def _page_kind(name):
+    n = (name or "").lower()
+    for suffixes, kind in _PAGE_KIND_SUFFIXES:
+        for suf in suffixes:
+            if n.endswith(suf):
+                return kind
+    return "entity-maintenance"
+
+# 0d/0h — task-cluster taxonomy (verb → operational cluster). Distinct clusters imply distinct
+# operator roles even under a single RBAC role (the Tier-B leap the actor-candidate reading makes).
+_TASK_CLUSTER = {
+    "capture": "capture", "upload": "capture", "add": "capture", "create": "capture",
+    "submit": "capture", "import": "capture",
+    "approve": "approve/decide", "reject": "approve/decide", "review": "approve/decide",
+    "assign": "approve/decide", "reassign": "approve/decide", "confirm": "approve/decide",
+    "accept": "approve/decide", "allocate": "approve/decide", "vet": "approve/decide",
+    "vetting": "approve/decide",
+    "export": "reporting", "download": "reporting", "print": "reporting", "generate": "reporting",
+    "view": "reporting", "publish": "reporting",
+    "edit": "maintain", "update": "maintain", "delete": "maintain", "remove": "maintain",
+    "archive": "maintain", "link": "maintain", "reconcile": "maintain", "send": "maintain",
+}
+# A surface *kind* (0b) also implies an operator even with no verb-labelled button — a
+# workflow/queue/reporting screen is a distinguishing actor signal buttons alone miss. Only the
+# distinguishing kinds map; baseline CRUD kinds (detail/list/entity-maintenance/configure/landing)
+# do not spawn a cluster on their own.
+_KIND_CLUSTER = {"workflow-step": "capture", "work-queue": "approve/decide", "reporting": "reporting"}
+
+def _validator_rule(vtype, props):
+    """Best-effort validator rule label from friendly type + props; None if unrecognised (the
+    caller then falls back to `name (type)` — never fabricate a rule that isn't in the props)."""
+    t = (vtype or "").lower()
+    props = props or {}
+    if "require" in t:
+        return "required"
+    if "regular" in t or "regex" in t:
+        expr = props.get("ValidationExpression") or props.get("Expression") or props.get("Pattern")
+        return f"format(regex: {_flat(expr)[:80]})" if isinstance(expr, str) and expr.strip() else "format(regex)"
+    if "range" in t:
+        lo, hi = props.get("MinimumValue"), props.get("MaximumValue")
+        return f"range({lo}..{hi})" if (lo is not None or hi is not None) else "range"
+    if "compare" in t:
+        return "compare"
+    if "email" in t:
+        return "format(email)"
+    return None
+
+def _role_capability(role):
+    """Tier-B capability reading of a role NAME (advisory; the split is a reading, not a grant)."""
+    r = (role or "").lower()
+    if any(k in r for k in ("view", "read", "report", "audit", "guest")):
+        return "read-only (view)"
+    if any(k in r for k in ("all", "admin", "full", "manage", "super", "owner", "edit")):
+        return "full edit / manage"
+    return "standard operator"
+
+# 1c — render an action `tree` (built in read_design_model) as indented markdown. Linear steps as
+# bullets; Decisions as `IF <predicate> → […]` / `ELSE → […]` blocks. A shared node budget caps a
+# single huge handler with an explicit `(+N more)` note (never a silent truncation — DA#3).
+_SUMMARY_KEYS = ("ConnectorFunction", "Target", "Destination", "ScriptToCall", "Message",
+                 "Title", "Condition", "Value", "List", "Url")
+
+def _summary_bits(sm):
+    return "; ".join(f"{k}={_redact_pii(str(sm[k]))}" for k in _SUMMARY_KEYS if k in (sm or {}))
+
+def _tree_has_decision(nodes):
+    for n in nodes or []:
+        if n.get("decision"):
+            return True
+        for b in n.get("branches", []):
+            if _tree_has_decision(b.get("steps", [])):
+                return True
+    return False
+
+def _iter_tree(nodes):
+    """Depth-first over every node in an action tree (including inside branches)."""
+    for n in nodes or []:
+        yield n
+        for b in n.get("branches", []):
+            yield from _iter_tree(b.get("steps", []))
+
+def _tree_md(nodes, indent, budget):
+    """budget is a 1-element list (shared remaining-node counter). Returns markdown lines."""
+    out = []
+    for n in nodes or []:
+        if budget[0] <= 0:
+            out.append("  " * indent + "- _(+more steps — full tree in model.json)_")
+            return out
+        budget[0] -= 1
+        if n.get("decision"):
+            out.append("  " * indent + "- **Decision**" + (" *(has else)*" if n.get("show_else") else ""))
+            for b in n.get("branches", []):
+                if b.get("kind") == "else":
+                    head = "ELSE"
+                elif b.get("predicate"):
+                    head = f"IF `{_redact_pii(b['predicate'])}`"
+                else:
+                    head = "IF *(condition unresolved)*"
+                out.append("  " * (indent + 1) + f"- {head} →")
+                out += _tree_md(b.get("steps", []), indent + 2, budget)
+                if budget[0] <= 0:
+                    return out
+        else:
+            bits = _summary_bits(n.get("summary"))
+            tag = "  `[opaque: custom JS]`" if n.get("opaque") else ""
+            trunc = "  _(…)_" if n.get("truncated") else ""
+            out.append("  " * indent + f"- {n.get('action')}" + (f": {bits}" if bits else "") + tag + trunc)
+    return out
+
+# 1d — edge/empty/error/loading state signals. A SetValue targeting one of these UI-state suffixes
+# is a loading/visibility toggle; the FACT is Tier-A, the {loading|empty|error|permission} LABEL is
+# Tier-B (a `Visible=False` is ambiguous: busy vs empty vs initial-hide).
+def _state_label(target, value):
+    """Tier-B classification of a state toggle. Never asserted as Tier-A."""
+    t = (target or "").lower()
+    if any(k in t for k in ("spinner", "loader", "busy", "overlay")):
+        return "loading"
+    if "visible" in t or "container" in t:
+        return "empty/hidden" if str(value).lower() in ("false", "0", "none") else "shown"
+    return "state"
+
 def emit_assets(model, out_dir, stem, kb_dir=None):
     os.makedirs(out_dir, exist_ok=True)
     written = []
@@ -1254,6 +1593,109 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
     # provenance. `unclassified_procs` are stored procs whose name yielded no recognizable entity/op.
     entities, unclassified_procs = reconcile_entities(model)
     ents_sorted = sorted(entities.values(), key=lambda e: (e.get("display") or "").lower())
+
+    # ======================================================================= Phase-0 shared structures
+    # Joins over already-captured data, computed once and consumed by 0a–0h below. Script `owner` is
+    # frequently None in the corpus, so the reliable surface attribution is: first dotted segment of
+    # the script name → a page name, else that control's owner_page.
+    all_controls = model.get("all_controls", []) or []
+    page_names = {p.get("name") for p in pages if p.get("name")}
+    ctrl_by_name = {}
+    ctrl_owners = {}              # control name/raw_name → set of owner_pages (collision detection)
+    for c in all_controls:
+        for k in (c.get("raw_name"), c.get("name")):
+            if k:
+                ctrl_by_name.setdefault(k, c)
+                ctrl_owners.setdefault(k, set()).add(c.get("owner_page"))
+
+    def _script_surface(script_name):
+        """Best-effort surface for a script (script `owner` is usually None). First dotted segment →
+        a page name, else the owning page of a UNIQUELY-named control. A control name that spans
+        several pages (SaveButton, CancelButton …) is ambiguous → None (never assert a wrong surface)."""
+        seg = (script_name or "").split(".")[0]
+        if seg in page_names:
+            return seg
+        owners = (ctrl_owners.get(seg) or set()) - {None}
+        return next(iter(owners)) if len(owners) == 1 else None
+
+    # control raw_name/name → scripts it fires (event-style names only; the reverse of the join above)
+    scripts_by_ctrl = {}
+    for s in scripts:
+        nm = s.get("name") or ""
+        if "." in nm:
+            scripts_by_ctrl.setdefault(nm.split(".")[0], []).append(nm)
+
+    # navigation edges + reachable-page set. A NavigateToPage Destination summarises as
+    # "<Page> / <Param1> / <Param2>" — the page is the head before the first ' / ' (query params).
+    def _nav_page(dest):
+        if not dest:
+            return None
+        return str(dest).split(" / ")[0].strip() or None
+    nav_edges = []
+    for s in scripts:
+        for a in s.get("actions", []):
+            if "Navigate" in (a.get("action") or ""):
+                dest = (a.get("summary") or {}).get("Destination")
+                nav_edges.append((_script_surface(s.get("name")) or s.get("name"), dest))
+    nav_dests = {_nav_page(d) for _, d in nav_edges}
+    nav_dests.discard(None)
+
+    # page inventory: union of design-model pages + admin-db pages (admin may hold admin-only pages)
+    admin_pages = security.get("pages", []) or []
+    start_by_name = {}
+    for p in pages:
+        if p.get("is_start_page") and p.get("name"):
+            start_by_name[p["name"]] = True
+    for ap in admin_pages:
+        if ap.get("is_start_page") and ap.get("name"):
+            start_by_name[ap["name"]] = True
+    inv_order = [p.get("name") for p in pages if p.get("name")]
+    for ap in admin_pages:
+        if ap.get("name") and ap["name"] not in inv_order:
+            inv_order.append(ap["name"])
+    design_names = set(page_names)
+
+    # 0e — per-surface action affordances: actionable controls whose label carries an action verb.
+    def _walk_tree(nodes):
+        for n in nodes or []:
+            yield n
+            yield from _walk_tree(n.get("children", []))
+    affordances_by_page = {}      # page → [(control_name, label, verb, [wired script names])]
+    for p in pages:
+        rows_a = []
+        for n in _walk_tree(p.get("control_tree", [])):
+            if n.get("type") not in _ACTIONABLE_TYPES:
+                continue
+            label = _control_text(n.get("key_props") or {})
+            if not label or _is_ui_chrome(label):
+                continue
+            verb = _label_verb(label)
+            if not verb:
+                continue
+            wired = scripts_by_ctrl.get(n.get("raw_name")) or scripts_by_ctrl.get(n.get("name")) or []
+            rows_a.append((n.get("name"), label, verb, wired))
+        if rows_a:
+            affordances_by_page[p.get("name")] = rows_a
+
+    # 0a — notification points: raw-prop message text + decoded severity + dialog/toast. Deduped.
+    notif_points, _seen_np = [], set()
+    for s in scripts:
+        for a in s.get("actions", []):
+            act = a.get("action") or ""
+            if act not in ("Notification", "DisplayMessageBox"):
+                continue
+            props = a.get("props") or {}
+            kind = "dialog" if act == "DisplayMessageBox" else "toast"
+            sev = _notif_severity(props.get("NotificationType")) if act == "Notification" else None
+            msg = _notif_message(props) or (("⟨" + str((a.get("summary") or {}).get("Message")) + "⟩")
+                                            if (a.get("summary") or {}).get("Message") else None)
+            msg = _redact_pii(msg)
+            surface = _script_surface(s.get("name"))
+            key = (surface, s.get("name"), kind, sev, msg)
+            if key in _seen_np:
+                continue
+            _seen_np.add(key)
+            notif_points.append(key)
 
     # ======================================================================= overview
     L = [f"# Stadium app — {appname}\n",
@@ -1373,24 +1815,74 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
     W("data-sources", "\n".join(L))
 
     # ======================================================================= business-rules
-    L = [f"# Business rules & behaviour — {appname}\n", "## Tier-A — event logic (scripts → action sequences)\n"]
-    for s in scripts:
-        if not s.get("actions"):
-            continue
-        owner = s.get("owner") or "app"
+    L = [f"# Business rules & behaviour — {appname}\n",
+         "## Tier-A — event logic (scripts → action sequences)\n",
+         "> Each script is classified by its **trigger** (0g): *user-initiated* (a control event — "
+         "`.Click/.Change/…`), *automatic-on-open* (a page/template `.Load`), or *other* (a helper "
+         "invoked via CallScript, or a timer/lifecycle hook). User-initiated scripts are rendered "
+         "gesture-first; the *goal* a gesture serves is advisory (Tier-B), the gesture itself is fact.\n"]
+    # 1c — group scripts by trigger; render branch-structured flow where the script branches, else the
+    # lean flat per-action summary (linear scripts stay close to their Phase-0 rendering). A per-script
+    # node budget caps the render of a huge handler with an explicit (+more) note.
+    PER_SCRIPT_NODE_CAP = 50
+
+    def _render_script(s, trig_class, event_tok, gesture):
+        surface = _script_surface(s.get("name")) or s.get("owner") or "app"
         seq = " → ".join(a["action"] for a in s["actions"])
-        L.append(f"### {s['name']}  [from script, owner: {owner}]")
+        L.append(f"#### {s['name']}  [from script, surface: {surface}]")
+        L.append(f"- Trigger: **{trig_class}**" + (f"  (`.{event_tok}`)" if event_tok else ""))
+        if trig_class == "user-initiated":
+            seg = (s.get("name") or "").split(".")[0]
+            c = ctrl_by_name.get(seg)
+            label = _control_text(c.get("key_props") or {}) if c else None
+            tgt = f' "{label}"' if label else (f' `{seg}`' if seg else "")
+            L.append(f"- User {gesture or 'activates'}{tgt} → runs the flow below")
         L.append(f"- Sequence: {seq}")
-        for a in s["actions"]:
-            sm = a.get("summary") or {}
-            bits = []
-            for k in ("ConnectorFunction", "Target", "Destination", "ScriptToCall", "Message", "Title", "Condition", "Value", "List", "Url"):
-                if k in sm:
-                    bits.append(f"{k}={sm[k]}")
-            if bits:
-                L.append(f"  - {a['action']}: " + "; ".join(bits))
+        tree = s.get("tree") or []
+        if _tree_has_decision(tree):     # 1c: branch-structured render for scripts with Decisions
+            L.append("- Flow (branch-structured):")
+            L.extend(_tree_md(tree, 1, [PER_SCRIPT_NODE_CAP]))
+        else:                            # linear script: lean per-action summary bullets (back-compat)
+            for a in s["actions"]:
+                bits = _summary_bits(a.get("summary"))
+                is_js = a.get("action") == "JavaScript"
+                if not bits and not is_js:
+                    continue
+                tag = "  `[opaque: custom JS]`" if is_js else ""  # never silently drop opaque JS
+                L.append(f"  - {a['action']}" + (f": {bits}" if bits else "") + tag)
         L.append("")
-    # validation
+
+    def _grp_key(tc):
+        return tc if tc in ("user-initiated", "automatic-on-open") else "other"
+    triaged = [(s, *_script_trigger(s.get("name"))) for s in scripts if s.get("actions")]
+    for gkey, gtitle in (("user-initiated", "User-initiated — gesture → outcome"),
+                         ("automatic-on-open", "Automatic — on page / template open"),
+                         ("other", "Other — helper scripts / timers / lifecycle")):
+        grp = [t for t in triaged if _grp_key(t[1]) == gkey]
+        if not grp:
+            continue
+        L.append(f"### {gtitle}\n")
+        for s, tc, et, g in grp:
+            _render_script(s, tc, et, g)
+    # ---- 0a — notification points (verbatim message text + decoded severity + dialog/toast)
+    L.append("## Tier-A — notification points\n")
+    if notif_points:
+        L.append("> Verbatim message text (expressions preserved), severity decoded from "
+                 "`NotificationType` (1=success, 3=error, other=info), and dialog (blocking confirm) "
+                 "vs toast. These target the **current operator** (not an actor signal — see access-control).\n")
+        shown = 0
+        for surface, sname, kind, sev, msg in notif_points:
+            if shown >= 200:
+                L.append(f"- _(+{len(notif_points) - shown} more notification points)_")
+                break
+            shown += 1
+            sevtxt = f" · {sev}" if sev else ""
+            msgtxt = f' — "{msg}"' if msg else ""
+            L.append(f"- `{sname}` ({surface or 'app'}) · {kind}{sevtxt}{msgtxt} [from design model]")
+    else:
+        L.append("_No notification or dialog actions in the design model._")
+    L.append("")
+    # ---- 0f — validators: target + rule + verbatim message (fallback: name (type); never fabricate)
     vals = model.get("validators", []) or []
     seen_req = []
     for c in model.get("all_controls", []) or []:
@@ -1399,22 +1891,178 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
     L.append("## Tier-A — validation\n")
     if vals:
         for v in vals:
-            L.append(f"- Validator: {v.get('name')} ({v.get('type')}) [from design model]")
+            rule = _validator_rule(v.get("type"), v.get("props"))
+            summ = v.get("summary") or {}
+            msg = next((_redact_pii(summ[k].strip()) for k in ("Message", "ErrorMessage", "ValidationMessage", "Text")
+                        if isinstance(summ.get(k), str) and summ[k].strip()), None)
+            target = next((summ[k].strip() for k in ("ControlToValidate", "Target", "Control", "ValidatedControl")
+                           if isinstance(summ.get(k), str) and summ[k].strip()
+                           and not re.fullmatch(_GUID_RE, summ[k].strip())), None)
+            if rule is None:
+                L.append(f"- Validator: {v.get('name')} ({v.get('type')}) [from design model]")
+            else:
+                bits = [b for b in (target, rule, (f'"{msg}"' if msg else None)) if b]
+                L.append("- " + " · ".join(bits) + " [from design model]")
     if seen_req:
-        L.append("- Required inputs: " + ", ".join(f"`{n}`" for n in seen_req[:40]) + " [from design model]")
+        L.append("- Required inputs (from control `Required` flags): "
+                 + ", ".join(f"`{n}`" for n in seen_req[:40]) + " [from design model]")
     if not vals and not seen_req:
         L.append("_No explicit validators or required-field flags in the design model._ `[AI-SUGGESTED: blocking]`")
+    # ---- 1d — edge / empty / error / loading states (facts Tier-A; the {loading|empty|error} label
+    # is Tier-B — a hidden control is ambiguous). Cross-links 0a (notifications) + 0f (validators).
+    _STATE_TGT = re.compile(r"(?i)spinner|loader|overlay|busy|visible|container")
+    _EMPTY_NAME = re.compile(r"(?i)\b(empty|null|none|count|exists|any|zero)\b")
+    _EMPTY_ZERO = re.compile(r"[=<>!]=?\s*0(\b|$)")
+    err_notifs = [(sfc, sn, msg) for (sfc, sn, kind, sev, msg) in notif_points if sev == "error"]
+    state_toggles, _seen_st = [], set()
+    for s in scripts:
+        sfc = _script_surface(s.get("name"))
+        for a in s.get("actions", []):
+            if a.get("action") != "SetValue":
+                continue
+            sm = a.get("summary") or {}
+            tgt = sm.get("Target")
+            if not isinstance(tgt, str) or not _STATE_TGT.search(tgt):
+                continue
+            val = sm.get("Value")
+            key = (sfc, tgt, str(val))
+            if key in _seen_st:
+                continue
+            _seen_st.add(key)
+            state_toggles.append((sfc, s.get("name"), tgt, val))
+    empty_guards, _seen_eg = [], set()
+    for s in scripts:
+        sfc = _script_surface(s.get("name"))
+        for n in _iter_tree(s.get("tree")):
+            if not n.get("decision"):
+                continue
+            for b in n.get("branches", []):
+                p = b.get("predicate")
+                if not p or not (_EMPTY_NAME.search(p) or _EMPTY_ZERO.search(p)):
+                    continue
+                key = (sfc, p)
+                if key in _seen_eg:
+                    continue
+                _seen_eg.add(key)
+                empty_guards.append((sfc, s.get("name"), p))
+    L.append("\n## Tier-A — edge / empty / error / loading state signals\n")
+    if err_notifs or state_toggles or empty_guards:
+        L.append("> The toggle / error-type / guard predicate is Tier-A (provably in the model). The "
+                 "**state classification** (loading vs empty vs error vs permission) is a Tier-B reading — "
+                 "a hidden control is ambiguous (busy vs empty vs initial-hide). See 0a / 0f above.\n")
+        for sfc, sn, msg in err_notifs[:80]:
+            L.append(f"- **error notification** · `{sn}` ({sfc or 'app'}) — \"{msg}\" [from design model]")
+        for sfc, sn, tgt, val in state_toggles[:120]:
+            L.append(f"- **visibility/loading toggle** · `{sn}` ({sfc or 'app'}) — `{tgt}` = {val} "
+                     f"[from design model] `[AI-SUGGESTED: state={_state_label(tgt, val)}]`")
+        for sfc, sn, p in empty_guards[:120]:
+            L.append(f"- **empty/edge guard** · `{sn}` ({sfc or 'app'}) — IF `{_redact_pii(p)}` "
+                     "[from design model] `[AI-SUGGESTED: empty/count guard]`")
+        extra = max(0, len(state_toggles) - 120) + max(0, len(empty_guards) - 120) + max(0, len(err_notifs) - 80)
+        if extra:
+            L.append(f"- _(+{extra} more state signals — see model.json)_")
+    else:
+        L.append("_No explicit spinner/visibility toggles, error notifications, or empty/null guards in the design model._")
     W("business-rules", "\n".join(L))
 
     # ======================================================================= access-control
+    roles = security.get("roles", []) or []
+    pagerole_rows = security.get("pagerole_count", 0) or 0
+    pa = security.get("page_access", {}) or {}
+    configured = len(roles) > 1 or pagerole_rows > 1
     L = [f"# Access control & actors — {appname}\n", "## Tier-A — roles & page access\n",
          f"- Authentication: {security.get('authentication_type') or '—'} [from appsettings]",
-         f"- Roles: {', '.join(security.get('roles', [])) or '—'} [from admin.db: Roles]\n",
-         "| Page | Roles with access |", "|---|---|"]
-    pa = security.get("page_access", {}) or {}
-    for pg in sorted(pa):
-        L.append(f"| {pg} | {', '.join(sorted(set(pa[pg]))) or '—'} |")
-    L.append("\n## Tier-A — user population (counts only; identities not extracted)\n")
+         f"- Roles: {', '.join(roles) or '—'} [from admin.db: Roles]"]
+    if configured:
+        # ---- 0d configured branch: real Page×Role matrix + counts + capability-split reading
+        L.append(f"- **{len(roles)} role(s), {pagerole_rows} page grant(s) configured** [from admin.db: PageRole]\n")
+        L += ["| Page | Roles with access |", "|---|---|"]
+        for pg in sorted(pa):
+            L.append(f"| {pg} | {', '.join(sorted(set(pa[pg]))) or '—'} |")
+        L.append("\n## Tier-B — capability split (advisory)")
+        for r in roles:
+            L.append(f"- `{r}` → {_role_capability(r)} `[AI-SUGGESTED]`")
+    else:
+        # ---- 0d default single-operator branch: posture statement + full capability surface
+        L.append("")
+        L.append("## Tier-A — RBAC posture\n")
+        L.append(f"- RBAC is effectively **unconfigured** in the deployed app — {len(roles) or 1} role "
+                 f"(`{(roles or ['User'])[0]}`), {pagerole_rows} page grant (the start page), and the "
+                 "operator holds the administrator flag (administrators bypass page-role checks). Actor "
+                 "differentiation is **not modelled** in the app; persona differentiation must come from "
+                 "stakeholder input. [from admin.db]")
+        L.append("\n### Full capability surface (single operator)\n")
+        L.append("> Every inventory page/task is available to the single operator:")
+        for name in inv_order:
+            L.append(f"- {name}")
+        if not inv_order:
+            L.append("- _(no pages found)_")
+    # ---- 0d actor candidates (both branches): task-cluster split + external send-recipient signal
+    cluster_pages = {}
+    for pg, rows_a in affordances_by_page.items():
+        for _cn, _lb, verb, _wr in rows_a:
+            cl = _TASK_CLUSTER.get(verb)
+            if cl:
+                cluster_pages.setdefault(cl, set()).add(pg)
+    for name in inv_order:                     # page-kind also contributes a cluster (0b → 0d)
+        cl = _KIND_CLUSTER.get(_page_kind(name))
+        if cl:
+            cluster_pages.setdefault(cl, set()).add(name)
+    present_clusters = sorted(cluster_pages)
+    action_types = {a.get("action") for s in scripts for a in s.get("actions", [])}
+    send_signals = sorted({at for at in action_types if at and re.search(r"(?i)mail|smtp|\bsend\b", at)})
+    for c in connectors:
+        if re.search(r"(?i)mail|smtp", (c.get("type") or "") + " " + (c.get("name") or "")):
+            send_signals.append(f"connector:{c.get('name')}")
+    L.append("\n## Tier-B — actor candidates (advisory; interpretive review gate)\n")
+    if len(present_clusters) > 1:
+        L.append("- Distinct task clusters — " + ", ".join(f"`{c}`" for c in present_clusters) +
+                 " — suggest more than one operator role even under a single RBAC role (a capture "
+                 "operator and an approver need not be the same person). `[AI-SUGGESTED]`")
+    elif present_clusters:
+        L.append(f"- A single task cluster (`{present_clusters[0]}`) is evident; the affordances imply "
+                 "no multi-actor split. `[AI-SUGGESTED]`")
+    else:
+        L.append("- No action-verb affordances detected, so no task-cluster actor split can be read. `[AI-SUGGESTED]`")
+    if send_signals:
+        L.append("- External send/email action(s) present (" + ", ".join(f"`{s}`" for s in send_signals) +
+                 ") → an external recipient exists (a second actor). The recipient **address is not "
+                 "extracted** (PII); only its existence is surfaced. `[AI-SUGGESTED]`")
+    L.append("> Toast/dialog notifications target the current operator only and are **not** an actor signal.")
+    # ---- 0h grounded actor / persona scaffold (skeleton rendered; ungroundable fields left as gaps)
+    notif_by_surface = {}
+    for surface, _sn, kind, sev, msg in notif_points:
+        notif_by_surface.setdefault(surface, []).append((kind, sev, msg))
+    actors = []   # (label, clusters, surfaces)
+    if configured:
+        for r in roles:
+            surfaces = sorted({pg for pg, rs in pa.items() if r in set(rs)})
+            cls = sorted({_TASK_CLUSTER.get(v) for pg in surfaces
+                          for (_c, _l, v, _w) in affordances_by_page.get(pg, []) if _TASK_CLUSTER.get(v)})
+            actors.append((f"Role: {r}", cls, surfaces))
+    else:
+        letters = "ABCDEFGHIJ"
+        for i, cl in enumerate(present_clusters):
+            tag = letters[i] if i < len(letters) else str(i + 1)
+            actors.append((f"Operator {tag} ({cl})", [cl], sorted(cluster_pages.get(cl, []))))
+        if not actors:
+            actors.append(("Operator A", [], list(inv_order)))
+    L.append("\n## Tier-B — actor / persona scaffold (interpretive review gate)\n")
+    L.append("> Grounded skeleton per candidate actor (task-clusters, surfaces, notifications). "
+             "Persona fields the `.sapz` cannot ground are left as explicit gap prompts — authoring a "
+             "name/goal/motivation here would fabricate. Skeleton rendered, flesh refused. `[AI-SUGGESTED]`\n")
+    for label, cls, surfaces in actors:
+        L.append(f"### Actor candidate: {label}  `[AI-SUGGESTED: actor candidate]`")
+        L.append(f"- Task clusters: {', '.join(cls) or '—'}")
+        L.append(f"- Surfaces touched: {', '.join(surfaces) or '—'}")
+        nmsgs = [f'"{msg}" ({sev or kind})' for sfc in surfaces
+                 for (kind, sev, msg) in notif_by_surface.get(sfc, []) if msg][:6]
+        L.append(f"- Notifications sent/received: {'; '.join(nmsgs) if nmsgs else '—'}")
+        for gap in ("name", "goal", "motivation", "pain-points", "success-metric"):
+            L.append(f"- {gap}: `[AI-SUGGESTED: blocking]`")
+        L.append("")
+    # ---- user population (counts only; identities are PII and not extracted)
+    L.append("## Tier-A — user population (counts only; identities not extracted)\n")
     L.append(f"- {security.get('user_count', 0)} user account(s), of which {security.get('admin_count', 0)} hold the administrator flag. Individual user identities (name / email) are intentionally **not** extracted — PII, and not needed for requirements; the roles + page-access matrix above is the actor model. [from admin.db: Users]")
     W("access-control", "\n".join(L))
 
@@ -1422,6 +2070,21 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
     L = [f"# Surfaces (screens, controls, layout) — {appname}\n",
          "> Tier-A = which surfaces/controls/data exist (authoritative). "
          "Tier-B = layout & control-choice (advisory; the system holds design authority).\n"]
+    # ---- 0b — view / task / feature inventory (union of design-model + administration.db pages)
+    L.append("## View / task / feature inventory\n")
+    L.append("> Columns Page / Start / Design-surface / Reachable are **Tier-A** facts (design model "
+             "+ administration.db). **Inferred kind** is **Tier-B** `[AI-SUGGESTED]` (name-suffix "
+             "taxonomy; bare nouns → entity-maintenance).\n")
+    L.append("| Page | Start? | Design surface? | Reachable via nav? | Inferred kind |")
+    L.append("|---|:---:|:---:|:---:|---|")
+    for name in inv_order:
+        st = "✓" if start_by_name.get(name) else ""
+        ds = "✓" if name in design_names else ""
+        rc = "✓" if name in nav_dests else ""
+        L.append(f"| {name} | {st} | {ds} | {rc} | {_page_kind(name)} `[AI-SUGGESTED]` |")
+    if not inv_order:
+        L.append("| _(no pages found)_ | | | | |")
+    L.append("")
     start = app.get("start_page_id")
     for p in pages:
         star = " ⭐ start" if p.get("is_start_page") else ""
@@ -1435,6 +2098,28 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
                 render(n.get("children", []), depth + 1)
         render(p.get("control_tree", []))
         L.append("")
+    # ---- 0e — action affordances → candidate user tasks (per surface)
+    L.append("## Action affordances → candidate tasks\n")
+    if affordances_by_page:
+        L.append("> Per surface: actionable controls whose label carries an action verb. "
+                 "Control · label · wired script are **Tier-A** facts; the candidate **task** is "
+                 "**Tier-B** `[AI-SUGGESTED]` (verb taxonomy; UI chrome excluded). The flat visible-terms "
+                 "list in `glossary` is retained separately.\n")
+        for p in pages:
+            rows_a = affordances_by_page.get(p.get("name"))
+            if not rows_a:
+                continue
+            L.append(f"### {p['name']}")
+            for cname, label, verb, wired in rows_a:
+                wire = ""
+                if wired:
+                    wire = f" — wired to `{wired[0]}`" + (f" _(+{len(wired)-1})_" if len(wired) > 1 else "")
+                task = label.strip()
+                task = (task[0].upper() + task[1:]) if task else verb.capitalize()
+                L.append(f'- `{cname}` — "{label}"{wire}  →  candidate task: **{task}** `[AI-SUGGESTED]`')
+            L.append("")
+    else:
+        L.append("_No action-verb affordances detected on any surface._\n")
     # screen<->entity bijection (heuristic)
     L.append("## Tier-A — screen ↔ entity (best-effort)\n")
     L.append("| Page | Likely entity |")
@@ -1454,16 +2139,113 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
     for t in model.get("templates", []) or []:
         L.append(f"- Template `{t['name']}`{' (default)' if t.get('is_default') else ''} [from design model]")
     L.append("\n## Tier-A — navigation edges (from NavigateToPage actions)\n")
-    edges = []
-    for s in scripts:
-        for a in s.get("actions", []):
-            if "Navigate" in (a.get("action") or ""):
-                dest = (a.get("summary") or {}).get("Destination") or "?"
-                edges.append((s.get("owner") or s.get("name"), dest))
-    for src, dst in edges:
-        L.append(f"- {src} → {dst}")
-    if not edges:
+    if nav_edges:
+        for src, dst in nav_edges:
+            L.append(f"- {src} → {dst or '?'}")
+    else:
         L.append("_No explicit page-navigation actions found._")
+    # ---- 0c — navigation reachability / orphans
+    inv_set = list(dict.fromkeys(inv_order))
+    reachable = [n for n in inv_set if n in nav_dests]
+    orphans = [n for n in inv_set if n not in nav_dests]
+    L.append("\n## Tier-A — navigation reachability\n")
+    L.append(f"- Coverage: **{len(reachable)} of {len(inv_set)}** inventory pages are reachable via a "
+             "captured `NavigateToPage` action. [from design model + administration.db]")
+    if orphans:
+        starts = [n for n in orphans if start_by_name.get(n)]
+        note = f" _(includes the start page `{starts[0]}`, the entry point)_" if starts else ""
+        L.append("- Orphans (no inbound captured edge): " + ", ".join(f"`{n}`" for n in orphans) + note)
+    L.append("\n## Tier-B — reachability caveat (advisory)")
+    L.append("- Unreached pages are typically reached by JS-computed navigation (`jsGETCurrentURl` / "
+             "custom JS) or are entry-only, so the captured nav graph is a floor, not the complete "
+             "journey map. `[AI-SUGGESTED]`")
+    # ---- 1e — candidate cross-surface journeys (Tier-B; joins 0c edges + 0e/0g gesture + 0h actor).
+    # Edges/gestures/states are Tier-A facts; the claim that a chain IS one end-to-end task is Tier-B.
+    def _page_actor(page):
+        cls = {_TASK_CLUSTER.get(v) for (_c, _l, v, _w) in affordances_by_page.get(page, [])}
+        kc = _KIND_CLUSTER.get(_page_kind(page))
+        if kc:
+            cls.add(kc)
+        picked = sorted(c for c in cls if c)
+        return ", ".join(picked) if picked else _page_kind(page)
+
+    journey_edges = []      # (src_page, dest_page, gesture, label)
+    for s in scripts:
+        _tc, _ev, gesture = _script_trigger(s.get("name"))
+        src = _script_surface(s.get("name"))
+        if not src or src not in inv_set:
+            continue
+        seg = (s.get("name") or "").split(".")[0]
+        cobj = ctrl_by_name.get(seg)
+        label = _control_text(cobj.get("key_props") or {}) if cobj else None
+        for a in s.get("actions", []):
+            if "Navigate" not in (a.get("action") or ""):
+                continue
+            dest = _nav_page((a.get("summary") or {}).get("Destination"))
+            if dest and dest != src:
+                journey_edges.append((src, dest, gesture, label))
+    adj, edge_ann = {}, {}
+    for src, dest, gesture, label in journey_edges:
+        adj.setdefault(src, set()).add(dest)
+        edge_ann.setdefault((src, dest), (gesture, label))
+    dests_all = {d for ds in adj.values() for d in ds}
+    roots = [p for p in adj if p not in dests_all] or list(adj)
+    for st in [n for n in inv_set if start_by_name.get(n)]:
+        if st in adj and st not in roots:
+            roots.insert(0, st)
+    journeys = []
+
+    def _dfs(node, path, seen):
+        nxts = [n for n in sorted(adj.get(node, [])) if n not in seen]
+        if not nxts or len(path) >= 6:
+            if len(path) >= 2:
+                journeys.append(list(path))
+            return
+        for nxt in nxts:
+            if len(journeys) >= 40:
+                break
+            _dfs(nxt, path + [nxt], seen | {nxt})
+    for r in roots:
+        if len(journeys) >= 40:
+            break
+        _dfs(r, [r], {r})
+    # keep maximal, distinct journeys (drop a path that is a prefix of another)
+    journeys.sort(key=len, reverse=True)
+    uniq = []
+    for p in journeys:
+        key = " → ".join(p)
+        if any(" → ".join(q).startswith(key) for q in uniq):
+            continue
+        uniq.append(p)
+    L.append("\n## Tier-B — candidate cross-surface journeys (advisory; interpretive review gate)\n")
+    L.append("> A journey joins nav edges (0c) with the affordance/gesture that triggers each hop "
+             "(0e/0g) and the actor that performs it (0h). The **edges, gestures and page kinds are "
+             "Tier-A facts**; the claim that a chain **is one** end-to-end task is a **Tier-B** reading. "
+             "JS-computed nav gaps are shown as explicit breaks, never bridged. `[AI-SUGGESTED]`\n")
+    if uniq:
+        for path in uniq[:12]:
+            parts = []
+            for i, node in enumerate(path):
+                parts.append(f"`{node}` _({_page_actor(node)})_")
+                if i < len(path) - 1:
+                    g, lbl = edge_ann.get((node, path[i + 1]), (None, None))
+                    via = f'{g or "navigates"} "{lbl}"' if lbl else (g or "navigates")
+                    parts.append(f" —[{via}]→ ")
+            L.append("- " + "".join(parts))
+        gap_pages = [n for n in orphans if affordances_by_page.get(n)]
+        if gap_pages:
+            L.append("- **JS-nav gaps** — interactive pages with no captured inbound edge (reached via "
+                     "JS-computed nav): " + ", ".join(f"`{n}`" for n in gap_pages[:20]) + " `[gap: JS-computed nav]`")
+    elif affordances_by_page:
+        L.append("_No captured cross-surface nav — per-surface mini-flows (no cross-surface link invented):_\n")
+        for p in pages:
+            rows_a = affordances_by_page.get(p.get("name"))
+            if not rows_a:
+                continue
+            acts = ", ".join(f'{v} ("{lbl}")' for (_c, lbl, v, _w) in rows_a[:8])
+            L.append(f"- `{p['name']}` _({_page_actor(p['name'])})_: {acts}")
+    else:
+        L.append("_No navigation affordances from which to derive journeys._")
     # affordances
     types = model.get("control_type_counts", {}) or {}
     affordances = []
@@ -1594,6 +2376,8 @@ def main():
             "authentication_type": cfg.get("AuthenticationType"),
             "roles": admin.get("roles", []),
             "page_access": admin.get("page_access", {}),
+            "pages": admin.get("pages", []),
+            "pagerole_count": admin.get("pagerole_count", 0),
             "user_count": admin.get("user_count", 0),
             "admin_count": admin.get("admin_count", 0),
         }
