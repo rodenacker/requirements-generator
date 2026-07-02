@@ -22,12 +22,13 @@
     - Otherwise `Read manifest_path` and JSON-parse the contents. If parse fails → return `{ verdict: "corrupt-manifest" }`.
     - Schema check: the parsed object must have root-level `schema_version`, `generated_at`, `target`, `rows`; every row in `rows` must have all seven row-level fields per `framework/skills/build-source-manifest.md > Schema` (`filename`, `tier`, `kind`, `sha256`, `conversions_applied`, `original_path`, `converted_sibling`). On any schema failure → return `{ verdict: "corrupt-manifest" }`.
 
-2. **Enumerate disk.** Glob `input_dir`, excluding:
-    - Dotfiles (paths whose basename begins with `.`).
-    - Any path the consultant has reserved as a scratch file by prefixing it with `.`.
-    - `*.converted.md` siblings — these are input-handler outputs, not consultant-dropped originals. (Same exclusion the input-handler applies at its own enumeration step.)
-    - **Stadium application units** — `*.stadium` pointer files, and every path under a directory that directly contains `administration.db` (a deployed Stadium 6 app folder). These are never manifest rows: the `/ingest-stadium` command turns them into `input/<AppName>.stadium-assets/*.md` assets (which **are** enumerated here as ordinary files), and the input-handler's Step S keeps the raw app folder / pointer out of enumeration. Including the app folder/pointer would generate spurious `added` drift on every run. (Same exclusion the input-handler applies at its Step-1 enumeration.)
-    Call this set `disk_files` (set of repo-relative paths of the same shape as the manifest's `original_path` field).
+2. **Enumerate disk.** Glob `input_dir`, applying **every exclusion in `framework/shared/input-exclusions.md`**:
+    - `IX-01` — dotfiles and consultant scratch files (basename begins with `.`).
+    - `IX-02` — `*.converted.md` siblings (input-handler outputs, not consultant-dropped originals).
+    - `IX-03` — Stadium application units: `*.stadium` pointer files, and every path under a directory carrying the **full** Stadium signature (it directly contains `administration.db`, **OR** `App_Data/Updates/*.sapz`, **OR** a `ClientApp/` folder). The `/ingest-stadium` command turns these into `input/<AppName>.stadium-assets/*.md` assets, which **are** enumerated here as ordinary files.
+    - `IX-04` — `input/*.stadium-assets/embedded/**` brand chrome (advisory images copied by the extractor; never manifest rows). Their sibling `*.stadium-assets/*.md` assets **are** enumerated.
+
+    This is the same exclusion set the input-handler applies at its Step S / Step 1, sourced from the same canonical file — so disk enumeration and manifest enumeration cannot diverge (a divergence here is what previously produced spurious `added` drift). Call this set `disk_files` (set of repo-relative paths of the same shape as the manifest's `original_path` field).
 
 3. **Extract manifest rows.** From the parsed manifest, build `manifest_files` — the set of every row's `original_path`, regardless of `tier`. Unsupported rows are included; the freshness check is about whether the manifest's *enumeration* still matches disk, not about whether files are consumable.
 
@@ -47,7 +48,8 @@
 ## Self-validation
 
 - The manifest was parsed via JSON-decode and conformed to the schema in `framework/skills/build-source-manifest.md > Schema` before any comparison ran.
-- The `disk_files` enumeration applied all four documented exclusions (dotfiles, scratch-prefixed, `*.converted.md` siblings, Stadium application units).
+- The `disk_files` enumeration applied **every** exclusion in `framework/shared/input-exclusions.md` (`IX-01`..`IX-04`), using the full three-part Stadium signature for `IX-03`.
+- **Hardening (closes the `embedded/` drift class):** no path matching `input/*.stadium-assets/embedded/**` appears in `disk_files`. If any does, `IX-04` was mis-applied — fail loudly (re-run the enumeration) rather than emitting a `stale` verdict whose `added` list is spurious brand chrome.
 - For every file in `manifest_files ∩ disk_files`, a sha256 was computed against the current bytes and compared.
 - The returned verdict is exactly one of `fresh`, `stale`, or `corrupt-manifest`.
 - When the verdict is `stale`, at least one of `removed`, `added`, or `modified` is non-empty. When the verdict is `fresh`, all three are empty.
@@ -62,6 +64,7 @@
 
 - Do not write to disk. This skill is pure read-only — the caller decides what to do with the verdict.
 - Do not surface `AskUserQuestion` from inside this skill. Consultant interaction on a stale manifest is the caller's responsibility (the input-handler's drift prompt at its step 0). Surfacing a prompt from here would couple the skill to one caller's UX.
+- Do not restate, narrow, or re-derive the exclusion set inline. Apply `framework/shared/input-exclusions.md` (`IX-01`..`IX-04`) verbatim, exactly as the input-handler does. This skill previously checked only `administration.db` for Stadium units (a narrower signature than the input-handler's) and had no `embedded/` rule at all — both are drift-producing divergences the shared source now prevents. A future exclusion is added to that file, not here.
 - Do not include `*.converted.md` siblings in `disk_files`. The manifest's row set does not include them as separate entries (per `framework/skills/build-source-manifest.md > Anti-Patterns`); including them in `disk_files` would generate spurious `added` rows on every call after the input-handler's first successful conversion.
 - Do not compute sha256 over a `*.converted.md` sibling. The manifest's `sha256` is on the original; comparing against a sibling's bytes would always report `modified`.
 - Do not interpret the manifest's `target`, `schema_version`, or `generated_at` fields. The freshness check is bounded to the `rows` array.

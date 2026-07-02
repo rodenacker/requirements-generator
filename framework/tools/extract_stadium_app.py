@@ -234,6 +234,108 @@ def read_design_model(sqlitedata):
     # Structural passthrough nodes (grid cells, repeater items, etc.) link controls to their layout parents.
     register("expando", "UniqueItemExpando")
     register("folder", "Folder")
+    # Data-model type system — registered so the WebService/StoredProcedure data-model shapers
+    # can walk a function's request/response shapes through the same children{} machinery.
+    # (These are parented to Parameters/DataResults/CustomTypes, never to Pages, so the existing
+    #  control-tree / owner_page / action walkers ignore them.)
+    register("dataresult", "DataResult")
+    register("structtype", "StructDataType")
+    register("listtype",   "ListDataType")
+    register("simpletype", "SimpleDataType")
+    register("field",      "Field")
+
+    # CustomType id -> name: the name dictionary a WebService Body/ResponseType GuidReference
+    # resolves against (e.g. NamedItemID -> "fullmember"). CustomTypes are heavily used and
+    # carry names in web-service apps, contrary to the older "usually empty" assumption.
+    type_names = {e["id"]: e["name"] for e in customtypes_e if e.get("name")}
+    model["type_names"] = type_names
+
+    def struct_field_list(struct_id, depth=0, seen=None):
+        """Flatten a StructDataType's Field members -> [{name, path, type, is_data_field, nested}].
+        Follows Field->StructDataType (object) and Field->ListDataType->StructDataType (array);
+        depth-capped + cycle-safe. Primitive type comes from the field's child SimpleDataType
+        (often the weak `Object` for API shapes; names are the reliable part)."""
+        seen = seen if seen is not None else set()
+        if not struct_id or struct_id in seen or depth > 4:
+            return []
+        seen.add(struct_id)
+        out = []
+        for cid in children.get(struct_id, []):
+            e = registry.get(cid)
+            if not e or e["kind"] != "field":
+                continue
+            fname = (e.get("raw") or {}).get("Name")
+            if not fname:
+                continue
+            is_df = bool((e.get("raw") or {}).get("IsDataField"))
+            ftype, nested_struct, is_list = None, None, False
+            for gc in children.get(cid, []):
+                ge = registry.get(gc)
+                if not ge:
+                    continue
+                if ge["kind"] == "simpletype":
+                    ftype = friendly_type((ge.get("raw") or {}).get("TypeName"))
+                elif ge["kind"] == "structtype":
+                    nested_struct = gc
+                elif ge["kind"] == "listtype":
+                    is_list = True
+                    for lc in children.get(gc, []):
+                        if (registry.get(lc) or {}).get("kind") == "structtype":
+                            nested_struct = lc
+            disp_type = (ftype + "[]") if (is_list and ftype) else ftype
+            out.append({"name": fname, "path": fname, "type": disp_type,
+                        "is_data_field": is_df, "nested": bool(nested_struct)})
+            if nested_struct:
+                for sub in struct_field_list(nested_struct, depth + 1, seen):
+                    out.append({"name": sub["name"], "path": f"{fname}.{sub['path']}",
+                                "type": sub["type"], "is_data_field": sub["is_data_field"],
+                                "nested": sub["nested"]})
+        return out
+
+    def _child_struct_of(owner_id):
+        """First StructDataType directly under owner_id (a Parameter or DataResult)."""
+        for cid in children.get(owner_id, []):
+            if (registry.get(cid) or {}).get("kind") == "structtype":
+                return cid
+        return None
+
+    def _ref_customtype_name(ref):
+        """A BodyType/ResponseType GuidReference dict -> the CustomType name it points at."""
+        if not isinstance(ref, dict):
+            return None
+        nid = ref.get("NamedItemID")
+        return type_names.get(norm_guid(nid)) if nid else None
+
+    def _resolve_ws_hint(func_id, fprops):
+        """WebService function -> {http_method, path, body_name, resp_name, body_fields, resp_fields}.
+        NAME from the Body/Response CustomType ref; FIELDS from the function's own bound
+        Parameter(Body) / DataResult(ResponseBody) struct."""
+        body_fields, resp_fields = [], []
+        for cid in children.get(func_id, []):
+            e = registry.get(cid)
+            if not e:
+                continue
+            if e["kind"] == "parameter":
+                nm = (e.get("name") or "").lower()
+                if nm == "body" or (e.get("props") or {}).get("ParameterType") == 4:
+                    s = _child_struct_of(cid)
+                    if s and not body_fields:
+                        body_fields = struct_field_list(s)
+            elif e["kind"] == "dataresult" and (e.get("name") or "").lower() == "responsebody":
+                s = _child_struct_of(cid)
+                if s and not resp_fields:
+                    resp_fields = struct_field_list(s)
+        return {"http_method": fprops.get("HttpMethod"), "path": fprops.get("Path"),
+                "body_name": _ref_customtype_name(fprops.get("BodyType")),
+                "resp_name": _ref_customtype_name(fprops.get("ResponseType")),
+                "body_fields": body_fields, "resp_fields": resp_fields}
+
+    def _resolve_sp_hint(fprops, params):
+        """StoredProcedure function -> {proc_name, params, param_types} (params are the fields)."""
+        return {"proc_name": fprops.get("Text") or fprops.get("CommandText") or fprops.get("Query"),
+                "params": [p.get("name") for p in params if p.get("name")],
+                "param_types": {p.get("name"): (p.get("db_type") or p.get("type"))
+                                for p in params if p.get("name")}}
 
     def owner_page(gid):
         """Walk parents up to a page/template."""
@@ -364,12 +466,19 @@ def read_design_model(sqlitedata):
                         "required": pprops.get("Required"),
                         "props": pprops,
                     })
+            ftype = f["type"]
+            shape_hint = None
+            if ftype == "WebServiceFunction":
+                shape_hint = _resolve_ws_hint(f["id"], fprops)
+            elif ftype == "StoredProcedure":
+                shape_hint = _resolve_sp_hint(fprops, params)
             conn["functions"].append({
                 "name": f["name"],
                 "type": f["type"],
                 "query": fprops.get("Text") or fprops.get("Query") or fprops.get("CommandText"),
                 "timeout": fprops.get("Timeout"),
                 "parameters": params,
+                "shape_hint": shape_hint,
                 "other_props": {k: v for k, v in fprops.items() if k not in ("Text", "Query", "CommandText", "Timeout")},
             })
         connectors.append(conn)
@@ -843,9 +952,270 @@ def _sql_shape(query):
         primary = md.group(1)
     if not primary and tables:
         primary = tables[0]
-    return {"verb": verb, "tables": tables, "primary": primary, "columns": [c for c in cols if c][:50]}
+    # source/locator/col_types added so the SQL shape shares one contract with _sp_shape/_ws_shape.
+    # (locator is filled per-function by reconcile_entities; SQL columns get their types there too.)
+    return {"verb": verb, "tables": tables, "primary": primary,
+            "columns": [c for c in cols if c][:50], "source": "sql", "locator": None, "col_types": {}}
 
-def _prov_header(model, category):
+# --------------------------------------------------------------------------- stored-proc / web-service shapers
+# Siblings to _sql_shape: they return the SAME {verb, tables, primary, columns} contract (+ source,
+# locator, col_types) so the reconciliation layer treats all three evidence classes uniformly.
+
+_HTTP_VERB = {0: "GET", 1: "POST", 2: "PUT", 3: "DELETE", 4: "PATCH"}
+_HTTP_CRUD = {0: "SELECT", 1: "INSERT", 2: "UPDATE", 3: "DELETE", 4: "UPDATE"}
+_SP_PREFIXES = {"sp", "prc", "usp", "fn", "udf", "proc"}
+# Status/transport wrapper FIELDS to drop from SP params + WS payloads (case-insensitive).
+# Deliberately narrow: a real column like `ApplicationID` (a multi-tenant FK) is genuine data and
+# is NOT dropped — over-filtering fields would lose real SQL/proc columns.
+_ENVELOPE_DENY = {"success", "message", "raiseexceptions", "statuscode", "responsebody", "apiresponse"}
+# Broader denylist for ENTITY NAMES (incl. the WS path fallback): a transport wrapper is never an entity.
+_ENTITY_DENY = _ENVELOPE_DENY | {"result", "error", "response", "data"}
+# CRUD verb keywords matched against a path/proc-name. Order is documentary only — matching uses
+# rightmost-position (a name like "createOrUpdate" resolves to its last action, UPDATE).
+_VERB_KEYWORDS = [
+    ("getlist", "SELECT"), ("getall", "SELECT"), ("list", "SELECT"), ("search", "SELECT"),
+    ("select", "SELECT"), ("read", "SELECT"), ("fetch", "SELECT"), ("find", "SELECT"), ("get", "SELECT"),
+    ("insert", "INSERT"), ("create", "INSERT"), ("add", "INSERT"), ("new", "INSERT"),
+    ("update", "UPDATE"), ("edit", "UPDATE"), ("modify", "UPDATE"), ("save", "UPDATE"), ("set", "UPDATE"),
+    ("delete", "DELETE"), ("remove", "DELETE"), ("disable", "DELETE"), ("deactivate", "DELETE"),
+]
+_VERB_MAP = dict(_VERB_KEYWORDS)
+_GUID_RE = r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+
+def _keyword_verb(text):
+    """Rightmost CRUD keyword found as a substring of text -> verb (or None)."""
+    text = (text or "").lower()
+    best_pos, best_verb = -1, None
+    for kw, verb in _VERB_KEYWORDS:
+        pos = text.rfind(kw)
+        if pos > best_pos:
+            best_pos, best_verb = pos, verb
+    return best_verb
+
+def _entity_from_path(path):
+    """Last real path segment -> candidate entity name; strips a leading verb (deletemember->member)."""
+    if not path:
+        return None
+    segs = [s for s in re.split(r"[/\\]", str(path)) if s and not s.startswith("{") and "?" not in s]
+    if not segs:
+        return None
+    seg = segs[-1]
+    low = seg.lower()
+    for kw, _v in _VERB_KEYWORDS:
+        if low.startswith(kw) and len(low) > len(kw):
+            return seg[len(kw):]
+    return seg
+
+def _ws_shape(hint, fn_name=""):
+    """WebService function shape. NAME from Body/Response CustomType ref (else path); verb from
+    path/name keyword (else HTTP method — GET is used for semantic deletes in the corpus, so the
+    keyword wins). FIELDS from the write body (else the response), envelope-filtered."""
+    if not hint:
+        return None
+    path = hint.get("path") or ""
+    method = _HTTP_VERB.get(hint.get("http_method"))
+    verb = _keyword_verb(f"{path} {fn_name or ''}") or _HTTP_CRUD.get(hint.get("http_method"))
+    is_write = verb in ("INSERT", "UPDATE", "DELETE")
+    body_name, resp_name = hint.get("body_name"), hint.get("resp_name")
+    name = None
+    for cand in ([body_name, resp_name] if is_write else [resp_name, body_name]):
+        if cand and cand.lower() not in _ENTITY_DENY and not re.fullmatch(_GUID_RE, cand):
+            name = cand
+            break
+    if not name:
+        name = _entity_from_path(path) or _entity_from_path(fn_name)
+    if not name or re.fullmatch(_GUID_RE, name) or name.lower() in _ENTITY_DENY:
+        return None
+    raw_fields = (hint.get("body_fields") if (is_write and hint.get("body_fields"))
+                  else (hint.get("resp_fields") or hint.get("body_fields") or []))
+    cols, col_types = [], {}
+    for fl in raw_fields:
+        col = fl.get("path") or fl.get("name")
+        if not col or col.split(".")[-1].lower() in _ENVELOPE_DENY:
+            continue
+        # NB: IsDataField is NOT used as a gate — it is uniformly 0 in deployed .sapz models,
+        # so gating on it would drop every field. The envelope denylist is the real guard.
+        if col not in cols:
+            cols.append(col)
+        t = fl.get("type")
+        if t and str(t).lower() not in ("object", "system.object"):
+            col_types[col] = t
+    return {"verb": verb, "tables": [name], "primary": name, "columns": cols[:50],
+            "source": "web-service", "locator": f"from web-service: {(method or '?')} {path}".strip(),
+            "col_types": col_types}
+
+def _sp_entity_verb(proc_name):
+    """`<prefix>_[Stadium_]<Entity>[_<qual>]_<Op>` -> (entity, verb). Rightmost op-keyword wins.
+    Empirical Twenty57 convention, NOT a platform guarantee; no match -> (None, None)."""
+    base = _sql_last(proc_name or "")
+    parts = [p for p in re.split(r"[_\s]+", base) if p]
+    while parts and parts[0].lower() in _SP_PREFIXES:
+        parts = parts[1:]
+    if parts and parts[0].lower() == "stadium":
+        parts = parts[1:]
+    verb, op_idx = None, None
+    for i, seg in enumerate(parts):
+        if seg.lower() in _VERB_MAP:
+            verb, op_idx = _VERB_MAP[seg.lower()], i
+    if verb is None or op_idx in (None, 0):
+        return None, None
+    entity = "".join(parts[:op_idx])
+    return (entity or None), verb
+
+def _sp_shape(hint):
+    """StoredProcedure shape: entity+verb from the proc name, fields from parameters (envelope-filtered)."""
+    if not hint:
+        return None
+    entity, verb = _sp_entity_verb(hint.get("proc_name"))
+    if not entity or not verb:
+        return None  # unclassified -> caller lists it under Tier-B
+    cols, col_types = [], {}
+    for nm in hint.get("params", []) or []:
+        if not nm or nm.lower() in _ENVELOPE_DENY:
+            continue
+        if nm not in cols:
+            cols.append(nm)
+        t = (hint.get("param_types") or {}).get(nm)
+        if t and str(t).lower() not in ("object", "system.object"):
+            col_types[nm] = t
+    return {"verb": verb, "tables": [entity], "primary": entity, "columns": cols[:50],
+            "source": "stored-procedure", "locator": f"from stored-procedure: {hint.get('proc_name')}",
+            "col_types": col_types}
+
+# --------------------------------------------------------------------------- entity reconciliation
+# Aggressive union by normalized name: one entity per normalized name, unioning fields from SQL,
+# stored-proc and web-service evidence. Every field is real and carries per-source [from ...] locators
+# (completeness, not fabrication); noise is kept out by the envelope denylist + weak-type omission.
+
+def _norm_entity(name):
+    """Merge KEY for an entity name (NOT the display spelling): strip schema/prefixes, lowercase,
+    de-punctuate, naive-singularize. `Members`(table) and `member`(API) collapse; `member`/`fullmember`
+    keep distinct stems (union-by-name does not over-collapse DTO variants)."""
+    s = _sql_last(str(name or "")).lower()
+    s = re.sub(r"^(vw|tbl|tb|cf|prc|sp|usp)_?", "", s)
+    s = re.sub(r"^stadium_?", "", s)
+    s = re.sub(r"[^a-z0-9]", "", s)
+    if s.endswith("ies") and len(s) > 4:
+        s = s[:-3] + "y"
+    elif s.endswith("ses") and len(s) > 4:
+        s = s[:-2]
+    elif s.endswith("s") and not s.endswith("ss") and len(s) > 3:
+        s = s[:-1]
+    return s
+
+# Normalized transport/scratch names that are never domain entities from ANY source — this also
+# catches SQL `DECLARE @result TABLE(...)` scratch table-variables surfaced by _sql_shape.
+_ENTITY_DENY_NORM = {_norm_entity(x) for x in _ENTITY_DENY}
+_SOURCE_RANK = {"sql": 3, "stored-procedure": 2, "web-service": 1}  # richer spelling wins the display name
+
+def _blank_entity():
+    return {"_disp": None, "sources": set(), "aliases": set(), "ops": set(), "fns": [], "fields": {}}
+
+def reconcile_entities(model):
+    """Union entities across all evidence classes. Returns (entities_by_norm, unclassified_procs).
+    Sets f["_shape"] on each function. All sets are converted to sorted lists in the result."""
+    reconciled = {}
+    unclassified = []
+
+    def consider_display(rec, spelling, source):
+        rank = _SOURCE_RANK.get(source, 0)
+        if rec["_disp"] is None or rank > rec["_disp"][1]:
+            rec["_disp"] = (spelling, rank)
+
+    for c in model.get("connectors", []) or []:
+        for f in c.get("functions", []) or []:
+            ftype = f.get("type") or ""
+            if ftype == "WebServiceFunction":
+                shape = _ws_shape(f.get("shape_hint"), f.get("name"))
+            elif ftype == "StoredProcedure":
+                shape = _sp_shape(f.get("shape_hint"))
+                if shape is None and f.get("shape_hint", {}).get("proc_name"):
+                    unclassified.append(f["shape_hint"]["proc_name"])
+            else:
+                shape = _sql_shape(f.get("query"))
+            f["_shape"] = shape
+            if not shape:
+                continue
+            source = shape.get("source", "sql")
+            locator = shape.get("locator") or (f"from connector: {f.get('name')}" if source == "sql" else None)
+            sql_ptypes = {}
+            if source == "sql":
+                sql_ptypes = {p.get("name"): (p.get("db_type") or p.get("type"))
+                              for p in f.get("parameters", []) or []}
+            # secondary tables get presence (name) only
+            for t in shape.get("tables", []) or []:
+                k = _norm_entity(t)
+                if not k or k in _ENTITY_DENY_NORM:
+                    continue
+                rec = reconciled.setdefault(k, _blank_entity())
+                rec["sources"].add(source)
+                rec["aliases"].add(t)
+                consider_display(rec, t, source)
+            prim = shape.get("primary")
+            if not prim:
+                continue
+            k = _norm_entity(prim)
+            if not k or k in _ENTITY_DENY_NORM:
+                continue
+            rec = reconciled.setdefault(k, _blank_entity())
+            rec["sources"].add(source)
+            rec["aliases"].add(prim)
+            consider_display(rec, prim, source)
+            if shape.get("verb"):
+                rec["ops"].add(shape["verb"])
+            if f.get("name"):
+                rec["fns"].append(f["name"])
+            for col in shape.get("columns", []) or []:
+                col = col if isinstance(col, str) else (col.get("path") or col.get("name"))
+                if not col:
+                    continue
+                fk = re.sub(r"[^a-z0-9.]", "", col.lower())
+                if not fk:
+                    continue
+                fr = rec["fields"].get(fk)
+                if fr is None:
+                    fr = {"name": col, "path": col, "types": set(), "sources": set(), "ops": set(), "locators": []}
+                    rec["fields"][fk] = fr
+                fr["sources"].add(source)
+                if shape.get("verb"):
+                    fr["ops"].add(shape["verb"])
+                if locator and locator not in fr["locators"]:
+                    fr["locators"].append(locator)
+                t = (shape.get("col_types") or {}).get(col) or sql_ptypes.get(col)
+                if t and str(t).lower() not in ("object", "system.object"):
+                    fr["types"].add(t)
+
+    # fill still-untyped fields from the design-model data dictionary (concrete beats none)
+    type_by_field = {}
+    for d in model.get("data_dictionary", []) or []:
+        for fl in d.get("fields", []) or []:
+            nm, ty = fl.get("name"), fl.get("type")
+            if nm and ty and str(ty).lower() not in ("object", "system.object"):
+                type_by_field.setdefault(re.sub(r"[^a-z0-9.]", "", str(nm).lower()), ty)
+    for rec in reconciled.values():
+        for fk, fr in rec["fields"].items():
+            if not fr["types"] and fk in type_by_field:
+                fr["types"].add(type_by_field[fk])
+
+    keys = list(reconciled.keys())
+    out = {}
+    for k, rec in reconciled.items():
+        related = sorted({reconciled[o]["_disp"][0] for o in keys
+                          if o != k and len(o) >= 3 and len(k) >= 3 and (o in k or k in o)})
+        fields = []
+        for fr in rec["fields"].values():
+            fields.append({"name": fr["name"], "path": fr["path"],
+                           "type": (sorted(fr["types"])[0] if fr["types"] else None),
+                           "types": sorted(fr["types"]), "sources": sorted(fr["sources"]),
+                           "ops": sorted(fr["ops"]), "locators": fr["locators"]})
+        fields.sort(key=lambda x: x["path"].lower())
+        out[k] = {"display": rec["_disp"][0] if rec["_disp"] else k, "norm": k,
+                  "sources": sorted(rec["sources"]), "ops": sorted(rec["ops"]),
+                  "aliases": sorted(rec["aliases"]), "related": related,
+                  "fns": rec["fns"], "fields": fields}
+    return out, sorted(set(unclassified))
+
+def _prov_header(model, category, extra=None):
     app = model.get("application", {}) or {}
     dep = model.get("deployment", {}) or {}
     L = ["---",
@@ -856,17 +1226,19 @@ def _prov_header(model, category):
          f"selected_package: {dep.get('selected_package') or ''}",
          f"extracted_from: {model.get('_extracted_from') or ''}",
          "provenance: deterministic extraction from the Stadium 6 design model + administration.db",
-         "marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lines are advisory design signals.",
-         "---", ""]
+         "marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lines are advisory design signals."]
+    for k, v in (extra or {}).items():          # category-specific front-matter (e.g. design-signals logo pointer)
+        L.append(f"{k}: {v if v is not None else 'null'}")
+    L += ["---", ""]
     return "\n".join(L)
 
 def emit_assets(model, out_dir, stem, kb_dir=None):
     os.makedirs(out_dir, exist_ok=True)
     written = []
-    def W(category, body):
+    def W(category, body, extra=None):
         path = os.path.join(out_dir, f"{stem}.stadium.{category}.md")
         with open(path, "w", encoding="utf-8") as f:
-            f.write(_prov_header(model, category))
+            f.write(_prov_header(model, category, extra))
             f.write(body.rstrip() + "\n")
         written.append(os.path.basename(path))
 
@@ -877,41 +1249,11 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
     security = model.get("security", {}) or {}
     appname = model.get("_app_name") or app.get("name") or "the application"
 
-    # ---- precompute entity / CRUD map from connector SQL (columns attributed to the PRIMARY table only)
-    entities = {}   # table -> {columns:[], col_types:{}, ops:set, fns:[]}
-    for c in connectors:
-        for f in c.get("functions", []):
-            shape = _sql_shape(f.get("query"))
-            f["_shape"] = shape
-            if not shape:
-                continue
-            for t in shape["tables"]:
-                entities.setdefault(t, {"columns": [], "col_types": {}, "ops": set(), "fns": []})
-            prim = shape.get("primary")
-            if not prim:
-                continue
-            ent = entities.setdefault(prim, {"columns": [], "col_types": {}, "ops": set(), "fns": []})
-            if shape["verb"]:
-                ent["ops"].add(shape["verb"])
-            ent["fns"].append(f.get("name"))
-            ptypes = {p.get("name"): (p.get("db_type") or p.get("type")) for p in f.get("parameters", [])}
-            for col in shape["columns"]:
-                if col not in ent["columns"]:
-                    ent["columns"].append(col)
-                if col in ptypes and ptypes[col] and col not in ent["col_types"]:
-                    ent["col_types"][col] = ptypes[col]
-
-    # enrich column types from the design-model data dictionary (concrete types beat SQL's String params)
-    type_by_field = {}
-    for d in model.get("data_dictionary", []) or []:
-        for fl in d.get("fields", []):
-            nm, ty = fl.get("name"), fl.get("type")
-            if nm and ty and ty != "Object" and nm not in type_by_field:
-                type_by_field[nm] = ty
-    for ent in entities.values():
-        for col in ent["columns"]:
-            if col in type_by_field:   # design-model type is more accurate than SQL's uniform String params
-                ent["col_types"][col] = type_by_field[col]
+    # ---- reconcile the data model across SQL + stored-proc + web-service evidence (union by name).
+    # `entities` is keyed by normalized name; each record carries display/sources/ops + per-field
+    # provenance. `unclassified_procs` are stored procs whose name yielded no recognizable entity/op.
+    entities, unclassified_procs = reconcile_entities(model)
+    ents_sorted = sorted(entities.values(), key=lambda e: (e.get("display") or "").lower())
 
     # ======================================================================= overview
     L = [f"# Stadium app — {appname}\n",
@@ -930,7 +1272,7 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
         last = dh[-1]
         L.append(f"- Last published: {last.get('datetime')} (designer {last.get('designer_version')}) [from administration.db]")
     L.append("\n## Tier-B — inferred domain (advisory)")
-    dom_hint = ", ".join(sorted(entities.keys())[:8]) or "—"
+    dom_hint = ", ".join([e["display"] for e in ents_sorted][:8]) or "—"
     L.append(f"- Candidate domain entities (from data operations): {dom_hint} `[AI-SUGGESTED: domain inference]`")
     L.append("\n## Gaps (not ascertainable from source)")
     for g in model.get("gaps", []) or []:
@@ -943,38 +1285,55 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
     W("overview", "\n".join(L))
 
     # ======================================================================= data-model
-    L = [f"# Data model — {appname}\n", "## Tier-A — entities & fields\n"]
-    if entities:
-        for t in sorted(entities):
-            ent = entities[t]
-            ops = ", ".join(sorted(ent["ops"])) or "—"
-            L.append(f"### {t}  ·  operations: {ops}")
-            if ent["columns"]:
-                fn0 = ent["fns"][0] if ent["fns"] else "?"
-                for col in ent["columns"]:
-                    typ = ent["col_types"].get(col)
-                    L.append(f"- `{t}.{col}`" + (f" : {typ}" if typ else "") + f" [from connector: {fn0}]")
+    L = [f"# Data model — {appname}\n",
+         "> Entities + fields reconciled across SQL queries/views, stored procedures and web-service "
+         "calls (union by name). Every field carries a `[from …]` locator naming its exact source.\n",
+         "## Tier-A — entities & fields\n"]
+    if ents_sorted:
+        for e in ents_sorted:
+            srcs = ", ".join(e["sources"]) or "—"
+            ops = ", ".join(e["ops"]) or "—"
+            L.append(f"### {e['display']}  ·  sources: {srcs}  ·  operations: {ops}")
+            if e["fields"]:
+                for fld in e["fields"]:
+                    typ = fld.get("type")
+                    loc = fld["locators"][0] if fld["locators"] else f"from connector: {(e['fns'] or ['?'])[0]}"
+                    line = f"- `{e['display']}.{fld['path']}`" + (f" : {typ}" if typ else "") + f" [{loc}]"
+                    if len(fld["locators"]) > 1:
+                        line += f"  _(+{len(fld['locators']) - 1} more)_"
+                    L.append(line)
             else:
-                L.append("- _(columns not parseable from SQL)_")
+                L.append("- _(fields not modelled for this endpoint)_")
+            if e["related"]:
+                rel = ", ".join("`" + r + "`" for r in e["related"])
+                L.append(f"> related shapes: {rel} (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`")
             L.append("")
     else:
-        L.append("_No SQL-derived entities found._\n")
+        L.append("_No data operations found in the design model._\n")
     nstructs = len(model.get("data_dictionary", []) or [])
     if nstructs:
-        L.append(f"> The design model also defines {nstructs} internal data-type instances "
-                 "(control/result bindings); the field types above are sourced from them. "
+        L.append(f"> The design model defines {nstructs} internal data-type instances "
+                 "(control/result/parameter bindings); field types above are sourced from them where concrete. "
                  "Full detail is in the forensic model.json.\n")
-    # CRUD matrix
+    # CRUD matrix (across all three evidence classes)
     L.append("## Tier-A — CRUD matrix\n")
-    L.append("| Entity | SELECT | INSERT | UPDATE | DELETE |")
-    L.append("|---|:---:|:---:|:---:|:---:|")
-    for t in sorted(entities):
-        ops = entities[t]["ops"]
-        def _m(v): return "✓" if v in ops else ""
-        L.append(f"| {t} | {_m('SELECT')} | {_m('INSERT')} | {_m('UPDATE')} | {_m('DELETE')} |")
+    L.append("| Entity | SELECT | INSERT | UPDATE | DELETE | Evidence |")
+    L.append("|---|:---:|:---:|:---:|:---:|---|")
+    for e in ents_sorted:
+        ops = set(e["ops"])
+        def _m(v, ops=ops): return "✓" if v in ops else ""
+        L.append(f"| {e['display']} | {_m('SELECT')} | {_m('INSERT')} | {_m('UPDATE')} | {_m('DELETE')} "
+                 f"| {', '.join(e['sources'])} |")
+    # unclassified stored procedures (name yielded no entity/op) — advisory only
+    if unclassified_procs:
+        L.append("\n## Tier-B — unclassified stored procedures (no recognized entity/op)")
+        for pn in unclassified_procs[:40]:
+            L.append(f"- `{pn}` `[AI-SUGGESTED]`")
+        if len(unclassified_procs) > 40:
+            L.append(f"- …and {len(unclassified_procs) - 40} more `[AI-SUGGESTED]`")
     # lifecycle (inferred)
-    status_fields = sorted({c for ent in entities.values() for c in ent["columns"]
-                            if re.search(r"(?i)(status|state|stage|approv|archiv)", c)})
+    status_fields = sorted({fld["path"] for e in ents_sorted for fld in e["fields"]
+                            if re.search(r"(?i)(status|state|stage|approv|archiv)", fld["path"])})
     if status_fields:
         L.append("\n## Tier-B — entity lifecycle / states (inferred)")
         L.append(f"- Status-like fields suggest stateful entities: {', '.join('`'+s+'`' for s in status_fields)} `[AI-SUGGESTED]`")
@@ -982,8 +1341,9 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
 
     # ======================================================================= data-sources
     L = [f"# Data sources — {appname}\n",
-         "> **Internal data-source contract — handoff-only.** The SQL below names the client's "
-         "internal databases/tables/columns. Treat as backend-contract material, not prototype design input.\n",
+         "> **Internal data-source contract — handoff-only.** The SQL / stored procedures / API "
+         "endpoints below name the client's internal databases and services. Treat as backend-contract "
+         "material, not prototype design input (only the payload *field names* in `data-model` are §7 shapes).\n",
          "## Tier-A — connectors & operations\n"]
     if connectors:
         for c in connectors:
@@ -993,7 +1353,19 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
                 params = ", ".join(f"{p['name']}:{p.get('db_type') or p.get('type')}" for p in f.get("parameters", [])) or "none"
                 L.append(f"- **{f.get('name')}** ({f.get('type')}) — params: {params} [from connector: {c.get('name')}]")
                 q = _flat(f.get("query"))
-                if q:
+                hint = f.get("shape_hint") or {}
+                if f.get("type") == "WebServiceFunction":
+                    method = _HTTP_VERB.get(hint.get("http_method")) or "?"
+                    bits = []
+                    if hint.get("body_name"):
+                        bits.append(f"body: {hint['body_name']}")
+                    if hint.get("resp_name"):
+                        bits.append(f"response: {hint['resp_name']}")
+                    tail = f" — {', '.join(bits)}" if bits else ""
+                    L.append(f"  - endpoint: `{method} {hint.get('path') or ''}`{tail}")
+                elif f.get("type") == "StoredProcedure" and q:
+                    L.append(f"  - proc: `{q}`")
+                elif q:
                     L.append("  ```sql\n  " + q[:1200] + "\n  ```")
             L.append("")
     else:
@@ -1070,9 +1442,10 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
     for p in pages:
         guess = None
         pname = (p["name"] or "").lower()
-        for t in entities:
-            if t.lower() in pname or pname in t.lower():
-                guess = t; break
+        for e in ents_sorted:
+            d = (e["display"] or "").lower()
+            if d and (d in pname or pname in d):
+                guess = e["display"]; break
         L.append(f"| {p['name']} | {guess or '—'} |")
     W("surfaces", "\n".join(L))
 
@@ -1119,9 +1492,35 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
         L.append(f"- {t}")
     W("glossary", "\n".join(L))
 
+    # ======================================================================= embedded brand assets (copy + logo id)
+    # Advisory brand chrome (icons + product logo). Excluded from every input pipeline's manifest
+    # by IX-04 in framework/shared/input-exclusions.md; the identified logo is surfaced into
+    # prototypes at scaffold time (framework/skills/extract-brand-theme.md) via the design-signals pointer.
+    fa = model.get("frontend_assets", {}) or {}
+    _IMG_EXT = (".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".ico")
+    emb_dir = os.path.join(out_dir, "embedded")
+    copied = []
+    for p in (fa.get("embedded_files") or [])[:60]:
+        try:
+            if (os.path.isfile(p) and os.path.splitext(p)[1].lower() in _IMG_EXT
+                    and os.path.getsize(p) <= 2_000_000):
+                os.makedirs(emb_dir, exist_ok=True)
+                shutil.copy2(p, os.path.join(emb_dir, os.path.basename(p)))
+                copied.append(os.path.basename(p))
+        except Exception:
+            pass
+    # Identify the product logo deterministically: basename contains "logo" (case-insensitive);
+    # if several match, the largest. No match -> no logo (do not guess from arbitrary icons).
+    logo_file = None
+    _logo_named = [b for b in copied if "logo" in b.lower()]
+    if _logo_named:
+        logo_file = max(_logo_named, key=lambda b: os.path.getsize(os.path.join(emb_dir, b)))
+    # Favicon: prefer a copied .ico, else reuse the logo.
+    _icos = [b for b in copied if b.lower().endswith(".ico")]
+    favicon_file = _icos[0] if _icos else logo_file
+
     # ======================================================================= design-signals
     styling = model.get("styling", {}) or {}
-    fa = model.get("frontend_assets", {}) or {}
     mods = model.get("modules", {}) or {}
     css = mods.get("embedded_css", [])
     if not css:
@@ -1138,8 +1537,12 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
          f"- Custom embedded CSS: {', '.join(css) or 'none'}",
          f"- App-level custom stylesheet: {'present' if styling.get('app_stylesheet') else 'none'}",
          f"- Fonts present: {', '.join(fa.get('fonts', [])) or '—'}",
-         f"- Available (stock) themes: {', '.join(fa.get('available_themes', [])) or '—'} _(boilerplate)_"]
-    W("design-signals", "\n".join(L))
+         f"- Available (stock) themes: {', '.join(fa.get('available_themes', [])) or '—'} _(boilerplate)_",
+         f"- Product logo: {('embedded/' + logo_file) if logo_file else 'none identified'} _(advisory; surfaced into prototypes at scaffold time)_"]
+    W("design-signals", "\n".join(L), extra={
+        "logo": (f"embedded/{logo_file}" if logo_file else "null"),
+        "favicon": (f"embedded/{favicon_file}" if favicon_file else "null"),
+    })
 
     # ======================================================================= modules
     L = [f"# Custom JS / modules — {appname}\n", "## Tier-A — detected modules\n"]
@@ -1153,20 +1556,6 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
     L.append("\n## Tier-B — implication (advisory)")
     L.append("- Detected modules indicate behaviour beyond standard CRUD controls (must be captured as required interactions). `[AI-SUGGESTED]`")
     W("modules", "\n".join(L))
-
-    # ======================================================================= embedded brand assets
-    copied = []
-    for p in (fa.get("embedded_files") or [])[:60]:
-        try:
-            if (os.path.isfile(p) and os.path.splitext(p)[1].lower() in
-                    (".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".ico")
-                    and os.path.getsize(p) <= 2_000_000):
-                emb_dir = os.path.join(out_dir, "embedded")
-                os.makedirs(emb_dir, exist_ok=True)
-                shutil.copy2(p, os.path.join(emb_dir, os.path.basename(p)))
-                copied.append(os.path.basename(p))
-        except Exception:
-            pass
 
     return written
 

@@ -16,7 +16,7 @@ Turn `template/` into `prototypes/` exactly once: copy (minus `node_modules`/`.n
     - `needs-install` → a **valid committed scaffold** is present without `node_modules/` (a fresh clone / second machine / CI / cleared deps). **Skip Steps 3–4** — brand theme + shell are already committed on disk. Go straight to **Step 5** (`npm install`) → **Step 6** (build smoke). At Step 7, do **not** rewrite `prototypes/.scaffold.json` (it already records the scaffold); just confirm it parses with `app_ok: true`. Then **Step 8** return `scaffolded`.
     - `RF-13 trigger` → emit the `RF-13` plain-text halt line and fail handback (genuine partial prior tree — real files without a valid `.scaffold.json`; consultant removes it down to `.gitkeep` and retries). A `.gitkeep`-only `prototypes/` returns `copied`, and a tree with a valid `.scaffold.json` returns `already-scaffolded`/`needs-install` — neither is this.
     - `copied` → proceed.
-- **Step 3 — Brand theme.** Invoke `framework/skills/extract-brand-theme.md` with `app_dir: "prototypes/"`, `design_system_path: "design-system/design-system.html"`, and the `consultant_brand` object passed in by the orchestrator (or `null`). Capture the returned `{ source, theme_path, token_sha256 }`. On `RF-04 trigger`, halt per the registry.
+- **Step 3 — Brand theme + logo.** Invoke `framework/skills/extract-brand-theme.md` with `app_dir: "prototypes/"`, `design_system_path: "design-system/design-system.html"`, and the `consultant_brand` object passed in by the orchestrator (or `null`). Capture the returned `{ source, theme_path, token_sha256, brand_logo }`. The skill also copies the app's product logo/favicon (when an ingested Stadium `design-signals` asset points at one) into `prototypes/public/brand/` + `prototypes/src/app/icon.<ext>`; `brand_logo` is `null` when none. On `RF-04 trigger` (theme write), halt per the registry; a missing logo is not fatal.
 - **Step 4 — Author shell + chrome + landing.** Per `app-shell-spec.md`, author (Write) and verify (via `framework/skills/verify-artifact-write.md`) exactly these files in `prototypes/`:
     - `src/app/layout.tsx` (RootLayout: seeds stores on mount, wraps children in `ErrorBoundary` + `PrototypeChrome`).
     - `src/components/organisms/PrototypeChrome.tsx` (inter-prototype nav, role switcher PI-05, data-reset PI-02, current-prototype info PI-08; visually marked as a tool; no requirement bindings).
@@ -26,7 +26,7 @@ Turn `template/` into `prototypes/` exactly once: copy (minus `node_modules`/`.n
   Do not author any route under `src/app/<slug>/` (that is the generator's job).
 - **Step 5 — Install.** Run `npm install` in `prototypes/` via Bash (the copied `package-lock.json` pins the tree). On non-zero exit, retry once; second failure → emit `RF-13` plain-text halt and fail handback.
 - **Step 6 — Build smoke.** Run `npm run build` (or `npx tsc --noEmit` then `npx next build`) in `prototypes/`. The empty app must build green. On failure, fix only the clean-slate / shell files (never improvise app features), retry once; second failure → `RF-13`.
-- **Step 7 — Write marker.** Write `prototypes/.scaffold.json` per `scaffolding-instructions.md §7` (`scaffolded_at`, `template_copied_from`, `brand_source` + `brand_token_sha256` from Step 3, `node_version` captured in Step 1, `app_ok: true`). Verify via `verify-artifact-write.md`.
+- **Step 7 — Write marker.** Write `prototypes/.scaffold.json` per `scaffolding-instructions.md §7` (`scaffolded_at`, `template_copied_from`, `brand_source` + `brand_token_sha256` + `brand_logo` from Step 3, `node_version` captured in Step 1, `app_ok: true`). Verify via `verify-artifact-write.md`.
 - **Step 8 — Handback.** Return `scaffolded` to the orchestrator.
 
 ## Inputs
@@ -38,7 +38,7 @@ Turn `template/` into `prototypes/` exactly once: copy (minus `node_modules`/`.n
 
 ## Output
 
-- The scaffolded `prototypes/` app: copied tree (minus excludes), clean-slate `types/index.ts` + `stores/index.ts` + `data/seed.ts`, brand `src/styles/theme.css`, shell + chrome + empty registry + empty landing, installed `node_modules/`, and `prototypes/.scaffold.json` (`app_ok: true`).
+- The scaffolded `prototypes/` app: copied tree (minus excludes), clean-slate `types/index.ts` + `stores/index.ts` + `data/seed.ts`, brand `src/styles/theme.css`, the optional captured brand logo (`public/brand/logo.*`) + favicon (`src/app/icon.*`) when a Stadium `design-signals` logo pointer exists, shell + chrome + empty registry + empty landing, installed `node_modules/`, and `prototypes/.scaffold.json` (`app_ok: true`, with `brand_logo`).
 - Handback signal: `scaffolded` | `already-scaffolded` | `RF-10 trigger` | `RF-13 trigger`.
 
 ## Tools
@@ -53,7 +53,7 @@ Turn `template/` into `prototypes/` exactly once: copy (minus `node_modules`/`.n
 
 - Node preflight ran before any copy; `RF-10` returned (not a half-copy) when the toolchain was missing.
 - The exclude list held (no `_example-*`, `node_modules`, `.next`, `.git` under `prototypes/`); the three clean-slate files are import-safe.
-- `theme.css` was (re)written from the recorded `brand_source`; every `:root` var retained.
+- `theme.css` was (re)written from the recorded `brand_source`; every `:root` var retained. When `brand_logo` is non-null, the copied logo + favicon exist and `brand_logo` is recorded in `.scaffold.json`.
 - All Step-4 shell files exist and were verified; no route folder was authored.
 - The empty app built green (Step 6).
 - `.scaffold.json` exists with `app_ok: true` and was verified (on the `needs-install` path it was confirmed-not-rewritten; Steps 3–4 were skipped because brand + shell were already committed on disk).

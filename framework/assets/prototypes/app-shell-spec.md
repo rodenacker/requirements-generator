@@ -83,5 +83,6 @@ export const PROTOTYPES: PrototypeEntry[] = [ /* regenerated additively per run 
 - Do not regenerate the shell or chrome per prototype — only the registry module + landing page change between runs.
 - Do not import `prototypes/.registry.json` from inside `src/` (cross-tree import). The app imports `src/data/prototype-registry.ts`.
 - Do not let the chrome leak into the app-under-design's `data-prop`/`data-src` space — it is a harness (PI-08).
+- Do not render the app's **brand logo** in `PrototypeChrome`. The captured brand logo (`public/brand/logo.*`, from `.scaffold.json` `brand_logo`) belongs to the **application shell** — the generator renders it in the per-prototype `src/app/<name_slug>/layout.tsx` brand slot (`step-05-compose-route.md`), not in this review harness. The chrome stays brand-marked-as-a-tool, never carrying the product's own logo.
 - Do not have the landing-updater drop or reorder other prototypes' entries — regeneration is additive (a reset removes exactly one entry).
 - Do not theme the chrome off-brand — it uses the shared tokens but is *visually marked* as a tool, not *styled differently per prototype*.

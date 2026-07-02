@@ -48,7 +48,7 @@ The first generation that creates a real store wires these three files additivel
 ## 4. Brand theme + shell + chrome + landing (authored once)
 
 Before install, the scaffolder:
-1. **Brand theme** — calls `framework/skills/extract-brand-theme.md` to (re)write `prototypes/src/styles/theme.css` from the brand source (a `/design-system` tokens → b consultant → c template defaults). Records `brand_source` + token-block sha.
+1. **Brand theme + logo** — calls `framework/skills/extract-brand-theme.md` to (re)write `prototypes/src/styles/theme.css` from the brand source (a `/design-system` tokens → b consultant → c template defaults). Records `brand_source` + token-block sha. The same skill also captures the app's product **logo + favicon** when an ingested Stadium `design-signals` asset points at one: `prototypes/public/brand/logo.<ext>` (rendered in the application shell by the generator) and `prototypes/src/app/icon.<ext>` (Next.js file-convention favicon — coexists with the template's `favicon.ico`). Records `brand_logo` (or `null`).
 2. **App shell + chrome + landing** — authors the files specified in `framework/assets/prototypes/app-shell-spec.md`: `src/app/layout.tsx` (RootLayout + store seeding + `<PrototypeChrome>`), the chrome organism + its store, `src/data/prototype-registry.ts` (initially empty), and `src/app/page.tsx` (landing, initially "no prototypes yet").
 3. Verifies every authored file via `framework/skills/verify-artifact-write.md`.
 
@@ -68,12 +68,13 @@ Run `npm run build` (or `tsc --noEmit` + `next build`) in `prototypes/`. The emp
   "template_copied_from": "template/",
   "brand_source": "design-system | consultant-url | consultant-tokens | template-defaults",
   "brand_token_sha256": "<sha of the theme.css token block at scaffold time>",
+  "brand_logo": { "logo_src": "/brand/logo.png", "favicon_file": "src/app/icon.png", "source_app": "<AppName>" },
   "node_version": "<major.minor.patch captured at install>",
   "app_ok": true
 }
 ```
 
-Verify via `verify-artifact-write.md`. `brand_token_sha256` lets later runs detect `/design-system` drift (a non-blocking notice; never auto-re-themes mid-set — see `prototype-orch.md` Step F1).
+Verify via `verify-artifact-write.md`. `brand_token_sha256` lets later runs detect `/design-system` drift (a non-blocking notice; never auto-re-themes mid-set — see `prototype-orch.md` Step F1). `brand_logo` is `null` when no Stadium logo pointer was found; when non-null it records the captured logo/favicon so the generator can render the logo in each prototype's application shell.
 
 ---
 

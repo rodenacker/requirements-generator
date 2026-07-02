@@ -35,7 +35,7 @@ default-trade-offs:
   memorability-density: 0
 
 required-slots:
-  - brand
+  - brand            # renders the shared brand logo (public/brand/logo.*) when captured at scaffold (.scaffold.json brand_logo); else the app/text title. UI-only chrome, no data-src/data-prop (see step-05-compose-route.md, PI-08).
   - primary-nav
   - main-content
   - user-menu

@@ -24,6 +24,8 @@ A structured row returned to the caller:
 
 On disk: `assets_dir/<stem>.stadium.<category>.md` for the ten Tier-1 categories + the two Tier-2 categories; `assets_dir/embedded/` for any extracted brand assets (logo, embedded docs); and the forensic `model.json` at `model_out`. The Stadium app folder itself is **never** written to or copied.
 
+The `assets_dir/embedded/` images are **advisory brand chrome, not manifest inputs** — they are excluded from every input pipeline's enumeration by `IX-04` in `framework/shared/input-exclusions.md` (only the top-level `*.stadium.*.md` assets are manifest rows). They remain on disk so the product logo can be surfaced into prototypes at scaffold time (`framework/skills/extract-brand-theme.md`), keyed by the `logo:` pointer the extractor records in the `design-signals` asset's front-matter.
+
 ## Procedure
 
 1. **Validate the unit.** Confirm `app_path` is a directory and looks like a Stadium app: it has `administration.db`, OR `App_Data/Updates/*.sapz`, OR `ClientApp/`. If none match, return `{ status: "failed", reason: "stadium-extract" }` (not a Stadium app — the caller treats the dropped item as an ordinary input instead).
@@ -69,3 +71,4 @@ On disk: `assets_dir/<stem>.stadium.<category>.md` for the ten Tier-1 categories
 - Do not write into the Stadium app folder, copy it into `input/`, or modify it. Only `assets_dir` (under `input/`) and `model_out` (under `framework/state/`) are written.
 - Do not update the processed-ledger from this skill. Ledger lifecycle (check-before / write-after) is owned by the caller (`/ingest-stadium`'s `stadium-ingestor` agent), so a failed extraction never marks an app as processed.
 - Do not reproduce the app's screens as wireframes/HTML. Visual structure is captured as advisory signals in `surfaces.md`/`navigation.md` only; the system holds design authority over the *how* (per the canonical doctrine in `CLAUDE.md`).
+- Do not assume the `data-model` asset's correctness is covered by the Phase-A parse-check. That check only asserts each asset **exists and is non-empty** — it cannot detect a wrong entity union, a leaked envelope field, or a weak `Object` type. Data-model correctness (entity separation, envelope filtering, weak-type omission, per-field provenance) is the deterministic **extractor's** responsibility (`reconcile_entities` in `extract_stadium_app.py`; see `stadium/asset-schemas.md` §(e)). Phase B must **not** re-merge, re-attribute, or re-type any entity/field — it only synthesises the two advisory Tier-2 assets.
