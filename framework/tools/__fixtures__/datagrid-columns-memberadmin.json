@@ -1,0 +1,127 @@
+{
+  "_note": "Cluster A #2 — MemberAdmin MembersDataGrid resolved-column golden + a synthetic registry for _resolve_columns.",
+  "resolved_golden": [
+    {
+      "guid": "29a5be35-e875-4ca3-8ad7-b97df5d4bcc2",
+      "header_text": "Edit",
+      "name": "Edit",
+      "visible": true,
+      "kind": "action",
+      "has_action": true
+    },
+    {
+      "guid": "868a4a73-87d9-4046-bced-67ed92abab66",
+      "header_text": "Delete",
+      "name": "Delete",
+      "visible": true,
+      "kind": "action",
+      "has_action": true
+    },
+    {
+      "guid": "91595ce9-b163-4924-aa47-06e8b89bda80",
+      "header_text": "ID",
+      "name": "ID",
+      "visible": false,
+      "kind": "data",
+      "has_action": false
+    },
+    {
+      "guid": "ae771a3d-5c9c-4236-85ef-c5fd02fbe8fb",
+      "header_text": "First Name",
+      "name": "FirstName",
+      "visible": true,
+      "kind": "data",
+      "has_action": false
+    },
+    {
+      "guid": "774e7c99-9921-477d-a423-97e065a49a25",
+      "header_text": "Last Name",
+      "name": "LastName",
+      "visible": true,
+      "kind": "data",
+      "has_action": false
+    },
+    {
+      "guid": "9e9284dc-0927-41c0-abf5-a1d1cfc3d7ab",
+      "header_text": "Email",
+      "name": "Email",
+      "visible": true,
+      "kind": "data",
+      "has_action": false
+    },
+    {
+      "guid": "5b983805-b1ae-495f-bb76-7450c62c4ca5",
+      "header_text": "DOB",
+      "name": "DOB",
+      "visible": true,
+      "kind": "data",
+      "has_action": false
+    },
+    {
+      "guid": "2bf3d526-7c7f-4c54-aa89-08a7b05203ca",
+      "header_text": "City",
+      "name": "City",
+      "visible": true,
+      "kind": "data",
+      "has_action": false
+    },
+    {
+      "guid": "66640381-33fd-4a1d-aa92-714f6198cba0",
+      "header_text": "City ID",
+      "name": "CityID",
+      "visible": false,
+      "kind": "data",
+      "has_action": false
+    },
+    {
+      "guid": "a98450ff-a6bd-4ac7-9cdd-2b67aa220275",
+      "header_text": "Subscribed",
+      "name": "Subscribed",
+      "visible": true,
+      "kind": "data",
+      "has_action": false
+    }
+  ],
+  "expected_columns_line": "columns (in order): \"Edit\"(action), \"Delete\"(action), \"ID\"(hidden), \"First Name\", \"Last Name\", \"Email\", \"DOB\", \"City\", \"City ID\"(hidden), \"Subscribed\"",
+  "synthetic": {
+    "props": {
+      "Columns": [
+        {
+          "ID": "col-edit"
+        },
+        "col-id",
+        "col-name",
+        {
+          "ID": "col-missing"
+        }
+      ]
+    },
+    "registry": {
+      "col-edit": {
+        "name": "EditCol",
+        "props": {
+          "HeaderText": "Edit",
+          "ColumnType": 1,
+          "Visible": true,
+          "ClickEventHandlerScript": "scr-1"
+        }
+      },
+      "col-id": {
+        "name": "IdCol",
+        "props": {
+          "HeaderText": "ID",
+          "ColumnType": 0,
+          "Visible": false
+        }
+      },
+      "col-name": {
+        "name": "FirstName",
+        "props": {
+          "HeaderText": "First Name",
+          "ColumnType": 0,
+          "Visible": true
+        }
+      }
+    }
+  }
+}

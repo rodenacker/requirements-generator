@@ -1,0 +1,165 @@
+{
+  "_note": "Cluster A #1 — grounded MemberAdmin control key_props + synthetic edge cases. Feeds _control_validation_rows / _control_constraints unit tests.",
+  "controls": [
+    {
+      "name": "FirstNameTextBox",
+      "key_props": {
+        "Text": null,
+        "Classes": "control-container text-box-container",
+        "Visible": true,
+        "Required": true,
+        "IsValidRule": null,
+        "ErrorText": "Please add a value",
+        "Hint": null,
+        "ReadOnly": false,
+        "IsPassword": false,
+        "VisibleLines": "1"
+      }
+    },
+    {
+      "name": "EmailTextBox",
+      "key_props": {
+        "Text": null,
+        "Classes": "control-container text-box-container",
+        "Visible": true,
+        "Required": true,
+        "IsValidRule": {
+          "$id": "4",
+          "$type": "Twenty57.Stadium.API.Expression, Twenty57.Stadium.API",
+          "ID": "8cf09501-250d-40a0-b218-bb0b9c605102",
+          "FormatString": "/^(([^<>()[\\]\\\\.,;:\\s@\"]+(\\.[^<>()[\\]\\\\.,;:\\s@\"]+)*)|.(\".+\"))@((\\[[0-9]{{1,3}}\\.[0-9]{{1,3}}\\.[0-9]{{1,3}}\\.[0-9]{{1,3}}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{{2,}}))$/.test({0})",
+          "PlaceholderValues": [
+            {
+              "$id": "5",
+              "$type": "Twenty57.Stadium.API.ReferenceObjects.GuidReference, Twenty57.Stadium.API",
+              "NamedItemID": "04e62cfd-a323-4081-8d7f-01b81d98e75e",
+              "PropertyKey": "2E12",
+              "Parameters": {
+                "$id": "6",
+                "$type": "System.Collections.Generic.Dictionary`2[[System.Guid, System.Private.CoreLib],[System.Object, System.Private.CoreLib]], System.Private.CoreLib"
+              }
+            }
+          ]
+        },
+        "ErrorText": "Please enter a valid email address",
+        "Hint": null,
+        "ReadOnly": false,
+        "IsPassword": false,
+        "VisibleLines": "1"
+      }
+    },
+    {
+      "name": "PasswordTextBox",
+      "key_props": {
+        "Text": null,
+        "Classes": "control-container text-box-container",
+        "Visible": true,
+        "Required": true,
+        "IsValidRule": {
+          "$id": "4",
+          "$type": "Twenty57.Stadium.API.Expression, Twenty57.Stadium.API",
+          "ID": "738b277d-7623-44b8-a3df-1f025c052669",
+          "FormatString": "/^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])[\\w!@#$%^&*]{{8,16}}$/.test({0})",
+          "PlaceholderValues": [
+            {
+              "$id": "5",
+              "$type": "Twenty57.Stadium.API.ReferenceObjects.GuidReference, Twenty57.Stadium.API",
+              "NamedItemID": "827ceac6-d0b3-48a7-810d-46502239c1de",
+              "PropertyKey": "2E12",
+              "Parameters": {
+                "$id": "6",
+                "$type": "System.Collections.Generic.Dictionary`2[[System.Guid, System.Private.CoreLib],[System.Object, System.Private.CoreLib]], System.Private.CoreLib"
+              }
+            }
+          ]
+        },
+        "ErrorText": "8 – 16 characters, at least one number, at least one special character, upper and lowercase characters",
+        "Hint": null,
+        "ReadOnly": false,
+        "IsPassword": false,
+        "VisibleLines": "1"
+      }
+    },
+    {
+      "name": "DOBDatePicker",
+      "key_props": {
+        "Classes": "control-container date-picker-container",
+        "Visible": true,
+        "Required": true,
+        "IsValidRule": {
+          "$id": "4",
+          "$type": "Twenty57.Stadium.API.Expression, Twenty57.Stadium.API",
+          "ID": "13d47f22-54a5-47c1-b112-b1a41a883560",
+          "FormatString": "dayjs({0}) < dayjs().add(-18,'year')",
+          "PlaceholderValues": [
+            {
+              "$id": "5",
+              "$type": "Twenty57.Stadium.API.ReferenceObjects.GuidReference, Twenty57.Stadium.API",
+              "NamedItemID": "9469b3a7-5ae9-48ca-85ec-3b32445ea034",
+              "PropertyKey": "76C5",
+              "Parameters": {
+                "$id": "6",
+                "$type": "System.Collections.Generic.Dictionary`2[[System.Guid, System.Private.CoreLib],[System.Object, System.Private.CoreLib]], System.Private.CoreLib"
+              }
+            }
+          ]
+        },
+        "ErrorText": "The member must be over 18",
+        "Hint": "Select a date",
+        "ReadOnly": false
+      }
+    },
+    {
+      "name": "CityDropDown",
+      "key_props": {
+        "Classes": "control-container drop-down-container",
+        "Visible": true,
+        "Required": true,
+        "IsValidRule": null,
+        "ErrorText": "Please select a value",
+        "Hint": "Select a city",
+        "ReadOnly": false,
+        "Options": null,
+        "OptionsField": {
+          "$id": "12",
+          "$type": "Twenty57.Stadium.Data.Translation.UniqueID, Twenty57.Stadium.Data",
+          "ID": "6bec6c70-eda9-4e37-8966-f693ae17e9b3"
+        }
+      }
+    },
+    {
+      "_synthetic": "required-only, empty ErrorText -> req_only line, never a bare \"\"",
+      "name": "EmptyMsgField",
+      "key_props": {
+        "Required": true,
+        "IsValidRule": null,
+        "ErrorText": ""
+      }
+    },
+    {
+      "_synthetic": "multi-line + hint + readonly (constraints, not required)",
+      "name": "NotesTextBox",
+      "key_props": {
+        "VisibleLines": "5",
+        "Hint": "Free text",
+        "ReadOnly": true
+      }
+    },
+    {
+      "_synthetic": "static inline Options enum",
+      "name": "IdTypeDd",
+      "key_props": {
+        "Options": [
+          {
+            "text": "ID",
+            "value": "1"
+          },
+          {
+            "text": "Passport",
+            "value": "2"
+          }
+        ]
+      }
+    }
+  ]
+}

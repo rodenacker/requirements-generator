@@ -392,7 +392,15 @@ def read_design_model(sqlitedata):
     # ----- Pages (with control tree + load script)
     KEY_PROP_NAMES = ("Text", "Label", "Classes", "Visible", "Placeholder", "Value",
                       "Heading", "Title", "Source", "List", "Url", "NavigateUrl",
-                      "HeaderText", "Required", "Enabled", "Columns")
+                      "HeaderText", "Required", "Enabled", "Columns",
+                      # --- field-behaviour props surfaced by Cluster A #1 (render-only; already parsed
+                      # into all_props). Widening the allowlist lights up BOTH key_props stores at once
+                      # (control_tree :416 + flat all_controls :459). AllowMultiple is deliberately omitted
+                      # (0/5029 controls in the corpus — dead prop).
+                      "IsValidRule", "ErrorText", "Hint", "ToolTip", "ReadOnly", "IsPassword",
+                      "Options", "OptionsField", "VisibleLines", "Rows",
+                      "AllowExport", "DisplaySearchBar", "HasSelectableData",
+                      "AllowedExtensions", "FilesField")
 
     def build_tree(parent_id):
         """Build the nested control tree. Non-control containers (grid cells, repeater
@@ -417,6 +425,8 @@ def read_design_model(sqlitedata):
                 "all_props": props,
                 "children": build_tree(cid),
             }
+            if props.get("Columns"):        # Cluster A #2 — resolve DataGrid column GUIDs here (registry
+                node["columns"] = _resolve_columns(props, registry)   # is in scope only at build time)
             out.append(node)
         return out
 
@@ -846,8 +856,18 @@ def detect_gaps(model, admin, cfg, assets):
             if f.get("query"):
                 gaps.append(f"Data schema for connector '{c['name']}' is implied by SQL in '{f['name']}' but the live database schema/constraints are external.")
                 break
-    if not model.get("validators"):
-        gaps.append("No validators defined in the design model; intended validation rules & messages (if any) are unknown.")
+    # Cluster A #3 — real validation lives in control props, not the (corpus-wide empty) `Validator`
+    # table. Only flag the gap when NO validation signal of any kind exists — a bare `not validators`
+    # test fired the false blocking gap on every app despite 4–72 validated controls.
+    def _has_control_validation():
+        for c in model.get("all_controls", []) or []:
+            kp = c.get("key_props") or {}
+            err = kp.get("ErrorText")
+            if kp.get("Required") or kp.get("IsValidRule") or (isinstance(err, str) and err.strip()):
+                return True
+        return False
+    if not model.get("validators") and not _has_control_validation():
+        gaps.append("Validation not modelled in the design model (no validators, required-field flags, or control validation rules).")
     if cfg.get("AuthenticationType") == "OAuth":
         gaps.append("OAuth is configured but secrets are redacted; identity-provider details must be supplied.")
     gaps.append("Business intent, target users, and success criteria are not present in source and must come from a stakeholder.")
@@ -989,6 +1009,127 @@ def _control_text(kp):
         if isinstance(v, str) and v.strip():
             return v.strip()
     return None
+
+
+def _as_int(v):
+    """Best-effort int — control props store numbers as int or numeric string."""
+    try:
+        return int(str(v).strip())
+    except (TypeError, ValueError):
+        return None
+
+
+def _enum_choices(opts):
+    """Verbatim inline `Options` -> ordered display labels (text, falling back to value).
+    Returns [] for an empty list or a runtime binding (the caller handles `OptionsField` separately)."""
+    out = []
+    if not isinstance(opts, list):
+        return out
+    for o in opts:
+        if isinstance(o, dict):
+            txt = o.get("text")
+            lab = txt if isinstance(txt, str) and txt.strip() else o.get("value")
+            if lab is not None and str(lab).strip():
+                out.append(str(lab).strip())
+        elif isinstance(o, (str, int, float)) and str(o).strip():
+            out.append(str(o).strip())
+    return out
+
+
+def _control_constraints(kp):
+    """Cluster A #1 — ordered, non-empty field-behaviour annotations from a control's `key_props`.
+    Every entry is a Tier-A verbatim projection; emitted only when the prop carries real data
+    (presence != data — 254 empty strings + 999 nulls observed across the corpus)."""
+    kp = kp or {}
+    out = []
+    hint = kp.get("Hint")
+    if isinstance(hint, str) and hint.strip():
+        out.append(f'hint: "{_redact_pii(_flat(hint))}"')
+    tip = kp.get("ToolTip")
+    if isinstance(tip, str) and tip.strip():
+        out.append(f'tooltip: "{_redact_pii(_flat(tip))}"')
+    if kp.get("ReadOnly"):
+        out.append("read-only")
+    if kp.get("IsPassword"):
+        out.append("password-masked")
+    rows = _as_int(kp.get("VisibleLines")) or _as_int(kp.get("Rows"))
+    if rows and rows > 1:
+        out.append(f"multi-line ({rows} rows)")
+    choices = _enum_choices(kp.get("Options"))
+    if choices:
+        shown = choices[:12]
+        more = f" _(+{len(choices) - len(shown)} more)_" if len(choices) > len(shown) else ""
+        out.append("choices: " + ", ".join(f'"{c}"' for c in shown) + more)
+    elif kp.get("OptionsField"):
+        out.append("dynamic choices (bound)")
+    exts = kp.get("AllowedExtensions")
+    if isinstance(exts, str) and exts.strip():
+        out.append(f"accepts: {_flat(exts)}")
+    elif isinstance(exts, list) and exts:
+        out.append("accepts: " + ", ".join(str(e).strip() for e in exts if str(e).strip()))
+    grid = [lbl for flag, lbl in (("AllowExport", "exportable"),
+                                  ("DisplaySearchBar", "searchable"),
+                                  ("HasSelectableData", "selectable")) if kp.get(flag)]
+    if grid:
+        out.append("grid: " + " / ".join(grid))
+    return out
+
+
+def _columns_line(cols):
+    """Cluster A #2 — render a DataGrid's resolved ordered columns as one Tier-A line.
+    HeaderText in quotes (falling back to Name, then `(unnamed)`); `(action)` for command columns,
+    `(hidden)` for Visible:false. Unresolved GUIDs surface as `(unresolved)` — never invented."""
+    parts = []
+    for c in cols or []:
+        if c.get("unresolved"):
+            parts.append("(unresolved)")
+            continue
+        label = str(c.get("header_text") or c.get("name") or "(unnamed)")
+        tags = []
+        if c.get("kind") == "action":
+            tags.append("action")
+        if c.get("visible") is False:
+            tags.append("hidden")
+        parts.append(f'"{label}"' + (f"({', '.join(tags)})" if tags else ""))
+    return "columns (in order): " + ", ".join(parts)
+
+
+_COLUMN_TYPE_ENUM = {0: "data", 1: "action"}
+
+def _decode_column_type(v):
+    """Cluster A #2 — DataGrid Column `ColumnType` int enum: 0=data, 1=action. Unknown ints round-trip
+    as `type<N>` (fabricate-nothing; widen the map if a broader probe surfaces more values)."""
+    i = _as_int(v)
+    if i is None:
+        return None
+    return _COLUMN_TYPE_ENUM.get(i, f"type{i}")
+
+
+def _resolve_columns(props, registry):
+    """Cluster A #2 — resolve a DataGrid control's `Columns` (ordered GUID list) into ordered column
+    defs via the design-model registry. Build-time only (the registry is not in the returned model).
+    Column GUIDs may be raw strings, bytes_le blobs, or `{ID|NamedItemID: guid}` refs. Unresolved GUIDs
+    surface as `{"unresolved": <guid>}` — never fabricated. Columns carry NO DataField (verified 0/841),
+    so no data-field binding is emitted; `HeaderText`/`Name` are the Tier-A facts."""
+    out = []
+    for gid in (props.get("Columns") or []):
+        ref = gid.get("ID") or gid.get("NamedItemID") if isinstance(gid, dict) else gid
+        nid = norm_guid(ref)
+        col = registry.get(nid) if nid else None
+        if not col:
+            out.append({"unresolved": nid or str(gid)})
+            continue
+        cp = col.get("props") or {}
+        vis = cp.get("Visible")
+        out.append({
+            "guid": nid,
+            "header_text": cp.get("HeaderText"),
+            "name": col.get("name") or cp.get("Name"),
+            "visible": not (vis is False or str(vis).strip().lower() in ("false", "0")),
+            "kind": _decode_column_type(cp.get("ColumnType")),
+            "has_action": bool(cp.get("ClickEventHandlerScript")),
+        })
+    return out
 
 _SQL_DENY = {"dbo", "sys", "master", "tempdb", "model", "msdb", "information_schema", "spt_values"}
 
@@ -1497,6 +1638,64 @@ def _validator_rule(vtype, props):
         return "format(email)"
     return None
 
+def _rule_intent(fmt):
+    """Cluster A #1 — Tier-B advisory classification of an `IsValidRule` FormatString (email /
+    numeric / date / length / pattern). The raw expression stays the Tier-A anchor; this only
+    labels likely intent, so it is marked `[AI-SUGGESTED]` at render. Never raises."""
+    s = _flat(fmt)
+    if not s:
+        return "pattern"
+    if "dayjs(" in s.lower():
+        return "date"
+    m = re.search(r"/(.*)/[a-z]*\.test", s)          # regex body from `/…/.test({0})`
+    body = m.group(1) if m else s
+    if "@" in re.sub(r"\[[^\]]*\]", "", body):        # an @ outside any char class => email
+        return "email"
+    has_digit = ("[0-9]" in body) or ("\\d" in body)
+    has_alpha = bool(re.search(r"\[a-zA-Z\]|\[a-z\]|\[A-Z\]|[A-Za-z]{2,}", body))
+    if has_digit and not has_alpha:
+        return "numeric"
+    if re.search(r"\{\d+(,\d*)?\}", body):
+        return "length"
+    return "pattern"
+
+
+def _control_validation_rows(all_controls):
+    """Cluster A #1/#3 — project control validation props into `(rich_rows, required_only_names)`.
+    `rich_rows` are §6.3-shaped lines for controls carrying a rule and/or a verbatim message;
+    `required_only_names` are Required controls with neither (collapsed to one compact line by the
+    caller). Empty `ErrorText` yields no message — never a bare `""`. FormatString braces are
+    un-escaped (.NET composite format); the rule/message are Tier-A, the intent label is Tier-B."""
+    rich_rows, req_only = [], []
+    for c in all_controls or []:
+        kp = c.get("key_props") or {}
+        name = c.get("name")
+        if not name:
+            continue
+        required = bool(kp.get("Required"))
+        ivr = kp.get("IsValidRule")
+        fmt = ivr.get("FormatString") if isinstance(ivr, dict) else (ivr if isinstance(ivr, str) else None)
+        fmt = fmt if isinstance(fmt, str) and fmt.strip() else None
+        err = kp.get("ErrorText")
+        msg = _redact_pii(err.strip()) if isinstance(err, str) and err.strip() else None
+        if not (required or fmt or msg):
+            continue
+        if not fmt and not msg:                       # required-only → compact list, not a row
+            if name not in req_only:
+                req_only.append(name)
+            continue
+        norm = _flat(fmt).replace("{{", "{").replace("}}", "}") if fmt else None
+        intent = _rule_intent(norm) if norm else None
+        types = (["required"] if required else []) + ([intent] if intent else [])
+        bits = [f"`{name}`", "+".join(types) if types else "validation"]
+        if norm:
+            bits.append(norm if len(norm) <= 160 else norm[:160] + "…")
+        if msg:
+            bits.append(f'"{msg}"')
+        marker = f"  `[AI-SUGGESTED: {intent}]`" if intent else ""
+        rich_rows.append("- " + " · ".join(bits) + " [from design model]" + marker)
+    return rich_rows, req_only
+
 def _role_capability(role):
     """Tier-B capability reading of a role NAME (advisory; the split is a reading, not a grant)."""
     r = (role or "").lower()
@@ -1882,32 +2081,43 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
     else:
         L.append("_No notification or dialog actions in the design model._")
     L.append("")
-    # ---- 0f — validators: target + rule + verbatim message (fallback: name (type); never fabricate)
+    # ---- 0f — validation (Cluster A #1): per-control rule + verbatim message + target + required.
+    # Real validation lives in control props (the `Validator` table is empty in every corpus app), so
+    # project each input control's IsValidRule/ErrorText/Required. Controls carrying a rule or a message
+    # get an individual §6.3-shaped row; required-only fields collapse to one compact line. The rule
+    # expression + message are Tier-A (verbatim); the intent label is a Tier-B `[AI-SUGGESTED]` reading.
     vals = model.get("validators", []) or []
-    seen_req = []
-    for c in model.get("all_controls", []) or []:
-        if (c.get("key_props") or {}).get("Required") and c.get("name") and c["name"] not in seen_req:
-            seen_req.append(c["name"])
     L.append("## Tier-A — validation\n")
-    if vals:
-        for v in vals:
-            rule = _validator_rule(v.get("type"), v.get("props"))
-            summ = v.get("summary") or {}
-            msg = next((_redact_pii(summ[k].strip()) for k in ("Message", "ErrorMessage", "ValidationMessage", "Text")
-                        if isinstance(summ.get(k), str) and summ[k].strip()), None)
-            target = next((summ[k].strip() for k in ("ControlToValidate", "Target", "Control", "ValidatedControl")
-                           if isinstance(summ.get(k), str) and summ[k].strip()
-                           and not re.fullmatch(_GUID_RE, summ[k].strip())), None)
-            if rule is None:
-                L.append(f"- Validator: {v.get('name')} ({v.get('type')}) [from design model]")
-            else:
-                bits = [b for b in (target, rule, (f'"{msg}"' if msg else None)) if b]
-                L.append("- " + " · ".join(bits) + " [from design model]")
-    if seen_req:
+    VALIDATION_ROW_CAP = 200
+    rich_rows, req_only = _control_validation_rows(model.get("all_controls", []))
+    # legacy design-model validators (empty across the corpus; retained for forward-compat)
+    for v in vals:
+        rule = _validator_rule(v.get("type"), v.get("props"))
+        summ = v.get("summary") or {}
+        msg = next((_redact_pii(summ[k].strip()) for k in ("Message", "ErrorMessage", "ValidationMessage", "Text")
+                    if isinstance(summ.get(k), str) and summ[k].strip()), None)
+        target = next((summ[k].strip() for k in ("ControlToValidate", "Target", "Control", "ValidatedControl")
+                       if isinstance(summ.get(k), str) and summ[k].strip()
+                       and not re.fullmatch(_GUID_RE, summ[k].strip())), None)
+        if rule is None:
+            rich_rows.append(f"- Validator: {v.get('name')} ({v.get('type')}) [from design model]")
+        else:
+            bits = [b for b in (target, rule, (f'"{msg}"' if msg else None)) if b]
+            rich_rows.append("- " + " · ".join(bits) + " [from design model]")
+    # dedupe identical rows — the same-named field validated identically on >1 page (e.g. add + edit)
+    seen_v = set()
+    rich_rows = [r for r in rich_rows if not (r in seen_v or seen_v.add(r))]
+    for row in rich_rows[:VALIDATION_ROW_CAP]:
+        L.append(row)
+    if len(rich_rows) > VALIDATION_ROW_CAP:
+        L.append(f"- _(+{len(rich_rows) - VALIDATION_ROW_CAP} more validation rules)_")
+    if req_only:
         L.append("- Required inputs (from control `Required` flags): "
-                 + ", ".join(f"`{n}`" for n in seen_req[:40]) + " [from design model]")
-    if not vals and not seen_req:
-        L.append("_No explicit validators or required-field flags in the design model._ `[AI-SUGGESTED: blocking]`")
+                 + ", ".join(f"`{n}`" for n in req_only[:40])
+                 + (f" _(+{len(req_only) - 40} more)_" if len(req_only) > 40 else "")
+                 + " [from design model]")
+    if not rich_rows and not req_only:
+        L.append("_No validators, required-field flags, or control validation rules in the design model._")
     # ---- 1d — edge / empty / error / loading states (facts Tier-A; the {loading|empty|error} label
     # is Tier-B — a hidden control is ambiguous). Cross-links 0a (notifications) + 0f (validators).
     _STATE_TGT = re.compile(r"(?i)spinner|loader|overlay|busy|visible|container")
@@ -2092,9 +2302,15 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
         L.append(f"## {p['name']}{star}  ·  title: {p.get('title') or '—'}  ·  roles: {roles}")
         def render(nodes, depth=1):
             for n in nodes:
-                txt = _control_text(n.get("key_props") or {})
+                kp = n.get("key_props") or {}
+                txt = _control_text(kp)
                 txt = f' — "{txt}"' if txt else ""
-                L.append("  " * depth + f"- {n['type']}: `{n['name']}`{txt}")
+                cons = _control_constraints(kp)          # Cluster A #1 — field behaviour, inline
+                cons_txt = ("  ·  " + " · ".join(cons)) if cons else ""
+                L.append("  " * depth + f"- {n['type']}: `{n['name']}`{txt}{cons_txt}")
+                cols = n.get("columns")                  # Cluster A #2 — resolved DataGrid columns
+                if cols:
+                    L.append("  " * (depth + 1) + "- " + _columns_line(cols) + " [from design model]")
                 render(n.get("children", []), depth + 1)
         render(p.get("control_tree", []))
         L.append("")

@@ -55,9 +55,33 @@ The `Operator` and `Join` ints were decoded empirically over the 20-app corpus (
 
 Codes live in `DECISION_OP_SYMBOLS` / `DECISION_JOIN_SYMBOLS` near the top of `extract_stadium_app.py`. (`op1`/`op2`/`op4` are the un-confirmed best-guesses; if a future corpus contradicts them, only these three change.)
 
+### Control validation & field-behaviour props (Cluster A #1)
+
+Input controls store their validation, help, editability and enum settings in the same `JsonData` bag. These are on the **`KEY_PROP_NAMES` allowlist** (so they flow into both `key_props` stores) and are rendered — validation into `business-rules` `## Tier-A — validation`, the rest inline in the `surfaces` control tree. All are **Tier-A verbatim facts** (`[from design model]`); only the validation *intent* label is a Tier-B `[AI-SUGGESTED]` reading.
+
+- **`Required`** (bool) + **`IsValidRule`** + **`ErrorText`** — the validation triple. `IsValidRule` is `null` for a plain required-field rule, or an **Expression** dict `{FormatString, PlaceholderValues:[{NamedItemID}]}`. The `FormatString` is a JS predicate — a regex `/…/.test({0})` or a `dayjs(...)` date expression — using **.NET composite-format escaping**: literal braces are doubled (`{{8,16}}` = `{8,16}`) and `{0}` is the placeholder for the target control's own value. Un-escape the doubled braces for display; the target field is the owning control (identity implicit). `ErrorText` is the verbatim user-facing message and can be empty — emit the rule without a message, never `""`. The intent classifier (`_rule_intent`) labels email / numeric / date / length / pattern (advisory).
+- **`Hint` / `ToolTip`** — inline help text (verbatim; also a §9 terminology signal where a label ≠ field name).
+- **`ReadOnly` / `IsPassword`** — editability + password-masking facts.
+- **`VisibleLines` / `Rows`** — a value > 1 signals a multi-line text area.
+- **`Options` vs `OptionsField`** — a non-empty inline **`Options`** list (`[{text,value}…]`) is a **static enum** (rendered verbatim); an **`OptionsField`** GuidReference with an empty `Options` is a **runtime binding** (rendered "dynamic choices (bound)"; the values are not statically resolvable — never fabricated). The two co-exist on the same control.
+- **`AllowExport` / `DisplaySearchBar` / `HasSelectableData`** — DataGrid affordance flags. **`AllowedExtensions` / `FilesField`** — file-upload constraints (sparse). **`AllowMultiple`** is unused across the corpus (0/5029) and is deliberately **not** whitelisted.
+
+### DataGrid `Columns` resolution + `ColumnType` enum (Cluster A #2)
+
+A `DataGrid` control's **`Columns`** prop is an **ordered GUID list** (whitelisted, previously kept unresolved). Each GUID resolves — via the same `norm_guid` + registry walk used for `Actions`/`Conditions`/`ExecutionPaths` — to a **`UniqueItemExpando` of type `…DataGrid.Column`**. Resolution runs at **model-build time** in `build_tree` (the registry is not in the returned `model`), is stored as `node["columns"]`, and is rendered as one ordered line under the grid in `surfaces`. Verified **100 % resolution** over 323 grids / 3262 columns across the 20-app corpus.
+
+A Column's `props` carry: **`HeaderText`** (human label, 100 %), **`Name`** (camelCase identifier, 100 %), **`Visible`** (100 %; ~40 % are `false` — hidden ID/FK columns), **`ColumnType`** (int enum below), `CellDisplay` / `Alignment` (usually 0), and — on action columns only (~12 %) — a **`ClickEventHandlerScript`**. **There is NO per-column `DataField`** (0/3262): a column's data binding is order-based at the grid level, so #2 emits `HeaderText`/`Name`/visibility/kind as Tier-A facts and does **not** mint a data-model field binding (that join is deferred to the rendered-view axis, #8).
+
+| `ColumnType` | Kind | Frequency (20-app corpus) |
+|:---:|:---:|---|
+| 0 | `data` | 2933 |
+| 1 | `action` | 329 |
+
+Only `{0,1}` occur across all 20 apps; any other int degrades to `type<N>` (`_decode_column_type`), never a guess.
+
 ## AVOID — the noise
 
-- **`JsonData` property bags / `all_props`.** Every control/action node carries a `JsonData` blob of `{Name, ValueType, Value}` property items. Useful key props (Text, Required, Visible, …) are already extracted; the *full* bag is huge and almost entirely redundant with the deployed source. The forensic `model.json` keeps `all_props` for completeness — do not load it into the requirements flow.
+- **`JsonData` property bags / `all_props`.** Every control/action node carries a `JsonData` blob of `{Name, ValueType, Value}` property items. The **requirement-bearing key props** — labels, validation (`IsValidRule`/`ErrorText`/`Required`), help (`Hint`/`ToolTip`), editability (`ReadOnly`/`IsPassword`), enums (`Options`), and DataGrid `Columns` — are on the `KEY_PROP_NAMES` allowlist and surfaced (see *Control validation & field-behaviour props* and *DataGrid `Columns` resolution* above). The **rest** of the bag is huge and almost entirely redundant with the deployed source. The forensic `model.json` keeps the full `all_props` for completeness — do not load it into the requirements flow.
 - **`CustomType`** — **not** empty in web-service apps: it is the **name dictionary** a WebService Body/ResponseType `GuidReference` resolves against (dozens–hundreds per API app). Its own `JsonData.Fields` GUIDs do **not** resolve via table joins, so read a type's *fields* from the function-bound struct (above), not from the CustomType node. (In SQL-only apps it is frequently empty — check.)
 - **`StructDataType` has no `Name` column.** You still cannot read a struct's name directly, but you no longer must guess only from SQL: a struct is named transitively via **the function that binds it** — its parent `Parameter`/`DataResult` under a `ConnectorFunction` whose Body/Response `GuidReference → CustomType.Name`. Field-set-to-SQL matching remains a fallback. Structs are numerous anonymous binding instances (parented by Field/ListDataType/DataResult/Parameter) — the extractor anchors entities on **functions**, not on the struct table.
 

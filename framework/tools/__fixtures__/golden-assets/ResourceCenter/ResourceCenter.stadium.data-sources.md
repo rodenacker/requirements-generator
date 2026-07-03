@@ -1,0 +1,22 @@
+---
+stadium_asset: data-sources
+app: ResourceCenter
+file_guid: 27cac42c-3dc4-44fd-99a0-84d001ccd971
+designer_version: 6.14.3378.13771
+selected_package: 4dd7964f-aadd-4ba2-ad82-9cf8fa1f9aa7.sapz
+extracted_from: C:\Stadium 6 Web Apps\27cac42c-3dc4-44fd-99a0-84d001ccd971
+provenance: deterministic extraction from the Stadium 6 design model + administration.db
+marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lines are advisory design signals.
+---
+# Data sources — ResourceCenter
+
+> **Internal data-source contract — handoff-only.** The SQL / stored procedures / API endpoints below name the client's internal databases and services. Treat as backend-contract material, not prototype design input (only the payload *field names* in `data-model` are §7 shapes).
+
+## Tier-A — connectors & operations
+
+### FileSystem (FileSystem)
+- Connection (redacted): `{"Path": "D:\\Development\\StadiumApps\\ResourceCenter\\docs", "User": "", "Password": ""}` [from administration.db / design model]
+- **DeleteFile** (DeleteFile) — params: FileName:Parameter [from connector: FileSystem]
+- **FileExists** (FileExists) — params: FileName:Parameter [from connector: FileSystem]
+- **ReadFile** (ReadFile) — params: FileName:Parameter [from connector: FileSystem]
+- **WriteFile** (WriteFile) — params: FileName:Parameter, FileContents:Parameter [from connector: FileSystem]

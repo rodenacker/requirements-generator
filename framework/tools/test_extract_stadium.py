@@ -250,6 +250,106 @@ class TestDecodedEnumsAndGuidRule(unittest.TestCase):
         self.assertIsNone(norm_guid(None))
 
 
+class TestControlPropSurfacing(unittest.TestCase):
+    """Cluster A #1/#2/#3 — corpus-independent proof that the widened control props render
+    correctly: the validation projection, field-behaviour constraints, DataGrid column resolution,
+    and the fabricate-nothing fallbacks. Grounded in checked-in MemberAdmin fixtures + synthetic
+    edge cases, so these run even when the corpus is absent."""
+
+    def setUp(self):
+        sys.path.insert(0, HERE)
+
+    def _load(self, basename):
+        path = os.path.join(FIXTURES, basename)
+        self.assertTrue(os.path.isfile(path), f"missing fixture: {path}")
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+
+    # ---- #1: rule-intent classifier
+    def test_rule_intent_classification(self):
+        from extract_stadium_app import _rule_intent
+        self.assertEqual(_rule_intent('/^\\S+@\\S+\\.\\S+$/.test({0})'), "email")
+        self.assertEqual(_rule_intent('/^[+-]?[0-9]\\d*$/.test({0})'), "numeric")
+        self.assertEqual(_rule_intent("dayjs({0}) < dayjs().add(-18,'year')"), "date")
+        self.assertEqual(_rule_intent('/^[\\w!@#$%^&*]{8,16}$/.test({0})'), "length")
+        self.assertEqual(_rule_intent(""), "pattern")     # fabricate-nothing: no rule -> generic
+        self.assertEqual(_rule_intent(None), "pattern")
+
+    # ---- #1: validation projection (target/type/rule/message, empty-message + required-only)
+    def test_validation_rows(self):
+        from extract_stadium_app import _control_validation_rows
+        controls = self._load("control-props-memberadmin.json")["controls"]
+        rich, req = _control_validation_rows(controls)
+        blob = "\n".join(rich)
+        self.assertIn("`EmailTextBox` · required+email", blob)
+        self.assertIn("`PasswordTextBox` · required+length", blob)
+        self.assertIn("`DOBDatePicker` · required+date", blob)
+        self.assertIn('`FirstNameTextBox` · required · "Please add a value"', blob)
+        # .NET composite-format braces un-escaped for display
+        self.assertIn("{1,3}", blob)
+        self.assertNotIn("{{1,3}}", blob)
+        # intent label is Tier-B advisory on the format rules
+        self.assertIn("`[AI-SUGGESTED: email]`", blob)
+        # required-only + EMPTY ErrorText -> compact list, never a bare "" message
+        self.assertIn("EmptyMsgField", req)
+        self.assertNotIn("EmptyMsgField", blob)
+        self.assertNotIn(' · "" ', blob)
+        self.assertNotIn(' · ""', blob)
+        # constraint-only controls (no required / rule / message) are NOT validation rows
+        self.assertNotIn("NotesTextBox", blob)
+        self.assertNotIn("IdTypeDd", blob)
+        self.assertNotIn("NotesTextBox", " ".join(req))
+
+    # ---- #1: field-behaviour constraints (help / editability / multi-line / enums)
+    def test_control_constraints(self):
+        from extract_stadium_app import _control_constraints
+        by = {c["name"]: c["key_props"] for c in self._load("control-props-memberadmin.json")["controls"]}
+        self.assertIn('hint: "Select a date"', _control_constraints(by["DOBDatePicker"]))
+        city = _control_constraints(by["CityDropDown"])
+        self.assertIn('hint: "Select a city"', city)
+        self.assertIn("dynamic choices (bound)", city)     # OptionsField binding, Options null
+        notes = _control_constraints(by["NotesTextBox"])
+        self.assertIn("multi-line (5 rows)", notes)
+        self.assertIn("read-only", notes)
+        self.assertIn('hint: "Free text"', notes)
+        idt = _control_constraints(by["IdTypeDd"])          # static inline Options -> verbatim enum
+        self.assertTrue(any(a.startswith("choices:") and '"ID"' in a and '"Passport"' in a for a in idt),
+                        f"expected verbatim enum choices, got {idt}")
+        # presence != data: Hint null + VisibleLines "1" -> no constraint annotations
+        self.assertEqual(_control_constraints(by["FirstNameTextBox"]), [])
+
+    # ---- #2: ColumnType enum decode + fabricate-nothing fallback
+    def test_decode_column_type(self):
+        from extract_stadium_app import _decode_column_type
+        self.assertEqual(_decode_column_type(0), "data")
+        self.assertEqual(_decode_column_type(1), "action")
+        self.assertEqual(_decode_column_type("1"), "action")
+        self.assertEqual(_decode_column_type(99), "type99")     # unknown int round-trips, never guessed
+        self.assertIsNone(_decode_column_type(None))
+        self.assertIsNone(_decode_column_type("x"))
+
+    # ---- #2: Columns GUID resolution (order, hidden, action, unresolved fallback)
+    def test_resolve_columns_synthetic(self):
+        from extract_stadium_app import _resolve_columns
+        f = self._load("datagrid-columns-memberadmin.json")["synthetic"]
+        cols = _resolve_columns(f["props"], f["registry"])
+        self.assertEqual(len(cols), 4)
+        self.assertEqual(cols[0]["kind"], "action")
+        self.assertTrue(cols[0]["has_action"])
+        self.assertTrue(cols[0]["visible"])
+        self.assertEqual(cols[1]["kind"], "data")
+        self.assertFalse(cols[1]["visible"])               # ID column hidden
+        self.assertEqual(cols[2]["kind"], "data")
+        self.assertTrue(cols[2]["visible"])
+        self.assertEqual(cols[3].get("unresolved"), "col-missing")   # never fabricated
+
+    # ---- #2: the one-line render matches the MemberAdmin golden verbatim
+    def test_columns_line_golden(self):
+        from extract_stadium_app import _columns_line
+        f = self._load("datagrid-columns-memberadmin.json")
+        self.assertEqual(_columns_line(f["resolved_golden"]), f["expected_columns_line"])
+
+
 # =========================================================================== corpus-DEPENDENT
 @unittest.skipUnless(_HAS_CORPUS, _SKIP_CORPUS_MSG)
 class TestProbeReproducesGolden(unittest.TestCase):
@@ -311,6 +411,57 @@ class TestExtractorSmokeOverSubset(unittest.TestCase):
                         if line.startswith("## Tier-A"):
                             self.assertNotIn("[AI-SUGGESTED", line,
                                              f"[{name}] {cat}: a Tier-A heading carries [AI-SUGGESTED]: {line!r}")
+
+    def test_clusterA_validation_and_columns_rendered(self):
+        """Live-render check on MemberAdmin (the golden: email/password/DOB rules + a DataGrid):
+        the validation section carries per-control rows (never a bare "" message) and the surfaces
+        asset carries at least one resolved DataGrid column line."""
+        folder = _CORPUS_APPS.get("memberadmin")
+        if not folder:
+            self.skipTest("MemberAdmin not found in the corpus")
+        with tempfile.TemporaryDirectory() as tmp:
+            rc, out, err = _run_extractor(folder, tmp, "MemberAdmin")
+            self.assertEqual(rc, 0, f"extractor exited {rc}\n{err}")
+            with open(os.path.join(tmp, "MemberAdmin.stadium.business-rules.md"), encoding="utf-8") as fh:
+                br = fh.read()
+            with open(os.path.join(tmp, "MemberAdmin.stadium.surfaces.md"), encoding="utf-8") as fh:
+                sf = fh.read()
+            self.assertRegex(br, r"## Tier-A — validation\n[\s\S]*?\n- `[^`]+` · ")   # a per-control row
+            self.assertIn("required+email", br)
+            self.assertNotIn(' · ""', br)                                              # never a bare empty msg
+            self.assertIn("columns (in order):", sf)                                   # #2 resolved columns
+
+
+@unittest.skipUnless(_HAS_CORPUS, _SKIP_CORPUS_MSG)
+class TestUntouchedAssetsByteIdentical(unittest.TestCase):
+    """Cluster A touches only `business-rules`, `surfaces`, and `overview`. Assert every OTHER
+    Tier-1 asset is byte-identical to its checked-in golden snapshot — a HARD fail on drift (unlike
+    the review-only snapshot diff). Skips cleanly until goldens are seeded (--update-goldens)."""
+
+    UNTOUCHED = [c for c in TIER1_CATEGORIES if c not in ("business-rules", "surfaces", "overview")]
+
+    def test_untouched_assets_match_golden(self):
+        if not os.path.isdir(GOLDEN_ASSETS):
+            self.skipTest("no golden-asset snapshots checked in yet (run --update-goldens)")
+        checked = 0
+        for name, folder in _resolve_subset():
+            snap_dir = os.path.join(GOLDEN_ASSETS, name)
+            if not os.path.isdir(snap_dir):
+                continue
+            with tempfile.TemporaryDirectory() as tmp:
+                rc, out, err = _run_extractor(folder, tmp, name)
+                self.assertEqual(rc, 0, f"[{name}] extractor exited {rc}\n{err}")
+                for cat in self.UNTOUCHED:
+                    snap = os.path.join(snap_dir, f"{name}.stadium.{cat}.md")
+                    fresh = os.path.join(tmp, f"{name}.stadium.{cat}.md")
+                    if not os.path.isfile(snap):
+                        continue
+                    with open(snap, encoding="utf-8") as fa, open(fresh, encoding="utf-8") as fb:
+                        self.assertEqual(fa.read(), fb.read(),
+                                         f"[{name}] untouched asset {cat}.md drifted from its golden")
+                    checked += 1
+        if not checked:
+            self.skipTest("no untouched-asset goldens to compare (seed with --update-goldens)")
 
 
 @unittest.skipUnless(_HAS_CORPUS, _SKIP_CORPUS_MSG)
