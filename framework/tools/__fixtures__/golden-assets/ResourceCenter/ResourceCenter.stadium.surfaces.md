@@ -14,13 +14,13 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 
 ## View / task / feature inventory
 
-> Columns Page / Start / Design-surface / Reachable are **Tier-A** facts (design model + administration.db). **Inferred kind** is **Tier-B** `[AI-SUGGESTED]` (name-suffix taxonomy; bare nouns → entity-maintenance).
+> Columns Page / Title / Route / Start / Design-surface / Reachable / Route-declared are **Tier-A** facts (design model + administration.db + rendered `page-routes.js`). **Inferred kind** is **Tier-B** `[AI-SUGGESTED]` (name-suffix taxonomy; bare nouns → entity-maintenance). Title + Route come from the rendered router `[from rendered routes]`.
 
-| Page | Start? | Design surface? | Reachable via nav? | Inferred kind |
-|---|:---:|:---:|:---:|---|
-| FAQ |  | ✓ |  | entity-maintenance `[AI-SUGGESTED]` |
-| Docs |  | ✓ |  | entity-maintenance `[AI-SUGGESTED]` |
-| Page | ✓ | ✓ |  | entity-maintenance `[AI-SUGGESTED]` |
+| Page | Title | Route | Start? | Design surface? | Reachable via nav? | Route-declared? | Inferred kind |
+|---|---|---|:---:|:---:|:---:|:---:|---|
+| FAQ | FAQ | `/FAQ` |  | ✓ |  | ✓ | entity-maintenance `[AI-SUGGESTED]` |
+| Docs | Docs | `/Docs` |  | ✓ |  | ✓ | entity-maintenance `[AI-SUGGESTED]` |
+| Page | Page | `/Page` | ✓ | ✓ |  | ✓ | entity-maintenance `[AI-SUGGESTED]` |
 
 ## FAQ  ·  title: FAQ  ·  roles: User
   - GridLayout: `GridLayout`
@@ -37,6 +37,10 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 
 ## Docs  ·  title: Docs  ·  roles: User
   - GridLayout: `GridLayout`
+
+### source-UI reference — Docs (from rendered view)
+> Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
+- `Docs` → `FileSystem.ReadFile`
 
 ## Page ⭐ start  ·  title: Page  ·  roles: User
   - GridLayout: `GridLayout`

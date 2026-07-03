@@ -14,13 +14,13 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 
 ## View / task / feature inventory
 
-> Columns Page / Start / Design-surface / Reachable are **Tier-A** facts (design model + administration.db). **Inferred kind** is **Tier-B** `[AI-SUGGESTED]` (name-suffix taxonomy; bare nouns → entity-maintenance).
+> Columns Page / Title / Route / Start / Design-surface / Reachable / Route-declared are **Tier-A** facts (design model + administration.db + rendered `page-routes.js`). **Inferred kind** is **Tier-B** `[AI-SUGGESTED]` (name-suffix taxonomy; bare nouns → entity-maintenance). Title + Route come from the rendered router `[from rendered routes]`.
 
-| Page | Start? | Design surface? | Reachable via nav? | Inferred kind |
-|---|:---:|:---:|:---:|---|
-| Members | ✓ | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
-| MemberAdd |  | ✓ | ✓ | create `[AI-SUGGESTED]` |
-| MemberUpdate |  | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
+| Page | Title | Route | Start? | Design surface? | Reachable via nav? | Route-declared? | Inferred kind |
+|---|---|---|:---:|:---:|:---:|:---:|---|
+| Members | Members | `/Members` | ✓ | ✓ | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
+| MemberAdd | Member Add | `/MemberAdd` |  | ✓ | ✓ | ✓ | create `[AI-SUGGESTED]` |
+| MemberUpdate | Member Update | `/MemberUpdate` |  | ✓ | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
 
 ## Members ⭐ start  ·  title: Members  ·  roles: User, Viewer, AllAccess
   - GridLayout: `GridLayout`
@@ -30,7 +30,12 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
       - Button: `MemberAddButton` — "Add Member"
     - StackLayout: `StackLayout`
       - DataGrid: `MembersDataGrid`  ·  grid: searchable
-        - columns (in order): "Edit"(action), "Delete"(action), "ID"(hidden), "First Name", "Last Name", "Email", "DOB", "City", "City ID"(hidden), "Subscribed" [from design model]
+        - columns (in order): "Edit"(action), "Delete"(action), "ID"(hidden), `FirstName` "First Name", `LastName` "Last Name", "Email", "DOB", "City", `CityID` "City ID"(hidden), "Subscribed" [from design model]
+
+### source-UI reference — Members (from rendered view)
+> Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
+- `MembersDataGrid` → `Members.MemberDelete`
+- `MembersDGLoad` → `Members.MembersSelect`
 
 ## MemberAdd  ·  title: Member Add  ·  roles: AllAccess
   - GridLayout: `GridLayout`
@@ -84,6 +89,11 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
       - Button: `SaveButton` — "Save"
       - Button: `CancelButton` — "Cancel"
 
+### source-UI reference — MemberAdd (from rendered view)
+> Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
+- `SaveButton` → `Members.MemberInsert`
+- `MemberAdd` → `Members.CitiesSelect`
+
 ## MemberUpdate  ·  title: Member Update  ·  roles: AllAccess
   - GridLayout: `GridLayout`
     - StackLayout: `StackLayout`
@@ -136,6 +146,12 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
     - StackLayout: `StackLayout`
       - Button: `SaveButton` — "Save"
       - Button: `CancelButton` — "Cancel"
+
+### source-UI reference — MemberUpdate (from rendered view)
+> Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
+- `SaveButton` → `Members.MemberUpdate`
+- `MemberUpdate` → `Members.CitiesSelect`
+- `MemberUpdate` → `Members.MemberSelect`
 
 ## Action affordances → candidate tasks
 

@@ -129,6 +129,28 @@ def sanitize_conn(s):
         pass
     return s
 
+# --- Cluster B #4-B: classify + redact a `.sapz` `Setting` row. The `IsSecret` column is
+# UNRELIABLE (0 even on password/API-key rows across the whole corpus), so secret detection is
+# driven by the Name pattern, never the flag. Redaction happens at READ time so no secret value
+# ever reaches model.json. Returns (kind, redacted_value); never raises, never emits a secret.
+_SECRET_NAME_RE = re.compile(r"(?i)(key|secret|password|pwd|token|apikey)")
+_CONNSTR_RE = re.compile(r"(?i)(server\s*=|data source\s*=|user id\s*=|password\s*=|\"Password\"\s*:)")
+_HTTP_URL_RE = re.compile(r"(?i)^\s*https?://")
+_WINPATH_RE = re.compile(r"^\s*([A-Za-z]:\\|\\\\)")
+
+def _redact_setting(name, value):
+    nm = name or ""
+    sval = value if isinstance(value, str) else ("" if value is None else str(value))
+    if _SECRET_NAME_RE.search(nm):                         # secret-shaped NAME -> presence only
+        return ("credential", "<redacted>")
+    if _CONNSTR_RE.search(sval):                           # connection string -> reuse sanitize_conn
+        return ("connection", sanitize_conn(sval))
+    if _HTTP_URL_RE.match(sval):                           # URL -> keep scheme+host+path, drop query/#
+        return ("endpoint", _redact_pii(sval.strip().split("#", 1)[0].split("?", 1)[0]))
+    if _WINPATH_RE.match(sval):                            # filesystem path -> handoff fact (PII-scrubbed)
+        return ("path", _redact_pii(sval.strip()))
+    return ("scalar", _redact_pii(sval.strip()))           # e.g. DepartmentID
+
 # System.Data.DbType enum -> readable name (Stadium DB connector stores params by this enum)
 DBTYPE = {0:"AnsiString",1:"Binary",2:"Byte",3:"Boolean",4:"Currency",5:"Date",6:"DateTime",
           7:"Decimal",8:"Double",9:"Guid",10:"Int16",11:"Int32",12:"Int64",13:"Object",
@@ -715,6 +737,19 @@ def read_design_model(sqlitedata):
             data_dictionary.append({"struct_id": sid, "field_count": len(flds), "fields": flds})
     model["data_dictionary"] = data_dictionary
 
+    # ----- App settings (.sapz `Setting` table) — Cluster B #4-B. Rows are classified + redacted
+    # AT READ TIME (see `_redact_setting`); no secret value reaches model.json. Absent table -> [].
+    settings = []
+    if "Setting" in tn:
+        for r in rows(cur, "Setting"):
+            nm = r.get("Name")
+            if not nm:
+                continue
+            kind, val = _redact_setting(nm, r.get("Value"))
+            settings.append({"name": nm, "kind": kind, "value": val,
+                             "is_secret_flag": bool(r.get("IsSecret"))})
+    model["settings"] = settings
+
     con.close()
     return model
 
@@ -964,22 +999,110 @@ def write_inventory_md(model, admin, cfg, stack, assets, deploy_meta, path):
 
 # --------------------------------------------------------------------------- modules / custom JS
 
+# --- Cluster B #5: complementary module-detection maps. The comment-URL scan stays the PRIMARY,
+# strongest signal (probe: 53 URL hits vs 42 function hits, 62% overlap); function-name inventory
+# + CSS footprint add recovery for URL-stripped / CSS-only modules and are tagged distinctly. The
+# authoritative maps live here in code; `module-catalogue.md` mirrors them for maintainers. This is
+# a curated POSITIVE whitelist (we only look for known module functions) — so there is no inventory
+# step and no false-positive class. Every emitted slug is a real `module-catalogue.md` slug.
+FN_MODULE_MAP = {
+    "EditableRow": "datagrid-inline-row-edit",
+    "ConditionalColumnsStyling": "conditional-datagrid-styling",
+    "DataGridFilter": "datagrid-advanced-search",
+    "GenerateFilters": "datagrid-advanced-search",
+    "ConstructSearchPhrase": "filter-grid",
+    "ParseColumnHeading": "dynamic-datagrid",
+    "CollapseControl": "collapse-controls",
+    "FixHeaders": "full-width-top-bar",
+    "WorkflowSteps": "workflow-steps",
+    "Spinner": "page-loader",
+    "DismissOnClick": "popups",
+    "DismissOnEscape": "popups",
+    "Popup": "popups",
+    "Icons": "icons",
+    "Accordion": "accordion",
+    "EnvironmentIdentifier": "environment-identifier",
+    "ClearUploadFileControl": "utils-clear-upload-file-control",
+}
+# Framework / validation helper names that appear in nearly every app. The positive whitelist
+# above already excludes everything not in it, so these never emit — kept documented so a future
+# inventory-based approach can't silently promote a generic helper to a module.
+FN_EXCLUDE = frozenset({
+    "app", "AddCheckBoxComponentValidation", "AddDropDownComponentValidation",
+    "AddTextBoxComponentValidation", "AreInputsValid", "AreValidationsReset", "Callback",
+    "CallbackScript", "CheckMultipleComponentsValidation", "ClassName", "CollapseOnClickAway",
+    "ColumnHeading", "ColumnTextValues", "Conditions", "DataGridClass", "EventCallback",
+    "EventHandler", "FormFields", "globalScripts", "Headings", "install", "options",
+    "provide", "ContainerClass",
+})
+# CSS filename stem (case-insensitive prefix) -> slug, for CSS-only / URL-stripped modules.
+# Ambiguous stems (`utils.css`) and pure-theming stems (`theming-variables.css` -> design-signals)
+# are deliberately omitted (see module-catalogue.md note on CSS-only theming modules).
+CSS_MODULE_MAP = {
+    "tabs": "tabs",
+    "workflow-steps": "workflow-steps",
+    "datagrid-inline-edit": "datagrid-inline-row-edit",
+    "datagrid-custom-filters": "datagrid-advanced-search",
+    "stadium-repeater-datagrid": "repeater-datagrid-client-side",
+    "page-loader": "page-loader",
+    "top-bar": "full-width-top-bar",
+    "collapsible-control": "collapse-controls",
+    "modal": "popups",
+    "popup": "popups",
+    "accordion": "accordion",
+    "environments": "environment-identifier",
+    "icons": "icons",
+    "progress-bar": "progress-bar",
+    "button-bar": "button-bar",
+}
+# Function -> presence-only behaviour signal (the runtime step list / role->page map are function
+# ARGUMENTS — out of scope here; they belong to the behaviour axis). `RoleSpecificStartPages` is a
+# pattern, not a catalogued github module, so it is surfaced only as a behaviour, never as a module.
+BEHAVIOUR_FNS = {
+    "WorkflowSteps": "multi-step (stepper) workflow — a required multi-step interaction",
+    "RoleSpecificStartPages": "role-specific start pages — role → landing-page navigation policy",
+    "RolePages": "role-specific start pages — role → landing-page navigation policy",
+}
+
+def _fn_present(txt, name):
+    """True when a module function is DEFINED or CALLED in global-scripts.js text — anchored to
+    definition / object-property / call-site contexts, so debug-log noise (which mentions names in
+    strings) cannot false-positive. No strip pre-pass needed (probe-confirmed: names survive)."""
+    n = re.escape(name)
+    return re.search(rf"(?:function\s+{n}\b|\b{n}\s*[:=]|\.{n}\s*\()", txt) is not None
+
 def read_modules(app_dir, kb_dir=None):
-    """Detect stadium-software modules / custom vanilla JS from the generated source."""
-    out = {"global_scripts_present": False, "embedded_css": [], "detected": []}
+    """Detect stadium-software modules from the generated source. Comment-URL is the PRIMARY signal;
+    function-name inventory + CSS footprint (Cluster B #5) are complementary, each tagged with its
+    `detection_source`. Presence-only module-driven behaviours are surfaced separately."""
+    out = {"global_scripts_present": False, "embedded_css": [], "detected": [], "behaviours": []}
     gs = os.path.join(app_dir, "ClientApp", "src", "global-scripts.js")
-    names = set()
+    url_slugs, fn_slugs, behaviours = set(), set(), []
+    txt = ""
     if os.path.exists(gs):
         out["global_scripts_present"] = True
         try:
             txt = open(gs, encoding="utf-8", errors="ignore").read()
-            for u in re.findall(r"github\.com/stadium-software/([A-Za-z0-9._-]+)", txt):
-                names.add(u.strip().rstrip("/.").lower())
         except Exception:
-            pass
+            txt = ""
+        for u in re.findall(r"github\.com/stadium-software/([A-Za-z0-9._-]+)", txt):
+            url_slugs.add(u.strip().rstrip("/.").lower())
+        for fn, slug in FN_MODULE_MAP.items():             # positive whitelist; FN_EXCLUDE is a no-op guard
+            if fn not in FN_EXCLUDE and _fn_present(txt, fn):
+                fn_slugs.add(slug)
+        for fn, behaviour in BEHAVIOUR_FNS.items():
+            if _fn_present(txt, fn) and behaviour not in behaviours:
+                behaviours.append(behaviour)
     ef = os.path.join(app_dir, "wwwroot", "Content", "EmbeddedFiles", "CSS")
     if os.path.isdir(ef):
         out["embedded_css"] = sorted(f for f in os.listdir(ef) if f.lower().endswith(".css"))
+    css_slugs = set()
+    for f in out["embedded_css"]:
+        stem = f.lower()
+        for pref, slug in CSS_MODULE_MAP.items():
+            if stem.startswith(pref):
+                css_slugs.add(slug)
+                break
     gloss = {}
     if kb_dir:
         kbf = os.path.join(kb_dir, "module-catalogue.md")
@@ -991,8 +1114,317 @@ def read_modules(app_dir, kb_dir=None):
                         gloss[mm.group(1).strip().lower()] = mm.group(2).strip()
             except Exception:
                 pass
-    for n in sorted(names):
-        out["detected"].append({"module": n, "repo": f"https://github.com/stadium-software/{n}", "gloss": gloss.get(n)})
+    # union: comment-URL wins, then function-name, then CSS footprint
+    sources = {}
+    for slug in sorted(url_slugs):
+        sources[slug] = "url"
+    for slug in sorted(fn_slugs):
+        sources.setdefault(slug, "fn")
+    for slug in sorted(css_slugs):
+        sources.setdefault(slug, "css")
+    for slug in sorted(sources):
+        out["detected"].append({"module": slug, "repo": f"https://github.com/stadium-software/{slug}",
+                                 "gloss": gloss.get(slug), "detection_source": sources[slug]})
+    out["behaviours"] = behaviours
+    return out
+
+# --------------------------------------------------------------------------- rendered ClientApp/src readers (Cluster C)
+# The rendered `ClientApp/src` is GENERATED from the `.sapz`, so every fact mined here is a COMPLEMENT to
+# the design model, never a replacement: it is stamped with a `[from rendered ...]` locator and reconciled
+# against the `.sapz`, which wins on type conflict. Parsing is regex + bracket-balancing over BOUNDED
+# declarative regions (the route array, class bodies, the `columnDefinitions` array) — deliberately NO JS
+# AST (Python ships none; a new dep is rejected). This matches the read_modules regex-over-JS precedent:
+# the declarative blocks parse clean, so no debug-log strip pre-pass is needed. Every reader clones
+# read_frontend_assets/read_modules — path off app_dir, graceful absence — so pure-SQL apps and
+# bare-`.sapz` inputs no-op (return an empty result), never raising.
+
+def _read_client_src(app_dir, *relpath):
+    """Safe read of a ClientApp/src/** file. Strips a UTF-8 BOM (some routers carry one — CosmoCrm).
+    Returns "" when the file is absent (→ SQL apps and bare-`.sapz` inputs no-op, exactly like read_modules)."""
+    p = os.path.join(app_dir, "ClientApp", "src", *relpath)
+    if not os.path.isfile(p):
+        return ""
+    try:
+        return open(p, encoding="utf-8-sig", errors="ignore").read()
+    except Exception:
+        return ""
+
+def _balanced_block(text, start_idx, open_ch="[", close_ch="]"):
+    """Substring of the first `open_ch..close_ch`-balanced region starting at text[start_idx] (which must
+    be `open_ch`). Skips over quoted strings ('...', "...", `...`) so a bracket/brace inside a label can
+    never unbalance the scan. Bounds a 1.3 MB view's `columnDefinitions` array / a class body / the route
+    array WITHOUT structuring the whole file. Returns the tail from start_idx if unbalanced (truncated)."""
+    depth, i, n, quote = 0, start_idx, len(text), None
+    while i < n:
+        c = text[i]
+        if quote:
+            if c == "\\":
+                i += 2; continue
+            if c == quote:
+                quote = None
+        elif c in "'\"`":
+            quote = c
+        elif c == open_ch:
+            depth += 1
+        elif c == close_ch:
+            depth -= 1
+            if depth == 0:
+                return text[start_idx:i + 1]
+        i += 1
+    return text[start_idx:]
+
+def _split_object_literals(block):
+    """Given a `[ {…}, {…} ]` block substring, return the top-level `{…}` object substrings (brace-
+    balanced, string-aware, ignoring nested braces such as a route's `meta: {…}`). Bounds each column /
+    route object for field extraction."""
+    objs, depth, s, i, n, quote = [], 0, None, 0, len(block), None
+    while i < n:
+        c = block[i]
+        if quote:
+            if c == "\\":
+                i += 2; continue
+            if c == quote:
+                quote = None
+        elif c in "'\"`":
+            quote = c
+        elif c == "{":
+            if depth == 0:
+                s = i
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0 and s is not None:
+                objs.append(block[s:i + 1]); s = None
+        i += 1
+    return objs
+
+def read_page_routes(app_dir):
+    """Cluster C #7 — parse ClientApp/src/router/page-routes.js into the COMPLETE titled page list. This
+    is the definitive page enumeration; the `.sapz` NavigateToPage walk is only a floor (JS-computed nav
+    is opaque). Grammar (probed uniform across all 20 corpus apps):
+
+        const pageRoutes = [
+          { path: '/', redirect: '/Members' },                                 // redirect → SKIP (no component)
+          { path: '/Members', component: Members, meta: { title: 'Members' } },
+          ...
+        ];
+
+    Parse `page-routes.js` ONLY — router/ also holds routes.js + index.js (framework admin/auth/error
+    routes), which are NOT the app payload. Returns [{path, title, component}]; [] when the file is absent."""
+    txt = _read_client_src(app_dir, "router", "page-routes.js")
+    if not txt:
+        return []
+    m = re.search(r"(?:const|let|var)\s+pageRoutes\s*=\s*\[", txt)
+    if not m:
+        return []
+    routes = []
+    for obj in _split_object_literals(_balanced_block(txt, m.end() - 1, "[", "]")):
+        comp = re.search(r"\bcomponent\s*:\s*([A-Za-z_$][\w$]*)", obj)
+        if not comp:                                   # redirect-only entry (no component) → skip
+            continue
+        path = re.search(r"\bpath\s*:\s*['\"]([^'\"]*)['\"]", obj)
+        title = re.search(r"\btitle\s*:\s*['\"]([^'\"]*)['\"]", obj)
+        routes.append({"path": path.group(1) if path else None,
+                       "title": title.group(1) if title else None,
+                       "component": comp.group(1)})
+    return routes
+
+def _route_page_name(r):
+    """Page name for a page-routes.js entry: the component identifier (matches the `.sapz` page name and
+    the `.vue` filename), falling back to the last path segment."""
+    return r.get("component") or ((r.get("path") or "").strip("/").split("/")[-1] or None)
+
+# Cluster C #6 — rendered types.js grammar. A DOMAIN entity class is `<API>_Types_<Entity><Variant>`; the
+# `<API>_` prefix is REQUIRED (bare `Types_*` classes — Types_Filter/Types_Column/Types_WorkflowStep/
+# Types_ConditionalColumn — are stadium-module framework scaffolding, never FE↔API domain data, and are
+# skipped by the `_Types_`-must-be-present rule). Transport/validation envelopes are denied (never §7
+# entities). Fields are `<Name> = undefined;` with NO type and NO nullability (required-ness comes from
+# Cluster A #1's `.sapz` control props, not here). Relationships come from a class's `_getFieldTypeName`
+# map → a `_..._Type extends Array` wrapper → its `_getItemTypeName()` element type.
+
+# Entity+variant names whose CLASS is a transport/response envelope, not a domain entity (normalized, no `_Types_`).
+_RENDERED_ENVELOPE = {"defaultresponse", "generalresponse", "generalerror", "generalresponseid",
+                      "responseid", "responsemessage", "validationresult"}
+
+# Trailing variant tokens stripped to reach the entity STEM, with the field-authority each implies.
+# `Basic` binds to its Read (CustomerBasicRead → Customer); `Status` does NOT strip (CustomerStatusRead →
+# CustomerStatus, a distinct sub-resource) — the probe requires Customer and CustomerStatus stay distinct.
+# Matched longest-first (sorted at use). `*List` tokens mark a list-collection wrapper → the class is
+# excluded entirely (its only field is a self-collection already implied by the item entity).
+_TYPE_VARIANTS = [
+    ("BasicRead", "display"), ("AddUpdate", "editable"), ("WriteList", "editable"), ("ReadList", "display"),
+    ("Read", "display"), ("Write", "editable"), ("Update", "editable"), ("Post", "editable"),
+    ("Put", "editable"), ("Add", "editable"),
+    ("Convert", "action"), ("Complete", "action"), ("Cancel", "action"), ("Close", "action"),
+    ("List", "display"),
+]
+
+def _rendered_entity_stem(ev):
+    """Split a rendered `<Entity><Variant>` name (the part after `<API>_Types_`) into (stem, authority).
+    Strips the longest trailing variant token. Returns (None, None) when the class is excluded from §7
+    entities: a transport/response envelope, a `*Validation` result DTO, or a `*List` collection wrapper
+    (self-collection adds nothing the item entity lacks)."""
+    low = ev.lower()
+    if low in _RENDERED_ENVELOPE or low.endswith("validation"):
+        return None, None
+    for tok, authority in sorted(_TYPE_VARIANTS, key=lambda t: -len(t[0])):
+        if ev.endswith(tok) and len(ev) > len(tok):
+            if tok.endswith("List"):                     # list-collection wrapper → excluded
+                return None, None
+            return ev[:-len(tok)], authority
+    return ev, "display"                                 # no recognized variant → bare shape, read-authority default
+
+def read_client_types(app_dir):
+    """Cluster C #6 — parse ClientApp/src/types/types.js into FE↔API contract entities. For the ~15/20
+    web-service-backed apps this is the ONLY good typing source (the `.sapz` type reconciliation collapses
+    — CosmoCrm types 4/247 fields). Empty (1 blank line) for the 5/20 pure-SQL apps → returns []. Returns
+    [{api, entity, variant, authority, norm, fields:[{name, authority}], relations:{field: element_entity}}];
+    Array wrappers, envelopes, `*Validation` DTOs, `*List` collection wrappers and bare `Types_*`
+    scaffolding are all excluded."""
+    txt = _read_client_src(app_dir, "types", "types.js")
+    if not txt:
+        return []
+    classes = []                                          # (name, base, body)
+    for m in re.finditer(r"export\s+class\s+([A-Za-z0-9_$]+)\s*(?:extends\s+([A-Za-z0-9_.$]+)\s*)?\{", txt):
+        classes.append((m.group(1), m.group(2), _balanced_block(txt, m.end() - 1, "{", "}")))
+    # 1) `_..._Type extends Array` wrappers → {wrapper_name: element_type_name}
+    wrapper_elem = {}
+    for name, base, body in classes:
+        if base and base.split(".")[-1] == "Array":
+            em = re.search(r"_getItemTypeName\s*\([^)]*\)\s*\{[^{}]*return\s+'([^']+)'", body)
+            wrapper_elem[name] = em.group(1) if em else None
+    # 2) field-bearing domain classes (require the `<API>_Types_` prefix; not `extends Array`)
+    out = []
+    for name, base, body in classes:
+        if (base and base.split(".")[-1] == "Array") or "_Types_" not in name:
+            continue
+        api, ev = name.split("_Types_", 1)
+        if not api or not ev:
+            continue
+        stem, authority = _rendered_entity_stem(ev)
+        if stem is None:
+            continue
+        fields = [{"name": fm.group(1), "authority": authority}
+                  for fm in re.finditer(r"(?m)^\s*([A-Za-z_$][\w$]*)\s*=\s*undefined\s*;", body)]
+        relations = {}                                    # field → element entity (nested-type map)
+        for cm in re.finditer(r"([A-Za-z_$][\w$]*)\s*:\s*'(_[A-Za-z0-9_$]+)'", body):
+            elem = wrapper_elem.get(cm.group(2))
+            if not elem or "_Types_" not in elem:
+                continue
+            estem, _ = _rendered_entity_stem(elem.split("_Types_", 1)[1])
+            relations[cm.group(1)] = estem or elem.split("_Types_", 1)[1]
+        out.append({"api": api, "entity": stem, "variant": (ev[len(stem):] or None),
+                    "authority": authority, "norm": _norm_entity(stem),
+                    "fields": fields, "relations": relations})
+    return out
+
+def _peel(expr):
+    """Cluster C #8 — unwrap a generated columnDefinitions value to its literal. Peels
+    errorHandling.invoke(() => (X)) → X, typeResolver.toString('X') → 'X', typeResolver.toBoolean(b) → bool;
+    resolves a bare '...'/"..."/true/false/null literal. Returns None on any unrecognised shape (→ caller
+    falls back to the field name; never fabricates). Never raises. A naive literal read gets nothing — the
+    probe showed EVERY value is wrapped."""
+    if expr is None:
+        return None
+    s = str(expr).strip()
+    for _ in range(6):                                    # bounded unwrap (invoke → toString/toBoolean → literal)
+        m = re.match(r"errorHandling\.invoke\(\s*\(\)\s*=>\s*\((.*)\)\s*\)$", s, re.S)
+        if m:
+            s = m.group(1).strip(); continue
+        m = re.match(r"typeResolver\.to(?:String|Boolean)\((.*)\)$", s, re.S)
+        if m:
+            s = m.group(1).strip(); continue
+        break
+    if s in ("true", "false"):
+        return s == "true"
+    if s in ("null", "undefined"):
+        return None
+    m = re.match(r"^'([^']*)'$", s) or re.match(r'^"([^"]*)"$', s)
+    return m.group(1) if m else None
+
+def _obj_value(obj, key):
+    """Raw value expression for `key:` in an object-literal substring, up to the matching top-level comma
+    or the object's own closing brace (paren/bracket/brace/string-aware). None if the key is absent."""
+    m = re.search(rf"(?<![A-Za-z0-9_$]){re.escape(key)}\s*:", obj)
+    if not m:
+        return None
+    i, n, depth, quote, start = m.end(), len(obj), 0, None, m.end()
+    while i < n:
+        c = obj[i]
+        if quote:
+            if c == "\\":
+                i += 2; continue
+            if c == quote:
+                quote = None
+        elif c in "'\"`":
+            quote = c
+        elif c in "([{":
+            depth += 1
+        elif c in ")]}":
+            if depth == 0:
+                break                                     # the object's own closing brace
+            depth -= 1
+        elif c == "," and depth == 0:
+            break
+        i += 1
+    return obj[start:i].strip()
+
+def _decode_endpoint(view, tail):
+    """Cluster C #8 — decode a generated `api/Documents/Pages/<View>/<tail>` route string. `_46`→`.`,
+    `_95`→`_` (ASCII encoding). The decoded tail is `<Control>.<Event>…Click.<Connector>_<Function>`: the
+    last dotted segment is `<Connector>_<Function>` (connector/function split on its first `_`; connector
+    names carry no `_` in the corpus). Returns {control, connector, function, decoded}."""
+    decoded = tail.replace("_46", ".").replace("_95", "_")
+    segs = decoded.split(".")
+    connector, _, function = segs[-1].partition("_")
+    return {"control": segs[0] if segs else None, "connector": connector or None,
+            "function": function or None, "decoded": decoded}
+
+def read_view_columns(app_dir):
+    """Cluster C #8 — parse rendered domain `views/*.vue` for per-grid column labels/visibility/clickability
+    + the page→connector-function endpoints. Only TOP-LEVEL `views/*.vue` (excludes the administration/
+    authentication/errors/layout/templates subdirs and StartPage.vue). Each `<Grid>ColumnDefinitions: [`
+    is bounded via bracket-balancing (view files reach 1.3 MB — NEVER structure the whole file) and each
+    column value `_peel`ed. Returns {view: {grids: {grid_var: [{name,label,visible,clickable}]}, endpoints:[…]}};
+    {} when views/ is absent."""
+    base = os.path.join(app_dir, "ClientApp", "src", "views")
+    if not os.path.isdir(base):
+        return {}
+    out = {}
+    for fn in sorted(os.listdir(base)):
+        if not fn.endswith(".vue") or fn == "StartPage.vue":
+            continue
+        fp = os.path.join(base, fn)
+        if not os.path.isfile(fp):                        # skip subdirs (admin/auth/errors/layout/templates)
+            continue
+        try:
+            txt = open(fp, encoding="utf-8-sig", errors="ignore").read()
+        except Exception:
+            continue
+        view = fn[:-4]
+        grids = {}
+        for m in re.finditer(r"([A-Za-z0-9_$]*)ColumnDefinitions\s*:\s*\[", txt):  # capital C excludes the template binding
+            block = _balanced_block(txt, m.end() - 1, "[", "]")
+            cols = []
+            for obj in _split_object_literals(block):
+                name = _peel(_obj_value(obj, "name"))
+                if not name:                              # unpeelable name → skip the column (fabricate nothing)
+                    continue
+                cols.append({"name": name,
+                             "label": _peel(_obj_value(obj, "headerText")),
+                             "visible": _peel(_obj_value(obj, "visible")),
+                             "clickable": bool(_peel(_obj_value(obj, "hasClickEvent")))})
+            if cols:
+                grids.setdefault(m.group(1), cols)        # first definition wins
+        endpoints, seen = [], set()
+        for em in re.finditer(r"api/Documents/Pages/([A-Za-z0-9_$]+)/([A-Za-z0-9_$]+)", txt):
+            ep = _decode_endpoint(em.group(1), em.group(2))
+            if ep["decoded"] in seen:
+                continue
+            seen.add(ep["decoded"])
+            endpoints.append(ep)
+        if grids or endpoints:
+            out[view] = {"grids": grids, "endpoints": endpoints}
     return out
 
 # --------------------------------------------------------------------------- asset projection (--emit-assets)
@@ -1076,22 +1508,76 @@ def _control_constraints(kp):
 
 
 def _columns_line(cols):
-    """Cluster A #2 — render a DataGrid's resolved ordered columns as one Tier-A line.
-    HeaderText in quotes (falling back to Name, then `(unnamed)`); `(action)` for command columns,
-    `(hidden)` for Visible:false. Unresolved GUIDs surface as `(unresolved)` — never invented."""
+    """Cluster A #2 — render a DataGrid's resolved ordered columns as one Tier-A line. Shows the
+    field-name binding + human label: `` `FieldName` "Human Label" `` when they differ (Cluster C makes
+    the binding explicit — the wireframe data-prop), `"Label"` when equal, `` `FieldName` `` when the
+    HeaderText is a non-literal binding (an unresolved `.sapz` Expression → shown by name, never as a
+    raw blob; the rendered view resolves the literal via #8). `(action)` for command columns, `(hidden)`
+    for Visible:false. Unresolved column GUIDs surface as `(unresolved)` — never invented."""
     parts = []
     for c in cols or []:
         if c.get("unresolved"):
             parts.append("(unresolved)")
             continue
-        label = str(c.get("header_text") or c.get("name") or "(unnamed)")
+        name = c.get("name")
+        ht = c.get("header_text")
+        label = ht.strip() if isinstance(ht, str) and ht.strip() else None   # non-string HeaderText = a binding/Expression
         tags = []
         if c.get("kind") == "action":
             tags.append("action")
         if c.get("visible") is False:
             tags.append("hidden")
-        parts.append(f'"{label}"' + (f"({', '.join(tags)})" if tags else ""))
+        if name and label and label != name:
+            disp = f'`{name}` "{label}"'
+        elif label:
+            disp = f'"{label}"'
+        elif name:
+            disp = f'`{name}`'
+        else:
+            disp = "(unnamed)"
+        parts.append(disp + (f"({', '.join(tags)})" if tags else ""))
     return "columns (in order): " + ", ".join(parts)
+
+def _column_divergences(sapz_cols, rendered_cols):
+    """Cluster C #8 — compare the rendered view's grid columns to the `.sapz` #2 columns (matched by field
+    name). The `.sapz` #2 already resolves label/visibility/clickability for ~all columns, so this returns
+    ONLY the divergences (deployed rendered source vs the design package — the DA#1 staleness cross-check):
+    a resolved Expression header, a label/visibility/clickability mismatch, or a rendered-only column.
+    Empty list when they agree (the common case) or there is no rendered grid. Each note is Tier-A."""
+    notes, r_by, matched = [], {}, set()
+    for rc in rendered_cols or []:
+        nm = (rc.get("name") or "").lower()
+        if nm:
+            r_by.setdefault(nm, rc)
+    for sc in sapz_cols or []:
+        if sc.get("unresolved"):
+            continue
+        nm = (sc.get("name") or "").lower()
+        rc = r_by.get(nm)
+        if not rc:
+            continue
+        matched.add(nm)
+        sh = sc.get("header_text")
+        s_label = sh.strip() if isinstance(sh, str) and sh.strip() else None
+        rl = rc.get("label")
+        if rl and s_label is None:                    # design header was an unresolved binding/Expression
+            notes.append(f"`{sc.get('name')}` header resolves to \"{rl}\" (design header is an unresolved binding)")
+        elif rl and s_label and rl != s_label:
+            notes.append(f"`{sc.get('name')}` label differs — design \"{s_label}\" / deployed \"{rl}\"")
+        rv, sv = rc.get("visible"), sc.get("visible")
+        if isinstance(rv, bool) and isinstance(sv, bool) and rv != sv:
+            notes.append(f"`{sc.get('name')}` visibility differs — design {'visible' if sv else 'hidden'} / "
+                         f"deployed {'visible' if rv else 'hidden'}")
+        rcl, scl = rc.get("clickable"), sc.get("has_action")
+        if isinstance(rcl, bool) and isinstance(scl, bool) and rcl != scl:
+            notes.append(f"`{sc.get('name')}` clickability differs — design {'clickable' if scl else 'static'} / "
+                         f"deployed {'clickable' if rcl else 'static'}")
+    for rc in rendered_cols or []:
+        nm = (rc.get("name") or "").lower()
+        if nm and nm not in matched:
+            lbl = rc.get("label")
+            notes.append(f"rendered-only column `{rc.get('name')}`" + (f" \"{lbl}\"" if lbl and lbl != rc.get("name") else ""))
+    return notes
 
 
 _COLUMN_TYPE_ENUM = {0: "data", 1: "action"}
@@ -1235,7 +1721,10 @@ _SP_PREFIXES = {"sp", "prc", "usp", "fn", "udf", "proc"}
 # is NOT dropped — over-filtering fields would lose real SQL/proc columns.
 _ENVELOPE_DENY = {"success", "message", "raiseexceptions", "statuscode", "responsebody", "apiresponse"}
 # Broader denylist for ENTITY NAMES (incl. the WS path fallback): a transport wrapper is never an entity.
-_ENTITY_DENY = _ENVELOPE_DENY | {"result", "error", "response", "data"}
+# _RENDERED_ENVELOPE (defined with the Cluster C readers above) adds the rendered types.js envelopes
+# (DefaultResponse/GeneralError/ResponseId/ValidationResult/…) so they are denied from EVERY source, not
+# just the rendered one — the WS path also names some of them (CosmoCrm ValidationResult).
+_ENTITY_DENY = _ENVELOPE_DENY | {"result", "error", "response", "data"} | _RENDERED_ENVELOPE
 # CRUD verb keywords matched against a path/proc-name. Order is documentary only — matching uses
 # rightmost-position (a name like "createOrUpdate" resolves to its last action, UPDATE).
 _VERB_KEYWORDS = [
@@ -1369,10 +1858,24 @@ def _norm_entity(name):
         s = s[:-1]
     return s
 
+def _variant_norm(name):
+    """Cluster C #6 — merge key that ALSO strips a trailing rendered-types variant token before norming,
+    so a web-service shape keyed on the raw type name (`CustomerRead`, `CustomerWrite`, `BeneficiaryReadList`)
+    collapses onto the variant-stripped rendered stem (`Customer`, `Beneficiary`). Case-sensitive PascalCase
+    token matching means a SQL table like `Bread` / `Blacklist` never strips — only genuine
+    `<Entity><Variant>` names do."""
+    s = re.sub(r"^_+", "", str(name or ""))
+    if s.endswith("List") and len(s) > 4:              # ReadList/WriteList/List → drop List, keep the stem
+        s = s[:-4]
+    stem, _ = _rendered_entity_stem(s)
+    return _norm_entity(stem or s)
+
 # Normalized transport/scratch names that are never domain entities from ANY source — this also
 # catches SQL `DECLARE @result TABLE(...)` scratch table-variables surfaced by _sql_shape.
 _ENTITY_DENY_NORM = {_norm_entity(x) for x in _ENTITY_DENY}
-_SOURCE_RANK = {"sql": 3, "stored-procedure": 2, "web-service": 1}  # richer spelling wins the display name
+_SOURCE_RANK = {"sql": 3, "stored-procedure": 2, "rendered-types": 2, "web-service": 1}  # richer spelling wins the display name
+# rendered-types ranks below sql (design-model type/spelling wins on conflict) but above web-service so
+# the clean PascalCase API type name (`Beneficiary`) beats an ugly WS-path-derived spelling.
 
 def _blank_entity():
     return {"_disp": None, "sources": set(), "aliases": set(), "ops": set(), "fns": [], "fields": {}}
@@ -1440,7 +1943,8 @@ def reconcile_entities(model):
                     continue
                 fr = rec["fields"].get(fk)
                 if fr is None:
-                    fr = {"name": col, "path": col, "types": set(), "sources": set(), "ops": set(), "locators": []}
+                    fr = {"name": col, "path": col, "types": set(), "sources": set(), "ops": set(),
+                          "locators": [], "authority": set()}
                     rec["fields"][fk] = fr
                 fr["sources"].add(source)
                 if shape.get("verb"):
@@ -1450,6 +1954,78 @@ def reconcile_entities(model):
                 t = (shape.get("col_types") or {}).get(col) or sql_ptypes.get(col)
                 if t and str(t).lower() not in ("object", "system.object"):
                     fr["types"].add(t)
+
+    # Cluster C #6 — rendered types.js as a new evidence class. Supplies FE↔API field shapes for the
+    # web-service apps the `.sapz` type reconciliation missed. types.js carries NO type/nullability (all
+    # `= undefined`), so a rendered field NEVER overrides a `.sapz`/SQL type — it only ADDS to the closed
+    # set (design-model type still wins on conflict). Each rendered field carries a `[from rendered types]`
+    # locator + a per-field authority (Tier-B: display/editable/action, from the class variant). Nested-type
+    # relations feed §2.2. Envelopes / `*Validation` / `*List` wrappers are pre-excluded by the reader.
+    for rt in model.get("rendered_types", []) or []:
+        k = rt.get("norm")
+        if not k or k in _ENTITY_DENY_NORM:
+            continue
+        rec = reconciled.setdefault(k, _blank_entity())
+        rec["sources"].add("rendered-types")
+        rec["aliases"].add(rt["entity"])
+        consider_display(rec, rt["entity"], "rendered-types")
+        for fdef in rt.get("fields", []) or []:
+            nm = fdef["name"]
+            fk = re.sub(r"[^a-z0-9.]", "", nm.lower())
+            if not fk:
+                continue
+            fr = rec["fields"].get(fk)
+            if fr is None:
+                fr = {"name": nm, "path": nm, "types": set(), "sources": set(), "ops": set(),
+                      "locators": [], "authority": set()}
+                rec["fields"][fk] = fr
+            fr["sources"].add("rendered-types")
+            fr.setdefault("authority", set()).add(fdef["authority"])
+            if "from rendered types" not in fr["locators"]:
+                fr["locators"].append("from rendered types")
+        rels = rec.setdefault("rel", {})
+        for fld_name, elem_entity in (rt.get("relations") or {}).items():
+            if elem_entity:
+                rels[fld_name] = elem_entity
+
+    # Cluster C #6 — consolidate variant-siblings. Web-service shapes are keyed on the raw type name
+    # (`CustomerRead`/`CustomerWrite`), which plain `_norm_entity` does NOT variant-strip, so they sit
+    # beside the rendered `Customer`. Re-group every entity by its variant-stripped stem and fold each
+    # group into its cleanest member (the one already at the stem key / rendered / richest). This both
+    # de-duplicates the rendered↔WS split and cleans the pre-existing "247 fields / 4 typed" WS sprawl —
+    # #6's core purpose. GATED on rendered_types so pure-SQL apps stay byte-identical (no-op).
+    if model.get("rendered_types"):
+        groups = {}
+        for key, rec in reconciled.items():
+            disp = rec["_disp"][0] if rec["_disp"] else key
+            groups.setdefault(_variant_norm(disp), []).append(key)
+        for canon, keys in groups.items():
+            if len(keys) < 2 or not any("rendered-types" in reconciled[k]["sources"] for k in keys):
+                continue                                  # only fold groups #6 actually contributed to
+            def _score(k, canon=canon):
+                rec = reconciled[k]
+                disp = rec["_disp"][0] if rec["_disp"] else k
+                return (_norm_entity(disp) == canon, "rendered-types" in rec["sources"], len(rec["fields"]))
+            target = max(keys, key=_score)
+            dst = reconciled[target]
+            for k in keys:
+                if k == target:
+                    continue
+                src = reconciled.pop(k)
+                dst["sources"] |= src["sources"]; dst["aliases"] |= src["aliases"]; dst["ops"] |= src["ops"]
+                dst["fns"] = list(dict.fromkeys(dst["fns"] + src["fns"]))
+                dst.setdefault("rel", {}).update(src.get("rel", {}))
+                for fk, fr in src["fields"].items():
+                    ex = dst["fields"].get(fk)
+                    if ex is None:
+                        dst["fields"][fk] = fr
+                        continue
+                    ex["types"] |= fr["types"]; ex["sources"] |= fr["sources"]; ex["ops"] |= fr["ops"]
+                    ex.setdefault("authority", set())
+                    ex["authority"] |= fr.get("authority", set())
+                    for loc in fr["locators"]:
+                        if loc not in ex["locators"]:
+                            ex["locators"].append(loc)
 
     # fill still-untyped fields from the design-model data dictionary (concrete beats none)
     type_by_field = {}
@@ -1473,12 +2049,13 @@ def reconcile_entities(model):
             fields.append({"name": fr["name"], "path": fr["path"],
                            "type": (sorted(fr["types"])[0] if fr["types"] else None),
                            "types": sorted(fr["types"]), "sources": sorted(fr["sources"]),
-                           "ops": sorted(fr["ops"]), "locators": fr["locators"]})
+                           "ops": sorted(fr["ops"]), "locators": fr["locators"],
+                           "authority": sorted(fr.get("authority") or [])})
         fields.sort(key=lambda x: x["path"].lower())
         out[k] = {"display": rec["_disp"][0] if rec["_disp"] else k, "norm": k,
                   "sources": sorted(rec["sources"]), "ops": sorted(rec["ops"]),
                   "aliases": sorted(rec["aliases"]), "related": related,
-                  "fns": rec["fns"], "fields": fields}
+                  "fns": rec["fns"], "fields": fields, "rel": rec.get("rel", {})}
     return out, sorted(set(unclassified))
 
 def _prov_header(model, category, extra=None):
@@ -1852,6 +2429,18 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
     for ap in admin_pages:
         if ap.get("name") and ap["name"] not in inv_order:
             inv_order.append(ap["name"])
+    # Cluster C #7 — union the rendered route list (page-routes.js is the definitive page enumeration;
+    # the `.sapz` walk is a floor). A route-declared page absent from the design + admin inventory is a
+    # real page the `.sapz` nav walk could not reach — surfaced here, closing the orphan-page gap.
+    route_by_name = {}
+    for r in model.get("page_routes", []) or []:
+        nm = _route_page_name(r)
+        if nm:
+            route_by_name.setdefault(nm, r)
+            if nm not in inv_order:
+                inv_order.append(nm)
+    route_names = set(route_by_name)
+    view_columns = model.get("view_columns") or {}      # Cluster C #8 — rendered grid columns + endpoints, keyed by view
     design_names = set(page_names)
 
     # 0e — per-surface action affordances: actionable controls whose label carries an action verb.
@@ -1926,10 +2515,16 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
     W("overview", "\n".join(L))
 
     # ======================================================================= data-model
-    L = [f"# Data model — {appname}\n",
-         "> Entities + fields reconciled across SQL queries/views, stored procedures and web-service "
-         "calls (union by name). Every field carries a `[from …]` locator naming its exact source.\n",
-         "## Tier-A — entities & fields\n"]
+    # The rendered-types clause is added ONLY when types.js contributed shapes — so a pure-SQL app
+    # (empty types.js) emits the identical intro it did before Cluster C (the #6 no-op guarantee).
+    _dm_intro = ("> Entities + fields reconciled across SQL queries/views, stored procedures and web-service "
+                 "calls (union by name). Every field carries a `[from …]` locator naming its exact source.")
+    if model.get("rendered_types"):
+        _dm_intro = ("> Entities + fields reconciled across SQL queries/views, stored procedures, web-service "
+                     "calls and the rendered `types.js` FE↔API contract (union by name). Every field carries a "
+                     "`[from …]` locator naming its exact source; `[from rendered types]` fields carry a per-field "
+                     "authority (editable / read-only / action-input — Tier-B, read from the rendered variant).")
+    L = [f"# Data model — {appname}\n", _dm_intro + "\n", "## Tier-A — entities & fields\n"]
     if ents_sorted:
         for e in ents_sorted:
             srcs = ", ".join(e["sources"]) or "—"
@@ -1939,12 +2534,18 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
                 for fld in e["fields"]:
                     typ = fld.get("type")
                     loc = fld["locators"][0] if fld["locators"] else f"from connector: {(e['fns'] or ['?'])[0]}"
-                    line = f"- `{e['display']}.{fld['path']}`" + (f" : {typ}" if typ else "") + f" [{loc}]"
+                    auth = fld.get("authority") or []            # Cluster C #6 — Tier-B field authority
+                    atag = (" · editable" if "editable" in auth else
+                            " · action-input" if "action" in auth else
+                            " · read-only" if "display" in auth else "")
+                    line = f"- `{e['display']}.{fld['path']}`" + (f" : {typ}" if typ else "") + atag + f" [{loc}]"
                     if len(fld["locators"]) > 1:
                         line += f"  _(+{len(fld['locators']) - 1} more)_"
                     L.append(line)
             else:
                 L.append("- _(fields not modelled for this endpoint)_")
+            for fld_name, elem in sorted((e.get("rel") or {}).items()):   # Cluster C #6 — nested-type relations (§2.2)
+                L.append(f"  - relation: `{e['display']}.{fld_name}` → `{elem}[]` (nested type) [from rendered types]")
             if e["related"]:
                 rel = ", ".join("`" + r + "`" for r in e["related"])
                 L.append(f"> related shapes: {rel} (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`")
@@ -2011,6 +2612,37 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
             L.append("")
     else:
         L.append("_No connectors in the design model._\n")
+    # --- app settings / integration signals (Cluster B #4-B) — non-secret `Setting` rows only.
+    # Secrets are already reduced to a redacted presence signal at read time (`_redact_setting`).
+    settings = model.get("settings") or []
+    if settings:
+        conn_blob = " ".join((_flat(c.get("connection_string")) or "") for c in (connectors or []))
+        integ, creds = [], []
+        for s in settings:
+            k, nm, v = s.get("kind"), s.get("name"), s.get("value")
+            if k == "credential":
+                creds.append(nm)
+            elif k == "endpoint":
+                integ.append(f"- Internal API endpoint: `{_flat(v)[:200]}` [from design model: Setting]")
+            elif k == "connection":
+                if v and _flat(v) in conn_blob:            # dedupe vs the connector inventory above
+                    continue
+                integ.append(f"- Data connection configured: `{_flat(v)[:200]}` [from design model: Setting]")
+            elif k == "path":
+                integ.append(f"- Filesystem path referenced: `{_flat(v)[:200]}` [from design model: Setting]")
+            else:                                          # scalar (e.g. DepartmentID)
+                disp = _flat(v)
+                if len(disp) > 100 or re.search(r"<[A-Za-z/!]", disp):   # UI markup / huge blob -> presence only
+                    integ.append(f"- Config value present: `{nm}` (structured/large value, not shown) [from design model: Setting]")
+                else:
+                    integ.append(f"- Config value: `{nm}` = `{disp}` [from design model: Setting]")
+        if integ or creds:
+            L.append("## Tier-A — app settings / integration\n")
+            L.extend(integ)
+            if creds:
+                L.append("- Integration credential(s) configured (redacted): "
+                         + ", ".join(f"`{c}`" for c in creds) + " [from design model: Setting]")
+            L.append("")
     W("data-sources", "\n".join(L))
 
     # ======================================================================= business-rules
@@ -2282,18 +2914,23 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
          "Tier-B = layout & control-choice (advisory; the system holds design authority).\n"]
     # ---- 0b — view / task / feature inventory (union of design-model + administration.db pages)
     L.append("## View / task / feature inventory\n")
-    L.append("> Columns Page / Start / Design-surface / Reachable are **Tier-A** facts (design model "
-             "+ administration.db). **Inferred kind** is **Tier-B** `[AI-SUGGESTED]` (name-suffix "
-             "taxonomy; bare nouns → entity-maintenance).\n")
-    L.append("| Page | Start? | Design surface? | Reachable via nav? | Inferred kind |")
-    L.append("|---|:---:|:---:|:---:|---|")
+    L.append("> Columns Page / Title / Route / Start / Design-surface / Reachable / Route-declared are "
+             "**Tier-A** facts (design model + administration.db + rendered `page-routes.js`). **Inferred "
+             "kind** is **Tier-B** `[AI-SUGGESTED]` (name-suffix taxonomy; bare nouns → entity-maintenance). "
+             "Title + Route come from the rendered router `[from rendered routes]`.\n")
+    L.append("| Page | Title | Route | Start? | Design surface? | Reachable via nav? | Route-declared? | Inferred kind |")
+    L.append("|---|---|---|:---:|:---:|:---:|:---:|---|")
     for name in inv_order:
         st = "✓" if start_by_name.get(name) else ""
         ds = "✓" if name in design_names else ""
         rc = "✓" if name in nav_dests else ""
-        L.append(f"| {name} | {st} | {ds} | {rc} | {_page_kind(name)} `[AI-SUGGESTED]` |")
+        r = route_by_name.get(name) or {}
+        title = _flat(r.get("title")) or (next((p.get("title") for p in pages if p.get("name") == name and p.get("title")), None)) or "—"
+        route = r.get("path") or "—"
+        rd = "✓" if name in route_names else ""
+        L.append(f"| {name} | {title} | `{route}` | {st} | {ds} | {rc} | {rd} | {_page_kind(name)} `[AI-SUGGESTED]` |")
     if not inv_order:
-        L.append("| _(no pages found)_ | | | | |")
+        L.append("| _(no pages found)_ | | | | | | | |")
     L.append("")
     start = app.get("start_page_id")
     for p in pages:
@@ -2311,8 +2948,34 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
                 cols = n.get("columns")                  # Cluster A #2 — resolved DataGrid columns
                 if cols:
                     L.append("  " * (depth + 1) + "- " + _columns_line(cols) + " [from design model]")
+                    # Cluster C #8 — divergence-aware join: the `.sapz` #2 columns already carry
+                    # label/visibility/clickability, so surface ONLY where the DEPLOYED rendered grid
+                    # differs (resolved Expression header / mismatch / rendered-only col) — the DA#1
+                    # deployed-vs-design staleness cross-check. Matched by (page → grid control name).
+                    rgrid = ((view_columns.get(p.get("name")) or {}).get("grids") or {}).get(n.get("name"))
+                    for note in _column_divergences(cols, rgrid):
+                        L.append("  " * (depth + 2) + f"- ⚠ {note} [from rendered view]")
                 render(n.get("children", []), depth + 1)
         render(p.get("control_tree", []))
+        # Cluster C #8 — page→connector-function endpoints decoded from the rendered view (§8 existing-tool
+        # reference). The `.sapz` renders these weakly; the rendered route strings bind UI action → backend.
+        eps = (view_columns.get(p.get("name")) or {}).get("endpoints") or []
+        if eps:
+            L.append(f"\n### source-UI reference — {p['name']} (from rendered view)")
+            L.append("> Backend operations the deployed page invokes (UI control → connector.function), "
+                     "decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).")
+            shown, seen_cf = 0, set()
+            for ep in eps:
+                cf = (ep.get("control"), ep.get("connector"), ep.get("function"))
+                if cf in seen_cf:
+                    continue
+                seen_cf.add(cf)
+                conn, fn = ep.get("connector") or "?", ep.get("function") or ""
+                L.append(f"- `{ep.get('control') or '?'}` → `{conn}{('.' + fn) if fn else ''}`")
+                shown += 1
+                if shown >= 40:
+                    L.append(f"- …and further endpoint bindings (truncated at 40) [from rendered view]")
+                    break
         L.append("")
     # ---- 0e — action affordances → candidate user tasks (per surface)
     L.append("## Action affordances → candidate tasks\n")
@@ -2364,17 +3027,27 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
     inv_set = list(dict.fromkeys(inv_order))
     reachable = [n for n in inv_set if n in nav_dests]
     orphans = [n for n in inv_set if n not in nav_dests]
+    # Cluster C #7 — a page absent from the captured `.sapz` walk but DECLARED in page-routes.js is
+    # reachable via a client route (the router is the definitive enumeration), NOT a true orphan. The
+    # JS-computed-nav caveat narrows to pages absent from BOTH signals (should be ~none).
+    route_reachable = [n for n in orphans if n in route_names]
+    true_orphans = [n for n in orphans if n not in route_names]
     L.append("\n## Tier-A — navigation reachability\n")
     L.append(f"- Coverage: **{len(reachable)} of {len(inv_set)}** inventory pages are reachable via a "
              "captured `NavigateToPage` action. [from design model + administration.db]")
-    if orphans:
-        starts = [n for n in orphans if start_by_name.get(n)]
+    if route_reachable:
+        L.append(f"- Additionally reachable via a declared client route (not on the captured `.sapz` walk): "
+                 + ", ".join(f"`{n}`" for n in route_reachable) + " [from rendered routes]")
+    if true_orphans:
+        starts = [n for n in true_orphans if start_by_name.get(n)]
         note = f" _(includes the start page `{starts[0]}`, the entry point)_" if starts else ""
-        L.append("- Orphans (no inbound captured edge): " + ", ".join(f"`{n}`" for n in orphans) + note)
+        L.append("- Orphans (no inbound captured edge AND not route-declared): "
+                 + ", ".join(f"`{n}`" for n in true_orphans) + note)
     L.append("\n## Tier-B — reachability caveat (advisory)")
-    L.append("- Unreached pages are typically reached by JS-computed navigation (`jsGETCurrentURl` / "
-             "custom JS) or are entry-only, so the captured nav graph is a floor, not the complete "
-             "journey map. `[AI-SUGGESTED]`")
+    L.append("- Any remaining unreached page (absent from the captured `.sapz` walk AND from "
+             "`page-routes.js`) is typically reached by JS-computed navigation (`jsGETCurrentURl` / "
+             "custom JS) or is entry-only, so the captured nav graph is a floor, not the complete "
+             "journey map. Route-declared pages above close most of this gap. `[AI-SUGGESTED]`")
     # ---- 1e — candidate cross-surface journeys (Tier-B; joins 0c edges + 0e/0g gesture + 0h actor).
     # Edges/gestures/states are Tier-A facts; the claim that a chain IS one end-to-end task is Tier-B.
     def _page_actor(page):
@@ -2543,12 +3216,18 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
     })
 
     # ======================================================================= modules
+    _SRC_LABEL = {"url": "comment-URL", "fn": "function-name", "css": "CSS footprint"}
     L = [f"# Custom JS / modules — {appname}\n", "## Tier-A — detected modules\n"]
     if mods.get("detected"):
         for m in mods["detected"]:
-            L.append(f"- **{m['module']}** — {m.get('gloss') or '(no KB gloss)'} — {m['repo']}")
+            src = _SRC_LABEL.get(m.get("detection_source"), m.get("detection_source") or "?")
+            L.append(f"- **{m['module']}** — {m.get('gloss') or '(no KB gloss)'} — {m['repo']} [detected via: {src}]")
     else:
-        L.append("_No stadium-software module references detected in global-scripts.js._")
+        L.append("_No stadium-software modules detected (comment-URL, function-name, or CSS footprint)._")
+    if mods.get("behaviours"):
+        L.append("\n## Tier-A — module-driven behaviours\n")
+        for b in mods["behaviours"]:
+            L.append(f"- {b} [from global-scripts]")
     L.append(f"\n- global-scripts.js present: {mods.get('global_scripts_present')}")
     L.append(f"- Module CSS footprint: {', '.join(mods.get('embedded_css', [])) or 'none'}")
     L.append("\n## Tier-B — implication (advisory)")
@@ -2612,6 +3291,9 @@ def main():
         model["_app_name"] = admin.get("app_name") or model.get("application", {}).get("name") or cfg.get("WebAppName")
         model["_file_guid"] = admin.get("file_guid") or os.path.basename(app_dir)
         model["modules"] = read_modules(app_dir, args.kb)
+        model["page_routes"] = read_page_routes(app_dir)          # Cluster C #7 — complete titled page list
+        model["rendered_types"] = read_client_types(app_dir)       # Cluster C #6 — FE↔API contract shapes
+        model["view_columns"] = read_view_columns(app_dir)         # Cluster C #8 — rendered grid labels + endpoints
 
         name = (model.get("application", {}).get("name") or admin.get("app_name")
                 or cfg.get("WebAppName") or os.path.basename(app_dir))

@@ -21,10 +21,10 @@ _No explicit page-navigation actions found._
 ## Tier-A — navigation reachability
 
 - Coverage: **0 of 3** inventory pages are reachable via a captured `NavigateToPage` action. [from design model + administration.db]
-- Orphans (no inbound captured edge): `FAQ`, `Docs`, `Page` _(includes the start page `Page`, the entry point)_
+- Additionally reachable via a declared client route (not on the captured `.sapz` walk): `FAQ`, `Docs`, `Page` [from rendered routes]
 
 ## Tier-B — reachability caveat (advisory)
-- Unreached pages are typically reached by JS-computed navigation (`jsGETCurrentURl` / custom JS) or are entry-only, so the captured nav graph is a floor, not the complete journey map. `[AI-SUGGESTED]`
+- Any remaining unreached page (absent from the captured `.sapz` walk AND from `page-routes.js`) is typically reached by JS-computed navigation (`jsGETCurrentURl` / custom JS) or is entry-only, so the captured nav graph is a floor, not the complete journey map. Route-declared pages above close most of this gap. `[AI-SUGGESTED]`
 
 ## Tier-B — candidate cross-surface journeys (advisory; interpretive review gate)
 

@@ -12,7 +12,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 
 ## Tier-A — detected modules
 
-_No stadium-software module references detected in global-scripts.js._
+_No stadium-software modules detected (comment-URL, function-name, or CSS footprint)._
 
 - global-scripts.js present: True
 - Module CSS footprint: none

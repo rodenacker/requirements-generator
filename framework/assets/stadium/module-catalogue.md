@@ -12,6 +12,17 @@ A module is present in an app when any of these fire:
 2. **EmbeddedFiles CSS** — `wwwroot/Content/EmbeddedFiles/CSS/` contains the module's stylesheet(s), e.g. `<name>.css` + `<name>-variables.css`. Some modules are CSS-only (no JS comment URL) and are detectable *only* this way — notably `theming-kit` (`theming-variables.css`) and `css-utilities`.
 3. **Call sites** — `this.$globalScripts().<Fn>()` invocations in `JavaScript` actions / `global-scripts.js` name the module's exported functions (e.g. `ConstructSearchPhrase`, `ParseColumnHeading`, `Icons`, `ValidateComponentData`).
 
+### Which signals the extractor implements (Cluster B #5)
+
+All three signals now fire, and each detected module carries a **`detection_source`** tag (`comment-URL` / `function-name` / `CSS footprint`) in the `modules` asset:
+
+- **Comment-URL stays PRIMARY.** Corpus probe: 53 URL hits vs 42 function hits (62% overlap); most 0-detect apps are genuine stubs. Function-name + CSS-footprint are strictly **complementary** — they recover URL-stripped / CSS-only modules (e.g. one corpus app, `FormsIntergration`, has *no* comment URLs yet clearly uses `datagrid-inline-row-edit` + `dynamic-datagrid` + `filter-grid`). On conflict, `url` wins, then `fn`, then `css`.
+- **Function-name is a curated POSITIVE whitelist**, not an inventory: the extractor looks only for the known module function names below (`FN_MODULE_MAP` in `extract_stadium_app.py`), matched in a definition/property/call context so debug-log noise cannot false-positive. No strip pre-pass is needed (probe-confirmed the names survive the noise). Because it is a positive whitelist, there is no false-positive class; the `FN_EXCLUDE` set (framework/validation helpers such as `AddTextBoxComponentValidation`, `AreInputsValid`, `EventHandler`) is kept only to guard a future inventory-based approach.
+- **CSS-footprint** maps distinctive `EmbeddedFiles/CSS` filename stems → slug (`CSS_MODULE_MAP`); ambiguous stems (`utils.css`) and pure-theming stems (`theming-variables.css` → `design-signals`) are deliberately omitted.
+- **Module-driven behaviours (presence-only).** `WorkflowSteps` → *multi-step workflow* and `RoleSpecificStartPages`/`RolePages` → *role → landing-page navigation policy* are surfaced under a `## Tier-A — module-driven behaviours` block. The runtime step list / role→page map are function *arguments* (out of scope — behaviour axis). `RoleSpecificStartPages` is a pattern, not a catalogued github module, so it is surfaced **only** as a behaviour, never as a detected module.
+
+Authoritative maps live in `extract_stadium_app.py`; the catalogue table below is the human-facing mirror (its "Detection signal" column names the same function/CSS signals).
+
 ## Catalogue
 
 Slugs below were discovered empirically by grepping `global-scripts.js` across all apps in `C:\Stadium 6 Web Apps\*\` and cross-referencing the EmbeddedFiles CSS footprint. The trailing count in the source grep is shown only as a popularity hint; the parser ignores any column past the gloss.

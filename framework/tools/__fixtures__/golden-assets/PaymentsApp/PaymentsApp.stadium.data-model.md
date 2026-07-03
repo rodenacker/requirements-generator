@@ -10,467 +10,424 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 ---
 # Data model — PaymentsApp
 
-> Entities + fields reconciled across SQL queries/views, stored procedures and web-service calls (union by name). Every field carries a `[from …]` locator naming its exact source.
+> Entities + fields reconciled across SQL queries/views, stored procedures, web-service calls and the rendered `types.js` FE↔API contract (union by name). Every field carries a `[from …]` locator naming its exact source; `[from rendered types]` fields carry a per-field authority (editable / read-only / action-input — Tier-B, read from the rendered variant).
 
 ## Tier-A — entities & fields
 
-### ApprovalLevelAmountReadList  ·  sources: web-service  ·  operations: SELECT
-- `ApprovalLevelAmountReadList.ApprovalLevelAmounts` [from web-service: GET /v1/approval-levels/{BusinessUnitId},{DepartmentId},{TransactionTypeId}]
-- `ApprovalLevelAmountReadList.ApprovalLevelAmounts.ApprovalLevelId` [from web-service: GET /v1/approval-levels/{BusinessUnitId},{DepartmentId},{TransactionTypeId}]
-- `ApprovalLevelAmountReadList.ApprovalLevelAmounts.MaxApprovalAmount` [from web-service: GET /v1/approval-levels/{BusinessUnitId},{DepartmentId},{TransactionTypeId}]
-> related shapes: `UserApprovalLevelAmountReadList` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### ApprovalLevel  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
+- `ApprovalLevel.ApprovalLevels` [from web-service: GET /v1/approval-levels]  _(+1 more)_
+- `ApprovalLevel.ApprovalLevels.BusinessUnit` [from web-service: GET /v1/approval-levels]
+- `ApprovalLevel.ApprovalLevels.BusinessUnitDepartmentId` [from web-service: GET /v1/approval-levels]
+- `ApprovalLevel.ApprovalLevels.BusinessUnitId` [from web-service: GET /v1/approval-levels]
+- `ApprovalLevel.ApprovalLevels.Department` [from web-service: GET /v1/approval-levels]
+- `ApprovalLevel.ApprovalLevels.DepartmentId` [from web-service: GET /v1/approval-levels]
+- `ApprovalLevel.ApprovalLevels.TransactionType` [from web-service: GET /v1/approval-levels]
+- `ApprovalLevel.ApprovalLevels.TransactionTypeId` [from web-service: GET /v1/approval-levels]
+- `ApprovalLevel.BusinessUnit` · read-only [from rendered types]
+- `ApprovalLevel.BusinessUnitDepartmentId` · read-only [from rendered types]
+- `ApprovalLevel.BusinessUnitId` · editable [from rendered types]  _(+2 more)_
+- `ApprovalLevel.Department` · read-only [from rendered types]
+- `ApprovalLevel.DepartmentId` · editable [from rendered types]  _(+2 more)_
+- `ApprovalLevel.Id` [from web-service: DELETE /v1/approval-levels/{BusinessUnitId},{DepartmentId},{TransactionTypeId}]  _(+1 more)_
+- `ApprovalLevel.MaxApprovalAmounts` · editable [from rendered types]  _(+2 more)_
+- `ApprovalLevel.Messages` [from web-service: DELETE /v1/approval-levels/{BusinessUnitId},{DepartmentId},{TransactionTypeId}]  _(+1 more)_
+- `ApprovalLevel.MessageType` [from web-service: DELETE /v1/approval-levels/{BusinessUnitId},{DepartmentId},{TransactionTypeId}]  _(+1 more)_
+- `ApprovalLevel.TransactionType` · read-only [from rendered types]
+- `ApprovalLevel.TransactionTypeId` · editable [from rendered types]  _(+2 more)_
+> related shapes: `ApprovalLevelAmount`, `ApprovalLevelRule`, `UserApprovalLevel`, `UserApprovalLevelAmount` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### ApprovalLevelReadList  ·  sources: web-service  ·  operations: SELECT
-- `ApprovalLevelReadList.ApprovalLevels` [from web-service: GET /v1/approval-levels]  _(+1 more)_
-- `ApprovalLevelReadList.ApprovalLevels.BusinessUnit` [from web-service: GET /v1/approval-levels]
-- `ApprovalLevelReadList.ApprovalLevels.BusinessUnitDepartmentId` [from web-service: GET /v1/approval-levels]
-- `ApprovalLevelReadList.ApprovalLevels.BusinessUnitId` [from web-service: GET /v1/approval-levels]
-- `ApprovalLevelReadList.ApprovalLevels.Department` [from web-service: GET /v1/approval-levels]
-- `ApprovalLevelReadList.ApprovalLevels.DepartmentId` [from web-service: GET /v1/approval-levels]
-- `ApprovalLevelReadList.ApprovalLevels.TransactionType` [from web-service: GET /v1/approval-levels]
-- `ApprovalLevelReadList.ApprovalLevels.TransactionTypeId` [from web-service: GET /v1/approval-levels]
-> related shapes: `UserApprovalLevelReadList` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### ApprovalLevelAmount  ·  sources: rendered-types, web-service  ·  operations: SELECT
+- `ApprovalLevelAmount.ApprovalLevelAmounts` [from web-service: GET /v1/approval-levels/{BusinessUnitId},{DepartmentId},{TransactionTypeId}]
+- `ApprovalLevelAmount.ApprovalLevelAmounts.ApprovalLevelId` [from web-service: GET /v1/approval-levels/{BusinessUnitId},{DepartmentId},{TransactionTypeId}]
+- `ApprovalLevelAmount.ApprovalLevelAmounts.MaxApprovalAmount` [from web-service: GET /v1/approval-levels/{BusinessUnitId},{DepartmentId},{TransactionTypeId}]
+- `ApprovalLevelAmount.ApprovalLevelId` · read-only [from rendered types]
+- `ApprovalLevelAmount.MaxApprovalAmount` · read-only [from rendered types]
+> related shapes: `ApprovalLevel`, `UserApprovalLevelAmount` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### ApprovalLevelRuleRead  ·  sources: web-service  ·  operations: UPDATE
-- `ApprovalLevelRuleRead.ApprovalAmount` [from web-service: PUT /v1/approval-level-rules]
-- `ApprovalLevelRuleRead.ApprovalLevelId` [from web-service: PUT /v1/approval-level-rules]
-- `ApprovalLevelRuleRead.BankReleaseApproval` [from web-service: PUT /v1/approval-level-rules]
-- `ApprovalLevelRuleRead.ManagerialApproval` [from web-service: PUT /v1/approval-level-rules]
-- `ApprovalLevelRuleRead.TreasuryApproval` [from web-service: PUT /v1/approval-level-rules]
-> related shapes: `ApprovalLevelRuleReadList` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### ApprovalLevelRule  ·  sources: rendered-types, web-service  ·  operations: SELECT, UPDATE
+- `ApprovalLevelRule.ApprovalAmount` · read-only [from rendered types]  _(+1 more)_
+- `ApprovalLevelRule.ApprovalLevelId` · read-only [from rendered types]  _(+1 more)_
+- `ApprovalLevelRule.ApprovalLevelRules` [from web-service: GET /v1/approval-level-rules/{BusinessUnitId},{DepartmentId},{TransactionTypeId}]
+- `ApprovalLevelRule.BankReleaseApproval` · read-only [from rendered types]  _(+1 more)_
+- `ApprovalLevelRule.ManagerialApproval` · read-only [from rendered types]  _(+1 more)_
+- `ApprovalLevelRule.TreasuryApproval` · read-only [from rendered types]  _(+1 more)_
+> related shapes: `ApprovalLevel` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### ApprovalLevelRuleReadList  ·  sources: web-service  ·  operations: SELECT
-- `ApprovalLevelRuleReadList.ApprovalLevelRules` [from web-service: GET /v1/approval-level-rules/{BusinessUnitId},{DepartmentId},{TransactionTypeId}]
-> related shapes: `ApprovalLevelRuleRead` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### Bank  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
+- `Bank.Banks` [from web-service: GET /v1/banks]
+- `Bank.Id` · read-only [from web-service: DELETE /v1/banks/{Id}]  _(+2 more)_
+- `Bank.Messages` [from web-service: DELETE /v1/banks/{Id}]
+- `Bank.MessageType` [from web-service: DELETE /v1/banks/{Id}]
+- `Bank.Name` · editable [from rendered types]  _(+3 more)_
+- `Bank.UniversalBranchCode` · editable [from rendered types]  _(+3 more)_
+- `Bank.UniversalSwiftCode` · editable [from rendered types]  _(+3 more)_
+> related shapes: `BankAccount`, `BankAccountType`, `BankPaymentMethod`, `BankPaymentSetup` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### ApprovalLevelWrite  ·  sources: web-service  ·  operations: INSERT, UPDATE
-- `ApprovalLevelWrite.BusinessUnitId` [from web-service: POST /v1/approval-levels/]  _(+1 more)_
-- `ApprovalLevelWrite.DepartmentId` [from web-service: POST /v1/approval-levels/]  _(+1 more)_
-- `ApprovalLevelWrite.MaxApprovalAmounts` [from web-service: POST /v1/approval-levels/]  _(+1 more)_
-- `ApprovalLevelWrite.TransactionTypeId` [from web-service: POST /v1/approval-levels/]  _(+1 more)_
-> related shapes: `UserApprovalLevelWrite` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### BankAccount  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
+- `BankAccount.AccountName` · editable [from rendered types]  _(+3 more)_
+- `BankAccount.AccountNumber` · editable [from rendered types]  _(+3 more)_
+- `BankAccount.BankAccounts` [from web-service: GET /v1/bank-accounts]
+- `BankAccount.BankAccountTypeId` · editable [from rendered types]  _(+3 more)_
+- `BankAccount.BankAccountTypeName` · read-only [from rendered types]  _(+1 more)_
+- `BankAccount.BankId` · editable [from rendered types]  _(+3 more)_
+- `BankAccount.BankName` · read-only [from rendered types]  _(+1 more)_
+- `BankAccount.BusinessUnit` · read-only [from rendered types]  _(+1 more)_
+- `BankAccount.BusinessUnitId` · editable [from rendered types]  _(+3 more)_
+- `BankAccount.Iban` · editable [from rendered types]  _(+3 more)_
+- `BankAccount.Id` · read-only [from web-service: DELETE /v1/bank-accounts/{Id}]  _(+2 more)_
+- `BankAccount.Messages` [from web-service: DELETE /v1/bank-accounts/{Id}]
+- `BankAccount.MessageType` [from web-service: DELETE /v1/bank-accounts/{Id}]
+> related shapes: `Bank`, `BankAccountType` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### BankAccountRead  ·  sources: web-service  ·  operations: SELECT
-- `BankAccountRead.AccountName` [from web-service: GET /v1/bank-accounts/{Id}]
-- `BankAccountRead.AccountNumber` [from web-service: GET /v1/bank-accounts/{Id}]
-- `BankAccountRead.BankAccountTypeId` [from web-service: GET /v1/bank-accounts/{Id}]
-- `BankAccountRead.BankAccountTypeName` [from web-service: GET /v1/bank-accounts/{Id}]
-- `BankAccountRead.BankId` [from web-service: GET /v1/bank-accounts/{Id}]
-- `BankAccountRead.BankName` [from web-service: GET /v1/bank-accounts/{Id}]
-- `BankAccountRead.BusinessUnit` [from web-service: GET /v1/bank-accounts/{Id}]
-- `BankAccountRead.BusinessUnitId` [from web-service: GET /v1/bank-accounts/{Id}]
-- `BankAccountRead.Iban` [from web-service: GET /v1/bank-accounts/{Id}]
-- `BankAccountRead.Id` [from web-service: GET /v1/bank-accounts/{Id}]
-> related shapes: `BankAccountReadList` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### BankAccountType  ·  sources: rendered-types, web-service  ·  operations: SELECT
+- `BankAccountType.BankAccountTypes` [from web-service: GET /v1/bank-account-types]
+- `BankAccountType.Id` · read-only [from rendered types]
+- `BankAccountType.Name` · read-only [from rendered types]
+> related shapes: `Bank`, `BankAccount` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### BankAccountReadList  ·  sources: web-service  ·  operations: SELECT
-- `BankAccountReadList.BankAccounts` [from web-service: GET /v1/bank-accounts]
-> related shapes: `BankAccountRead` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### BankPaymentMethod  ·  sources: rendered-types, web-service  ·  operations: SELECT
+- `BankPaymentMethod.BankPaymentMethods` [from web-service: GET /v1/bank-payment-methods]
+- `BankPaymentMethod.Description` · read-only [from rendered types]
+- `BankPaymentMethod.Id` · read-only [from rendered types]
+- `BankPaymentMethod.Name` · read-only [from rendered types]
+> related shapes: `Bank` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### BankAccountTypeReadList  ·  sources: web-service  ·  operations: SELECT
-- `BankAccountTypeReadList.BankAccountTypes` [from web-service: GET /v1/bank-account-types]
+### BankPaymentSetup  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
+- `BankPaymentSetup.ApiEnabled` · editable [from rendered types]  _(+3 more)_
+- `BankPaymentSetup.BankId` · editable [from rendered types]  _(+3 more)_
+- `BankPaymentSetup.BankName` · read-only [from rendered types]  _(+1 more)_
+- `BankPaymentSetup.BankPaymentMethodId` · editable [from rendered types]  _(+3 more)_
+- `BankPaymentSetup.BankPaymentMethodName` · read-only [from rendered types]  _(+1 more)_
+- `BankPaymentSetup.BankPayments` [from web-service: GET /v1/bank-payment-setups]
+- `BankPaymentSetup.ChargeBearerId` · editable [from rendered types]  _(+3 more)_
+- `BankPaymentSetup.ChargeBearerName` · read-only [from rendered types]  _(+1 more)_
+- `BankPaymentSetup.CutOffTime` · editable [from rendered types]  _(+3 more)_
+- `BankPaymentSetup.Id` · read-only [from web-service: DELETE /v1/bank-payment-setups/{Id}]  _(+2 more)_
+- `BankPaymentSetup.Messages` [from web-service: DELETE /v1/bank-payment-setups/{Id}]
+- `BankPaymentSetup.MessageType` [from web-service: DELETE /v1/bank-payment-setups/{Id}]
+- `BankPaymentSetup.ServiceLevelCodeId` · editable [from rendered types]  _(+3 more)_
+- `BankPaymentSetup.ServiceLevelCodeName` · read-only [from rendered types]  _(+1 more)_
+- `BankPaymentSetup.TransferMethodId` · editable [from rendered types]  _(+3 more)_
+- `BankPaymentSetup.TransferMethodName` · read-only [from rendered types]  _(+1 more)_
+> related shapes: `Bank`, `PaymentSetup` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### BankAccountWrite  ·  sources: web-service  ·  operations: INSERT, UPDATE
-- `BankAccountWrite.AccountName` [from web-service: POST /v1/bank-accounts]  _(+1 more)_
-- `BankAccountWrite.AccountNumber` [from web-service: POST /v1/bank-accounts]  _(+1 more)_
-- `BankAccountWrite.BankAccountTypeId` [from web-service: POST /v1/bank-accounts]  _(+1 more)_
-- `BankAccountWrite.BankId` [from web-service: POST /v1/bank-accounts]  _(+1 more)_
-- `BankAccountWrite.BusinessUnitId` [from web-service: POST /v1/bank-accounts]  _(+1 more)_
-- `BankAccountWrite.Iban` [from web-service: POST /v1/bank-accounts]  _(+1 more)_
+### Beneficiary  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
+- `Beneficiary.AccountName` · editable [from rendered types]  _(+3 more)_
+- `Beneficiary.AccountNumber` · editable [from rendered types]  _(+3 more)_
+- `Beneficiary.BankAccountTypeId` · editable [from rendered types]  _(+3 more)_
+- `Beneficiary.BankAccountTypeName` · read-only [from rendered types]  _(+1 more)_
+- `Beneficiary.BankId` · editable [from rendered types]  _(+3 more)_
+- `Beneficiary.BankName` · read-only [from rendered types]  _(+1 more)_
+- `Beneficiary.Beneficiaries` [from web-service: GET /v1/beneficiaries]
+- `Beneficiary.BusinessUnit` · read-only [from rendered types]  _(+1 more)_
+- `Beneficiary.BusinessUnitDepartments` · editable [from rendered types]  _(+3 more)_
+- `Beneficiary.BusinessUnitDepartments.BusinessUnitDepartmentId` [from web-service: POST /v1/beneficiaries]  _(+2 more)_
+- `Beneficiary.BusinessUnitDepartments.DepartmentId` [from web-service: POST /v1/beneficiaries]  _(+2 more)_
+- `Beneficiary.BusinessUnitDepartments.DepartmentName` [from web-service: POST /v1/beneficiaries]  _(+2 more)_
+- `Beneficiary.BusinessUnitDepartmentString` · read-only [from rendered types]  _(+1 more)_
+- `Beneficiary.BusinessUnitId` · editable [from rendered types]  _(+3 more)_
+- `Beneficiary.Iban` · editable [from rendered types]  _(+3 more)_
+- `Beneficiary.Id` · read-only [from web-service: DELETE /v1/beneficiaries/{Id}]  _(+2 more)_
+- `Beneficiary.Messages` [from web-service: DELETE /v1/beneficiaries/{Id}]
+- `Beneficiary.MessageType` [from web-service: DELETE /v1/beneficiaries/{Id}]
+- `Beneficiary.Name` · editable [from rendered types]  _(+3 more)_
+  - relation: `Beneficiary.BusinessUnitDepartments` → `BusinessUnitDepartment[]` (nested type) [from rendered types]
 
-### BankPaymentMethodReadList  ·  sources: web-service  ·  operations: SELECT
-- `BankPaymentMethodReadList.BankPaymentMethods` [from web-service: GET /v1/bank-payment-methods]
+### BusinessUnit  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
+- `BusinessUnit.BusinessUnits` [from web-service: GET /v1/business-units]
+- `BusinessUnit.Code` · editable [from rendered types]  _(+3 more)_
+- `BusinessUnit.Departments` · editable [from rendered types]  _(+3 more)_
+- `BusinessUnit.Departments.Description` [from web-service: POST /v1/business-units]  _(+1 more)_
+- `BusinessUnit.Departments.Id` [from web-service: POST /v1/business-units]  _(+1 more)_
+- `BusinessUnit.Departments.Name` [from web-service: POST /v1/business-units]  _(+1 more)_
+- `BusinessUnit.DepartmentString` · read-only [from rendered types]  _(+1 more)_
+- `BusinessUnit.Description` · editable [from rendered types]  _(+3 more)_
+- `BusinessUnit.Id` · read-only [from web-service: DELETE /v1/business-units/{Id}]  _(+2 more)_
+- `BusinessUnit.Messages` [from web-service: DELETE /v1/business-units/{Id}]
+- `BusinessUnit.MessageType` [from web-service: DELETE /v1/business-units/{Id}]
+- `BusinessUnit.Name` · editable [from rendered types]  _(+3 more)_
+  - relation: `BusinessUnit.Departments` → `Department[]` (nested type) [from rendered types]
+> related shapes: `BusinessUnitDepartment` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### BankPaymentSetupRead  ·  sources: web-service  ·  operations: SELECT
-- `BankPaymentSetupRead.ApiEnabled` [from web-service: GET /v1/bank-payment-setups/{Id}]
-- `BankPaymentSetupRead.BankId` [from web-service: GET /v1/bank-payment-setups/{Id}]
-- `BankPaymentSetupRead.BankName` [from web-service: GET /v1/bank-payment-setups/{Id}]
-- `BankPaymentSetupRead.BankPaymentMethodId` [from web-service: GET /v1/bank-payment-setups/{Id}]
-- `BankPaymentSetupRead.BankPaymentMethodName` [from web-service: GET /v1/bank-payment-setups/{Id}]
-- `BankPaymentSetupRead.ChargeBearerId` [from web-service: GET /v1/bank-payment-setups/{Id}]
-- `BankPaymentSetupRead.ChargeBearerName` [from web-service: GET /v1/bank-payment-setups/{Id}]
-- `BankPaymentSetupRead.CutOffTime` [from web-service: GET /v1/bank-payment-setups/{Id}]
-- `BankPaymentSetupRead.Id` [from web-service: GET /v1/bank-payment-setups/{Id}]
-- `BankPaymentSetupRead.ServiceLevelCodeId` [from web-service: GET /v1/bank-payment-setups/{Id}]
-- `BankPaymentSetupRead.ServiceLevelCodeName` [from web-service: GET /v1/bank-payment-setups/{Id}]
-- `BankPaymentSetupRead.TransferMethodId` [from web-service: GET /v1/bank-payment-setups/{Id}]
-- `BankPaymentSetupRead.TransferMethodName` [from web-service: GET /v1/bank-payment-setups/{Id}]
-> related shapes: `BankPaymentSetupReadList`, `PaymentSetupRead` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### BusinessUnitDepartment  ·  sources: rendered-types, web-service  ·  operations: SELECT
+- `BusinessUnitDepartment.BusinessUnitDepartmentId` · read-only [from rendered types]
+- `BusinessUnitDepartment.BusinessUnitDepartments` [from web-service: GET /v1/business-unit-departments]
+- `BusinessUnitDepartment.BusinessUnitDepartments.BusinessUnitDepartmentId` [from web-service: GET /v1/business-unit-departments]
+- `BusinessUnitDepartment.BusinessUnitDepartments.DepartmentId` [from web-service: GET /v1/business-unit-departments]
+- `BusinessUnitDepartment.BusinessUnitDepartments.DepartmentName` [from web-service: GET /v1/business-unit-departments]
+- `BusinessUnitDepartment.DepartmentId` · read-only [from rendered types]
+- `BusinessUnitDepartment.DepartmentName` · read-only [from rendered types]
+> related shapes: `BusinessUnit`, `Department` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### BankPaymentSetupReadList  ·  sources: web-service  ·  operations: SELECT
-- `BankPaymentSetupReadList.BankPayments` [from web-service: GET /v1/bank-payment-setups]
-> related shapes: `BankPaymentSetupRead`, `PaymentSetupRead`, `PaymentSetupReadList` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### CostCentre  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
+- `CostCentre.BusinessUnit` · read-only [from rendered types]  _(+1 more)_
+- `CostCentre.BusinessUnitDepartments` · editable [from rendered types]  _(+3 more)_
+- `CostCentre.BusinessUnitDepartments.BusinessUnitDepartmentId` [from web-service: POST /v1/cost-centres]  _(+2 more)_
+- `CostCentre.BusinessUnitDepartments.DepartmentId` [from web-service: POST /v1/cost-centres]  _(+2 more)_
+- `CostCentre.BusinessUnitDepartments.DepartmentName` [from web-service: POST /v1/cost-centres]  _(+2 more)_
+- `CostCentre.BusinessUnitDepartmentString` · read-only [from rendered types]  _(+1 more)_
+- `CostCentre.BusinessUnitId` · editable [from rendered types]  _(+3 more)_
+- `CostCentre.CostCentres` [from web-service: GET /v1/cost-centres]
+- `CostCentre.Description` · editable [from rendered types]  _(+3 more)_
+- `CostCentre.Id` · read-only [from web-service: DELETE /v1/cost-centres/{Id}]  _(+2 more)_
+- `CostCentre.Messages` [from web-service: DELETE /v1/cost-centres/{Id}]
+- `CostCentre.MessageType` [from web-service: DELETE /v1/cost-centres/{Id}]
+- `CostCentre.Name` · editable [from rendered types]  _(+3 more)_
+  - relation: `CostCentre.BusinessUnitDepartments` → `BusinessUnitDepartment[]` (nested type) [from rendered types]
 
-### BankPaymentSetupWrite  ·  sources: web-service  ·  operations: INSERT, UPDATE
-- `BankPaymentSetupWrite.ApiEnabled` [from web-service: POST /v1/bank-payment-setups]  _(+1 more)_
-- `BankPaymentSetupWrite.BankId` [from web-service: POST /v1/bank-payment-setups]  _(+1 more)_
-- `BankPaymentSetupWrite.BankPaymentMethodId` [from web-service: POST /v1/bank-payment-setups]  _(+1 more)_
-- `BankPaymentSetupWrite.ChargeBearerId` [from web-service: POST /v1/bank-payment-setups]  _(+1 more)_
-- `BankPaymentSetupWrite.CutOffTime` [from web-service: POST /v1/bank-payment-setups]  _(+1 more)_
-- `BankPaymentSetupWrite.ServiceLevelCodeId` [from web-service: POST /v1/bank-payment-setups]  _(+1 more)_
-- `BankPaymentSetupWrite.TransferMethodId` [from web-service: POST /v1/bank-payment-setups]  _(+1 more)_
-> related shapes: `PaymentSetupWrite` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### Department  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
+- `Department.Departments` [from web-service: GET /v1/departments]
+- `Department.Description` · editable [from rendered types]  _(+3 more)_
+- `Department.Id` · read-only [from web-service: DELETE /v1/departments/{Id}]  _(+2 more)_
+- `Department.Messages` [from web-service: DELETE /v1/departments/{Id}]
+- `Department.MessageType` [from web-service: DELETE /v1/departments/{Id}]
+- `Department.Name` · editable [from rendered types]  _(+3 more)_
+> related shapes: `BusinessUnitDepartment` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### BankRead  ·  sources: web-service  ·  operations: SELECT
-- `BankRead.Id` [from web-service: GET /v1/banks/{Id}]
-- `BankRead.Name` [from web-service: GET /v1/banks/{Id}]
-- `BankRead.UniversalBranchCode` [from web-service: GET /v1/banks/{Id}]
-- `BankRead.UniversalSwiftCode` [from web-service: GET /v1/banks/{Id}]
-> related shapes: `BankReadList` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### LookupData  ·  sources: rendered-types, web-service  ·  operations: SELECT
+- `LookupData.Description` · read-only [from rendered types]
+- `LookupData.Id` · read-only [from rendered types]
+- `LookupData.LookupDatas` [from web-service: GET /v1/lookup-datas/{LookupId}]
+- `LookupData.LookupId` · read-only [from rendered types]
+- `LookupData.Value` : String · read-only [from rendered types]
 
-### BankReadList  ·  sources: web-service  ·  operations: SELECT
-- `BankReadList.Banks` [from web-service: GET /v1/banks]
-> related shapes: `BankRead` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### MaxApprovalAmount  ·  sources: rendered-types  ·  operations: —
+- `MaxApprovalAmount.Amount` · read-only [from rendered types]
+- `MaxApprovalAmount.Level` · read-only [from rendered types]
 
-### BankWrite  ·  sources: web-service  ·  operations: INSERT, UPDATE
-- `BankWrite.Name` [from web-service: POST /v1/banks]  _(+1 more)_
-- `BankWrite.UniversalBranchCode` [from web-service: POST /v1/banks]  _(+1 more)_
-- `BankWrite.UniversalSwiftCode` [from web-service: POST /v1/banks]  _(+1 more)_
+### PaymentDetailAuditLog  ·  sources: rendered-types, web-service  ·  operations: SELECT
+- `PaymentDetailAuditLog.ActivityID` · read-only [from rendered types]
+- `PaymentDetailAuditLog.Data` · read-only [from rendered types]
+- `PaymentDetailAuditLog.EventName` · read-only [from rendered types]
+- `PaymentDetailAuditLog.ID` · read-only [from rendered types]
+- `PaymentDetailAuditLog.Message` · read-only [from rendered types]
+- `PaymentDetailAuditLog.PaymentDetailAuditLogs` [from web-service: GET /v1/payment-detail-audit-logs]
+- `PaymentDetailAuditLog.ProcessInstanceID` · read-only [from rendered types]
+- `PaymentDetailAuditLog.Source` · read-only [from rendered types]
+- `PaymentDetailAuditLog.Timestamp` · read-only [from rendered types]
+> related shapes: `PaymentDetailAuditLogRead_Data` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### BeneficiaryRead  ·  sources: web-service  ·  operations: SELECT
-- `BeneficiaryRead.AccountName` [from web-service: GET /v1/beneficiaries/{Id}]
-- `BeneficiaryRead.AccountNumber` [from web-service: GET /v1/beneficiaries/{Id}]
-- `BeneficiaryRead.BankAccountTypeId` [from web-service: GET /v1/beneficiaries/{Id}]
-- `BeneficiaryRead.BankAccountTypeName` [from web-service: GET /v1/beneficiaries/{Id}]
-- `BeneficiaryRead.BankId` [from web-service: GET /v1/beneficiaries/{Id}]
-- `BeneficiaryRead.BankName` [from web-service: GET /v1/beneficiaries/{Id}]
-- `BeneficiaryRead.BusinessUnit` [from web-service: GET /v1/beneficiaries/{Id}]
-- `BeneficiaryRead.BusinessUnitDepartments` [from web-service: GET /v1/beneficiaries/{Id}]
-- `BeneficiaryRead.BusinessUnitDepartments.BusinessUnitDepartmentId` [from web-service: GET /v1/beneficiaries/{Id}]
-- `BeneficiaryRead.BusinessUnitDepartments.DepartmentId` [from web-service: GET /v1/beneficiaries/{Id}]
-- `BeneficiaryRead.BusinessUnitDepartments.DepartmentName` [from web-service: GET /v1/beneficiaries/{Id}]
-- `BeneficiaryRead.BusinessUnitDepartmentString` [from web-service: GET /v1/beneficiaries/{Id}]
-- `BeneficiaryRead.BusinessUnitId` [from web-service: GET /v1/beneficiaries/{Id}]
-- `BeneficiaryRead.Iban` [from web-service: GET /v1/beneficiaries/{Id}]
-- `BeneficiaryRead.Id` [from web-service: GET /v1/beneficiaries/{Id}]
-- `BeneficiaryRead.Name` [from web-service: GET /v1/beneficiaries/{Id}]
-> related shapes: `BeneficiaryReadList` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### PaymentDetailAuditLogRead_Data  ·  sources: rendered-types  ·  operations: —
+- `PaymentDetailAuditLogRead_Data.ActivityName` · read-only [from rendered types]
+- `PaymentDetailAuditLogRead_Data.ProcessDefinitionName` · read-only [from rendered types]
+> related shapes: `PaymentDetailAuditLog` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### BeneficiaryReadList  ·  sources: web-service  ·  operations: SELECT
-- `BeneficiaryReadList.Beneficiaries` [from web-service: GET /v1/beneficiaries]
-> related shapes: `BeneficiaryRead` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### PaymentReason  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
+- `PaymentReason.Code` · editable [from rendered types]  _(+3 more)_
+- `PaymentReason.Description` · editable [from rendered types]  _(+3 more)_
+- `PaymentReason.Id` · read-only [from web-service: DELETE /v1/payment-reasons/{Id}]  _(+2 more)_
+- `PaymentReason.Messages` [from web-service: DELETE /v1/payment-reasons/{Id}]
+- `PaymentReason.MessageType` [from web-service: DELETE /v1/payment-reasons/{Id}]
+- `PaymentReason.Name` · editable [from rendered types]  _(+3 more)_
+- `PaymentReason.PaymentReasons` [from web-service: GET /v1/payment-reasons]
 
-### BeneficiaryWrite  ·  sources: web-service  ·  operations: INSERT, UPDATE
-- `BeneficiaryWrite.AccountName` [from web-service: POST /v1/beneficiaries]  _(+1 more)_
-- `BeneficiaryWrite.AccountNumber` [from web-service: POST /v1/beneficiaries]  _(+1 more)_
-- `BeneficiaryWrite.BankAccountTypeId` [from web-service: POST /v1/beneficiaries]  _(+1 more)_
-- `BeneficiaryWrite.BankId` [from web-service: POST /v1/beneficiaries]  _(+1 more)_
-- `BeneficiaryWrite.BusinessUnitDepartments` [from web-service: POST /v1/beneficiaries]  _(+1 more)_
-- `BeneficiaryWrite.BusinessUnitDepartments.BusinessUnitDepartmentId` [from web-service: POST /v1/beneficiaries]  _(+1 more)_
-- `BeneficiaryWrite.BusinessUnitDepartments.DepartmentId` [from web-service: POST /v1/beneficiaries]  _(+1 more)_
-- `BeneficiaryWrite.BusinessUnitDepartments.DepartmentName` [from web-service: POST /v1/beneficiaries]  _(+1 more)_
-- `BeneficiaryWrite.BusinessUnitId` [from web-service: POST /v1/beneficiaries]  _(+1 more)_
-- `BeneficiaryWrite.Iban` [from web-service: POST /v1/beneficiaries]  _(+1 more)_
-- `BeneficiaryWrite.Name` [from web-service: POST /v1/beneficiaries]  _(+1 more)_
+### PaymentSetup  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
+- `PaymentSetup.BankAccount` · read-only [from rendered types]  _(+1 more)_
+- `PaymentSetup.BankAccountId` · editable [from rendered types]  _(+3 more)_
+- `PaymentSetup.BankAccountNumber` · read-only [from rendered types]  _(+1 more)_
+- `PaymentSetup.BankPaymentMethodId` · editable [from rendered types]  _(+3 more)_
+- `PaymentSetup.BusinessUnit` · read-only [from rendered types]  _(+1 more)_
+- `PaymentSetup.BusinessUnitDepartmentId` · editable [from rendered types]  _(+3 more)_
+- `PaymentSetup.BusinessUnitId` · read-only [from rendered types]  _(+1 more)_
+- `PaymentSetup.Department` · read-only [from rendered types]  _(+1 more)_
+- `PaymentSetup.DepartmentId` · read-only [from rendered types]  _(+1 more)_
+- `PaymentSetup.Id` [from web-service: DELETE /v1/payment-setups/{Id}]
+- `PaymentSetup.Messages` [from web-service: DELETE /v1/payment-setups/{Id}]
+- `PaymentSetup.MessageType` [from web-service: DELETE /v1/payment-setups/{Id}]
+- `PaymentSetup.PaymentMethod` · read-only [from rendered types]  _(+1 more)_
+- `PaymentSetup.PaymentReason` · read-only [from rendered types]  _(+1 more)_
+- `PaymentSetup.PaymentReasonId` · editable [from rendered types]  _(+3 more)_
+- `PaymentSetup.PaymentSetupId` · read-only [from rendered types]  _(+1 more)_
+- `PaymentSetup.PaymentSetups` [from web-service: GET /v1/payment-setups]  _(+1 more)_
+- `PaymentSetup.TransactionType` · read-only [from rendered types]  _(+1 more)_
+- `PaymentSetup.TransactionTypeId` · editable [from rendered types]  _(+3 more)_
+> related shapes: `BankPaymentSetup` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### BusinessUnitDepartmentReadList  ·  sources: web-service  ·  operations: SELECT
-- `BusinessUnitDepartmentReadList.BusinessUnitDepartments` [from web-service: GET /v1/business-unit-departments]
-- `BusinessUnitDepartmentReadList.BusinessUnitDepartments.BusinessUnitDepartmentId` [from web-service: GET /v1/business-unit-departments]
-- `BusinessUnitDepartmentReadList.BusinessUnitDepartments.DepartmentId` [from web-service: GET /v1/business-unit-departments]
-- `BusinessUnitDepartmentReadList.BusinessUnitDepartments.DepartmentName` [from web-service: GET /v1/business-unit-departments]
-> related shapes: `DepartmentRead`, `DepartmentReadList` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### Role  ·  sources: rendered-types, web-service  ·  operations: SELECT
+- `Role.Id` · read-only [from rendered types]
+- `Role.Name` · read-only [from rendered types]
+- `Role.Roles` [from web-service: GET /v1/roles]
 
-### BusinessUnitRead  ·  sources: web-service  ·  operations: SELECT
-- `BusinessUnitRead.Code` [from web-service: GET /v1/business-units/{Id}]
-- `BusinessUnitRead.Departments` [from web-service: GET /v1/business-units/{Id}]
-- `BusinessUnitRead.DepartmentString` [from web-service: GET /v1/business-units/{Id}]
-- `BusinessUnitRead.Description` [from web-service: GET /v1/business-units/{Id}]
-- `BusinessUnitRead.Id` [from web-service: GET /v1/business-units/{Id}]
-- `BusinessUnitRead.Name` [from web-service: GET /v1/business-units/{Id}]
-> related shapes: `BusinessUnitReadList` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### sync  ·  sources: web-service  ·  operations: INSERT
+- `sync.Id` [from web-service: POST /v1/roles/sync]
+- `sync.Messages` [from web-service: POST /v1/roles/sync]
+- `sync.MessageType` [from web-service: POST /v1/roles/sync]
 
-### BusinessUnitReadList  ·  sources: web-service  ·  operations: SELECT
-- `BusinessUnitReadList.BusinessUnits` [from web-service: GET /v1/business-units]
-> related shapes: `BusinessUnitRead` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### Transaction  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
+- `Transaction.Amount` · editable [from rendered types]  _(+3 more)_
+- `Transaction.BankAccount` · read-only [from rendered types]  _(+1 more)_
+- `Transaction.BankAccountId` · editable [from rendered types]  _(+3 more)_
+- `Transaction.BankAccountNumber` · read-only [from rendered types]  _(+1 more)_
+- `Transaction.BankPaymentMethod` · read-only [from rendered types]  _(+1 more)_
+- `Transaction.BankPaymentMethodId` · editable [from rendered types]  _(+3 more)_
+- `Transaction.BeneficiaryAccountNumber` · editable [from rendered types]  _(+3 more)_
+- `Transaction.BeneficiaryId` · editable [from rendered types]  _(+3 more)_
+- `Transaction.BeneficiaryName` · editable [from rendered types]  _(+3 more)_
+- `Transaction.BeneficiarySortCode` · editable [from rendered types]  _(+3 more)_
+- `Transaction.BusinessUnit` · read-only [from rendered types]  _(+1 more)_
+- `Transaction.BusinessUnitDepartmentId` · editable [from rendered types]  _(+3 more)_
+- `Transaction.BusinessUnitId` · editable [from rendered types]  _(+3 more)_
+- `Transaction.CostCentre` · read-only [from rendered types]  _(+1 more)_
+- `Transaction.Currency` · read-only [from rendered types]  _(+1 more)_
+- `Transaction.CurrencyId` · editable [from rendered types]  _(+3 more)_
+- `Transaction.DateCreated` · editable [from rendered types]  _(+3 more)_
+- `Transaction.Department` · read-only [from rendered types]  _(+1 more)_
+- `Transaction.DepartmentId` · read-only [from rendered types]  _(+1 more)_
+- `Transaction.ExecutionDate` · editable [from rendered types]  _(+3 more)_
+- `Transaction.Id` [from web-service: DELETE /v1/transactions/{Id}]
+- `Transaction.InstructionId` · editable [from rendered types]  _(+3 more)_
+- `Transaction.Messages` [from web-service: DELETE /v1/transactions/{Id}]
+- `Transaction.MessageType` [from web-service: DELETE /v1/transactions/{Id}]
+- `Transaction.PaymentReason` · read-only [from rendered types]  _(+1 more)_
+- `Transaction.PaymentReasonId` · editable [from rendered types]  _(+3 more)_
+- `Transaction.PaymentReference` · editable [from rendered types]  _(+3 more)_
+- `Transaction.ProcessInstanceId` · editable [from rendered types]  _(+3 more)_
+- `Transaction.RequestedBy` · read-only [from rendered types]  _(+1 more)_
+- `Transaction.StadiumUserUuid` · editable [from rendered types]  _(+2 more)_
+- `Transaction.Status` · read-only [from rendered types]  _(+1 more)_
+- `Transaction.TrackingNumber` · read-only [from rendered types]  _(+1 more)_
+- `Transaction.TransactionManualCaptureStep` · read-only [from rendered types]  _(+1 more)_
+- `Transaction.TransactionManualCaptureStepId` · editable [from rendered types]  _(+3 more)_
+- `Transaction.Transactions` [from web-service: GET /v1/transactions]  _(+2 more)_
+- `Transaction.Transactions.Amount` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.BankAccount` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.BankAccountId` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.BankAccountNumber` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.BankPaymentMethod` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.BankPaymentMethodId` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.BeneficiaryAccountNumber` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.BeneficiaryId` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.BeneficiaryName` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.BeneficiarySortCode` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.BusinessUnit` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.BusinessUnitDepartmentId` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.BusinessUnitId` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.CostCentre` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.Currency` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.CurrencyId` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.DateCreated` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.Department` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.DepartmentId` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.ExecutionDate` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.InstructionId` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.PaymentReason` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.PaymentReasonId` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.PaymentReference` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.ProcessInstanceId` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.RequestedBy` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.Status` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.TrackingNumber` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.TransactionManualCaptureStep` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.TransactionManualCaptureStepId` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.TransactionType` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.TransactionTypeId` [from web-service: GET /v1/transactions]
+- `Transaction.Transactions.UserId` [from web-service: GET /v1/transactions]
+- `Transaction.TransactionType` · read-only [from rendered types]  _(+1 more)_
+- `Transaction.TransactionTypeId` · editable [from rendered types]  _(+3 more)_
+- `Transaction.UserId` · read-only [from rendered types]  _(+1 more)_
+> related shapes: `TransactionNote`, `TransactionSupportingDocument`, `TransactionType` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### BusinessUnitWrite  ·  sources: web-service  ·  operations: INSERT, UPDATE
-- `BusinessUnitWrite.Code` [from web-service: POST /v1/business-units]  _(+1 more)_
-- `BusinessUnitWrite.Departments` [from web-service: POST /v1/business-units]  _(+1 more)_
-- `BusinessUnitWrite.Departments.Description` [from web-service: POST /v1/business-units]  _(+1 more)_
-- `BusinessUnitWrite.Departments.Id` [from web-service: POST /v1/business-units]  _(+1 more)_
-- `BusinessUnitWrite.Departments.Name` [from web-service: POST /v1/business-units]  _(+1 more)_
-- `BusinessUnitWrite.Description` [from web-service: POST /v1/business-units]  _(+1 more)_
-- `BusinessUnitWrite.Name` [from web-service: POST /v1/business-units]  _(+1 more)_
+### TransactionNote  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
+- `TransactionNote.DateCreated` · editable [from rendered types]  _(+2 more)_
+- `TransactionNote.Id` · read-only [from web-service: DELETE /v1/transaction-notes/{Id}]  _(+1 more)_
+- `TransactionNote.Messages` [from web-service: DELETE /v1/transaction-notes/{Id}]
+- `TransactionNote.MessageType` [from web-service: DELETE /v1/transaction-notes/{Id}]
+- `TransactionNote.Note` · editable [from rendered types]  _(+2 more)_
+- `TransactionNote.StadiumUserUuid` · editable [from rendered types]  _(+2 more)_
+- `TransactionNote.TransactionId` · editable [from rendered types]  _(+2 more)_
+- `TransactionNote.TransactionNotes` [from web-service: GET /v1/transaction-notes]
+- `TransactionNote.User` · read-only [from rendered types]
+- `TransactionNote.UserId` · read-only [from rendered types]
+> related shapes: `Transaction` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### CostCentreRead  ·  sources: web-service  ·  operations: SELECT
-- `CostCentreRead.BusinessUnit` [from web-service: GET /v1/cost-centres/{Id}]
-- `CostCentreRead.BusinessUnitDepartments` [from web-service: GET /v1/cost-centres/{Id}]
-- `CostCentreRead.BusinessUnitDepartments.BusinessUnitDepartmentId` [from web-service: GET /v1/cost-centres/{Id}]
-- `CostCentreRead.BusinessUnitDepartments.DepartmentId` [from web-service: GET /v1/cost-centres/{Id}]
-- `CostCentreRead.BusinessUnitDepartments.DepartmentName` [from web-service: GET /v1/cost-centres/{Id}]
-- `CostCentreRead.BusinessUnitDepartmentString` [from web-service: GET /v1/cost-centres/{Id}]
-- `CostCentreRead.BusinessUnitId` [from web-service: GET /v1/cost-centres/{Id}]
-- `CostCentreRead.Description` [from web-service: GET /v1/cost-centres/{Id}]
-- `CostCentreRead.Id` [from web-service: GET /v1/cost-centres/{Id}]
-- `CostCentreRead.Name` [from web-service: GET /v1/cost-centres/{Id}]
-> related shapes: `CostCentreReadList` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### TransactionSupportingDocument  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT
+- `TransactionSupportingDocument.DateCreated` · editable [from rendered types]  _(+1 more)_
+- `TransactionSupportingDocument.FileLocation` · editable [from rendered types]  _(+1 more)_
+- `TransactionSupportingDocument.FileName` : String · editable [from rendered types]  _(+1 more)_
+- `TransactionSupportingDocument.Id` · read-only [from web-service: DELETE /v1/transaction-supporting-documents/{Id}]  _(+1 more)_
+- `TransactionSupportingDocument.Messages` [from web-service: DELETE /v1/transaction-supporting-documents/{Id}]
+- `TransactionSupportingDocument.MessageType` [from web-service: DELETE /v1/transaction-supporting-documents/{Id}]
+- `TransactionSupportingDocument.StadiumUserUuid` · editable [from rendered types]  _(+1 more)_
+- `TransactionSupportingDocument.TransactionId` · editable [from rendered types]  _(+1 more)_
+- `TransactionSupportingDocument.TransactionSupportingDocuments` [from web-service: GET /v1/transaction-supporting-documents]
+- `TransactionSupportingDocument.User` · read-only [from rendered types]
+- `TransactionSupportingDocument.UserId` · read-only [from rendered types]
+> related shapes: `Transaction` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### CostCentreReadList  ·  sources: web-service  ·  operations: SELECT
-- `CostCentreReadList.CostCentres` [from web-service: GET /v1/cost-centres]
-> related shapes: `CostCentreRead` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
+### TransactionType  ·  sources: rendered-types, web-service  ·  operations: SELECT
+- `TransactionType.Id` · read-only [from rendered types]
+- `TransactionType.Name` · read-only [from rendered types]
+- `TransactionType.TransactionTypes` [from web-service: GET /v1/transaction-types]
+> related shapes: `Transaction` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### CostCentreWrite  ·  sources: web-service  ·  operations: INSERT, UPDATE
-- `CostCentreWrite.BusinessUnitDepartments` [from web-service: POST /v1/cost-centres]  _(+1 more)_
-- `CostCentreWrite.BusinessUnitDepartments.BusinessUnitDepartmentId` [from web-service: POST /v1/cost-centres]  _(+1 more)_
-- `CostCentreWrite.BusinessUnitDepartments.DepartmentId` [from web-service: POST /v1/cost-centres]  _(+1 more)_
-- `CostCentreWrite.BusinessUnitDepartments.DepartmentName` [from web-service: POST /v1/cost-centres]  _(+1 more)_
-- `CostCentreWrite.BusinessUnitId` [from web-service: POST /v1/cost-centres]  _(+1 more)_
-- `CostCentreWrite.Description` [from web-service: POST /v1/cost-centres]  _(+1 more)_
-- `CostCentreWrite.Name` [from web-service: POST /v1/cost-centres]  _(+1 more)_
+### User  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
+- `User.ApprovalLevelAssignStatus` · read-only [from rendered types]  _(+1 more)_
+- `User.BusinessUnit` · read-only [from rendered types]  _(+1 more)_
+- `User.BusinessUnitDepartments` · editable [from rendered types]  _(+3 more)_
+- `User.BusinessUnitDepartments.BusinessUnitDepartmentId` [from web-service: POST /v1/users]  _(+1 more)_
+- `User.BusinessUnitDepartments.DepartmentName` [from web-service: POST /v1/users]  _(+1 more)_
+- `User.BusinessUnitDepartmentString` · read-only [from rendered types]  _(+1 more)_
+- `User.BusinessUnitId` · editable [from rendered types]  _(+3 more)_
+- `User.Email` · editable [from rendered types]  _(+3 more)_
+- `User.FirstName` · editable [from rendered types]  _(+3 more)_
+- `User.Id` · read-only [from web-service: DELETE /v1/users/{Id}]  _(+2 more)_
+- `User.IsAdministrator` · editable [from rendered types]  _(+3 more)_
+- `User.LastChangedDate` · read-only [from rendered types]  _(+1 more)_
+- `User.LastChangedUser` · read-only [from rendered types]  _(+1 more)_
+- `User.LastName` · editable [from rendered types]  _(+3 more)_
+- `User.Messages` [from web-service: DELETE /v1/users/{Id}]
+- `User.MessageType` [from web-service: DELETE /v1/users/{Id}]
+- `User.Password` · editable [from rendered types]  _(+2 more)_
+- `User.Roles` · editable [from rendered types]  _(+3 more)_
+- `User.Roles.Id` [from web-service: POST /v1/users]  _(+1 more)_
+- `User.Roles.Name` [from web-service: POST /v1/users]  _(+1 more)_
+- `User.RolesString` · read-only [from rendered types]  _(+1 more)_
+- `User.StadiumUserId` · read-only [from rendered types]  _(+1 more)_
+- `User.Users` [from web-service: GET /v1/users]
+- `User.Users.ApprovalLevelAssignStatus` [from web-service: GET /v1/users]
+- `User.Users.BusinessUnit` [from web-service: GET /v1/users]
+- `User.Users.BusinessUnitDepartments` [from web-service: GET /v1/users]
+- `User.Users.BusinessUnitDepartmentString` [from web-service: GET /v1/users]
+- `User.Users.BusinessUnitId` [from web-service: GET /v1/users]
+- `User.Users.Email` [from web-service: GET /v1/users]
+- `User.Users.FirstName` [from web-service: GET /v1/users]
+- `User.Users.Id` [from web-service: GET /v1/users]
+- `User.Users.IsAdministrator` [from web-service: GET /v1/users]
+- `User.Users.LastChangedDate` [from web-service: GET /v1/users]
+- `User.Users.LastChangedUser` [from web-service: GET /v1/users]
+- `User.Users.LastName` [from web-service: GET /v1/users]
+- `User.Users.Roles` [from web-service: GET /v1/users]
+- `User.Users.RolesString` [from web-service: GET /v1/users]
+- `User.Users.StadiumUserId` [from web-service: GET /v1/users]
+  - relation: `User.BusinessUnitDepartments` → `BusinessUnitDepartment[]` (nested type) [from rendered types]
+  - relation: `User.Roles` → `Role[]` (nested type) [from rendered types]
+> related shapes: `UserApprovalLevel`, `UserApprovalLevelAmount` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### DefaultResponse  ·  sources: web-service  ·  operations: DELETE, INSERT
-- `DefaultResponse.Id` [from web-service: DELETE /v1/beneficiaries/{Id}]  _(+16 more)_
-- `DefaultResponse.Messages` [from web-service: DELETE /v1/beneficiaries/{Id}]  _(+16 more)_
-- `DefaultResponse.MessageType` [from web-service: DELETE /v1/beneficiaries/{Id}]  _(+16 more)_
+### UserApprovalLevel  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT
+- `UserApprovalLevel.ApprovalLevelId` · editable [from rendered types]  _(+1 more)_
+- `UserApprovalLevel.BusinessUnit` · read-only [from rendered types]
+- `UserApprovalLevel.BusinessUnitDepartmentId` · read-only [from rendered types]
+- `UserApprovalLevel.BusinessUnitId` · read-only [from rendered types]
+- `UserApprovalLevel.Department` · read-only [from rendered types]
+- `UserApprovalLevel.DepartmentId` · read-only [from rendered types]
+- `UserApprovalLevel.Id` [from web-service: DELETE /v1/user-approval-levels/{ApprovalLevelId},{UserId}]
+- `UserApprovalLevel.MaxApprovalAmount` · read-only [from rendered types]
+- `UserApprovalLevel.Messages` [from web-service: DELETE /v1/user-approval-levels/{ApprovalLevelId},{UserId}]
+- `UserApprovalLevel.MessageType` [from web-service: DELETE /v1/user-approval-levels/{ApprovalLevelId},{UserId}]
+- `UserApprovalLevel.TransactionType` · read-only [from rendered types]
+- `UserApprovalLevel.TransactionTypeId` · read-only [from rendered types]
+- `UserApprovalLevel.UserApprovalLevels` [from web-service: GET /v1/user-approval-levels/{UserId}]
+- `UserApprovalLevel.UserEmail` · read-only [from rendered types]
+- `UserApprovalLevel.UserId` · editable [from rendered types]  _(+1 more)_
+- `UserApprovalLevel.UserName` · read-only [from rendered types]
+> related shapes: `ApprovalLevel`, `User`, `UserApprovalLevelAmount` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
-### DepartmentRead  ·  sources: web-service  ·  operations: SELECT
-- `DepartmentRead.Description` [from web-service: GET /v1/departments/{Id}]
-- `DepartmentRead.Id` [from web-service: GET /v1/departments/{Id}]
-- `DepartmentRead.Name` [from web-service: GET /v1/departments/{Id}]
-> related shapes: `BusinessUnitDepartmentReadList`, `DepartmentReadList` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
-
-### DepartmentReadList  ·  sources: web-service  ·  operations: SELECT
-- `DepartmentReadList.Departments` [from web-service: GET /v1/departments]
-> related shapes: `BusinessUnitDepartmentReadList`, `DepartmentRead` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
-
-### DepartmentWrite  ·  sources: web-service  ·  operations: INSERT, UPDATE
-- `DepartmentWrite.Description` [from web-service: POST /v1/departments]  _(+1 more)_
-- `DepartmentWrite.Name` [from web-service: POST /v1/departments]  _(+1 more)_
-
-### LookupDataReadList  ·  sources: web-service  ·  operations: SELECT
-- `LookupDataReadList.LookupDatas` [from web-service: GET /v1/lookup-datas/{LookupId}]
-
-### PaymentDetailAuditLogReadList  ·  sources: web-service  ·  operations: SELECT
-- `PaymentDetailAuditLogReadList.PaymentDetailAuditLogs` [from web-service: GET /v1/payment-detail-audit-logs]
-
-### PaymentReasonRead  ·  sources: web-service  ·  operations: SELECT
-- `PaymentReasonRead.Code` [from web-service: GET /v1/payment-reasons/{Id}]
-- `PaymentReasonRead.Description` [from web-service: GET /v1/payment-reasons/{Id}]
-- `PaymentReasonRead.Id` [from web-service: GET /v1/payment-reasons/{Id}]
-- `PaymentReasonRead.Name` [from web-service: GET /v1/payment-reasons/{Id}]
-> related shapes: `PaymentReasonReadList` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
-
-### PaymentReasonReadList  ·  sources: web-service  ·  operations: SELECT
-- `PaymentReasonReadList.PaymentReasons` [from web-service: GET /v1/payment-reasons]
-> related shapes: `PaymentReasonRead` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
-
-### PaymentReasonWrite  ·  sources: web-service  ·  operations: INSERT, UPDATE
-- `PaymentReasonWrite.Code` [from web-service: POST /v1/payment-reasons]  _(+1 more)_
-- `PaymentReasonWrite.Description` [from web-service: POST /v1/payment-reasons]  _(+1 more)_
-- `PaymentReasonWrite.Name` [from web-service: POST /v1/payment-reasons]  _(+1 more)_
-
-### PaymentSetupRead  ·  sources: web-service  ·  operations: SELECT
-- `PaymentSetupRead.BankAccount` [from web-service: GET /v1/payment-setups/{Id}]
-- `PaymentSetupRead.BankAccountId` [from web-service: GET /v1/payment-setups/{Id}]
-- `PaymentSetupRead.BankAccountNumber` [from web-service: GET /v1/payment-setups/{Id}]
-- `PaymentSetupRead.BankPaymentMethodId` [from web-service: GET /v1/payment-setups/{Id}]
-- `PaymentSetupRead.BusinessUnit` [from web-service: GET /v1/payment-setups/{Id}]
-- `PaymentSetupRead.BusinessUnitDepartmentId` [from web-service: GET /v1/payment-setups/{Id}]
-- `PaymentSetupRead.BusinessUnitId` [from web-service: GET /v1/payment-setups/{Id}]
-- `PaymentSetupRead.Department` [from web-service: GET /v1/payment-setups/{Id}]
-- `PaymentSetupRead.DepartmentId` [from web-service: GET /v1/payment-setups/{Id}]
-- `PaymentSetupRead.PaymentMethod` [from web-service: GET /v1/payment-setups/{Id}]
-- `PaymentSetupRead.PaymentReason` [from web-service: GET /v1/payment-setups/{Id}]
-- `PaymentSetupRead.PaymentReasonId` [from web-service: GET /v1/payment-setups/{Id}]
-- `PaymentSetupRead.PaymentSetupId` [from web-service: GET /v1/payment-setups/{Id}]
-- `PaymentSetupRead.TransactionType` [from web-service: GET /v1/payment-setups/{Id}]
-- `PaymentSetupRead.TransactionTypeId` [from web-service: GET /v1/payment-setups/{Id}]
-> related shapes: `BankPaymentSetupRead`, `BankPaymentSetupReadList`, `PaymentSetupReadList` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
-
-### PaymentSetupReadList  ·  sources: web-service  ·  operations: SELECT
-- `PaymentSetupReadList.PaymentSetups` [from web-service: GET /v1/payment-setups]  _(+1 more)_
-> related shapes: `BankPaymentSetupReadList`, `PaymentSetupRead` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
-
-### PaymentSetupWrite  ·  sources: web-service  ·  operations: INSERT, UPDATE
-- `PaymentSetupWrite.BankAccountId` [from web-service: POST /v1/payment-setups]  _(+1 more)_
-- `PaymentSetupWrite.BankPaymentMethodId` [from web-service: POST /v1/payment-setups]  _(+1 more)_
-- `PaymentSetupWrite.BusinessUnitDepartmentId` [from web-service: POST /v1/payment-setups]  _(+1 more)_
-- `PaymentSetupWrite.PaymentReasonId` [from web-service: POST /v1/payment-setups]  _(+1 more)_
-- `PaymentSetupWrite.TransactionTypeId` [from web-service: POST /v1/payment-setups]  _(+1 more)_
-> related shapes: `BankPaymentSetupWrite` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
-
-### RoleReadList  ·  sources: web-service  ·  operations: SELECT
-- `RoleReadList.Roles` [from web-service: GET /v1/roles]
-
-### TransactionNoteReadList  ·  sources: web-service  ·  operations: SELECT
-- `TransactionNoteReadList.TransactionNotes` [from web-service: GET /v1/transaction-notes]
-
-### TransactionNoteWrite  ·  sources: web-service  ·  operations: INSERT, UPDATE
-- `TransactionNoteWrite.DateCreated` [from web-service: POST /v1/transaction-notes]  _(+1 more)_
-- `TransactionNoteWrite.Note` [from web-service: POST /v1/transaction-notes]  _(+1 more)_
-- `TransactionNoteWrite.StadiumUserUuid` [from web-service: POST /v1/transaction-notes]  _(+1 more)_
-- `TransactionNoteWrite.TransactionId` [from web-service: POST /v1/transaction-notes]  _(+1 more)_
-
-### TransactionRead  ·  sources: web-service  ·  operations: SELECT
-- `TransactionRead.Amount` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.BankAccount` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.BankAccountId` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.BankAccountNumber` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.BankPaymentMethod` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.BankPaymentMethodId` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.BeneficiaryAccountNumber` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.BeneficiaryId` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.BeneficiaryName` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.BeneficiarySortCode` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.BusinessUnit` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.BusinessUnitDepartmentId` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.BusinessUnitId` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.CostCentre` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.Currency` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.CurrencyId` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.DateCreated` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.Department` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.DepartmentId` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.ExecutionDate` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.InstructionId` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.PaymentReason` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.PaymentReasonId` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.PaymentReference` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.ProcessInstanceId` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.RequestedBy` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.Status` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.TrackingNumber` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.TransactionManualCaptureStep` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.TransactionManualCaptureStepId` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.TransactionType` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.TransactionTypeId` [from web-service: GET /v1/transactions/{Id}]
-- `TransactionRead.UserId` [from web-service: GET /v1/transactions/{Id}]
-> related shapes: `TransactionReadList` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
-
-### TransactionReadList  ·  sources: web-service  ·  operations: SELECT
-- `TransactionReadList.Transactions` [from web-service: GET /v1/transactions]  _(+2 more)_
-- `TransactionReadList.Transactions.Amount` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.BankAccount` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.BankAccountId` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.BankAccountNumber` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.BankPaymentMethod` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.BankPaymentMethodId` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.BeneficiaryAccountNumber` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.BeneficiaryId` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.BeneficiaryName` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.BeneficiarySortCode` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.BusinessUnit` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.BusinessUnitDepartmentId` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.BusinessUnitId` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.CostCentre` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.Currency` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.CurrencyId` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.DateCreated` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.Department` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.DepartmentId` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.ExecutionDate` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.InstructionId` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.PaymentReason` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.PaymentReasonId` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.PaymentReference` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.ProcessInstanceId` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.RequestedBy` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.Status` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.TrackingNumber` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.TransactionManualCaptureStep` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.TransactionManualCaptureStepId` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.TransactionType` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.TransactionTypeId` [from web-service: GET /v1/transactions]
-- `TransactionReadList.Transactions.UserId` [from web-service: GET /v1/transactions]
-> related shapes: `TransactionRead` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
-
-### TransactionSupportingDocumentReadList  ·  sources: web-service  ·  operations: SELECT
-- `TransactionSupportingDocumentReadList.TransactionSupportingDocuments` [from web-service: GET /v1/transaction-supporting-documents]
-
-### TransactionSupportingDocumentWrite  ·  sources: web-service  ·  operations: INSERT
-- `TransactionSupportingDocumentWrite.DateCreated` [from web-service: POST /v1/transaction-supporting-documents]
-- `TransactionSupportingDocumentWrite.FileLocation` [from web-service: POST /v1/transaction-supporting-documents]
-- `TransactionSupportingDocumentWrite.FileName` : String [from web-service: POST /v1/transaction-supporting-documents]
-- `TransactionSupportingDocumentWrite.StadiumUserUuid` [from web-service: POST /v1/transaction-supporting-documents]
-- `TransactionSupportingDocumentWrite.TransactionId` [from web-service: POST /v1/transaction-supporting-documents]
-
-### TransactionTypeReadList  ·  sources: web-service  ·  operations: SELECT
-- `TransactionTypeReadList.TransactionTypes` [from web-service: GET /v1/transaction-types]
-
-### TransactionWrite  ·  sources: web-service  ·  operations: INSERT, UPDATE
-- `TransactionWrite.Amount` [from web-service: POST /v1/transactions]  _(+1 more)_
-- `TransactionWrite.BankAccountId` [from web-service: POST /v1/transactions]  _(+1 more)_
-- `TransactionWrite.BankPaymentMethodId` [from web-service: POST /v1/transactions]  _(+1 more)_
-- `TransactionWrite.BeneficiaryAccountNumber` [from web-service: POST /v1/transactions]  _(+1 more)_
-- `TransactionWrite.BeneficiaryId` [from web-service: POST /v1/transactions]  _(+1 more)_
-- `TransactionWrite.BeneficiaryName` [from web-service: POST /v1/transactions]  _(+1 more)_
-- `TransactionWrite.BeneficiarySortCode` [from web-service: POST /v1/transactions]  _(+1 more)_
-- `TransactionWrite.BusinessUnitDepartmentId` [from web-service: POST /v1/transactions]  _(+1 more)_
-- `TransactionWrite.BusinessUnitId` [from web-service: POST /v1/transactions]  _(+1 more)_
-- `TransactionWrite.CurrencyId` [from web-service: POST /v1/transactions]  _(+1 more)_
-- `TransactionWrite.DateCreated` [from web-service: POST /v1/transactions]  _(+1 more)_
-- `TransactionWrite.ExecutionDate` [from web-service: POST /v1/transactions]  _(+1 more)_
-- `TransactionWrite.InstructionId` [from web-service: POST /v1/transactions]  _(+1 more)_
-- `TransactionWrite.PaymentReasonId` [from web-service: POST /v1/transactions]  _(+1 more)_
-- `TransactionWrite.PaymentReference` [from web-service: POST /v1/transactions]  _(+1 more)_
-- `TransactionWrite.ProcessInstanceId` [from web-service: POST /v1/transactions]  _(+1 more)_
-- `TransactionWrite.StadiumUserUuid` [from web-service: POST /v1/transactions]  _(+1 more)_
-- `TransactionWrite.TransactionManualCaptureStepId` [from web-service: POST /v1/transactions]  _(+1 more)_
-- `TransactionWrite.TransactionTypeId` [from web-service: POST /v1/transactions]  _(+1 more)_
-
-### UserApprovalLevelAmountReadList  ·  sources: web-service  ·  operations: SELECT
-- `UserApprovalLevelAmountReadList.UserApprovalLevelAmounts` [from web-service: GET /v1/user-approval-levels/{BusinessUnitId},{DepartmentId},{TransactionTypeId}]
-> related shapes: `ApprovalLevelAmountReadList` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
-
-### UserApprovalLevelReadList  ·  sources: web-service  ·  operations: SELECT
-- `UserApprovalLevelReadList.UserApprovalLevels` [from web-service: GET /v1/user-approval-levels/{UserId}]
-> related shapes: `ApprovalLevelReadList` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
-
-### UserApprovalLevelWrite  ·  sources: web-service  ·  operations: INSERT
-- `UserApprovalLevelWrite.ApprovalLevelId` [from web-service: POST /v1/user-approval-levels]
-- `UserApprovalLevelWrite.UserId` [from web-service: POST /v1/user-approval-levels]
-> related shapes: `ApprovalLevelWrite` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
-
-### UserRead  ·  sources: web-service  ·  operations: SELECT
-- `UserRead.ApprovalLevelAssignStatus` [from web-service: GET /v1/users/{Id}]
-- `UserRead.BusinessUnit` [from web-service: GET /v1/users/{Id}]
-- `UserRead.BusinessUnitDepartments` [from web-service: GET /v1/users/{Id}]
-- `UserRead.BusinessUnitDepartmentString` [from web-service: GET /v1/users/{Id}]
-- `UserRead.BusinessUnitId` [from web-service: GET /v1/users/{Id}]
-- `UserRead.Email` [from web-service: GET /v1/users/{Id}]
-- `UserRead.FirstName` [from web-service: GET /v1/users/{Id}]
-- `UserRead.Id` [from web-service: GET /v1/users/{Id}]
-- `UserRead.IsAdministrator` [from web-service: GET /v1/users/{Id}]
-- `UserRead.LastChangedDate` [from web-service: GET /v1/users/{Id}]
-- `UserRead.LastChangedUser` [from web-service: GET /v1/users/{Id}]
-- `UserRead.LastName` [from web-service: GET /v1/users/{Id}]
-- `UserRead.Roles` [from web-service: GET /v1/users/{Id}]
-- `UserRead.RolesString` [from web-service: GET /v1/users/{Id}]
-- `UserRead.StadiumUserId` [from web-service: GET /v1/users/{Id}]
-> related shapes: `UserReadList` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
-
-### UserReadList  ·  sources: web-service  ·  operations: SELECT
-- `UserReadList.Users` [from web-service: GET /v1/users]
-- `UserReadList.Users.ApprovalLevelAssignStatus` [from web-service: GET /v1/users]
-- `UserReadList.Users.BusinessUnit` [from web-service: GET /v1/users]
-- `UserReadList.Users.BusinessUnitDepartments` [from web-service: GET /v1/users]
-- `UserReadList.Users.BusinessUnitDepartmentString` [from web-service: GET /v1/users]
-- `UserReadList.Users.BusinessUnitId` [from web-service: GET /v1/users]
-- `UserReadList.Users.Email` [from web-service: GET /v1/users]
-- `UserReadList.Users.FirstName` [from web-service: GET /v1/users]
-- `UserReadList.Users.Id` [from web-service: GET /v1/users]
-- `UserReadList.Users.IsAdministrator` [from web-service: GET /v1/users]
-- `UserReadList.Users.LastChangedDate` [from web-service: GET /v1/users]
-- `UserReadList.Users.LastChangedUser` [from web-service: GET /v1/users]
-- `UserReadList.Users.LastName` [from web-service: GET /v1/users]
-- `UserReadList.Users.Roles` [from web-service: GET /v1/users]
-- `UserReadList.Users.RolesString` [from web-service: GET /v1/users]
-- `UserReadList.Users.StadiumUserId` [from web-service: GET /v1/users]
-> related shapes: `UserRead` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
-
-### UserWrite  ·  sources: web-service  ·  operations: INSERT, UPDATE
-- `UserWrite.BusinessUnitDepartments` [from web-service: POST /v1/users]  _(+1 more)_
-- `UserWrite.BusinessUnitDepartments.BusinessUnitDepartmentId` [from web-service: POST /v1/users]  _(+1 more)_
-- `UserWrite.BusinessUnitDepartments.DepartmentName` [from web-service: POST /v1/users]  _(+1 more)_
-- `UserWrite.BusinessUnitId` [from web-service: POST /v1/users]  _(+1 more)_
-- `UserWrite.Email` [from web-service: POST /v1/users]  _(+1 more)_
-- `UserWrite.FirstName` [from web-service: POST /v1/users]  _(+1 more)_
-- `UserWrite.IsAdministrator` [from web-service: POST /v1/users]  _(+1 more)_
-- `UserWrite.LastName` [from web-service: POST /v1/users]  _(+1 more)_
-- `UserWrite.Password` [from web-service: POST /v1/users]  _(+1 more)_
-- `UserWrite.Roles` [from web-service: POST /v1/users]  _(+1 more)_
-- `UserWrite.Roles.Id` [from web-service: POST /v1/users]  _(+1 more)_
-- `UserWrite.Roles.Name` [from web-service: POST /v1/users]  _(+1 more)_
+### UserApprovalLevelAmount  ·  sources: rendered-types, web-service  ·  operations: SELECT
+- `UserApprovalLevelAmount.ApprovalLevelId` · read-only [from rendered types]
+- `UserApprovalLevelAmount.MaxApprovalAmount` · read-only [from rendered types]
+- `UserApprovalLevelAmount.Status` · read-only [from rendered types]
+- `UserApprovalLevelAmount.UserApprovalLevelAmounts` [from web-service: GET /v1/user-approval-levels/{BusinessUnitId},{DepartmentId},{TransactionTypeId}]
+> related shapes: `ApprovalLevel`, `ApprovalLevelAmount`, `User`, `UserApprovalLevel` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 > The design model defines 1378 internal data-type instances (control/result/parameter bindings); field types above are sourced from them where concrete. Full detail is in the forensic model.json.
 
@@ -478,59 +435,34 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 
 | Entity | SELECT | INSERT | UPDATE | DELETE | Evidence |
 |---|:---:|:---:|:---:|:---:|---|
-| ApprovalLevelAmountReadList | ✓ |  |  |  | web-service |
-| ApprovalLevelReadList | ✓ |  |  |  | web-service |
-| ApprovalLevelRuleRead |  |  | ✓ |  | web-service |
-| ApprovalLevelRuleReadList | ✓ |  |  |  | web-service |
-| ApprovalLevelWrite |  | ✓ | ✓ |  | web-service |
-| BankAccountRead | ✓ |  |  |  | web-service |
-| BankAccountReadList | ✓ |  |  |  | web-service |
-| BankAccountTypeReadList | ✓ |  |  |  | web-service |
-| BankAccountWrite |  | ✓ | ✓ |  | web-service |
-| BankPaymentMethodReadList | ✓ |  |  |  | web-service |
-| BankPaymentSetupRead | ✓ |  |  |  | web-service |
-| BankPaymentSetupReadList | ✓ |  |  |  | web-service |
-| BankPaymentSetupWrite |  | ✓ | ✓ |  | web-service |
-| BankRead | ✓ |  |  |  | web-service |
-| BankReadList | ✓ |  |  |  | web-service |
-| BankWrite |  | ✓ | ✓ |  | web-service |
-| BeneficiaryRead | ✓ |  |  |  | web-service |
-| BeneficiaryReadList | ✓ |  |  |  | web-service |
-| BeneficiaryWrite |  | ✓ | ✓ |  | web-service |
-| BusinessUnitDepartmentReadList | ✓ |  |  |  | web-service |
-| BusinessUnitRead | ✓ |  |  |  | web-service |
-| BusinessUnitReadList | ✓ |  |  |  | web-service |
-| BusinessUnitWrite |  | ✓ | ✓ |  | web-service |
-| CostCentreRead | ✓ |  |  |  | web-service |
-| CostCentreReadList | ✓ |  |  |  | web-service |
-| CostCentreWrite |  | ✓ | ✓ |  | web-service |
-| DefaultResponse |  | ✓ |  | ✓ | web-service |
-| DepartmentRead | ✓ |  |  |  | web-service |
-| DepartmentReadList | ✓ |  |  |  | web-service |
-| DepartmentWrite |  | ✓ | ✓ |  | web-service |
-| LookupDataReadList | ✓ |  |  |  | web-service |
-| PaymentDetailAuditLogReadList | ✓ |  |  |  | web-service |
-| PaymentReasonRead | ✓ |  |  |  | web-service |
-| PaymentReasonReadList | ✓ |  |  |  | web-service |
-| PaymentReasonWrite |  | ✓ | ✓ |  | web-service |
-| PaymentSetupRead | ✓ |  |  |  | web-service |
-| PaymentSetupReadList | ✓ |  |  |  | web-service |
-| PaymentSetupWrite |  | ✓ | ✓ |  | web-service |
-| RoleReadList | ✓ |  |  |  | web-service |
-| TransactionNoteReadList | ✓ |  |  |  | web-service |
-| TransactionNoteWrite |  | ✓ | ✓ |  | web-service |
-| TransactionRead | ✓ |  |  |  | web-service |
-| TransactionReadList | ✓ |  |  |  | web-service |
-| TransactionSupportingDocumentReadList | ✓ |  |  |  | web-service |
-| TransactionSupportingDocumentWrite |  | ✓ |  |  | web-service |
-| TransactionTypeReadList | ✓ |  |  |  | web-service |
-| TransactionWrite |  | ✓ | ✓ |  | web-service |
-| UserApprovalLevelAmountReadList | ✓ |  |  |  | web-service |
-| UserApprovalLevelReadList | ✓ |  |  |  | web-service |
-| UserApprovalLevelWrite |  | ✓ |  |  | web-service |
-| UserRead | ✓ |  |  |  | web-service |
-| UserReadList | ✓ |  |  |  | web-service |
-| UserWrite |  | ✓ | ✓ |  | web-service |
+| ApprovalLevel | ✓ | ✓ | ✓ | ✓ | rendered-types, web-service |
+| ApprovalLevelAmount | ✓ |  |  |  | rendered-types, web-service |
+| ApprovalLevelRule | ✓ |  | ✓ |  | rendered-types, web-service |
+| Bank | ✓ | ✓ | ✓ | ✓ | rendered-types, web-service |
+| BankAccount | ✓ | ✓ | ✓ | ✓ | rendered-types, web-service |
+| BankAccountType | ✓ |  |  |  | rendered-types, web-service |
+| BankPaymentMethod | ✓ |  |  |  | rendered-types, web-service |
+| BankPaymentSetup | ✓ | ✓ | ✓ | ✓ | rendered-types, web-service |
+| Beneficiary | ✓ | ✓ | ✓ | ✓ | rendered-types, web-service |
+| BusinessUnit | ✓ | ✓ | ✓ | ✓ | rendered-types, web-service |
+| BusinessUnitDepartment | ✓ |  |  |  | rendered-types, web-service |
+| CostCentre | ✓ | ✓ | ✓ | ✓ | rendered-types, web-service |
+| Department | ✓ | ✓ | ✓ | ✓ | rendered-types, web-service |
+| LookupData | ✓ |  |  |  | rendered-types, web-service |
+| MaxApprovalAmount |  |  |  |  | rendered-types |
+| PaymentDetailAuditLog | ✓ |  |  |  | rendered-types, web-service |
+| PaymentDetailAuditLogRead_Data |  |  |  |  | rendered-types |
+| PaymentReason | ✓ | ✓ | ✓ | ✓ | rendered-types, web-service |
+| PaymentSetup | ✓ | ✓ | ✓ | ✓ | rendered-types, web-service |
+| Role | ✓ |  |  |  | rendered-types, web-service |
+| sync |  | ✓ |  |  | web-service |
+| Transaction | ✓ | ✓ | ✓ | ✓ | rendered-types, web-service |
+| TransactionNote | ✓ | ✓ | ✓ | ✓ | rendered-types, web-service |
+| TransactionSupportingDocument | ✓ | ✓ |  | ✓ | rendered-types, web-service |
+| TransactionType | ✓ |  |  |  | rendered-types, web-service |
+| User | ✓ | ✓ | ✓ | ✓ | rendered-types, web-service |
+| UserApprovalLevel | ✓ | ✓ |  | ✓ | rendered-types, web-service |
+| UserApprovalLevelAmount | ✓ |  |  |  | rendered-types, web-service |
 
 ## Tier-B — entity lifecycle / states (inferred)
-- Status-like fields suggest stateful entities: `ApprovalAmount`, `ApprovalLevelAmounts`, `ApprovalLevelAmounts.ApprovalLevelId`, `ApprovalLevelAmounts.MaxApprovalAmount`, `ApprovalLevelAssignStatus`, `ApprovalLevelId`, `ApprovalLevelRules`, `ApprovalLevels`, `ApprovalLevels.BusinessUnit`, `ApprovalLevels.BusinessUnitDepartmentId`, `ApprovalLevels.BusinessUnitId`, `ApprovalLevels.Department`, `ApprovalLevels.DepartmentId`, `ApprovalLevels.TransactionType`, `ApprovalLevels.TransactionTypeId`, `BankReleaseApproval`, `ManagerialApproval`, `MaxApprovalAmounts`, `Status`, `Transactions.Status`, `TreasuryApproval`, `UserApprovalLevelAmounts`, `UserApprovalLevels`, `Users.ApprovalLevelAssignStatus` `[AI-SUGGESTED]`
+- Status-like fields suggest stateful entities: `ApprovalAmount`, `ApprovalLevelAmounts`, `ApprovalLevelAmounts.ApprovalLevelId`, `ApprovalLevelAmounts.MaxApprovalAmount`, `ApprovalLevelAssignStatus`, `ApprovalLevelId`, `ApprovalLevelRules`, `ApprovalLevels`, `ApprovalLevels.BusinessUnit`, `ApprovalLevels.BusinessUnitDepartmentId`, `ApprovalLevels.BusinessUnitId`, `ApprovalLevels.Department`, `ApprovalLevels.DepartmentId`, `ApprovalLevels.TransactionType`, `ApprovalLevels.TransactionTypeId`, `BankReleaseApproval`, `ManagerialApproval`, `MaxApprovalAmount`, `MaxApprovalAmounts`, `Status`, `Transactions.Status`, `TreasuryApproval`, `UserApprovalLevelAmounts`, `UserApprovalLevels`, `Users.ApprovalLevelAssignStatus` `[AI-SUGGESTED]`

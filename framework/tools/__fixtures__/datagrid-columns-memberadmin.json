@@ -82,7 +82,7 @@
       "has_action": false
     }
   ],
-  "expected_columns_line": "columns (in order): \"Edit\"(action), \"Delete\"(action), \"ID\"(hidden), \"First Name\", \"Last Name\", \"Email\", \"DOB\", \"City\", \"City ID\"(hidden), \"Subscribed\"",
+  "expected_columns_line": "columns (in order): \"Edit\"(action), \"Delete\"(action), \"ID\"(hidden), `FirstName` \"First Name\", `LastName` \"Last Name\", \"Email\", \"DOB\", \"City\", `CityID` \"City ID\"(hidden), \"Subscribed\"",
   "synthetic": {
     "props": {
       "Columns": [

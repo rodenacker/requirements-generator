@@ -40,10 +40,10 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 ## Tier-A — navigation reachability
 
 - Coverage: **10 of 12** inventory pages are reachable via a captured `NavigateToPage` action. [from design model + administration.db]
-- Orphans (no inbound captured edge): `Enablement`, `Dashboard`
+- Additionally reachable via a declared client route (not on the captured `.sapz` walk): `Enablement`, `Dashboard` [from rendered routes]
 
 ## Tier-B — reachability caveat (advisory)
-- Unreached pages are typically reached by JS-computed navigation (`jsGETCurrentURl` / custom JS) or are entry-only, so the captured nav graph is a floor, not the complete journey map. `[AI-SUGGESTED]`
+- Any remaining unreached page (absent from the captured `.sapz` walk AND from `page-routes.js`) is typically reached by JS-computed navigation (`jsGETCurrentURl` / custom JS) or is entry-only, so the captured nav graph is a floor, not the complete journey map. Route-declared pages above close most of this gap. `[AI-SUGGESTED]`
 
 ## Tier-B — candidate cross-surface journeys (advisory; interpretive review gate)
 

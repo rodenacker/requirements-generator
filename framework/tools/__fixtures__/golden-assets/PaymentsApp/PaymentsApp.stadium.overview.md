@@ -22,7 +22,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Last published: 2026-06-30 12:29:25.6302212 (designer 6.14.3378.13771) [from administration.db]
 
 ## Tier-B — inferred domain (advisory)
-- Candidate domain entities (from data operations): ApprovalLevelAmountReadList, ApprovalLevelReadList, ApprovalLevelRuleRead, ApprovalLevelRuleReadList, ApprovalLevelWrite, BankAccountRead, BankAccountReadList, BankAccountTypeReadList `[AI-SUGGESTED: domain inference]`
+- Candidate domain entities (from data operations): ApprovalLevel, ApprovalLevelAmount, ApprovalLevelRule, Bank, BankAccount, BankAccountType, BankPaymentMethod, BankPaymentSetup `[AI-SUGGESTED: domain inference]`
 
 ## Gaps (not ascertainable from source)
 - Connector 'FileSystem' references an external filesystem path; the actual files/content are not in the repo. `[AI-SUGGESTED: blocking]`

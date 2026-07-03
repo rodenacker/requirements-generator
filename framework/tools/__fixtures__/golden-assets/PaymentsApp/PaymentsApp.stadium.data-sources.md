@@ -204,3 +204,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - endpoint: `GET /v1/approval-level-rules/{BusinessUnitId},{DepartmentId},{TransactionTypeId}` — response: ApprovalLevelRuleReadList
 - **ApprovalLevelRulesUpdate** (WebServiceFunction) — params: RaiseExceptions:RaiseExceptionsParameter, Body:WebServiceParameter, LastChangedUser:WebServiceParameter [from connector: PaymentsApiPaymentApprovals]
   - endpoint: `PUT /v1/approval-level-rules` — body: ApprovalLevelRuleRead, response: DefaultResponse
+
+## Tier-A — app settings / integration
+
+- Filesystem path referenced: `C:\DigiataRepos\DigiataApps\PaymentApp\Tests\` [from design model: Setting]

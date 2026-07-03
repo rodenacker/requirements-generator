@@ -371,3 +371,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - proc: `dbo.sp_FileImage_Get`
 - **Sp_ClientApplications_Allocate_Insert** (StoredProcedure) — params: ApplicationID:Int64, UserName:AnsiString, UserGuid:AnsiString, UserEmail:AnsiString, Success:Boolean, Message:AnsiString [from connector: IDB]
   - proc: `dbo.sp_ClientApplications_Allocate_Insert`
+
+## Tier-A — app settings / integration
+
+- Config value present: `MenuItems` (structured/large value, not shown) [from design model: Setting]

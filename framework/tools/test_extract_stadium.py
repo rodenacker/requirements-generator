@@ -37,6 +37,15 @@ import shutil
 import subprocess
 import unittest
 
+# The emitted assets are UTF-8 and (since Cluster C) carry non-cp1252 glyphs (→ ⚠ · —). The review-diff
+# printer below writes them to the console, so force UTF-8 stdout/stderr — otherwise a Windows cp1252
+# console raises UnicodeEncodeError inside a REVIEW print (which must never be fatal).
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="backslashreplace")
+    except Exception:
+        pass
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 FIXTURES = os.path.join(HERE, "__fixtures__")
 GOLDEN_ASSETS = os.path.join(FIXTURES, "golden-assets")
@@ -350,6 +359,260 @@ class TestControlPropSurfacing(unittest.TestCase):
         self.assertEqual(_columns_line(f["resolved_golden"]), f["expected_columns_line"])
 
 
+class TestClusterBSettingRedaction(unittest.TestCase):
+    """Cluster B #4-B — corpus-independent proof that `_redact_setting` classifies every Setting-row
+    shape and that no secret VALUE ever survives (the `IsSecret` flag is unreliable, so it is never
+    trusted). Uses synthetic values only — real Setting rows carry live secrets and are never committed."""
+
+    def setUp(self):
+        sys.path.insert(0, HERE)
+
+    def test_classification(self):
+        from extract_stadium_app import _redact_setting
+        cases = [
+            ("ApiCosmoCrmKey", "sk-live-DEADBEEF1234", "credential"),      # secret-shaped NAME
+            ("Stadium_api_key", "0123456789abcdef0123456789abcdef", "credential"),
+            ("DBConnection", "Server=DB01;Database=App;User ID=sa;Password=hunter2;", "connection"),
+            ("SmartStream_InternalAPI_URL", "https://internal.example.co/api?token=SECRET#f", "endpoint"),
+            ("MenuItems", r"C:\DigiataRepos\App\menu.json", "path"),
+            ("DepartmentID", "2", "scalar"),
+        ]
+        for name, value, kind in cases:
+            k, _ = _redact_setting(name, value)
+            self.assertEqual(k, kind, f"{name!r} -> {k!r}, expected {kind!r}")
+
+    def test_no_secret_value_survives(self):
+        from extract_stadium_app import _redact_setting
+        # secret-shaped name -> presence only, value never emitted
+        k, v = _redact_setting("ApiCosmoCrmKey", "sk-live-DEADBEEF1234")
+        self.assertEqual((k, v), ("credential", "<redacted>"))
+        self.assertNotIn("DEADBEEF", v)
+        # connection string -> password redacted, host kept visible
+        _, v = _redact_setting("DBConnection", "Server=DB01;Database=App;User ID=sa;Password=hunter2;")
+        self.assertNotIn("hunter2", v)
+        self.assertIn("DB01", v)
+        # URL -> query/token + fragment dropped, scheme+host+path kept
+        _, v = _redact_setting("SmartStream_InternalAPI_URL", "https://internal.example.co/api?token=SECRET#f")
+        self.assertNotIn("SECRET", v)
+        self.assertNotIn("token", v)
+        self.assertTrue(v.startswith("https://internal.example.co/api"))
+        # fabricate-nothing / never-raise on odd input
+        self.assertEqual(_redact_setting(None, None), ("scalar", ""))
+
+
+class TestClusterBModuleDetection(unittest.TestCase):
+    """Cluster B #5 — corpus-independent proof of the 3-signal union: comment-URL primary, then
+    function-name recovery, then CSS footprint; presence-only behaviours; no un-whitelisted / no
+    bare-mention emission; debug-noise resilience. Builds a synthetic app dir — needs no corpus."""
+
+    def setUp(self):
+        sys.path.insert(0, HERE)
+
+    def _make_app(self, tmp, gs_text, css_files):
+        srcdir = os.path.join(tmp, "ClientApp", "src")
+        os.makedirs(srcdir, exist_ok=True)
+        with open(os.path.join(srcdir, "global-scripts.js"), "w", encoding="utf-8") as f:
+            f.write(gs_text)
+        cssdir = os.path.join(tmp, "wwwroot", "Content", "EmbeddedFiles", "CSS")
+        os.makedirs(cssdir, exist_ok=True)
+        for c in css_files:
+            with open(os.path.join(cssdir, c), "w", encoding="utf-8") as f:
+                f.write("/* css */")
+
+    def test_three_signal_union_and_behaviours(self):
+        from extract_stadium_app import read_modules, FN_MODULE_MAP, CSS_MODULE_MAP
+        gs = (
+            "const scriptInstanceId = topLevelLogGroup; // consoleLogGroupHelper VITE_APP_DEBUG breadcrumb\n"
+            "// https://github.com/stadium-software/conditional-datagrid-styling\n"
+            "export const EditableRow = async (DataGridClass) => { logDebugInfo('EditableRow'); };\n"
+            "  ConstructSearchPhrase: async(x) => {},\n"
+            "function ParseColumnHeading(h) { return h; }\n"
+            "const WorkflowSteps = async (ContainerClass, Steps) => {};\n"
+            "  RoleSpecificStartPages: async(RolePages) => {},\n"
+            "function AddTextBoxComponentValidation() {}   // FN_EXCLUDE helper — must never map\n"
+            "// a bare mention of 'Accordion' in a comment must not count as a module\n"
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            self._make_app(tmp, gs, ["tabs.css", "tabs-variables.css"])
+            mods = read_modules(tmp, KB_DIR)
+        by = {m["module"]: m["detection_source"] for m in mods["detected"]}
+        self.assertEqual(by.get("conditional-datagrid-styling"), "url")   # comment-URL primary
+        self.assertEqual(by.get("datagrid-inline-row-edit"), "fn")        # EditableRow, no URL
+        self.assertEqual(by.get("filter-grid"), "fn")                     # ConstructSearchPhrase
+        self.assertEqual(by.get("dynamic-datagrid"), "fn")                # ParseColumnHeading
+        self.assertEqual(by.get("workflow-steps"), "fn")
+        self.assertEqual(by.get("tabs"), "css")                           # CSS footprint
+        # behaviours (presence-only): multi-step workflow + role→landing
+        self.assertTrue(any("multi-step" in b for b in mods["behaviours"]))
+        self.assertTrue(any("role" in b.lower() for b in mods["behaviours"]))
+        # RoleSpecificStartPages is a behaviour, NOT a catalogued module
+        self.assertNotIn("role-specific-startpage", by)
+        # bare comment mention does not create a module; FN_EXCLUDE helper never maps
+        self.assertNotIn("accordion", by)
+        # no un-whitelisted emission: every fn/css slug is a real map value
+        allowed = set(FN_MODULE_MAP.values()) | set(CSS_MODULE_MAP.values())
+        for m in mods["detected"]:
+            if m["detection_source"] in ("fn", "css"):
+                self.assertIn(m["module"], allowed)
+
+    def test_comment_url_wins_over_fn_and_css(self):
+        from extract_stadium_app import read_modules
+        gs = ("// https://github.com/stadium-software/datagrid-inline-row-edit\n"
+              "const EditableRow = async () => {};\n")     # same slug via URL + fn
+        with tempfile.TemporaryDirectory() as tmp:
+            self._make_app(tmp, gs, ["datagrid-inline-edit.css"])   # ...and via CSS
+            mods = read_modules(tmp, KB_DIR)
+        by = {m["module"]: m["detection_source"] for m in mods["detected"]}
+        self.assertEqual(by.get("datagrid-inline-row-edit"), "url")   # precedence: url > fn > css
+
+
+class TestClusterCRenderedClientApp(unittest.TestCase):
+    """Cluster C #6/#7/#8 — corpus-independent proof of the rendered `ClientApp/src` parsers. Pure
+    helpers (_peel / stem / endpoint / divergence) are tested directly; the three readers run against a
+    committed fixture tree copied into a temp app dir. Fixtures are PII-/secret-free (field names, page
+    titles, column labels), so real-shaped snippets are safe to commit."""
+
+    RENDERED_FIXTURE = os.path.join(FIXTURES, "rendered-clientapp")
+
+    def setUp(self):
+        sys.path.insert(0, HERE)
+
+    def _make_app(self):
+        """Copy the fixture ClientApp/src tree (router/types/views) into a temp app dir; returns the dir."""
+        tmp = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        dst = os.path.join(tmp, "ClientApp", "src")
+        shutil.copytree(self.RENDERED_FIXTURE, dst)
+        return tmp
+
+    # ---- #8: _peel (every wrapper shape + fabricate-nothing fallback)
+    def test_peel(self):
+        from extract_stadium_app import _peel
+        self.assertEqual(_peel("errorHandling.invoke(() => ('Edit'))"), "Edit")
+        self.assertEqual(_peel("errorHandling.invoke(() => (typeResolver.toString('Account Name')))"), "Account Name")
+        self.assertIs(_peel("errorHandling.invoke(() => (typeResolver.toBoolean(true)))"), True)
+        self.assertIs(_peel("errorHandling.invoke(() => (false))"), False)
+        self.assertEqual(_peel("'bare'"), "bare")
+        self.assertIsNone(_peel("null"))
+        self.assertIsNone(_peel("someUnknownFn(x)"))          # unrecognised → None, never fabricated
+        self.assertIsNone(_peel(None))
+
+    # ---- #6: variant-stem + authority (collapse, non-collapse, envelope/list exclusion)
+    def test_rendered_entity_stem(self):
+        from extract_stadium_app import _rendered_entity_stem
+        self.assertEqual(_rendered_entity_stem("UserRead"), ("User", "display"))
+        self.assertEqual(_rendered_entity_stem("UserWrite"), ("User", "editable"))
+        self.assertEqual(_rendered_entity_stem("CustomerBasicRead"), ("Customer", "display"))   # Basic binds to Read
+        self.assertEqual(_rendered_entity_stem("CustomerStatusRead"), ("CustomerStatus", "display"))  # Status stays
+        self.assertEqual(_rendered_entity_stem("Role"), ("Role", "display"))                    # bare shape
+        self.assertEqual(_rendered_entity_stem("MeetingCancel"), ("Meeting", "action"))
+        self.assertEqual(_rendered_entity_stem("UserReadList"), (None, None))                   # list wrapper excluded
+        self.assertEqual(_rendered_entity_stem("GeneralError"), (None, None))                   # envelope excluded
+        self.assertEqual(_rendered_entity_stem("CustomerValidation"), (None, None))             # validation DTO excluded
+
+    # ---- #8: endpoint decode (_46→. _95→_ ; connector/function split)
+    def test_decode_endpoint(self):
+        from extract_stadium_app import _decode_endpoint
+        ep = _decode_endpoint("Sample", "SampleDataGrid_46Edit_46Click_46SampleUsersAPI_95UserGetById")
+        self.assertEqual(ep["control"], "SampleDataGrid")
+        self.assertEqual(ep["connector"], "SampleUsersAPI")
+        self.assertEqual(ep["function"], "UserGetById")
+        self.assertEqual(ep["decoded"], "SampleDataGrid.Edit.Click.SampleUsersAPI_UserGetById")
+
+    # ---- #8: divergence-aware join (only surfaces deployed-vs-design mismatches)
+    def test_column_divergences(self):
+        from extract_stadium_app import _column_divergences
+        sapz = [{"name": "AccountName", "header_text": "Account Name", "visible": True, "has_action": False},
+                {"name": "BizUnit", "header_text": {"$type": "Expression"}, "visible": False, "has_action": False}]
+        rendered = [{"name": "AccountName", "label": "Account Name", "visible": True, "clickable": False},
+                    {"name": "BizUnit", "label": "Business Unit", "visible": False, "clickable": False},
+                    {"name": "Extra", "label": "Extra Col", "visible": True, "clickable": False}]
+        notes = "\n".join(_column_divergences(sapz, rendered))
+        self.assertNotIn("AccountName", notes)                # identical → no note (no redundant echo)
+        self.assertIn("header resolves to \"Business Unit\"", notes)   # Expression header resolved by rendered view
+        self.assertIn("rendered-only column `Extra`", notes)
+
+    # ---- #7: page-routes.js reader (redirect skip, BOM, title/component)
+    def test_read_page_routes(self):
+        from extract_stadium_app import read_page_routes
+        routes = read_page_routes(self._make_app())
+        names = [r["component"] for r in routes]
+        self.assertEqual(names, ["Members", "MemberAdd", "MemberUpdate"])   # redirect-only entry skipped
+        by = {r["component"]: r for r in routes}
+        self.assertEqual(by["MemberAdd"]["title"], "Member Add")
+        self.assertEqual(by["Members"]["path"], "/Members")                 # BOM tolerated (utf-8-sig)
+
+    # ---- #6: types.js reader (union, relations, non-collapse, envelope/list/scaffolding exclusion)
+    def test_read_client_types(self):
+        from extract_stadium_app import read_client_types, _norm_entity
+        types = read_client_types(self._make_app())
+        by_norm = {}
+        for t in types:
+            by_norm.setdefault(t["norm"], []).append(t)
+        stems = {t["entity"] for t in types}
+        self.assertIn("User", stems)
+        self.assertIn("Role", stems)
+        self.assertIn("Customer", stems)
+        self.assertIn("CustomerStatus", stems)                # distinct from Customer (Status stays)
+        # envelopes / list wrapper / bare scaffolding excluded
+        for excluded in ("GeneralError", "ValidationResult", "CustomerValidation", "UserReadList", "Filter"):
+            self.assertNotIn(excluded, stems, f"{excluded} must not be a rendered entity")
+        # UserRead + UserWrite variants both present (they collapse later in reconcile)
+        user_variants = {t["variant"] for t in types if t["entity"] == "User"}
+        self.assertEqual(user_variants, {"Read", "Write"})
+        # nested relation Roles → Role resolved through the Array wrapper
+        rel = next((t["relations"] for t in types if t["entity"] == "User" and t["variant"] == "Read"), {})
+        self.assertEqual(rel.get("Roles"), "Role")
+        # Id is read-only (Read only); Email editable (in Write)
+        read_user = next(t for t in types if t["entity"] == "User" and t["variant"] == "Read")
+        self.assertEqual({f["name"] for f in read_user["fields"]}, {"Id", "Email", "FirstName", "Roles"})
+
+    # ---- #6: reconcile collapses the variants into one authoritative entity
+    def test_reconcile_collapses_variants(self):
+        from extract_stadium_app import read_client_types, reconcile_entities
+        model = {"rendered_types": read_client_types(self._make_app())}
+        entities, _ = reconcile_entities(model)
+        by_disp = {e["display"]: e for e in entities.values()}
+        self.assertIn("User", by_disp)
+        fields = {f["name"]: f for f in by_disp["User"]["fields"]}
+        self.assertEqual(set(fields), {"Id", "Email", "FirstName", "Roles"})       # UserRead ∪ UserWrite
+        self.assertEqual(fields["Id"]["authority"], ["display"])                    # Read-only (Id only in Read)
+        self.assertIn("editable", fields["Email"]["authority"])                     # in Write
+        self.assertEqual(by_disp["User"]["rel"].get("Roles"), "Role")
+        # envelope classes never become entities from the rendered path
+        for k in entities:
+            self.assertNotIn(k, {_norm for _norm in ("generalerror", "validationresult")})
+
+    # ---- #8: view reader (peel labels, visible/clickable, endpoint decode)
+    def test_read_view_columns(self):
+        from extract_stadium_app import read_view_columns
+        vc = read_view_columns(self._make_app())
+        self.assertIn("Sample", vc)
+        grid = vc["Sample"]["grids"]["SampleDataGrid"]
+        by = {c["name"]: c for c in grid}
+        self.assertEqual(by["Edit"]["label"], "Edit")
+        self.assertTrue(by["Edit"]["clickable"])              # hasClickEvent: true (plain bool)
+        self.assertFalse(by["Id"]["visible"])                 # visible: (false) peeled → hidden
+        self.assertEqual(by["AccountName"]["label"], "Account Name")   # typeResolver.toString peeled
+        self.assertTrue(by["AccountName"]["visible"])         # visible: (true) peeled
+        self.assertFalse(by["AccountName"]["clickable"])      # hasClickEvent: false
+        eps = {(e["control"], e["connector"], e["function"]) for e in vc["Sample"]["endpoints"]}
+        self.assertIn(("SampleDataGrid", "SampleUsersAPI", "UserGetById"), eps)
+        self.assertIn(("SaveButton", "SampleCustomersAPI", "CustomerUpdate"), eps)
+
+    # ---- #8: the upgraded _columns_line shows the field-name binding + resolves Expression headers by name
+    def test_columns_line_fieldname_binding(self):
+        from extract_stadium_app import _columns_line
+        cols = [{"name": "AccountName", "header_text": "Account Name", "visible": True, "kind": "data", "has_action": False},
+                {"name": "Id", "header_text": "Id", "visible": False, "kind": "data", "has_action": False},
+                {"name": "BizUnit", "header_text": {"$type": "Expression"}, "visible": False, "kind": "data"}]
+        line = _columns_line(cols)
+        self.assertIn('`AccountName` "Account Name"', line)    # field-name binding shown when it differs
+        self.assertIn('"Id"(hidden)', line)                    # equal name/label → just the label
+        self.assertIn('`BizUnit`(hidden)', line)               # Expression header → by name, never a raw blob
+        self.assertNotIn("$type", line)
+
+
 # =========================================================================== corpus-DEPENDENT
 @unittest.skipUnless(_HAS_CORPUS, _SKIP_CORPUS_MSG)
 class TestProbeReproducesGolden(unittest.TestCase):
@@ -433,12 +696,73 @@ class TestExtractorSmokeOverSubset(unittest.TestCase):
 
 
 @unittest.skipUnless(_HAS_CORPUS, _SKIP_CORPUS_MSG)
-class TestUntouchedAssetsByteIdentical(unittest.TestCase):
-    """Cluster A touches only `business-rules`, `surfaces`, and `overview`. Assert every OTHER
-    Tier-1 asset is byte-identical to its checked-in golden snapshot — a HARD fail on drift (unlike
-    the review-only snapshot diff). Skips cleanly until goldens are seeded (--update-goldens)."""
+class TestClusterBLiveRender(unittest.TestCase):
+    """Cluster B live-render checks over the subset: every detected module line carries a
+    `[detected via: …]` source tag; the `.sapz Setting` integration block renders where Setting
+    rows exist (RMB/Payments); and no unredacted password ever reaches the data-sources asset."""
 
-    UNTOUCHED = [c for c in TIER1_CATEGORIES if c not in ("business-rules", "surfaces", "overview")]
+    def test_modules_tagged_and_settings_rendered(self):
+        subset = _resolve_subset()
+        if not subset:
+            self.skipTest(f"none of {SUBSET} found in the corpus")
+        saw_settings = False
+        for name, folder in subset:
+            with self.subTest(app=name), tempfile.TemporaryDirectory() as tmp:
+                rc, out, err = _run_extractor(folder, tmp, name)
+                self.assertEqual(rc, 0, f"[{name}] extractor exited {rc}\n{err}")
+                with open(os.path.join(tmp, f"{name}.stadium.modules.md"), encoding="utf-8") as fh:
+                    for line in fh:
+                        if line.startswith("- **") and "github.com/stadium-software" in line:
+                            self.assertIn("[detected via:", line,
+                                          f"[{name}] module line missing detection_source: {line!r}")
+                with open(os.path.join(tmp, f"{name}.stadium.data-sources.md"), encoding="utf-8") as fh:
+                    ds = fh.read()
+                if "## Tier-A — app settings / integration" in ds:
+                    saw_settings = True
+                    seg = ds.split("## Tier-A — app settings / integration", 1)[1]
+                    # large/markup Setting values (e.g. RMB's MenuItems HTML) collapse to a presence
+                    # note — never dumped raw into the integration block.
+                    self.assertNotIn("<div", seg, f"[{name}] raw UI markup leaked into the Setting block")
+        self.assertTrue(saw_settings,
+                        "expected >=1 subset app to render the .sapz Setting integration block")
+
+    def test_no_unredacted_password_in_data_sources(self):
+        """Secret-leak guard (belt-and-braces over read-time redaction): every connection-string
+        `Password=<value>` in the data-sources asset — connector strings AND Setting `connection`
+        rows — must be `<redacted>`. Matches only the no-space `Key=Value;` connection-string form
+        (`sanitize_conn` emits `Password=<redacted>`), so SQL `WHERE Password = @p` and `@`-params
+        are not mistaken for leaks."""
+        import re
+        subset = _resolve_subset()
+        if not subset:
+            self.skipTest(f"none of {SUBSET} found in the corpus")
+        for name, folder in subset:
+            with self.subTest(app=name), tempfile.TemporaryDirectory() as tmp:
+                rc, out, err = _run_extractor(folder, tmp, name)
+                self.assertEqual(rc, 0, f"[{name}] extractor exited {rc}\n{err}")
+                with open(os.path.join(tmp, f"{name}.stadium.data-sources.md"), encoding="utf-8") as fh:
+                    ds = fh.read()
+                for m in re.finditer(r"(?i)(?:password|pwd)=([^\s;`]+)", ds):   # connection-string form only
+                    val = m.group(1)
+                    if val.startswith("@"):                 # SQL parameter placeholder, not a value
+                        continue
+                    self.assertTrue(val.lower().startswith("<redacted>"),
+                                    f"[{name}] unredacted connection-string password in data-sources: {m.group(0)!r}")
+
+
+@unittest.skipUnless(_HAS_CORPUS, _SKIP_CORPUS_MSG)
+class TestUntouchedAssetsByteIdentical(unittest.TestCase):
+    """Cluster A touched `business-rules`, `surfaces`, `overview`; Cluster B additionally touches
+    `data-sources` (the Setting integration block) and `modules` (detection_source + behaviours);
+    Cluster C additionally touches `navigation` (#7 route reachability) and `data-model` (#6 rendered
+    types.js §7 fields). Assert every OTHER Tier-1 asset is byte-identical to its checked-in golden
+    snapshot — a HARD fail on drift. Skips cleanly until goldens are seeded (--update-goldens).
+    After Cluster C, UNTOUCHED = {access-control, glossary, design-signals} — still a meaningful guard."""
+
+    UNTOUCHED = [c for c in TIER1_CATEGORIES if c not in
+                 ("business-rules", "surfaces", "overview",      # Cluster A
+                  "data-sources", "modules",                     # Cluster B
+                  "navigation", "data-model")]                   # Cluster C (#7, #6)
 
     def test_untouched_assets_match_golden(self):
         if not os.path.isdir(GOLDEN_ASSETS):
@@ -503,6 +827,65 @@ class TestGoldenAssetSnapshots(unittest.TestCase):
                             print(f"  ... (+{len(diff) - 60} more diff lines)")
         if not any_snapshot:
             self.skipTest("no per-app snapshot directories under golden-assets/ for the discovered subset")
+
+
+@unittest.skipUnless(_HAS_CORPUS, _SKIP_CORPUS_MSG)
+class TestClusterCLiveOverSubset(unittest.TestCase):
+    """Cluster C — live-render checks over the subset: the empty-`types.js` no-op (the critical safety
+    assertion — rendered parsing must never corrupt a pure-SQL app's data model), and the positive #6/#7/#8
+    signal on the web-service subset app (PaymentsApp)."""
+
+    def _emit(self, name):
+        subset = dict((n.lower(), f) for n, f in _resolve_subset())
+        folder = subset.get(name.lower())
+        if not folder:
+            self.skipTest(f"{name} not in the discovered corpus")
+        tmp = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        rc, out, err = _run_extractor(folder, tmp, name)
+        self.assertEqual(rc, 0, f"[{name}] extractor exited {rc}\n{err}")
+        return tmp
+
+    def test_empty_types_js_is_a_data_model_noop(self):
+        """MemberAdmin + ResourceCenter have an empty `types.js` → #6 must contribute NOTHING: no
+        `[from rendered types]` locator and no rendered-authority tag anywhere in the data model. This is
+        the fabricate-nothing / never-corrupt-a-pure-SQL-app guarantee (byte-identity is additionally
+        locked by TestUntouchedAssetsByteIdentical's golden comparison once goldens are seeded)."""
+        for name in ("MemberAdmin", "ResourceCenter"):
+            with self.subTest(app=name):
+                tmp = self._emit(name)
+                dm = open(os.path.join(tmp, f"{name}.stadium.data-model.md"), encoding="utf-8").read()
+                self.assertNotIn("from rendered types", dm)
+                self.assertNotIn("· editable", dm)
+                self.assertNotIn("· read-only", dm)
+
+    def test_paymentsapp_rendered_types_and_endpoints(self):
+        """PaymentsApp (1366-line types.js, 23 views) exercises #6 + #8 end-to-end: rendered §7 fields with
+        authority, the field-name column binding, endpoint source-UI references, and route reachability."""
+        tmp = self._emit("PaymentsApp")
+        dm = open(os.path.join(tmp, "PaymentsApp.stadium.data-model.md"), encoding="utf-8").read()
+        sf = open(os.path.join(tmp, "PaymentsApp.stadium.surfaces.md"), encoding="utf-8").read()
+        nav = open(os.path.join(tmp, "PaymentsApp.stadium.navigation.md"), encoding="utf-8").read()
+        self.assertIn("from rendered types", dm)                      # #6 rendered §7 fields present
+        self.assertIn("editable", dm)                                 # per-field authority rendered
+        self.assertRegex(sf, r"`[A-Za-z]+` \"[A-Za-z ]+\"")           # #2/#8 field-name binding in a column line
+        self.assertIn("source-UI reference", sf)                      # #8 endpoint block
+        self.assertIn("PaymentsApi", sf)                              # decoded connector name
+        self.assertIn("Route-declared?", sf)                          # #7 inventory column
+        self.assertIn("reachable via a declared client route", nav)   # #7 reachability reclassification
+
+    def test_no_envelope_entities_across_subset(self):
+        """DA#4 — no transport/response envelope class becomes a §7 entity on ANY subset app (from any
+        source), and every rendered field carries the `[from rendered types]` locator."""
+        import re as _re
+        for name, _ in _resolve_subset():
+            with self.subTest(app=name):
+                tmp = self._emit(name)
+                dm = open(os.path.join(tmp, f"{name}.stadium.data-model.md"), encoding="utf-8").read()
+                for env in ("GeneralError", "GeneralResponse", "ResponseId", "ResponseMessage",
+                            "ValidationResult", "DefaultResponse", "CustomerValidation"):
+                    self.assertFalse(_re.search(rf"(?m)^### {env}\b", dm),
+                                     f"[{name}] envelope class {env} leaked into §7 entities")
 
 
 # --------------------------------------------------------------------------- snapshot seeding

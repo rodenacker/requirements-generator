@@ -12,13 +12,20 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 
 ## Tier-A — detected modules
 
-- **conditional-datagrid-styling** — Conditional row/cell styling in a DataGrid driven by data value — https://github.com/stadium-software/conditional-datagrid-styling
-- **filter-grid** — Attribute-based filtering of DataGrid rows by column value — https://github.com/stadium-software/filter-grid
-- **full-width-top-bar** — Full-width top app bar / header chrome — https://github.com/stadium-software/full-width-top-bar
-- **page-loader** — Full-page loading indicator / busy spinner during async work — https://github.com/stadium-software/page-loader
-- **repeater-datagrid-client-side** — Client-side DataGrid rendered from a Repeater, paged/sorted in-browser — https://github.com/stadium-software/repeater-datagrid-client-side
-- **tabs** — Tabbed container — switch between panels in one surface — https://github.com/stadium-software/tabs
-- **workflow-steps** — Stepper / progress-step indicator for multi-step flows — https://github.com/stadium-software/workflow-steps
+- **conditional-datagrid-styling** — Conditional row/cell styling in a DataGrid driven by data value — https://github.com/stadium-software/conditional-datagrid-styling [detected via: comment-URL]
+- **datagrid-advanced-search** — Multi-field / advanced search panel over a DataGrid — https://github.com/stadium-software/datagrid-advanced-search [detected via: function-name]
+- **filter-grid** — Attribute-based filtering of DataGrid rows by column value — https://github.com/stadium-software/filter-grid [detected via: comment-URL]
+- **full-width-top-bar** — Full-width top app bar / header chrome — https://github.com/stadium-software/full-width-top-bar [detected via: comment-URL]
+- **icons** — Icon helper (Font Awesome / glyph injection) — https://github.com/stadium-software/icons [detected via: function-name]
+- **page-loader** — Full-page loading indicator / busy spinner during async work — https://github.com/stadium-software/page-loader [detected via: comment-URL]
+- **popups** — Modal dialogs / toast popups — https://github.com/stadium-software/popups [detected via: CSS footprint]
+- **repeater-datagrid-client-side** — Client-side DataGrid rendered from a Repeater, paged/sorted in-browser — https://github.com/stadium-software/repeater-datagrid-client-side [detected via: comment-URL]
+- **tabs** — Tabbed container — switch between panels in one surface — https://github.com/stadium-software/tabs [detected via: comment-URL]
+- **workflow-steps** — Stepper / progress-step indicator for multi-step flows — https://github.com/stadium-software/workflow-steps [detected via: comment-URL]
+
+## Tier-A — module-driven behaviours
+
+- multi-step (stepper) workflow — a required multi-step interaction [from global-scripts]
 
 - global-scripts.js present: True
 - Module CSS footprint: modal-variables.css, modal.css

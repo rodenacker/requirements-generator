@@ -14,22 +14,22 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 
 ## View / task / feature inventory
 
-> Columns Page / Start / Design-surface / Reachable are **Tier-A** facts (design model + administration.db). **Inferred kind** is **Tier-B** `[AI-SUGGESTED]` (name-suffix taxonomy; bare nouns → entity-maintenance).
+> Columns Page / Title / Route / Start / Design-surface / Reachable / Route-declared are **Tier-A** facts (design model + administration.db + rendered `page-routes.js`). **Inferred kind** is **Tier-B** `[AI-SUGGESTED]` (name-suffix taxonomy; bare nouns → entity-maintenance). Title + Route come from the rendered router `[from rendered routes]`.
 
-| Page | Start? | Design surface? | Reachable via nav? | Inferred kind |
-|---|:---:|:---:|:---:|---|
-| ClientServiceRequest |  | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
-| ClientApplications |  | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
-| Enablement |  | ✓ |  | entity-maintenance `[AI-SUGGESTED]` |
-| Dashboard |  | ✓ |  | landing `[AI-SUGGESTED]` |
-| pgClientDetails |  | ✓ | ✓ | detail `[AI-SUGGESTED]` |
-| pgModularInformation |  | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
-| pgCollections |  | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
-| pgAdministrators |  | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
-| pgAccounts |  | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
-| pgSignatories |  | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
-| pgGenerate |  | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
-| StartPage | ✓ | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
+| Page | Title | Route | Start? | Design surface? | Reachable via nav? | Route-declared? | Inferred kind |
+|---|---|---|:---:|:---:|:---:|:---:|---|
+| ClientServiceRequest | Client Service Request | `/ClientServiceRequest` |  | ✓ | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
+| ClientApplications | Client Applications | `/ClientApplications` |  | ✓ | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
+| Enablement | Client Applications | `/Enablement` |  | ✓ |  | ✓ | entity-maintenance `[AI-SUGGESTED]` |
+| Dashboard | Client Applications | `/Dashboard` |  | ✓ |  | ✓ | landing `[AI-SUGGESTED]` |
+| pgClientDetails | Client Details | `/pgClientDetails` |  | ✓ | ✓ | ✓ | detail `[AI-SUGGESTED]` |
+| pgModularInformation | Modular Information | `/pgModularInformation` |  | ✓ | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
+| pgCollections | Collections | `/pgCollections` |  | ✓ | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
+| pgAdministrators | Administrators | `/pgAdministrators` |  | ✓ | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
+| pgAccounts | Accounts | `/pgAccounts` |  | ✓ | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
+| pgSignatories | Pg Signatories | `/pgSignatories` |  | ✓ | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
+| pgGenerate | Generate | `/pgGenerate` |  | ✓ | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
+| StartPage | Start Page | `/StartPage` | ✓ | ✓ | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
 
 ## ClientServiceRequest  ·  title: Client Service Request  ·  roles: —
   - GridLayout: `GridLayout`
@@ -77,9 +77,13 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
                   - Label: `LabelModalHeading` — "Electronic Banking Service Request"
                 - StackLayout: `StackLayout`
                   - DataGrid: `dgSearchCustomers`  ·  grid: searchable
-                    - columns (in order): "Customer Number", "Customer Name", "Launch"(action) [from design model]
+                    - columns (in order): `ID` "Customer Number", `CustomerName` "Customer Name", `Launch`(action) [from design model]
                 - StackLayout: `StackLayout`
                   - Button: `btnCloseModal` — "Close"
+
+### source-UI reference — ClientServiceRequest (from rendered view)
+> Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
+- `GetClientsInformation` → `OnboardingStandardBankCIB.GetClients`
 
 ## ClientApplications  ·  title: Client Applications  ·  roles: —
   - GridLayout: `GridLayout`
@@ -97,7 +101,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
                     - GridLayout: `GridLayout`
                       - StackLayout: `StackLayout`
                         - DataGrid: `DataGrid`  ·  grid: searchable
-                          - columns (in order): "Edit"(action), "Document"(action), "Audit Log"(action), "Application", "Client Name", "Client"(hidden), "Sales Person ID"(hidden), "Sales Person", "Application Status", "Created Date", "Updated Date", "Current Step ID"(hidden), "WOID"(hidden), "Product ID"(hidden), "Application Number"(hidden), "WO Type"(hidden), "Action Sequence"(hidden), "Back Up File Name"(hidden), "Backup File Location"(hidden), "Next Action Sequence"(hidden) [from design model]
+                          - columns (in order): "Edit"(action), `Download` "Document"(action), `History` "Audit Log"(action), `ApplicationID` "Application", `ClientName` "Client Name", `ClientNumber` "Client"(hidden), `SalesPersonID` "Sales Person ID"(hidden), `SalesPerson` "Sales Person", `WOActionDesc` "Application Status", `CreatedDate` "Created Date", `UpdatedDate` "Updated Date", `CurrentStepID` "Current Step ID"(hidden), "WOID"(hidden), `ProductID` "Product ID"(hidden), `ApplicationNumber` "Application Number"(hidden), `WOType` "WO Type"(hidden), `ActionSequence` "Action Sequence"(hidden), `BackUpFileName` "Back Up File Name"(hidden), `BackupFileLocation` "Backup File Location"(hidden), `NextActionSequence` "Next Action Sequence"(hidden) [from design model]
     - StackLayout: `StackLayout`
       - Container: `Modal_Container_History`
         - GridLayout: `GridLayout`
@@ -127,10 +131,18 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
                     - CellGridLayout: `CellGridLayout`
                       - CellStackLayout: `CellStackLayout`
                         - DataGrid: `dgSearchCustomers`
-                          - columns (in order): "Date", "Action User", "Details" [from design model]
+                          - columns (in order): "Date", `ActionUser` "Action User", "Details" [from design model]
                     - CellGridLayout: `CellGridLayout`
                       - CellStackLayout: `CellStackLayout`
                         - Button: `btnCloseModal` — "Close"
+
+### source-UI reference — ClientApplications (from rendered view)
+> Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
+- `DataGrid` → `IDB.get_ApplicationFile`
+- `DataGrid` → `FileSystemData.FileExists`
+- `DataGrid` → `FileSystemData.ReadFile`
+- `DataGrid` → `IDB.Sp_History_Get`
+- `ClientApplications` → `IDB.Prc_Application_GetAll`
 
 ## Enablement  ·  title: Client Applications  ·  roles: —
   - GridLayout: `GridLayout`
@@ -152,7 +164,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
                               - Label: `lblEnablement_Header_Unallocated`
                             - StackLayout: `StackLayout`
                               - DataGrid: `dgClientApplicationUnlocated`
-                                - columns (in order): "AllocateLink"(action), "Application ID", "Client Name", "Client Number", "Application Status", "Salesperson", "Salesperson ID"(hidden), "Created Date", "Updated Date", "Product ID"(hidden), "Application Number"(hidden), "WOID"(hidden), "WO Action ID"(hidden), "WO Action"(hidden), "Current Step ID"(hidden) [from design model]
+                                - columns (in order): `AllocateLink`(action), `ApplicationID` "Application ID", `ClientName` "Client Name", `ClientNumber` "Client Number", `Status` "Application Status", "Salesperson", `SalespersonID` "Salesperson ID"(hidden), `CreatedDate` "Created Date", `UpdatedDate` "Updated Date", `ProductID` "Product ID"(hidden), `ApplicationNumber` "Application Number"(hidden), "WOID"(hidden), `WOActionID` "WO Action ID"(hidden), `WOAction` "WO Action"(hidden), `CurrentStepID` "Current Step ID"(hidden) [from design model]
                       - StackLayout: `StackLayout`
                         - Container: `Container2`
                           - GridLayout: `GridLayout`
@@ -160,7 +172,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
                               - Label: `lblEnablement_Header_Allocated` — "Allocated"
                             - StackLayout: `StackLayout`
                               - DataGrid: `dgClientApplicationAllocated`
-                                - columns (in order): "Vetting"(action), "Application ID", "Client Name", "Client Number", "Application Status", "Salesperson", "Salesperson ID"(hidden), "Created Date", "Updated Date", "Product ID"(hidden), "Application Number"(hidden), "WOID"(hidden), "WO Action ID"(hidden), "WO Action"(hidden), "Action Sequence"(hidden), "Current Step ID"(hidden), "Allocated ID"(hidden) [from design model]
+                                - columns (in order): `Vetting`(action), `ApplicationID` "Application ID", `ClientName` "Client Name", `ClientNumber` "Client Number", `Status` "Application Status", "Salesperson", `SalespersonID` "Salesperson ID"(hidden), `CreatedDate` "Created Date", `UpdatedDate` "Updated Date", `ProductID` "Product ID"(hidden), `ApplicationNumber` "Application Number"(hidden), "WOID"(hidden), `WOActionID` "WO Action ID"(hidden), `WOAction` "WO Action"(hidden), `ActionSequence` "Action Sequence"(hidden), `CurrentStepID` "Current Step ID"(hidden), `AllocatedID` "Allocated ID"(hidden) [from design model]
               - CellGridLayout: `CellGridLayout`
                 - CellStackLayout: `CellStackLayout`
                   - Container: `Container_Enablement_VettingScreen`
@@ -240,7 +252,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
                                                 - Label: `lblDesignatedPersons` — "Designated Persons"
                                               - StackLayout: `StackLayout`
                                                 - DataGrid: `dgSignatories`
-                                                  - columns (in order): "ID"(hidden), "Application ID"(hidden), "User Name", "User Middle Name", "User Surname", "Identification Type"(hidden), "Identification Number", "Passport Number"(hidden), "Drivers Licence Number"(hidden), "Date Created"(hidden), "Date Updated"(hidden), "Physical Address"(hidden) [from design model]
+                                                  - columns (in order): "ID"(hidden), `ApplicationID` "Application ID"(hidden), `UserName` "User Name", `UserMiddleName` "User Middle Name", `UserSurname` "User Surname", `IdentificationType` "Identification Type"(hidden), `IdentificationNumber` "Identification Number", `PassportNumber` "Passport Number"(hidden), `DriversLicenceNumber` "Drivers Licence Number"(hidden), `DateCreated` "Date Created"(hidden), `DateUpdated` "Date Updated"(hidden), `PhysicalAddress` "Physical Address"(hidden) [from design model]
                                               - StackLayout: `StackLayout`
                                                 - Container: `Container_AcceptRejectButtons`
                                                   - GridLayout: `GridLayout`
@@ -267,6 +279,25 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
                                 - GridLayout: `GridLayout`
                                 - GridLayout: `GridLayout`
                           - CellGridLayout: `CellGridLayout`
+
+### source-UI reference — Enablement (from rendered view)
+> Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
+- `dgClientApplicationUnlocated` → `IDB.Sp_ClientApplications_Allocate_Insert`
+- `dgClientApplicationUnlocated` → `IDB.Prc_WOHistory_insert1`
+- `dgClientApplicationAllocated` → `IDB.Sp_FileImage_Get`
+- `btnNextPageLeft` → `OnboardingStandardBankCIB.Sp_FileImage_Get`
+- `btnNextPageLeft` → `FileSystem.ReadFile`
+- `btnNextPageRight` → `OnboardingStandardBankCIB.Sp_FileImage_Get`
+- `btnNextPageRight` → `FileSystem.ReadFile`
+- `btnEnablement_Accept` → `IDB.Prc_WO_Update`
+- `btnEnablement_Accept` → `IDB.Prc_WOHistory_insert1`
+- `btnAcceptReject` → `OnboardingStandardBankCIB.Prc_WO_updateNAS75`
+- `btnAcceptReject` → `OnboardingStandardBankCIB.Prc_WOHistory_insert`
+- `btnAcceptReject` → `OnboardingStandardBankCIB.Prc_WO_updateNAS1000`
+- `LoadDatagrids` → `IDB.Sp_ClientApplications_Get`
+- `LoadDatagrids` → `IDB.Sp_ClientApplicationsUnallocated_Get`
+- `LoadImage` → `IDB.Sp_FileImage_Get`
+- `LoadImage` → `FileSystem.ReadFile`
 
 ## Dashboard  ·  title: Client Applications  ·  roles: —
   - GridLayout: `GridLayout`
@@ -352,7 +383,16 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
                         - Label: `lblExistingClient` — "Existing Client"
                       - StackLayout: `StackLayout`
                         - DataGrid: `dgExistingClient`  ·  grid: searchable
-                          - columns (in order): "Client Name", "Client Registration Number", "Client ID", "Client Segment", "Launch"(action), "_ClientIDinternal"(hidden) [from design model]
+                          - columns (in order): `ClientName` "Client Name", `ClientRegistrationNumber` "Client Registration Number", `ClientID` "Client ID", `ClientSegment` "Client Segment", `Launch`(action), `_ClientIDinternal`(hidden) [from design model]
+
+### source-UI reference — pgClientDetails (from rendered view)
+> Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
+- `btnSave` → `IDB.Prc_ClientDetails_Insert`
+- `pgClientDetails` → `IDB.get_AllClientDetails`
+- `Application_Create` → `IDB.Prc_WO_Insert_1`
+- `Application_Create` → `IDB.Prc_Application_Insert`
+- `Application_Create` → `IDB.sp_Create_Application_Steps`
+- `Application_Create` → `IDB.sp_Create_Application_Steps_UpdateValid`
 
 ## pgModularInformation  ·  title: Modular Information  ·  roles: —
   - GridLayout: `GridLayout`
@@ -523,7 +563,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
                   - Label: `lblEntityHeader` — "Complete the section below if applicable to Hierarchy"
                 - StackLayout: `StackLayout`
                   - DataGrid: `dgModularEntities`
-                    - columns (in order): "View"(action), "Remove"(action), "Entity ID", "Entity Name", "Entity Number" [from design model]
+                    - columns (in order): `View`(action), `Remove`(action), `_ModEntityID` "Entity ID", `ModEntityName` "Entity Name", `ModEntityNumber` "Entity Number" [from design model]
                 - StackLayout: `StackLayout`
                   - Button: `btnAddEntity` — "Add Entity"
     - StackLayout: `StackLayout`
@@ -558,6 +598,23 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
                   - Button: `btnModalUpdate` — "Update"
                 - StackLayout: `StackLayout`
                   - Button: `btnModalClose` — "Close"
+
+### source-UI reference — pgModularInformation (from rendered view)
+> Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
+- `btnSave` → `IDB.get_CheckModularInformationExists`
+- `btnSave` → `IDB.Prc_ModularInformation_Update`
+- `btnSave` → `IDB.Prc_ModularInformation_Insert`
+- `btnNext` → `IDB.get_CheckModularInformationExists`
+- `btnNext` → `IDB.Prc_ModularInformation_Update`
+- `btnNext` → `IDB.Prc_ModularInformation_Insert`
+- `btnNext` → `IDB.sp_Create_Application_Steps_UpdateValid`
+- `dgModularEntities` → `IDB.get_ModularEntity`
+- `btnModalAdd` → `IDB.Prc_ModularEntity_Insert`
+- `btnModalUpdate` → `IDB.Prc_ModularEntity_Update`
+- `pgModularInformation` → `IDB.get_ClientDetails`
+- `pgModularInformation` → `IDB.get_CheckModularInformationExists`
+- `pgModularInformation` → `IDB.get_ModularInformation`
+- `LoadEntities` → `IDB.Prc_ModularEntity_GetList`
 
 ## pgCollections  ·  title: Collections  ·  roles: —
   - GridLayout: `GridLayout`
@@ -712,6 +769,22 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
                 - StackLayout: `StackLayout`
                   - Button: `btnModalClose` — "Close"
 
+### source-UI reference — pgCollections (from rendered view)
+> Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
+- `btnView` → `IDB.get_CollectionsContactPerson`
+- `btnRemove` → `IDB.Prc_CollectionsContactPerson_Disable`
+- `btnNext` → `IDB.get_CheckCollectionsExists`
+- `btnNext` → `IDB.Prc_Collections_Update`
+- `btnNext` → `IDB.Prc_Collections_Insert`
+- `btnNext` → `IDB.sp_Create_Application_Steps_UpdateValid`
+- `btnModalAdd` → `IDB.Prc_CollectionsContactPerson_Insert`
+- `btnModalUpdate` → `IDB.Prc_CollectionsContactPerson_Update`
+- `pgCollections` → `IDB.get_ClientDetails`
+- `pgCollections` → `IDB.get_CheckCollectionsExists`
+- `pgCollections` → `IDB.get_Collections`
+- `LoadContactPersons` → `IDB.Prc_CollectionsContactPerson_GetList`
+- `Validate` → `IDB.get_ContactPersonCount`
+
 ## pgAdministrators  ·  title: Administrators  ·  roles: —
   - GridLayout: `GridLayout`
     - StackLayout: `StackLayout`
@@ -838,6 +911,17 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
                   - Button: `btnModalUpdate` — "Update"
                 - StackLayout: `StackLayout`
                   - Button: `btnModalClose` — "Close"
+
+### source-UI reference — pgAdministrators (from rendered view)
+> Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
+- `btnView` → `IDB.get_Administrator`
+- `btnRemove` → `IDB.Prc_Administrators_Disable`
+- `btnNext` → `IDB.sp_Create_Application_Steps_UpdateValid`
+- `btnModalAdd` → `IDB.Prc_Administrators_Insert`
+- `btnModalUpdate` → `IDB.Prc_Administrators_Update`
+- `pgAdministrators` → `IDB.get_ClientDetails`
+- `LoadAdministrators` → `IDB.Prc_Administrators_GetList`
+- `Validate` → `IDB.get_AdministratorCount`
 
 ## pgAccounts  ·  title: Accounts  ·  roles: —
   - GridLayout: `GridLayout`
@@ -1019,6 +1103,22 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
                 - StackLayout: `StackLayout`
                   - Button: `btnModalClose` — "Close"
 
+### source-UI reference — pgAccounts (from rendered view)
+> Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
+- `btnView` → `IDB.get_PartiesHeirarchyTable`
+- `btnNext` → `IDB.get_EntitiesExist`
+- `btnNext` → `IDB.Prc_HeirarchyEntities_Update`
+- `btnNext` → `IDB.Prc_HeirarchyEntities_Insert`
+- `btnNext` → `IDB.sp_Create_Application_Steps_UpdateValid`
+- `btnModalAdd` → `IDB.Prc_PartiesHeirarchy_Insert`
+- `btnModalUpdate` → `IDB.Prc_PartiesHeirarchy_Update`
+- `pgAccounts` → `IDB.get_ClientDetails`
+- `pgAccounts` → `IDB.get_CheckHeirarchyEntitiesExists`
+- `pgAccounts` → `IDB.get_HeirarchyEntities`
+- `ProgressBarUpdate` → `IDB.sp_Application_Step_Status`
+- `LoadLinkedAccounts` → `IDB.Prc_PartiesHeirarchy_GetList`
+- `Validate` → `IDB.get_PartiesHierarchCount`
+
 ## pgSignatories  ·  title: Pg Signatories  ·  roles: —
   - GridLayout: `GridLayout`
     - StackLayout: `StackLayout`
@@ -1144,6 +1244,17 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
                 - StackLayout: `StackLayout`
                   - Button: `btnModalClose` — "Close"
 
+### source-UI reference — pgSignatories (from rendered view)
+> Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
+- `btnView` → `IDB.get_Signatory`
+- `btnRemove` → `IDB.Prc_SignatureField_Disable`
+- `btnNext` → `IDB.sp_Create_Application_Steps_UpdateValid`
+- `btnModalAdd` → `IDB.Prc_SignatureField_Insert`
+- `btnModalUpdate` → `IDB.Prc_Signatories_Update`
+- `pgSignatories` → `IDB.get_ClientDetails`
+- `Validate` → `IDB.get_SignatoryCount`
+- `LoadSignatories` → `IDB.Prc_SignatureField_GetList`
+
 ## pgGenerate  ·  title: Generate  ·  roles: —
   - GridLayout: `GridLayout`
     - StackLayout: `StackLayout`
@@ -1179,7 +1290,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
         - GridLayout: `GridLayout`
           - StackLayout: `StackLayout`
             - DataGrid: `dgValidationStatus`
-              - columns (in order): "Description", "Date Updated", "Step Valid", "ID"(hidden), "WOID"(hidden), "Cfg Application Step ID"(hidden), "Step Number"(hidden), "Date Completed"(hidden), "Product ID"(hidden), "Date Created"(hidden), "Step Name"(hidden) [from design model]
+              - columns (in order): "Description", `DateUpdated` "Date Updated", `StepValid` "Step Valid", "ID"(hidden), "WOID"(hidden), `CfgApplicationStepID` "Cfg Application Step ID"(hidden), `StepNumber` "Step Number"(hidden), `DateCompleted` "Date Completed"(hidden), `ProductID` "Product ID"(hidden), `DateCreated` "Date Created"(hidden), `StepName` "Step Name"(hidden) [from design model]
           - StackLayout: `StackLayout`
             - Label: `lblEmail` — "Email address:"
           - StackLayout: `StackLayout`
@@ -1187,6 +1298,14 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
           - StackLayout: `StackLayout`
             - Button: `btnPrevious` — "Previous"
             - Button: `btnGenerate` — "Generate"
+
+### source-UI reference — pgGenerate (from rendered view)
+> Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
+- `btnGenerate` → `IDB.Prc_WO_Update`
+- `btnGenerate` → `IDB.Prc_WOHistory_insert1`
+- `pgGenerate` → `IDB.sp_Application_Steps_Get`
+- `pgGenerate` → `IDB.get_ClientDetails`
+- `Validate` → `IDB.get_InvalidSteps`
 
 ## StartPage ⭐ start  ·  title: Start Page  ·  roles: User
   - GridLayout: `GridLayout`

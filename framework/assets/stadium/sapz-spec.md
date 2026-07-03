@@ -79,6 +79,14 @@ A Column's `props` carry: **`HeaderText`** (human label, 100 %), **`Name`** (cam
 
 Only `{0,1}` occur across all 20 apps; any other int degrades to `type<N>` (`_decode_column_type`), never a guess.
 
+### App settings — the `Setting` table (Cluster B #4-B)
+
+The `sqlitedata` also carries a **`Setting`** table (cols `ID, ParentID, Name, Value, IsSecret`) holding app-level configuration the deployed `appsettings.json` does not: internal API URLs, a `DepartmentID` data-scope scalar, filesystem paths, and DB-connection / API-key rows. It is **sparse** (0–3 rows per app; empty or absent on many) and **secret-dominated**, so it is surfaced narrowly into the `data-sources` asset (`## Tier-A — app settings / integration`, locator `[from design model: Setting]`) as **handoff-only §1.7 integration signals**, never as §7 data-model fields.
+
+- **`IsSecret` is UNRELIABLE — do not gate on it.** Across the corpus it is uniformly `0` even on rows whose `Value` is a password or API key. Secret detection is therefore **Name-pattern-driven** (`_redact_setting`: a `Name` matching `key|secret|password|pwd|token|apikey` collapses to a redacted **presence** signal — the value is never emitted). The flag is recorded in `model.json > settings[].is_secret_flag` for forensics only.
+- **Redaction happens at read time**, so no secret value reaches `model.json`. Connection-string values reuse `sanitize_conn` (host/db kept, password redacted) and are deduped against the connector inventory; URL values keep scheme+host+path and drop the query/fragment; paths and scalars are PII-scrubbed (`_redact_pii`).
+- **Formatting/timeout keys are NOT read.** The `appsettings.json Config.*` block (`DateFormat`, `SessionStateTimeout`, `SmtpDeliveryMethod`, …) was probed to be **byte-identical Stadium defaults across all apps** (zero per-app signal) and session-vars/timeout/auth are already extracted elsewhere — so Cluster B deliberately surfaces none of it (see `plans/stadium-extraction-enrichment/02-cluster-b-config-and-detection.md`).
+
 ## AVOID — the noise
 
 - **`JsonData` property bags / `all_props`.** Every control/action node carries a `JsonData` blob of `{Name, ValueType, Value}` property items. The **requirement-bearing key props** — labels, validation (`IsValidRule`/`ErrorText`/`Required`), help (`Hint`/`ToolTip`), editability (`ReadOnly`/`IsPassword`), enums (`Options`), and DataGrid `Columns` — are on the `KEY_PROP_NAMES` allowlist and surfaced (see *Control validation & field-behaviour props* and *DataGrid `Columns` resolution* above). The **rest** of the bag is huge and almost entirely redundant with the deployed source. The forensic `model.json` keeps the full `all_props` for completeness — do not load it into the requirements flow.
