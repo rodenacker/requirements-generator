@@ -54,7 +54,16 @@ This repository is a **template**. You don't work in the shared copy — you cre
 
 1. **Create your own copy.** On the repository's GitHub page, click **Use this template → Create a new repository**. Name it for the engagement (e.g. `acme-loan-portal`) and set its visibility to **Private** (or **Internal**, per company policy). Make **one copy per client engagement** — don't reuse a copy across clients, so each client's material stays isolated and you start from a clean `input/`.
 2. **Clone it to your machine** with `git clone <your-new-repo-url>`, then open the folder in VS Code.
-3. **Install the tools** (first time on your workstation only) — see [§5 Setup](#5-setup). Some pieces are needed only for specific commands (Office/PDF inputs, design-token extraction from a URL, prototypes).
+3. **Install the tools** (first time on your workstation only). The fastest way is the bundled **setup script** — open a **PowerShell 7** terminal (`pwsh`) in the repo root and run it:
+
+   ```powershell
+   & framework/tools/setup-core.ps1           # check for, and install, the core dependencies
+   & framework/tools/setup-core.ps1 -Probe    # only check what's present — installs nothing
+   ```
+
+   Run it **right after cloning**, before your first command; re-run it any time to check your setup. Unlike `/setup` (below), it runs in a plain terminal, so it also bootstraps a brand-new machine *before* Claude Code is fully configured. It installs the core dependencies every engagement needs — Python, Node.js, markitdown (Office/PDF conversion + its MCP server), the Mermaid CLI, and the Playwright MCP — and installs the npm-based tools **machine-globally**, so they're available to all your future engagements. After a fresh install, **restart Claude Code** so the new tools and MCP servers are picked up.
+
+   The core script deliberately skips the optional diagram renderers (draw.io, Inkscape, LibreOffice) and the prototype's own packages. For those — and for the same setup driven from *inside* Claude Code via **`/setup`** — see [§5 Setup](#5-setup).
 
 **Do the work**
 

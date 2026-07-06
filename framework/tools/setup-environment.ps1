@@ -16,7 +16,8 @@
 
 .PARAMETER Component
   Which dependency to act on:
-    all (default)            python, markitdown, node, mmdc, drawio, playwright  (core set)
+    all (default)            python, markitdown, node, mmdc, drawio, playwright  (full core set)
+    core                     python, markitdown, node, mmdc, playwright  (items 1-6; `all` minus drawio + on-demand renderers)
     markitdown               Office/PDF converters + markitdown-mcp  (the Office-extras fix)
     drawio                   draw.io Desktop + the `drawio` PATH shim  (the shim fix)
     node | python            language runtimes
@@ -40,7 +41,7 @@
 #>
 [CmdletBinding()]
 param(
-  [ValidateSet('all','markitdown','drawio','node','python','mmdc','playwright','inkscape','libreoffice')]
+  [ValidateSet('all','core','markitdown','drawio','node','python','mmdc','playwright','inkscape','libreoffice')]
   [string]$Component = 'all',
   [switch]$Probe
 )
@@ -203,7 +204,7 @@ function Setup-Node {
 }
 
 function Setup-Mmdc {
-  $gates = 'Mermaid validation (reserved; RF-07 has no active caller)'
+  $gates = '/requirements §2.4 domain-model Mermaid validation (drafter step 9, mermaid-validator.md)'
   if (Test-Cmd 'mmdc') { Add-Result 'mmdc' 'ready' ("mmdc " + (Get-SemverFrom 'mmdc')) $gates; return }
   if ($Probe) { Add-Result 'mmdc' 'absent' 'not found' $gates; return }
   if (-not (Test-Cmd 'npm')) { Add-Result 'mmdc' 'failed' 'npm (Node.js) required first' $gates; return }
@@ -298,6 +299,8 @@ function Setup-LibreOffice {
 
 $plan = if ($Component -eq 'all') {
   @('python', 'markitdown', 'node', 'mmdc', 'drawio', 'playwright')
+} elseif ($Component -eq 'core') {
+  @('python', 'markitdown', 'node', 'mmdc', 'playwright')   # items 1-6; excludes drawio + on-demand renderers
 } else {
   @($Component)
 }
