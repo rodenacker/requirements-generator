@@ -45,7 +45,12 @@ Canonical source: `docs/maintenance.md > Separation of concerns`.
 
 ### Character
 A persona file under `framework/assets/characters/` defining the stance, voice, and constraints an agent adopts for a stage. Distinct from a *target-user persona* (the product's end user).
-Not to be confused with: **persona** (see *target-user*).
+Not to be confused with: **persona** (see *target-user*); **Application character** (the product's own copy voice, recorded in `requirements.md` §1.8).
+
+### Application character
+The persona/voice of the application-under-specification's **own user-facing copy** — notifications, error messages, validation messages, confirmations, empty states. Recorded in `requirements.md` §1.8: input-stated (`[SRC]`-cited) or drafter-inferred and consultant-resolved via the standard blocking `[AI-SUGGESTED]` workflow (gap-pass A16). Governs tone and phrasing only — never which feedback exists, its structure, placement, or vocabulary. Consumed downstream by `/wireframe` (via the blueprint) and `/prototype` (via design-spec §3) when phrasing generated copy.
+Canonical source: `framework/assets/template-requirements.md` §1.8.
+Not to be confused with: **Character** (an agent's voice file under `framework/assets/characters/`); a **target-user persona** (§3 — who uses the app, not how it speaks).
 
 ### Dispatcher
 A role within a multi-agent step that distributes work to parallel sub-agents (e.g. the prototype generator dispatching per-surface generation). The `/start` command is also described as a *dispatcher* in the user sense (it lists and launches commands).

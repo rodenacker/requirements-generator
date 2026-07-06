@@ -37,6 +37,7 @@ before write; the architect's self-validation flags any literal {{...}} survivin
   {{SCOPE_SLUG}}                — kebab-case scope slug.
   {{SOURCES_LIST}}              — comma-separated requirement IDs (Functional, BR, UI, Goals, Task flows, Data shapes).
   {{PERSONAS_AVAILABLE_LIST}}   — bulleted list of §3 persona names with their one-line characteristic from requirements.md §3.
+  {{APPLICATION_CHARACTER_BLOCK}} — condensed requirements.md §1.8: the "**Selected character:** <name> — <statement>" line, the "**Tone attributes:** ..." line, and the five-row copy-surface guidance table (Notifications / Errors / Validation / Confirmations / Empty states), copied verbatim. When the source requirements.md predates §1.8, the literal line "none recorded — use a neutral professional voice".
   {{SURFACE_INVENTORY_TABLE}}   — markdown table of {LS-NN | Intent | Sources | Properties | Allowed realizations | Default realization | Host surface | Secondary intent (optional)}.
                                   Properties cell shape: comma-separated `Shape.Property` references (e.g. `FileLog.ProcessDate, FileLog.CurrentStatus`) and/or `F-NN:ParamName` references for F-NN-named parameters not in §7 (e.g. `F-05:FileSettingId`). Use `none` for surfaces that render no entity-bound fields (rare; only pure-UI surfaces like a confirmation modal preview).
                                   Allowed realizations: a closed subset of {standalone-screen, inline-drawer, inline-expand, wizard-split, modal} (see framework/assets/wireframes/realization-strategies.md), derived by the architect from the surface's nature + relationships; always includes standalone-screen. Default realization: exactly one member of that set (the /prototype + baseline pick). Host surface: the LS-NN a foldable surface folds onto (inline-drawer/inline-expand/modal), or `—`.
@@ -60,6 +61,12 @@ before write; the architect's self-validation flags any literal {{...}} survivin
 ## Available personas (from `requirements/requirements.md` §3)
 
 {{PERSONAS_AVAILABLE_LIST}}
+
+## Application character (from `requirements/requirements.md` §1.8)
+
+{{APPLICATION_CHARACTER_BLOCK}}
+
+(Voice for the app's own user-facing copy — notification/error/validation/confirmation/empty-state phrasing. Tone only; feedback structure and behaviour remain governed by the standard feedback rules and the pattern catalogue.)
 
 ## Surface inventory
 

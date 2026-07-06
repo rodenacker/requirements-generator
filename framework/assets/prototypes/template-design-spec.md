@@ -48,6 +48,20 @@
 | Posture | {{posture_label}} [POSTURE-DEFAULT] |
 | Why it fits | {{tie to primary_persona + goals; cite §3/§4 [SRC: …]}} |
 | Principles emphasized | {{the posture's load-bearing principles, per design-philosophies.md}} |
+| Application character | {{name — one-line statement, copied from requirements.md §1.8}} [SRC: §1.8] |
+| Copy tone attributes | {{3–5 attributes from requirements.md §1.8}} [SRC: §1.8] |
+
+**Copy guidance (from requirements.md §1.8 — tone only; the ux-baseline floor still governs what feedback exists):**
+
+<!-- guidance: the five per-surface rows copied verbatim from requirements.md §1.8. When the source requirements.md predates §1.8, set the Application character row to `none recorded — neutral professional voice` and omit this sub-table entirely. -->
+
+| Copy surface | Guidance | Example |
+|---|---|---|
+| Notifications | {{…}} | {{…}} |
+| Errors | {{…}} | {{…}} |
+| Validation | {{…}} | {{…}} |
+| Confirmations | {{…}} | {{…}} |
+| Empty states | {{…}} | {{…}} |
 
 ## 4. Trade-off positions (design parameters)
 

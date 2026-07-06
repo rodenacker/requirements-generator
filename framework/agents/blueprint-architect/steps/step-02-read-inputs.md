@@ -48,6 +48,16 @@ Walk `## 3. Target users` and locate every `### <Name>` header. For each, captur
 
 Cross-check `personas` against `scope.personas_available` — every persona name in `scope.personas_available` should be in `personas`. A mismatch (e.g. requirements doc renamed a persona) is a structural warning, not a hard fail; surface in-thread and use the requirements doc's current names as authoritative.
 
+## 2.4b Extract §1.8 Application character
+
+Walk `## 1.8 Application character` and capture verbatim into in-memory state:
+
+- `application_character.name_and_statement` — the `**Selected character:**` line's value.
+- `application_character.tone_attributes` — the `**Tone attributes:**` line's value.
+- `application_character.per_surface_guidance` — the five copy-surface rows (Notifications / Errors / Validation / Confirmations / Empty states), each with Guidance + Example.
+
+Purely mechanical — no inference, no widening. When the section is absent (a requirements.md that predates §1.8), set `application_character = null` and surface a one-line in-thread note: *"no §1.8 Application character — wireframe copy will use a neutral professional voice"*. The Amendments-supersession rule in 2.2 applies to this extraction like every other.
+
 ## 2.5 (Non-create modes only) Read prior artefacts
 
 On `mode = "regenerate-variants"`:

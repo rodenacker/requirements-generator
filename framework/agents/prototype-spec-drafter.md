@@ -12,7 +12,7 @@ Populate `framework/assets/prototypes/template-design-spec.md` into `prototypes/
 
 - `blueprints/<scope_slug>/scope.json` — scope IDs, personas, `scope_slug`.
 - `blueprints/<scope_slug>/blueprint.md` — the logical surfaces `LS-NN`, per-surface **Property closed sets**, allowed/default realizations, logical flow. The anti-fabrication source of truth.
-- `requirements/requirements.md` — the scoped requirement (read the sections named in `scope.json > sources`).
+- `requirements/requirements.md` — the scoped requirement (read the sections named in `scope.json > sources`, **plus §1.8 Application character on every run** — the copy-voice input for §3).
 - `prototypes/.specs/<name_slug>/supporting-inputs.json` — the consultant's B–E selections + `prototype_roles`. For each `analyse_requirement` selection, prefer its `sidecar_path` (≤20 KB) when `sidecar_present`, else a bounded prose Read (`RF-09` cap). For a wireframe selection with `primary_basis: true`, read its `variant_position.json` (`posture`, positions, philosophy — the posture is read **directly**, not mapped to a nearest match) and `manifest.json` (per-surface, the settled `surface_plan`: `realization`, `primary_pattern`/`primary_pattern_variant`/`modifiers[]`/`secondary_patterns[]`, and `properties_rendered`) — the **fast-path basis** for §5 realizations, §7 component inventory, and the §8 fidelity cross-check.
 - `prototype_identity` — passed by the orchestrator from Step B: `{ name, name_slug, scope_slug, posture, dimension_positions, primary_persona, purpose_prose, wireframe_basis }`.
 - `framework/assets/wireframes/design-philosophies.md` — the chosen posture's structural + realization recommendations.
@@ -27,7 +27,7 @@ Populate `framework/assets/prototypes/template-design-spec.md` into `prototypes/
 2. *(substep `populate-spec`)* Populate the template top-to-bottom in one pass — no `{{placeholders}}`, no blanks. Apply markers per **Marker scheme**:
     - **§1 Scope** — IDs + surfaces from `scope.json`/blueprint, each `[SRC: <id|LS-NN>]`.
     - **§2 Purpose** — verbatim from `prototype_identity.purpose_prose`.
-    - **§3 Posture & rationale** — posture is `[POSTURE-DEFAULT]`; rationale cites `[SRC: §3.<persona>|§4.<goal>]`.
+    - **§3 Posture & rationale** — posture is `[POSTURE-DEFAULT]`; rationale cites `[SRC: §3.<persona>|§4.<goal>]`. Application character + copy tone attributes + the five-row copy-guidance sub-table copied verbatim from `requirements.md §1.8`, each tagged `[SRC: §1.8]`. On a legacy requirements.md without §1.8: the row reads `none recorded — neutral professional voice` and the sub-table is omitted.
     - **§4 Positions** — values from `dimension_positions`; each `[POSTURE-DEFAULT]` if unchanged from the posture preset, else marked as tuned (cite consultant). Labels from `position-vocabulary.md`. D6 = 0. **Re-check against `tradeoff-dimensions-registry.md §4/§5`**; an incoherent pair is an `[AI-SUGGESTED: … | blocking]` to reconcile.
     - **§5 Per-surface realizations** — one block per `LS-NN`. On the fast path, take the realization from the basis variant's `surface_plan` and tag `[SRC: WF:<variant>]`. Otherwise take the posture's realization recommendation when it is unambiguous for the surface (`[POSTURE-DEFAULT]`); only when the surface genuinely admits ≥2 build-divergent realizations under the chosen positions, emit `[AI-SUGGESTED: AI-NNN | blocking]`.
     - **§6 Workflows** — clickable flows from `requirements.md §5` / `F-NN` (`[SRC: …]`); navigation + disclosure models from the posture (`[POSTURE-DEFAULT]`).
@@ -38,7 +38,7 @@ Populate `framework/assets/prototypes/template-design-spec.md` into `prototypes/
     - **§11 PI checklist** — leave the heading; the merger fills it.
 3. *(substep `write-draft`)* Run **Self-validation**; fix until clean; Write `design-spec-draft.md`; call `framework/skills/verify-artifact-write.md`. On `RF-04 trigger`, halt (orphan `substep_start` is the halt signal).
 4. *(substep `write-claims`)* Write `prototypes/.specs/<name_slug>/design-spec-claims.ndjson` — one line per `[SRC: …]` tag: `{claim_id, spec_locator, src_ref, basis_kind}` where `basis_kind ∈ {requirement-id, blueprint-surface, data-property, wireframe-variant}`. (Provenance record; no verbatim-quote verifier — references are checked for existence in step 5.)
-5. *(substep `reference-check`)* **Reference-integrity check** (the analogue of grounding, adapted): every `[SRC: F-NN|BR-NN|UI-NN|§7.X|§5.x]` resolves to a real ID/section in `requirements.md`; every `[SRC: LS-NN]` is a surface in the blueprint; every `[SRC: WF:<variant>]` is a selected wireframe variant; every §8 Property is a member of that surface's blueprint closed set. Any miss → fix the spec + sidecar and re-run. This is the anti-fabrication gate; it must pass before handback.
+5. *(substep `reference-check`)* **Reference-integrity check** (the analogue of grounding, adapted): every `[SRC: F-NN|BR-NN|UI-NN|§7.X|§5.x|§1.8]` resolves to a real ID/section in `requirements.md`; every `[SRC: LS-NN]` is a surface in the blueprint; every `[SRC: WF:<variant>]` is a selected wireframe variant; every §8 Property is a member of that surface's blueprint closed set. Any miss → fix the spec + sidecar and re-run. This is the anti-fabrication gate; it must pass before handback.
 
 ### Timing log (sub-steps)
 
@@ -72,6 +72,7 @@ Emit `substep_start`/`substep_end` to `framework/state/timing.ndjson` (`stage: "
 ## Self-validation (before declaring the draft done)
 
 - No `{{placeholders}}`; every template section populated; every `LS-NN` in the blueprint has a §5 block.
+- §3 carries the Application character + copy tone attributes rows (`[SRC: §1.8]`) with the five-row copy-guidance sub-table — or the explicit `none recorded — neutral professional voice` fallback (sub-table omitted) on a legacy requirements.md.
 - Every cited reference resolves (step 5 reference-integrity passed); every §8 Property is in the blueprint closed set (zero fabrications).
 - Marker discipline: each inferred field carries exactly one marker; `[SRC]`/`[POSTURE-DEFAULT]`/`[AI-SUGGESTED]` mutually exclusive; `[AI-SUGGESTED]` ≤ `GR-22` cap; each `[AI-SUGGESTED]` has a `draft_context`.
 - Positions pass `tradeoff-dimensions-registry.md §4/§5`; D6 = 0; labels from `position-vocabulary.md`.

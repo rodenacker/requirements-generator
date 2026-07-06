@@ -19,11 +19,11 @@
 
 ## Priority scoring (consumed by the cap step)
 
-Every tuple whose decision tree resolves to `marker_kind = "AI-SUGGESTED"` is assigned a `priority_score` (integer, 0–10) drawn from the closed table below. The score is keyed on the `rule_id` that emitted the tuple — A1..A15, B1..B7, D1..D4. Tuples whose `marker_kind` is not `"AI-SUGGESTED"` carry `priority_score = 0` and the score is unused.
+Every tuple whose decision tree resolves to `marker_kind = "AI-SUGGESTED"` is assigned a `priority_score` (integer, 0–10) drawn from the closed table below. The score is keyed on the `rule_id` that emitted the tuple — A1..A16, B1..B7, D1..D4. Tuples whose `marker_kind` is not `"AI-SUGGESTED"` carry `priority_score = 0` and the score is unused.
 
 | Rule(s) | Score | Rationale |
 |---|---|---|
-| A1 personas↔stories · A3 personas↔RBAC · A9 §10 volumes · A10 §1.5 In-scope rows · A13 §6.8 notification audiences | 10 | Cross-cuts UI pattern choice and drives §6.5 / §6.7 / §6.8 — wrong guesses propagate. |
+| A1 personas↔stories · A3 personas↔RBAC · A9 §10 volumes · A10 §1.5 In-scope rows · A13 §6.8 notification audiences · A16 §1.8 application character | 10 | Cross-cuts UI pattern choice and drives §6.5 / §6.7 / §6.8 — wrong guesses propagate. A16's voice cross-cuts all downstream copy realisation (wireframe + prototype). |
 | A2 goals↔stories · A8 §5 flow actors · A11 §2.5 state-transition rows · A12 §6.7 report source concepts · D3 visible state-transition effects | 7 | Drives flow logic and UI narrative; revision is bounded but costs design rework. |
 | A14 §6.10 operations · B2 conditional `<action>†BR-NN` rows · B5 acceptance-criteria fabrications | 5 | Behavioural detail. Adjustable post-hoc; surfacing is valuable but not load-bearing. |
 | A4 entity-RBAC columns · A5 flow-RBAC columns · A6 persistent entity stubs · A7 entity↔concept refs · A15 §7.X derived shapes · B1 goal→story filler · B7 §6.6.1/§6.6.2 guidance fields · D1 server-side §6.2 BR projections · D2 hidden-field defaults | 3 | Bijection-filler / scope-noted application-build guidance — structural completeness, low decision-value per item. The set that the cap demotes first. |
@@ -69,6 +69,7 @@ The Tier C sections below are short-circuited at step 4 — they are completenes
 | A13 | Every §6.8 row's `Audience` names an existing §3 persona | prefer adding the persona to §3 (with `[AI-SUGGESTED]`) over silently renaming the notification's audience, unless inputs more strongly support the rename. |
 | A14 | Every §6.10 row's `Operation` maps to a §6.1 F-NN | fabricate F-NN if missing; `[AI-SUGGESTED]`. Under `target == "application"` the row's pointer column still references the sibling backend doc — that pointer is not gap-pass-validated. |
 | A15 | When §7.X is emitted (≥1 §2.1 concept has `Persistence = derived`), every §7.X row names an existing §2.1 concept with `Persistence = derived` | if the named concept is not in §2.1 or is not `derived`, prefer updating §2.1 (set the concept's persistence to `derived`, with `[AI-SUGGESTED]` on the cell) over dropping the §7.X row. When §7.X is **not** emitted, this rule is skipped. |
+| A16 | §1.8 Application character has a Selected character (name + one-line statement), 3–5 tone attributes, and all five copy-surface rows (Notifications / Errors / Validation / Confirmations / Empty states) with Guidance + Example | fabricate the missing element(s) from the §1 domain, §3 personas, and any input-stated voice signals. Input-stated character resolves at decision-tree step 1 as usual (verbatim + `[SRC]`, no marker). An inferred Selected character is **always classified blocking** — the voice cross-cuts every downstream copy surface. Emit a `draft_context` naming the primary suggestion + 2–3 brief alternates, e.g. `"§1.8 Application character — the voice for the app's notification/error/validation/confirmation/empty-state copy. Suggested: <primary>; alternatives: <alt1>, <alt2>, or Neutral professional."` |
 
 ## Tier B — soft references
 

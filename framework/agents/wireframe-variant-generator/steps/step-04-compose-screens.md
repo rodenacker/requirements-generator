@@ -43,6 +43,8 @@ Examples:
 
 The pattern HTML is rendered with **placeholder data**: realistic fixture-style content (fake names, fake IDs, fake totals) that demonstrates the pattern's slots. This is per the prototype invariants (`PI-02 fixtures only`); the wireframe pipeline inherits this without restating.
 
+User-facing microcopy rendered into patterns (helper text, hint text, confirmation body copy) is phrased in the blueprint's **Application character** voice (`app_character` from step 2.1) when non-null. Entity/field labels still come from §7 property names and any copy-vocabulary terms — the character governs *tone*, not *vocabulary*, and never renames an entity, field, or label.
+
 ## 4.3 Compose secondary pattern HTML
 
 For each secondary pattern, render its HTML and decide where it slots:
@@ -56,6 +58,8 @@ For each secondary pattern, render its HTML and decide where it slots:
 
 Each secondary's HTML is appended into the `{{SECONDARY_PATTERN_HTML}}` slot of the screen template — concatenated in semantic order.
 
+For every feedback secondary (`notification-toast`, `notification-banner`, `inline-validation`, `empty-state`, `modal-confirmation`): phrase the **visible copy** (toast/banner message, validation error text, empty-state explanation, confirmation body) in the Application character's voice per its matching per-surface guidance row (`app_character.per_surface_guidance`). The character never changes *which* feedback pattern renders, its states, its placement, or the empty-vs-no-results distinction — structure stays exactly as authored and ruled; only phrasing tone changes. `app_character = null` → neutral professional voice.
+
 ## 4.3b Render folded surfaces and wizard-split slices (realization rendering)
 
 This is the load-bearing realization-rendering step. The current physical screen `U` belongs to a logical surface `U.surface_id`. Before moving on, render the realizations that **attach** to this screen:
@@ -67,6 +71,7 @@ This is the load-bearing realization-rendering step. The current physical screen
     - `inline-drawer` → a sibling `<aside class="wf-drawer" data-state="drawer-detail-open">…</aside>` slotted into `{{SECONDARY_PATTERN_HTML}}`.
     - `modal` → a sibling `<aside class="wf-modal" data-state="modal-form-open">…</aside>`.
     - `inline-expand` → an expanded `<tr class="wf-row-expanded">` / `<div class="wf-detail-panel">` region within the host collection.
+- Hosted fold sub-trees inherit the same copy rule as 4.2/4.3: their visible microcopy and feedback copy are phrased in the Application character's voice (`app_character`), tone only.
 - **CRITICAL — audit granularity survives the fold.** The folded surface keeps its **own** `data-src` and `data-prop` attributes (stamped at 4.4 / 4.4b using `Fld.sources` and `Fld.covers_properties` — *not* the host's). A property rendered inside the drawer/modal sub-tree binds to `Fld`'s closed set, so the fold's audit trail is preserved exactly as if it were a standalone screen. Do **not** let the host's source/property set absorb the fold's — they are validated independently at step 6 (the host screen's union of `data-prop` values must be a subset of `U.covers_properties` ∪ each hosted `Fld.covers_properties`). The fold contributes **no own file**; its entire footprint is this host-screen sub-tree.
 
 **Wizard-split sub-screens.** When `U` is one sub-step of a `wizard-split` surface (`U.realization == "wizard-split"`, `U.sub_step` / `U.of` populated), render **only this sub-step's slice** of the surface — the fields/columns whose property is in `U.covers_properties` (the authored per-sub-screen subset), plus the `navigation/stepper-indicator` secondary pattern showing `step {U.sub_step} of {U.of}`. The union of every sub-screen's `covers_properties` across the wizard equals the surface's full closed property set (the architect guaranteed this at author-time); each individual sub-screen renders only its own slice. Cross-screen nav (4.5) wires the sub-screens sequentially (`screen-NNa → screen-NNb → …`).

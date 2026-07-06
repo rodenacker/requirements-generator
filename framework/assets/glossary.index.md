@@ -11,6 +11,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Agent | Persona+workflow `.md` the LLM adopts to produce one content artefact. | `docs/maintenance.md > Separation of concerns` |
 | Analysis | Output of a lens-transform methodology on requirements/inputs (`analyse-*`). | registries |
 | Anti-fabrication | Rule: no data-bound element may invent a property outside the closed set. | `blueprint-architect.md` |
+| Application character | The product's own copy voice (notifications/errors/validations/confirmations/empty states), recorded in `requirements.md` §1.8; not an agent Character. | `template-requirements.md` §1.8 |
 | App shell | Shared layout wrapping every prototype; the chrome sits outside the app under design (PI-08). | `prototypes/app-shell-spec.md` |
 | Asset | Read-only reference content under `framework/assets/`. | `docs/maintenance.md > Separation of concerns` |
 | Blueprint | Shared scope IR: logical surfaces + closed sets + allowed realizations; no patterns/realization chosen. | `blueprint-architect.md` |

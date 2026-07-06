@@ -4,7 +4,7 @@
 
 **Activation:** load `framework/assets/persona-llm.md` + `framework/assets/characters/prototype-generator.md` (same stance as the driver).
 
-**Assignment (passed in the dispatch prompt):** `{ surface_id, surface_intent, realization, host?, owned_files, owned_route_file (its own `src/app/<name_slug>/<surface-kebab>/page.tsx`, or null when the driver owns the route), route_map (outbound link target route strings + breadcrumb trail — knowledge only), nav_context (shared per-prototype `layout.tsx` present, or self-wire back-link/breadcrumb), components_to_reuse, data_bindings (Property→fixture-field→store), role_visibility (§6.5 per-role visibility for this surface, or null), posture, dimension_positions, ux_baseline_subset }`.
+**Assignment (passed in the dispatch prompt):** `{ surface_id, surface_intent, realization, host?, owned_files, owned_route_file (its own `src/app/<name_slug>/<surface-kebab>/page.tsx`, or null when the driver owns the route), route_map (outbound link target route strings + breadcrumb trail — knowledge only), nav_context (shared per-prototype `layout.tsx` present, or self-wire back-link/breadcrumb), components_to_reuse, data_bindings (Property→fixture-field→store), role_visibility (§6.5 per-role visibility for this surface, or null), application_character (spec-§3 block: name + tone attributes + per-surface copy guidance, or null), posture, dimension_positions, ux_baseline_subset }`.
 
 ## Hard rules (collision-safety)
 
@@ -28,6 +28,7 @@
    - re-assert anti-fabrication on the page (`data-prop` ∈ closed set), same as for components.
    The chrome already carries `data-testid="proto-chrome"` (from the app-level layout — do not re-stamp it).
 5. **Baseline floor** (`ux_baseline_subset` from `ux-baseline-checklist.md`): render the three states (empty/loading/error) where the surface is a collection or async action; keyboard-operable + visible focus; name/role/value on controls; not-colour-alone for status; ≥24px targets. Self-check before writing.
+5b. **Copy voice.** Phrase all user-facing copy you author — toast/notification text, error-state messages, validation messages, confirmation dialog bodies, empty-state explanations — in the `application_character` voice per its per-surface guidance (`null` → neutral professional). The character changes **tone only**: the three-state floor, plain-language/recovery requirements, entity-specific empty states, entity/field labels, and the closed data-binding set are untouched.
 6. **No per-write verify.** Your writes (components + your one route page) are all compile-covered — `tsc --noEmit` + the Playwright smoke gate (`step-06`) catch a truncated or malformed write as a localized error the bounded-retry loop diagnoses by file path. Do **not** run `verify-artifact-write.md` on them (the option-08 compile-covered exception — see `CLAUDE.md > Constraints`). Self-check the render before returning instead.
 
 ## Return (route manifest)
@@ -43,4 +44,5 @@
 - Do not invent data fields or fixtures; bind only to the closed set.
 - Do not add a private/per-prototype theme or component folder (rules 15–16; D1).
 - Do not skip the three states or the baseline self-check.
+- Do not let the `application_character` override the baseline floor, rename entities/fields/labels, or invent fields; and do not apply agent-character stances (your activation character) to product copy — the product speaks in the `application_character` voice, not yours.
 - Do not return success with a fabricated binding or an unwired `route_map` target — return `failed` so the driver can route to retry/`RF-12`.

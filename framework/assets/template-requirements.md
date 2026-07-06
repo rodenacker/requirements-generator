@@ -29,6 +29,7 @@
 | --- | --- | --- | --- |
 | §1.6 Assumptions & dependencies | omitted when no assumption/dependency applies | emitted | yes — content-conditional |
 | §1.7 Architectural implications | emitted (drafter-derived; scope-noted) | carried through at export | no — scope-noted |
+| §1.8 Application character | emitted (voice for the app's own user-facing copy; input-stated or consultant-resolved) | carried through at export | no |
 | §6.1 `Rationale` column | column emitted (optional, per-cell) | same | no |
 | §6.6.1 Session UX | emitted (scope-noted) | carried through at export | no — scope-noted |
 | §6.6.2 FE performance budgets | emitted (scope-noted) | carried through at export | no — scope-noted |
@@ -105,6 +106,30 @@
 | {{capability}} <!-- e.g. "Client-side full-text search at ≤10⁴ records" --> | → §6.1 F-{{nn}} / §10 row / §6.7 RPT-{{nn}} | {{soft_recommendation}} <!-- e.g. "in-memory index acceptable given volume"; blank when no deterministic guidance --> |
 
 <!-- repeat per active category -->
+
+<!-- rev: run-N YYYY-MM-DD -->
+
+---
+
+## 1.8 Application character
+
+<!-- format: narrative[2-field: selected_character, tone_attributes] + table[3-col: copy_surface, guidance, example; five fixed rows: Notifications, Errors, Validation, Confirmations, Empty states] -->
+<!-- emit: always — input-stated character used verbatim with [SRC: C-NNN] (no marker, no question); otherwise inferred by the drafter and marked [AI-SUGGESTED: AI-NNN | blocking] per gap-pass A16, with a draft_context naming the primary suggestion + 2-3 brief alternates so the consultant can choose in the standard resolver question -->
+<!-- guidance: character names are generic voice personas, never brand/vendor names (GR-20); emitted prose must stay token-clean — no GR-NN / PI-NN tokens and no marker fragments beyond the one resolution marker (merger + export residue greps depend on this) -->
+
+> The persona/voice of the application's **own user-facing copy** — notifications, error messages, validation messages, confirmations, empty states. Governs tone and phrasing only; what feedback exists, when it appears, and how it is structured remain governed by the standard feedback rules and the design pipelines. This is the application's voice toward its end users — not an agent character, and not a §3 persona.
+
+**Selected character:** {{character_name}} — {{one_line_statement}} <!-- carries [SRC: C-NNN] when input-stated, else [AI-SUGGESTED: AI-NNN | blocking] -->
+
+**Tone attributes:** {{three_to_five_attributes}} <!-- e.g. "precise, calm, respectful of the user's expertise" -->
+
+| Copy surface | Guidance | Example |
+| --- | --- | --- |
+| Notifications | {{notification_guidance}} | {{notification_example}} |
+| Errors | {{error_guidance}} | {{error_example}} |
+| Validation | {{validation_guidance}} | {{validation_example}} |
+| Confirmations | {{confirmation_guidance}} | {{confirmation_example}} |
+| Empty states | {{empty_state_guidance}} | {{empty_state_example}} |
 
 <!-- rev: run-N YYYY-MM-DD -->
 

@@ -19,7 +19,7 @@
 - `Domain` — concepts, relationships, aggregates, lifecycles, state transitions, glossary (§2.*, §9).
 - `Functional` — features, business rules, validation rules, UI feature needs, reporting (§6.1–§6.4, §6.7).
 - `Process` — task flows, edge/empty/error states, notification points (§5, §6.4.5, §6.8).
-- `Non-functional` — session UX, FE performance budgets, accessibility, volumes (§6.6.1, §6.6.2, §6.6.5, §10).
+- `Non-functional` — session UX, FE performance budgets, accessibility, application character, volumes (§1.8, §6.6.1, §6.6.2, §6.6.5, §10).
 - `Compliance` — compliance UI behaviour, audit-trail UI feature (§6.6.4, §6.9).
 - `Integration` — consumed backend contracts (§6.10).
 - `Data` — data shapes consumed by the FE, derivations (§7, §7.X).
@@ -35,6 +35,7 @@ Adding a new topic ships its `Dimension` value with the row; consumers read the 
 | 1.5 | Scope (in / out / deferred) | always | Scope |
 | 1.6 | Assumptions & dependencies | conditional — ≥1 assumption / dependency stated or domain-implied (no filler rows) | Scope |
 | 1.7 | Architectural implications | always (drafter-derived; scope-noted application-build guidance — see template §0.1) | Scope |
+| 1.8 | Application character | always (input-stated → `[SRC]`; otherwise drafter-inferred with one blocking `[AI-SUGGESTED]` — A16) | Non-functional |
 | 2.1 | Concepts | always | Domain |
 | 2.2 | Relationships | always | Domain |
 | 2.3 | Aggregates & lifecycles | always | Domain |
@@ -68,6 +69,7 @@ Sections retired vs. prior versions: **§6.6.3 Availability** (backend concern; 
 
 ## Pre-authoring invariants (preserve when filling in)
 
+- §1.8 Application character defines the voice of the application's **own user-facing copy** (notifications, errors, validation, confirmations, empty states) — tone and phrasing only, never structure / behaviour / layout. It has a Selected character (name + one-line statement), 3–5 tone attributes, and five copy-surface rows (Notifications / Errors / Validation / Confirmations / Empty states) each with Guidance + Example. Input-stated character cites `[SRC: C-NNN]`; inferred character carries exactly one `[AI-SUGGESTED | blocking]` on the Selected character field (A16). Character names are generic voice personas, never brand / vendor names (`GR-20`). Emitted prose stays token-clean — no `GR-NN` / `PI-NN` / marker tokens beyond the one resolution marker.
 - §4 is split into **§4.1 Goals catalogue** (flat list, stable G-NN IDs, outcome-level — quality signals + goal kind live here) and **§4.2 Stories by persona** (Connextra-triple stories grouped by persona, each referencing a goal ID from §4.1). M:N: a single goal may be referenced by stories under multiple personas.
 - Every persona in §3 **MUST** have ≥1 user story in §4.2.
 - Every story in §4.2 **MUST** reference exactly one goal ID from §4.1. Every goal in §4.1 SHOULD be referenced by ≥1 story (orphan goals are a vague-finding, not a blocker).
@@ -106,6 +108,7 @@ Sections retired vs. prior versions: **§6.6.3 Availability** (backend concern; 
   - **A13** `notification_audience_resolves == true` — every §6.8 row's Audience names an existing §3 persona.
   - **A14** `backend_op_maps_to_functional_req == true` — every §6.10 Operation maps to a §6.1 F-NN.
   - **A15** `derived_shape_resolves == true` — every §7.X concept exists in §2.1 with `Persistence = derived`.
+  - **A16** `application_character_complete == true` — §1.8 has a Selected character, 3–5 tone attributes, and all five copy-surface rows; drafter infers from domain + input voice signals when unstated (blocking `[AI-SUGGESTED]`).
 - **Tier B (soft / warn or fabricate):**
   - `goals_without_story_ref == 0`
   - `rbac_conditional_cells_dangling == 0`

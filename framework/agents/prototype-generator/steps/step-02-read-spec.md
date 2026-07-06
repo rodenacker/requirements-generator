@@ -2,7 +2,7 @@
 
 **Goal:** Build the render plan + the disjoint component-ownership map (the collision-safety contract).
 
-1. From spec **§5** read each surface's realization (`standalone-screen` / `inline-drawer` / `inline-expand` / `modal` / `wizard-split`) + host/rendered-on for folds. From **§7** read the component inventory (per surface: components composed, reuse vs new, atomic tier). From **§8** read per-surface data binding (Property → fixture field → store).
+1. From spec **§5** read each surface's realization (`standalone-screen` / `inline-drawer` / `inline-expand` / `modal` / `wizard-split`) + host/rendered-on for folds. From **§7** read the component inventory (per surface: components composed, reuse vs new, atomic tier). From **§8** read per-surface data binding (Property → fixture field → store). From **§3** read the Application character rows + copy-guidance sub-table into in-memory `app_character` (`null` on the `none recorded` fallback) — the copy-voice input for every surface's user-facing copy.
 2. **Reuse-scan** the existing `prototypes/src/components/**` library: for every "new" component in §7, check whether an existing shared component already fits; if so, downgrade it to **reuse** (the library grows monotonically — rule 13).
 3. **Cross-cutting data needs:** collect the set of entities across §8 (each needs a type + fixture + store). These are driver-owned (step-03).
 4. **Route map + parallelizable classification** (decidable from the §5 realization — a closed enum, not a heuristic). Build `route_map`: per surface `{ route_path, realization, is_parallelizable }`:

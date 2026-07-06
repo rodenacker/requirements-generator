@@ -128,6 +128,10 @@ Rules:
 
 The flow is **logical** — it is over surfaces, not physical screens. Each variant derives its own *physical* flow from this in step 5 by expanding each surface per its chosen realization (a folded surface adds no standalone navigation node; a `wizard-split` surface adds intra-surface steps). The blueprint never carries a physical flow.
 
+## 3.3b Populate the Application character block
+
+Fill the template's `{{APPLICATION_CHARACTER_BLOCK}}` slot from the in-memory `application_character` captured at step 2.4b — the Selected-character line, the tone-attributes line, and the five-row copy-surface guidance table, copied verbatim. When `application_character = null` (legacy requirements.md without §1.8), fill the slot with the literal line `none recorded — use a neutral professional voice`. Purely mechanical — no inference, no widening, no design opinion.
+
 ## 3.4 Self-validation — Bijection
 
 Run the bijection check (source ↔ **surface**) in both directions:
