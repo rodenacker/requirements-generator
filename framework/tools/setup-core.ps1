@@ -1,8 +1,8 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-  One-command consultant bootstrap for the CORE machine dependencies (items 1-6):
-  Python, Node.js, markitdown (converters + MCP), mmdc, and the @playwright/mcp npx cache.
+  One-command consultant bootstrap for the CORE machine dependencies (items 1-5):
+  Python, Node.js, markitdown (converters + MCP), and the @playwright/mcp npx cache.
 
 .DESCRIPTION
   A thin, canonical-source-respecting wrapper. It contains NO install commands of its own --
@@ -10,14 +10,14 @@
   home for every dependency install command), then renders a clean consolidated status table
   and the Windows restart / MCP guidance the raw installer cannot infer.
 
-  Scope is deliberately narrow -- exactly the six core dependencies. It does NOT install the
+  Scope is deliberately narrow -- exactly the five core dependencies. It does NOT install the
   vector renderers (draw.io / Inkscape / LibreOffice), the /prototype smoke browser, or the
   per-project `template/node_modules` tree. Run the canonical script directly for those:
   `& framework/tools/setup-environment.ps1 -Component all|drawio|inkscape|libreoffice`.
 
-  The two npm dependencies in this set are installed MACHINE-GLOBALLY and are therefore
-  available to every future project/clone: mmdc via the global npm prefix (`npm -g`),
-  and @playwright/mcp via the global npx (`@playwright/mcp`) cache.
+  The one npm dependency in this set is installed MACHINE-GLOBALLY and is therefore
+  available to every future project/clone: @playwright/mcp via the global npx
+  (`@playwright/mcp`) cache.
 
 .PARAMETER Probe
   Detect-only. Report status, install nothing. Forwarded verbatim to the canonical installer.
@@ -41,7 +41,7 @@ if (-not (Test-Path $installer)) {
 
 Write-Host ''
 Write-Host ('=' * 72)
-Write-Host (" requirements-generator - core dependency check (items 1-6){0}" -f $(if ($Probe) { '  [probe]' } else { '' }))
+Write-Host (" requirements-generator - core dependency check (items 1-5){0}" -f $(if ($Probe) { '  [probe]' } else { '' }))
 Write-Host ('=' * 72)
 if (-not $Probe) {
   Write-Host ' Running core setup via setup-environment.ps1 -Component core.'

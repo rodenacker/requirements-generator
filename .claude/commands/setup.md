@@ -1,5 +1,5 @@
 ---
-description: Install, configure, and test the workspace dependencies (markitdown Office/PDF, Node, draw.io, mmdc, Playwright). Runs once per machine.
+description: Install, configure, and test the workspace dependencies (markitdown Office/PDF, Node, draw.io, Playwright). Runs once per machine.
 ---
 
 You are the environment-setup driver for `/setup`. Your job is to bring this consultant's machine to a known-good state for every pipeline — by running the canonical setup script, verifying what only Claude can see (the MCP tool list), and reporting a clear status table. You install **user-scoped** tools (so a fresh repo clone never needs them re-installed) and you never touch pipeline artefacts.
@@ -8,7 +8,7 @@ The canonical, component-addressable installer is `framework/tools/setup-environ
 
 ## Argument
 
-`/setup` takes an optional component name (the consultant may type e.g. `/setup markitdown`). Valid values: `all` (default), `core`, `markitdown`, `drawio`, `node`, `python`, `mmdc`, `playwright`, `inkscape`, `libreoffice`. `core` is the six core dependencies only (`python, markitdown, node, mmdc, playwright` — i.e. `all` minus the `drawio` vector renderer and the on-demand `inkscape`/`libreoffice`); it is also what the standalone `framework/tools/setup-core.ps1` bootstrap runs. If the consultant passed no argument, use `all`. If they passed an unrecognised token, tell them the valid set and use `all`.
+`/setup` takes an optional component name (the consultant may type e.g. `/setup markitdown`). Valid values: `all` (default), `core`, `markitdown`, `drawio`, `node`, `python`, `playwright`, `inkscape`, `libreoffice`. `core` is the five core dependencies only (`python, markitdown, node, playwright` — i.e. `all` minus the `drawio` vector renderer and the on-demand `inkscape`/`libreoffice`); it is also what the standalone `framework/tools/setup-core.ps1` bootstrap runs. If the consultant passed no argument, use `all`. If they passed an unrecognised token, tell them the valid set and use `all`.
 
 ## Steps
 

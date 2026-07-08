@@ -16,12 +16,11 @@
 
 .PARAMETER Component
   Which dependency to act on:
-    all (default)            python, markitdown, node, mmdc, drawio, playwright  (full core set)
-    core                     python, markitdown, node, mmdc, playwright  (items 1-6; `all` minus drawio + on-demand renderers)
+    all (default)            python, markitdown, node, drawio, playwright  (full core set)
+    core                     python, markitdown, node, playwright  (`all` minus drawio + on-demand renderers)
     markitdown               Office/PDF converters + markitdown-mcp  (the Office-extras fix)
     drawio                   draw.io Desktop + the `drawio` PATH shim  (the shim fix)
     node | python            language runtimes
-    mmdc                     @mermaid-js/mermaid-cli
     playwright               warm the @playwright/mcp npx cache
     inkscape | libreoffice   on-demand vector renderers (NOT part of `all`)
 
@@ -41,7 +40,7 @@
 #>
 [CmdletBinding()]
 param(
-  [ValidateSet('all','core','markitdown','drawio','node','python','mmdc','playwright','inkscape','libreoffice')]
+  [ValidateSet('all','core','markitdown','drawio','node','python','playwright','inkscape','libreoffice')]
   [string]$Component = 'all',
   [switch]$Probe
 )
@@ -203,21 +202,6 @@ function Setup-Node {
   }
 }
 
-function Setup-Mmdc {
-  $gates = '/requirements §2.4 domain-model Mermaid validation (drafter step 9, mermaid-validator.md)'
-  if (Test-Cmd 'mmdc') { Add-Result 'mmdc' 'ready' ("mmdc " + (Get-SemverFrom 'mmdc')) $gates; return }
-  if ($Probe) { Add-Result 'mmdc' 'absent' 'not found' $gates; return }
-  if (-not (Test-Cmd 'npm')) { Add-Result 'mmdc' 'failed' 'npm (Node.js) required first' $gates; return }
-
-  Write-Host '  installing @mermaid-js/mermaid-cli globally...'
-  & npm install -g '@mermaid-js/mermaid-cli' 2>&1 | Out-Null
-  if ($LASTEXITCODE -eq 0) {
-    Add-Result 'mmdc' 'installed-pending-restart' 'mermaid-cli installed' $gates $true
-  } else {
-    Add-Result 'mmdc' 'failed' 'npm failed -- see setup-instructions/mmdc.md' $gates
-  }
-}
-
 function Setup-Drawio {
   $gates = '.drawio inputs (primary render path)'
   if (Test-Cmd 'drawio') { Add-Result 'drawio' 'ready' "resolves: $((Get-Command drawio).Source)" $gates; return }
@@ -298,9 +282,9 @@ function Setup-LibreOffice {
 # ---------- dispatch ----------
 
 $plan = if ($Component -eq 'all') {
-  @('python', 'markitdown', 'node', 'mmdc', 'drawio', 'playwright')
+  @('python', 'markitdown', 'node', 'drawio', 'playwright')
 } elseif ($Component -eq 'core') {
-  @('python', 'markitdown', 'node', 'mmdc', 'playwright')   # items 1-6; excludes drawio + on-demand renderers
+  @('python', 'markitdown', 'node', 'playwright')   # `all` minus drawio + on-demand renderers
 } else {
   @($Component)
 }
@@ -314,7 +298,6 @@ foreach ($c in $plan) {
     'python'      { Setup-Python }
     'markitdown'  { Setup-Markitdown }
     'node'        { Setup-Node }
-    'mmdc'        { Setup-Mmdc }
     'drawio'      { Setup-Drawio }
     'playwright'  { Setup-Playwright }
     'inkscape'    { Setup-Inkscape }

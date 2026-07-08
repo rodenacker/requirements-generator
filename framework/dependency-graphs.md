@@ -54,7 +54,7 @@ orch → input-handler, requirements-drafter, requirements-resolver, requirement
 set-build-target → verify-artifact-write
 input-handler ⇒ @input-handler-subtree (progress_path=.progress.json)
 requirements-drafter → template-requirements.md, prototype-scope.md, general-rules.md,
-       refusal-registry.md, verify-artifact-write, completeness-gap-pass.md, mermaid-validator.md,
+       refusal-registry.md, verify-artifact-write, completeness-gap-pass.md,
        stadium/asset-schemas.md [cond: Stadium .stadium-assets present in scope]
 completeness-gap-pass → prototype-scope.md, general-rules.md, topics-requirements.md
 requirements-resolver → characters/requirements-qa.md, run-qa-level1.md, run-qa-level2.md,
@@ -192,8 +192,9 @@ deltas:
   (NO analyse-inputs analyser depends on mermaid-validator or mmdc: every diagram-emitting
      analyser — thematic-analysis, opportunity-solution-trees, affinity-mapping,
      swim-lane-process-mapping — pre-renders inline SVG; their Mermaid sources are unvalidated
-     export adjuncts. The `mermaid-validator` skill + `setup-instructions/mmdc.md` are retained for
-     any future methodology but currently have no analyse-inputs caller.)
+     export adjuncts. The `mermaid-validator` skill + `setup-instructions/mmdc.md` were RETIRED
+     when the /requirements drafter moved its §2.4 check to a dependency-free inline mermaid-lint;
+     no pipeline invokes mmdc anywhere now. RF-07 remains defined but fully dormant.)
   (user-goal-analysis is intentionally dependency-free: HTML template, NO mermaid-validator,
      NO mmdc — its goal-refinement hierarchy renders as a CSS-only nested AND/OR tree)
   (business-context-definition is likewise dependency-free: HTML template, NO mermaid-validator,

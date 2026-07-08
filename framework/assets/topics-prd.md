@@ -115,5 +115,5 @@ Marked fields (`[AI-SUGGESTED]`) carry no `[SRC:]` tag — the marker and the ta
 - **No `[REQ:]` cross-doc pointer** — PRD pipeline is fully independent of `requirements.md`.
 - **No conditional sections** — every §1–§14 always emits.
 - **No "Open questions" residual section** — every gap is resolved via `[AI-SUGGESTED]` Q&A before merge.
-- **No mermaid diagrams** — PRDs are prose + tables; the drafter skips the mermaid-validator step entirely.
+- **No mermaid diagrams** — PRDs are prose + tables; there is no §2.4-style domain diagram, so no diagram lint applies.
 - **No `## Prototype invariants` append** — PI-NN are prototype-build invariants for the FE spec, not PRD content. The merger explicitly does not append them.
