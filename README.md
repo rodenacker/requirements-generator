@@ -121,7 +121,7 @@ Turn a **Stadium 6 application** into inputs the other commands can read. When a
 
 Each app is processed once — a ledger records what's already been ingested, and re-ingesting is a deliberate, prompted choice — so your hand-edits to the extracted assets are never silently overwritten. The raw app folder itself is left out of every other command's input set; only the extracted assets are read (the other input commands nudge you to run this if they spot an un-ingested app). Runs a bundled Python extractor — see §5.5.
 
-**You get** `input/<AppName>.stadium-assets/` — twelve per-app assets (ten deterministic category files covering the data model, sources, business rules, access control, surfaces, navigation, and more, plus two advisory ones), ready to be picked up on the next `/requirements` (or `/generate-prd` / `/analyse-inputs` / `/review-inputs`) run.
+**You get** `input/<AppName>.stadium-assets/` — thirteen per-app assets (eleven deterministic category files covering the data model, sources, business rules, access control, surfaces, per-view user tasks, navigation, and more, plus two advisory ones), ready to be picked up on the next `/requirements` (or `/generate-prd` / `/analyse-inputs` / `/review-inputs`) run.
 
 ### 4.3 `/design-system`
 

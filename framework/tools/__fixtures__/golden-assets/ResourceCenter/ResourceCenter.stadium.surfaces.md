@@ -47,9 +47,9 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
     - StackLayout: `StackLayout`
       - Label: `Label` — "Resource Center Landing Page"
 
-## Action affordances → candidate tasks
+## User tasks (per view)
 
-_No action-verb affordances detected on any surface._
+> The per-view user-task inventory — the verb-labelled action affordances triangulated with wired backend operations, DataGrids and page-kinds, with a ≥1-task-per-view completeness guarantee — is emitted as its own asset: see `ResourceCenter.stadium.tasks.md`.
 
 ## Tier-A — screen ↔ entity (best-effort)
 

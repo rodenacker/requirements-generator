@@ -40,6 +40,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `RMB_Onboarding.stadium.business-rules.md`
 - `RMB_Onboarding.stadium.access-control.md`
 - `RMB_Onboarding.stadium.surfaces.md`
+- `RMB_Onboarding.stadium.tasks.md`
 - `RMB_Onboarding.stadium.navigation.md`
 - `RMB_Onboarding.stadium.glossary.md`
 - `RMB_Onboarding.stadium.design-signals.md`

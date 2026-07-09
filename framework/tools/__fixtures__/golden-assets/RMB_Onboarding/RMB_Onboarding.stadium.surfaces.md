@@ -1310,59 +1310,9 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 ## StartPage ⭐ start  ·  title: Start Page  ·  roles: User
   - GridLayout: `GridLayout`
 
-## Action affordances → candidate tasks
+## User tasks (per view)
 
-> Per surface: actionable controls whose label carries an action verb. Control · label · wired script are **Tier-A** facts; the candidate **task** is **Tier-B** `[AI-SUGGESTED]` (verb taxonomy; UI chrome excluded). The flat visible-terms list in `glossary` is retained separately.
-
-### ClientServiceRequest
-- `btnAddServiceRequest` — "Add" — wired to `btnAddServiceRequest.Click`  →  candidate task: **Add** `[AI-SUGGESTED]`
-- `Button2` — "Add" — wired to `Button2.Click`  →  candidate task: **Add** `[AI-SUGGESTED]`
-
-### Enablement
-- `btnEnablementReject` — "Reject" — wired to `btnEnablementReject.Click`  →  candidate task: **Reject** `[AI-SUGGESTED]`
-- `btnEnablement_Accept` — "Accept" — wired to `btnEnablement_Accept.Click`  →  candidate task: **Accept** `[AI-SUGGESTED]`
-- `btnAcceptReject` — "Reject" — wired to `btnAcceptReject.Click`  →  candidate task: **Reject** `[AI-SUGGESTED]`
-
-### pgModularInformation
-- `btnAddEntity` — "Add Entity" — wired to `btnAddEntity.Click`  →  candidate task: **Add Entity** `[AI-SUGGESTED]`
-- `btnModalAdd` — "Add" — wired to `btnModalAdd.Click` _(+4)_  →  candidate task: **Add** `[AI-SUGGESTED]`
-- `btnModalUpdate` — "Update" — wired to `btnModalUpdate.Click` _(+4)_  →  candidate task: **Update** `[AI-SUGGESTED]`
-
-### pgCollections
-- `btnAdd` — "Add" — wired to `btnAdd.Click` _(+2)_  →  candidate task: **Add** `[AI-SUGGESTED]`
-- `btnView` — "View" — wired to `btnView.Click` _(+3)_  →  candidate task: **View** `[AI-SUGGESTED]`
-- `btnRemove` — "Remove" — wired to `btnRemove.Click` _(+3)_  →  candidate task: **Remove** `[AI-SUGGESTED]`
-- `btnModalAdd` — "Add" — wired to `btnModalAdd.Click` _(+4)_  →  candidate task: **Add** `[AI-SUGGESTED]`
-- `btnModalUpdate` — "Update" — wired to `btnModalUpdate.Click` _(+4)_  →  candidate task: **Update** `[AI-SUGGESTED]`
-
-### pgAdministrators
-- `btnView` — "View" — wired to `btnView.Click` _(+3)_  →  candidate task: **View** `[AI-SUGGESTED]`
-- `btnRemove` — "Remove" — wired to `btnRemove.Click` _(+3)_  →  candidate task: **Remove** `[AI-SUGGESTED]`
-- `btnAdd` — "Add Admin" — wired to `btnAdd.Click` _(+2)_  →  candidate task: **Add Admin** `[AI-SUGGESTED]`
-- `btnModalAdd` — "Add" — wired to `btnModalAdd.Click` _(+4)_  →  candidate task: **Add** `[AI-SUGGESTED]`
-- `btnModalUpdate` — "Update" — wired to `btnModalUpdate.Click` _(+4)_  →  candidate task: **Update** `[AI-SUGGESTED]`
-
-### pgAccounts
-- `btnLinkAccount1` — "Link Account" — wired to `btnLinkAccount1.Click`  →  candidate task: **Link Account** `[AI-SUGGESTED]`
-- `btnAddSubgroup` — "Add Sub Group" — wired to `btnAddSubgroup.Click`  →  candidate task: **Add Sub Group** `[AI-SUGGESTED]`
-- `btnView` — "View" — wired to `btnView.Click` _(+3)_  →  candidate task: **View** `[AI-SUGGESTED]`
-- `btnRemove` — "Remove" — wired to `btnRemove.Click` _(+3)_  →  candidate task: **Remove** `[AI-SUGGESTED]`
-- `btnLinkAccount2` — "Link Account" — wired to `btnLinkAccount2.Click`  →  candidate task: **Link Account** `[AI-SUGGESTED]`
-- `btnRemoveSubgroup` — "Remove Sub Group" — wired to `btnRemoveSubgroup.Click`  →  candidate task: **Remove Sub Group** `[AI-SUGGESTED]`
-- `btnView2` — "View"  →  candidate task: **View** `[AI-SUGGESTED]`
-- `btnRemove2` — "Remove"  →  candidate task: **Remove** `[AI-SUGGESTED]`
-- `btnModalAdd` — "Add" — wired to `btnModalAdd.Click` _(+4)_  →  candidate task: **Add** `[AI-SUGGESTED]`
-- `btnModalUpdate` — "Update" — wired to `btnModalUpdate.Click` _(+4)_  →  candidate task: **Update** `[AI-SUGGESTED]`
-
-### pgSignatories
-- `btnView` — "View" — wired to `btnView.Click` _(+3)_  →  candidate task: **View** `[AI-SUGGESTED]`
-- `btnRemove` — "Remove" — wired to `btnRemove.Click` _(+3)_  →  candidate task: **Remove** `[AI-SUGGESTED]`
-- `btnAdd` — "Add Signatory" — wired to `btnAdd.Click` _(+2)_  →  candidate task: **Add Signatory** `[AI-SUGGESTED]`
-- `btnModalAdd` — "Add" — wired to `btnModalAdd.Click` _(+4)_  →  candidate task: **Add** `[AI-SUGGESTED]`
-- `btnModalUpdate` — "Update" — wired to `btnModalUpdate.Click` _(+4)_  →  candidate task: **Update** `[AI-SUGGESTED]`
-
-### pgGenerate
-- `btnGenerate` — "Generate" — wired to `btnGenerate.Click`  →  candidate task: **Generate** `[AI-SUGGESTED]`
+> The per-view user-task inventory — the verb-labelled action affordances triangulated with wired backend operations, DataGrids and page-kinds, with a ≥1-task-per-view completeness guarantee — is emitted as its own asset: see `RMB_Onboarding.stadium.tasks.md`.
 
 ## Tier-A — screen ↔ entity (best-effort)
 

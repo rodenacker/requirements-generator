@@ -2347,6 +2347,179 @@ def _state_label(target, value):
         return "empty/hidden" if str(value).lower() in ("false", "0", "none") else "shown"
     return "state"
 
+# ============================================================================ per-view USER TASKS
+# Deterministic per-view user-task derivation (render-only over joins already materialized in
+# emit_assets — NO new extraction). Task IDENTITY = the canonical CRUD verb (SELECT/INSERT/UPDATE/
+# DELETE) or a raw non-CRUD verb token; NOT `_TASK_CLUSTER` (which maps update+delete → "maintain"
+# and would silently collapse Edit + Delete into one row). The task OBJECT is closed-set only (a
+# reconciled entity display, or blank) — never invented. The task NAME is Tier-B `[AI-SUGGESTED]`;
+# its evidence chain (view, wired op, grid/column, title, roles) is Tier-A. Full contract:
+# `framework/assets/stadium/asset-schemas.md` ("tasks").
+_VERB_TASK_WORD = {"SELECT": "Browse", "INSERT": "Add", "UPDATE": "Update", "DELETE": "Delete"}
+_VERB_SORT = {"SELECT": 0, "INSERT": 1, "UPDATE": 2, "DELETE": 3}      # inventory row order; non-CRUD last
+# Page-kind → a fallback CRUD verb, used only when a view yields no op/grid/affordance task (S4).
+_KIND_FALLBACK_VERB = {"create": "INSERT", "detail": "SELECT", "list": "SELECT", "reporting": "SELECT",
+                       "work-queue": "SELECT", "configure": "UPDATE", "entity-maintenance": "UPDATE",
+                       "workflow-step": "INSERT", "landing": None}
+# A SELECT endpoint is a genuine *browse* task only on these page-kinds (or when a grid corroborates
+# it); every other SELECT is a supporting read (dropdown lookup / form pre-fill), not a task.
+_BROWSE_KINDS = {"list", "reporting", "work-queue", "detail"}
+_NAME_RANK = {"affordance": 0, "action-col": 1, "title": 2, "synth": 3}   # lower = preferred human wording
+_CONF_ORDER = {"low": 0, "medium": 1, "high": 2}
+
+def _canon_verb(text):
+    """Canonical task verb from arbitrary text: a CRUD keyword (substring, rightmost-wins) else an
+    action-verb label token (approve/export/…). None if neither."""
+    return _keyword_verb(text) or _label_verb(text)
+
+def _resolve_entity(token, ent_by_norm):
+    """Closed-set ONLY: normalize `token` → the reconciled entity's display spelling, else None.
+    Never invents an entity (mirrors the §7 closed-property discipline)."""
+    if not token:
+        return None
+    e = ent_by_norm.get(_norm_entity(token))
+    return e.get("display") if e else None
+
+def _endpoint_verb_entity(fn, ent_by_norm):
+    """(verb, entity_display) for a camelCase rendered-endpoint function name (`MemberInsert`,
+    `CitiesSelect`). verb via `_keyword_verb` (substring); entity by stripping the matched CRUD keyword
+    from the stem and resolving the remainder against the closed set. `_sp_entity_verb` does NOT work
+    here — it token-splits on `[_\\s]+` and an endpoint name carries no separator. entity may be None
+    (unresolved → don't invent). The connector name is deliberately NOT used to bind the entity (in
+    MemberAdmin every function sits under one connector `Members`, so it would mislabel `CitiesSelect`)."""
+    verb = _keyword_verb(fn)
+    if not verb:
+        return None, None
+    low = (fn or "").lower()
+    for kw, v in _VERB_KEYWORDS:
+        if v == verb and kw in low:
+            ent = _resolve_entity(re.sub(re.escape(kw), "", fn, flags=re.I), ent_by_norm)
+            if ent:
+                return verb, ent
+    return verb, None
+
+def _task_display_name(raw, verb, entity):
+    """Tier-B task name. Keep the app's own wording (`raw`) when it is multi-word or is itself the
+    entity noun; else synthesize `<Word> <Entity>` from the verb + closed-set entity."""
+    if raw:
+        raw = raw.strip()
+        words = re.findall(r"[A-Za-z0-9]+", raw)
+        if len(words) > 1 or (entity and _norm_entity(raw) == _norm_entity(entity)):
+            return raw[:1].upper() + raw[1:]
+    word = _VERB_TASK_WORD.get(verb) or (verb.capitalize() if verb else "Use")
+    return f"{word} {entity}" if entity else f"{word} (object unresolved)"
+
+def _derive_view_tasks(views, ent_by_norm):
+    """Per-view user-task derivation. `views` is a list of plain dicts (built by `emit_assets`):
+        {name, title, kind, roles[], screen_entity,
+         endpoints[{control,connector,function}],
+         grids[{name, searchable, columns[{header_text,kind}]}],
+         affordances[(control, label, verb, wired[])]}
+    Returns a list (in view order) of {name, roles, tasks[], supporting_reads[], notask}. Every view
+    yields ≥1 task OR an explicit `notask` reason — never silently absent (no-silent-truncation)."""
+    results = []
+    for v in views:
+        name, kind, title = v["name"], v.get("kind"), v.get("title")
+        sent = v.get("screen_entity")
+        cand = {}                                   # (verb, norm_entity) -> merged candidate
+        supporting = []
+
+        def _add(verb, entity, raw, name_src, conf, ev):
+            if not verb:
+                return
+            key = (verb, _norm_entity(entity) if entity else "")
+            c = cand.get(key)
+            if c is None:
+                cand[key] = {"verb": verb, "entity": entity, "raw": raw,
+                             "rank": _NAME_RANK[name_src], "conf": conf, "ev": list(ev)}
+                return
+            for loc in ev:                          # union evidence
+                if loc not in c["ev"]:
+                    c["ev"].append(loc)
+            if _CONF_ORDER[conf] > _CONF_ORDER[c["conf"]]:   # triangulation upgrades confidence
+                c["conf"] = conf
+            if _NAME_RANK[name_src] < c["rank"]:    # keep the better human wording
+                c["raw"], c["rank"] = raw, _NAME_RANK[name_src]
+            if entity and not c["entity"]:
+                c["entity"] = entity
+
+        # partition rendered endpoints into writes (tasks) + selects (deferred by the supporting rule)
+        writes, selects = [], []
+        for ep in v.get("endpoints", []):
+            verb, ent = _endpoint_verb_entity(ep.get("function", ""), ent_by_norm)
+            if not verb:
+                continue
+            loc = (f'`{ep.get("control") or "?"}` → '
+                   f'`{ep.get("connector") or "?"}.{ep.get("function") or ""}` [from rendered view]')
+            (selects if verb == "SELECT" else writes).append((verb, ent, loc))
+
+        # S1 — a wired WRITE is (almost) always a genuine user task. Its name is synthesized from
+        # verb+entity (an affordance / action-column label, if the same (verb,entity) also has one,
+        # outranks the synth); the page title is deliberately NOT used here — on a multi-write page
+        # every write would otherwise collapse to the same title-derived name.
+        for verb, ent, loc in writes:
+            _add(verb, ent or sent, None, "synth", "high" if ent else "medium", [loc])
+
+        # S3 — grids: a browse task + row-action tasks; corroborate/consume matching SELECTs
+        consumed = set()
+        for g in v.get("grids", []):
+            gent = next((ent for (verb, ent, loc) in selects if ent), None) or sent
+            corrob = [loc for (verb, ent, loc) in selects
+                      if ent and _norm_entity(ent) == _norm_entity(gent)]
+            consumed.update(corrob)
+            ev = [f'grid `{g.get("name") or "?"}`'
+                  + (" (searchable)" if g.get("searchable") else "") + " [from design model]"] + corrob
+            _add("SELECT", gent, None, "synth", "high" if corrob else "medium", ev)
+            for col in g.get("columns", []):
+                if col.get("kind") != "action":
+                    continue
+                ht = col.get("header_text")
+                cv = _canon_verb(ht) if isinstance(ht, str) else None
+                if cv:
+                    _add(cv, gent, ht, "action-col", "medium",
+                         [f'action column "{ht}" on `{g.get("name") or "?"}` [from design model]'])
+
+        # remaining SELECTs: a browse task only on a list/reporting/detail kind, else a supporting read
+        for verb, ent, loc in selects:
+            if loc in consumed:
+                continue
+            if kind in _BROWSE_KINDS:
+                _add("SELECT", ent or sent, None, "synth", "medium" if ent else "low", [loc])
+            else:
+                supporting.append(loc)
+
+        # S2 — verb-labelled affordances (the absorbed 0e signal)
+        for control, label, verb, wired in v.get("affordances", []):
+            cv = _canon_verb(label) or (verb.upper() if verb else None)
+            noun = re.sub(rf"\b{re.escape(verb)}\b", "", label, flags=re.I) if verb else label
+            ent = _resolve_entity(noun, ent_by_norm) or sent
+            loc = f'affordance `{control}` "{label}" [from design model]'
+            if wired:
+                loc += f'; wired to `{wired[0]}`'
+            _add(cv, ent, label, "affordance", "medium", [loc])
+
+        # S4 — page-kind / title fallback, ONLY if nothing else derived a task
+        if not cand:
+            fv = _KIND_FALLBACK_VERB.get(kind)
+            has_title = bool(title and title != "—")
+            if fv and (sent or has_title):
+                _add(fv, sent, title, "title", "low",
+                     [f"kind `{kind}` `[AI-SUGGESTED]`",
+                      (f'title "{title}" [from rendered routes]' if has_title
+                       else "no wired op / grid / verb affordance")])
+
+        tasks = [{"verb": c["verb"], "entity": c["entity"], "conf": c["conf"], "ev": c["ev"],
+                  "name": _task_display_name(c["raw"], c["verb"], c["entity"])}
+                 for c in cand.values()]
+        tasks.sort(key=lambda t: (_VERB_SORT.get(t["verb"], 4), t["name"].lower()))
+        notask = None
+        if not tasks:
+            notask = ("authentication / landing surface (no data operation)" if kind == "landing"
+                      else "pure layout / container — no wired op, grid, or verb affordance")
+        results.append({"name": name, "roles": v.get("roles", []),
+                        "tasks": tasks, "supporting_reads": supporting, "notask": notask})
+    return results
+
 def emit_assets(model, out_dir, stem, kb_dir=None):
     os.makedirs(out_dir, exist_ok=True)
     written = []
@@ -2509,7 +2682,7 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
         L.append(f"- {g} `[AI-SUGGESTED: blocking]`")
     L.append("\n## Asset index")
     for cat in ("data-model", "data-sources", "business-rules", "access-control",
-                "surfaces", "navigation", "glossary", "design-signals", "modules",
+                "surfaces", "tasks", "navigation", "glossary", "design-signals", "modules",
                 "task-flows", "quality-signals"):
         L.append(f"- `{stem}.stadium.{cat}.md`")
     W("overview", "\n".join(L))
@@ -2977,28 +3150,12 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
                     L.append(f"- …and further endpoint bindings (truncated at 40) [from rendered view]")
                     break
         L.append("")
-    # ---- 0e — action affordances → candidate user tasks (per surface)
-    L.append("## Action affordances → candidate tasks\n")
-    if affordances_by_page:
-        L.append("> Per surface: actionable controls whose label carries an action verb. "
-                 "Control · label · wired script are **Tier-A** facts; the candidate **task** is "
-                 "**Tier-B** `[AI-SUGGESTED]` (verb taxonomy; UI chrome excluded). The flat visible-terms "
-                 "list in `glossary` is retained separately.\n")
-        for p in pages:
-            rows_a = affordances_by_page.get(p.get("name"))
-            if not rows_a:
-                continue
-            L.append(f"### {p['name']}")
-            for cname, label, verb, wired in rows_a:
-                wire = ""
-                if wired:
-                    wire = f" — wired to `{wired[0]}`" + (f" _(+{len(wired)-1})_" if len(wired) > 1 else "")
-                task = label.strip()
-                task = (task[0].upper() + task[1:]) if task else verb.capitalize()
-                L.append(f'- `{cname}` — "{label}"{wire}  →  candidate task: **{task}** `[AI-SUGGESTED]`')
-            L.append("")
-    else:
-        L.append("_No action-verb affordances detected on any surface._\n")
+    # ---- 0e superseded: the per-view USER TASK inventory (verb-labelled affordances triangulated with
+    # wired ops, grids and page-kinds, with a completeness guarantee) now lives in the `tasks` asset.
+    L.append("## User tasks (per view)\n")
+    L.append("> The per-view user-task inventory — the verb-labelled action affordances triangulated "
+             "with wired backend operations, DataGrids and page-kinds, with a ≥1-task-per-view "
+             "completeness guarantee — is emitted as its own asset: see `" + f"{stem}.stadium.tasks.md" + "`.\n")
     # screen<->entity bijection (heuristic)
     L.append("## Tier-A — screen ↔ entity (best-effort)\n")
     L.append("| Page | Likely entity |")
@@ -3012,6 +3169,90 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
                 guess = e["display"]; break
         L.append(f"| {p['name']} | {guess or '—'} |")
     W("surfaces", "\n".join(L))
+
+    # ======================================================================= tasks (per-view user tasks)
+    # Deterministic per-view USER TASK inventory. Render-only over joins already materialized above
+    # (endpoints, grids, affordances, kinds, roles, reconciled entities) — see `_derive_view_tasks`.
+    def _screen_entity(pname):
+        low = (pname or "").lower()
+        for e in ents_sorted:
+            d = (e.get("display") or "").lower()
+            if d and (d in low or low in d):
+                return e.get("display")
+        return None
+    ent_by_norm = {}
+    for e in ents_sorted:
+        ent_by_norm[e.get("norm") or _norm_entity(e.get("display") or "")] = e
+    page_by_name = {p.get("name"): p for p in pages if p.get("name")}
+    views = []
+    for name in inv_order:
+        p = page_by_name.get(name)
+        r = route_by_name.get(name) or {}
+        title = _flat(r.get("title")) or (p.get("title") if p else None) or "—"
+        grids = []
+        if p:
+            for n in _walk_tree(p.get("control_tree", [])):
+                if n.get("columns"):
+                    grids.append({"name": n.get("name"),
+                                  "searchable": bool((n.get("key_props") or {}).get("DisplaySearchBar")),
+                                  "columns": n.get("columns") or []})
+        roles = (p.get("roles") if p else None) or security.get("page_access", {}).get(name, []) or []
+        views.append({"name": name, "title": title, "kind": _page_kind(name), "roles": roles,
+                      "screen_entity": _screen_entity(name),
+                      "endpoints": (view_columns.get(name) or {}).get("endpoints") or [],
+                      "grids": grids,
+                      "affordances": affordances_by_page.get(name) or []})
+    view_tasks = _derive_view_tasks(views, ent_by_norm)
+
+    L = [f"# User tasks — {appname}\n",
+         "> One row per derivable USER TASK per view. Each task's EVIDENCE — the view, the wired "
+         "control→op (`[from rendered view]`), the grid / action column (`[from design model]`), the "
+         "title (`[from rendered routes]`) — is **Tier-A** (authoritative, `[SRC]`-citable via the inline "
+         "locator). The task's verb / name is **Tier-B** `[AI-SUGGESTED]` (interpretation). Entities are "
+         "drawn only from the reconciled set (see `data-model`) — never invented. Every view yields ≥1 "
+         "row; a view with no derivable task says so explicitly. Confidence: high (wired op + resolved "
+         "entity) / medium (labelled affordance, grid action, or op without entity) / low "
+         "(page-kind/title fallback).\n",
+         "## Task inventory\n",
+         "| View | Task `[AI-SUGGESTED]` | Verb | Entity | Conf. | Evidence [from …] |",
+         "|---|---|---|---|:--:|---|"]
+    covered = 0
+    for vt in view_tasks:
+        if not vt["tasks"]:
+            continue
+        covered += 1
+        for t in vt["tasks"]:
+            L.append(f'| {vt["name"]} | {t["name"]} | {t["verb"]} | {t["entity"] or "—"} | '
+                     f'{t["conf"]} | {"; ".join(t["ev"])} |')
+    if covered == 0:
+        L.append("| _(no views found)_ | | | | | |")
+    L.append("")
+
+    notes = []
+    for vt in view_tasks:
+        bits = []
+        if vt["roles"]:
+            bits.append("actor roles: " + ", ".join(vt["roles"]) + " [from admin.db: PageRole]")
+        if vt["supporting_reads"]:
+            bits.append("supporting reads (lookups / pre-fill, not tasks): " + "; ".join(vt["supporting_reads"]))
+        if bits:
+            notes.append(f"- **{vt['name']}** — " + " · ".join(bits))
+    if notes:
+        L.append("## Per-view notes\n")
+        L += notes
+        L.append("")
+
+    notasks = [vt for vt in view_tasks if vt["notask"]]
+    L.append("## Views with no derivable user task\n")
+    if notasks:
+        for vt in notasks:
+            L.append(f"- `{vt['name']}` — {vt['notask']}")
+    else:
+        L.append("- _(none — every view yielded ≥1 task)_")
+    L.append("\n## Coverage\n")
+    L.append(f"- **{covered} / {len(view_tasks)}** views have ≥1 derived user task; "
+             f"{len(notasks)} view(s) with no derivable task (listed above).")
+    W("tasks", "\n".join(L))
 
     # ======================================================================= navigation
     L = [f"# Navigation & app shell — {appname}\n", "## Tier-A — templates (master pages)\n"]

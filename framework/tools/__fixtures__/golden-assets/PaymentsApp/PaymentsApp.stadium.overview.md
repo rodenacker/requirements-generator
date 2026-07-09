@@ -36,6 +36,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `PaymentsApp.stadium.business-rules.md`
 - `PaymentsApp.stadium.access-control.md`
 - `PaymentsApp.stadium.surfaces.md`
+- `PaymentsApp.stadium.tasks.md`
 - `PaymentsApp.stadium.navigation.md`
 - `PaymentsApp.stadium.glossary.md`
 - `PaymentsApp.stadium.design-signals.md`

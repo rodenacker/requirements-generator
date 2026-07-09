@@ -153,12 +153,9 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `MemberUpdate` → `Members.CitiesSelect`
 - `MemberUpdate` → `Members.MemberSelect`
 
-## Action affordances → candidate tasks
+## User tasks (per view)
 
-> Per surface: actionable controls whose label carries an action verb. Control · label · wired script are **Tier-A** facts; the candidate **task** is **Tier-B** `[AI-SUGGESTED]` (verb taxonomy; UI chrome excluded). The flat visible-terms list in `glossary` is retained separately.
-
-### Members
-- `MemberAddButton` — "Add Member" — wired to `MemberAddButton.Click`  →  candidate task: **Add Member** `[AI-SUGGESTED]`
+> The per-view user-task inventory — the verb-labelled action affordances triangulated with wired backend operations, DataGrids and page-kinds, with a ≥1-task-per-view completeness guarantee — is emitted as its own asset: see `MemberAdmin.stadium.tasks.md`.
 
 ## Tier-A — screen ↔ entity (best-effort)
 

@@ -36,6 +36,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `MemberAdmin.stadium.business-rules.md`
 - `MemberAdmin.stadium.access-control.md`
 - `MemberAdmin.stadium.surfaces.md`
+- `MemberAdmin.stadium.tasks.md`
 - `MemberAdmin.stadium.navigation.md`
 - `MemberAdmin.stadium.glossary.md`
 - `MemberAdmin.stadium.design-signals.md`

@@ -76,7 +76,12 @@ ENRICHED_MARKERS = {
     ],
     "surfaces": [
         "## View / task / feature inventory",                   # 0b
-        "## Action affordances → candidate tasks",              # 0e
+        "## User tasks (per view)",                             # 0e superseded → pointer to the tasks asset
+    ],
+    "tasks": [
+        "## Task inventory",                                    # per-view user-task rows
+        "## Views with no derivable user task",                 # completeness declaration
+        "## Coverage",                                          # coverage stat
     ],
     "navigation": [
         "## Tier-A — navigation reachability",                  # 0c
@@ -85,7 +90,7 @@ ENRICHED_MARKERS = {
 }
 
 TIER1_CATEGORIES = ["overview", "data-model", "data-sources", "business-rules",
-                    "access-control", "surfaces", "navigation", "glossary",
+                    "access-control", "surfaces", "tasks", "navigation", "glossary",
                     "design-signals", "modules"]
 
 
@@ -613,6 +618,118 @@ class TestClusterCRenderedClientApp(unittest.TestCase):
         self.assertNotIn("$type", line)
 
 
+class TestDeriveViewTasks(unittest.TestCase):
+    """Corpus-INDEPENDENT proof of the deterministic per-view USER TASK derivation
+    (`_derive_view_tasks` + helpers). Feeds a synthetic MemberAdmin-shaped `views` list so the
+    algorithm's contract is locked without the out-of-repo corpus. Covers: multi-source
+    triangulation, within-view dedup on the canonical CRUD verb (NOT the update+delete cluster),
+    the SELECT supporting-reads suppression, closed-set entity binding (never invent / never bind to
+    the connector name), and the ≥1-task-per-view completeness guarantee."""
+
+    def setUp(self):
+        sys.path.insert(0, HERE)
+
+    @staticmethod
+    def _views():
+        from extract_stadium_app import _norm_entity
+        ent_by_norm = {_norm_entity("Members"): {"display": "Members", "norm": _norm_entity("Members")},
+                       _norm_entity("Cities"):  {"display": "Cities",  "norm": _norm_entity("Cities")}}
+        cols = [{"header_text": "Edit", "kind": "action"}, {"header_text": "Delete", "kind": "action"},
+                {"header_text": "ID", "name": "ID", "kind": "data"},
+                {"header_text": "First Name", "name": "FirstName", "kind": "data"}]
+        views = [
+            {"name": "Members", "title": "Members", "kind": "entity-maintenance",
+             "roles": ["User", "Viewer", "AllAccess"], "screen_entity": "Members",
+             "endpoints": [{"control": "MembersDataGrid", "connector": "Members", "function": "MemberDelete"},
+                           {"control": "MembersDGLoad", "connector": "Members", "function": "MembersSelect"}],
+             "grids": [{"name": "MembersDataGrid", "searchable": True, "columns": cols}],
+             "affordances": [("MemberAddButton", "Add Member", "add", ["MemberAddButton.Click"])]},
+            {"name": "MemberAdd", "title": "Member Add", "kind": "create", "roles": ["AllAccess"],
+             "screen_entity": None,
+             "endpoints": [{"control": "SaveButton", "connector": "Members", "function": "MemberInsert"},
+                           {"control": "MemberAdd", "connector": "Members", "function": "CitiesSelect"}],
+             "grids": [], "affordances": []},
+            {"name": "MemberUpdate", "title": "Member Update", "kind": "entity-maintenance",
+             "roles": ["AllAccess"], "screen_entity": None,
+             "endpoints": [{"control": "SaveButton", "connector": "Members", "function": "MemberUpdate"},
+                           {"control": "MemberUpdate", "connector": "Members", "function": "MemberSelect"},
+                           {"control": "MemberUpdate", "connector": "Members", "function": "CitiesSelect"}],
+             "grids": [], "affordances": []},
+            {"name": "Login", "title": "Login", "kind": "landing", "roles": [],
+             "screen_entity": None, "endpoints": [], "grids": [], "affordances": []},
+        ]
+        return views, ent_by_norm
+
+    def _by_view(self):
+        from extract_stadium_app import _derive_view_tasks
+        views, ent_by_norm = self._views()
+        return {vt["name"]: vt for vt in _derive_view_tasks(views, ent_by_norm)}
+
+    def test_members_view_yields_four_distinct_crud_tasks(self):
+        m = self._by_view()["Members"]
+        got = {(t["verb"], t["entity"]): t for t in m["tasks"]}
+        # update + delete stay SEPARATE (dedup is on the CRUD verb, not the update+delete cluster)
+        self.assertEqual({k[0] for k in got}, {"SELECT", "INSERT", "UPDATE", "DELETE"})
+        for (verb, ent) in got:
+            self.assertEqual(ent, "Members")
+        # browse triangulated (grid + wired SELECT) -> high; delete (endpoint + action col) -> high
+        self.assertEqual(got[("SELECT", "Members")]["conf"], "high")
+        self.assertEqual(got[("DELETE", "Members")]["conf"], "high")
+        self.assertEqual(got[("INSERT", "Members")]["name"], "Add Member")   # app's own affordance wording kept
+        self.assertEqual(got[("UPDATE", "Members")]["name"], "Update Members")  # single-word "Edit" -> synth
+        # the browse task carries BOTH its grid and its corroborating endpoint as evidence
+        self.assertTrue(any("MembersDataGrid" in e for e in got[("SELECT", "Members")]["ev"]))
+        self.assertTrue(any("MembersSelect" in e for e in got[("SELECT", "Members")]["ev"]))
+
+    def test_write_endpoint_synthesizes_name_and_binds_entity_from_stem(self):
+        # A wired WRITE is a high-confidence task; its name is synthesized <Verb> <Entity> (NOT the
+        # page title — that would collapse every write on a multi-write page to one name), and the
+        # entity is bound from the function stem (MemberInsert -> Members).
+        v = self._by_view()
+        add = v["MemberAdd"]["tasks"]
+        self.assertEqual(len(add), 1)
+        self.assertEqual((add[0]["verb"], add[0]["entity"], add[0]["name"], add[0]["conf"]),
+                         ("INSERT", "Members", "Add Members", "high"))
+        upd = v["MemberUpdate"]["tasks"]
+        self.assertEqual([(t["verb"], t["entity"], t["name"]) for t in upd],
+                         [("UPDATE", "Members", "Update Members")])
+
+    def test_select_lookups_are_supporting_reads_not_tasks(self):
+        v = self._by_view()
+        # CitiesSelect (dropdown) and MemberSelect (form pre-fill) never become "Browse Cities/Member"
+        for name in ("MemberAdd", "MemberUpdate"):
+            for t in v[name]["tasks"]:
+                self.assertNotEqual(t["verb"], "SELECT", f"{name}: a lookup SELECT leaked as a task")
+        self.assertTrue(any("CitiesSelect" in s for s in v["MemberAdd"]["supporting_reads"]))
+        self.assertTrue(any("MemberSelect" in s for s in v["MemberUpdate"]["supporting_reads"]))
+
+    def test_completeness_guarantee_and_no_fabricated_entity(self):
+        from extract_stadium_app import _derive_view_tasks
+        v = self._by_view()
+        # every non-chrome view has >=1 task; the chrome/landing view is explicitly declared, not dropped
+        self.assertTrue(v["Members"]["tasks"] and v["MemberAdd"]["tasks"] and v["MemberUpdate"]["tasks"])
+        self.assertEqual(v["Login"]["tasks"], [])
+        self.assertIn("landing", v["Login"]["notask"])
+        # closed-set discipline: an op whose stem is not a reconciled entity binds no entity (never invents)
+        views, ent_by_norm = self._views()
+        orphan = [{"name": "Widgets", "title": "Widgets", "kind": "entity-maintenance", "roles": [],
+                   "screen_entity": None, "grids": [], "affordances": [],
+                   "endpoints": [{"control": "b", "connector": "X", "function": "GadgetInsert"}]}]
+        got = _derive_view_tasks(orphan, ent_by_norm)[0]["tasks"]
+        self.assertEqual(len(got), 1)
+        self.assertEqual(got[0]["verb"], "INSERT")
+        self.assertIsNone(got[0]["entity"])          # "Gadget" not in the closed set -> blank, not invented
+
+    def test_endpoint_verb_entity_uses_stem_not_connector(self):
+        from extract_stadium_app import _endpoint_verb_entity, _norm_entity
+        ebn = {_norm_entity("Cities"): {"display": "Cities", "norm": _norm_entity("Cities")},
+               _norm_entity("Members"): {"display": "Members", "norm": _norm_entity("Members")}}
+        # CitiesSelect must resolve to Cities via the function stem, NOT to its "Members" connector
+        self.assertEqual(_endpoint_verb_entity("CitiesSelect", ebn), ("SELECT", "Cities"))
+        self.assertEqual(_endpoint_verb_entity("MemberInsert", ebn), ("INSERT", "Members"))
+        self.assertEqual(_endpoint_verb_entity("Frobnicate", ebn), (None, None))   # no CRUD keyword
+
+
 # =========================================================================== corpus-DEPENDENT
 @unittest.skipUnless(_HAS_CORPUS, _SKIP_CORPUS_MSG)
 class TestProbeReproducesGolden(unittest.TestCase):
@@ -636,7 +753,7 @@ class TestProbeReproducesGolden(unittest.TestCase):
 
 @unittest.skipUnless(_HAS_CORPUS, _SKIP_CORPUS_MSG)
 class TestExtractorSmokeOverSubset(unittest.TestCase):
-    """Run the real extractor over the 4-app subset; assert it exits 0, writes all ten Tier-1
+    """Run the real extractor over the 4-app subset; assert it exits 0, writes all eleven Tier-1
     assets non-empty, and emits every enriched Phase-0/1 sub-section header."""
 
     def test_subset_extracts_with_enriched_sections(self):
@@ -757,12 +874,14 @@ class TestUntouchedAssetsByteIdentical(unittest.TestCase):
     Cluster C additionally touches `navigation` (#7 route reachability) and `data-model` (#6 rendered
     types.js §7 fields). Assert every OTHER Tier-1 asset is byte-identical to its checked-in golden
     snapshot — a HARD fail on drift. Skips cleanly until goldens are seeded (--update-goldens).
-    After Cluster C, UNTOUCHED = {access-control, glossary, design-signals} — still a meaningful guard."""
+    The `tasks` enrichment additionally touches `surfaces` (0e → pointer) and adds the new `tasks`
+    asset + the `overview` index row. UNTOUCHED stays {access-control, glossary, design-signals}."""
 
     UNTOUCHED = [c for c in TIER1_CATEGORIES if c not in
                  ("business-rules", "surfaces", "overview",      # Cluster A
                   "data-sources", "modules",                     # Cluster B
-                  "navigation", "data-model")]                   # Cluster C (#7, #6)
+                  "navigation", "data-model",                    # Cluster C (#7, #6)
+                  "tasks")]                                      # per-view user-task inventory (new asset)
 
     def test_untouched_assets_match_golden(self):
         if not os.path.isdir(GOLDEN_ASSETS):

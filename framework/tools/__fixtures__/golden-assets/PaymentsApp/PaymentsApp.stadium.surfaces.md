@@ -1798,21 +1798,9 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `EditSaveApprovalLevelRulesButton` → `PaymentsApiPaymentApprovals.ApprovalLevelRulesUpdate`
 - `RefreshApprovalLevelRules` → `PaymentsApiPaymentApprovals.DistinctApprovalLevelGetList`
 
-## Action affordances → candidate tasks
+## User tasks (per view)
 
-> Per surface: actionable controls whose label carries an action verb. Control · label · wired script are **Tier-A** facts; the candidate **task** is **Tier-B** `[AI-SUGGESTED]` (verb taxonomy; UI chrome excluded). The flat visible-terms list in `glossary` is retained separately.
-
-### Users
-- `AddUserButton` — "Add User" — wired to `AddUserButton.Click`  →  candidate task: **Add User** `[AI-SUGGESTED]`
-
-### AttachmentsAndNotes
-- `AddNoteButton` — "Add Note" — wired to `AddNoteButton.Click`  →  candidate task: **Add Note** `[AI-SUGGESTED]`
-
-### Review
-- `SubmitButton` — "Submit" — wired to `SubmitButton.Click`  →  candidate task: **Submit** `[AI-SUGGESTED]`
-
-### ApprovalLevels
-- `CreateApprovalLevelButton` — "Create Approval Level" — wired to `CreateApprovalLevelButton.Click`  →  candidate task: **Create Approval Level** `[AI-SUGGESTED]`
+> The per-view user-task inventory — the verb-labelled action affordances triangulated with wired backend operations, DataGrids and page-kinds, with a ≥1-task-per-view completeness guarantee — is emitted as its own asset: see `PaymentsApp.stadium.tasks.md`.
 
 ## Tier-A — screen ↔ entity (best-effort)
 
