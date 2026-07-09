@@ -182,6 +182,7 @@
         <li>Banners persist until the underlying state clears.</li>
         <li>Modals trap focus while open and close on <kbd>Esc</kbd>. Background is non-interactive while a modal is open.</li>
         <li>Only critical, blocking interactions use modals — never use a modal for non-blocking information.</li>
+        <li><strong>Elevation &amp; edge.</strong> A modal must be visually separable from the content behind it: it carries both an elevation shadow <strong>and</strong> a 1px border, so its edge stays distinguishable even when the modal surface and the page background are the same colour.</li>
       </ul>
     </li>
     <li><strong>Accessibility.</strong> Live regions (<code>role="status"</code> / <code>role="alert"</code>) announce dynamic feedback. Modals expose <code>role="dialog"</code> with a labelled title. Focus returns to the triggering element on close.</li>

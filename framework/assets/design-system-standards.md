@@ -129,6 +129,7 @@ If you only show visuals and skip behaviour, devs will guess.
     - Banners persist until the underlying state clears.
     - Modals trap focus while open and close on `Esc`. Background is non-interactive while a modal is open.
     - Only critical, blocking interactions use modals — never use a modal for non-blocking information.
+    - **Elevation & edge.** A modal must be visually separable from the content behind it: it carries both an elevation shadow **and** a 1px border, so its edge stays distinguishable even when the modal surface and the page background are the same colour.
 - **Accessibility.** Live regions (`role="status"` / `role="alert"`) announce dynamic feedback. Modals expose `role="dialog"` with a labelled title. Focus returns to the triggering element on close.
 - **Do's and don'ts.**
     - Do tell the user what happened, why, and what they can do next.

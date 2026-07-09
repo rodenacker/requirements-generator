@@ -446,6 +446,12 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   margin-top: 12px;
   max-width: 420px;
   background: {{colours.surface.hex}};
+  /* Always-on edge: 1px pattern width + brand token colour. text_muted is
+     guaranteed to contrast with surface (contrast-validation), so the modal
+     edge stays visible even when surface == background (e.g. inside the
+     surface-backed states-matrix cell). Shadow is retained as a second,
+     independent separation mechanism. */
+  border: 1px solid {{colours.text_muted.hex}};
   border-radius: 8px;
   padding: 20px;
   box-shadow: {{effects.shadow_lg.value}};
