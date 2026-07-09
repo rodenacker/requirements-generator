@@ -131,7 +131,7 @@ In either case the orchestrator emits the context-hygiene tip (success path) and
 - Do not call any skill, asset, or tool not invoked transitively by the agent or listed in this orchestrator's **Tools** section.
 - Do not run the agent as a background / sub / async agent. It must run in the foreground so the `RF-01` choice and per-app progress happen in-thread.
 - Do not run the re-ingest reset for an app whose gate answer was `Skip`, and do not run it when the consultant chose `Cancel`.
-- Do not delete anything outside `input/<AppName>.stadium-assets/` and `framework/state/stadium/<app_id>/` during a reset, and do not remove any ledger key other than the re-ingested `app_id`.
+- Do not delete anything outside `input/<AppName>.stadium-assets/` and `framework/state/stadium/<app_id>/` during a reset, and do not remove any ledger key other than the re-ingested `app_id`. The `input/<AppName>.stadium-assets/` deletion is the one Stadium-side exception sanctioned by `framework/shared/input-safety.md` `IS-03`; consultant-dropped originals (the app folder / `*.stadium` pointer) are never deleted (`IS-01`).
 - Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the checkpoint commit.
 - Do not read or write `requirements/`, `framework/state/.progress.json`, the timing log, or any other pipeline's working state. This pipeline is stand-alone.
 - Do not build or refresh the source manifest. That is the input-handler's job on the next consuming-pipeline run; the produced assets are ordinary `Native-text` inputs.

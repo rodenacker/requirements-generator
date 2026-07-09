@@ -44,6 +44,7 @@ Full per-pipeline read/write enumeration: `docs/architecture.md`.
 | New refusal predicate (`RF-NN`) | Append to `framework/shared/refusal-registry.md` — never renumber | Add `setup-instructions/<tool>.md` if applicable |
 | New prototype invariant (`PI-NN`) | Append to `framework/shared/prototype-invariants.md` — never renumber | Merger auto-appends to `requirements.md` |
 | New input exclusion (`IX-NN`) | Append to `framework/shared/input-exclusions.md` — never renumber | Both enumerators cite it (`input-handler.md` Step 1/S, `check-manifest-freshness.md` Step 2); never restate the exclusion set inline |
+| New input-safety invariant (`IS-NN`) | Append to `framework/shared/input-safety.md` — never renumber | Referenced (not restated) by the reset orchestrators + input-consumers; never re-derive the deletion policy inline |
 | New pipeline state file | `framework/state/<name>` + declare owner in orchestrator Tools section | — |
 | New environment dependency (install/test) | Add a component function to `framework/tools/setup-environment.ps1` (the canonical install command) | Reference it by `-Component <x>` from `/setup`, the relevant `RF-NN` handback, and `setup-instructions/<tool>.md` — never restate the command. Tools never touch pipeline artefacts. |
 | New Stadium-extraction knowledge | Append to / extend the relevant file under `framework/assets/stadium/` (`registry.md`, `glossary.md`, `admindb-schema.md`, `module-catalogue.md`, `theming-model.md`, `template-model.md`, `sapz-spec.md`, `asset-schemas.md`) | Read by `framework/tools/extract_stadium_app.py` (`--kb`) and conditionally by `requirements-drafter.md`. Its `glossary.md` holds **application-domain** Stadium vocabulary and is walled off from the system glossary (`framework/assets/glossary.md`) — never cross-reference the two. |
@@ -95,7 +96,7 @@ Scope is **definitions only**, not procedures. Procedural extraction follows the
 Mechanically derived embedding (e.g. the merger appending `PI-01..08` verbatim from the canonical source into every `requirements.md`, or `[SRC: C-NNN]` markers copied from `draft-claims.ndjson` into `requirements-draft.md`) is **not** a violation. Restating constraints in an agent's *Self-validation* section for fail-closed resilience is also not a violation.
 
 **Canonical owners (orientation):**
-- Stable-ID registries: `framework/shared/{general-rules,refusal-registry,prototype-invariants,input-exclusions}.md`.
+- Stable-ID registries: `framework/shared/{general-rules,refusal-registry,prototype-invariants,input-exclusions,input-safety}.md`.
 - Methodology registries: `framework/assets/{analyses,analyses-inputs,reviews,reviews-inputs}/registry.md`.
 - Pipeline loading graph: `framework/dependency-graphs.md`.
 - Source manifest: `requirements/source-manifest.json` (owned by `framework/agents/input-handler.md`).

@@ -4,6 +4,8 @@ Single source of truth for **what is *not* a source-manifest input** when an age
 consultant-dropped input folder (`input_dir`, canonically `input/`). Every path that matches an exclusion
 below is skipped: it never becomes a manifest row and never counts as disk drift.
 
+> **Excluding is not deleting.** A path excluded here is never read into a manifest row — it is **not** deleted or moved. Input files are consultant-owned; see `framework/shared/input-safety.md` (`IS-02`).
+
 This registry exists because input enumeration happens in **two independent places** that must agree exactly
 or a file silently becomes "drift":
 

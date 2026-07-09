@@ -54,7 +54,7 @@ Field rules:
 
 This skill is the canonical home of the rule every downstream input-consumer follows to decide which file to read for a manifest row. Consumers (the `/requirements` drafter, the `/generate-prd` drafter, every `/analyse-inputs` analyser, every `/review-inputs` reviewer) **reference this rule rather than re-deriving a per-tier branch**:
 
-> **Read-path resolution.** For each manifest row: if `converted_sibling` is non-null, read `converted_sibling`; otherwise read `original_path`. Skip rows with `tier: "Unsupported"`.
+> **Read-path resolution.** For each manifest row: if `converted_sibling` is non-null, read `converted_sibling`; otherwise read `original_path`. Skip rows with `tier: "Unsupported"`. Skip = do not read; the row's file is never deleted or moved (see `framework/shared/input-safety.md`, `IS-02`).
 
 The rule is intentionally tier-agnostic: a consumer never needs to know *why* a sibling exists (markitdown conversion, frozen vision description, or rendered-then-described vector). The sibling is always the consumer-facing surface when present. This means a row's `original_path` is read only for `Native-text` (which never carries a sibling) — every other consumable row is read through `converted_sibling`. Consumers must **not** read the `original_path` of a row that carries a non-null `converted_sibling` (e.g. re-interpreting an image's pixels when a frozen description exists defeats the single-interpretation contract).
 
