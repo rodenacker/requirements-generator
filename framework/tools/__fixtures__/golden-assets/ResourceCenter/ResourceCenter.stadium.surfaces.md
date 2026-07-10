@@ -4,6 +4,8 @@ app: ResourceCenter
 file_guid: 27cac42c-3dc4-44fd-99a0-84d001ccd971
 designer_version: 6.14.3378.13771
 selected_package: 4dd7964f-aadd-4ba2-ad82-9cf8fa1f9aa7.sapz
+deployment_count: 4
+last_published: 2026-06-03 11:01:11.2158983
 extracted_from: C:\Stadium 6 Web Apps\27cac42c-3dc4-44fd-99a0-84d001ccd971
 provenance: deterministic extraction from the Stadium 6 design model + administration.db
 marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lines are advisory design signals.
@@ -23,29 +25,20 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 | Page | Page | `/Page` | ✓ | ✓ |  | ✓ | entity-maintenance `[AI-SUGGESTED]` |
 
 ## FAQ  ·  title: FAQ  ·  roles: User
-  - GridLayout: `GridLayout`
-    - StackLayout: `StackLayout`
-      - Container: `Container`
-        - GridLayout: `GridLayout`
-    - StackLayout: `StackLayout`
-      - Label: `Label1` — "FAQ"
-    - StackLayout: `StackLayout`
-      - Repeater: `Repeater`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Label: `Label`
+- Visible terms: "FAQ" [from design model]
+> Layout: 0 meaningful control(s) within 9 layout container(s); max control-tree nesting depth 6 (per-node layout omitted — see model.json). Advisory.
 
 ## Docs  ·  title: Docs  ·  roles: User
-  - GridLayout: `GridLayout`
+- _(layout-only surface — no data-bound controls, grids, or labelled actions)_
+> Layout: 0 meaningful control(s) within 1 layout container(s); max control-tree nesting depth 1 (per-node layout omitted — see model.json). Advisory.
 
 ### source-UI reference — Docs (from rendered view)
 > Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
 - `Docs` → `FileSystem.ReadFile`
 
 ## Page ⭐ start  ·  title: Page  ·  roles: User
-  - GridLayout: `GridLayout`
-    - StackLayout: `StackLayout`
-      - Label: `Label` — "Resource Center Landing Page"
+- Visible terms: "Resource Center Landing Page" [from design model]
+> Layout: 0 meaningful control(s) within 2 layout container(s); max control-tree nesting depth 3 (per-node layout omitted — see model.json). Advisory.
 
 ## User tasks (per view)
 

@@ -58,6 +58,14 @@ This skill is the canonical home of the rule every downstream input-consumer fol
 
 The rule is intentionally tier-agnostic: a consumer never needs to know *why* a sibling exists (markitdown conversion, frozen vision description, or rendered-then-described vector). The sibling is always the consumer-facing surface when present. This means a row's `original_path` is read only for `Native-text` (which never carries a sibling) — every other consumable row is read through `converted_sibling`. Consumers must **not** read the `original_path` of a row that carries a non-null `converted_sibling` (e.g. re-interpreting an image's pixels when a frozen description exists defeats the single-interpretation contract).
 
+### Pipeline-scoped read exclusion (`/requirements` only) — `IX-05`
+
+The manifest is shared verbatim across the four input-handler pipelines (it is built once, enumeration-identical), so **no** row is removed at build time for a single pipeline. Instead, **one consumer applies a scoped skip**:
+
+> **`/requirements` drafter only:** skip any row whose `filename` matches `*.stadium.design-signals.md`. It is a Stadium `design-signals` asset — entirely Tier-B styling material owned by `/design-system`, which grounded 0 requirement claims. Skip = do not read; the row stays in the manifest and the file is never moved/deleted (`framework/shared/input-exclusions.md`, `IX-05` + `IS-02`).
+
+Every **other** consumer — the `/generate-prd` drafter, all `/analyse-inputs` analysers, all `/review-inputs` reviewers — ignores this clause and reads the `design-signals` row normally via the base Read-path rule above. The `glossary` asset is **not** excluded by any pipeline (it grounds requirement claims — see `IX-05`).
+
 ## Row-construction algorithm
 
 For each classified row from `classify-input-tier.md`, in input-order:

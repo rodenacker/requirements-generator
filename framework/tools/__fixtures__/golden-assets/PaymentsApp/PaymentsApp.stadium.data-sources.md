@@ -4,6 +4,8 @@ app: PaymentsApp
 file_guid: be54c8c9-dc03-43d5-bc2b-fba14e07f360
 designer_version: 6.14.3378.13771
 selected_package: 2211275f-1cb9-495c-91cf-4ff48dc4c142.sapz
+deployment_count: 1
+last_published: 2026-06-30 12:29:25.6302212
 extracted_from: C:\Stadium 6 Web Apps\be54c8c9-dc03-43d5-bc2b-fba14e07f360
 provenance: deterministic extraction from the Stadium 6 design model + administration.db
 marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lines are advisory design signals.
@@ -14,14 +16,14 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 
 ## Tier-A — connectors & operations
 
-### FileSystem (FileSystem)
+### FileSystem — FileSystem
 - Connection (redacted): `{"Path": "C:\\DigiataRepos\\DigiataApps\\PaymentsApp\\Tests\\", "User": "", "Password": ""}` [from administration.db / design model]
 - **DeleteFile** (DeleteFile) — params: FileName:Parameter [from connector: FileSystem]
 - **FileExists** (FileExists) — params: FileName:Parameter [from connector: FileSystem]
 - **ReadFile** (ReadFile) — params: FileName:Parameter [from connector: FileSystem]
 - **WriteFile** (WriteFile) — params: FileName:Parameter, FileContents:Parameter [from connector: FileSystem]
 
-### PaymentsApiSetup (WebService)
+### PaymentsApiSetup — REST / HTTP  ·  ⚠ mock / non-prod host `[AI-SUGGESTED]`
 - Connection (redacted): `{"URL": "http://localhost:10009/PaymentsApp/", "Auth": "ApiKey", "KeyLocation": "Header", "KeyName": "X-API-Key", "KeyValue": "Test123", "Timeout": 90}` [from administration.db / design model]
 - **BeneficiaryGetList** (WebServiceFunction) — params: RaiseExceptions:RaiseExceptionsParameter [from connector: PaymentsApiSetup]
   - endpoint: `GET /v1/beneficiaries` — response: BeneficiaryReadList
@@ -102,7 +104,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - **DepartmentDelete** (WebServiceFunction) — params: RaiseExceptions:RaiseExceptionsParameter, Id:WebServiceParameter, LastChangedUser:WebServiceParameter [from connector: PaymentsApiSetup]
   - endpoint: `DELETE /v1/departments/{Id}` — response: DefaultResponse
 
-### PaymentsApiPaymentTransactions (WebService)
+### PaymentsApiPaymentTransactions — REST / HTTP  ·  ⚠ mock / non-prod host `[AI-SUGGESTED]`
 - Connection (redacted): `{"URL": "http://localhost:10010/PaymentsApp/", "Auth": "ApiKey", "KeyLocation": "Header", "KeyName": "X-API-Key", "KeyValue": "Test123", "Timeout": 90}` [from administration.db / design model]
 - **TransactionGetList** (WebServiceFunction) — params: RaiseExceptions:RaiseExceptionsParameter [from connector: PaymentsApiPaymentTransactions]
   - endpoint: `GET /v1/transactions` — response: TransactionReadList
@@ -159,7 +161,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - **DraftTransactionGetList** (WebServiceFunction) — params: RaiseExceptions:RaiseExceptionsParameter [from connector: PaymentsApiPaymentTransactions]
   - endpoint: `GET /v1/transaction-drafts` — response: TransactionReadList
 
-### PaymentsApiUsers (WebService)
+### PaymentsApiUsers — REST / HTTP  ·  ⚠ mock / non-prod host `[AI-SUGGESTED]`
 - Connection (redacted): `{"URL": "http://localhost:10008/PaymentsApp/", "Auth": "ApiKey", "KeyLocation": "Header", "KeyName": "X-API-Key", "KeyValue": "Test123", "Timeout": 90}` [from administration.db / design model]
 - **UserGetList** (WebServiceFunction) — params: RaiseExceptions:RaiseExceptionsParameter [from connector: PaymentsApiUsers]
   - endpoint: `GET /v1/users` — response: UserReadList
@@ -176,7 +178,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - **RoleSync** (WebServiceFunction) — params: RaiseExceptions:RaiseExceptionsParameter, Body:WebServiceParameter [from connector: PaymentsApiUsers]
   - endpoint: `POST /v1/roles/sync` — response: DefaultResponse
 
-### PaymentsApiPaymentApprovals (WebService)
+### PaymentsApiPaymentApprovals — REST / HTTP  ·  ⚠ mock / non-prod host `[AI-SUGGESTED]`
 - Connection (redacted): `{"URL": "http://localhost:10011/PaymentsApp/", "Auth": "ApiKey", "KeyLocation": "Header", "KeyName": "X-API-Key", "KeyValue": "Test123", "Timeout": 90}` [from administration.db / design model]
 - **DistinctApprovalLevelGetList** (WebServiceFunction) — params: RaiseExceptions:RaiseExceptionsParameter [from connector: PaymentsApiPaymentApprovals]
   - endpoint: `GET /v1/approval-levels` — response: ApprovalLevelReadList
@@ -208,3 +210,10 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 ## Tier-A — app settings / integration
 
 - Filesystem path referenced: `C:\DigiataRepos\DigiataApps\PaymentApp\Tests\` [from design model: Setting]
+
+## Tier-A — technology stack (NFR baseline)
+
+- Backend framework: **net8.0-windows** [from .csproj]
+- Frontend: **Vue ^3.5.22** [from package.json]
+- Data providers: `Microsoft.Data.SqlClient`, `Microsoft.EntityFrameworkCore.Sqlite`, `Oracle.ManagedDataAccess.Core`, `System.Data.Odbc` [from .csproj]
+- Notable backend capabilities: `EPPlus`, `IdentityModel.AspNetCore.OAuth2Introspection`, `Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson`, `Serilog.AspNetCore`, `Serilog.Sinks.EventLog` [from .csproj]

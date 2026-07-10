@@ -4,6 +4,8 @@ app: RMB_Onboarding
 file_guid: 87ea91de-6125-4686-8437-806216cb0ec0
 designer_version: 6.14.3378.13771
 selected_package: 3f1ddf96-3519-47b8-905d-b44703776f78.sapz
+deployment_count: 1
+last_published: 2026-06-30 12:19:12.1887333
 extracted_from: C:\Stadium 6 Web Apps\87ea91de-6125-4686-8437-806216cb0ec0
 provenance: deterministic extraction from the Stadium 6 design model + administration.db
 marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lines are advisory design signals.
@@ -27,14 +29,13 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - User clicks `dgSearchCustomers` → runs the flow below
 - Sequence: NavigateToPage → JavaScript
   - NavigateToPage: Destination=ClientServiceRequest
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### btnCloseModal.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks "Close" → runs the flow below
 - Sequence: SetValue → SetValue
-  - SetValue: Target=Panel_Customers; Value=False
-  - SetValue: Target=Panel_Products; Value=True
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### DataGrid.Edit.Click  [from script, surface: ClientApplications]
 - Trigger: **user-initiated**  (`.click`)
@@ -116,17 +117,14 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
       - Variable: Value=ApplicationID
       - SetValue: Target=ApplicationID; Value=ApplicationID
       - SetValue: Target=WOID; Value=WOID
-      - SetValue: Target=Container_Enablement_ClientApplications; Value=False
-      - SetValue: Target=Container_Enablement_VettingScreen; Value=True
       - CallScript: ScriptToCall=SetValueVettingInfo
       - CallScript: ScriptToCall=LoadImage
       - **Decision** *(has else)*
         - IF `ActionSequence == 60` →
-          - SetValue: Target=Container_AcceptRejectButtons; Value=False
         - ELSE →
-          - SetValue: Target=Container_AcceptRejectButtons; Value=True
     - ELSE →
       - Notification: Message=Application Loading
+  - _(+4 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnNextPageLeft.Click  [from script, surface: Enablement]
 - Trigger: **user-initiated**  (`.click`)
@@ -142,11 +140,9 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
         - IF `VariableCurrentPage > 1` →
           - Variable: Value=lblPageNumber
           - ExecuteConnector: ConnectorFunction=ReadFile
-          - SetValue: Target=imgVettingInfo_Document; Value=FileSystem_ReadFile
-          - SetValue: Target=lblPageCount; Value=Count
-          - SetValue: Target=lblPageNumber; Value=VariableNextPage
         - ELSE →
     - ELSE →
+  - _(+3 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnNextPageRight.Click  [from script, surface: Enablement]
 - Trigger: **user-initiated**  (`.click`)
@@ -161,25 +157,22 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
       - **Decision** *(has else)*
         - IF `VariableCurrentPage < Count` →
           - ExecuteConnector: ConnectorFunction=ReadFile
-          - SetValue: Target=imgVettingInfo_Document; Value=FileSystem_ReadFile
-          - SetValue: Target=lblPageNumber; Value=VariableCurrentPage
-          - SetValue: Target=lblPageCount; Value=Count
         - ELSE →
     - ELSE →
+  - _(+3 UI-state SetValue(s) folded into the state-signals section)_
 
 #### cbJointly.Change  [from script, surface: Enablement]
 - Trigger: **user-initiated**  (`.change`)
 - User changes `cbJointly` → runs the flow below
 - Sequence: SetValue → SetValue
-  - SetValue: Target=lblJointCount; Value=cbJointly
   - SetValue: Target=tbCount; Value=cbJointly
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnEnablementReject.Click  [from script, surface: Enablement]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks "Reject" → runs the flow below
 - Sequence: SetValue → SetValue
-  - SetValue: Target=Container_Reject; Value=True
-  - SetValue: Target=Container_AcceptRejectButtons; Value=False
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnEnablement_Accept.Click  [from script, surface: Enablement]
 - Trigger: **user-initiated**  (`.click`)
@@ -188,19 +181,16 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - ExecuteConnector: ConnectorFunction=Prc_WO_Update
   - ExecuteConnector: ConnectorFunction=Prc_WOHistory_insert1
   - Notification: Message=Application has been accepted; Title=Accepted
-  - SetValue: Target=Container_AcceptRejectButtons; Value=False
-  - SetValue: Target=Container_Enablement_ClientApplications; Value=True
-  - SetValue: Target=Container_Enablement_VettingScreen; Value=False
   - SetValue: Target=WOID; Value=0
   - CallScript: ScriptToCall=LoadDatagrids
+  - _(+3 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnCancelReject_Back.Click  [from script, surface: Enablement]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks "Back" → runs the flow below
 - Sequence: SetValue → SetValue → SetValue
   - SetValue: Target=tbEnablement_RejectReason
-  - SetValue: Target=Container_Reject; Value=False
-  - SetValue: Target=Container_AcceptRejectButtons; Value=True
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnAcceptReject.Click  [from script, surface: Enablement]
 - Trigger: **user-initiated**  (`.click`)
@@ -210,16 +200,14 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - ExecuteConnector: ConnectorFunction=Prc_WOHistory_insert
   - ExecuteConnector: ConnectorFunction=Prc_WO_update
   - Notification: Message=Application has been rejected; Title=Accepted
-  - SetValue: Target=Container_AcceptRejectButtons; Value=False
-  - SetValue: Target=Container_Reject; Value=False
   - SetValue: Target=tbEnablement_RejectReason
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnEnablement_Vetting_Close.Click  [from script, surface: Enablement]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks "Close" → runs the flow below
 - Sequence: SetValue → SetValue
-  - SetValue: Target=Container_Enablement_ClientApplications; Value=True
-  - SetValue: Target=Container_Enablement_VettingScreen; Value=False
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnClose.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -247,9 +235,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Flow (branch-structured):
   - **Decision** *(has else)*
     - IF `chbLinkCCN == True` →
-      - SetValue: Target=LayoutTable3; Value=True
     - ELSE →
-      - SetValue: Target=LayoutTable3; Value=False
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnSave.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -300,8 +287,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - ExecuteConnector: ConnectorFunction=get_ModularEntity
   - CallScript: ScriptToCall=LoadEntities_ModalView
   - CallScript: ScriptToCall=OpenModal
-  - SetValue: Target=btnModalAdd; Value=False
-  - SetValue: Target=btnModalUpdate; Value=True
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnAddEntity.Click  [from script, surface: pgModularInformation]
 - Trigger: **user-initiated**  (`.click`)
@@ -309,8 +295,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Sequence: CallScript → CallScript → SetValue → SetValue
   - CallScript: ScriptToCall=OpenModal
   - CallScript: ScriptToCall=ClearModal
-  - SetValue: Target=btnModalAdd; Value=True
-  - SetValue: Target=btnModalUpdate; Value=False
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnModalAdd.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -342,8 +327,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Sequence: CallScript → CallScript → SetValue → SetValue
   - CallScript: ScriptToCall=OpenModal
   - CallScript: ScriptToCall=ClearModal
-  - SetValue: Target=btnModalAdd; Value=True
-  - SetValue: Target=btnModalUpdate; Value=False
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnView.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -352,8 +336,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - ExecuteConnector: ConnectorFunction=get_CollectionsContactPerson
   - CallScript: ScriptToCall=LoadContactPersons_ModalView
   - CallScript: ScriptToCall=OpenModal
-  - SetValue: Target=btnModalAdd; Value=False
-  - SetValue: Target=btnModalUpdate; Value=True
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnRemove.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -435,8 +418,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - ExecuteConnector: ConnectorFunction=get_Administrator
   - CallScript: ScriptToCall=OpenModal
   - CallScript: ScriptToCall=LoadAdministrators_ModalView
-  - SetValue: Target=btnModalUpdate; Value=True
-  - SetValue: Target=btnModalAdd; Value=False
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnRemove.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -457,8 +439,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Sequence: CallScript → CallScript → SetValue → SetValue
   - CallScript: ScriptToCall=OpenModal
   - CallScript: ScriptToCall=ClearModal
-  - SetValue: Target=btnModalAdd; Value=True
-  - SetValue: Target=btnModalUpdate; Value=False
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnPrevious.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -483,7 +464,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.change`)
 - User changes `ddAddUSer_IDType` → runs the flow below
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### btnModalAdd.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -519,15 +500,13 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Sequence: CallScript → CallScript → SetValue → SetValue
   - CallScript: ScriptToCall=OpenModal
   - CallScript: ScriptToCall=ClearModal
-  - SetValue: Target=btnModalAdd; Value=True
-  - SetValue: Target=btnModalUpdate; Value=False
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnAddSubgroup.Click  [from script, surface: pgAccounts]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks "Add Sub Group" → runs the flow below
 - Sequence: SetValue → SetValue
-  - SetValue: Target=fbSubGroup2; Value=True
-  - SetValue: Target=btnRemoveSubgroup; Value=True
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnView.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -536,8 +515,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - ExecuteConnector: ConnectorFunction=get_PartiesHeirarchyTable
   - CallScript: ScriptToCall=LoadLinkedAccounts_ModalView
   - CallScript: ScriptToCall=OpenModal
-  - SetValue: Target=btnModalAdd; Value=False
-  - SetValue: Target=btnModalUpdate; Value=True
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnLinkAccount2.Click  [from script, surface: pgAccounts]
 - Trigger: **user-initiated**  (`.click`)
@@ -549,9 +527,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks "Remove Sub Group" → runs the flow below
 - Sequence: SetValue → SetValue → SetValue
-  - SetValue: Target=fbSubGroup2; Value=False
   - SetValue: Value=False
-  - SetValue: Target=btnRemoveSubgroup; Value=False
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnPrevious.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -632,8 +609,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - ExecuteConnector: ConnectorFunction=get_Signatory
   - CallScript: ScriptToCall=OpenModal
   - CallScript: ScriptToCall=LoadSignatories_ModalView
-  - SetValue: Target=btnModalUpdate; Value=True
-  - SetValue: Target=btnModalAdd; Value=False
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnRemove.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -654,8 +630,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Sequence: CallScript → CallScript → SetValue → SetValue
   - CallScript: ScriptToCall=OpenModal
   - CallScript: ScriptToCall=ClearModal
-  - SetValue: Target=btnModalAdd; Value=True
-  - SetValue: Target=btnModalUpdate; Value=False
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### btnPrevious.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -680,7 +655,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.change`)
 - User changes `ddAddIDType` → runs the flow below
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### btnModalAdd.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -740,17 +715,15 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `imgOpenMenu` → runs the flow below
 - Sequence: JavaScript → SetValue → SetValue
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=imgOpenMenu; Value=False
-  - SetValue: Target=imgCloseMenu; Value=True
+  - JavaScript  `[DOM-manipulation JS]`
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### imgCloseMenu.Click  [from script, surface: DefaultTemplate]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `imgCloseMenu` → runs the flow below
 - Sequence: JavaScript → SetValue → SetValue
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=imgOpenMenu; Value=True
-  - SetValue: Target=imgCloseMenu; Value=False
+  - JavaScript  `[DOM-manipulation JS]`
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### imgLogo.Click  [from script, surface: DefaultTemplate]
 - Trigger: **user-initiated**  (`.click`)
@@ -762,9 +735,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks "Close" → runs the flow below
 - Sequence: JavaScript → SetValue → SetValue
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=imgOpenMenu; Value=True
-  - SetValue: Target=imgCloseMenu; Value=False
+  - JavaScript  `[DOM-manipulation JS]`
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 ### Automatic — on page / template open
 
@@ -773,9 +745,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Sequence: CallScript → CallScript → SetValue → SetValue → CallScript
   - CallScript: ScriptToCall=SetMenu
   - CallScript: ScriptToCall=Tiles
-  - SetValue: Target=Panel_Customers; Value=False
-  - SetValue: Target=Panel_Products; Value=True
   - CallScript: ScriptToCall=SetDataGrid
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### ClientApplications.Load  [from script, surface: ClientApplications]
 - Trigger: **automatic-on-open**  (`.load`)
@@ -788,10 +759,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **automatic-on-open**  (`.load`)
 - Sequence: CallScript → SetValue → SetValue → SetValue → Variable → CallScript
   - CallScript: ScriptToCall=SetMenu
-  - SetValue: Target=lblEnablement_Header; Value=Client Applications
-  - SetValue: Target=Container_Enablement_ClientApplications; Value=True
-  - SetValue: Target=Container_Enablement_VettingScreen; Value=False
   - CallScript: ScriptToCall=LoadDatagrids
+  - _(+3 UI-state SetValue(s) folded into the state-signals section)_
 
 #### Dashboard.Load  [from script, surface: Dashboard]
 - Trigger: **automatic-on-open**  (`.load`)
@@ -828,10 +797,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
       - **Decision** *(has else)*
         - IF `ModularLinkCCNNumber1 == ? AND ModularLinkCCNNumber2 == ? AND ModularLinkCCNNumber3 == ? AND ModularLinkCCNNumber4 == ? AND ModularLinkCCNNumber5 == ? AND ModularLinkCCNNumber6 == ?` →
           - SetValue: Target=chbLinkCCN; Value=False
-          - SetValue: Target=LayoutTable3; Value=False
         - ELSE →
           - SetValue: Target=chbLinkCCN; Value=True
-          - SetValue: Target=LayoutTable3; Value=True
           - SetValue: Target=txtCCN1; Value=ModularLinkCCNNumber1
           - SetValue: Target=txtCCN2; Value=ModularLinkCCNNumber2
           - SetValue: Target=txtCCN3; Value=ModularLinkCCNNumber3
@@ -843,8 +810,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
       - SetValue: Target=chbNAEDO; Value=ModularNAEDO
       - SetValue: Target=chbOnlineSettlementLimits; Value=ModularOnlineSettlementLimits
       - SetValue: Target=chbFTPDeliveryMechanism; Value=ModularFTPDeliveryMechanism
-      - SetValue: Target=conModularEntities; Value=True
     - ELSE →
+  - _(+3 UI-state SetValue(s) folded into the state-signals section)_
 
 #### pgCollections.Load  [from script, surface: pgCollections]
 - Trigger: **automatic-on-open**  (`.load`)
@@ -852,8 +819,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Flow (branch-structured):
   - CallScript: ScriptToCall=ProgressBar
   - CallScript: ScriptToCall=ProgressBarUpdate
-  - JavaScript  `[opaque: custom JS]`
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[custom JS]` — `$(".text-box-container").each(function(){ var el = $(this); if ((el.attr("class")) && (el.attr("class").indexOf("maxleng…`
+  - JavaScript  `[DOM-manipulation JS]`
   - CallScript: ScriptToCall=LoadContactPersons
   - ExecuteConnector: ConnectorFunction=get_ClientDetails
   - SetValue: Target=txtClientName; Value=ClientName
@@ -916,19 +883,19 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - SetValue: Target=txtClientRegNo; Value=ClientRegistrationNumber
   - SetValue: Target=Data; Value=Results
   - SetValue: Target=tbEmail
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### DefaultTemplate.Load  [from script, surface: app]
 - Trigger: **automatic-on-open**  (`.load`)
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 ### Other — helper scripts / timers / lifecycle
 
 #### SetMenu  [from script, surface: ClientServiceRequest]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### GetClientsInformation  [from script, surface: ClientServiceRequest]
 - Trigger: **other (helper script)**
@@ -939,47 +906,47 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### Tiles  [from script, surface: ClientServiceRequest]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### SetDataGrid  [from script, surface: ClientServiceRequest]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### SetMenu  [from script, surface: ClientApplications]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### ModalClose  [from script, surface: ClientApplications]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### ModalOpen  [from script, surface: ClientApplications]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### DataGridFormat  [from script, surface: ClientApplications]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### SetMenu  [from script, surface: Enablement]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### ModalClose  [from script, surface: Enablement]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### ModalOpen  [from script, surface: Enablement]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### LoadDatagrids  [from script, surface: Enablement]
 - Trigger: **other (helper script)**
@@ -993,7 +960,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### DataGridFormat  [from script, surface: Enablement]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### SetValueVettingInfo  [from script, surface: Enablement]
 - Trigger: **other (helper script)**
@@ -1012,31 +979,29 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
       - Variable: Value=Count
       - Variable: Value=Results
       - ExecuteConnector: ConnectorFunction=ReadFile
-      - SetValue: Target=imgVettingInfo_Document; Value=FileSystem_ReadFile
-      - SetValue: Target=lblPageNumber; Value=1
-      - SetValue: Target=lblPageCount; Value=Count
     - ELSE →
+  - _(+3 UI-state SetValue(s) folded into the state-signals section)_
 
 #### SetMenu  [from script, surface: Dashboard]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### Tiles  [from script, surface: Dashboard]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### ProgressBar  [from script, surface: pgClientDetails]
 - Trigger: **other (helper script)**
 - Sequence: Variable → JavaScript
   - Variable: Value=PanelID
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### ProgressBarUpdate  [from script, surface: pgClientDetails]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[custom JS]` — `var i = 1; var top = {0}; $('.progress .circle').removeClass().addClass('circle'); $('.progress .bar').removeClass().add…`
 
 #### Application_Create  [from script, surface: pgClientDetails]
 - Trigger: **other (helper script)**
@@ -1062,18 +1027,18 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### OpenModal  [from script, surface: pgModularInformation]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### CloseModal  [from script, surface: pgModularInformation]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### ProgressBar  [from script, surface: pgModularInformation]
 - Trigger: **other (helper script)**
 - Sequence: Variable → JavaScript
   - Variable: Value=PanelID
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### LoadEntities  [from script, surface: pgModularInformation]
 - Trigger: **other (helper script)**
@@ -1097,7 +1062,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### ProgressBarUpdate  [from script, surface: pgModularInformation]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[custom JS]` — `var i = 1; var top = {0}; $('.progress .circle').removeClass().addClass('circle'); $('.progress .bar').removeClass().add…`
 
 #### Validate  [from script, surface: pgModularInformation]
 - Trigger: **other (helper script)**
@@ -1107,18 +1072,18 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### OpenModal  [from script, surface: pgCollections]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### CloseModal  [from script, surface: pgCollections]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### ProgressBar  [from script, surface: pgCollections]
 - Trigger: **other (helper script)**
 - Sequence: Variable → JavaScript
   - Variable: Value=PanelID
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### LoadContactPersons  [from script, surface: pgCollections]
 - Trigger: **other (helper script)**
@@ -1150,7 +1115,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### ProgressBarUpdate  [from script, surface: pgCollections]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[custom JS]` — `var i = 1; var top = {0}; $('.progress .circle').removeClass().addClass('circle'); $('.progress .bar').removeClass().add…`
 
 #### Validate  [from script, surface: pgCollections]
 - Trigger: **other (helper script)**
@@ -1168,18 +1133,18 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### CloseModal  [from script, surface: pgAdministrators]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### OpenModal  [from script, surface: pgAdministrators]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### ProgressBar  [from script, surface: pgAdministrators]
 - Trigger: **other (helper script)**
 - Sequence: Variable → JavaScript
   - Variable: Value=PanelID
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### LoadAdministrators  [from script, surface: pgAdministrators]
 - Trigger: **other (helper script)**
@@ -1206,7 +1171,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### ProgressBarUpdate  [from script, surface: pgAdministrators]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[custom JS]` — `var i = 1; var top = {0}; $('.progress .circle').removeClass().addClass('circle'); $('.progress .bar').removeClass().add…`
 
 #### Validate  [from script, surface: pgAdministrators]
 - Trigger: **other (helper script)**
@@ -1217,7 +1182,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### ValidateID  [from script, surface: pgAdministrators]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### rptAdministrators.ItemLoad  [from script, surface: pgAdministrators]
 - Trigger: **other (timer / lifecycle)**  (`.itemload`)
@@ -1231,7 +1196,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **other (helper script)**
 - Sequence: Variable → JavaScript
   - Variable: Value=PanelID
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### ProgressBarUpdate  [from script, surface: pgAccounts]
 - Trigger: **other (helper script)**
@@ -1240,14 +1205,14 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - ExecuteConnector: ConnectorFunction=sp_Application_Step_Status
   - **Decision** *(has else)*
     - IF `IsValid == 1` →
-      - JavaScript  `[opaque: custom JS]`
+      - JavaScript  `[timing JS]`
     - ELSE →
-      - JavaScript  `[opaque: custom JS]`
+      - JavaScript  `[custom JS]` — `var i = 1; var top = {0}; $('.progress .circle').removeClass().addClass('circle'); $('.progress .bar').removeClass().add…`
 
 #### OpenModal  [from script, surface: pgAccounts]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### ClearModal  [from script, surface: pgAccounts]
 - Trigger: **other (helper script)**
@@ -1259,7 +1224,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### CloseModal  [from script, surface: pgAccounts]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### LoadLinkedAccounts  [from script, surface: pgAccounts]
 - Trigger: **other (helper script)**
@@ -1290,23 +1255,23 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### CloseModal  [from script, surface: pgSignatories]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### OpenModal  [from script, surface: pgSignatories]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### ProgressBar  [from script, surface: pgSignatories]
 - Trigger: **other (helper script)**
 - Sequence: Variable → JavaScript
   - Variable: Value=PanelID
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### ProgressBarUpdate  [from script, surface: pgSignatories]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[custom JS]` — `var i = 1; var top = {0}; $('.progress .circle').removeClass().addClass('circle'); $('.progress .bar').removeClass().add…`
 
 #### Validate  [from script, surface: pgSignatories]
 - Trigger: **other (helper script)**
@@ -1349,12 +1314,12 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **other (helper script)**
 - Sequence: Variable → JavaScript
   - Variable: Value=PanelID
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### ProgressBarUpdate  [from script, surface: pgGenerate]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[custom JS]` — `var i = 1; var top = {0}; $('.progress .circle').removeClass().addClass('circle'); $('.progress .bar').removeClass().add…`
 
 #### Validate  [from script, surface: pgGenerate]
 - Trigger: **other (helper script)**
@@ -1375,7 +1340,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### JumpToPageTop  [from script, surface: DefaultTemplate]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 ## Tier-A — notification points
 
@@ -1445,15 +1410,16 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - **error notification** · `btnModalAdd.Click` (app) — "Account Could not be linked" [from design model]
 - **error notification** · `btnModalUpdate.Click` (app) — "Account could not be updated" [from design model]
 - **error notification** · `btnModalAdd.Click` (app) — "Signatory could not be added" [from design model]
-- **visibility/loading toggle** · `Enablement.Load` (Enablement) — `Container_Enablement_ClientApplications` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `Enablement.Load` (Enablement) — `Container_Enablement_VettingScreen` = False [from design model] `[AI-SUGGESTED: state=empty/hidden]`
-- **visibility/loading toggle** · `dgClientApplicationAllocated.Vetting.Click` (Enablement) — `Container_Enablement_ClientApplications` = False [from design model] `[AI-SUGGESTED: state=empty/hidden]`
-- **visibility/loading toggle** · `dgClientApplicationAllocated.Vetting.Click` (Enablement) — `Container_Enablement_VettingScreen` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `dgClientApplicationAllocated.Vetting.Click` (Enablement) — `Container_AcceptRejectButtons` = False [from design model] `[AI-SUGGESTED: state=empty/hidden]`
-- **visibility/loading toggle** · `dgClientApplicationAllocated.Vetting.Click` (Enablement) — `Container_AcceptRejectButtons` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `btnEnablementReject.Click` (Enablement) — `Container_Reject` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `btnCancelReject_Back.Click` (Enablement) — `Container_Reject` = False [from design model] `[AI-SUGGESTED: state=empty/hidden]`
+- **visibility/loading toggles**: 44 distinct SetValue state write(s) across 5 surface(s) — classified 26 state, 9 shown, 9 empty/hidden [from design model] `[AI-SUGGESTED: state classification]`
+  - targets: `Container_AcceptRejectButtons`, `Container_Enablement_ClientApplications`, `Container_Enablement_VettingScreen`, `Container_Reject`, `LayoutTable3`, `Panel_Customers`, `Panel_Products`, `btnModalAdd`, `btnModalUpdate`, `btnRemoveSubgroup`, `conModularEntities`, `fbSubGroup2`, `imgCloseMenu`, `imgOpenMenu`, `imgVettingInfo_Document` _(+4 more)_ [from design model]
 - **empty/edge guard** · `dgClientApplicationAllocated.Vetting.Click` (Enablement) — IF `Count > 0` [from design model] `[AI-SUGGESTED: empty/count guard]`
 - **empty/edge guard** · `btnNextPageRight.Click` (Enablement) — IF `VariableCurrentPage < Count` [from design model] `[AI-SUGGESTED: empty/count guard]`
 - **empty/edge guard** · `Application_Create` (app) — IF `WOID > 0` [from design model] `[AI-SUGGESTED: empty/count guard]`
 - **empty/edge guard** · `Validate` (app) — IF `Count == 0` [from design model] `[AI-SUGGESTED: empty/count guard]`
+
+## Tier-A — bespoke inline-JS rules
+
+> The app's own inline logic blocks, verbatim (capped). Copy-pasted `stadium-software` library JS and DOM/timing helpers are excluded (framework UI, catalogued in `modules`). A Tier-2 advisory summary of what these rules DO is added by the extraction skill (Phase B).
+
+- `ProgressBarUpdate` (pgClientDetails) — `var i = 1; var top = {0}; $('.progress .circle').removeClass().addClass('circle'); $('.progress .bar').removeClass().add…` [from script, surface: pgClientDetails]
+- `pgCollections.Load` (pgCollections) — `$(".text-box-container").each(function(){ var el = $(this); if ((el.attr("class")) && (el.attr("class").indexOf("maxleng…` [from script, surface: pgCollections]

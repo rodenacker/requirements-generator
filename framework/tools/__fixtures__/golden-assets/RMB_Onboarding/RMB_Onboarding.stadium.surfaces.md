@@ -4,6 +4,8 @@ app: RMB_Onboarding
 file_guid: 87ea91de-6125-4686-8437-806216cb0ec0
 designer_version: 6.14.3378.13771
 selected_package: 3f1ddf96-3519-47b8-905d-b44703776f78.sapz
+deployment_count: 1
+last_published: 2026-06-30 12:19:12.1887333
 extracted_from: C:\Stadium 6 Web Apps\87ea91de-6125-4686-8437-806216cb0ec0
 provenance: deterministic extraction from the Stadium 6 design model + administration.db
 marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lines are advisory design signals.
@@ -31,110 +33,35 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 | pgGenerate | Generate | `/pgGenerate` |  | ✓ | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
 | StartPage | Start Page | `/StartPage` | ✓ | ✓ | ✓ | ✓ | entity-maintenance `[AI-SUGGESTED]` |
 
+## Tier-A — reports & dashboards
+
+- Dashboard / landing surfaces: `Dashboard` [from design model]
+
 ## ClientServiceRequest  ·  title: Client Service Request  ·  roles: —
-  - GridLayout: `GridLayout`
-    - StackLayout: `StackLayout`
-      - Container: `Container1`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Panel: `Panel_Products`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Label: `lblClientServiceRequest` — "Client Service Request"
-                - StackLayout: `StackLayout`
-                  - Container: `Container`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Flexbox: `Flexbox`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Panel: `ClientServicePanel1`
-                                - GridLayout: `GridLayout`
-                                  - StackLayout: `StackLayout`
-                                    - Label: `Label` — "Electronic Banking"
-                                  - StackLayout: `StackLayout`
-                                  - StackLayout: `StackLayout`
-                                    - Image: `Image`
-                                  - StackLayout: `StackLayout`
-                                    - Button: `btnAddServiceRequest` — "Add"
-                                    - Button: `btnAddServiceService` — "Service"
-                                    - Menu: `Menu`
-                              - Panel: `ClientServicePanel2`
-                                - GridLayout: `GridLayout`
-                                  - StackLayout: `StackLayout`
-                                    - Label: `Label3` — "Global Banking"
-                                  - StackLayout: `StackLayout`
-                                  - StackLayout: `StackLayout`
-                                    - Image: `Image2`
-                                  - StackLayout: `StackLayout`
-                                    - Button: `Button2` — "Add"
-                                    - Button: `btnAddServiceService1` — "Service"
-                                    - Menu: `Menu2`
-          - StackLayout: `StackLayout`
-            - Panel: `Panel_Customers`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Label: `LabelModalHeading` — "Electronic Banking Service Request"
-                - StackLayout: `StackLayout`
-                  - DataGrid: `dgSearchCustomers`  ·  grid: searchable
-                    - columns (in order): `ID` "Customer Number", `CustomerName` "Customer Name", `Launch`(action) [from design model]
-                - StackLayout: `StackLayout`
-                  - Button: `btnCloseModal` — "Close"
+  - Button: `btnAddServiceRequest` — "Add"
+  - Button: `btnAddServiceService` — "Service"
+  - Button: `Button2` — "Add"
+  - Button: `btnAddServiceService1` — "Service"
+  - DataGrid: `dgSearchCustomers`  ·  grid: searchable
+    - columns (in order): `ID` "Customer Number", `CustomerName` "Customer Name", `Launch`(action) [from design model]
+  - Button: `btnCloseModal` — "Close"
+- Visible terms: "Client Service Request", "Electronic Banking", "Global Banking", "Electronic Banking Service Request" [from design model]
+> Layout: 6 meaningful control(s) within 37 layout container(s); max control-tree nesting depth 18 (per-node layout omitted — see model.json). Advisory.
 
 ### source-UI reference — ClientServiceRequest (from rendered view)
 > Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
 - `GetClientsInformation` → `OnboardingStandardBankCIB.GetClients`
 
 ## ClientApplications  ·  title: Client Applications  ·  roles: —
-  - GridLayout: `GridLayout`
-    - StackLayout: `StackLayout`
-      - Container: `Container`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Grid: `Grid`
-              - CellGridLayout: `CellGridLayout`
-                - CellStackLayout: `CellStackLayout`
-                  - Label: `lblClientApplications_Header` — "Client applications"
-              - CellGridLayout: `CellGridLayout`
-                - CellStackLayout: `CellStackLayout`
-                  - Container: `Container_ClientApplications`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - DataGrid: `DataGrid`  ·  grid: searchable
-                          - columns (in order): "Edit"(action), `Download` "Document"(action), `History` "Audit Log"(action), `ApplicationID` "Application", `ClientName` "Client Name", `ClientNumber` "Client"(hidden), `SalesPersonID` "Sales Person ID"(hidden), `SalesPerson` "Sales Person", `WOActionDesc` "Application Status", `CreatedDate` "Created Date", `UpdatedDate` "Updated Date", `CurrentStepID` "Current Step ID"(hidden), "WOID"(hidden), `ProductID` "Product ID"(hidden), `ApplicationNumber` "Application Number"(hidden), `WOType` "WO Type"(hidden), `ActionSequence` "Action Sequence"(hidden), `BackUpFileName` "Back Up File Name"(hidden), `BackupFileLocation` "Backup File Location"(hidden), `NextActionSequence` "Next Action Sequence"(hidden) [from design model]
-    - StackLayout: `StackLayout`
-      - Container: `Modal_Container_History`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Flexbox: `Flexbox`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Grid: `Grid1`
-                    - CellGridLayout: `CellGridLayout`
-                      - CellStackLayout: `CellStackLayout`
-                        - Label: `lblHistoryHeader` — "Audit log"
-                    - CellGridLayout: `CellGridLayout`
-                      - CellStackLayout: `CellStackLayout`
-                        - LayoutTable: `LayoutTable`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblCustomerName` — "Client Name"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `tbCustomerName`  ·  read-only
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblApplicationNumber` — "Application Number"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `tbApplicationNumer`  ·  read-only
-                    - CellGridLayout: `CellGridLayout`
-                      - CellStackLayout: `CellStackLayout`
-                        - DataGrid: `dgSearchCustomers`
-                          - columns (in order): "Date", `ActionUser` "Action User", "Details" [from design model]
-                    - CellGridLayout: `CellGridLayout`
-                      - CellStackLayout: `CellStackLayout`
-                        - Button: `btnCloseModal` — "Close"
+  - DataGrid: `DataGrid`  ·  grid: searchable
+    - columns (in order): "Edit"(action), `Download` "Document"(action), `History` "Audit Log"(action), `ApplicationID` "Application", `ClientName` "Client Name", `ClientNumber` "Client"(hidden), `SalesPersonID` "Sales Person ID"(hidden), `SalesPerson` "Sales Person", `WOActionDesc` "Application Status", `CreatedDate` "Created Date", `UpdatedDate` "Updated Date", `CurrentStepID` "Current Step ID"(hidden), "WOID"(hidden), `ProductID` "Product ID"(hidden), `ApplicationNumber` "Application Number"(hidden), `WOType` "WO Type"(hidden), `ActionSequence` "Action Sequence"(hidden), `BackUpFileName` "Back Up File Name"(hidden), `BackupFileLocation` "Backup File Location"(hidden), `NextActionSequence` "Next Action Sequence"(hidden) [from design model]
+  - TextBox: `tbCustomerName`  ·  read-only
+  - TextBox: `tbApplicationNumer`  ·  read-only
+  - DataGrid: `dgSearchCustomers`
+    - columns (in order): "Date", `ActionUser` "Action User", "Details" [from design model]
+  - Button: `btnCloseModal` — "Close"
+- Visible terms: "Client applications", "Audit log", "Client Name", "Application Number" [from design model]
+> Layout: 5 meaningful control(s) within 38 layout container(s); max control-tree nesting depth 15 (per-node layout omitted — see model.json). Advisory.
 
 ### source-UI reference — ClientApplications (from rendered view)
 > Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
@@ -145,140 +72,28 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `ClientApplications` → `IDB.Prc_Application_GetAll`
 
 ## Enablement  ·  title: Client Applications  ·  roles: —
-  - GridLayout: `GridLayout`
-    - StackLayout: `StackLayout`
-      - Container: `Container`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Label: `lblEnablement_Header` — "Client applications"
-          - StackLayout: `StackLayout`
-            - Grid: `Grid`
-              - CellGridLayout: `CellGridLayout`
-                - CellStackLayout: `CellStackLayout`
-                  - Container: `Container_Enablement_ClientApplications`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Container: `Container1`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblEnablement_Header_Unallocated`
-                            - StackLayout: `StackLayout`
-                              - DataGrid: `dgClientApplicationUnlocated`
-                                - columns (in order): `AllocateLink`(action), `ApplicationID` "Application ID", `ClientName` "Client Name", `ClientNumber` "Client Number", `Status` "Application Status", "Salesperson", `SalespersonID` "Salesperson ID"(hidden), `CreatedDate` "Created Date", `UpdatedDate` "Updated Date", `ProductID` "Product ID"(hidden), `ApplicationNumber` "Application Number"(hidden), "WOID"(hidden), `WOActionID` "WO Action ID"(hidden), `WOAction` "WO Action"(hidden), `CurrentStepID` "Current Step ID"(hidden) [from design model]
-                      - StackLayout: `StackLayout`
-                        - Container: `Container2`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblEnablement_Header_Allocated` — "Allocated"
-                            - StackLayout: `StackLayout`
-                              - DataGrid: `dgClientApplicationAllocated`
-                                - columns (in order): `Vetting`(action), `ApplicationID` "Application ID", `ClientName` "Client Name", `ClientNumber` "Client Number", `Status` "Application Status", "Salesperson", `SalespersonID` "Salesperson ID"(hidden), `CreatedDate` "Created Date", `UpdatedDate` "Updated Date", `ProductID` "Product ID"(hidden), `ApplicationNumber` "Application Number"(hidden), "WOID"(hidden), `WOActionID` "WO Action ID"(hidden), `WOAction` "WO Action"(hidden), `ActionSequence` "Action Sequence"(hidden), `CurrentStepID` "Current Step ID"(hidden), `AllocatedID` "Allocated ID"(hidden) [from design model]
-              - CellGridLayout: `CellGridLayout`
-                - CellStackLayout: `CellStackLayout`
-                  - Container: `Container_Enablement_VettingScreen`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Grid: `Grid1`
-                          - CellGridLayout: `CellGridLayout`
-                            - CellStackLayout: `CellStackLayout`
-                              - Container: `Container4`
-                                - GridLayout: `GridLayout`
-                                  - StackLayout: `StackLayout`
-                                    - Flexbox: `Flexbox`
-                                      - GridLayout: `GridLayout`
-                                        - StackLayout: `StackLayout`
-                                          - Button: `btnNextPageLeft` — "<"
-                                          - Label: `Label`
-                                          - Label: `lblPageNumber` — "1"
-                                          - Label: `lblOf`
-                                          - Label: `lblPageCount` — "4"
-                                          - Button: `btnNextPageRight` — ">"
-                                  - StackLayout: `StackLayout`
-                                    - Image: `imgVettingInfo_Document`
-                          - CellGridLayout: `CellGridLayout`
-                            - CellStackLayout: `CellStackLayout`
-                              - Container: `Container_Layout_Doc`
-                                - GridLayout: `GridLayout`
-                                  - StackLayout: `StackLayout`
-                                    - Grid: `Grid2`
-                                      - CellGridLayout: `CellGridLayout`
-                                        - CellStackLayout: `CellStackLayout`
-                                          - LayoutTable: `LayoutTable`
-                                            - GridLayout: `GridLayout`
-                                              - StackLayout: `StackLayout`
-                                                - Label: `lblVettingInfo_ApplicationID` — "Application Number"
-                                            - GridLayout: `GridLayout`
-                                              - StackLayout: `StackLayout`
-                                                - TextBox: `tbVettingInfo_ApplicationID`  ·  read-only
-                                            - GridLayout: `GridLayout`
-                                              - StackLayout: `StackLayout`
-                                                - Label: `lblVettingInfo_ClientName` — "Client Name"
-                                            - GridLayout: `GridLayout`
-                                              - StackLayout: `StackLayout`
-                                                - TextBox: `tbVettingInfo_ClientName` — "1202202210000001019"  ·  read-only
-                                            - GridLayout: `GridLayout`
-                                              - StackLayout: `StackLayout`
-                                                - Label: `lblVettingInfo_ClientNumber` — "Client Number"
-                                            - GridLayout: `GridLayout`
-                                              - StackLayout: `StackLayout`
-                                                - TextBox: `tbVettingInfo_ClientNumber`  ·  read-only
-                                      - CellGridLayout: `CellGridLayout`
-                                        - CellStackLayout: `CellStackLayout`
-                                          - Container: `Container3`
-                                            - GridLayout: `GridLayout`
-                                              - StackLayout: `StackLayout`
-                                                - Label: `lblSigningArangments` — "Signing arrangements"
-                                              - StackLayout: `StackLayout`
-                                                - LayoutTable: `LayoutTable2`
-                                                  - GridLayout: `GridLayout`
-                                                    - StackLayout: `StackLayout`
-                                                      - Label: `lblJointly` — "Joint"
-                                                  - GridLayout: `GridLayout`
-                                                    - StackLayout: `StackLayout`
-                                                      - CheckBox: `cbJointly`
-                                                  - GridLayout: `GridLayout`
-                                                    - StackLayout: `StackLayout`
-                                                      - Label: `lblJointCount` — "Signatories Needed"
-                                                  - GridLayout: `GridLayout`
-                                                    - StackLayout: `StackLayout`
-                                                      - TextBox: `tbCount`
-                                                  - GridLayout: `GridLayout`
-                                                    - StackLayout: `StackLayout`
-                                                      - Label: `lblSeverally` — "Severally"
-                                                  - GridLayout: `GridLayout`
-                                                    - StackLayout: `StackLayout`
-                                                      - CheckBox: `cbSeverally`
-                                              - StackLayout: `StackLayout`
-                                                - Label: `lblDesignatedPersons` — "Designated Persons"
-                                              - StackLayout: `StackLayout`
-                                                - DataGrid: `dgSignatories`
-                                                  - columns (in order): "ID"(hidden), `ApplicationID` "Application ID"(hidden), `UserName` "User Name", `UserMiddleName` "User Middle Name", `UserSurname` "User Surname", `IdentificationType` "Identification Type"(hidden), `IdentificationNumber` "Identification Number", `PassportNumber` "Passport Number"(hidden), `DriversLicenceNumber` "Drivers Licence Number"(hidden), `DateCreated` "Date Created"(hidden), `DateUpdated` "Date Updated"(hidden), `PhysicalAddress` "Physical Address"(hidden) [from design model]
-                                              - StackLayout: `StackLayout`
-                                                - Container: `Container_AcceptRejectButtons`
-                                                  - GridLayout: `GridLayout`
-                                                    - StackLayout: `StackLayout`
-                                                      - Button: `btnEnablementReject` — "Reject"
-                                                      - Button: `btnEnablement_Accept` — "Accept"
-                                              - StackLayout: `StackLayout`
-                                                - Container: `Container_Reject`
-                                                  - GridLayout: `GridLayout`
-                                                    - StackLayout: `StackLayout`
-                                                      - Label: `lblEnablement_RejectReason`
-                                                    - StackLayout: `StackLayout`
-                                                      - TextBox: `tbEnablement_RejectReason`
-                                                    - StackLayout: `StackLayout`
-                                                      - Button: `btnCancelReject_Back` — "Back"
-                                                      - Button: `btnAcceptReject` — "Reject"
-                          - CellGridLayout: `CellGridLayout`
-                            - CellStackLayout: `CellStackLayout`
-                              - LayoutTable: `LayoutTable1`
-                                - GridLayout: `GridLayout`
-                                  - StackLayout: `StackLayout`
-                                    - Button: `btnEnablement_Vetting_Close` — "Close"
-                                - GridLayout: `GridLayout`
-                                - GridLayout: `GridLayout`
-                                - GridLayout: `GridLayout`
-                          - CellGridLayout: `CellGridLayout`
+  - DataGrid: `dgClientApplicationUnlocated`
+    - columns (in order): `AllocateLink`(action), `ApplicationID` "Application ID", `ClientName` "Client Name", `ClientNumber` "Client Number", `Status` "Application Status", "Salesperson", `SalespersonID` "Salesperson ID"(hidden), `CreatedDate` "Created Date", `UpdatedDate` "Updated Date", `ProductID` "Product ID"(hidden), `ApplicationNumber` "Application Number"(hidden), "WOID"(hidden), `WOActionID` "WO Action ID"(hidden), `WOAction` "WO Action"(hidden), `CurrentStepID` "Current Step ID"(hidden) [from design model]
+  - DataGrid: `dgClientApplicationAllocated`
+    - columns (in order): `Vetting`(action), `ApplicationID` "Application ID", `ClientName` "Client Name", `ClientNumber` "Client Number", `Status` "Application Status", "Salesperson", `SalespersonID` "Salesperson ID"(hidden), `CreatedDate` "Created Date", `UpdatedDate` "Updated Date", `ProductID` "Product ID"(hidden), `ApplicationNumber` "Application Number"(hidden), "WOID"(hidden), `WOActionID` "WO Action ID"(hidden), `WOAction` "WO Action"(hidden), `ActionSequence` "Action Sequence"(hidden), `CurrentStepID` "Current Step ID"(hidden), `AllocatedID` "Allocated ID"(hidden) [from design model]
+  - Button: `btnNextPageLeft` — "<"
+  - Button: `btnNextPageRight` — ">"
+  - TextBox: `tbVettingInfo_ApplicationID`  ·  read-only
+  - TextBox: `tbVettingInfo_ClientName` — "1202202210000001019"  ·  read-only
+  - TextBox: `tbVettingInfo_ClientNumber`  ·  read-only
+  - CheckBox: `cbJointly`
+  - TextBox: `tbCount`
+  - CheckBox: `cbSeverally`
+  - DataGrid: `dgSignatories`
+    - columns (in order): "ID"(hidden), `ApplicationID` "Application ID"(hidden), `UserName` "User Name", `UserMiddleName` "User Middle Name", `UserSurname` "User Surname", `IdentificationType` "Identification Type"(hidden), `IdentificationNumber` "Identification Number", `PassportNumber` "Passport Number"(hidden), `DriversLicenceNumber` "Drivers Licence Number"(hidden), `DateCreated` "Date Created"(hidden), `DateUpdated` "Date Updated"(hidden), `PhysicalAddress` "Physical Address"(hidden) [from design model]
+  - Button: `btnEnablementReject` — "Reject"
+  - Button: `btnEnablement_Accept` — "Accept"
+  - TextBox: `tbEnablement_RejectReason`
+  - Button: `btnCancelReject_Back` — "Back"
+  - Button: `btnAcceptReject` — "Reject"
+  - Button: `btnEnablement_Vetting_Close` — "Close"
+- Visible terms: "Client applications", "Allocated", "Application Number", "Client Name", "Client Number", "Signing arrangements", "Joint", "Signatories Needed", "Severally", "Designated Persons" [from design model]
+> Layout: 17 meaningful control(s) within 98 layout container(s); max control-tree nesting depth 27 (per-node layout omitted — see model.json). Advisory.
 
 ### source-UI reference — Enablement (from rendered view)
 > Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
@@ -300,90 +115,21 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `LoadImage` → `FileSystem.ReadFile`
 
 ## Dashboard  ·  title: Client Applications  ·  roles: —
-  - GridLayout: `GridLayout`
-    - StackLayout: `StackLayout`
-      - Container: `Container1`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Label: `lblDashboard_Header` — "Applications Dashboard"
-          - StackLayout: `StackLayout`
-            - Flexbox: `Flexbox`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Container: `Container_DashboardInfo_1`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblCompleted` — "Completed Applications"
-                        - Label: `lblCompletedCount` — "13"
-                  - Container: `Container_DashboardInfo_2`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblDailyAverage` — "Daily Average"
-                        - Label: `lblAverageCount` — "2"
-          - StackLayout: `StackLayout`
-            - Container: `Container_DashboardData`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Panel: `Panel_ApplicationsCreated`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Chart: `ChartApplicationCreateCount`
-                  - Panel: `Panel_ApplicationsStatus`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Chart: `ChartApplicationStatus`
+  - Chart: `ChartApplicationCreateCount`
+  - Chart: `ChartApplicationStatus`
+- Visible terms: "Applications Dashboard", "Completed Applications", "Daily Average" [from design model]
+> Layout: 2 meaningful control(s) within 25 layout container(s); max control-tree nesting depth 12 (per-node layout omitted — see model.json). Advisory.
 
 ## pgClientDetails  ·  title: Client Details  ·  roles: —
-  - GridLayout: `GridLayout`
-    - StackLayout: `StackLayout`
-      - Container: `Container`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Container: `ctrProgressScreen1`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Panel: `pnlProgressScreen1`
-                    - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Label: `lblClientDetailsHeader` — "Client Information"
-          - StackLayout: `StackLayout`
-            - Flexbox: `Flexbox`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Container: `conNewClient`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblNewClient` — "New Client"
-                      - StackLayout: `StackLayout`
-                        - LayoutTable: `LayoutTable`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblClientName` — "Client Name:"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtClientName`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblClientRegNo` — "Client Registration Number:"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtClientRegNo`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblClientSegment` — "Client Segment:"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtClientSegment`
-                      - StackLayout: `StackLayout`
-                        - Button: `btnClose` — "Close"
-                        - Button: `btnSave` — "Save"
-                  - Container: `conExistingClient`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblExistingClient` — "Existing Client"
-                      - StackLayout: `StackLayout`
-                        - DataGrid: `dgExistingClient`  ·  grid: searchable
-                          - columns (in order): `ClientName` "Client Name", `ClientRegistrationNumber` "Client Registration Number", `ClientID` "Client ID", `ClientSegment` "Client Segment", `Launch`(action), `_ClientIDinternal`(hidden) [from design model]
+  - TextBox: `txtClientName`
+  - TextBox: `txtClientRegNo`
+  - TextBox: `txtClientSegment`
+  - Button: `btnClose` — "Close"
+  - Button: `btnSave` — "Save"
+  - DataGrid: `dgExistingClient`  ·  grid: searchable
+    - columns (in order): `ClientName` "Client Name", `ClientRegistrationNumber` "Client Registration Number", `ClientID` "Client ID", `ClientSegment` "Client Segment", `Launch`(action), `_ClientIDinternal`(hidden) [from design model]
+- Visible terms: "Client Information", "New Client", "Client Name:", "Client Registration Number:", "Client Segment:", "Existing Client" [from design model]
+> Layout: 6 meaningful control(s) within 37 layout container(s); max control-tree nesting depth 15 (per-node layout omitted — see model.json). Advisory.
 
 ### source-UI reference — pgClientDetails (from rendered view)
 > Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
@@ -395,209 +141,39 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `Application_Create` → `IDB.sp_Create_Application_Steps_UpdateValid`
 
 ## pgModularInformation  ·  title: Modular Information  ·  roles: —
-  - GridLayout: `GridLayout`
-    - StackLayout: `StackLayout`
-      - Container: `conHeader`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Container: `ctrProgressScreen1`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Panel: `pnlProgressScreen1`
-                    - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Label: `lblModularInformation` — "Modular Information"
-          - StackLayout: `StackLayout`
-            - Container: `Container`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - LayoutTable: `tblClientDetails`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblClientName` — "Client Name:"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtClientName`  ·  read-only
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblClientRegNo` — "Client Registration Number:"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtClientRegNo`  ·  read-only
-    - StackLayout: `StackLayout`
-      - Flexbox: `Flexbox1`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Container: `conModularInformation`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Label: `lblModularDetails` — "*Please select the modules that you would like to utilise with the bank’s Online Banking Enterprise"
-                - StackLayout: `StackLayout`
-                  - LayoutTable: `LayoutTable2`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblNomAccPayments` — "Nominated Account Payments"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - CheckBox: `chbNomAccPayments`
-                    - GridLayout: `GridLayout`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblOnceOffPayments` — "Once off Payments"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - CheckBox: `chbOnceOffPayments`
-                    - GridLayout: `GridLayout`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblTransfers` — "Transfers"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - CheckBox: `chbTransfers`
-                    - GridLayout: `GridLayout`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblCollections` — "Collections"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - CheckBox: `chbCollections`
-                    - GridLayout: `GridLayout`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblSignatories` — "A and B Signatories"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - CheckBox: `chbSignatories`
-                    - GridLayout: `GridLayout`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblCashman` — "Cashman"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - CheckBox: `chbCashman`
-                    - GridLayout: `GridLayout`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblLinkCCN` — "Link CCN Number?"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - CheckBox: `chbLinkCCN`
-                    - GridLayout: `GridLayout`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - LayoutTable: `LayoutTable3`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblCCN1` — "CCN Number 1"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtCCN1`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblCCN2` — "CCN Number 2"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtCCN2`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblCCN3` — "CCN Number 3"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtCCN3`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblCCN4` — "CCN Number 4"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtCCN4`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblCCN5` — "CCN Number 5"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtCCN5`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblCCN6` — "CCN Number 6"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtCCN6`
-                    - GridLayout: `GridLayout`
-                    - GridLayout: `GridLayout`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblCashmanReports` — "Cashman Reports"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - CheckBox: `chbCashmanReports`
-                    - GridLayout: `GridLayout`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblNAEDO` — "NAEDO"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - CheckBox: `chbNAEDO`
-                    - GridLayout: `GridLayout`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblOnlineSettlementLimits` — "Online Settlement Limits"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - CheckBox: `chbOnlineSettlementLimits`
-                    - GridLayout: `GridLayout`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblFTPDeliveryMechanism` — "FTP Delivery Mechanism"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - CheckBox: `chbFTPDeliveryMechanism`
-                    - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Button: `btnSave` — "Save"
-                - StackLayout: `StackLayout`
-                  - Button: `btnClose` — "Close"
-                  - Button: `btnNext` — "Next"
-            - Container: `conModularEntities`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Label: `lblEntityHeader` — "Complete the section below if applicable to Hierarchy"
-                - StackLayout: `StackLayout`
-                  - DataGrid: `dgModularEntities`
-                    - columns (in order): `View`(action), `Remove`(action), `_ModEntityID` "Entity ID", `ModEntityName` "Entity Name", `ModEntityNumber` "Entity Number" [from design model]
-                - StackLayout: `StackLayout`
-                  - Button: `btnAddEntity` — "Add Entity"
-    - StackLayout: `StackLayout`
-      - Container: `conModal`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Flexbox: `Flexbox`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Label: `lblModalHeader` — "Add Entity Details"
-                - StackLayout: `StackLayout`
-                  - LayoutTable: `LayoutTable1`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtModalEntityID`  ·  read-only
-                    - GridLayout: `GridLayout`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblModalEntityName` — "Entity Name"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtModalEntityName`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblModalEntityNumber` — "Entity Number"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtModalEntityNumber`
-                - StackLayout: `StackLayout`
-                  - Button: `btnModalAdd` — "Add"
-                - StackLayout: `StackLayout`
-                  - Button: `btnModalUpdate` — "Update"
-                - StackLayout: `StackLayout`
-                  - Button: `btnModalClose` — "Close"
+  - TextBox: `txtClientName`  ·  read-only
+  - TextBox: `txtClientRegNo`  ·  read-only
+  - CheckBox: `chbNomAccPayments`
+  - CheckBox: `chbOnceOffPayments`
+  - CheckBox: `chbTransfers`
+  - CheckBox: `chbCollections`
+  - CheckBox: `chbSignatories`
+  - CheckBox: `chbCashman`
+  - CheckBox: `chbLinkCCN`
+  - TextBox: `txtCCN1`
+  - TextBox: `txtCCN2`
+  - TextBox: `txtCCN3`
+  - TextBox: `txtCCN4`
+  - TextBox: `txtCCN5`
+  - TextBox: `txtCCN6`
+  - CheckBox: `chbCashmanReports`
+  - CheckBox: `chbNAEDO`
+  - CheckBox: `chbOnlineSettlementLimits`
+  - CheckBox: `chbFTPDeliveryMechanism`
+  - Button: `btnSave` — "Save"
+  - Button: `btnClose` — "Close"
+  - Button: `btnNext` — "Next"
+  - DataGrid: `dgModularEntities`
+    - columns (in order): `View`(action), `Remove`(action), `_ModEntityID` "Entity ID", `ModEntityName` "Entity Name", `ModEntityNumber` "Entity Number" [from design model]
+  - Button: `btnAddEntity` — "Add Entity"
+  - TextBox: `txtModalEntityID`  ·  read-only
+  - TextBox: `txtModalEntityName`
+  - TextBox: `txtModalEntityNumber`
+  - Button: `btnModalAdd` — "Add"
+  - Button: `btnModalUpdate` — "Update"
+  - Button: `btnModalClose` — "Close"
+- Visible terms: "Modular Information", "Client Name:", "Client Registration Number:", "*Please select the modules that you would like to utilise with the bank’s Online Banking Enterprise", "Nominated Account Payments", "Once off Payments", "Transfers", "Collections", "A and B Signatories", "Cashman", "Link CCN Number?", "CCN Number 1", "CCN Number 2", "CCN Number 3", "CCN Number 4", "CCN Number 5", "CCN Number 6", "Cashman Reports", "NAEDO", "Online Settlement Limits", "FTP Delivery Mechanism", "Complete the section below if applicable to Hierarchy", "Add Entity Details", "Entity Name", "Entity Number" [from design model]
+> Layout: 30 meaningful control(s) within 147 layout container(s); max control-tree nesting depth 15 (per-node layout omitted — see model.json). Advisory.
 
 ### source-UI reference — pgModularInformation (from rendered view)
 > Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
@@ -617,157 +193,31 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `LoadEntities` → `IDB.Prc_ModularEntity_GetList`
 
 ## pgCollections  ·  title: Collections  ·  roles: —
-  - GridLayout: `GridLayout`
-    - StackLayout: `StackLayout`
-      - Container: `conHeader`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Container: `ctrProgressScreen1`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Panel: `pnlProgressScreen1`
-                    - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Label: `lblCollections` — "Collections Application"
-          - StackLayout: `StackLayout`
-            - Container: `Container`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - LayoutTable: `tblClientDetails`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblClientName` — "Client Name:"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtClientName`  ·  read-only
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblClientRegNo` — "Client Registration Number:"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtClientRegNo`  ·  read-only
-    - StackLayout: `StackLayout`
-      - Container: `conCollectionsApplication`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - LayoutTable: `LayoutTable`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Label: `lblCollAppClientName` — "Account Name"
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - TextBox: `txtCollAppClientName`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Label: `lblCollAppAccountNumber` — "Account Number"
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - TextBox: `txtCollAppAccountNumber`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Label: `lblCollAppBranchCode` — "Branch Code"
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - TextBox: `txtCollAppBranchCode`
-          - StackLayout: `StackLayout`
-            - Label: `lblNote` — "The Contact person must be the person to whom Collections queries will be escalated."
-          - StackLayout: `StackLayout`
-            - Button: `btnAdd` — "Add"
-          - StackLayout: `StackLayout`
-            - Repeater: `rptContactPerson`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Container: `conContactPerson`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - LayoutTable: `LayoutTable1`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtContactPersonID`
-                          - GridLayout: `GridLayout`
-                          - GridLayout: `GridLayout`
-                          - GridLayout: `GridLayout`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblCompanyName` — "Company Name"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtCompanyName`  ·  read-only
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Button: `btnView` — "View"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Button: `btnRemove` — "Remove"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblAccountNumber` — "Account Number"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtAccountNumber`  ·  read-only
-                          - GridLayout: `GridLayout`
-                          - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Button: `btnPrevious` — "Previous"
-            - Button: `btnNext` — "Next"
-    - StackLayout: `StackLayout`
-      - Container: `conModal`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Flexbox: `Flexbox`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Label: `lblModalHeader`
-                - StackLayout: `StackLayout`
-                  - LayoutTable: `LayoutTable2`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblModalContactPersonID` — "Contact Person ID"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtModalContactPersonID`  ·  read-only
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblModalAccountNo` — "Account Number"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtModalAccountNo`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblModalAbbreviatedName` — "Abbreviated Name"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtModalAbbreviatedName`  ·  hint: "Must be 10 characters for debit users."
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblModalCompanyName` — "Company Name"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtModalCompanyName`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblModalContactName` — "Contact Name"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtModalContactName`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblModalContactTel` — "Contact Tel No"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtModalContactTel`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblModalContactEmail` — "Contact Email"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtModalContactEmail`
-                - StackLayout: `StackLayout`
-                  - Button: `btnModalAdd` — "Add"
-                - StackLayout: `StackLayout`
-                  - Button: `btnModalUpdate` — "Update"
-                - StackLayout: `StackLayout`
-                  - Button: `btnModalClose` — "Close"
+  - TextBox: `txtClientName`  ·  read-only
+  - TextBox: `txtClientRegNo`  ·  read-only
+  - TextBox: `txtCollAppClientName`
+  - TextBox: `txtCollAppAccountNumber`
+  - TextBox: `txtCollAppBranchCode`
+  - Button: `btnAdd` — "Add"
+  - TextBox: `txtContactPersonID`
+  - TextBox: `txtCompanyName`  ·  read-only
+  - Button: `btnView` — "View"
+  - Button: `btnRemove` — "Remove"
+  - TextBox: `txtAccountNumber`  ·  read-only
+  - Button: `btnPrevious` — "Previous"
+  - Button: `btnNext` — "Next"
+  - TextBox: `txtModalContactPersonID`  ·  read-only
+  - TextBox: `txtModalAccountNo`
+  - TextBox: `txtModalAbbreviatedName`  ·  hint: "Must be 10 characters for debit users."
+  - TextBox: `txtModalCompanyName`
+  - TextBox: `txtModalContactName`
+  - TextBox: `txtModalContactTel`
+  - TextBox: `txtModalContactEmail`
+  - Button: `btnModalAdd` — "Add"
+  - Button: `btnModalUpdate` — "Update"
+  - Button: `btnModalClose` — "Close"
+- Visible terms: "Collections Application", "Client Name:", "Client Registration Number:", "Account Name", "Account Number", "Branch Code", "The Contact person must be the person to whom Collections queries will be escalated.", "Company Name", "Contact Person ID", "Abbreviated Name", "Contact Name", "Contact Tel No", "Contact Email" [from design model]
+> Layout: 23 meaningful control(s) within 111 layout container(s); max control-tree nesting depth 15 (per-node layout omitted — see model.json). Advisory.
 
 ### source-UI reference — pgCollections (from rendered view)
 > Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
@@ -786,131 +236,27 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `Validate` → `IDB.get_ContactPersonCount`
 
 ## pgAdministrators  ·  title: Administrators  ·  roles: —
-  - GridLayout: `GridLayout`
-    - StackLayout: `StackLayout`
-      - Container: `conHeader`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Container: `ctrProgressScreen1`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Panel: `pnlProgressScreen1`
-                    - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Label: `lblAdministrators` — "Appointment of Administrators"
-          - StackLayout: `StackLayout`
-            - Container: `Container`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - LayoutTable: `tblClientDetails`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblClientName` — "Client Name:"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtClientName`  ·  read-only
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblClientRegNo` — "Client Registration Number:"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtClientRegNo`  ·  read-only
-    - StackLayout: `StackLayout`
-      - Container: `conAdminstrators`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Repeater: `rptAdministrators`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Container: `conRepeaterAdministrators`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - LayoutTable: `LayoutTable`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblAdministratorID` — "Administrator ID"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtAdministratorID`  ·  read-only
-                          - GridLayout: `GridLayout`
-                          - GridLayout: `GridLayout`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblFullName` — "Full Name"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtFullName`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Button: `btnView` — "View"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Button: `btnRemove` — "Remove"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblIDPassport` — "ID/Passport"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtIDPassport`
-                          - GridLayout: `GridLayout`
-                          - GridLayout: `GridLayout`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblCapacity` — "Capacity"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtCapacity`
-                          - GridLayout: `GridLayout`
-                          - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Button: `btnAdd` — "Add Admin"
-          - StackLayout: `StackLayout`
-            - Button: `btnPrevious` — "Previous"
-            - Button: `btnNext` — "Next"
-    - StackLayout: `StackLayout`
-      - Container: `conModal`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Flexbox: `Flexbox`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Label: `lblModalHeader` — "Add Administrator"
-                - StackLayout: `StackLayout`
-                  - LayoutTable: `LayoutTable1`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblModalFullName` — "Full Name"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtModalFullName`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblIdentificationType` — "Identification Type"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - DropDown: `ddAddUSer_IDType`  ·  choices: "ID", "Passport"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblModalIDPassport`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtModalIDPassport`  ·  hint: "Enter ID Number"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblModalCapacity` — "Capacity"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtModalCapacity`
-                    - GridLayout: `GridLayout`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtModalAdministratorID`
-                - StackLayout: `StackLayout`
-                  - Button: `btnModalAdd` — "Add"
-                - StackLayout: `StackLayout`
-                  - Button: `btnModalUpdate` — "Update"
-                - StackLayout: `StackLayout`
-                  - Button: `btnModalClose` — "Close"
+  - TextBox: `txtClientName`  ·  read-only
+  - TextBox: `txtClientRegNo`  ·  read-only
+  - TextBox: `txtAdministratorID`  ·  read-only
+  - TextBox: `txtFullName`
+  - Button: `btnView` — "View"
+  - Button: `btnRemove` — "Remove"
+  - TextBox: `txtIDPassport`
+  - TextBox: `txtCapacity`
+  - Button: `btnAdd` — "Add Admin"
+  - Button: `btnPrevious` — "Previous"
+  - Button: `btnNext` — "Next"
+  - TextBox: `txtModalFullName`
+  - DropDown: `ddAddUSer_IDType`  ·  choices: "ID", "Passport"
+  - TextBox: `txtModalIDPassport`  ·  hint: "Enter ID Number"
+  - TextBox: `txtModalCapacity`
+  - TextBox: `txtModalAdministratorID`
+  - Button: `btnModalAdd` — "Add"
+  - Button: `btnModalUpdate` — "Update"
+  - Button: `btnModalClose` — "Close"
+- Visible terms: "Appointment of Administrators", "Client Name:", "Client Registration Number:", "Administrator ID", "Full Name", "ID/Passport", "Capacity", "Add Administrator", "Identification Type" [from design model]
+> Layout: 19 meaningful control(s) within 94 layout container(s); max control-tree nesting depth 15 (per-node layout omitted — see model.json). Advisory.
 
 ### source-UI reference — pgAdministrators (from rendered view)
 > Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
@@ -924,184 +270,35 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `Validate` → `IDB.get_AdministratorCount`
 
 ## pgAccounts  ·  title: Accounts  ·  roles: —
-  - GridLayout: `GridLayout`
-    - StackLayout: `StackLayout`
-      - Container: `conHeader`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Container: `ctrProgressScreen1`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Panel: `pnlProgressScreen1`
-                    - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Label: `lblAccounts` — "Accounts"
-          - StackLayout: `StackLayout`
-            - Container: `Container`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - LayoutTable: `tblClientDetails`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblClientName` — "Client Name:"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtClientName`  ·  read-only
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblClientRegNo` — "Client Registration Number:"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtClientRegNo`  ·  read-only
-    - StackLayout: `StackLayout`
-      - Container: `conAccounts`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Container: `Container1`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Label: `lblSubgroup1` — "Create Sub Group 1"
-                - StackLayout: `StackLayout`
-                  - LayoutTable: `LayoutTable`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblEntityName1` — "Entity Name"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtEntityName1`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblEntityNumber1` — "Entity Number"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtEntityNumber1`
-                - StackLayout: `StackLayout`
-                  - Button: `btnLinkAccount1` — "Link Account"
-                - StackLayout: `StackLayout`
-                  - Button: `btnAddSubgroup` — "Add Sub Group"
-          - StackLayout: `StackLayout`
-            - Flexbox: `fbSubGroup1`
-              - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Container: `conLinkedContacts`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Repeater: `rptLinkedContacts1`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Container: `Container2`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblLinkAccounts` — "Link an account below:"
-                            - StackLayout: `StackLayout`
-                              - LayoutTable: `LayoutTable1`
-                                - GridLayout: `GridLayout`
-                                  - StackLayout: `StackLayout`
-                                    - Label: `lblAccountName1` — "Account Name"
-                                - GridLayout: `GridLayout`
-                                  - StackLayout: `StackLayout`
-                                    - TextBox: `txtAccountName1`  ·  read-only
-                                - GridLayout: `GridLayout`
-                                  - StackLayout: `StackLayout`
-                                    - Button: `btnView` — "View"
-                                - GridLayout: `GridLayout`
-                                  - StackLayout: `StackLayout`
-                                    - Button: `btnRemove` — "Remove"
-                                - GridLayout: `GridLayout`
-                                  - StackLayout: `StackLayout`
-                                    - Label: `lblAccountNumber1` — "Account Number"
-                                - GridLayout: `GridLayout`
-                                  - StackLayout: `StackLayout`
-                                    - TextBox: `txtAccountNumber1`  ·  read-only
-                                - GridLayout: `GridLayout`
-                                - GridLayout: `GridLayout`
-                                - GridLayout: `GridLayout`
-                                - GridLayout: `GridLayout`
-                                  - StackLayout: `StackLayout`
-                                    - TextBox: `txtPartiesHeirarchyID`  ·  read-only
-                                - GridLayout: `GridLayout`
-                                - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Flexbox: `fbSubGroup2`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Label: `lblSubgroup2` — "Create Sub Group 2"
-                - StackLayout: `StackLayout`
-                  - LayoutTable: `LayoutTable2`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblEntityName2` — "Entity Name"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtEntityName2`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblEntityNumber2` — "Entity Number"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtEntityNumber2`
-                - StackLayout: `StackLayout`
-                  - Button: `btnLinkAccount2` — "Link Account"
-                - StackLayout: `StackLayout`
-                  - Button: `btnRemoveSubgroup` — "Remove Sub Group"
-          - StackLayout: `StackLayout`
-            - Repeater: `Repeater1`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - LayoutTable: `LayoutTable3`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblAccountName2` — "Account Name"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtAccountName2`  ·  read-only
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Button: `btnView2` — "View"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Button: `btnRemove2` — "Remove"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblAccountNumber2` — "Account Number"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtAccountNumber2`  ·  read-only
-                    - GridLayout: `GridLayout`
-                    - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Button: `btnPrevious` — "Previous"
-            - Button: `btnNext` — "Next"
-    - StackLayout: `StackLayout`
-      - Container: `conModalAccounts`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Flexbox: `Flexbox`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - LayoutTable: `LayoutTable4`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblAccountName` — "Account Name"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `tbAccountName`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblAccountNumber` — "Account Number"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `tbAccountNumber`
-                    - GridLayout: `GridLayout`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `tbPartiesHeirarchyID`
-                - StackLayout: `StackLayout`
-                  - Button: `btnModalAdd` — "Add"
-                - StackLayout: `StackLayout`
-                  - Button: `btnModalUpdate` — "Update"
-                - StackLayout: `StackLayout`
-                  - Button: `btnModalClose` — "Close"
+  - TextBox: `txtClientName`  ·  read-only
+  - TextBox: `txtClientRegNo`  ·  read-only
+  - TextBox: `txtEntityName1`
+  - TextBox: `txtEntityNumber1`
+  - Button: `btnLinkAccount1` — "Link Account"
+  - Button: `btnAddSubgroup` — "Add Sub Group"
+  - TextBox: `txtAccountName1`  ·  read-only
+  - Button: `btnView` — "View"
+  - Button: `btnRemove` — "Remove"
+  - TextBox: `txtAccountNumber1`  ·  read-only
+  - TextBox: `txtPartiesHeirarchyID`  ·  read-only
+  - TextBox: `txtEntityName2`
+  - TextBox: `txtEntityNumber2`
+  - Button: `btnLinkAccount2` — "Link Account"
+  - Button: `btnRemoveSubgroup` — "Remove Sub Group"
+  - TextBox: `txtAccountName2`  ·  read-only
+  - Button: `btnView2` — "View"
+  - Button: `btnRemove2` — "Remove"
+  - TextBox: `txtAccountNumber2`  ·  read-only
+  - Button: `btnPrevious` — "Previous"
+  - Button: `btnNext` — "Next"
+  - TextBox: `tbAccountName`
+  - TextBox: `tbAccountNumber`
+  - TextBox: `tbPartiesHeirarchyID`
+  - Button: `btnModalAdd` — "Add"
+  - Button: `btnModalUpdate` — "Update"
+  - Button: `btnModalClose` — "Close"
+- Visible terms: "Accounts", "Client Name:", "Client Registration Number:", "Create Sub Group 1", "Entity Name", "Entity Number", "Link an account below:", "Account Name", "Account Number", "Create Sub Group 2" [from design model]
+> Layout: 27 meaningful control(s) within 135 layout container(s); max control-tree nesting depth 18 (per-node layout omitted — see model.json). Advisory.
 
 ### source-UI reference — pgAccounts (from rendered view)
 > Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
@@ -1120,129 +317,27 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `Validate` → `IDB.get_PartiesHierarchCount`
 
 ## pgSignatories  ·  title: Pg Signatories  ·  roles: —
-  - GridLayout: `GridLayout`
-    - StackLayout: `StackLayout`
-      - Container: `conHeader`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Container: `ctrProgressScreen1`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Panel: `pnlProgressScreen1`
-                    - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Label: `lblSignatories` — "Signatories"
-          - StackLayout: `StackLayout`
-            - Container: `Container`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - LayoutTable: `tblClientDetails`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblClientName` — "Client Name:"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtClientName`  ·  read-only
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblClientRegNo` — "Client Registration Number:"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtClientRegNo`  ·  read-only
-    - StackLayout: `StackLayout`
-      - Container: `conSignatories`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Repeater: `rptSignatories`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Container: `Container1`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - LayoutTable: `txtSignatoryID`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblFullName` — "Full Name and Surname"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtFullName`  ·  read-only
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Button: `btnView` — "View"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Button: `btnRemove` — "Remove"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblDesignation` — "Designation"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtDesignation`  ·  read-only
-                          - GridLayout: `GridLayout`
-                          - GridLayout: `GridLayout`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - Label: `lblIDPassport` — "ID/Passport"
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtIDPassport`  ·  read-only
-                          - GridLayout: `GridLayout`
-                          - GridLayout: `GridLayout`
-                          - GridLayout: `GridLayout`
-                          - GridLayout: `GridLayout`
-                            - StackLayout: `StackLayout`
-                              - TextBox: `txtSignatoryID1`  ·  read-only
-                          - GridLayout: `GridLayout`
-                          - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Button: `btnAdd` — "Add Signatory"
-          - StackLayout: `StackLayout`
-            - Button: `btnPrevious` — "Previous"
-            - Button: `btnNext` — "Next"
-    - StackLayout: `StackLayout`
-      - Container: `conModal`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Flexbox: `Flexbox`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Label: `lblModalHeader` — "Add Signatory"
-                - StackLayout: `StackLayout`
-                  - LayoutTable: `LayoutTable1`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblModalFullName` — "Full Name and Surname"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtModalFullName`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblIdentificationType` — "Identification Type"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - DropDown: `ddAddIDType`  ·  choices: "ID", "Passport"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblModalIDPassport` — "Identity"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtModalIDPassport`  ·  hint: "Enter ID Number"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblModalDesignation` — "Designation"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtModalDesignation`
-                    - GridLayout: `GridLayout`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtModalSignatoryID`  ·  read-only
-                - StackLayout: `StackLayout`
-                  - Button: `btnModalAdd` — "Add"
-                - StackLayout: `StackLayout`
-                  - Button: `btnModalUpdate` — "Update"
-                - StackLayout: `StackLayout`
-                  - Button: `btnModalClose` — "Close"
+  - TextBox: `txtClientName`  ·  read-only
+  - TextBox: `txtClientRegNo`  ·  read-only
+  - TextBox: `txtFullName`  ·  read-only
+  - Button: `btnView` — "View"
+  - Button: `btnRemove` — "Remove"
+  - TextBox: `txtDesignation`  ·  read-only
+  - TextBox: `txtIDPassport`  ·  read-only
+  - TextBox: `txtSignatoryID1`  ·  read-only
+  - Button: `btnAdd` — "Add Signatory"
+  - Button: `btnPrevious` — "Previous"
+  - Button: `btnNext` — "Next"
+  - TextBox: `txtModalFullName`
+  - DropDown: `ddAddIDType`  ·  choices: "ID", "Passport"
+  - TextBox: `txtModalIDPassport`  ·  hint: "Enter ID Number"
+  - TextBox: `txtModalDesignation`
+  - TextBox: `txtModalSignatoryID`  ·  read-only
+  - Button: `btnModalAdd` — "Add"
+  - Button: `btnModalUpdate` — "Update"
+  - Button: `btnModalClose` — "Close"
+- Visible terms: "Signatories", "Client Name:", "Client Registration Number:", "Full Name and Surname", "Designation", "ID/Passport", "Add Signatory", "Identification Type", "Identity" [from design model]
+> Layout: 19 meaningful control(s) within 93 layout container(s); max control-tree nesting depth 15 (per-node layout omitted — see model.json). Advisory.
 
 ### source-UI reference — pgSignatories (from rendered view)
 > Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
@@ -1256,48 +351,15 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `LoadSignatories` → `IDB.Prc_SignatureField_GetList`
 
 ## pgGenerate  ·  title: Generate  ·  roles: —
-  - GridLayout: `GridLayout`
-    - StackLayout: `StackLayout`
-      - Container: `conHeader`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Container: `ctrProgressScreen1`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - Panel: `pnlProgressScreen1`
-                    - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - Label: `lblGenerate` — "Generate"
-          - StackLayout: `StackLayout`
-            - Container: `Container`
-              - GridLayout: `GridLayout`
-                - StackLayout: `StackLayout`
-                  - LayoutTable: `tblClientDetails`
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblClientName` — "Client Name:"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtClientName`  ·  read-only
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - Label: `lblClientRegNo` — "Client Registration Number:"
-                    - GridLayout: `GridLayout`
-                      - StackLayout: `StackLayout`
-                        - TextBox: `txtClientRegNo`  ·  read-only
-    - StackLayout: `StackLayout`
-      - Container: `Container1`
-        - GridLayout: `GridLayout`
-          - StackLayout: `StackLayout`
-            - DataGrid: `dgValidationStatus`
-              - columns (in order): "Description", `DateUpdated` "Date Updated", `StepValid` "Step Valid", "ID"(hidden), "WOID"(hidden), `CfgApplicationStepID` "Cfg Application Step ID"(hidden), `StepNumber` "Step Number"(hidden), `DateCompleted` "Date Completed"(hidden), `ProductID` "Product ID"(hidden), `DateCreated` "Date Created"(hidden), `StepName` "Step Name"(hidden) [from design model]
-          - StackLayout: `StackLayout`
-            - Label: `lblEmail` — "Email address:"
-          - StackLayout: `StackLayout`
-            - TextBox: `tbEmail`
-          - StackLayout: `StackLayout`
-            - Button: `btnPrevious` — "Previous"
-            - Button: `btnGenerate` — "Generate"
+  - TextBox: `txtClientName`  ·  read-only
+  - TextBox: `txtClientRegNo`  ·  read-only
+  - DataGrid: `dgValidationStatus`
+    - columns (in order): "Description", `DateUpdated` "Date Updated", `StepValid` "Step Valid", "ID"(hidden), "WOID"(hidden), `CfgApplicationStepID` "Cfg Application Step ID"(hidden), `StepNumber` "Step Number"(hidden), `DateCompleted` "Date Completed"(hidden), `ProductID` "Product ID"(hidden), `DateCreated` "Date Created"(hidden), `StepName` "Step Name"(hidden) [from design model]
+  - TextBox: `tbEmail`
+  - Button: `btnPrevious` — "Previous"
+  - Button: `btnGenerate` — "Generate"
+- Visible terms: "Generate", "Client Name:", "Client Registration Number:", "Email address:" [from design model]
+> Layout: 6 meaningful control(s) within 31 layout container(s); max control-tree nesting depth 12 (per-node layout omitted — see model.json). Advisory.
 
 ### source-UI reference — pgGenerate (from rendered view)
 > Backend operations the deployed page invokes (UI control → connector.function), decoded verbatim from the rendered route strings. §8 existing-tool reference (Tier-A).
@@ -1308,7 +370,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `Validate` → `IDB.get_InvalidSteps`
 
 ## StartPage ⭐ start  ·  title: Start Page  ·  roles: User
-  - GridLayout: `GridLayout`
+- _(layout-only surface — no data-bound controls, grids, or labelled actions)_
+> Layout: 0 meaningful control(s) within 1 layout container(s); max control-tree nesting depth 1 (per-node layout omitted — see model.json). Advisory.
 
 ## User tasks (per view)
 

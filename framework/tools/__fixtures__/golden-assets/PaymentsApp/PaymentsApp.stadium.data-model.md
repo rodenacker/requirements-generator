@@ -4,6 +4,8 @@ app: PaymentsApp
 file_guid: be54c8c9-dc03-43d5-bc2b-fba14e07f360
 designer_version: 6.14.3378.13771
 selected_package: 2211275f-1cb9-495c-91cf-4ff48dc4c142.sapz
+deployment_count: 1
+last_published: 2026-06-30 12:29:25.6302212
 extracted_from: C:\Stadium 6 Web Apps\be54c8c9-dc03-43d5-bc2b-fba14e07f360
 provenance: deterministic extraction from the Stadium 6 design model + administration.db
 marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lines are advisory design signals.
@@ -34,6 +36,14 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `ApprovalLevel.MessageType` [from web-service: DELETE /v1/approval-levels/{BusinessUnitId},{DepartmentId},{TransactionTypeId}]  _(+1 more)_
 - `ApprovalLevel.TransactionType` · read-only [from rendered types]
 - `ApprovalLevel.TransactionTypeId` · editable [from rendered types]  _(+2 more)_
+  - relation (to-one (FK)): `ApprovalLevel.ApprovalLevels.BusinessUnitDepartmentId` → `BusinessUnitDepartment` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `ApprovalLevel.ApprovalLevels.BusinessUnitId` → `BusinessUnit` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `ApprovalLevel.ApprovalLevels.DepartmentId` → `Department` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `ApprovalLevel.ApprovalLevels.TransactionTypeId` → `TransactionType` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `ApprovalLevel.BusinessUnitDepartmentId` → `BusinessUnitDepartment` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `ApprovalLevel.BusinessUnitId` → `BusinessUnit` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `ApprovalLevel.DepartmentId` → `Department` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `ApprovalLevel.TransactionTypeId` → `TransactionType` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `ApprovalLevelAmount`, `ApprovalLevelRule`, `UserApprovalLevel`, `UserApprovalLevelAmount` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### ApprovalLevelAmount  ·  sources: rendered-types, web-service  ·  operations: SELECT
@@ -42,6 +52,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `ApprovalLevelAmount.ApprovalLevelAmounts.MaxApprovalAmount` [from web-service: GET /v1/approval-levels/{BusinessUnitId},{DepartmentId},{TransactionTypeId}]
 - `ApprovalLevelAmount.ApprovalLevelId` · read-only [from rendered types]
 - `ApprovalLevelAmount.MaxApprovalAmount` · read-only [from rendered types]
+  - relation (to-one (FK)): `ApprovalLevelAmount.ApprovalLevelAmounts.ApprovalLevelId` → `ApprovalLevel` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `ApprovalLevelAmount.ApprovalLevelId` → `ApprovalLevel` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `ApprovalLevel`, `UserApprovalLevelAmount` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### ApprovalLevelRule  ·  sources: rendered-types, web-service  ·  operations: SELECT, UPDATE
@@ -51,6 +63,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `ApprovalLevelRule.BankReleaseApproval` · read-only [from rendered types]  _(+1 more)_
 - `ApprovalLevelRule.ManagerialApproval` · read-only [from rendered types]  _(+1 more)_
 - `ApprovalLevelRule.TreasuryApproval` · read-only [from rendered types]  _(+1 more)_
+  - relation (to-one (FK)): `ApprovalLevelRule.ApprovalLevelId` → `ApprovalLevel` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `ApprovalLevel` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### Bank  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
@@ -77,6 +90,9 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `BankAccount.Id` · read-only [from web-service: DELETE /v1/bank-accounts/{Id}]  _(+2 more)_
 - `BankAccount.Messages` [from web-service: DELETE /v1/bank-accounts/{Id}]
 - `BankAccount.MessageType` [from web-service: DELETE /v1/bank-accounts/{Id}]
+  - relation (to-one (FK)): `BankAccount.BankAccountTypeId` → `BankAccountType` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `BankAccount.BankId` → `Bank` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `BankAccount.BusinessUnitId` → `BusinessUnit` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `Bank`, `BankAccountType` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### BankAccountType  ·  sources: rendered-types, web-service  ·  operations: SELECT
@@ -109,6 +125,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `BankPaymentSetup.ServiceLevelCodeName` · read-only [from rendered types]  _(+1 more)_
 - `BankPaymentSetup.TransferMethodId` · editable [from rendered types]  _(+3 more)_
 - `BankPaymentSetup.TransferMethodName` · read-only [from rendered types]  _(+1 more)_
+  - relation (to-one (FK)): `BankPaymentSetup.BankId` → `Bank` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `BankPaymentSetup.BankPaymentMethodId` → `BankPaymentMethod` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `Bank`, `PaymentSetup` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### Beneficiary  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
@@ -131,7 +149,12 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `Beneficiary.Messages` [from web-service: DELETE /v1/beneficiaries/{Id}]
 - `Beneficiary.MessageType` [from web-service: DELETE /v1/beneficiaries/{Id}]
 - `Beneficiary.Name` · editable [from rendered types]  _(+3 more)_
-  - relation: `Beneficiary.BusinessUnitDepartments` → `BusinessUnitDepartment[]` (nested type) [from rendered types]
+  - relation (to-many (nested type)): `Beneficiary.BusinessUnitDepartments` → `BusinessUnitDepartment[]` [from rendered types]
+  - relation (to-one (FK)): `Beneficiary.BankAccountTypeId` → `BankAccountType` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Beneficiary.BankId` → `Bank` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Beneficiary.BusinessUnitDepartments.BusinessUnitDepartmentId` → `BusinessUnitDepartment` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Beneficiary.BusinessUnitDepartments.DepartmentId` → `Department` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Beneficiary.BusinessUnitId` → `BusinessUnit` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 
 ### BusinessUnit  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
 - `BusinessUnit.BusinessUnits` [from web-service: GET /v1/business-units]
@@ -146,7 +169,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `BusinessUnit.Messages` [from web-service: DELETE /v1/business-units/{Id}]
 - `BusinessUnit.MessageType` [from web-service: DELETE /v1/business-units/{Id}]
 - `BusinessUnit.Name` · editable [from rendered types]  _(+3 more)_
-  - relation: `BusinessUnit.Departments` → `Department[]` (nested type) [from rendered types]
+  - relation (to-many (nested type)): `BusinessUnit.Departments` → `Department[]` [from rendered types]
 > related shapes: `BusinessUnitDepartment` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### BusinessUnitDepartment  ·  sources: rendered-types, web-service  ·  operations: SELECT
@@ -157,6 +180,10 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `BusinessUnitDepartment.BusinessUnitDepartments.DepartmentName` [from web-service: GET /v1/business-unit-departments]
 - `BusinessUnitDepartment.DepartmentId` · read-only [from rendered types]
 - `BusinessUnitDepartment.DepartmentName` · read-only [from rendered types]
+  - relation (to-one (FK)): `BusinessUnitDepartment.BusinessUnitDepartmentId` → `Department` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `BusinessUnitDepartment.BusinessUnitDepartments.BusinessUnitDepartmentId` → `Department` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `BusinessUnitDepartment.BusinessUnitDepartments.DepartmentId` → `Department` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `BusinessUnitDepartment.DepartmentId` → `Department` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `BusinessUnit`, `Department` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### CostCentre  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
@@ -173,7 +200,10 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `CostCentre.Messages` [from web-service: DELETE /v1/cost-centres/{Id}]
 - `CostCentre.MessageType` [from web-service: DELETE /v1/cost-centres/{Id}]
 - `CostCentre.Name` · editable [from rendered types]  _(+3 more)_
-  - relation: `CostCentre.BusinessUnitDepartments` → `BusinessUnitDepartment[]` (nested type) [from rendered types]
+  - relation (to-many (nested type)): `CostCentre.BusinessUnitDepartments` → `BusinessUnitDepartment[]` [from rendered types]
+  - relation (to-one (FK)): `CostCentre.BusinessUnitDepartments.BusinessUnitDepartmentId` → `BusinessUnitDepartment` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `CostCentre.BusinessUnitDepartments.DepartmentId` → `Department` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `CostCentre.BusinessUnitId` → `BusinessUnit` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 
 ### Department  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
 - `Department.Departments` [from web-service: GET /v1/departments]
@@ -205,6 +235,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `PaymentDetailAuditLog.ProcessInstanceID` · read-only [from rendered types]
 - `PaymentDetailAuditLog.Source` · read-only [from rendered types]
 - `PaymentDetailAuditLog.Timestamp` · read-only [from rendered types]
+  - relation (to-one (nested type)): `PaymentDetailAuditLog.Data` → `PaymentDetailAuditLogRead_Data` [from rendered types]
 > related shapes: `PaymentDetailAuditLogRead_Data` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### PaymentDetailAuditLogRead_Data  ·  sources: rendered-types  ·  operations: —
@@ -241,6 +272,13 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `PaymentSetup.PaymentSetups` [from web-service: GET /v1/payment-setups]  _(+1 more)_
 - `PaymentSetup.TransactionType` · read-only [from rendered types]  _(+1 more)_
 - `PaymentSetup.TransactionTypeId` · editable [from rendered types]  _(+3 more)_
+  - relation (to-one (FK)): `PaymentSetup.BankAccountId` → `BankAccount` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `PaymentSetup.BankPaymentMethodId` → `BankPaymentMethod` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `PaymentSetup.BusinessUnitDepartmentId` → `BusinessUnitDepartment` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `PaymentSetup.BusinessUnitId` → `BusinessUnit` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `PaymentSetup.DepartmentId` → `Department` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `PaymentSetup.PaymentReasonId` → `PaymentReason` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `PaymentSetup.TransactionTypeId` → `TransactionType` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `BankPaymentSetup` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### Role  ·  sources: rendered-types, web-service  ·  operations: SELECT
@@ -325,6 +363,24 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `Transaction.TransactionType` · read-only [from rendered types]  _(+1 more)_
 - `Transaction.TransactionTypeId` · editable [from rendered types]  _(+3 more)_
 - `Transaction.UserId` · read-only [from rendered types]  _(+1 more)_
+  - relation (to-one (FK)): `Transaction.BankAccountId` → `BankAccount` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Transaction.BankPaymentMethodId` → `BankPaymentMethod` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Transaction.BeneficiaryId` → `Beneficiary` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Transaction.BusinessUnitDepartmentId` → `BusinessUnitDepartment` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Transaction.BusinessUnitId` → `BusinessUnit` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Transaction.DepartmentId` → `Department` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Transaction.PaymentReasonId` → `PaymentReason` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Transaction.TransactionTypeId` → `TransactionType` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Transaction.Transactions.BankAccountId` → `BankAccount` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Transaction.Transactions.BankPaymentMethodId` → `BankPaymentMethod` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Transaction.Transactions.BeneficiaryId` → `Beneficiary` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Transaction.Transactions.BusinessUnitDepartmentId` → `BusinessUnitDepartment` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Transaction.Transactions.BusinessUnitId` → `BusinessUnit` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Transaction.Transactions.DepartmentId` → `Department` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Transaction.Transactions.PaymentReasonId` → `PaymentReason` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Transaction.Transactions.TransactionTypeId` → `TransactionType` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Transaction.Transactions.UserId` → `User` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Transaction.UserId` → `User` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `TransactionNote`, `TransactionSupportingDocument`, `TransactionType` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### TransactionNote  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT, UPDATE
@@ -338,6 +394,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `TransactionNote.TransactionNotes` [from web-service: GET /v1/transaction-notes]
 - `TransactionNote.User` · read-only [from rendered types]
 - `TransactionNote.UserId` · read-only [from rendered types]
+  - relation (to-one (FK)): `TransactionNote.TransactionId` → `Transaction` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `TransactionNote.UserId` → `User` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `Transaction` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### TransactionSupportingDocument  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT
@@ -352,6 +410,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `TransactionSupportingDocument.TransactionSupportingDocuments` [from web-service: GET /v1/transaction-supporting-documents]
 - `TransactionSupportingDocument.User` · read-only [from rendered types]
 - `TransactionSupportingDocument.UserId` · read-only [from rendered types]
+  - relation (to-one (FK)): `TransactionSupportingDocument.TransactionId` → `Transaction` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `TransactionSupportingDocument.UserId` → `User` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `Transaction` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### TransactionType  ·  sources: rendered-types, web-service  ·  operations: SELECT
@@ -399,8 +459,11 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `User.Users.Roles` [from web-service: GET /v1/users]
 - `User.Users.RolesString` [from web-service: GET /v1/users]
 - `User.Users.StadiumUserId` [from web-service: GET /v1/users]
-  - relation: `User.BusinessUnitDepartments` → `BusinessUnitDepartment[]` (nested type) [from rendered types]
-  - relation: `User.Roles` → `Role[]` (nested type) [from rendered types]
+  - relation (to-many (nested type)): `User.BusinessUnitDepartments` → `BusinessUnitDepartment[]` [from rendered types]
+  - relation (to-many (nested type)): `User.Roles` → `Role[]` [from rendered types]
+  - relation (to-one (FK)): `User.BusinessUnitDepartments.BusinessUnitDepartmentId` → `BusinessUnitDepartment` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `User.BusinessUnitId` → `BusinessUnit` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `User.Users.BusinessUnitId` → `BusinessUnit` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `UserApprovalLevel`, `UserApprovalLevelAmount` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### UserApprovalLevel  ·  sources: rendered-types, web-service  ·  operations: DELETE, INSERT, SELECT
@@ -420,6 +483,12 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `UserApprovalLevel.UserEmail` · read-only [from rendered types]
 - `UserApprovalLevel.UserId` · editable [from rendered types]  _(+1 more)_
 - `UserApprovalLevel.UserName` · read-only [from rendered types]
+  - relation (to-one (FK)): `UserApprovalLevel.ApprovalLevelId` → `ApprovalLevel` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `UserApprovalLevel.BusinessUnitDepartmentId` → `BusinessUnitDepartment` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `UserApprovalLevel.BusinessUnitId` → `BusinessUnit` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `UserApprovalLevel.DepartmentId` → `Department` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `UserApprovalLevel.TransactionTypeId` → `TransactionType` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `UserApprovalLevel.UserId` → `User` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `ApprovalLevel`, `User`, `UserApprovalLevelAmount` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### UserApprovalLevelAmount  ·  sources: rendered-types, web-service  ·  operations: SELECT
@@ -427,9 +496,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `UserApprovalLevelAmount.MaxApprovalAmount` · read-only [from rendered types]
 - `UserApprovalLevelAmount.Status` · read-only [from rendered types]
 - `UserApprovalLevelAmount.UserApprovalLevelAmounts` [from web-service: GET /v1/user-approval-levels/{BusinessUnitId},{DepartmentId},{TransactionTypeId}]
+  - relation (to-one (FK)): `UserApprovalLevelAmount.ApprovalLevelId` → `ApprovalLevel` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `ApprovalLevel`, `ApprovalLevelAmount`, `User`, `UserApprovalLevel` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
-
-> The design model defines 1378 internal data-type instances (control/result/parameter bindings); field types above are sourced from them where concrete. Full detail is in the forensic model.json.
 
 ## Tier-A — CRUD matrix
 

@@ -246,7 +246,7 @@ The grounding-verifier emits one or more NDJSON lines per FAIL. Reasons and reme
 
 ## Inputs
 
-- `requirements/source-manifest.json` — the sole enumeration of input files. The drafter Reads each row per the **Read-path resolution** rule in `framework/skills/build-source-manifest.md` (`converted_sibling` when non-null — `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`; else `original_path` — `Native-text`) and skips Unsupported rows.
+- `requirements/source-manifest.json` — the sole enumeration of input files. The drafter Reads each row per the **Read-path resolution** rule in `framework/skills/build-source-manifest.md` (`converted_sibling` when non-null — `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`; else `original_path` — `Native-text`) and skips Unsupported rows. **Pipeline-scoped skip (`IX-05`):** additionally skip any row whose `filename` matches `*.stadium.design-signals.md` — it is `/design-system`-only styling material (0 requirement claims); the row stays in the manifest for other pipelines and the file is never moved.
 - The files registered in the manifest, under `input/`.
 - `framework/assets/template-requirements.md` — the canonical structure to populate.
 - `framework/shared/prototype-scope.md` — in-scope vs out-of-scope predicate; consulted by the gap pass under both `manifest_target` values (to identify which fields are historically out-of-prototype-scope so the gap pass can route them to the `[OUT-OF-SCOPE]` marker under `prototype` or to a no-marker value-only fill under `application`).

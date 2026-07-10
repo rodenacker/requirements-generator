@@ -4,6 +4,8 @@ app: RMB_Onboarding
 file_guid: 87ea91de-6125-4686-8437-806216cb0ec0
 designer_version: 6.14.3378.13771
 selected_package: 3f1ddf96-3519-47b8-905d-b44703776f78.sapz
+deployment_count: 1
+last_published: 2026-06-30 12:19:12.1887333
 extracted_from: C:\Stadium 6 Web Apps\87ea91de-6125-4686-8437-806216cb0ec0
 provenance: deterministic extraction from the Stadium 6 design model + administration.db
 marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lines are advisory design signals.
@@ -21,14 +23,17 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `Administrators.AdministratorsID` : Int32 [from stored-procedure: dbo.prc_Administrators_Update]  _(+1 more)_
 - `Administrators.ApplicationID` : Int32 [from stored-procedure: dbo.prc_Administrators_GetList]  _(+1 more)_
 - `Administrators.IDType` : Int16 [from stored-procedure: dbo.prc_Administrators_Insert]  _(+1 more)_
+  - relation (to-one (FK)): `Administrators.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 
 ### ApplicationDocument  ·  sources: stored-procedure  ·  operations: SELECT
 - `ApplicationDocument.ApplicationID` : Int64 [from stored-procedure: dbo.sp_ApplicationDocument_Get]
+  - relation (to-one (FK)): `ApplicationDocument.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `tblApplications` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### ApplicationSteps  ·  sources: stored-procedure  ·  operations: SELECT
 - `ApplicationSteps.ApplicationID` : Int64 [from stored-procedure: dbo.sp_Application_Steps_Get]
 - `ApplicationSteps.ProductID` : Int64 [from stored-procedure: dbo.sp_Application_Steps_Get]
+  - relation (to-one (FK)): `ApplicationSteps.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `tblApplications` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### BalanceHostToHost  ·  sources: stored-procedure  ·  operations: INSERT
@@ -48,6 +53,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `BalanceHostToHost.TimeTo` : Time [from stored-procedure: dbo.sp_BalanceHostToHost_Insert]
 - `BalanceHostToHost.Tuesday` : Boolean [from stored-procedure: dbo.sp_BalanceHostToHost_Insert]
 - `BalanceHostToHost.Wedenesday` : Boolean [from stored-procedure: dbo.sp_BalanceHostToHost_Insert]
+  - relation (to-one (FK)): `BalanceHostToHost.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 
 ### BalanceSetup  ·  sources: stored-procedure  ·  operations: INSERT
 - `BalanceSetup.AccountGroup` : Boolean [from stored-procedure: dbo.sp_BalanceSetup_Insert]
@@ -57,11 +63,14 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `BalanceSetup.HostToHost` : Boolean [from stored-procedure: dbo.sp_BalanceSetup_Insert]
 - `BalanceSetup.Movement` : Boolean [from stored-procedure: dbo.sp_BalanceSetup_Insert]
 - `BalanceSetup.ProductsAccountBalances` : Boolean [from stored-procedure: dbo.sp_BalanceSetup_Insert]
+  - relation (to-one (FK)): `BalanceSetup.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 
 ### BalanceStatementBankAccount  ·  sources: stored-procedure  ·  operations: DELETE, INSERT, SELECT
 - `BalanceStatementBankAccount.ApplicationID` : Int64 [from stored-procedure: dbo.sp_BalanceStatementBankAccount_Insert]  _(+2 more)_
 - `BalanceStatementBankAccount.BankAccountID` : Int64 [from stored-procedure: dbo.sp_BalanceStatementBankAccount_Insert]
 - `BalanceStatementBankAccount.ID` : Int64 [from stored-procedure: dbo.sp_BalanceStatementBankAccount_Delete]
+  - relation (to-one (FK)): `BalanceStatementBankAccount.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `BalanceStatementBankAccount.BankAccountID` → `BankAccount` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `BankAccount` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### BankAccount  ·  sources: stored-procedure  ·  operations: DELETE, INSERT, SELECT, UPDATE
@@ -81,6 +90,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `BankAccount.CustomerID` : Int64 [from stored-procedure: dbo.sp_BankAccount_Insert]
 - `BankAccount.IBAN` : AnsiString [from stored-procedure: dbo.sp_BankAccount_Insert]
 - `BankAccount.Serial` : AnsiString [from stored-procedure: dbo.sp_BankAccount_Insert]
+  - relation (to-one (FK)): `BankAccount.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `BalanceStatementBankAccount` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### ClientApplications  ·  sources: stored-procedure  ·  operations: SELECT
@@ -92,6 +102,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `ClientApplicationsAllocate.UserEmail` : AnsiString [from stored-procedure: dbo.sp_ClientApplications_Allocate_Insert]
 - `ClientApplicationsAllocate.UserGuid` : AnsiString [from stored-procedure: dbo.sp_ClientApplications_Allocate_Insert]
 - `ClientApplicationsAllocate.UserName` : AnsiString [from stored-procedure: dbo.sp_ClientApplications_Allocate_Insert]
+  - relation (to-one (FK)): `ClientApplicationsAllocate.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `ClientApplications`, `Clients`, `tblApplications` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### ClientApplicationsUnallocated  ·  sources: stored-procedure  ·  operations: SELECT
@@ -111,14 +122,17 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `Collections.CollAppAccountNumber` : AnsiString [from stored-procedure: dbo.prc_Collections_Insert]  _(+1 more)_
 - `Collections.CollAppBranchCode` : AnsiString [from stored-procedure: dbo.prc_Collections_Insert]  _(+1 more)_
 - `Collections.CollAppClientName` : AnsiString [from stored-procedure: dbo.prc_Collections_Insert]  _(+1 more)_
+  - relation (to-one (FK)): `Collections.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `tbl_CollectionsApplication`, `tbl_CollectionsContactPerson` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### FileImage  ·  sources: stored-procedure  ·  operations: SELECT
 - `FileImage.ApplicationID` : Int64 [from stored-procedure: dbo.sp_FileImage_Get]
 - `FileImage.Count` : Int32 [from stored-procedure: dbo.sp_FileImage_Get]
+  - relation (to-one (FK)): `FileImage.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 
 ### History  ·  sources: stored-procedure  ·  operations: SELECT
 - `History.ApplicationID` : Int64 [from stored-procedure: dbo.sp_History_Get]
+  - relation (to-one (FK)): `History.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `WOHistory` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### ModularEntity  ·  sources: stored-procedure  ·  operations: INSERT, SELECT, UPDATE
@@ -126,6 +140,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `ModularEntity.ModEntityID` : Int32 [from stored-procedure: dbo.prc_ModularEntity_Update]
 - `ModularEntity.ModEntityName` : AnsiString [from stored-procedure: dbo.prc_ModularEntity_Insert]  _(+1 more)_
 - `ModularEntity.ModEntityNumber` : AnsiString [from stored-procedure: dbo.prc_ModularEntity_Insert]  _(+1 more)_
+  - relation (to-one (FK)): `ModularEntity.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 
 ### ModularInformation  ·  sources: stored-procedure  ·  operations: INSERT, UPDATE
 - `ModularInformation._ApplicationID` : Int32 [from stored-procedure: dbo.prc_ModularInformation_Insert]  _(+1 more)_
@@ -145,6 +160,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `ModularInformation.ModularOnceOffPayments` : Boolean [from stored-procedure: dbo.prc_ModularInformation_Insert]  _(+1 more)_
 - `ModularInformation.ModularOnlineSettlementLimits` : Boolean [from stored-procedure: dbo.prc_ModularInformation_Insert]  _(+1 more)_
 - `ModularInformation.ModularTransfers` : Boolean [from stored-procedure: dbo.prc_ModularInformation_Insert]  _(+1 more)_
+  - relation (to-one (FK)): `ModularInformation._ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 
 ### PartiesHeirarchy  ·  sources: stored-procedure  ·  operations: DELETE, INSERT, SELECT, UPDATE
 - `PartiesHeirarchy.ApplicationID` : Int32 [from stored-procedure: dbo.prc_PartiesHeirarchy_GetList]  _(+1 more)_
@@ -152,11 +168,15 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `PartiesHeirarchy.PartiesHAccountName` : AnsiString [from stored-procedure: dbo.prc_PartiesHeirarchy_Insert]  _(+1 more)_
 - `PartiesHeirarchy.PartiesHAccountNumber` : AnsiString [from stored-procedure: dbo.prc_PartiesHeirarchy_Insert]  _(+1 more)_
 - `PartiesHeirarchy.PartiesHeirarchyID` : Int32 [from stored-procedure: dbo.prc_PartiesHeirarchy_Disable]  _(+1 more)_
+  - relation (to-one (FK)): `PartiesHeirarchy.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `PartiesHeirarchy.HeirarchyEntitiesID` → `tbl_HeirarchyEntities` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `PartiesHeirarchyHeirarchyEntitiesID`, `tbl_PartiesHeirarchyTable` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### PartiesHeirarchyHeirarchyEntitiesID  ·  sources: stored-procedure  ·  operations: UPDATE
 - `PartiesHeirarchyHeirarchyEntitiesID.HeirarchyEntitiesID` : Int32 [from stored-procedure: dbo.prc_PartiesHeirarchy_HeirarchyEntitiesID_Update]
 - `PartiesHeirarchyHeirarchyEntitiesID.PartiesHeirarchyID` : Int32 [from stored-procedure: dbo.prc_PartiesHeirarchy_HeirarchyEntitiesID_Update]
+  - relation (to-one (FK)): `PartiesHeirarchyHeirarchyEntitiesID.HeirarchyEntitiesID` → `tbl_HeirarchyEntities` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `PartiesHeirarchyHeirarchyEntitiesID.PartiesHeirarchyID` → `PartiesHeirarchy` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `PartiesHeirarchy` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### ProductAdminSetup  ·  sources: stored-procedure  ·  operations: INSERT
@@ -167,6 +187,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `ProductAdminSetup.SynchronisedPayment` : Boolean [from stored-procedure: dbo.sp_Product_AdminSetup_Insert]
 - `ProductAdminSetup.Urgent` : Boolean [from stored-procedure: dbo.sp_Product_AdminSetup_Insert]
 - `ProductAdminSetup.ValueDated` : Boolean [from stored-procedure: dbo.sp_Product_AdminSetup_Insert]
+  - relation (to-one (FK)): `ProductAdminSetup.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 
 ### ProductPaymentsAndFeatures  ·  sources: stored-procedure  ·  operations: INSERT
 - `ProductPaymentsAndFeatures.AdhocBOPThirdParty` : Boolean [from stored-procedure: dbo.sp_Product_PaymentsAndFeatures_Insert]
@@ -187,6 +208,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `ProductPaymentsAndFeatures.ViewAvailableBalance` : Boolean [from stored-procedure: dbo.sp_Product_PaymentsAndFeatures_Insert]
 - `ProductPaymentsAndFeatures.ViewBeneficiaryDetail` : Boolean [from stored-procedure: dbo.sp_Product_PaymentsAndFeatures_Insert]
 - `ProductPaymentsAndFeatures.ViewLimits` : Boolean [from stored-procedure: dbo.sp_Product_PaymentsAndFeatures_Insert]
+  - relation (to-one (FK)): `ProductPaymentsAndFeatures.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 
 ### ProductServiceSetup  ·  sources: stored-procedure  ·  operations: INSERT
 - `ProductServiceSetup.ApplicationID` : Int64 [from stored-procedure: dbo.sp_Product_ServiceSetup_Insert]
@@ -196,10 +218,13 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `ProductServiceSetup.BOPThirdParty` : Boolean [from stored-procedure: dbo.sp_Product_ServiceSetup_Insert]
 - `ProductServiceSetup.PayAlert` : Boolean [from stored-procedure: dbo.sp_Product_ServiceSetup_Insert]
 - `ProductServiceSetup.PaymentType` : Boolean [from stored-procedure: dbo.sp_Product_ServiceSetup_Insert]
+  - relation (to-one (FK)): `ProductServiceSetup.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 
 ### SignatoriesUserDisabled  ·  sources: stored-procedure  ·  operations: DELETE
 - `SignatoriesUserDisabled.ApplicationID` : Int64 [from stored-procedure: dbo.sp_Signatories_UserDisabled_Disable]
 - `SignatoriesUserDisabled.UserID` : Int64 [from stored-procedure: dbo.sp_Signatories_UserDisabled_Disable]
+  - relation (to-one (FK)): `SignatoriesUserDisabled.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `SignatoriesUserDisabled.UserID` → `User` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `User` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### Signatory  ·  sources: stored-procedure  ·  operations: DELETE, INSERT, SELECT, UPDATE
@@ -219,6 +244,9 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `Signatory.UserMiddleName` : AnsiString [from stored-procedure: dbo.sp_Signatory_Create]
 - `Signatory.UserName` : AnsiString [from stored-procedure: dbo.sp_Signatory_Create]
 - `Signatory.UserSurname` : AnsiString [from stored-procedure: dbo.sp_Signatory_Create]
+  - relation (to-one (FK)): `Signatory.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Signatory.SignatureFieldID` → `tbl_SignatureField` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `Signatory.UserID` → `User` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `SignatoryAddress`, `SignatorySigningArrangements` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### SignatoryAddress  ·  sources: stored-procedure  ·  operations: INSERT
@@ -230,6 +258,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `SignatoryAddress.ProvinceID` : Int16 [from stored-procedure: dbo.sp_SignatoryAddress_Insert]
 - `SignatoryAddress.SignatoryID` : Int64 [from stored-procedure: dbo.sp_SignatoryAddress_Insert]
 - `SignatoryAddress.Suburb` : AnsiString [from stored-procedure: dbo.sp_SignatoryAddress_Insert]
+  - relation (to-one (FK)): `SignatoryAddress.SignatoryID` → `Signatory` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `Signatory` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### SignatorySigningArrangements  ·  sources: stored-procedure  ·  operations: INSERT, SELECT
@@ -237,10 +266,12 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `SignatorySigningArrangements.Joint` : Boolean [from stored-procedure: dbo.sp_Signatory_SigningArrangements_Insert]
 - `SignatorySigningArrangements.Severally` : Boolean [from stored-procedure: dbo.sp_Signatory_SigningArrangements_Insert]
 - `SignatorySigningArrangements.SignatoryCount` : Int16 [from stored-procedure: dbo.sp_Signatory_SigningArrangements_Insert]
+  - relation (to-one (FK)): `SignatorySigningArrangements.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `Signatory` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### tbl_ApplicationForRMB  ·  sources: sql  ·  operations: —
 - _(fields not modelled for this endpoint)_
+  - relation (join): `tbl_ApplicationForRMB.WOID=WOID` → `WODFileLog` [from connector: get_ApplicationFile]
 > related shapes: `tblApplications` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### tbl_AppointmentOfAdmins  ·  sources: sql  ·  operations: SELECT
@@ -250,6 +281,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `tbl_AppointmentOfAdmins.AdminFullName` : String [from connector: get_Administrator]
 - `tbl_AppointmentOfAdmins.AdminID_Passport` : String [from connector: get_Administrator]
 - `tbl_AppointmentOfAdmins.IDType` : Int16 [from connector: get_Administrator]
+  - relation (to-one (FK)): `tbl_AppointmentOfAdmins._ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 
 ### tbl_ClientDetails  ·  sources: sql, stored-procedure  ·  operations: INSERT, SELECT
 - `tbl_ClientDetails.ClientID` : AnsiString [from stored-procedure: dbo.prc_ClientDetails_Insert]
@@ -257,6 +289,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `tbl_ClientDetails.ClientRegistrationNumber` : AnsiString [from connector: get_ClientDetails]  _(+1 more)_
 - `tbl_ClientDetails.ClientSegment` : AnsiString [from stored-procedure: dbo.prc_ClientDetails_Insert]
 - `tbl_ClientDetails.ClientSurname` : AnsiString [from stored-procedure: dbo.prc_ClientDetails_Insert]
+  - relation (to-one (FK)): `tbl_ClientDetails.ClientID` → `Clients` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `Clients` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### tbl_CollectionsApplication  ·  sources: sql  ·  operations: SELECT
@@ -265,6 +298,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `tbl_CollectionsApplication.CollAppAccountNumber` : String [from connector: get_Collections]
 - `tbl_CollectionsApplication.CollAppBranchCode` : String [from connector: get_Collections]
 - `tbl_CollectionsApplication.CollAppClientName` : String [from connector: get_Collections]
+  - relation (to-one (FK)): `tbl_CollectionsApplication._ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `tbl_CollectionsApplication._CollectionsApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `Collections`, `tblApplications` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### tbl_CollectionsContactPerson  ·  sources: sql, stored-procedure  ·  operations: DELETE, INSERT, SELECT, UPDATE
@@ -277,6 +312,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `tbl_CollectionsContactPerson.ContPContactEmail` : AnsiString [from stored-procedure: dbo.prc_CollectionsContactPerson_Insert]  _(+2 more)_
 - `tbl_CollectionsContactPerson.ContPContactName` : AnsiString [from stored-procedure: dbo.prc_CollectionsContactPerson_Insert]  _(+2 more)_
 - `tbl_CollectionsContactPerson.ContPContactTelNo` : AnsiString [from stored-procedure: dbo.prc_CollectionsContactPerson_Insert]  _(+2 more)_
+  - relation (to-one (FK)): `tbl_CollectionsContactPerson.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (to-one (FK)): `tbl_CollectionsContactPerson._CollectionsApplicationID` → `tbl_CollectionsApplication` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `Collections` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### tbl_HeirarchyEntities  ·  sources: sql, stored-procedure  ·  operations: INSERT, SELECT, UPDATE
@@ -284,6 +321,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `tbl_HeirarchyEntities._HeirarchyEntitiesID` : Int32 [from connector: get_HeirarchyEntities]
 - `tbl_HeirarchyEntities.EntityName` : AnsiString [from connector: get_HeirarchyEntities]  _(+2 more)_
 - `tbl_HeirarchyEntities.EntityNumber` : AnsiString [from connector: get_HeirarchyEntities]  _(+2 more)_
+  - relation (to-one (FK)): `tbl_HeirarchyEntities._ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 
 ### tbl_ModularForm  ·  sources: sql  ·  operations: SELECT
 - _(fields not modelled for this endpoint)_
@@ -308,6 +346,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `tbl_SignatureField.SignatureFullNameSurname` : AnsiString [from stored-procedure: dbo.prc_SignatureField_Insert]
 - `tbl_SignatureField.SignatureIDPassport` : AnsiString [from stored-procedure: dbo.prc_SignatureField_Insert]
 - `tbl_SignatureField.SignatureInitials` : AnsiString [from stored-procedure: dbo.prc_SignatureField_Insert]
+  - relation (to-one (FK)): `tbl_SignatureField.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 
 ### tblApplications  ·  sources: sql, stored-procedure  ·  operations: INSERT, SELECT, UPDATE
 - `tblApplications.ApplicationID` : Int64 [from stored-procedure: dbo.sp_Application_Create]
@@ -318,6 +357,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `tblApplications.UserCreatedID` : AnsiString [from stored-procedure: dbo.sp_Application_Create]  _(+1 more)_
 - `tblApplications.UserCreatedName` : AnsiString [from stored-procedure: dbo.sp_Application_Create]  _(+1 more)_
 - `tblApplications.WOID` : Int32 [from stored-procedure: dbo.sp_Application_Create]  _(+2 more)_
+  - relation (to-one (FK)): `tblApplications.ClientID` → `Clients` [from design model] `[AI-SUGGESTED: FK by naming convention]`
+  - relation (join): `tblApplications.WOID=WOID` → `WODFileLog` [from connector: sql_GetApplicationFile]
 > related shapes: `ApplicationDocument`, `ApplicationSteps`, `ClientApplications`, `ClientApplicationsAllocate`, `ClientApplicationsUnallocated`, `UserApplicationSetup`, `tbl_ApplicationForRMB`, `tbl_CollectionsApplication` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### tblCfgTypeItems  ·  sources: sql  ·  operations: SELECT
@@ -369,6 +410,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `User.UserMiddleName` : AnsiString [from stored-procedure: dbo.sp_User_Create]
 - `User.UserName` : AnsiString [from stored-procedure: dbo.sp_User_Create]
 - `User.UserSurname` : AnsiString [from stored-procedure: dbo.sp_User_Create]
+  - relation (to-one (FK)): `User.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `SignatoriesUserDisabled`, `UserAddress`, `UserApplicationSetup`, `UserContact`, `UserDetails` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### UserAddress  ·  sources: stored-procedure  ·  operations: INSERT
@@ -380,6 +422,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `UserAddress.ProvinceID` : Int16 [from stored-procedure: dbo.sp_UserAddress_Insert]
 - `UserAddress.Suburb` : AnsiString [from stored-procedure: dbo.sp_UserAddress_Insert]
 - `UserAddress.UserID` : Int64 [from stored-procedure: dbo.sp_UserAddress_Insert]
+  - relation (to-one (FK)): `UserAddress.UserID` → `User` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `User` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### UserApplicationSetup  ·  sources: stored-procedure  ·  operations: INSERT
@@ -392,6 +435,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `UserApplicationSetup.StartDate` : Date [from stored-procedure: dbo.sp_UserApplicationSetup_Insert]
 - `UserApplicationSetup.StartEndDateAvailable` : Boolean [from stored-procedure: dbo.sp_UserApplicationSetup_Insert]
 - `UserApplicationSetup.UserID` : Int64 [from stored-procedure: dbo.sp_UserApplicationSetup_Insert]
+  - relation (to-one (FK)): `UserApplicationSetup.UserID` → `User` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `User`, `tblApplications` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### UserContact  ·  sources: stored-procedure  ·  operations: INSERT
@@ -401,10 +445,12 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `UserContact.MobileNumber` : AnsiString [from stored-procedure: dbo.sp_UserContact_Insert]
 - `UserContact.TelephoneNumber` : AnsiString [from stored-procedure: dbo.sp_UserContact_Insert]
 - `UserContact.UserID` : Int64 [from stored-procedure: dbo.sp_UserContact_Insert]
+  - relation (to-one (FK)): `UserContact.UserID` → `User` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `User` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### UserDetails  ·  sources: stored-procedure  ·  operations: SELECT
 - `UserDetails.ApplicationID` : Int64 [from stored-procedure: dbo.sp_UserDetails_GetList]
+  - relation (to-one (FK)): `UserDetails.ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 > related shapes: `User` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
 
 ### WO  ·  sources: sql, stored-procedure  ·  operations: INSERT, UPDATE
@@ -429,6 +475,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `WO.WOTypeID_1` : Int32 [from stored-procedure: dbo.prc_WO_Insert]  _(+1 more)_
 - `WO.WOTypeID_3` : Int32 [from stored-procedure: dbo.prc_WO_update]
 - `WO.WOTypeID_3_Flag` : Int32 [from stored-procedure: dbo.prc_WO_update]
+  - relation (join): `WO.WOID=WOID` → `tblApplications` [from connector: Get_StatusCount]
 
 ### WODFileLog  ·  sources: sql  ·  operations: SELECT
 - `WODFileLog._ApplicationID` : Int64 [from connector: get_ApplicationFile]
@@ -437,6 +484,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `WODFileLog.FileName` : String [from connector: sql_GetApplicationFile]  _(+1 more)_
 - `WODFileLog.ID` : Int64 [from connector: sql_GetApplicationFile]
 - `WODFileLog.WOID` : Int32 [from connector: sql_GetApplicationFile]  _(+1 more)_
+  - relation (to-one (FK)): `WODFileLog._ApplicationID` → `tblApplications` [from design model] `[AI-SUGGESTED: FK by naming convention]`
 
 ### WOHistory  ·  sources: stored-procedure  ·  operations: INSERT
 - `WOHistory.WOActionDate_4` : AnsiString [from stored-procedure: dbo.prc_WOHistory_insert]
@@ -445,8 +493,6 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - `WOHistory.WOActionUser_5` : AnsiString [from stored-procedure: dbo.prc_WOHistory_insert]
 - `WOHistory.WOID_1` : Int32 [from stored-procedure: dbo.prc_WOHistory_insert]
 > related shapes: `History` (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`
-
-> The design model defines 369 internal data-type instances (control/result/parameter bindings); field types above are sourced from them where concrete. Full detail is in the forensic model.json.
 
 ## Tier-A — CRUD matrix
 

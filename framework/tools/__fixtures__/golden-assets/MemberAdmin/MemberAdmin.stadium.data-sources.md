@@ -4,6 +4,8 @@ app: MemberAdmin
 file_guid: 785d3104-7f1a-4d0d-9689-566e0c21295b
 designer_version: 6.14.3378.13771
 selected_package: 9edc4a95-3fde-45b4-899a-2a59d1c23452.sapz
+deployment_count: 3
+last_published: 2026-06-24 08:45:30.9660341
 extracted_from: C:\Stadium 6 Web Apps\785d3104-7f1a-4d0d-9689-566e0c21295b
 provenance: deterministic extraction from the Stadium 6 design model + administration.db
 marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lines are advisory design signals.
@@ -14,7 +16,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 
 ## Tier-A — connectors & operations
 
-### Members (Database)
+### Members — SQL
 - Connection (redacted): `Data Source=.;Initial Catalog=Members;Integrated Security=False;User ID=sa;Password=<redacted>;Trust Server Certificate=True` [from administration.db / design model]
 - **MembersSelect** (SqlQuery) — params: none [from connector: Members]
   ```sql
@@ -40,3 +42,10 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   ```sql
   DELETE FROM dbo.Members WHERE ID = @ID;
   ```
+
+## Tier-A — technology stack (NFR baseline)
+
+- Backend framework: **net8.0-windows** [from .csproj]
+- Frontend: **Vue ^3.5.22** [from package.json]
+- Data providers: `Microsoft.Data.SqlClient`, `Microsoft.EntityFrameworkCore.Sqlite`, `Oracle.ManagedDataAccess.Core`, `System.Data.Odbc` [from .csproj]
+- Notable backend capabilities: `EPPlus`, `IdentityModel.AspNetCore.OAuth2Introspection`, `Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson`, `Serilog.AspNetCore`, `Serilog.Sinks.EventLog` [from .csproj]

@@ -4,6 +4,8 @@ app: RMB_Onboarding
 file_guid: 87ea91de-6125-4686-8437-806216cb0ec0
 designer_version: 6.14.3378.13771
 selected_package: 3f1ddf96-3519-47b8-905d-b44703776f78.sapz
+deployment_count: 1
+last_published: 2026-06-30 12:19:12.1887333
 extracted_from: C:\Stadium 6 Web Apps\87ea91de-6125-4686-8437-806216cb0ec0
 provenance: deterministic extraction from the Stadium 6 design model + administration.db
 marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lines are advisory design signals.
@@ -13,13 +15,10 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 ## Tier-A — facts
 
 - App name: **RMB_Onboarding** [from design model]
-- Designer version: 6.14.3378.13771 [from design model]
 - Authentication: Cookie [from appsettings]
 - Theme: Orange [from design model]
 - Session timeout: 60 min [from design model]
-- Counts: 12 pages, 1144 controls, 6 connectors, 159 scripts, 1 roles [from design model]
-- Deployment package: 3f1ddf96-3519-47b8-905d-b44703776f78.sapz (of 1 deployments) [from administration.db]
-- Last published: 2026-06-30 12:19:12.1887333 (designer 6.14.3378.13771) [from administration.db]
+- Technology baseline: backend **net8.0-windows**, frontend **Vue ^3.5.22** (22 backend package(s), 16 frontend dep(s)) [from .csproj / package.json]
 
 ## Tier-B — inferred domain (advisory)
 - Candidate domain entities (from data operations): Administrators, ApplicationDocument, ApplicationSteps, BalanceHostToHost, BalanceSetup, BalanceStatementBankAccount, BankAccount, ClientApplications `[AI-SUGGESTED: domain inference]`

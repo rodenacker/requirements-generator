@@ -4,6 +4,8 @@ app: PaymentsApp
 file_guid: be54c8c9-dc03-43d5-bc2b-fba14e07f360
 designer_version: 6.14.3378.13771
 selected_package: 2211275f-1cb9-495c-91cf-4ff48dc4c142.sapz
+deployment_count: 1
+last_published: 2026-06-30 12:29:25.6302212
 extracted_from: C:\Stadium 6 Web Apps\be54c8c9-dc03-43d5-bc2b-fba14e07f360
 provenance: deterministic extraction from the Stadium 6 design model + administration.db
 marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lines are advisory design signals.
@@ -29,12 +31,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks "Add User" → runs the flow below
 - Sequence: SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → CallScript → SetValue → SetValue
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=PopupHeadingLabel; Value=Add User
-  - SetValue: Target=AddSaveButton; Value=True
-  - SetValue: Target=EditSaveButton; Value=False
-  - SetValue: Target=IdLabel
+  - JavaScript  `[library JS: popups]`
   - SetValue: Target=EmailTextBox
   - SetValue: Target=FirstNameTextBox
   - SetValue: Target=LastNameTextBox
@@ -45,18 +42,14 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - CallScript: ScriptToCall=LoadDropdownsAndCheckboxlists
   - SetValue: Target=BusinessUnitDepartmentsCheckBoxList; Value=false
   - SetValue: Target=BusinessUnitDepartmentsCheckBoxList; Value=false
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### UsersDataGrid.Edit.Click  [from script, surface: Users]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `UsersDataGrid` → runs the flow below
 - Sequence: Async → ExecuteConnector → SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → CallScript → SetValue → SetValue → SetValue → SetValue
   - ExecuteConnector: ConnectorFunction=UserGetById
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=AddSaveButton; Value=False
-  - SetValue: Target=EditSaveButton; Value=True
-  - SetValue: Target=PopupHeadingLabel; Value=Edit User
-  - SetValue: Target=IdLabel; Value=Id
+  - JavaScript  `[library JS: popups]`
   - SetValue: Target=EmailTextBox; Value=Email
   - SetValue: Target=FirstNameTextBox; Value=FirstName
   - SetValue: Target=LastNameTextBox; Value=LastName
@@ -65,6 +58,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - SetValue: Target=BusinessUnitDropDown; Value=BusinessUnitId
   - SetValue: Target=BusinessUnitDepartmentsCheckBoxList
   - SetValue: Target=IsAdministartorCheckBox; Value=IsAdministrator
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### UsersDataGrid.Delete.Click  [from script, surface: Users]
 - Trigger: **user-initiated**  (`.click`)
@@ -79,11 +73,10 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `UsersDataGrid` → runs the flow below
 - Sequence: SetValue → JavaScript → SetValue → ExecuteConnector → SetValue
-  - SetValue: Target=ModalBackgroundContainerViewAssignedApprovalLevels; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=PopupHeadingLabelViewAssignedApprovalLevels; Value=FirstName
+  - JavaScript  `[library JS: popups]`
   - ExecuteConnector: ConnectorFunction=UserApprovalLevelGetListByUserId
   - SetValue: Target=Data
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### UsersDataGrid.AssignApprovalLevels.Click  [from script, surface: Users]
 - Trigger: **user-initiated**  (`.click`)
@@ -98,8 +91,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - ExecuteConnector: ConnectorFunction=BusinessUnitDepartmentGetListById
   - SetValue: Target=Options
   - SetValue: Target=BusinessUnitDepartmentsCheckBoxList; Value=[]
-  - SetValue: Target=BusinessUnitDepartmentsLabel; Value=true
   - SetValue: Target=BusinessUnitDepartmentsCheckBoxList; Value=true
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### CancelButton.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -135,40 +128,32 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks "Cancel" → runs the flow below
 - Sequence: SetValue → CallScript
-  - SetValue: Target=ModalBackgroundContainerViewAssignedApprovalLevels; Value=False
   - CallScript: ScriptToCall=RefreshUsers
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### AddCostCentreButton.Click  [from script, surface: CostCentres]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `AddCostCentreButton` → runs the flow below
 - Sequence: SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → CallScript → SetValue
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=PopupHeadingLabel; Value=Add Cost Centre
-  - SetValue: Target=AddSaveButton; Value=True
-  - SetValue: Target=EditSaveButton; Value=False
-  - SetValue: Target=IdLabel
+  - JavaScript  `[library JS: popups]`
   - SetValue: Target=NameTextBox
   - SetValue: Target=DescriptionTextBox
   - CallScript: ScriptToCall=LoadBusinessUnitDropDownOptionsBusinessUnitDepartmentOptions
   - SetValue: Target=BusinessUnitDropDown
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### CostCentreDataGrid.Edit.Click  [from script, surface: CostCentres]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `CostCentreDataGrid` → runs the flow below
 - Sequence: Async → ExecuteConnector → SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → CallScript → SetValue → SetValue
   - ExecuteConnector: ConnectorFunction=CostCentreGetById
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=AddSaveButton; Value=False
-  - SetValue: Target=EditSaveButton; Value=True
-  - SetValue: Target=PopupHeadingLabel; Value=Edit Cost Centre
-  - SetValue: Target=IdLabel; Value=Id
+  - JavaScript  `[library JS: popups]`
   - SetValue: Target=NameTextBox; Value=Name
   - SetValue: Target=DescriptionTextBox; Value=Description
   - CallScript: ScriptToCall=LoadBusinessUnitDropDownOptionsBusinessUnitDepartmentOptions
   - SetValue: Target=BusinessUnitDropDown; Value=BusinessUnitId
   - SetValue: Target=BusinessUnitDepartmentsCheckBoxList
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### CostCentreDataGrid.Delete.Click  [from script, surface: CostCentres]
 - Trigger: **user-initiated**  (`.click`)
@@ -187,8 +172,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - ExecuteConnector: ConnectorFunction=BusinessUnitDepartmentGetListById
   - SetValue: Target=Options
   - SetValue: Target=BusinessUnitDepartmentsCheckBoxList; Value=[]
-  - SetValue: Target=BusinessUnitDepartmentsLabel; Value=true
   - SetValue: Target=BusinessUnitDepartmentsCheckBoxList; Value=true
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### CancelButton.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -224,34 +209,26 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `AddBusinessUnitButton` → runs the flow below
 - Sequence: SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → CallScript → SetValue
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=PopupHeadingLabel; Value=Add Business Unit
-  - SetValue: Target=AddSaveButton; Value=True
-  - SetValue: Target=EditSaveButton; Value=False
-  - SetValue: Target=IdLabel
+  - JavaScript  `[library JS: popups]`
   - SetValue: Target=NameTextBox
   - SetValue: Target=DescriptionTextBox
   - SetValue: Target=CodeTextBox
   - CallScript: ScriptToCall=LoadDepartmentCheckboxListOptions
   - SetValue: Target=DepartmentsCheckBoxList; Value=[]
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### BusinessUnitDataGrid.Edit.Click  [from script, surface: BusinessUnits]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `BusinessUnitDataGrid` → runs the flow below
 - Sequence: Async → ExecuteConnector → SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → CallScript → SetValue
   - ExecuteConnector: ConnectorFunction=BusinessUnitGetById
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=AddSaveButton; Value=False
-  - SetValue: Target=EditSaveButton; Value=True
-  - SetValue: Target=PopupHeadingLabel; Value='Edit Business Unit '
-  - SetValue: Target=IdLabel; Value=Id
+  - JavaScript  `[library JS: popups]`
   - SetValue: Target=NameTextBox; Value=Name
   - SetValue: Target=DescriptionTextBox; Value=Description
   - SetValue: Target=CodeTextBox; Value=Code
   - CallScript: ScriptToCall=LoadDepartmentCheckboxListOptions
   - SetValue: Target=DepartmentsCheckBoxList
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### BusinessUnitDataGrid.Delete.Click  [from script, surface: BusinessUnits]
 - Trigger: **user-initiated**  (`.click`)
@@ -293,32 +270,23 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `AddBeneficiaryButton` → runs the flow below
 - Sequence: SetValue → JavaScript → SetValue → SetValue → SetValue → CallScript → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=PopupHeadingLabel; Value=Add Beneficiary
-  - SetValue: Target=AddSaveButton; Value=True
-  - SetValue: Target=EditSaveButton; Value=False
+  - JavaScript  `[library JS: popups]`
   - CallScript: ScriptToCall=LoadBusinessUnitDropDownOptionsBusinessUnitDepartmentOptions
   - SetValue: Target=BankDropDown
   - SetValue: Target=AccountTypeDropDown
   - SetValue: Target=BusinessUnitDropDown
-  - SetValue: Target=IdLabel
   - SetValue: Target=NameTextBox
   - SetValue: Target=AccountNameTextBox
   - SetValue: Target=AccountNumberTextBox
   - SetValue: Target=IbanTextBox
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### BeneficiaryDataGrid.Edit.Click  [from script, surface: Beneficiaries]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `BeneficiaryDataGrid` → runs the flow below
 - Sequence: Async → ExecuteConnector → SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → CallScript → SetValue → SetValue → SetValue → SetValue
   - ExecuteConnector: ConnectorFunction=BeneficiaryGetById
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=AddSaveButton; Value=False
-  - SetValue: Target=EditSaveButton; Value=True
-  - SetValue: Target=PopupHeadingLabel; Value=Edit Beneficiary
-  - SetValue: Target=IdLabel; Value=Id
+  - JavaScript  `[library JS: popups]`
   - SetValue: Target=NameTextBox; Value=Name
   - SetValue: Target=AccountNameTextBox; Value=AccountName
   - SetValue: Target=AccountNumberTextBox; Value=AccountNumber
@@ -328,6 +296,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - SetValue: Target=AccountTypeDropDown; Value=BankAccountTypeId
   - SetValue: Target=BusinessUnitDropDown; Value=BusinessUnitId
   - SetValue: Target=BusinessUnitDepartmentsCheckBoxList
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### BeneficiaryDataGrid.Delete.Click  [from script, surface: Beneficiaries]
 - Trigger: **user-initiated**  (`.click`)
@@ -346,8 +315,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - ExecuteConnector: ConnectorFunction=BusinessUnitDepartmentGetListById
   - SetValue: Target=Options
   - SetValue: Target=BusinessUnitDepartmentsCheckBoxList; Value=[]
-  - SetValue: Target=BusinessUnitDepartmentsLabel; Value=true
   - SetValue: Target=BusinessUnitDepartmentsCheckBoxList; Value=true
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### CancelButton.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -383,30 +352,22 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `AddBankButton` → runs the flow below
 - Sequence: SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=PopupHeadingLabel; Value=Add Bank
-  - SetValue: Target=AddSaveButton; Value=True
-  - SetValue: Target=EditSaveButton; Value=False
-  - SetValue: Target=IdLabel
+  - JavaScript  `[library JS: popups]`
   - SetValue: Target=NameTextBox
   - SetValue: Target=UniversalBranchCodeTextBox
   - SetValue: Target=UniversalSwiftCodeTextBox
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### BankDataGrid.Edit.Click  [from script, surface: Banks]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `BankDataGrid` → runs the flow below
 - Sequence: Async → ExecuteConnector → SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue
   - ExecuteConnector: ConnectorFunction=BankGetById
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=AddSaveButton; Value=False
-  - SetValue: Target=EditSaveButton; Value=True
-  - SetValue: Target=PopupHeadingLabel; Value=Edit Bank
-  - SetValue: Target=IdLabel; Value=Id
+  - JavaScript  `[library JS: popups]`
   - SetValue: Target=NameTextBox; Value=Name
   - SetValue: Target=UniversalBranchCodeTextBox; Value=UniversalBranchCode
   - SetValue: Target=UniversalSwiftCodeTextBox; Value=UniversalSwiftCode
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### BankDataGrid.Delete.Click  [from script, surface: Banks]
 - Trigger: **user-initiated**  (`.click`)
@@ -448,12 +409,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `AddBankAccountButton` → runs the flow below
 - Sequence: SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → Async → ExecuteConnector → SetValue → Async → ExecuteConnector → SetValue → Async → ExecuteConnector → SetValue → SetValue → SetValue → SetValue
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=PopupHeadingLabel; Value=Add Bank Account
-  - SetValue: Target=AddSaveButton; Value=True
-  - SetValue: Target=EditSaveButton; Value=False
-  - SetValue: Target=IdLabel
+  - JavaScript  `[library JS: popups]`
   - SetValue: Target=AccountNameTextBox
   - SetValue: Target=AccountNumberTextBox
   - SetValue: Target=IbanTextBox
@@ -466,18 +422,14 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - SetValue: Target=AccountTypeDropDown
   - SetValue: Target=BankDropDown
   - SetValue: Target=BusinessUnitDropDown
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### BankAccountDataGrid.Edit.Click  [from script, surface: BankAccounts]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `BankAccountDataGrid` → runs the flow below
 - Sequence: Async → ExecuteConnector → SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → Async → ExecuteConnector → SetValue → Async → ExecuteConnector → SetValue → Async → ExecuteConnector → SetValue → SetValue → SetValue → SetValue
   - ExecuteConnector: ConnectorFunction=BankAccountGetById
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=AddSaveButton; Value=False
-  - SetValue: Target=EditSaveButton; Value=True
-  - SetValue: Target=PopupHeadingLabel; Value='Edit Bank Account '
-  - SetValue: Target=IdLabel; Value=Id
+  - JavaScript  `[library JS: popups]`
   - SetValue: Target=AccountNameTextBox; Value=AccountName
   - SetValue: Target=AccountNumberTextBox; Value=AccountNumber
   - SetValue: Target=IbanTextBox; Value=Iban
@@ -490,6 +442,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - SetValue: Target=AccountTypeDropDown; Value=BankAccountTypeId
   - SetValue: Target=BankDropDown; Value=BankId
   - SetValue: Target=BusinessUnitDropDown; Value=BusinessUnitId
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### BankAccountDataGrid.Delete.Click  [from script, surface: BankAccounts]
 - Trigger: **user-initiated**  (`.click`)
@@ -532,11 +485,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `AddBankPaymentSetupButton` → runs the flow below
 - Sequence: SetValue → JavaScript → SetValue → SetValue → SetValue → ExecuteConnector → SetValue → SetValue → ExecuteConnector → SetValue → SetValue → ExecuteConnector → SetValue → SetValue → ExecuteConnector → SetValue → SetValue → ExecuteConnector → SetValue → SetValue → SetValue → SetValue
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=PopupHeadingLabel; Value=Add Bank Payment Setup
-  - SetValue: Target=AddSaveButton; Value=True
-  - SetValue: Target=EditSaveButton; Value=False
+  - JavaScript  `[library JS: popups]`
   - ExecuteConnector: ConnectorFunction=BankGetList
   - SetValue: Target=Options
   - SetValue: Target=BankDropDown
@@ -554,17 +503,14 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - SetValue: Target=ChargeBearerDropDown
   - SetValue: Target=CutOffTimeTextBox
   - SetValue: Target=ApiEnabledCheckBox
+  - _(+4 UI-state SetValue(s) folded into the state-signals section)_
 
 #### BankPaymentSetupDataGrid.Edit.Click  [from script, surface: BankPaymentSetup]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `BankPaymentSetupDataGrid` → runs the flow below
 - Sequence: Async → ExecuteConnector → SetValue → JavaScript → SetValue → SetValue → SetValue → ExecuteConnector → SetValue → SetValue → ExecuteConnector → SetValue → SetValue → ExecuteConnector → SetValue → SetValue → ExecuteConnector → SetValue → SetValue → ExecuteConnector → SetValue → SetValue → SetValue → SetValue → SetValue
   - ExecuteConnector: ConnectorFunction=BankPaymentSetupGetById
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=AddSaveButton; Value=False
-  - SetValue: Target=EditSaveButton; Value=True
-  - SetValue: Target=PopupHeadingLabel; Value=Edit Bank Payment Setup
+  - JavaScript  `[library JS: popups]`
   - ExecuteConnector: ConnectorFunction=BankGetList
   - SetValue: Target=Options
   - SetValue: Target=BankDropDown; Value=BankId
@@ -582,7 +528,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - SetValue: Target=ChargeBearerDropDown; Value=ChargeBearerId
   - SetValue: Target=CutOffTimeTextBox; Value=CutOffTime
   - SetValue: Target=ApiEnabledCheckBox; Value=ApiEnabled
-  - SetValue: Target=IdLabel; Value=Id
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### BankPaymentSetupDataGrid.Delete.Click  [from script, surface: BankPaymentSetup]
 - Trigger: **user-initiated**  (`.click`)
@@ -625,27 +571,20 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `AddDepartmentButton` → runs the flow below
 - Sequence: SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → SetValue
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=PopupHeadingLabel; Value=Add Department Setup
-  - SetValue: Target=AddSaveButton; Value=True
-  - SetValue: Target=EditSaveButton; Value=False
+  - JavaScript  `[library JS: popups]`
   - SetValue: Target=NameTextBox
   - SetValue: Target=DescriptionTextBox
+  - _(+4 UI-state SetValue(s) folded into the state-signals section)_
 
 #### DepartmentDataGrid.Edit.Click  [from script, surface: Department]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `DepartmentDataGrid` → runs the flow below
 - Sequence: Async → ExecuteConnector → SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue
   - ExecuteConnector: ConnectorFunction=DepartmentGetById
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=AddSaveButton; Value=False
-  - SetValue: Target=EditSaveButton; Value=True
-  - SetValue: Target=PopupHeadingLabel; Value=Edit Department Setup
+  - JavaScript  `[library JS: popups]`
   - SetValue: Target=NameTextBox; Value=Name
   - SetValue: Target=DescriptionTextBox; Value=Description
-  - SetValue: Target=IdLabel; Value=Id
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### DepartmentDataGrid.Delete.Click  [from script, surface: Department]
 - Trigger: **user-initiated**  (`.click`)
@@ -691,29 +630,22 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `AddPaymentReasonButton` → runs the flow below
 - Sequence: SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=PopupHeadingLabel; Value=Add Payment Reason
-  - SetValue: Target=AddSaveButton; Value=True
-  - SetValue: Target=EditSaveButton; Value=False
+  - JavaScript  `[library JS: popups]`
   - SetValue: Target=NameTextBox
   - SetValue: Target=DescriptionTextBox
   - SetValue: Target=CodeTextBox
+  - _(+4 UI-state SetValue(s) folded into the state-signals section)_
 
 #### PaymentReasonDataGrid.Edit.Click  [from script, surface: PaymentReason]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `PaymentReasonDataGrid` → runs the flow below
 - Sequence: Async → ExecuteConnector → SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue
   - ExecuteConnector: ConnectorFunction=PaymentReasonGetById
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=AddSaveButton; Value=False
-  - SetValue: Target=EditSaveButton; Value=True
-  - SetValue: Target=PopupHeadingLabel; Value=Edit Payment Reason
+  - JavaScript  `[library JS: popups]`
   - SetValue: Target=NameTextBox; Value=Name
   - SetValue: Target=DescriptionTextBox; Value=Description
-  - SetValue: Target=IdLabel; Value=Id
   - SetValue: Target=CodeTextBox; Value=Code
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### PaymentReasonDataGrid.Delete.Click  [from script, surface: PaymentReason]
 - Trigger: **user-initiated**  (`.click`)
@@ -802,12 +734,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `AddPaymentSetupButton` → runs the flow below
 - Sequence: SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → Async → ExecuteConnector → SetValue → Async → ExecuteConnector → SetValue → Async → ExecuteConnector → SetValue → Async → ExecuteConnector → SetValue → Async → ExecuteConnector → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=PopupHeadingLabel; Value=Add Payment Setup
-  - SetValue: Target=AddSaveButton; Value=True
-  - SetValue: Target=EditSaveButton; Value=False
-  - SetValue: Target=IdLabel
+  - JavaScript  `[library JS: popups]`
   - ExecuteConnector: ConnectorFunction=BusinessUnitGetList
   - SetValue: Target=Options
   - ExecuteConnector: ConnectorFunction=TransactionTypeGetList
@@ -823,18 +750,14 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - SetValue: Target=PaymentReasonDropDown
   - SetValue: Target=BankAccountDropDown
   - SetValue: Target=BusinessUnitDropDown
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### PaymentSetupDataGrid.Edit.Click  [from script, surface: PaymentSetup]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `PaymentSetupDataGrid` → runs the flow below
 - Sequence: Async → ExecuteConnector → SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → ExecuteConnector → SetValue → SetValue → ExecuteConnector → SetValue → SetValue → ExecuteConnector → SetValue → SetValue → ExecuteConnector → SetValue → SetValue → ExecuteConnector → SetValue → SetValue → Async → ExecuteConnector → SetValue → SetValue → SetValue → SetValue
   - ExecuteConnector: ConnectorFunction=PaymentSetupGetById
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=AddSaveButton; Value=False
-  - SetValue: Target=EditSaveButton; Value=True
-  - SetValue: Target=PopupHeadingLabel; Value=Edit Payment Setup
-  - SetValue: Target=IdLabel; Value=Id
+  - JavaScript  `[library JS: popups]`
   - ExecuteConnector: ConnectorFunction=BusinessUnitGetList
   - SetValue: Target=Options
   - SetValue: Target=BusinessUnitDropDown; Value=BusinessUnitId
@@ -854,7 +777,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - SetValue: Target=Options
   - SetValue: Target=DepartmentDropDown; Value=BusinessUnitDepartmentId
   - SetValue: Target=DepartmentDropDown; Value=True
-  - SetValue: Target=DepartmentLabel; Value=True
+  - _(+6 UI-state SetValue(s) folded into the state-signals section)_
 
 #### PaymentSetupDataGrid.Delete.Click  [from script, surface: PaymentSetup]
 - Trigger: **user-initiated**  (`.click`)
@@ -871,11 +794,11 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.change`)
 - User changes `BusinessUnitDropDown` → runs the flow below
 - Sequence: SetValue → SetValue → Async → ExecuteConnector → SetValue → SetValue
-  - SetValue: Target=DepartmentLabel; Value=True
   - SetValue: Target=DepartmentDropDown; Value=True
   - ExecuteConnector: ConnectorFunction=BusinessUnitDepartmentGetListById
   - SetValue: Target=Options
   - SetValue: Target=DepartmentDropDown
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### CancelButton.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -1001,12 +924,12 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
       - **Decision**
         - IF `MessageType == Success` →
           - Notification: Message=Transaction progress saved
-          - SetValue: Target=TrackingNumberValue; Value=Id
     - ELSE →
       - Async
       - **Decision**
         - IF `MessageType == Success` →
           - Notification: Message=Transaction progress saved
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### NextButton.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -1092,8 +1015,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `WhitelistedBeneficiaryDataGrid` → runs the flow below
 - Sequence: SetValue → Notification
-  - SetValue: Target=SelectedDatagridRowIdLabel; Value=Id
   - Notification: Message=Name
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### BackButton.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -1158,24 +1081,17 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks "Add Note" → runs the flow below
 - Sequence: SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=PopupHeadingLabel; Value=Add Note
-  - SetValue: Target=NoteAddSaveButton; Value=True
-  - SetValue: Target=NoteEditSaveButton; Value=False
+  - JavaScript  `[library JS: popups]`
   - SetValue: Target=NoteTextBox
+  - _(+4 UI-state SetValue(s) folded into the state-signals section)_
 
 #### NoteDataGrid.Edit.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `NoteDataGrid` → runs the flow below
 - Sequence: SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → SetValue
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=NoteAddSaveButton; Value=False
-  - SetValue: Target=NoteEditSaveButton; Value=True
-  - SetValue: Target=PopupHeadingLabel; Value=Edit Notes
+  - JavaScript  `[library JS: popups]`
   - SetValue: Target=NoteTextBox; Value=Note
-  - SetValue: Target=IdLabel; Value=Id
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### NoteDataGrid.Delete.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -1221,20 +1137,20 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks "Proceed" → runs the flow below
 - Sequence: SetValue → JavaScript → NavigateToPage
-  - SetValue: Target=ModalBackgroundContainerDuplicate; Value=False
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[library JS: popups]`
   - NavigateToPage: Destination=AttachmentsAndNotes / TrackingNumber
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### CancelDuplicateTransactionButton.Click  [from script, surface: AttachmentsAndNotes]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks "Cancel" → runs the flow below
 - Sequence: SetValue → JavaScript → DisplayMessageBox → ExecuteConnector → NavigateToPage → NavigateToPage
-  - SetValue: Target=ModalBackgroundContainerDuplicate; Value=False
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[library JS: popups]`
   - DisplayMessageBox: Message='Are you sure you want to cancel the payment capture ?'
   - ExecuteConnector: ConnectorFunction=TransactionDelete
   - NavigateToPage: Destination=TransactionCoding
   - NavigateToPage: Destination=AttachmentsAndNotes / TrackingNumber
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### BackButton.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -1283,29 +1199,20 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - User clicks `AddApprovalLevelButton` → runs the flow below
 - Sequence: CallScript → SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → CallScript → ObjectInstance → CallScript
   - CallScript: ScriptToCall=PageLoader
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=PopupHeadingLabel; Value='Add Approval Level'
-  - SetValue: Target=AmountDescriptionLabel; Value=True
-  - SetValue: Target=CreateApprovalLevelButton; Value=True
-  - SetValue: Target=EditSaveApprovalLevelButton; Value=False
+  - JavaScript  `[library JS: popups]`
   - SetValue: Target=BusinessUnitDropDown
   - SetValue: Target=DepartmentDropDown
   - SetValue: Target=TransactionTypeDropDown
   - CallScript: ScriptToCall=LoadDropDowns
   - CallScript: ScriptToCall=InitialiseDataList
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### ApprovalLevelDataGrid.Edit.Click  [from script, surface: ApprovalLevels]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `ApprovalLevelDataGrid` → runs the flow below
 - Sequence: CallScript → SetValue → JavaScript → SetValue → SetValue → SetValue → SetValue → CallScript → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → SetValue → ExecuteConnector → ObjectInstance → List → ForEach → CallScript → SetValue → List → CallScript
   - CallScript: ScriptToCall=PageLoader
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=PopupHeadingLabel; Value='Edit Approval Level Amounts'
-  - SetValue: Target=AmountDescriptionLabel; Value=False
-  - SetValue: Target=CreateApprovalLevelButton; Value=False
-  - SetValue: Target=EditSaveApprovalLevelButton; Value=True
+  - JavaScript  `[library JS: popups]`
   - CallScript: ScriptToCall=LoadDropDowns
   - SetValue: Target=BusinessUnitDropDown; Value=BusinessUnitId
   - SetValue: Target=DepartmentDropDown; Value=DepartmentId
@@ -1313,7 +1220,6 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - SetValue: Target=BusinessUnitDropDown; Value=True
   - SetValue: Target=DepartmentDropDown; Value=True
   - SetValue: Target=TransactionTypeDropDown; Value=True
-  - SetValue: Target=DepartmentLabel; Value=True
   - SetValue: Target=DepartmentDropDown; Value=True
   - ExecuteConnector: ConnectorFunction=ApprovalLevelAmountGetList
   - List: Value=[
@@ -1350,6 +1256,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
  "header": "Max Approval Amount (only digits)"
 }}]
   - CallScript: ScriptToCall=ClientSideRepeaterDataGrid
+  - _(+6 UI-state SetValue(s) folded into the state-signals section)_
 
 #### ApprovalLevelDataGrid.Delete.Click  [from script, surface: ApprovalLevels]
 - Trigger: **user-initiated**  (`.click`)
@@ -1364,10 +1271,9 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `ApprovalLevelDataGrid` → runs the flow below
 - Sequence: SetValue → JavaScript → SetValue → CallScript
-  - SetValue: Target=ModalBackgroundContainerViewApprovalLevelAmounts; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=PopupHeadingLabelViewApprovalLevelAmounts; Value=BusinessUnit / Department / TransactionType
+  - JavaScript  `[library JS: popups]`
   - CallScript: ScriptToCall=RefreshApprovalLevelAmountDatagrid
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### BusinessUnitDropDown.Change  [from script, surface: app]
 - Trigger: **user-initiated**  (`.change`)
@@ -1376,8 +1282,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - ExecuteConnector: ConnectorFunction=BusinessUnitDepartmentGetListById
   - SetValue: Target=Options
   - SetValue: Target=DepartmentDropDown
-  - SetValue: Target=DepartmentLabel; Value=true
   - SetValue: Target=DepartmentDropDown; Value=true
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### CancelButton.Click  [from script, surface: app]
 - Trigger: **user-initiated**  (`.click`)
@@ -1417,17 +1323,16 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks "Cancel" → runs the flow below
 - Sequence: SetValue → CallScript
-  - SetValue: Target=ModalBackgroundContainerViewApprovalLevelAmounts; Value=False
   - CallScript: ScriptToCall=RefreshApprovalLevels
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### ParentDataGrid.MaxApprovalAmounts.Click  [from script, surface: UserApprovalLevels]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `ParentDataGrid` → runs the flow below
 - Sequence: SetValue → JavaScript → SetValue → CallScript
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=PopupHeadingLabel; Value=BusinessUnit / Department / TransactionType
+  - JavaScript  `[library JS: popups]`
   - CallScript: ScriptToCall=RefreshChildDataGrid
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### BackToUsersPageLink.Click  [from script, surface: UserApprovalLevels]
 - Trigger: **user-initiated**  (`.click`)
@@ -1461,25 +1366,22 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks "Cancel" → runs the flow below
 - Sequence: SetValue
-  - SetValue: Target=ModalBackgroundContainer; Value=False
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### ApprovalLevelRulesDataGrid.ViewApprovalLevelRules.Click  [from script, surface: ApprovalLevelRules]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `ApprovalLevelRulesDataGrid` → runs the flow below
 - Sequence: SetValue → JavaScript → SetValue → ExecuteConnector → SetValue
-  - SetValue: Target=ModalBackgroundContainerViewApprovalLevelRules; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=PopupHeadingViewApprovalLevelRules; Value=BusinessUnit / Department / TransactionType
+  - JavaScript  `[library JS: popups]`
   - ExecuteConnector: ConnectorFunction=ApprovalLevelRuleGetList
   - SetValue: Target=Data
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### ApprovalLevelRulesDataGrid.EditApprovalLevelRules.Click  [from script, surface: ApprovalLevelRules]
 - Trigger: **user-initiated**  (`.click`)
 - User clicks `ApprovalLevelRulesDataGrid` → runs the flow below
 - Sequence: SetValue → JavaScript → SetValue → ObjectInstance → List → ExecuteConnector → CallScript
-  - SetValue: Target=ModalBackgroundContainer; Value=True
-  - JavaScript  `[opaque: custom JS]`
-  - SetValue: Target=PopupHeading; Value=BusinessUnit / Department / TransactionType
+  - JavaScript  `[library JS: popups]`
   - List: Value=[{{
  "name": "ApprovalLevelId",
  "header": "ApprovalLevelId",
@@ -1497,6 +1399,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
  "name":
   - ExecuteConnector: ConnectorFunction=ApprovalLevelRuleGetList
   - CallScript: ScriptToCall=ClientSideRepeaterDataGrid
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### EditCancelButton.Click  [from script, surface: ApprovalLevelRules]
 - Trigger: **user-initiated**  (`.click`)
@@ -1524,7 +1427,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **user-initiated**  (`.click`)
 - User clicks "Cancel" → runs the flow below
 - Sequence: SetValue
-  - SetValue: Target=ModalBackgroundContainerViewApprovalLevelRules; Value=False
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 ### Automatic — on page / template open
 
@@ -1586,9 +1489,9 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - ExecuteConnector: ConnectorFunction=TransactionGetList
   - ExecuteConnector: ConnectorFunction=TransactionTypeGetList
   - ExecuteConnector: ConnectorFunction=BusinessUnitGetList
-  - SetValue: Target=DataLabel; Value=Transactions
   - List: Value=Transactions / TransactionTypes / BusinessUnits
   - CallScript: ScriptToCall=GenerateFilters
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### PaymentDetails.Load  [from script, surface: PaymentDetails]
 - Trigger: **automatic-on-open**  (`.load`)
@@ -1597,17 +1500,9 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - ExecuteConnector: ConnectorFunction=TransactionGetById
   - ExecuteConnector: ConnectorFunction=TransactionNoteGetList
   - ExecuteConnector: ConnectorFunction=TransactionSupportingDocumentGetList
-  - SetValue: Target=AmountValueLabel; Value=Amount
-  - SetValue: Target=BeneficiaryValueLabel; Value=BeneficiaryName
-  - SetValue: Target=RequestedByValueLabel; Value=RequestedBy
-  - SetValue: Target=StatusValueLabel; Value=Status
-  - SetValue: Target=BankPaymentMethodValueLabel; Value=BankPaymentMethod
-  - SetValue: Target=PaymentReferenceValueLabel; Value=PaymentReference
-  - SetValue: Target=TransactionTypeValueLabel; Value=TransactionType
-  - SetValue: Target=BusinessUnitValueLabel; Value=BusinessUnit
-  - SetValue: Target=DateCreatedValueLabel; Value=DateCreated
   - SetValue: Target=Data
   - SetValue: Target=Data
+  - _(+9 UI-state SetValue(s) folded into the state-signals section)_
 
 #### PaymentSetup.Load  [from script, surface: PaymentSetup]
 - Trigger: **automatic-on-open**  (`.load`)
@@ -1623,7 +1518,6 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - Trigger: **automatic-on-open**  (`.load`)
 - Sequence: SetValue → List → CallScript → Decision → IfPath → CallScript → CallScript → CallScript → CallScript → CallScript
 - Flow (branch-structured):
-  - SetValue: Target=TrackingNumberValue; Value=TrackingNumber
   - List
   - CallScript: ScriptToCall=WorkflowSteps
   - **Decision** *(has else)*
@@ -1634,6 +1528,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
       - CallScript: ScriptToCall=PopulateDropdownsExistingEntry
       - CallScript: ScriptToCall=SelectDropdowns
       - CallScript: ScriptToCall=ReadOnlyFields
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### PaymentsDetails.Load  [from script, surface: PaymentsDetails]
 - Trigger: **automatic-on-open**  (`.load`)
@@ -1675,23 +1570,11 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - ExecuteConnector: ConnectorFunction=DuplicateTransactionGetList
   - **Decision** *(has else)*
     - IF `Transactions != 0` →
-      - SetValue: Target=ModalBackgroundContainerDuplicate; Value=True
-      - JavaScript  `[opaque: custom JS]`
+      - JavaScript  `[library JS: popups]`
       - SetValue: Target=Data
       - ExecuteConnector: ConnectorFunction=TransactionGetById
-      - SetValue: Target=BusinessUnitValueLabel; Value=BusinessUnit
-      - SetValue: Target=DepartmentValueLabel; Value=Department
-      - SetValue: Target=TransactionTypeValueLabel; Value=TransactionType
-      - SetValue: Target=PaymentReferenceValueLabel; Value=Amount
-      - SetValue: Target=CurrencyValueLabel; Value=Currency
-      - SetValue: Target=ExecutionDateValueLabel; Value=ExecutionDate
-      - SetValue: Target=BankAccountValueLabel; Value=BankAccount / BankAccountNumber
-      - SetValue: Target=AmountValueLabel; Value=Amount
-      - SetValue: Target=PaymentReasonValueLabel; Value=PaymentReason
-      - SetValue: Target=BeneficiaryNameValueLabel; Value=BeneficiaryName
-      - SetValue: Target=BeneficiarySortCodeValueLabel; Value=BeneficiarySortCode
-      - SetValue: Target=BeneficiaryAccountNumberValueLabel; Value=BeneficiaryAccountNumber
     - ELSE →
+  - _(+13 UI-state SetValue(s) folded into the state-signals section)_
 
 #### Review.Load  [from script, surface: Review]
 - Trigger: **automatic-on-open**  (`.load`)
@@ -1703,26 +1586,12 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   - **Decision** *(has else)*
     - IF `BeneficiaryId != 0` →
       - ExecuteConnector: ConnectorFunction=BeneficiaryGetById
-      - SetValue: Target=TypeValueLabel; Value=Whitelisted
-      - SetValue: Target=BankLabel; Value=True
-      - SetValue: Target=BankValueLabel; Value=True
-      - SetValue: Target=BankValueLabel; Value=BankName
     - ELSE →
-      - SetValue: Target=TypeValueLabel; Value=Adhoc
   - ExecuteConnector: ConnectorFunction=TransactionSupportingDocumentGetList
   - ExecuteConnector: ConnectorFunction=TransactionNoteGetList
-  - SetValue: Target=AmountValueLabel; Value=Amount
-  - SetValue: Target=PaymentMethodValueLabel; Value=BankPaymentMethod
-  - SetValue: Target=ExecutionDateValueLabel; Value=ExecutionDate
-  - SetValue: Target=PaymentReferenceValueLabel; Value=PaymentReference
-  - SetValue: Target=BusinessUnitValueLabel; Value=BusinessUnit
-  - SetValue: Target=TransactionTypeValueLabel; Value=TransactionType
-  - SetValue: Target=CostCentreValueLabel; Value=CostCentre
-  - SetValue: Target=PayFromAccountValueLabel; Value=BankAccount / BankAccountNumber
-  - SetValue: Target=NameValueLabel; Value=BeneficiaryName
-  - SetValue: Target=PayToAccountValueLabel; Value=BeneficiaryAccountNumber
   - SetValue: Target=Data
   - SetValue: Target=Data
+  - _(+15 UI-state SetValue(s) folded into the state-signals section)_
 
 #### ApprovalLevels.Load  [from script, surface: ApprovalLevels]
 - Trigger: **automatic-on-open**  (`.load`)
@@ -1757,8 +1626,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### DismissPopup  [from script, surface: Users]
 - Trigger: **other (helper script)**
 - Sequence: SetValue → CallScript
-  - SetValue: Target=ModalBackgroundContainer; Value=False
   - CallScript: ScriptToCall=RefreshUsers
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### LoadDropdownsAndCheckboxlists  [from script, surface: Users]
 - Trigger: **other (helper script)**
@@ -1772,11 +1641,10 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
     - IF `BusinessUnitId != ?` →
       - Async
       - SetValue: Target=Options
-      - SetValue: Target=BusinessUnitDepartmentsLabel; Value=true
       - SetValue: Target=BusinessUnitDepartmentsCheckBoxList; Value=true
     - ELSE →
-      - SetValue: Target=BusinessUnitDepartmentsLabel; Value=false
       - SetValue: Target=BusinessUnitDepartmentsCheckBoxList; Value=false
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### RefreshCostCentre  [from script, surface: CostCentres]
 - Trigger: **other (helper script)**
@@ -1787,8 +1655,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### DismissPopup  [from script, surface: CostCentres]
 - Trigger: **other (helper script)**
 - Sequence: SetValue → CallScript
-  - SetValue: Target=ModalBackgroundContainer; Value=False
   - CallScript: ScriptToCall=RefreshCostCentre
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### LoadBusinessUnitDropDownOptionsBusinessUnitDepartmentOptions  [from script, surface: CostCentres]
 - Trigger: **other (helper script)**
@@ -1800,11 +1668,10 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
     - IF `BusinessUnitId != ?` →
       - Async
       - SetValue: Target=Options
-      - SetValue: Target=BusinessUnitDepartmentsLabel; Value=true
       - SetValue: Target=BusinessUnitDepartmentsCheckBoxList; Value=true
     - ELSE →
-      - SetValue: Target=BusinessUnitDepartmentsLabel; Value=false
       - SetValue: Target=BusinessUnitDepartmentsCheckBoxList; Value=false
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### RefreshBusinessUnits  [from script, surface: BusinessUnits]
 - Trigger: **other (helper script)**
@@ -1815,8 +1682,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### DismissPopup  [from script, surface: BusinessUnits]
 - Trigger: **other (helper script)**
 - Sequence: SetValue → CallScript
-  - SetValue: Target=ModalBackgroundContainer; Value=False
   - CallScript: ScriptToCall=RefreshBusinessUnits
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### LoadDepartmentCheckboxListOptions  [from script, surface: BusinessUnits]
 - Trigger: **other (helper script)**
@@ -1833,8 +1700,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### DismissPopup  [from script, surface: Beneficiaries]
 - Trigger: **other (helper script)**
 - Sequence: SetValue → CallScript
-  - SetValue: Target=ModalBackgroundContainer; Value=False
   - CallScript: ScriptToCall=RefreshBeneficiary
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### LoadBusinessUnitDropDownOptionsBusinessUnitDepartmentOptions  [from script, surface: Beneficiaries]
 - Trigger: **other (helper script)**
@@ -1846,15 +1713,14 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
     - IF `BusinessUnitId != ?` →
       - Async
       - SetValue: Target=Options
-      - SetValue: Target=BusinessUnitDepartmentsLabel; Value=true
       - SetValue: Target=BusinessUnitDepartmentsCheckBoxList; Value=true
     - ELSE →
-      - SetValue: Target=BusinessUnitDepartmentsLabel; Value=false
       - SetValue: Target=BusinessUnitDepartmentsCheckBoxList; Value=false
   - Async
   - SetValue: Target=Options
   - Async
   - SetValue: Target=Options
+  - _(+2 UI-state SetValue(s) folded into the state-signals section)_
 
 #### RefreshBank  [from script, surface: Banks]
 - Trigger: **other (helper script)**
@@ -1865,8 +1731,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### DismissPopup  [from script, surface: Banks]
 - Trigger: **other (helper script)**
 - Sequence: SetValue → CallScript
-  - SetValue: Target=ModalBackgroundContainer; Value=False
   - CallScript: ScriptToCall=RefreshBank
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### RefreshBankAccounts  [from script, surface: BankAccounts]
 - Trigger: **other (helper script)**
@@ -1877,8 +1743,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### DismissPopup  [from script, surface: BankAccounts]
 - Trigger: **other (helper script)**
 - Sequence: SetValue → CallScript
-  - SetValue: Target=ModalBackgroundContainer; Value=False
   - CallScript: ScriptToCall=RefreshBankAccounts
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### RefreshBankPaymentSetup  [from script, surface: BankPaymentSetup]
 - Trigger: **other (helper script)**
@@ -1889,8 +1755,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### DismissPopup  [from script, surface: BankPaymentSetup]
 - Trigger: **other (helper script)**
 - Sequence: SetValue → CallScript
-  - SetValue: Target=ModalBackgroundContainer; Value=False
   - CallScript: ScriptToCall=RefreshBankPaymentSetup
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### RefreshDepartmentSetup  [from script, surface: Department]
 - Trigger: **other (helper script)**
@@ -1901,8 +1767,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### DismissPopup  [from script, surface: Department]
 - Trigger: **other (helper script)**
 - Sequence: SetValue → CallScript
-  - SetValue: Target=ModalBackgroundContainer; Value=False
   - CallScript: ScriptToCall=RefreshDepartmentSetup
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### RefreshPaymentReason  [from script, surface: PaymentReason]
 - Trigger: **other (helper script)**
@@ -1913,14 +1779,14 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### DismissPopup  [from script, surface: PaymentReason]
 - Trigger: **other (helper script)**
 - Sequence: SetValue → CallScript
-  - SetValue: Target=ModalBackgroundContainer; Value=False
   - CallScript: ScriptToCall=RefreshPaymentReason
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### DismissPopup  [from script, surface: PaymentSetup]
 - Trigger: **other (helper script)**
 - Sequence: SetValue → CallScript
-  - SetValue: Target=ModalBackgroundContainer; Value=False
   - CallScript: ScriptToCall=RefreshPaymentSetup
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### RefreshPaymentSetup  [from script, surface: PaymentSetup]
 - Trigger: **other (helper script)**
@@ -2057,23 +1923,19 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
       - SetValue: Target=WhitelistedBeneficiaryDataGrid; Value=True
       - Async
       - SetValue: Target=Data
-      - SetValue: Target=SelectedDatagridRowIdLabel; Value=WhitelistedSelectedDatagridRowIdLabel
-      - SetValue: Target=AdhocBeneficiaryLabel; Value=False
-      - SetValue: Target=AdhocBeneficiaryGrid; Value=False
   - **Decision**
     - IF `RadioButttonSelectedValue == 2` →
       - SetValue: Target=WhitelistedBeneficiaryDataGrid; Value=False
-      - SetValue: Target=AdhocBeneficiaryLabel; Value=True
-      - SetValue: Target=AdhocBeneficiaryGrid; Value=True
       - SetValue: Target=NameTextBox; Value=Name
       - SetValue: Target=AccountNumberTextBox; Value=AccountNumber
       - SetValue: Target=SortCodeTextBox; Value=SortCode
+  - _(+5 UI-state SetValue(s) folded into the state-signals section)_
 
 #### DismissPopup  [from script, surface: AttachmentsAndNotes]
 - Trigger: **other (helper script)**
 - Sequence: SetValue → CallScript
-  - SetValue: Target=ModalBackgroundContainer; Value=False
   - CallScript: ScriptToCall=RefreshNoteGrid
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### RefreshNoteGrid  [from script, surface: AttachmentsAndNotes]
 - Trigger: **other (helper script)**
@@ -2106,7 +1968,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### DismissPopup  [from script, surface: ApprovalLevels]
 - Trigger: **other (helper script)**
 - Sequence: SetValue
-  - SetValue: Target=ModalBackgroundContainer; Value=False
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### RefreshApprovalLevels  [from script, surface: ApprovalLevels]
 - Trigger: **other (helper script)**
@@ -2153,7 +2015,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### ScriptToUpdateAmountDatagridWithPrePopulatedValues  [from script, surface: ApprovalLevels]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript → SetValue
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[custom JS]` — `// Inputs: // DataList = list of { Level, MaxApprovalAmount } // LoopValue = current item from API (contains MaxApproval…`
   - SetValue: Target=DataList; Value=JavaScript
 
 #### LoadDropDowns  [from script, surface: ApprovalLevels]
@@ -2217,38 +2079,38 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### DismissPopup  [from script, surface: ApprovalLevelRules]
 - Trigger: **other (helper script)**
 - Sequence: SetValue
-  - SetValue: Target=ModalBackgroundContainer; Value=False
+  - _(+1 UI-state SetValue(s) folded into the state-signals section)_
 
 #### FixHeaders  [from script, surface: app]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[library JS: full-width-top-bar]`
 
 #### GenerateFilters  [from script, surface: app]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[library JS: filter-grid]`
 
 #### ApplyFilters  [from script, surface: app]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript → SetValue
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[library JS: filter-grid]`
   - SetValue: Target=Data; Value=JavaScript
 
 #### ClearFilters  [from script, surface: app]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[library JS: filter-grid]`
 
 #### SetFilters  [from script, surface: app]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[library JS: filter-grid]`
 
 #### Tabs  [from script, surface: app]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[library JS: tabs]`
 
 #### NotificationHandler  [from script, surface: app]
 - Trigger: **other (helper script)**
@@ -2271,39 +2133,39 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 #### WorkflowSteps  [from script, surface: app]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[library JS: workflow-steps]`
 
 #### ToggleButton  [from script, surface: app]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[DOM-manipulation JS]`
 
 #### ClientSideRepeaterDataGrid  [from script, surface: app]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[library JS: repeater-datagrid-client-side]`
 
 #### ClientSideRepeaterDataGridState  [from script, surface: app]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript → SetValue
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[library JS: repeater-datagrid-client-side]`
   - SetValue: Target=State; Value=JavaScript
 
 #### ClientSideRepeaterDataGridGetData  [from script, surface: app]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript → SetValue
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[library JS: repeater-datagrid-client-side]`
   - SetValue: Target=Data; Value=JavaScript
 
 #### PageLoader  [from script, surface: app]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[library JS: page-loader]`
 
 #### ConditionalColumnsStyling  [from script, surface: app]
 - Trigger: **other (helper script)**
 - Sequence: JavaScript
-  - JavaScript  `[opaque: custom JS]`
+  - JavaScript  `[library JS: conditional-datagrid-styling]`
 
 ## Tier-A — notification points
 
@@ -2414,31 +2276,8 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 
 - **error notification** · `EditSaveApprovalLevelRulesButton.Click` (ApprovalLevelRules) — "'Approval Level rules update has been unsuccessful'" [from design model]
 - **error notification** · `NotificationHandler` (app) — "⟨Message⟩" [from design model]
-- **visibility/loading toggle** · `DismissPopup` (app) — `ModalBackgroundContainer` = False [from design model] `[AI-SUGGESTED: state=empty/hidden]`
-- **visibility/loading toggle** · `AddUserButton.Click` (Users) — `ModalBackgroundContainer` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `UsersDataGrid.ViewAssignedApprovalLevels.Click` (Users) — `ModalBackgroundContainerViewAssignedApprovalLevels` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `CancelViewApprovedLevelsButton.Click` (Users) — `ModalBackgroundContainerViewAssignedApprovalLevels` = False [from design model] `[AI-SUGGESTED: state=empty/hidden]`
-- **visibility/loading toggle** · `AddCostCentreButton.Click` (CostCentres) — `ModalBackgroundContainer` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `AddBusinessUnitButton.Click` (BusinessUnits) — `ModalBackgroundContainer` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `AddBeneficiaryButton.Click` (Beneficiaries) — `ModalBackgroundContainer` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `AddBankButton.Click` (Banks) — `ModalBackgroundContainer` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `AddBankAccountButton.Click` (BankAccounts) — `ModalBackgroundContainer` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `AddBankPaymentSetupButton.Click` (BankPaymentSetup) — `ModalBackgroundContainer` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `AddDepartmentButton.Click` (Department) — `ModalBackgroundContainer` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `AddPaymentReasonButton.Click` (PaymentReason) — `ModalBackgroundContainer` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `AddPaymentSetupButton.Click` (PaymentSetup) — `ModalBackgroundContainer` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `AttachmentsAndNotes.Load` (AttachmentsAndNotes) — `ModalBackgroundContainerDuplicate` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `AddNoteButton.Click` (AttachmentsAndNotes) — `ModalBackgroundContainer` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `NoteDataGrid.Edit.Click` (app) — `ModalBackgroundContainer` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `ProceedButton.Click` (AttachmentsAndNotes) — `ModalBackgroundContainerDuplicate` = False [from design model] `[AI-SUGGESTED: state=empty/hidden]`
-- **visibility/loading toggle** · `AddApprovalLevelButton.Click` (ApprovalLevels) — `ModalBackgroundContainer` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `ApprovalLevelDataGrid.ViewApprovalLevelAmounts.Click` (ApprovalLevels) — `ModalBackgroundContainerViewApprovalLevelAmounts` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `CancelViewApprovedLevelAmountsButton.Click` (ApprovalLevels) — `ModalBackgroundContainerViewApprovalLevelAmounts` = False [from design model] `[AI-SUGGESTED: state=empty/hidden]`
-- **visibility/loading toggle** · `ParentDataGrid.MaxApprovalAmounts.Click` (UserApprovalLevels) — `ModalBackgroundContainer` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `CancelChildGridPopupButton.Click` (UserApprovalLevels) — `ModalBackgroundContainer` = False [from design model] `[AI-SUGGESTED: state=empty/hidden]`
-- **visibility/loading toggle** · `ApprovalLevelRulesDataGrid.ViewApprovalLevelRules.Click` (ApprovalLevelRules) — `ModalBackgroundContainerViewApprovalLevelRules` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `ApprovalLevelRulesDataGrid.EditApprovalLevelRules.Click` (ApprovalLevelRules) — `ModalBackgroundContainer` = True [from design model] `[AI-SUGGESTED: state=shown]`
-- **visibility/loading toggle** · `CancelButton.Click` (app) — `ModalBackgroundContainerViewApprovalLevelRules` = False [from design model] `[AI-SUGGESTED: state=empty/hidden]`
+- **visibility/loading toggles**: 173 distinct SetValue state write(s) across 19 surface(s) — classified 119 state, 48 shown, 6 empty/hidden [from design model] `[AI-SUGGESTED: state classification]`
+  - targets: `AddSaveButton`, `AdhocBeneficiaryGrid`, `AdhocBeneficiaryLabel`, `AmountDescriptionLabel`, `AmountValueLabel`, `BankAccountValueLabel`, `BankLabel`, `BankPaymentMethodValueLabel`, `BankValueLabel`, `BeneficiaryAccountNumberValueLabel`, `BeneficiaryNameValueLabel`, `BeneficiarySortCodeValueLabel`, `BeneficiaryValueLabel`, `BusinessUnitDepartmentsLabel`, `BusinessUnitValueLabel` _(+35 more)_ [from design model]
 - **empty/edge guard** · `EditSaveButton.Click` (app) — IF `SelectedOptions != 0` [from design model] `[AI-SUGGESTED: empty/count guard]`
 - **empty/edge guard** · `DraftTransactionsDataGrid.Edit.Click` (DraftManualPaymentCapture) — IF `TransactionManualCaptureStepId == 0` [from design model] `[AI-SUGGESTED: empty/count guard]`
 - **empty/edge guard** · `PaymentsDetails.Load` (PaymentsDetails) — IF `Amount != 0` [from design model] `[AI-SUGGESTED: empty/count guard]`
@@ -2448,3 +2287,9 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - **empty/edge guard** · `SaveDraftButton.Click` (app) — IF `SelectedDatagridRowIdLabel != 0` [from design model] `[AI-SUGGESTED: empty/count guard]`
 - **empty/edge guard** · `AttachmentsAndNotes.Load` (AttachmentsAndNotes) — IF `Transactions != 0` [from design model] `[AI-SUGGESTED: empty/count guard]`
 - **empty/edge guard** · `Review.Load` (Review) — IF `BeneficiaryId != 0` [from design model] `[AI-SUGGESTED: empty/count guard]`
+
+## Tier-A — bespoke inline-JS rules
+
+> The app's own inline logic blocks, verbatim (capped). Copy-pasted `stadium-software` library JS and DOM/timing helpers are excluded (framework UI, catalogued in `modules`). A Tier-2 advisory summary of what these rules DO is added by the extraction skill (Phase B).
+
+- `ScriptToUpdateAmountDatagridWithPrePopulatedValues` (ApprovalLevels) — `// Inputs: // DataList = list of { Level, MaxApprovalAmount } // LoopValue = current item from API (contains MaxApproval…` [from script, surface: ApprovalLevels]

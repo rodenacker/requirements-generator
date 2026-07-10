@@ -4,6 +4,8 @@ app: RMB_Onboarding
 file_guid: 87ea91de-6125-4686-8437-806216cb0ec0
 designer_version: 6.14.3378.13771
 selected_package: 3f1ddf96-3519-47b8-905d-b44703776f78.sapz
+deployment_count: 1
+last_published: 2026-06-30 12:19:12.1887333
 extracted_from: C:\Stadium 6 Web Apps\87ea91de-6125-4686-8437-806216cb0ec0
 provenance: deterministic extraction from the Stadium 6 design model + administration.db
 marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lines are advisory design signals.
@@ -14,7 +16,7 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 
 ## Tier-A — connectors & operations
 
-### OnboardingStandardBankCIB (Database)
+### OnboardingStandardBankCIB — SQL
 - Connection (redacted): `{"$id": "3", "$type": "Twenty57.Stadium.API.ReferenceObjects.GuidReference, Twenty57.Stadium.API", "NamedItemID": "758e287d-90a8-4cbc-b0d1-060816733be2", "PropertyKey": null, "Parameters": {"$id": "4", "$type": "System.Collections.Generic.Dictionary`2[[System.Guid, System.Private.CoreLib],[System.Ob` [from administration.db / design model]
 - **GetClients** (SqlQuery) — params: none [from connector: OnboardingStandardBankCIB]
   ```sql
@@ -166,35 +168,35 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
   ```
 - **Query** (SqlQuery) — params: none [from connector: OnboardingStandardBankCIB]
 
-### Stadium (WebService)
+### Stadium — REST / HTTP  ·  ⚠ mock / non-prod host `[AI-SUGGESTED]`
 - Connection (redacted): `{"URL": "http://localhost:8047/", "Auth": "Anonymous", "Timeout": 90}` [from administration.db / design model]
 - **Clients** (WebServiceFunction) — params: RaiseExceptions:RaiseExceptionsParameter [from connector: Stadium]
   - endpoint: `GET /v1/Clients`
 - **ClientsAndProducts** (WebServiceFunction) — params: RaiseExceptions:RaiseExceptionsParameter [from connector: Stadium]
   - endpoint: `GET /v1/ClientsAndProducts`
 
-### FileSystem (FileSystem)
+### FileSystem — FileSystem
 - Connection (redacted): `{"Path": "C:\\Digiata\\Digiata_Demo\\Data\\Inbox\\Applications", "User": "", "Password": ""}` [from administration.db / design model]
 - **DeleteFile** (DeleteFile) — params: FileName:Parameter [from connector: FileSystem]
 - **FileExists** (FileExists) — params: FileName:Parameter [from connector: FileSystem]
 - **ReadFile** (ReadFile) — params: FileName:Parameter [from connector: FileSystem]
 - **WriteFile** (WriteFile) — params: FileName:Parameter, FileContents:Parameter [from connector: FileSystem]
 
-### FileSystemDemo (FileSystem)
+### FileSystemDemo — FileSystem
 - Connection (redacted): `{"Path": "C:\\Digiata\\Digiata_Demo\\Data\\Outbox\\Applications", "User": "", "Password": ""}` [from administration.db / design model]
 - **DeleteFile** (DeleteFile) — params: FileName:Parameter [from connector: FileSystemDemo]
 - **FileExists** (FileExists) — params: FileName:Parameter [from connector: FileSystemDemo]
 - **ReadFile** (ReadFile) — params: FileName:Parameter [from connector: FileSystemDemo]
 - **WriteFile** (WriteFile) — params: FileName:Parameter, FileContents:Parameter [from connector: FileSystemDemo]
 
-### FileSystemData (FileSystem)
+### FileSystemData — FileSystem
 - Connection (redacted): `{"Path": "C:\\Digiata\\Digiata_Demo\\Data", "User": "", "Password": ""}` [from administration.db / design model]
 - **DeleteFile** (DeleteFile) — params: FileName:Parameter [from connector: FileSystemData]
 - **FileExists** (FileExists) — params: FileName:Parameter [from connector: FileSystemData]
 - **ReadFile** (ReadFile) — params: FileName:Parameter [from connector: FileSystemData]
 - **WriteFile** (WriteFile) — params: FileName:Parameter, FileContents:Parameter [from connector: FileSystemData]
 
-### IDB (Database)
+### IDB — Linx
 - Connection (redacted): `Data Source=.\;Initial Catalog=IDB;Integrated Security=False;User ID=LINX_SERVER;Password=<redacted>;Trust Server Certificate=true;` [from administration.db / design model]
 - **get_AllClientDetails** (SqlQuery) — params: none [from connector: IDB]
   ```sql
@@ -375,3 +377,10 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 ## Tier-A — app settings / integration
 
 - Config value present: `MenuItems` (structured/large value, not shown) [from design model: Setting]
+
+## Tier-A — technology stack (NFR baseline)
+
+- Backend framework: **net8.0-windows** [from .csproj]
+- Frontend: **Vue ^3.5.22** [from package.json]
+- Data providers: `Microsoft.Data.SqlClient`, `Microsoft.EntityFrameworkCore.Sqlite`, `Oracle.ManagedDataAccess.Core`, `System.Data.Odbc` [from .csproj]
+- Notable backend capabilities: `EPPlus`, `IdentityModel.AspNetCore.OAuth2Introspection`, `Microsoft.AspNetCore.SignalR.Protocols.NewtonsoftJson`, `Serilog.AspNetCore`, `Serilog.Sinks.EventLog` [from .csproj]

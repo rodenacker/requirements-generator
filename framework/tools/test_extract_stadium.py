@@ -69,6 +69,10 @@ ENRICHED_MARKERS = {
         "## Tier-A — notification points",                      # 0a
         "## Tier-A — validation",                               # 0f
         "## Tier-A — edge / empty / error / loading state signals",  # 1d
+        "## Tier-A — bespoke inline-JS rules",                  # §4.4 bespoke-JS mining
+    ],
+    "modules": [
+        "## Tier-B — modernization & UX signals",               # §4.3 deterministic modernization signals
     ],
     "access-control": [
         "## Tier-B — actor candidates",                         # 0d
@@ -565,9 +569,9 @@ class TestClusterCRenderedClientApp(unittest.TestCase):
         # UserRead + UserWrite variants both present (they collapse later in reconcile)
         user_variants = {t["variant"] for t in types if t["entity"] == "User"}
         self.assertEqual(user_variants, {"Read", "Write"})
-        # nested relation Roles → Role resolved through the Array wrapper
+        # nested relation Roles → Role resolved through the Array wrapper (to-many; §4.3 dict shape)
         rel = next((t["relations"] for t in types if t["entity"] == "User" and t["variant"] == "Read"), {})
-        self.assertEqual(rel.get("Roles"), "Role")
+        self.assertEqual(rel.get("Roles"), {"entity": "Role", "card": "many"})
         # Id is read-only (Read only); Email editable (in Write)
         read_user = next(t for t in types if t["entity"] == "User" and t["variant"] == "Read")
         self.assertEqual({f["name"] for f in read_user["fields"]}, {"Id", "Email", "FirstName", "Roles"})
@@ -583,7 +587,7 @@ class TestClusterCRenderedClientApp(unittest.TestCase):
         self.assertEqual(set(fields), {"Id", "Email", "FirstName", "Roles"})       # UserRead ∪ UserWrite
         self.assertEqual(fields["Id"]["authority"], ["display"])                    # Read-only (Id only in Read)
         self.assertIn("editable", fields["Email"]["authority"])                     # in Write
-        self.assertEqual(by_disp["User"]["rel"].get("Roles"), "Role")
+        self.assertEqual(by_disp["User"]["rel"].get("Roles"), {"entity": "Role", "card": "many", "src": "rendered"})
         # envelope classes never become entities from the rendered path
         for k in entities:
             self.assertNotIn(k, {_norm for _norm in ("generalerror", "validationresult")})
@@ -728,6 +732,113 @@ class TestDeriveViewTasks(unittest.TestCase):
         self.assertEqual(_endpoint_verb_entity("CitiesSelect", ebn), ("SELECT", "Cities"))
         self.assertEqual(_endpoint_verb_entity("MemberInsert", ebn), ("INSERT", "Members"))
         self.assertEqual(_endpoint_verb_entity("Frobnicate", ebn), (None, None))   # no CRUD keyword
+
+
+class TestExtractionRedesignHelpers(unittest.TestCase):
+    """Corpus-INDEPENDENT proof of the 2026 extraction-redesign helpers (Phase 1 de-noise + Phase 2
+    extractors): inline-JS classification, SetValue data-vs-UI split, surfaces de-noise classifiers,
+    tech stack, permission signals, connector kind/maturity, SQL joins, and single-object relations."""
+
+    def setUp(self):
+        sys.path.insert(0, HERE)
+
+    # ---- §4.2 inline-JS classification (library / timing / dom / logic; only logic keeps a body)
+    def test_classify_js(self):
+        from extract_stadium_app import _classify_js, _js_node_info, _js_tag
+        self.assertEqual(_classify_js("/* https://github.com/stadium-software/popups */\nlet x=1;")[0], "library")
+        self.assertEqual(_classify_js("await new Promise(r=>setTimeout(r,500));")[0], "timing")
+        self.assertEqual(_classify_js("document.querySelector('.x').innerHTML='y';")[0], "dom")
+        self.assertEqual(_classify_js("let total = a + b; return total;")[0], "logic")
+        self.assertIsNone(_js_node_info("window.location.reload();")["body"])        # dom → no verbatim body
+        self.assertIsNotNone(_js_node_info("let total = a+b;")["body"])              # logic → verbatim body
+        self.assertIn("popups", _js_tag(_js_node_info("// github.com/stadium-software/popups\nx();")))
+        self.assertIn("DOM-manipulation", _js_tag(_js_node_info("window.location.reload();")))
+        self.assertNotIn("opaque", _js_tag(_js_node_info("let z=1;")))               # never blanket-opaque now
+
+    # ---- §4.1 SetValue classification (data write kept; UI plumbing folded into 1d)
+    def test_setvalue_is_ui(self):
+        from extract_stadium_app import _setvalue_is_ui
+        types = {"SpinnerContainer": "Container", "TitleLabel": "Label", "SaveButton": "Button",
+                 "NameTextBox": "TextBox", "StatusDropDown": "DropDown", "MembersDataGrid": "DataGrid"}
+        for ui in ("SpinnerContainer", "TitleLabel", "SaveButton"):                  # layout / label / button = UI
+            self.assertTrue(_setvalue_is_ui(ui, types), ui)
+        for data in ("NameTextBox", "StatusDropDown", "MembersDataGrid"):            # input / grid = kept data write
+            self.assertFalse(_setvalue_is_ui(data, types), data)
+        self.assertTrue(_setvalue_is_ui("SomethingPopup", {}))                       # unknown → name-pattern fallback
+        self.assertFalse(_setvalue_is_ui("MemberID", {}))
+        self.assertFalse(_setvalue_is_ui(None, {}))
+
+    # ---- §4.1 surfaces de-noise classifiers
+    def test_meaningful_control_and_label_term(self):
+        from extract_stadium_app import _is_meaningful_control, _label_term, _tree_depth
+        self.assertFalse(_is_meaningful_control({"type": "StackLayout", "key_props": {}}))
+        self.assertFalse(_is_meaningful_control({"type": "Label", "key_props": {"Text": "Name"}}))
+        self.assertTrue(_is_meaningful_control({"type": "TextBox", "key_props": {}}))
+        self.assertTrue(_is_meaningful_control({"type": "DataGrid", "key_props": {}}))
+        self.assertTrue(_is_meaningful_control({"type": "Button", "key_props": {"Text": "Add"}}))
+        self.assertFalse(_is_meaningful_control({"type": "Button", "key_props": {}}))     # unlabelled action dropped
+        self.assertTrue(_is_meaningful_control({"type": "Panel", "key_props": {"Title": "Details"}}))
+        self.assertFalse(_is_meaningful_control({"type": "Panel", "key_props": {}}))      # title-less panel dropped
+        self.assertEqual(_label_term({"Text": "First Name"}), "First Name")
+        self.assertIsNone(_label_term({"Text": "  :  "}))                                # punctuation-only dropped
+        self.assertEqual(_tree_depth([{"children": [{"children": []}]}]), 2)
+
+    # ---- §4.2 tech-stack NFR baseline
+    def test_tech_stack_lines(self):
+        from extract_stadium_app import _tech_stack_lines
+        ov, ds = _tech_stack_lines({"backend": "net8.0",
+                                    "csproj_packages": [("Npgsql", "1"), ("Serilog.AspNetCore", "2")],
+                                    "frontend_deps": {"vue": "^3.5"}})
+        self.assertIn("net8.0", ov)
+        blob = "\n".join(ds)
+        self.assertIn("Npgsql", blob)          # DB provider surfaced
+        self.assertIn("Serilog", blob)         # notable capability surfaced
+        self.assertEqual(_tech_stack_lines({})[1], [])   # nothing captured → no section
+
+    # ---- §4.3 permission signals (Setting role config + RBAC data entities; secrets never emitted)
+    def test_permission_signals(self):
+        from extract_stadium_app import _permission_signals
+        settings = [{"name": "RedressApproverRoles", "kind": "scalar", "value": "Admin,Processor"},
+                    {"name": "ApiKey", "kind": "credential", "value": "<redacted>"},
+                    {"name": "DepartmentID", "kind": "scalar", "value": "2"}]
+        ents = [{"display": "ApprovalLevel"}, {"display": "Role"}, {"display": "Member"}]
+        lines, rbac = _permission_signals(settings, ents)
+        blob = "\n".join(lines)
+        self.assertIn("RedressApproverRoles", blob)
+        self.assertIn("`Admin`", blob)
+        self.assertNotIn("ApiKey", blob)       # credential-kind never emitted
+        self.assertNotIn("DepartmentID", blob) # non-role setting ignored
+        self.assertEqual(set(rbac), {"ApprovalLevel", "Role"})
+
+    # ---- §4.3 connector kind + deployment maturity
+    def test_connector_kind_and_maturity(self):
+        from extract_stadium_app import _connector_kind, _connector_maturity
+        self.assertEqual(_connector_kind({"type": "WebServiceConnector", "functions": []}), "REST / HTTP")
+        self.assertEqual(_connector_kind({"type": "OracleConnector", "functions": []}), "Oracle")
+        self.assertIsNone(_connector_maturity({"type": "X", "connection_string": "Server=prod01", "functions": []}))
+        self.assertIsNotNone(_connector_maturity(
+            {"type": "X", "connection_string": "", "functions": [{"shape_hint": {"path": "https://x.mock.pstmn.io/api"}}]}))
+
+    # ---- §4.3 SQL JOIN extraction (alias + unaliased resolution)
+    def test_sql_shape_joins(self):
+        from extract_stadium_app import _sql_shape
+        s = _sql_shape("SELECT m.Name, c.CityName FROM Members m JOIN Cities c ON m.CityID = c.ID")
+        self.assertIn(("Members", "CityID", "Cities", "ID"), s["joins"])
+
+    # ---- §4.3 rendered single-object (to-one) relation via a direct _Types_ ref
+    def test_single_object_relation(self):
+        from extract_stadium_app import read_client_types
+        js = ("export class Api_Types_Order {\n Id = undefined;\n Customer = undefined;\n"
+              " _getFieldTypeName(fieldName){ let customTypes = { Customer: 'Api_Types_CustomerRead' };"
+              " return customTypes[fieldName]; }\n}\n"
+              "export class Api_Types_CustomerRead {\n Id = undefined;\n Name = undefined;\n}\n")
+        tmp = tempfile.mkdtemp(); self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        d = os.path.join(tmp, "ClientApp", "src", "types"); os.makedirs(d)
+        with open(os.path.join(d, "types.js"), "w", encoding="utf-8") as f:
+            f.write(js)
+        types = read_client_types(tmp)
+        order = next(t for t in types if t["entity"] == "Order")
+        self.assertEqual(order["relations"].get("Customer"), {"entity": "Customer", "card": "one"})
 
 
 # =========================================================================== corpus-DEPENDENT
@@ -877,11 +988,12 @@ class TestUntouchedAssetsByteIdentical(unittest.TestCase):
     The `tasks` enrichment additionally touches `surfaces` (0e → pointer) and adds the new `tasks`
     asset + the `overview` index row. UNTOUCHED stays {access-control, glossary, design-signals}."""
 
-    UNTOUCHED = [c for c in TIER1_CATEGORIES if c not in
-                 ("business-rules", "surfaces", "overview",      # Cluster A
-                  "data-sources", "modules",                     # Cluster B
-                  "navigation", "data-model",                    # Cluster C (#7, #6)
-                  "tasks")]                                      # per-view user-task inventory (new asset)
+    # The 2026 extraction redesign (Phase 1+2) additionally touches overview (forensic trim + tech
+    # baseline), data-model (relationships), data-sources (tech + integration), business-rules (SetValue
+    # fold + inline-JS classify + bespoke rules), access-control (permission model), surfaces (de-noise +
+    # reports), modules (modernization signals), AND every asset's prov header (deployment_count /
+    # last_published). Content-untouched by the redesign: tasks, navigation, glossary, design-signals.
+    UNTOUCHED = ["tasks", "navigation", "glossary", "design-signals"]
 
     def test_untouched_assets_match_golden(self):
         if not os.path.isdir(GOLDEN_ASSETS):

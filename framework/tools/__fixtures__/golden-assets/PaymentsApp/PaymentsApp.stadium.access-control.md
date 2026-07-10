@@ -4,6 +4,8 @@ app: PaymentsApp
 file_guid: be54c8c9-dc03-43d5-bc2b-fba14e07f360
 designer_version: 6.14.3378.13771
 selected_package: 2211275f-1cb9-495c-91cf-4ff48dc4c142.sapz
+deployment_count: 1
+last_published: 2026-06-30 12:29:25.6302212
 extracted_from: C:\Stadium 6 Web Apps\be54c8c9-dc03-43d5-bc2b-fba14e07f360
 provenance: deterministic extraction from the Stadium 6 design model + administration.db
 marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lines are advisory design signals.
@@ -45,6 +47,12 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 - UserApprovalLevels
 - ApprovalLevelRules
 
+## Tier-A — permission model (beyond admin.db)
+
+> For richer apps the real authorization model lives in the `.sapz Setting` table (approver/role configuration) and in API `Role` / `ApprovalLevel` / `*Permission` data entities — not the (often trivial single-User) admin.db page-role matrix above.
+
+- RBAC data entities (roles / approval-levels / permissions modelled as data): `ApprovalLevel`, `ApprovalLevelAmount`, `ApprovalLevelRule`, `Role`, `UserApprovalLevel`, `UserApprovalLevelAmount` [from data-model]
+
 ## Tier-B — actor candidates (advisory; interpretive review gate)
 
 - Distinct task clusters — `capture`, `reporting` — suggest more than one operator role even under a single RBAC role (a capture operator and an approver need not be the same person). `[AI-SUGGESTED]`
@@ -76,4 +84,4 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 
 ## Tier-A — user population (counts only; identities not extracted)
 
-- 1 user account(s), of which 1 hold the administrator flag. Individual user identities (name / email) are intentionally **not** extracted — PII, and not needed for requirements; the roles + page-access matrix above is the actor model. [from admin.db: Users]
+- 1 user account(s), 1 with the administrator flag; individual identities (name / email) not extracted — PII. [from admin.db: Users]

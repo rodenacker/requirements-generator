@@ -632,6 +632,7 @@ def read_design_model(sqlitedata):
         node = {"action": e.get("type"), "name": e.get("name"), "summary": summarise_action(aprops)}
         if e.get("type") == "JavaScript":
             node["opaque"] = True
+            node["js"] = _js_node_info(_js_code(aprops))   # §4.2 — classified inline JS (library/timing/dom/logic)
         if e.get("type") == "Decision":
             node["decision"] = True
             node["show_else"] = bool(aprops.get("ShowElse"))
@@ -1075,7 +1076,8 @@ def read_modules(app_dir, kb_dir=None):
     """Detect stadium-software modules from the generated source. Comment-URL is the PRIMARY signal;
     function-name inventory + CSS footprint (Cluster B #5) are complementary, each tagged with its
     `detection_source`. Presence-only module-driven behaviours are surfaced separately."""
-    out = {"global_scripts_present": False, "embedded_css": [], "detected": [], "behaviours": []}
+    out = {"global_scripts_present": False, "embedded_css": [], "detected": [], "behaviours": [],
+           "library_copy": {"lib_blocks": 0, "total_fn": 0}, "full_page_reload": False}
     gs = os.path.join(app_dir, "ClientApp", "src", "global-scripts.js")
     url_slugs, fn_slugs, behaviours = set(), set(), []
     txt = ""
@@ -1093,6 +1095,14 @@ def read_modules(app_dir, kb_dir=None):
         for fn, behaviour in BEHAVIOUR_FNS.items():
             if _fn_present(txt, fn) and behaviour not in behaviours:
                 behaviours.append(behaviour)
+        # §4.3 modernization signals from the generated global-scripts.js: how much of the app's JS is
+        # copy-pasted `stadium-software` library code vs bespoke, and whether it forces full-page reloads.
+        total_fn = len(re.findall(r"(?m)(?:^|\s)(?:export\s+)?(?:async\s+)?function\s+\w+|"
+                                  r"(?:export\s+)?(?:const|let|var)\s+\w+\s*=\s*(?:async\s*)?\(", txt))
+        lib_blocks = len(re.findall(r"github\.com/stadium-software/", txt))
+        out["library_copy"] = {"lib_blocks": lib_blocks, "total_fn": total_fn}
+        out["full_page_reload"] = bool(re.search(r"location\.reload", txt)) or \
+            bool(re.search(r"\$route[\s\S]{0,120}?reload", txt))
     ef = os.path.join(app_dir, "wwwroot", "Content", "EmbeddedFiles", "CSS")
     if os.path.isdir(ef):
         out["embedded_css"] = sorted(f for f in os.listdir(ef) if f.lower().endswith(".css"))
@@ -1306,13 +1316,24 @@ def read_client_types(app_dir):
             continue
         fields = [{"name": fm.group(1), "authority": authority}
                   for fm in re.finditer(r"(?m)^\s*([A-Za-z_$][\w$]*)\s*=\s*undefined\s*;", body)]
-        relations = {}                                    # field → element entity (nested-type map)
-        for cm in re.finditer(r"([A-Za-z_$][\w$]*)\s*:\s*'(_[A-Za-z0-9_$]+)'", body):
-            elem = wrapper_elem.get(cm.group(2))
-            if not elem or "_Types_" not in elem:
-                continue
-            estem, _ = _rendered_entity_stem(elem.split("_Types_", 1)[1])
-            relations[cm.group(1)] = estem or elem.split("_Types_", 1)[1]
+        # §4.3 — relationships from the `_getFieldTypeName` customTypes map. A field whose type is an
+        # Array wrapper (`_..._Type extends Array`) is a to-MANY relation (its element type via
+        # `_getItemTypeName`); a field whose type is a DIRECT `_Types_<Entity>` class is a to-ONE
+        # relation. Both feed §2.2. (Previously only the Array-wrapper case was captured.)
+        relations = {}                                    # field → {entity, card: one|many}
+        for cm in re.finditer(r"([A-Za-z_$][\w$]*)\s*:\s*'(_?[A-Za-z0-9_$]+)'", body):
+            fld, tname = cm.group(1), cm.group(2)
+            if tname in wrapper_elem:                      # Array wrapper → to-many (collection)
+                elem = wrapper_elem[tname]
+                if elem and "_Types_" in elem:
+                    estem, _ = _rendered_entity_stem(elem.split("_Types_", 1)[1])
+                    tgt = estem or elem.split("_Types_", 1)[1]
+                    if tgt:
+                        relations[fld] = {"entity": tgt, "card": "many"}
+            elif "_Types_" in tname:                       # direct domain type → to-one (single object)
+                estem, _ = _rendered_entity_stem(tname.split("_Types_", 1)[1])
+                if estem:
+                    relations[fld] = {"entity": estem, "card": "one"}
         out.append({"api": api, "entity": stem, "variant": (ev[len(stem):] or None),
                     "authority": authority, "norm": _norm_entity(stem),
                     "fields": fields, "relations": relations})
@@ -1704,10 +1725,31 @@ def _sql_shape(query):
         primary = md.group(1)
     if not primary and tables:
         primary = tables[0]
+    # §4.3 — JOIN relationships: resolve `<a>.<x> = <b>.<y>` equality pairs to (table_a, col, table_b, col)
+    # edges via an alias map (each real table doubles as its own alias, so unaliased joins resolve too).
+    # These are explicit relational edges (Tier-A) — distinct from the FK-naming-convention inference.
+    alias = {t.lower(): t for t in tables}
+    _KW = {"on", "inner", "left", "right", "outer", "join", "where", "group", "order", "cross", "full", "having", "select"}
+    for mt in re.finditer(r"(?i)\b(?:FROM|JOIN)\s+(@?[A-Za-z_][\w.\[\]]*)\s+(?:AS\s+)?([A-Za-z_]\w*)\b", q):
+        al = mt.group(2).lower()
+        if al not in _KW:
+            alias[al] = _sql_last(mt.group(1))
+    joins, _seen_j = [], set()
+    for mj in re.finditer(r"\b([A-Za-z_]\w*)\.\[?(\w+)\]?\s*=\s*([A-Za-z_]\w*)\.\[?(\w+)\]?", q):
+        lt, rt = alias.get(mj.group(1).lower()), alias.get(mj.group(3).lower())
+        if not (lt and rt) or lt.lower() == rt.lower():
+            continue
+        if lt.lower() in _SQL_DENY or rt.lower() in _SQL_DENY:
+            continue
+        key = tuple(sorted([lt.lower(), rt.lower()]))
+        if key not in _seen_j:
+            _seen_j.add(key)
+            joins.append((lt, mj.group(2), rt, mj.group(4)))
     # source/locator/col_types added so the SQL shape shares one contract with _sp_shape/_ws_shape.
     # (locator is filled per-function by reconcile_entities; SQL columns get their types there too.)
     return {"verb": verb, "tables": tables, "primary": primary,
-            "columns": [c for c in cols if c][:50], "source": "sql", "locator": None, "col_types": {}}
+            "columns": [c for c in cols if c][:50], "source": "sql", "locator": None,
+            "col_types": {}, "joins": joins}
 
 # --------------------------------------------------------------------------- stored-proc / web-service shapers
 # Siblings to _sql_shape: they return the SAME {verb, tables, primary, columns} contract (+ source,
@@ -1984,9 +2026,12 @@ def reconcile_entities(model):
             if "from rendered types" not in fr["locators"]:
                 fr["locators"].append("from rendered types")
         rels = rec.setdefault("rel", {})
-        for fld_name, elem_entity in (rt.get("relations") or {}).items():
-            if elem_entity:
-                rels[fld_name] = elem_entity
+        for fld_name, ri in (rt.get("relations") or {}).items():
+            # ri is {entity, card} (§4.3); tolerate a legacy bare string too.
+            if isinstance(ri, dict) and ri.get("entity"):
+                rels[fld_name] = {"entity": ri["entity"], "card": ri.get("card", "many"), "src": "rendered"}
+            elif isinstance(ri, str) and ri:
+                rels[fld_name] = {"entity": ri, "card": "many", "src": "rendered"}
 
     # Cluster C #6 — consolidate variant-siblings. Web-service shapes are keyed on the raw type name
     # (`CustomerRead`/`CustomerWrite`), which plain `_norm_entity` does NOT variant-strip, so they sit
@@ -2039,6 +2084,47 @@ def reconcile_entities(model):
             if not fr["types"] and fk in type_by_field:
                 fr["types"].add(type_by_field[fk])
 
+    # §4.3 — relational relationships (feeds §2.2 alongside the rendered-types nested refs):
+    #  (1) JOIN edges — explicit `<a>.<x> = <b>.<y>` equality pairs per SQL function (Tier-A, via the fn).
+    #  (2) FK naming convention — an `<Entity>Id`-shaped field resolving to another reconciled entity
+    #      (Tier-B inference). Keys are prefixed (join:/fk:) so they never collide with the rendered
+    #      field-keyed relations and dedupe cleanly.
+    def _disp_of(nk):
+        r = reconciled.get(nk)
+        return (r["_disp"][0] if r and r["_disp"] else nk)
+    for c in model.get("connectors", []) or []:
+        for f in c.get("functions", []) or []:
+            shape = f.get("_shape")
+            if not shape or shape.get("source") != "sql":
+                continue
+            for lt, lc, rt, rc in shape.get("joins", []) or []:
+                lk, rk = _norm_entity(lt), _norm_entity(rt)
+                if lk == rk or lk in _ENTITY_DENY_NORM or rk in _ENTITY_DENY_NORM:
+                    continue
+                if not (lk in reconciled and rk in reconciled):
+                    continue
+                rels = reconciled[lk].setdefault("rel", {})
+                if f"join:{rk}" not in rels:
+                    rels[f"join:{rk}"] = {"entity": _disp_of(rk), "card": "ref", "src": "join",
+                                          "via": f"{lc}={rc}", "locator": f"from connector: {f.get('name')}"}
+    for k, rec in reconciled.items():
+        rels = rec.setdefault("rel", {})
+        for fr in rec["fields"].values():
+            nm = fr["name"]
+            m = re.match(r"^(.+?)_?[Ii][Dd]$", nm)      # <Entity>Id / <Entity>_Id / <Entity>ID (not bare Id)
+            if not m or len(m.group(1)) < 3:
+                continue
+            stem = m.group(1)
+            tk = _norm_entity(stem)
+            if tk not in reconciled or tk == k:
+                # role-qualified FK (CreditControllerUserId → User, DefaultBillingAddressId → Address):
+                # the stem ENDS WITH a reconciled entity's normalized name — longest match wins (most specific).
+                sl = re.sub(r"[^a-z0-9]", "", stem.lower())
+                tk = max((ok for ok in reconciled if ok != k and len(ok) >= 4 and sl.endswith(ok)),
+                         key=len, default=None)
+            if tk and tk != k and tk in reconciled and f"fk:{nm}" not in rels:
+                rels[f"fk:{nm}"] = {"entity": _disp_of(tk), "card": "one", "src": "fk", "via": nm}
+
     keys = list(reconciled.keys())
     out = {}
     for k, rec in reconciled.items():
@@ -2061,12 +2147,16 @@ def reconcile_entities(model):
 def _prov_header(model, category, extra=None):
     app = model.get("application", {}) or {}
     dep = model.get("deployment", {}) or {}
+    dh = model.get("deploy_history", []) or []           # §4.1 — last-published forensic, moved here from the body
+    last_published = (dh[-1].get("datetime") if dh else None) or ""
     L = ["---",
          f"stadium_asset: {category}",
          f"app: {model.get('_app_name') or app.get('name') or 'Unknown'}",
          f"file_guid: {model.get('_file_guid') or ''}",
          f"designer_version: {app.get('designer_version') or ''}",
          f"selected_package: {dep.get('selected_package') or ''}",
+         f"deployment_count: {dep.get('package_count') or ''}",
+         f"last_published: {last_published}",
          f"extracted_from: {model.get('_extracted_from') or ''}",
          "provenance: deterministic extraction from the Stadium 6 design model + administration.db",
          "marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lines are advisory design signals."]
@@ -2154,6 +2244,62 @@ def _label_verb(label):
 
 def _is_ui_chrome(label):
     return (label or "").strip().lower() in _UI_CHROME_LABELS
+
+# --- Surfaces de-noise (§4.1). The control tree dumps thousands of pure-layout nodes (Layout /
+# StackLayout / GridLayout / Cell* / Container — corpus-measured the dominant emission) that ground
+# NO requirement. Emit only MEANINGFUL controls: data-bound inputs (each carries a data-prop),
+# DataGrids + their columns, labelled action buttons/links, and TITLE-BEARING panels (section
+# headers). Pure-layout + decorative nodes are traversed transparently (their meaningful descendants
+# surface in place); the nesting they carry becomes a one-line depth summary, not per-node bullets.
+# Plain Labels are collected into a compact per-page "visible terms" line — they ground §9 domain
+# vocabulary and must NOT silently regress (see the §7 glossary-kept note; label-preservation caveat).
+_LAYOUT_TYPES = frozenset({
+    "Layout", "GridLayout", "StackLayout", "CellGridLayout", "CellStackLayout", "Container",
+    "Grid", "Flexbox", "LayoutTable", "PageContentPlaceholder", "Repeater", "GridRepeater", "Menu",
+})
+_PANEL_TYPES = frozenset({"Panel", "GroupBox", "Fieldset"})
+_DECORATIVE_TYPES = frozenset({"Image", "Icon", "HorizontalRule", "Spacer"})
+_INPUT_TYPES = frozenset({"TextBox", "DropDown", "CheckBox", "DatePicker", "RadioButtonList",
+                          "CheckBoxList", "UploadFile", "TextArea", "ComboBox", "RadioButton"})
+
+def _panel_title(kp):
+    """A title-bearing panel's heading text (a section header worth keeping), else None."""
+    for k in ("Title", "Heading", "Text", "Label"):
+        v = (kp or {}).get(k)
+        if isinstance(v, str) and v.strip():
+            return v.strip()
+    return None
+
+def _is_meaningful_control(n):
+    """True for a control worth an individual surfaces bullet (§4.1): a grid, a titled panel, a
+    labelled action, or a data-bound input. Pure-layout / decorative / plain-Label nodes → False
+    (traversed transparently; Labels are collected as visible terms). Robust to unseen control
+    types: anything that is not layout/decorative/label/unlabelled-action is treated as a data input
+    (it carries a data-prop) rather than silently dropped."""
+    typ = n.get("type")
+    kp = n.get("key_props") or {}
+    if n.get("columns") or typ == "DataGrid":
+        return True                                  # grid (+ resolved columns)
+    if typ in _PANEL_TYPES:
+        return bool(_panel_title(kp))                # titled panel only
+    if typ in _LAYOUT_TYPES or typ in _DECORATIVE_TYPES or typ == "Label":
+        return False
+    if typ in _ACTIONABLE_TYPES:
+        return bool(_control_text(kp))               # labelled action button / link
+    return True                                      # data input (TextBox / DropDown / DatePicker / …)
+
+def _label_term(kp):
+    """Word-bearing verbatim label text (§9 domain vocab); None for positional / punctuation /
+    numbering-only labels (which are dropped, not kept as terms)."""
+    t = _control_text(kp)
+    if not t or not re.search(r"[A-Za-z]{2,}", t):
+        return None
+    return t.strip()
+
+def _tree_depth(nodes):
+    """Raw max nesting depth of a control tree (the §4.1 depth signal, reported once per page in
+    place of the suppressed per-node layout bullets)."""
+    return (1 + max((_tree_depth(n.get("children", [])) for n in (nodes or [])), default=0)) if nodes else 0
 
 # 0b — page-kind taxonomy from a name suffix (~36% of corpus names carry one; the rest are bare
 # entity nouns → per-entity maintenance surfaces). Tier-B [AI-SUGGESTED].
@@ -2307,10 +2453,18 @@ def _iter_tree(nodes):
         for b in n.get("branches", []):
             yield from _iter_tree(b.get("steps", []))
 
-def _tree_md(nodes, indent, budget):
-    """budget is a 1-element list (shared remaining-node counter). Returns markdown lines."""
+def _tree_md(nodes, indent, budget, ctrl_types=None, ui_dropped=None):
+    """budget is a 1-element list (shared remaining-node counter). ctrl_types classifies SetValue
+    targets; ui_dropped (1-element list) counts UI-plumbing SetValues dropped from the flow (folded
+    into the 1d state-signals section). Returns markdown lines."""
     out = []
     for n in nodes or []:
+        action = n.get("action")
+        # §4.1 — a UI-plumbing SetValue is dropped here (captured in 1d) and does not consume budget.
+        if action == "SetValue" and _setvalue_is_ui((n.get("summary") or {}).get("Target"), ctrl_types):
+            if ui_dropped is not None:
+                ui_dropped[0] += 1
+            continue
         if budget[0] <= 0:
             out.append("  " * indent + "- _(+more steps — full tree in model.json)_")
             return out
@@ -2325,14 +2479,14 @@ def _tree_md(nodes, indent, budget):
                 else:
                     head = "IF *(condition unresolved)*"
                 out.append("  " * (indent + 1) + f"- {head} →")
-                out += _tree_md(b.get("steps", []), indent + 2, budget)
+                out += _tree_md(b.get("steps", []), indent + 2, budget, ctrl_types, ui_dropped)
                 if budget[0] <= 0:
                     return out
         else:
             bits = _summary_bits(n.get("summary"))
-            tag = "  `[opaque: custom JS]`" if n.get("opaque") else ""
+            tag = _js_tag(n.get("js")) if n.get("opaque") else ""   # §4.2 — classified, not blanket-opaque
             trunc = "  _(…)_" if n.get("truncated") else ""
-            out.append("  " * indent + f"- {n.get('action')}" + (f": {bits}" if bits else "") + tag + trunc)
+            out.append("  " * indent + f"- {action}" + (f": {bits}" if bits else "") + tag + trunc)
     return out
 
 # 1d — edge/empty/error/loading state signals. A SetValue targeting one of these UI-state suffixes
@@ -2343,9 +2497,162 @@ def _state_label(target, value):
     t = (target or "").lower()
     if any(k in t for k in ("spinner", "loader", "busy", "overlay")):
         return "loading"
-    if "visible" in t or "container" in t:
+    if "visible" in t or "container" in t or "popup" in t or "modal" in t:
         return "empty/hidden" if str(value).lower() in ("false", "0", "none") else "shown"
     return "state"
+
+# §4.2 — inline-JS classification. The extractor captured the JS body (Code.FormatString) then stamped
+# it `[opaque: custom JS]` and threw the body away. Classify it instead: a copy-pasted stadium-software
+# LIBRARY module (redundant with the `modules` asset), a TIMING hack (sleep/setTimeout), DOM manipulation,
+# or bespoke LOGIC. Only the `logic` class carries the verbatim body (capped) — library/timing/DOM are
+# summarised. Reused by the flow render (below) AND the §4.4 bespoke-rule mining. Corpus: 818 JS actions,
+# most a stadium-software library header or a copy-pasted DOM/timing helper.
+_JS_LIB_RE = re.compile(r"github\.com/stadium-software/([A-Za-z0-9._-]+)")
+_JS_TIMING_RE = re.compile(r"(?i)\bsleep\s*\(|set(?:Timeout|Interval)\s*\(|new\s+Promise[^;]{0,80}setTimeout|\bdelay\s*\(")
+_JS_DOM_RE = re.compile(r"(?i)document\.|window\.|\.innerHTML\b|querySelector|getElementById|\.classList\b|\.style\b|setAttribute|appendChild|createElement|location\.reload|<iframe|addEventListener")
+
+def _js_code(props):
+    """Raw inline-JS body from a JavaScript action's props (Code.FormatString, or a bare string)."""
+    code = (props or {}).get("Code")
+    if isinstance(code, dict):
+        code = code.get("FormatString")
+    return code if isinstance(code, str) and code.strip() else None
+
+def _classify_js(code):
+    """(cls, slug) for an inline-JS body. cls ∈ {library, timing, dom, logic}; slug is the module slug
+    for `library`, else None. Library header wins (copy-pasted module UI); then timing; then DOM; else
+    bespoke logic (the only class rendered verbatim)."""
+    if not code:
+        return "logic", None
+    m = _JS_LIB_RE.search(code[:400])
+    if m:
+        return "library", m.group(1).strip().rstrip("/.").lower()
+    if _JS_TIMING_RE.search(code):
+        return "timing", None
+    if _JS_DOM_RE.search(code):
+        return "dom", None
+    return "logic", None
+
+def _js_node_info(code, cap=120):
+    """Compact classification dict stored on a tree node / used by the flow render. Only the `logic`
+    class keeps a flattened, brace-un-escaped, PII-scrubbed, capped body."""
+    cls, slug = _classify_js(code)
+    body = None
+    if cls == "logic" and code:
+        s = _redact_pii(_flat(code).replace("{{", "{").replace("}}", "}"))
+        body = (s[:cap] + "…") if len(s) > cap else s
+    return {"cls": cls, "slug": slug, "body": body}
+
+def _js_tag(info):
+    """Flow-render tag for an inline-JS action (replaces the blanket `[opaque: custom JS]`)."""
+    info = info or {"cls": "logic", "slug": None, "body": None}
+    cls, slug, body = info.get("cls"), info.get("slug"), info.get("body")
+    if cls == "library":
+        return f"  `[library JS: {slug}]`"
+    if cls == "timing":
+        return "  `[timing JS]`"
+    if cls == "dom":
+        return "  `[DOM-manipulation JS]`"
+    return "  `[custom JS]`" + (f" — `{body}`" if body else "")
+
+# §4.1 — SetValue classification. A SetValue whose TARGET control is a layout / panel / decorative /
+# Label node is UI plumbing (a visibility/style/title toggle) — DROPPED from the flow and captured in
+# the 1d state-signal section instead (same predicate → zero loss). A SetValue targeting a data input,
+# a session variable, or a status field is a genuine state transition and is KEPT (Tier-A). The Target
+# resolves to a bare control NAME (no `.Prop` suffix in the corpus), so classify by the target control's
+# type (ctrl_types) with a visibility/layout NAME-pattern fallback for session variables / unknowns.
+_UI_TARGET_NAME_RE = re.compile(r"(?i)spinner|loader|overlay|busy|popup|modal|dialog|container|panel|tooltip")
+
+def _setvalue_is_ui(target, ctrl_types=None):
+    """True when a SetValue Target is UI plumbing (dropped from the flow; captured in 1d states)."""
+    if not isinstance(target, str) or not target:
+        return False
+    typ = (ctrl_types or {}).get(target)
+    if typ is not None:
+        # actionable controls too: you don't write *data* to a button/link — a SetValue on one is an
+        # enable/disable/show/hide/label toggle (UI state), so it folds into 1d like layout/decorative.
+        return (typ in _LAYOUT_TYPES or typ in _PANEL_TYPES or typ in _DECORATIVE_TYPES
+                or typ in _ACTIONABLE_TYPES or typ == "Label")
+    return bool(_UI_TARGET_NAME_RE.search(target))
+
+# §4.2 — technology stack (NFR baseline). `model["tech_stack"]` was captured (`read_stack`) but never
+# emitted. Surface the backend framework, DB providers, notable backend capabilities and the frontend
+# framework — an NFR/integration baseline for requirements. All Tier-A (`.csproj` / `package.json`).
+_DB_PKG_RE = re.compile(r"(?i)sqlite|sqlserver|sql\.client|sqlclient|npgsql|oracle|mysql|dapper|entityframework|odbc|oledb")
+_CAP_PKG_RE = re.compile(r"(?i)signalr|swagger|swashbuckle|serilog|nlog|hangfire|automapper|identitymodel|\bjwt\b|oauth|graphql|rabbitmq|masstransit|redis|mediatr|polly|fluentvalidation|sendgrid|mailkit|azure|aws|amazon|storage|quartz|epplus|itext|closedxml")
+
+def _tech_stack_lines(stack):
+    """(overview_baseline_line, data_sources_section_lines). Renders the captured but never-emitted
+    tech_stack. Empty section lines when nothing is captured (degraded input)."""
+    stack = stack or {}
+    backend = stack.get("backend")
+    pkgs = stack.get("csproj_packages") or []
+    fdeps = stack.get("frontend_deps") or {}
+    names = [n for (n, _v) in pkgs if isinstance(n, str)]
+    db = sorted({n for n in names if _DB_PKG_RE.search(n)})
+    caps = sorted({n for n in names if _CAP_PKG_RE.search(n)})
+    fe = "Vue" + (f" {fdeps['vue']}" if isinstance(fdeps.get("vue"), str) else "")
+    ov = (f"- Technology baseline: backend **{backend or '?'}**, frontend **{fe}** "
+          f"({len(pkgs)} backend package(s), {len(fdeps)} frontend dep(s)) [from .csproj / package.json]")
+    ds = []
+    if backend or pkgs or fdeps:
+        ds = ["## Tier-A — technology stack (NFR baseline)\n",
+              f"- Backend framework: **{backend or '—'}** [from .csproj]",
+              f"- Frontend: **{fe}** [from package.json]"]
+        if db:
+            ds.append("- Data providers: " + ", ".join(f"`{d}`" for d in db) + " [from .csproj]")
+        if caps:
+            ds.append("- Notable backend capabilities: " + ", ".join(f"`{c}`" for c in caps[:15]) + " [from .csproj]")
+        ds.append("")
+    return ov, ds
+
+# §4.3 — permission model beyond admin.db. For rich apps the real authorization model lives in the
+# `.sapz Setting` table (approver/role config like `RedressApproverRoles=…`) and in API `Role` /
+# `ApprovalLevel` data entities — NOT the (18/20-trivial single-User) admin.db page-role matrix.
+_ROLE_SETTING_RE = re.compile(r"(?i)role|approver|permission")
+_RBAC_ENTITY_RE = re.compile(r"(?i)^roles?$|approvallevel|userapproval|permission")
+
+def _permission_signals(settings, ents_sorted):
+    """(setting_role_lines, rbac_entity_names) — both Tier-A."""
+    setting_lines = []
+    for s in settings or []:
+        nm = s.get("name") or ""
+        if not _ROLE_SETTING_RE.search(nm) or s.get("kind") == "credential":
+            continue
+        v = _flat(s.get("value"))
+        if not v:
+            continue
+        if len(v) <= 200 and not re.search(r"<[A-Za-z/!]", v):
+            parts = [p.strip() for p in re.split(r"[,;|]", v) if p.strip()]
+            shown = ", ".join(f"`{p}`" for p in parts[:12]) if len(parts) > 1 else f"`{v}`"
+            setting_lines.append(f"- Role / approver config: `{nm}` = {shown} [from design model: Setting]")
+        else:
+            setting_lines.append(f"- Role / approver config present: `{nm}` (structured value) [from design model: Setting]")
+    rbac = [e["display"] for e in (ents_sorted or []) if _RBAC_ENTITY_RE.search(e.get("display") or "")]
+    return setting_lines, rbac
+
+# §4.3 — connector kind + deployment-maturity classification (data-sources integration enrichment).
+_MOCK_HOST_RE = re.compile(r"(?i)mock\.pstmn\.io|\blocalhost\b|127\.0\.0\.1|\.local\b|example\.(?:com|org)|\btest\.")
+
+def _connector_kind(conn):
+    t = (conn.get("type") or "").lower()
+    cs = _flat(conn.get("connection_string") or "").lower()
+    blob = t + " " + cs + " " + " ".join((f.get("type") or "").lower() for f in conn.get("functions", []) or [])
+    for pat, kind in (("powerbi", "PowerBI"), ("sharepoint", "SharePoint"), ("oracle", "Oracle"),
+                      ("odbc", "ODBC"), ("signalr", "SignalR"), ("linx", "Linx"),
+                      ("filesystem", "FileSystem"), ("webservice", "REST / HTTP"), ("http", "REST / HTTP"),
+                      ("storedprocedure", "SQL"), ("sql", "SQL"), ("database", "SQL")):
+        if pat in blob:
+            return kind
+    return conn.get("type") or "connector"
+
+def _connector_maturity(conn):
+    """`mock / non-prod` when a mock/local host appears in the connection string or an endpoint path."""
+    blob = _flat(conn.get("connection_string") or "")
+    for f in conn.get("functions", []) or []:
+        blob += " " + str((f.get("shape_hint") or {}).get("path") or "")
+        blob += " " + str(f.get("query") or "")
+    return "mock / non-prod host" if _MOCK_HOST_RE.search(blob) else None
 
 # ============================================================================ per-view USER TASKS
 # Deterministic per-view user-task derivation (render-only over joins already materialized in
@@ -2556,6 +2863,8 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
             if k:
                 ctrl_by_name.setdefault(k, c)
                 ctrl_owners.setdefault(k, set()).add(c.get("owner_page"))
+    # control name/raw_name → friendly type; classifies a SetValue target as data vs UI plumbing (§4.1)
+    ctrl_type_by_name = {k: c.get("type") for k, c in ctrl_by_name.items()}
 
     def _script_surface(script_name):
         """Best-effort surface for a script (script `owner` is usually None). First dotted segment →
@@ -2659,21 +2968,17 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
             notif_points.append(key)
 
     # ======================================================================= overview
+    # §4.1 — forensic metadata (designer version, deployment package "of N", last-published) is DROPPED
+    # from the body; it is retained verbatim in the YAML `_prov_header` (zero information loss). The raw
+    # counts line (orientation stat) is dropped too. A tech-stack NFR baseline (§4.2) is added instead.
+    ov_tech, ds_tech = _tech_stack_lines(model.get("tech_stack"))
     L = [f"# Stadium app — {appname}\n",
          "## Tier-A — facts\n",
          f"- App name: **{appname}** [from design model]",
-         f"- Designer version: {app.get('designer_version') or '—'} [from design model]",
          f"- Authentication: {security.get('authentication_type') or '—'} [from appsettings]",
          f"- Theme: {app.get('theme') or '—'} [from design model]",
          f"- Session timeout: {app.get('session_timeout') or '—'} min [from design model]",
-         f"- Counts: {len(pages)} pages, {len(model.get('all_controls', []))} controls, "
-         f"{len(connectors)} connectors, {len(scripts)} scripts, {len(security.get('roles', []))} roles [from design model]"]
-    dep = model.get("deployment", {}) or {}
-    L.append(f"- Deployment package: {dep.get('selected_package') or '—'} (of {dep.get('package_count') or '?'} deployments) [from administration.db]")
-    dh = model.get("deploy_history", []) or []
-    if dh:
-        last = dh[-1]
-        L.append(f"- Last published: {last.get('datetime')} (designer {last.get('designer_version')}) [from administration.db]")
+         ov_tech]
     L.append("\n## Tier-B — inferred domain (advisory)")
     dom_hint = ", ".join([e["display"] for e in ents_sorted][:8]) or "—"
     L.append(f"- Candidate domain entities (from data operations): {dom_hint} `[AI-SUGGESTED: domain inference]`")
@@ -2717,19 +3022,29 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
                     L.append(line)
             else:
                 L.append("- _(fields not modelled for this endpoint)_")
-            for fld_name, elem in sorted((e.get("rel") or {}).items()):   # Cluster C #6 — nested-type relations (§2.2)
-                L.append(f"  - relation: `{e['display']}.{fld_name}` → `{elem}[]` (nested type) [from rendered types]")
+            for rk, ri in sorted((e.get("rel") or {}).items()):          # §2.2 relations (rendered nested + SQL JOIN/FK)
+                if not isinstance(ri, dict):
+                    ri = {"entity": ri, "card": "many", "src": "rendered"}   # legacy bare-string tolerance
+                tgt, card, src = ri.get("entity"), ri.get("card", "many"), ri.get("src", "rendered")
+                if not tgt:
+                    continue
+                fld = ri.get("via") or rk                                 # the local field / join column(s)
+                arrow = f"`{tgt}[]`" if card == "many" else f"`{tgt}`"
+                if src == "rendered":
+                    kind, loc = ("to-many (nested type)" if card == "many" else "to-one (nested type)"), "[from rendered types]"
+                elif src == "join":
+                    kind, loc = "join", f"[{ri.get('locator', 'from connector')}]"
+                else:                                                     # fk naming convention (Tier-B)
+                    kind, loc = "to-one (FK)", "[from design model] `[AI-SUGGESTED: FK by naming convention]`"
+                L.append(f"  - relation ({kind}): `{e['display']}.{fld}` → {arrow} {loc}")
             if e["related"]:
                 rel = ", ".join("`" + r + "`" for r in e["related"])
                 L.append(f"> related shapes: {rel} (not merged — distinct field sets) `[AI-SUGGESTED: domain inference]`")
             L.append("")
     else:
         L.append("_No data operations found in the design model._\n")
-    nstructs = len(model.get("data_dictionary", []) or [])
-    if nstructs:
-        L.append(f"> The design model defines {nstructs} internal data-type instances "
-                 "(control/result/parameter bindings); field types above are sourced from them where concrete. "
-                 "Full detail is in the forensic model.json.\n")
+    # §4.1 — the "N internal data-type instances" orientation line is dropped (it grounded no
+    # requirement; the concrete field types it referenced are already emitted inline per field above).
     # CRUD matrix (across all three evidence classes)
     L.append("## Tier-A — CRUD matrix\n")
     L.append("| Entity | SELECT | INSERT | UPDATE | DELETE | Evidence |")
@@ -2762,11 +3077,16 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
          "## Tier-A — connectors & operations\n"]
     if connectors:
         for c in connectors:
-            L.append(f"### {c.get('name')} ({c.get('type') or 'connector'})")
+            kind = _connector_kind(c)                 # §4.3 — REST/SQL/Oracle/ODBC/PowerBI/… classification
+            mat = _connector_maturity(c)              # §4.3 — mock/non-prod maturity signal
+            mtag = f"  ·  ⚠ {mat} `[AI-SUGGESTED]`" if mat else ""
+            L.append(f"### {c.get('name')} — {kind}{mtag}")
             L.append(f"- Connection (redacted): `{_flat(c.get('connection_string'))[:300] or '—'}` [from administration.db / design model]")
             for f in c.get("functions", []):
                 params = ", ".join(f"{p['name']}:{p.get('db_type') or p.get('type')}" for p in f.get("parameters", [])) or "none"
-                L.append(f"- **{f.get('name')}** ({f.get('type')}) — params: {params} [from connector: {c.get('name')}]")
+                tmo = f.get("timeout")
+                ttag = f" · timeout {tmo}" if tmo not in (None, "", 0) else ""
+                L.append(f"- **{f.get('name')}** ({f.get('type')}) — params: {params}{ttag} [from connector: {c.get('name')}]")
                 q = _flat(f.get("query"))
                 hint = f.get("shape_hint") or {}
                 if f.get("type") == "WebServiceFunction":
@@ -2816,6 +3136,8 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
                 L.append("- Integration credential(s) configured (redacted): "
                          + ", ".join(f"`{c}`" for c in creds) + " [from design model: Setting]")
             L.append("")
+    if ds_tech:                                  # §4.2 — technology-stack NFR baseline (backend/DB/frontend)
+        L.extend(ds_tech)
     W("data-sources", "\n".join(L))
 
     # ======================================================================= business-rules
@@ -2842,18 +3164,25 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
             tgt = f' "{label}"' if label else (f' `{seg}`' if seg else "")
             L.append(f"- User {gesture or 'activates'}{tgt} → runs the flow below")
         L.append(f"- Sequence: {seq}")
+        ui_dropped = [0]                 # §4.1 — UI-plumbing SetValues folded into the 1d state section
         tree = s.get("tree") or []
         if _tree_has_decision(tree):     # 1c: branch-structured render for scripts with Decisions
             L.append("- Flow (branch-structured):")
-            L.extend(_tree_md(tree, 1, [PER_SCRIPT_NODE_CAP]))
+            L.extend(_tree_md(tree, 1, [PER_SCRIPT_NODE_CAP], ctrl_type_by_name, ui_dropped))
         else:                            # linear script: lean per-action summary bullets (back-compat)
             for a in s["actions"]:
+                action = a.get("action")
+                if action == "SetValue" and _setvalue_is_ui((a.get("summary") or {}).get("Target"), ctrl_type_by_name):
+                    ui_dropped[0] += 1   # §4.1 — UI toggle: drop here, captured in 1d states
+                    continue
                 bits = _summary_bits(a.get("summary"))
-                is_js = a.get("action") == "JavaScript"
+                is_js = action == "JavaScript"
                 if not bits and not is_js:
                     continue
-                tag = "  `[opaque: custom JS]`" if is_js else ""  # never silently drop opaque JS
-                L.append(f"  - {a['action']}" + (f": {bits}" if bits else "") + tag)
+                tag = _js_tag(_js_node_info(_js_code(a.get("props")))) if is_js else ""  # §4.2 — classified
+                L.append(f"  - {action}" + (f": {bits}" if bits else "") + tag)
+        if ui_dropped[0]:                # no silent drop — the count is folded into the state-signals section
+            L.append(f"  - _(+{ui_dropped[0]} UI-state SetValue(s) folded into the state-signals section)_")
         L.append("")
 
     def _grp_key(tc):
@@ -2925,7 +3254,8 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
         L.append("_No validators, required-field flags, or control validation rules in the design model._")
     # ---- 1d — edge / empty / error / loading states (facts Tier-A; the {loading|empty|error} label
     # is Tier-B — a hidden control is ambiguous). Cross-links 0a (notifications) + 0f (validators).
-    _STATE_TGT = re.compile(r"(?i)spinner|loader|overlay|busy|visible|container")
+    # This section is the single home for UI-plumbing SetValues: it uses the SAME `_setvalue_is_ui`
+    # predicate the flow render uses to DROP them (§4.1), so every dropped toggle is captured here.
     _EMPTY_NAME = re.compile(r"(?i)\b(empty|null|none|count|exists|any|zero)\b")
     _EMPTY_ZERO = re.compile(r"[=<>!]=?\s*0(\b|$)")
     err_notifs = [(sfc, sn, msg) for (sfc, sn, kind, sev, msg) in notif_points if sev == "error"]
@@ -2937,7 +3267,7 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
                 continue
             sm = a.get("summary") or {}
             tgt = sm.get("Target")
-            if not isinstance(tgt, str) or not _STATE_TGT.search(tgt):
+            if not _setvalue_is_ui(tgt, ctrl_type_by_name):
                 continue
             val = sm.get("Value")
             key = (sfc, tgt, str(val))
@@ -2965,19 +3295,58 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
         L.append("> The toggle / error-type / guard predicate is Tier-A (provably in the model). The "
                  "**state classification** (loading vs empty vs error vs permission) is a Tier-B reading — "
                  "a hidden control is ambiguous (busy vs empty vs initial-hide). See 0a / 0f above.\n")
-        for sfc, sn, msg in err_notifs[:80]:
+        # error notifications: kept verbatim (high-value Tier-A messages), capped
+        for sfc, sn, msg in err_notifs[:60]:
             L.append(f"- **error notification** · `{sn}` ({sfc or 'app'}) — \"{msg}\" [from design model]")
-        for sfc, sn, tgt, val in state_toggles[:120]:
-            L.append(f"- **visibility/loading toggle** · `{sn}` ({sfc or 'app'}) — `{tgt}` = {val} "
-                     f"[from design model] `[AI-SUGGESTED: state={_state_label(tgt, val)}]`")
-        for sfc, sn, p in empty_guards[:120]:
+        # §4.1 — visibility/loading toggles are the UI-plumbing SetValues folded out of the flow. Rendered
+        # as a COMPACT counter (total + Tier-B state-classification breakdown + distinct targets), NOT one
+        # verbose bullet per toggle — that would re-inflate exactly the bulk the flow just shed.
+        if state_toggles:
+            from collections import Counter as _Counter
+            by_state = _Counter(_state_label(t, v) for (_s, _n, t, v) in state_toggles)
+            brk = ", ".join(f"{n} {k}" for k, n in by_state.most_common())
+            tgts = sorted({t for (_s, _n, t, _v) in state_toggles})
+            surfs = len({s for (s, _n, _t, _v) in state_toggles if s})
+            shown = tgts[:15]
+            more = f" _(+{len(tgts) - len(shown)} more)_" if len(tgts) > len(shown) else ""
+            L.append(f"- **visibility/loading toggles**: {len(state_toggles)} distinct SetValue state write(s)"
+                     f"{f' across {surfs} surface(s)' if surfs else ''} — classified {brk} "
+                     "[from design model] `[AI-SUGGESTED: state classification]`")
+            L.append("  - targets: " + ", ".join(f"`{t}`" for t in shown) + more + " [from design model]")
+        for sfc, sn, p in empty_guards[:80]:
             L.append(f"- **empty/edge guard** · `{sn}` ({sfc or 'app'}) — IF `{_redact_pii(p)}` "
                      "[from design model] `[AI-SUGGESTED: empty/count guard]`")
-        extra = max(0, len(state_toggles) - 120) + max(0, len(empty_guards) - 120) + max(0, len(err_notifs) - 80)
+        extra = max(0, len(empty_guards) - 80) + max(0, len(err_notifs) - 60)
         if extra:
-            L.append(f"- _(+{extra} more state signals — see model.json)_")
+            L.append(f"- _(+{extra} more error/guard signals — see model.json)_")
     else:
         L.append("_No explicit spinner/visibility toggles, error notifications, or empty/null guards in the design model._")
+    # ---- §4.4 — bespoke inline-JS rules. The `logic`-class inline JS (NOT a copy-pasted stadium-software
+    # library block, NOT a DOM/timing helper) is the net-new signal. Emit each verbatim (capped) with its
+    # owning script — Tier-A. A Tier-2 advisory summary of what these DO is added in Phase B (the extraction
+    # skill), never here. Recovered from the `.sapz` Code.FormatString (already captured), not global-scripts.
+    bespoke, _seen_b = [], set()
+    for s in scripts:
+        sfc = _script_surface(s.get("name")) or s.get("owner") or "app"
+        for a in s.get("actions", []):
+            if a.get("action") != "JavaScript":
+                continue
+            info = _js_node_info(_js_code(a.get("props")))
+            if info["cls"] != "logic" or not info["body"] or info["body"] in _seen_b:
+                continue
+            _seen_b.add(info["body"])
+            bespoke.append((s.get("name"), sfc, info["body"]))
+    L.append("\n## Tier-A — bespoke inline-JS rules\n")
+    if bespoke:
+        L.append("> The app's own inline logic blocks, verbatim (capped). Copy-pasted `stadium-software` "
+                 "library JS and DOM/timing helpers are excluded (framework UI, catalogued in `modules`). A "
+                 "Tier-2 advisory summary of what these rules DO is added by the extraction skill (Phase B).\n")
+        for sname, sfc, body in bespoke[:40]:
+            L.append(f"- `{sname}` ({sfc}) — `{body}` [from script, surface: {sfc}]")
+        if len(bespoke) > 40:
+            L.append(f"- _(+{len(bespoke) - 40} more bespoke inline-JS blocks — see model.json)_")
+    else:
+        L.append("_No bespoke (non-library, non-DOM/timing) inline-JS blocks in the design model._")
     W("business-rules", "\n".join(L))
 
     # ======================================================================= access-control
@@ -3012,6 +3381,17 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
             L.append(f"- {name}")
         if not inv_order:
             L.append("- _(no pages found)_")
+    # ---- §4.3 — permission model beyond admin.db (Setting approver/role config + RBAC data entities)
+    set_roles, rbac_ents = _permission_signals(model.get("settings"), ents_sorted)
+    if set_roles or rbac_ents:
+        L.append("\n## Tier-A — permission model (beyond admin.db)\n")
+        L.append("> For richer apps the real authorization model lives in the `.sapz Setting` table "
+                 "(approver/role configuration) and in API `Role` / `ApprovalLevel` / `*Permission` data "
+                 "entities — not the (often trivial single-User) admin.db page-role matrix above.\n")
+        L.extend(set_roles)
+        if rbac_ents:
+            L.append("- RBAC data entities (roles / approval-levels / permissions modelled as data): "
+                     + ", ".join(f"`{e}`" for e in rbac_ents) + " [from data-model]")
     # ---- 0d actor candidates (both branches): task-cluster split + external send-recipient signal
     cluster_pages = {}
     for pg, rows_a in affordances_by_page.items():
@@ -3076,9 +3456,12 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
         for gap in ("name", "goal", "motivation", "pain-points", "success-metric"):
             L.append(f"- {gap}: `[AI-SUGGESTED: blocking]`")
         L.append("")
-    # ---- user population (counts only; identities are PII and not extracted)
+    # ---- user population (counts only; identities are PII and not extracted). §4.1 — trimmed to a
+    # terse one-liner: the raw head-count is low-value orientation, but the count + PII stance is kept
+    # (auditability), the verbose explanation dropped.
     L.append("## Tier-A — user population (counts only; identities not extracted)\n")
-    L.append(f"- {security.get('user_count', 0)} user account(s), of which {security.get('admin_count', 0)} hold the administrator flag. Individual user identities (name / email) are intentionally **not** extracted — PII, and not needed for requirements; the roles + page-access matrix above is the actor model. [from admin.db: Users]")
+    L.append(f"- {security.get('user_count', 0)} user account(s), {security.get('admin_count', 0)} with the "
+             "administrator flag; individual identities (name / email) not extracted — PII. [from admin.db: Users]")
     W("access-control", "\n".join(L))
 
     # ======================================================================= surfaces
@@ -3105,19 +3488,57 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
     if not inv_order:
         L.append("| _(no pages found)_ | | | | | | | |")
     L.append("")
-    start = app.get("start_page_id")
+    # ---- §4.3 — reports & dashboards recognition. A surface is a REPORT when it has an export-enabled
+    # DataGrid or a reporting page-kind; a DASHBOARD when it is a landing/…dashboard surface. App-level
+    # BI/reporting integration is surfaced from a `Setting` PowerBI/ReportsURL value.
+    report_pages, dash_pages = [], []
+    for p in pages:
+        pk = _page_kind(p.get("name"))
+        has_export = any((n.get("key_props") or {}).get("AllowExport") for n in _walk_tree(p.get("control_tree", [])))
+        if (has_export or pk == "reporting") and p.get("name"):
+            report_pages.append(p.get("name"))
+        if (pk == "landing" or (p.get("name") or "").lower().endswith("dashboard")) and p.get("name"):
+            dash_pages.append(p.get("name"))
+    bi_settings = [s.get("name") for s in (model.get("settings") or [])
+                   if re.search(r"(?i)power.?bi|reports?url|\breporturl\b", s.get("name") or "")]
+    if report_pages or dash_pages or bi_settings:
+        L.append("## Tier-A — reports & dashboards\n")
+        if report_pages:
+            L.append("- Report surfaces (export-enabled grid or reporting page-kind): "
+                     + ", ".join(f"`{n}`" for n in dict.fromkeys(report_pages)) + " [from design model]")
+        if dash_pages:
+            L.append("- Dashboard / landing surfaces: "
+                     + ", ".join(f"`{n}`" for n in dict.fromkeys(dash_pages)) + " [from design model]")
+        if bi_settings:
+            L.append("- BI / reporting integration configured: "
+                     + ", ".join(f"`{n}`" for n in bi_settings) + " [from design model: Setting]")
+        L.append("")
     for p in pages:
         star = " ⭐ start" if p.get("is_start_page") else ""
         roles = ", ".join(p.get("roles", [])) or "—"
         L.append(f"## {p['name']}{star}  ·  title: {p.get('title') or '—'}  ·  roles: {roles}")
+        terms, _seen_terms = [], set()               # §4.1 — per-page visible domain terms (from Labels)
+        stats = {"controls": 0, "layout": 0}
+
         def render(nodes, depth=1):
             for n in nodes:
+                typ = n.get("type")
                 kp = n.get("key_props") or {}
+                if typ == "Label":                                   # §4.1 — collect domain term; no bullet
+                    t = _label_term(kp)
+                    if t and t not in _seen_terms:
+                        _seen_terms.add(t); terms.append(t)
+                    continue
+                if not _is_meaningful_control(n):                    # §4.1 — layout/decorative: splice through
+                    stats["layout"] += 1
+                    render(n.get("children", []), depth)             # transparent (descendants surface in place)
+                    continue
+                stats["controls"] += 1
                 txt = _control_text(kp)
                 txt = f' — "{txt}"' if txt else ""
                 cons = _control_constraints(kp)          # Cluster A #1 — field behaviour, inline
                 cons_txt = ("  ·  " + " · ".join(cons)) if cons else ""
-                L.append("  " * depth + f"- {n['type']}: `{n['name']}`{txt}{cons_txt}")
+                L.append("  " * depth + f"- {typ}: `{n['name']}`{txt}{cons_txt}")
                 cols = n.get("columns")                  # Cluster A #2 — resolved DataGrid columns
                 if cols:
                     L.append("  " * (depth + 1) + "- " + _columns_line(cols) + " [from design model]")
@@ -3130,6 +3551,16 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
                         L.append("  " * (depth + 2) + f"- ⚠ {note} [from rendered view]")
                 render(n.get("children", []), depth + 1)
         render(p.get("control_tree", []))
+        if terms:                                        # §4.1 — visible domain vocabulary (Tier-A; §9 grounding)
+            shown = terms[:40]
+            more = f" _(+{len(terms) - len(shown)} more)_" if len(terms) > len(shown) else ""
+            L.append("- Visible terms: " + ", ".join(f'"{t}"' for t in shown) + more + " [from design model]")
+        if stats["controls"] == 0 and not terms:
+            L.append("- _(layout-only surface — no data-bound controls, grids, or labelled actions)_")
+        if stats["layout"]:                              # §4.1 — nesting kept as a one-line depth summary, not per-node bullets
+            L.append(f"> Layout: {stats['controls']} meaningful control(s) within {stats['layout']} "
+                     f"layout container(s); max control-tree nesting depth {_tree_depth(p.get('control_tree', []))} "
+                     "(per-node layout omitted — see model.json). Advisory.")
         # Cluster C #8 — page→connector-function endpoints decoded from the rendered view (§8 existing-tool
         # reference). The `.sapz` renders these weakly; the rendered route strings bind UI action → backend.
         eps = (view_columns.get(p.get("name")) or {}).get("endpoints") or []
@@ -3471,6 +3902,39 @@ def emit_assets(model, out_dir, stem, kb_dir=None):
             L.append(f"- {b} [from global-scripts]")
     L.append(f"\n- global-scripts.js present: {mods.get('global_scripts_present')}")
     L.append(f"- Module CSS footprint: {', '.join(mods.get('embedded_css', [])) or 'none'}")
+    # §4.3 — modernization & UX signals (deterministic, source-grounded, Tier-B advisory). This section
+    # replaces the Tier-2 LLM `quality-signals` content for the deterministic signals; it lands here in
+    # `modules` (which already owns the library-detection signal) so the taxonomy stays unchanged (the
+    # `modernization-ux` doc is a Phase-3 concern). Every line is `[AI-SUGGESTED]` but cites its source.
+    mod_lines = []
+    lc = mods.get("library_copy") or {}
+    if lc.get("total_fn"):
+        pct = round(100 * lc["lib_blocks"] / lc["total_fn"])
+        mod_lines.append(f"- Library-copy ratio: ~{lc['lib_blocks']} `stadium-software` library block(s) across "
+                         f"~{lc['total_fn']} global-scripts function(s) (~{pct}%) — modernization would replace "
+                         "copy-pasted module JS with shared components. [from global-scripts] `[AI-SUGGESTED]`")
+    if mods.get("full_page_reload"):
+        mod_lines.append("- Full-page-reload pattern present (`location.reload` / `$route` watcher) — a modern SPA "
+                         "updates state in place rather than reloading. [from global-scripts] `[AI-SUGGESTED]`")
+    cfg = model.get("config") or {}
+    if isinstance(cfg.get("OAuth"), dict) and any(cfg["OAuth"].values()) and cfg.get("AuthenticationType") != "OAuth":
+        mod_lines.append(f"- Dormant OAuth: an OAuth block is configured but AuthenticationType is "
+                         f"`{cfg.get('AuthenticationType') or '—'}` — identity-provider integration is staged, not "
+                         "active. [from appsettings] `[AI-SUGGESTED]`")
+    mock_conns = [c.get("name") for c in connectors if _connector_maturity(c)]
+    if mock_conns:
+        mod_lines.append("- Mock / non-prod backend(s): " + ", ".join(f"`{n}`" for n in mock_conns[:8])
+                         + " — integration point(s) not yet pointed at production. [from design model] `[AI-SUGGESTED]`")
+    inputs = [c for c in all_controls if c.get("type") in _INPUT_TYPES]
+    validated = sum(1 for c in all_controls
+                    if (c.get("key_props") or {}).get("Required") or (c.get("key_props") or {}).get("IsValidRule"))
+    if inputs:
+        mod_lines.append(f"- Validation density: {validated} validated control(s) across {len(inputs)} input "
+                         "control(s). [from design model] `[AI-SUGGESTED]`")
+    mod_lines.append("- State handling: screen edge/empty/loading states are managed via ad-hoc visibility "
+                     "toggles (see `business-rules` state signals), not a formal state machine. `[AI-SUGGESTED]`")
+    L.append("\n## Tier-B — modernization & UX signals (advisory)\n")
+    L.extend(mod_lines)
     L.append("\n## Tier-B — implication (advisory)")
     L.append("- Detected modules indicate behaviour beyond standard CRUD controls (must be captured as required interactions). `[AI-SUGGESTED]`")
     W("modules", "\n".join(L))

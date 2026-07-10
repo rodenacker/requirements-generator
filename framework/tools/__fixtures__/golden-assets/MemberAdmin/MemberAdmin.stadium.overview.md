@@ -4,6 +4,8 @@ app: MemberAdmin
 file_guid: 785d3104-7f1a-4d0d-9689-566e0c21295b
 designer_version: 6.14.3378.13771
 selected_package: 9edc4a95-3fde-45b4-899a-2a59d1c23452.sapz
+deployment_count: 3
+last_published: 2026-06-24 08:45:30.9660341
 extracted_from: C:\Stadium 6 Web Apps\785d3104-7f1a-4d0d-9689-566e0c21295b
 provenance: deterministic extraction from the Stadium 6 design model + administration.db
 marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lines are advisory design signals.
@@ -13,13 +15,10 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 ## Tier-A — facts
 
 - App name: **MemberAdmin** [from design model]
-- Designer version: 6.14.3378.13771 [from design model]
 - Authentication: Cookie [from appsettings]
 - Theme: Default [from design model]
 - Session timeout: 60 min [from design model]
-- Counts: 3 pages, 113 controls, 1 connectors, 12 scripts, 3 roles [from design model]
-- Deployment package: 9edc4a95-3fde-45b4-899a-2a59d1c23452.sapz (of 3 deployments) [from administration.db]
-- Last published: 2026-06-24 08:45:30.9660341 (designer 6.14.3378.13771) [from administration.db]
+- Technology baseline: backend **net8.0-windows**, frontend **Vue ^3.5.22** (22 backend package(s), 16 frontend dep(s)) [from .csproj / package.json]
 
 ## Tier-B — inferred domain (advisory)
 - Candidate domain entities (from data operations): Cities, Members `[AI-SUGGESTED: domain inference]`

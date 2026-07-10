@@ -62,3 +62,20 @@ consultant folder incidentally named `embedded/` elsewhere in `input/` is unaffe
 The `embedded/` assets remain on disk for downstream *non-manifest* consumers (e.g. the product logo surfaced
 into a prototype via `framework/skills/extract-brand-theme.md`); excluding them from the manifest does not
 delete or move them.
+
+## IX-05 — Stadium `design-signals` asset (`/requirements` read-scope only)
+
+The extracted `input/*.stadium-assets/*.stadium.design-signals.md` asset (theme / styling classification —
+entirely Tier-B, purely `/design-system` material; it grounded **0** requirement claims in the DataShift
+engagement) is **not read by the `/requirements` drafter**.
+
+**Unlike `IX-01`..`IX-04`, this is a pipeline-scoped, *consumer-side* exclusion, not a universal
+enumeration-side one.** The asset **stays a manifest row** — the input-handler still enumerates it (so the
+shared `requirements/source-manifest.json` is identical across pipelines, and `/generate-prd`,
+`/analyse-inputs`, `/review-inputs` still consume it). Only the `/requirements` drafter *skips reading* the
+row, per the pipeline-scoped clause of the Read-path resolution rule in
+`framework/skills/build-source-manifest.md`. The file is never deleted or moved (`IS-02`).
+
+The `glossary` asset was **considered for the same exclusion and deliberately kept** — it grounded 7 claims at
+a higher density than the retained `surfaces`/`business-rules` assets, so excluding it would have contradicted
+the north star for a negligible token saving.

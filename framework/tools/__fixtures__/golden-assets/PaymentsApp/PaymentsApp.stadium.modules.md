@@ -4,6 +4,8 @@ app: PaymentsApp
 file_guid: be54c8c9-dc03-43d5-bc2b-fba14e07f360
 designer_version: 6.14.3378.13771
 selected_package: 2211275f-1cb9-495c-91cf-4ff48dc4c142.sapz
+deployment_count: 1
+last_published: 2026-06-30 12:29:25.6302212
 extracted_from: C:\Stadium 6 Web Apps\be54c8c9-dc03-43d5-bc2b-fba14e07f360
 provenance: deterministic extraction from the Stadium 6 design model + administration.db
 marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lines are advisory design signals.
@@ -29,6 +31,13 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 
 - global-scripts.js present: True
 - Module CSS footprint: modal-variables.css, modal.css
+
+## Tier-B — modernization & UX signals (advisory)
+
+- Library-copy ratio: ~12 `stadium-software` library block(s) across ~108 global-scripts function(s) (~11%) — modernization would replace copy-pasted module JS with shared components. [from global-scripts] `[AI-SUGGESTED]`
+- Mock / non-prod backend(s): `PaymentsApiSetup`, `PaymentsApiPaymentTransactions`, `PaymentsApiUsers`, `PaymentsApiPaymentApprovals` — integration point(s) not yet pointed at production. [from design model] `[AI-SUGGESTED]`
+- Validation density: 65 validated control(s) across 76 input control(s). [from design model] `[AI-SUGGESTED]`
+- State handling: screen edge/empty/loading states are managed via ad-hoc visibility toggles (see `business-rules` state signals), not a formal state machine. `[AI-SUGGESTED]`
 
 ## Tier-B — implication (advisory)
 - Detected modules indicate behaviour beyond standard CRUD controls (must be captured as required interactions). `[AI-SUGGESTED]`

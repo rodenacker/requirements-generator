@@ -4,6 +4,8 @@ app: MemberAdmin
 file_guid: 785d3104-7f1a-4d0d-9689-566e0c21295b
 designer_version: 6.14.3378.13771
 selected_package: 9edc4a95-3fde-45b4-899a-2a59d1c23452.sapz
+deployment_count: 3
+last_published: 2026-06-24 08:45:30.9660341
 extracted_from: C:\Stadium 6 Web Apps\785d3104-7f1a-4d0d-9689-566e0c21295b
 provenance: deterministic extraction from the Stadium 6 design model + administration.db
 marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lines are advisory design signals.
@@ -68,4 +70,4 @@ marker_legend: Tier-A lines are authoritative facts ([SRC]-quotable); Tier-B lin
 
 ## Tier-A — user population (counts only; identities not extracted)
 
-- 4 user account(s), of which 1 hold the administrator flag. Individual user identities (name / email) are intentionally **not** extracted — PII, and not needed for requirements; the roles + page-access matrix above is the actor model. [from admin.db: Users]
+- 4 user account(s), 1 with the administrator flag; individual identities (name / email) not extracted — PII. [from admin.db: Users]
