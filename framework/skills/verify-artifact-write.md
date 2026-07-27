@@ -1,6 +1,6 @@
 # verify-artifact-write.md
 
-**Purpose:** Confirm that a freshly-written artefact on disk matches the in-memory render that produced it. Run by every artefact-producing step (input-handler manifest, drafter draft, resolver answers, merger requirements, plus any sibling `*.converted.md` written by `convert-input-file.md`, plus every analyser's HTML/MD artefact across `/analyse-requirement` and `/analyse-inputs`) immediately after `Write` and before any schema or self-validation. Catches truncation, encoding glitches, wrong paths, and silent `Write` failures before downstream steps consume corrupt or absent artefacts.
+**Purpose:** Confirm that a freshly-written artefact on disk matches the in-memory render that produced it. Run by every artefact-producing step (input-handler manifest, drafter draft, resolver answers, merger requirements, the `/export-application` export, plus any sibling `*.converted.md` written by `convert-input-file.md`, plus every analyser's HTML/MD artefact across `/analyse-requirement` and `/analyse-inputs`) immediately after `Write` and before any schema or self-validation. Catches truncation, encoding glitches, wrong paths, and silent `Write` failures before downstream steps consume corrupt or absent artefacts.
 
 **Inputs:**
 - `path` — absolute or repo-relative path of the file just written.
@@ -16,6 +16,7 @@
 - `framework/agents/requirements-drafter.md` — after writing `requirements/requirements-draft.md`.
 - `framework/agents/requirements-resolver.md` — after writing `requirements/consultant-answers.md`.
 - `framework/agents/requirements-merger.md` — after writing `requirements/requirements.md`.
+- `framework/agents/export-application-exporter.md` — after writing `export-application/requirements-application.md`. `expected_min_bytes` is **derived** (`source byte length − 6000`), never hard-coded: the export removes a near-constant PI appendix plus the §0.1 table and adds the provenance block, so the shortfall is constant in absolute terms while a ratio floor would loosen as documents grow.
 
 ## Procedure
 

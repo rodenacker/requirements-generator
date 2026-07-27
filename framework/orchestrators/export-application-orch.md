@@ -8,11 +8,11 @@ You are a disciplined orchestrator. You do nothing other than what is listed in 
 
 The agent runs **in the foreground**, in the same conversational thread as the orchestrator. The orchestrator hands control to the agent by adopting the agent's persona and following the agent's specification verbatim, until that agent's Definition of Done is met and it hands control back. Only then does the orchestrator resume.
 
-Do **not** invoke the agent as a background / sub / async agent (e.g., via the Agent / Task tool, fork, or any other off-thread delegation). The exporter's accept/edit/reject gate depends on same-thread `AskUserQuestion` acceptance, and foreground execution keeps the run visible to the consultant.
+Do **not** invoke the agent as a background / sub / async agent (e.g., via the Agent / Task tool, fork, or any other off-thread delegation). The exporter's accept/reject gate depends on same-thread `AskUserQuestion` acceptance, and foreground execution keeps the run visible to the consultant.
 
 ## Purpose
 
-Run a single foreground agent (`export-application-exporter`) that re-projects the finished `requirements/requirements.md` into its application-audience form at `export-application/requirements-application.md`, gating completion on the agent's handback after a consultant Accept. The export is **idempotent and stateless**: regenerating after the source changes is free, because the export captures no consultant answers — the staleness gate below makes that the recommended path.
+Run a single foreground agent (`export-application-exporter`) that re-projects the finished `requirements/requirements.md` into its application-audience form at `export-application/requirements-application.md`, gating completion on the agent's handback after a consultant Accept. The export is **deterministic in content and stateless**: regenerating after the source changes is free, because the export captures no consultant answers — the staleness gate below makes that the recommended path. (Byte-for-byte idempotence is not claimed: the `Exported at` provenance row moves on every run.) Because there is no in-gate edit path, a re-export after a source fix is the *only* correction route — and it is cheap by design.
 
 ## Stand-alone constraint
 
@@ -30,9 +30,14 @@ This orchestrator does **not** maintain a `.progress.json` file and writes **no*
     - **Header `Status` is not `final`** (still `draft`, placeholder, or unparseable) — soft gate via `AskUserQuestion` (header `Source status`): *"The source document's Status is not `final` — the merger's accept gate may not have run. Export anyway?"* with options `{ exit-and-finalise-first (Recommended), proceed-anyway }`. On `exit-and-finalise-first`, exit cleanly with no writes. On `proceed-anyway`, record the override (the agent stamps `(consultant override)` in the provenance block) and continue. Never hard-gate on this field: the merger stamps `final` only on its `accept` terminal state, so a non-`final` value means either the accept gate genuinely did not run (rejected or interrupted merge) **or** the document predates the stamp — the latter is a false alarm the consultant must be able to wave through.
 0a. **Prior artefact + freshness gate** — `Read`-check whether `export-application/requirements-application.md` exists.
     - **Absent** — proceed to step 1 with no prompt.
-    - **Present** — `Grep` the export for `^\| Source sha256 \| ([0-9a-f]{64}) \|` and compute the current sha256 of `requirements/requirements.md` (PowerShell `Get-FileHash`).
-        - **Hashes match (fresh)** — `AskUserQuestion` (header `Prior export`): *"`export-application/requirements-application.md` already exists and matches the current `requirements.md`. Keep it, regenerate, or cancel?"* with options `{ Keep — exit (Recommended), Regenerate — checkpoint and re-run, Cancel — exit }`.
-        - **Hashes differ, or the provenance row is missing/garbled (stale)** — same choice set, but: *"`requirements.md` has changed since this export was produced (sha256 mismatch). Regenerate?"* with `Regenerate — checkpoint and re-run (Recommended)`.
+    - **Present** — extract the recorded hash and the recorded gate outcome, then compare against the source:
+        - `Grep` the export for `^\| *Source sha256 *\| *`?([0-9a-fA-F]{64})`? *\|`. The pattern **deliberately tolerates optional surrounding backticks, arbitrary space padding, and upper-case hex** so that exports produced before the row's byte format was pinned still match. Lower-case both the extracted hash and the freshly computed one before comparing.
+        - `Grep` the export for `^\| Gate outcome \| (accepted|rejected) \|`.
+        - Compute the current sha256 of `requirements/requirements.md` (PowerShell `Get-FileHash`).
+        - **Gate outcome is `rejected`** — the prior run was not accepted, so the artefact on disk is not a deliverable regardless of its hash. `AskUserQuestion` (header `Prior export`) with options `{ Regenerate — checkpoint and re-run (Recommended), Cancel — exit }`: *"The existing `export-application/requirements-application.md` was rejected at its gate, not accepted. Regenerate, or cancel?"* **Never offer `Keep` on a rejected artefact.**
+        - **Hashes match and gate outcome is `accepted` or absent (fresh)** — `AskUserQuestion` (header `Prior export`): *"`export-application/requirements-application.md` already exists and matches the current `requirements.md`. Keep it, regenerate, or cancel?"* with options `{ Keep — exit (Recommended), Regenerate — checkpoint and re-run, Cancel — exit }`.
+        - **Hashes differ (stale)** — same choice set, but: *"`requirements.md` has changed since this export was produced (sha256 mismatch). Regenerate?"* with `Regenerate — checkpoint and re-run (Recommended)`.
+        - **No provenance row could be extracted at all** — treat as stale, with the same recommendation. Under the tolerant pattern above this now means the export genuinely predates the provenance block; it is no longer the routine outcome it was under the previous over-strict pattern, which matched no real export and silently degraded every re-run to the stale branch.
     - **Keep** / **Cancel** — output a one-line confirmation, exit cleanly, no writes.
     - **Regenerate** — perform the **Reset procedure** below, then proceed to step 1.
 1. **Run the exporter** — invoke `framework/agents/export-application-exporter.md` in the foreground. Wait until the agent reports handback (gate below).
@@ -54,7 +59,8 @@ The exporter has handed control back when:
 
 - `export-application/requirements-application.md` exists,
 - the agent's `verify-artifact-write` invocation returned `pass`,
-- the consultant has chosen `Accept` at the agent's accept/edit/reject gate (a `Reject` is also terminal — report the run honestly as not accepted; do not declare success).
+- the consultant has chosen `Accept` at the agent's accept/reject gate (a `Reject` is also terminal — report the run honestly as not accepted; do not declare success. Content fixes belong in `requirements/requirements.md`, followed by a re-export — there is no in-gate edit path by design),
+- the artefact's `Gate outcome` provenance row is stamped to match the consultant's choice.
 
 If any of the above is not satisfied, do not declare done. Surface the agent's report to the consultant and let the agent continue or be re-invoked.
 
@@ -62,7 +68,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 
 - `framework/agents/export-application-exporter.md` — the single agent invoked by this orchestrator.
 - `requirements/requirements.md` — read at step 0 (existence, header `Target`, header `Status`) and at step 0a (current sha256). Content consumption belongs to the agent.
-- `export-application/requirements-application.md` — read at step 0a (existence + provenance-row grep) and overwritten by the agent on a fresh run.
+- `export-application/requirements-application.md` — read at step 0a (existence + backtick-tolerant `Source sha256` grep + `Gate outcome` grep) and overwritten by the agent on a fresh run.
 - `framework/shared/refusal-registry.md` — `RF-04` (surfaced by the agent) semantics.
 - `framework/shared/context-hygiene.md` — the canonical `/clear` completion tip emitted on successful completion (after the handback gate).
 
@@ -73,7 +79,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 ## Tools
 
 - `Read` — step 0 source inspection; step 0a export existence check.
-- `Grep` — step 0a provenance-row extraction from the existing export. No other grep.
+- `Grep` — step 0a provenance-row extraction from the existing export, using the backtick-tolerant `Source sha256` pattern and the `Gate outcome` pattern given in Step 0a. No other grep.
 - `Bash` / PowerShell — `Get-FileHash` at step 0a; the Reset procedure's `git add` / `git commit` / `rm -f` on the single named artefact path. Nothing else; never push, amend, or skip hooks.
 - `AskUserQuestion` — the step-0 `Source status` soft gate and the step-0a `{ Keep, Regenerate, Cancel }` gate.
 
@@ -83,7 +89,8 @@ Every other read or write belongs to the invoked agent, per its own agent file.
 
 - Step 0 ran first and its exits were honoured: missing/empty source → plain-text exit with zero writes; already-application source → plain-text exit with zero writes; non-final `Status` → soft gate honoured (override recorded when `proceed-anyway`).
 - Step 0a ran whenever step 0 did not exit, and the consultant's choice was honoured: `Keep`/`Cancel` exited with zero writes and no Bash; `Regenerate` checkpointed (no `--no-verify`, no amend, no push) before deleting exactly the one artefact path.
-- If the agent was invoked, its handback gate was met, and it ran in the foreground — never via Agent / Task / fork / sub-agent.
+- The step-0a hash comparison used the backtick-tolerant pattern and a case-normalised comparison — a `Regenerate` recommendation was **not** produced by a pattern that failed to match a well-formed provenance row. `Keep` was never offered on an artefact whose `Gate outcome` row reads `rejected`.
+- If the agent was invoked, its handback gate was met, it offered exactly `{ Accept, Reject }`, and it ran in the foreground — never via Agent / Task / fork / sub-agent.
 - On a successful run, the context-hygiene completion tip (`framework/shared/context-hygiene.md`) was emitted to the consultant verbatim after the handback gate, on the success path only.
 - No file outside `export-application/` was written by orchestrator or agent; no `.progress.json`, no timing events.
 
@@ -104,5 +111,8 @@ Every other read or write belongs to the invoked agent, per its own agent file.
 - Do not delete anything other than `export-application/requirements-application.md`, and only during a consultant-confirmed Regenerate after the checkpoint commit.
 - Do not commit with `--no-verify`, force-push, or amend during the checkpoint.
 - Do not run the agent as a background / sub / async agent.
+- Do not tighten the step-0a provenance pattern to require a bare hash or exact single-space padding. Exports already on disk predate the pinned byte format, and an over-strict pattern silently degrades every re-run to the stale branch — which is exactly what the previous pattern did: it matched no real export, so the freshness gate never once reported `fresh`.
+- Do not offer `Keep` when the prior artefact's `Gate outcome` row reads `rejected`. A rejected export is not a deliverable, however fresh its hash.
+- Do not offer the consultant an in-gate Edit option, and do not route content fixes through the export. Content changes belong in `requirements/requirements.md` followed by a re-export.
 - Do not paraphrase or redefine refusal predicates — `RF-04` semantics are canonical in `framework/shared/refusal-registry.md`.
 - Do not read `input/` or `requirements/source-manifest.json` from this orchestrator or its agent.

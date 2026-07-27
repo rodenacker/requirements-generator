@@ -53,7 +53,7 @@ Add new predicates by appending; never renumber.
 
 **Severity:** hard.
 
-**Trigger:** `framework/skills/verify-artifact-write.md` reports a mismatch between the in-memory render and the on-disk file after one silent retry. Any artefact-producing step (input-handler manifest, drafter draft, resolver answers, merger requirements) can fire this predicate.
+**Trigger:** `framework/skills/verify-artifact-write.md` reports a mismatch between the in-memory render and the on-disk file after one silent retry. Any artefact-producing step (input-handler manifest, drafter draft, resolver answers, merger requirements, export-application export) can fire this predicate.
 
 **Surface:** Plain-text halt. The agent emits exactly one line — *"Aborting to protect your work — write verification failed for `<path>` after one retry."* — and fails its handback. No `AskUserQuestion`; the consultant cannot meaningfully choose between options when the filesystem is in an unknown state.
 
