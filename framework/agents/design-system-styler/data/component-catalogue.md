@@ -1,6 +1,6 @@
 # Component Catalogue
 
-**Role:** Data file consumed by `framework/agents/design-system-styler/steps/step-06-artifact-generation.md` to populate the **Components** section of `design-system/design-system.html`.
+**Role:** Data file consumed by `framework/agents/design-system-styler/steps/step-06-artifact-generation.md` to populate the **Components** section of each `design-system/design-system-<mode>.html` artefact (the section is rendered once per colour mode).
 
 **Why this file exists:** the component visualisation section is the single most-edited piece of the design-system artefact — consultants will routinely tune which components render, what their visuals look like, and which states are shown. Keeping everything component-related in one file means a single edit touches one place.
 
@@ -11,8 +11,23 @@ Step-06 reads this file once after reading the HTML template, then:
 1. Parses the **Render order** list below — components whose slug is *commented out* (a line beginning with `<!--` inside the list, or a leading `#` before the bullet) are skipped.
 2. Concatenates the single **Component CSS** block (one fenced `css` block) into a substitution buffer.
 3. For each enabled component family, in render order, extracts the family's two fenced `html` blocks — **Live demo** then **States matrix** — wraps each pair in the standard `<div class="cv-family">` wrapper with the family title + note, and appends them to a specimens buffer.
-4. Token-substitutes both buffers: for every reference of the form `{{colours.<token>.hex}}`, `{{typography.<token>.value}}`, or `{{effects.<token>.value}}`, substitutes the actual value from the in-memory token set built in step-05 / step-05b. No other substitution semantics — just literal string replacement.
-5. Substitutes the CSS buffer into the template's `{{COMPONENT_STYLES}}` placeholder and the specimens buffer into `{{COMPONENT_SPECIMENS}}`.
+4. **On a dark-mode render only** — before step 5, applies the neutral-constant swap described under **Dark-render neutral swap** below.
+5. Token-substitutes both buffers: for every reference of the form `{{colours.<token>.hex}}`, `{{typography.<token>.value}}`, or `{{effects.<token>.value}}`, substitutes the actual value from the in-memory token set built in step-05 / step-05b. No other substitution semantics — just literal string replacement.
+6. Substitutes the CSS buffer into the template's `{{COMPONENT_STYLES}}` placeholder and the specimens buffer into `{{COMPONENT_SPECIMENS}}`.
+
+## Dark-render neutral swap
+
+The constants in this catalogue are authored **black-based** — borders, hover/active tints, focus rings, the table's header and zebra fills, and the switch's off-state track are all `rgba(0,0,0,<alpha>)`. On a light surface they read as subtle darkening; on a dark surface they are invisible.
+
+So when step-06 renders the **dark** mode, it applies exactly one mechanical replacement to both buffers:
+
+> every occurrence of `rgba(0,0,0,` becomes `rgba(255,255,255,` — **same alpha, nothing else changed**.
+
+There are no exemptions. Every black constant in this file is a border, a tint, a fill, or a ring, and every one of them should invert on dark.
+
+**Ordering is load-bearing: the swap runs on the RAW buffers, BEFORE token substitution (step 4 above, not after step 5).** Shadow tokens are substituted into this CSS at five sites (`box-shadow: {{effects.shadow_sm|md|lg.value}}`), and **dark shadow values are deliberately black with raised alpha** — elevation in a dark palette is carried mainly by a lighter `surface`, with the shadow as a secondary cue. Running the swap after substitution would flip those shadows to white and destroy the treatment. Running it before means substituted token values are untouched by construction, and no per-line exemption marker is needed.
+
+This applies to the **rendered mode**, independent of which scheme was extracted: a dark render gets the swap whether the dark palette was the hue source or was derived from a light one.
 
 **No HTML escaping required.** Token values are hex codes (`#RRGGBB`), CSS lengths (`16px`), font-family stacks (`"Segoe UI", system-ui, sans-serif`), shadow declarations (`0 1px 2px rgba(0,0,0,0.08)`), durations (`200ms`), and easing curves (`cubic-bezier(0.4, 0, 0.2, 1)`). None contain HTML-special characters.
 
@@ -70,6 +85,13 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
    tokens via {{...}} substitution. Structural properties (padding,
    border-radius, gap, border-width, focus-ring offset) are hardcoded
    neutral constants — they are pattern decisions, not brand decisions.
+
+   Neutral COLOUR constants here are black-based — rgba(0,0,0,<alpha>)
+   for borders, hover/active tints, thead + zebra fills, focus rings, and
+   the switch off-state track. On a DARK render step-06 swaps every
+   rgba(0,0,0, for rgba(255,255,255, at the same alpha, on the raw buffer
+   BEFORE token substitution, so the black-with-raised-alpha dark shadow
+   tokens are not caught by it. See "Dark-render neutral swap" above.
 
    Every live :hover / :focus / :active / :disabled / :checked rule is
    paired with a .cv-force-{state} sibling so the static state matrix

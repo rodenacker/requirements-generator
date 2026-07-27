@@ -2,6 +2,8 @@
 
 **Role:** Pure reference knowledge consumed by step-05 (Brand Extraction). Contains CSS analysis strategy, color extraction rules, and color-to-token mapping heuristics. Ported from v3 b3-style-extractor with the status-color exclusion rule replaced by status-color *fallback to domain-inference* (status colours are populated by step-05b, not by this rules file).
 
+**Mode note:** these rules capture **whichever colour scheme the site ships** — a dark-by-default site yields a dark palette, and that is correct, not a defect. Do not lighten, invert, or "normalise" extracted values toward a light theme. The scheme is classified downstream in step-05b §A-bis (per `data/contrast-validation.md` → Scheme Detection), and the *other* mode is derived from what you extract here per `data/cross-mode-derivation-rules.md`.
+
 ---
 
 ## 0. Highest-signal source: `computed-tokens.json`

@@ -27,7 +27,7 @@ This orchestrator does **not** maintain a `.progress.json` file and writes **no*
 0. **Prerequisite gate** — `Read` `requirements/requirements.md`.
     - **Missing or empty** (zero bytes after trim) — output: *"`requirements/requirements.md` is required to run `/export-application`. Run `/requirements` first to produce and finalise it, then re-invoke."* Do not prompt, do not write any file, exit cleanly.
     - **Header `**Target:** application`** (legacy application-target manifest run) — output: *"`requirements/requirements.md` is already application-target; it can be handed off directly — nothing to re-project."* Exit cleanly, no writes.
-    - **Header `Status` is not `final`** (still `draft`, placeholder, or unparseable) — soft gate via `AskUserQuestion` (header `Source status`): *"The source document's Status is not `final` — the merger's accept gate may not have run. Export anyway?"* with options `{ exit-and-finalise-first (Recommended), proceed-anyway }`. On `exit-and-finalise-first`, exit cleanly with no writes. On `proceed-anyway`, record the override (the agent stamps `(consultant override)` in the provenance block) and continue. Never hard-gate on this field — the merger does not stamp it.
+    - **Header `Status` is not `final`** (still `draft`, placeholder, or unparseable) — soft gate via `AskUserQuestion` (header `Source status`): *"The source document's Status is not `final` — the merger's accept gate may not have run. Export anyway?"* with options `{ exit-and-finalise-first (Recommended), proceed-anyway }`. On `exit-and-finalise-first`, exit cleanly with no writes. On `proceed-anyway`, record the override (the agent stamps `(consultant override)` in the provenance block) and continue. Never hard-gate on this field: the merger stamps `final` only on its `accept` terminal state, so a non-`final` value means either the accept gate genuinely did not run (rejected or interrupted merge) **or** the document predates the stamp — the latter is a false alarm the consultant must be able to wave through.
 0a. **Prior artefact + freshness gate** — `Read`-check whether `export-application/requirements-application.md` exists.
     - **Absent** — proceed to step 1 with no prompt.
     - **Present** — `Grep` the export for `^\| Source sha256 \| ([0-9a-f]{64}) \|` and compute the current sha256 of `requirements/requirements.md` (PowerShell `Get-FileHash`).
@@ -99,7 +99,7 @@ Every other read or write belongs to the invoked agent, per its own agent file.
 - Do not read, write, or edit the export artefact's content directly — the orchestrator's only direct disk operations are the named inspections and the Reset procedure.
 - Do not write `framework/state/.progress.json` or any timing event on any branch. This pipeline is stateless by design.
 - Do not write anything on the `Keep`, `Cancel`, or step-0 exit branches.
-- Do not hard-gate on the source header's `Status` field — the merger does not stamp it; the gate is a soft `AskUserQuestion`.
+- Do not hard-gate on the source header's `Status` field — the merger stamps it only on `accept`, and pre-stamp documents read as non-`final` without being unfinished; the gate is a soft `AskUserQuestion`.
 - Do not run the export when the source is already `Target: application` — there is nothing to re-project.
 - Do not delete anything other than `export-application/requirements-application.md`, and only during a consultant-confirmed Regenerate after the checkpoint commit.
 - Do not commit with `--no-verify`, force-push, or amend during the checkpoint.

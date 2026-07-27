@@ -68,6 +68,15 @@
 
     {{DOMAIN}}                 — consultant domain string (e.g. "retail-banking").
     {{GENERATED_AT}}           — ISO-8601 date the artefact was rendered.
+    {{MODE_LABEL}}             — "Light" or "Dark": the colour mode THIS file
+                                 renders. Appears in <title> and the H1, and
+                                 must agree with the filename suffix and with
+                                 meta.mode in the JSON block.
+    {{DOC_CHROME_VARS}}        — the 15 documentation-chrome CSS custom
+                                 properties for this mode, substituted into
+                                 the template's :root block. One of exactly
+                                 two fixed literal blocks — see DOC CHROME
+                                 below.
     {{ATTRIBUTION_PARAGRAPH}}  — pre-rendered inner HTML of the attribution
                                  blockquote variant per extraction_status /
                                  reference_url state. The styler picks the
@@ -115,7 +124,12 @@
                                 css_fetch_failed | insufficient_data |
                                 workspace_read_failed | playwright_unavailable>",
         "css_source_type":    "<string-or-null>",
-        "css_source_url":     "<url-or-null>"
+        "css_source_url":     "<url-or-null>",
+        "mode":               "<light | dark>",
+        "mode_choice":        "<light-only | dark-only | both>",
+        "hue_source":         "<extracted-light | extracted-dark |
+                                domain-inferred-light>",
+        "primary":            "<true | false>"
       },
       "colours": {
         "primary":    {"hex": "#RRGGBB", "prov": "extracted-from-url|inferred-from-domain", "source": "<source context>"},
@@ -257,27 +271,96 @@
   No external <script> tags in this template — the JSON block is data, not code.
   No HTTP/CDN resources referenced anywhere. The file is openable via file://.
 
-  Output: design-system/design-system.html.
--->
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Design System — {{DOMAIN}}</title>
-  <style>
-    :root {
+  MODES — this template is rendered ONCE PER COLOUR MODE. Each render is a
+  complete, single-mode document; there is no in-document mode switcher.
+
+    Output: design-system/design-system-light.html  (mode = light)
+            design-system/design-system-dark.html   (mode = dark)
+
+  Which files are written is decided in step-05b: the mode(s) the consultant
+  asked for, plus the HUE-SOURCE mode always. The hue source is the scheme
+  actually extracted from the reference URL — sites ship dark by default as
+  often as light — or domain-inferred light when no URL was given. The other
+  mode is DERIVED from the hue source per
+  `framework/agents/design-system-styler/data/cross-mode-derivation-rules.md`,
+  and is never claimed as extracted.
+
+  The derived render reuses THESE SAME placeholders — the derived mode's
+  colour and shadow values go into {{COLOUR_SWATCHES}}, {{SHADOW_SPECIMENS}},
+  {{CONTRAST_PAIRS}}, {{COMPONENT_STYLES}} etc. exactly as the hue-source
+  mode's values do. Typography and motion tokens are shared verbatim across
+  modes, so those specimens are byte-identical between the two files. The
+  neutral-constant swap that adapts the component catalogue's hardcoded
+  black borders/tints for a dark render is documented in the catalogue, not
+  here.
+
+  DOC CHROME — {{DOC_CHROME_VARS}} carries the 15 :root custom properties
+  that style the DOCUMENTATION UI (page background, body text, section
+  cards, code chips, provenance badges, the contrast-card meta strip). These
+  are NOT brand tokens: they are identical for every run and every domain,
+  so the render stays deterministic, and they are NOT subject to the
+  four-pair token contrast gate (the values below are hand-checked >= 4.5:1).
+  Substitute exactly one of these two literal blocks:
+
+    light:
       --bg: #fafafa;
       --fg: #1a1a1a;
       --muted: #5a5a5a;
       --border: #d4d4d4;
       --border-strong: #8a8a8a;
       --section-bg: #ffffff;
+      --card-bg: #ffffff;
       --code-bg: #f0f0f0;
       --prov-extracted: #2a8a2a;
       --prov-inferred: #b86a00;
       --status-fail: #b81a1a;
+      --prov-extracted-bg: rgba(42,138,42,.12);
+      --prov-inferred-bg: rgba(184,106,0,.12);
+      --meta-overlay-bg: rgba(255,255,255,.85);
       --shadow-card: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+
+    dark:
+      --bg: #15171a;
+      --fg: #e8eaed;
+      --muted: #a0a6ad;
+      --border: #33383f;
+      --border-strong: #6b7280;
+      --section-bg: #1c1f24;
+      --card-bg: #23272e;
+      --code-bg: #24282e;
+      --prov-extracted: #4ade80;
+      --prov-inferred: #fbbf24;
+      --status-fail: #f87171;
+      --prov-extracted-bg: rgba(74,222,128,.16);
+      --prov-inferred-bg: rgba(251,191,36,.16);
+      --meta-overlay-bg: rgba(0,0,0,.55);
+      --shadow-card: 0 1px 2px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.06);
+
+  Two chrome notes worth knowing before editing these values:
+
+    - --meta-overlay-bg MUST flip between modes. `.contrast-meta` sets no
+      `color` of its own; it inherits the token-driven `color: {{fg-hex}}`
+      from the inline style on `.contrast-card`. On a dark render that
+      inherited colour is near-white, so a light overlay would put
+      near-white text on a near-white strip and the ratio would be
+      unreadable. The dark overlay is a dark scrim for exactly this reason.
+
+    - Dark shadow specimens read SUBTLY BY DESIGN. A raised-alpha black
+      shadow on a dark --card-bg is genuinely low-contrast — that is how it
+      will look in the real dark application, where elevation is carried
+      mainly by a lighter `surface` token. The three-step dark ladder
+      (--bg < --section-bg < --card-bg) keeps the card itself visible, and
+      each specimen prints its literal token value alongside regardless.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Design System ({{MODE_LABEL}}) — {{DOMAIN}}</title>
+  <style>
+    :root {
+{{DOC_CHROME_VARS}}
     }
 
     * { box-sizing: border-box; }
@@ -430,7 +513,7 @@
       border: 1px solid var(--border);
       border-radius: 4px;
       overflow: hidden;
-      background: #ffffff;
+      background: var(--card-bg);
     }
 
     .swatch {
@@ -483,12 +566,12 @@
     }
 
     .prov-extracted-from-url {
-      background: rgba(42, 138, 42, 0.12);
+      background: var(--prov-extracted-bg);
       color: var(--prov-extracted);
     }
 
     .prov-inferred-from-domain {
-      background: rgba(184, 106, 0, 0.12);
+      background: var(--prov-inferred-bg);
       color: var(--prov-inferred);
     }
 
@@ -547,7 +630,7 @@
     }
 
     .shadow-card {
-      background: #ffffff;
+      background: var(--card-bg);
       border-radius: 6px;
       padding: 24px 16px;
       text-align: center;
@@ -649,7 +732,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      background: rgba(255, 255, 255, 0.85);
+      background: var(--meta-overlay-bg);
       color: var(--fg);
       padding: 4px 8px;
       border-radius: 3px;
@@ -828,7 +911,7 @@
 <main>
 
   <header class="doc-header">
-    <h1 id="top">Design System — {{DOMAIN}}</h1>
+    <h1 id="top">Design System ({{MODE_LABEL}}) — {{DOMAIN}}</h1>
     <blockquote class="attribution">{{ATTRIBUTION_PARAGRAPH}}</blockquote>
     <p class="generated-at">Generated: {{GENERATED_AT}}</p>
   </header>

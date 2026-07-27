@@ -13,7 +13,7 @@ This skill is prototype-private. It borrows the print-and-parse + on-disk-presen
 - `wireframes_dir` — default `"wireframes/"`; the skill reads `<wireframes_dir><scope_slug>/variants.json` (source D).
 - `manifest_path` — default `"requirements/source-manifest.json"` (source E).
 - `output_dir` — default `"prototypes/.specs/"`; the skill writes `<output_dir><name_slug>/supporting-inputs.json`.
-- `design_system_path` — default `"design-system/design-system.html"`. **Existence-only** (Glob); never read/parse the file here — parsing + theming is `framework/skills/extract-brand-theme.md`'s job at scaffold time.
+- `design_system_path` — default `"design-system/design-system-light.html"`. **Existence-only** (Glob); never read/parse the file here — parsing + theming is `framework/skills/extract-brand-theme.md`'s job at scaffold time. Because a `/design-system` run may have produced only a dark file, the existence check accepts **any** design-system artefact: glob `design-system/design-system-{light,dark}.html` plus the legacy unsuffixed `design-system/design-system.html`, and set `ds_present` if any matches. Record which path matched — it is named in the Brand source line below.
 - `scaffold_marker_path` — default `"prototypes/.scaffold.json"`. **Existence-only** (Glob); its presence means the shared app's brand was already locked at the first scaffold and is not re-applied this run.
 
 ## Outputs
@@ -52,12 +52,12 @@ Role semantics (the drafter threads these): `data-binding` → §8 Property usag
 2. **Build source C (analyse-inputs).** Read `analyses_inputs_registry_path`; retain `status: mvp` rows whose `output_path` resolves on disk.
 3. **Build source D (wireframes).** Glob `<wireframes_dir><scope_slug>/variants.json`. If present, parse it and list each variant `{ variant_id, design_philosophy }`; compute each variant's `manifest_path` + `variant_position_path` under `<wireframes_dir><scope_slug>/<variant_id>/`. If absent → source D is empty.
 4. **Build source E (input docs).** Read `manifest_path` if present; list rows whose `tier != "Unsupported"` as `{ filename, original_path, tier }`.
-4b. **Brand-source status (existence-only).** Glob `design_system_path` → `ds_present`; Glob `scaffold_marker_path` → `brand_locked`. Do **not** open either file. These drive the single informational **Brand source** line printed in step 5 / step 6 (it is never a numbered pick and never enters `supporting-inputs.json`). The line text:
+4b. **Brand-source status (existence-only).** Glob for any design-system artefact per `design_system_path` above (light, dark, or legacy unsuffixed) → `ds_present` + `ds_matched_path`; Glob `scaffold_marker_path` → `brand_locked`. Do **not** open either file. These drive the single informational **Brand source** line printed in step 5 / step 6 (it is never a numbered pick and never enters `supporting-inputs.json`). The line names `ds_matched_path`, so the consultant can see *which* mode was found — a dark-only design system is a legitimate outcome, not an error. The line text:
 
     | `ds_present` | `brand_locked` | Brand source line |
     |---|---|---|
-    | yes | no | `Brand source: design-system/design-system.html — present; will theme this prototype's brand at first scaffold.` |
-    | yes | yes | `Brand source: design-system/design-system.html — present; brand was locked at the first scaffold and is reused (not re-applied this run).` |
+    | yes | no | `Brand source: <ds_matched_path> — present; will theme this prototype's brand at first scaffold.` |
+    | yes | yes | `Brand source: <ds_matched_path> — present; brand was locked at the first scaffold and is reused (not re-applied this run).` |
     | no  | no | `Brand source: none found. Recommended — run /design-system first to brand-lock this prototype; otherwise you'll choose brand tokens (URL / paste / neutral defaults) at scaffold.` |
     | no  | yes | `Brand source: none; the app's brand was locked at the first scaffold and is reused. (Running /design-system now won't re-theme existing prototypes.)` |
 5. **Auto-proceed — all empty.** If B, C, D, E are all empty, print one plain-text line *"No optional inputs on disk; proceeding from `requirements.md` + the blueprint alone."* **followed by the step-4b Brand source line** (so the design-system status is always surfaced even when the numbered menu is skipped), jump to step 9 with empty sources, write the empty-sources JSON, verify, return `selected-none`. No `AskUserQuestion`.

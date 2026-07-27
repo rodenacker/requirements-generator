@@ -23,11 +23,13 @@ Merge the PRD draft and the captured consultant answers into a single, coherent 
 - After applying every answer, scan the merged document for residual incoherence — contradictions introduced by corrections, dangling references to dropped items, or ambiguous wording — and fix them in place via `Edit`.
 - **Do not append a `## Prototype invariants` block.** PI-NN are prototype-build invariants for the FE spec, not PRD content. This is the single user-visible difference between the PRD merger and the requirements merger.
 - Present the merged document to the consultant by **summarising** the changes applied — counts per resolution status, any `dropped` items called out by ID — and pointing them to `prd/prd.md`. **Do not paste the document body into the conversation**; the file is on disk and the consultant can open it directly. Maintain an in-memory `N` counter for review iterations, starting at `1` for the first present. Immediately before each call to `AskUserQuestion` in this loop (including the very first), append a `consultant_prompted` timing event to `framework/state/timing.ndjson` (see **Timing log** below). Then ask via `AskUserQuestion`:
-    - **accept** — the document is final; hand control back to the orchestrator.
+    - **accept** — the document is final; apply the finalisation stamp (see the dedicated Responsibility below), then hand control back to the orchestrator.
     - **edit** — the consultant supplies specific changes; apply them via `Edit` to `prd/prd.md`, re-run the self-validation Grep, then re-present (again as a summary) and ask again.
     - **reject** — the consultant has declined the merge; surface their reason verbatim and hand control back to the orchestrator without claiming acceptance.
 - Immediately after receiving each `AskUserQuestion` response and before acting on it, append a `consultant_responded` timing event (using the same `N` as the prompt event it pairs with) with `outcome` set to the consultant's choice. Then, only if the loop will iterate again (i.e., outcome was `edit`), increment `N`.
 - Continue the accept/edit/reject loop until the consultant accepts or rejects.
+- **On the `accept` terminal state only — stamp finalisation.** After the paired `consultant_responded` event has been appended and before handing control back to the orchestrator, capture the accept instant as an ISO-8601 UTC timestamp (one `Bash` call, per **Tools**) and apply exactly two `Edit`s to the header line of `prd/prd.md`: set the `**Status:**` value to `final`, and set the `**Last finalised at:**` value to that timestamp — replacing whatever the drafter emitted (the literal `draft` / `not stamped` per `framework/assets/template-prd.md`, or any legacy variant such as `draft | final` or a residual `{{last_finalised_at}}`). Every other header field — `**Domain:**`, `**Created:**` and their HTML comments — passes through **verbatim**; do not reflow, reorder, or reword the line. Note the PRD header orders these fields `Domain → Status → Created → Last finalised at`, which differs from the FE spec's header; match the line as actually found rather than assuming the other pipeline's order. Then run the finalisation-stamp check under **Self-validation**. This stamp is the only header mutation the merger makes.
+- **The stamp is applied on `accept` and nowhere else.** On `edit` the loop iterates and the header is left untouched; on `reject` the stamp is never applied — a rejected document retains `Status: draft` so the terminal state stays legible on disk.
 
 ## Timing log
 
@@ -59,14 +61,14 @@ The PRD merger does **not** read `requirements/source-manifest.json` (the PRD ha
 
 ## Output
 
-- `prd/prd.md` — the finalised, merged PRD. Structure matches `framework/assets/template-prd.md`. The output must contain zero of the forbidden tokens listed under Self-validation. `[SRC: PC-NNN]` tags are retained from the draft as inline provenance and are explicitly **not** forbidden.
+- `prd/prd.md` — the finalised, merged PRD. Structure matches `framework/assets/template-prd.md`. On the `accept` path the header carries `**Status:** final` and an ISO-8601 UTC `**Last finalised at:**` value; on the `reject` path both retain their draft-time values. The output must contain zero of the forbidden tokens listed under Self-validation. `[SRC: PC-NNN]` tags are retained from the draft as inline provenance and are explicitly **not** forbidden.
 - `framework/state/timing.ndjson` — append-only timing log. The merger appends one `consultant_prompted` / `consultant_responded` pair per accept/edit/reject iteration.
 
 ## Tools
 
-- Bash — used for two purposes only: (1) to seed the output via `cp prd/prd-draft.md prd/prd.md`, and (2) to append per-iteration timing events to `framework/state/timing.ndjson` using the PowerShell `Add-Content` idiom documented in **Timing log**. No other Bash usage is permitted.
+- Bash — used for three purposes only: (1) to seed the output via `cp prd/prd-draft.md prd/prd.md`, (2) to append per-iteration timing events to `framework/state/timing.ndjson` using the PowerShell `Add-Content` idiom documented in **Timing log**, and (3) on the `accept` terminal state only, a single read-only `Get-Date` call to capture the accept instant for the finalisation stamp: `(Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')`. No other Bash usage is permitted — and never write the header stamp via Bash (the stamp is applied with `Edit`).
 - Read — read the draft and `prd-resolver-answers.ndjson`. Do **not** re-Read `prd/prd.md` during the accept/edit/reject loop.
-- Grep — run the single alternation Grep specified under Self-validation against `prd/prd.md`. Do not Grep the draft for PAI-NNN ID enumeration; resolve markers as encountered while applying Edits.
+- Grep — run the single alternation Grep specified under Self-validation against `prd/prd.md`, and (on the `accept` path, after stamping) the finalisation-stamp Grep from the same section. Do not Grep the draft for PAI-NNN ID enumeration; resolve markers as encountered while applying Edits.
 - Edit — apply per-marker transformations to the seeded `prd/prd.md`, and apply consultant-supplied edits during the accept/edit/reject loop.
 - AskUserQuestion — ask the consultant to accept, edit, or reject the merged document. Offer a numbered choice set (accept / edit / reject) plus a free-text option.
 
@@ -94,11 +96,22 @@ Then verify:
 
 If any check fails, fix the merge in place and re-run the Grep before re-presenting.
 
+### Finalisation stamp (accept path only — run immediately after stamping, before handback)
+
+Grep `prd/prd.md` with `output_mode: count`. The count must be exactly `1`:
+
+```
+^\*\*Domain:\*\*.*\*\*Status:\*\* final .*\*\*Last finalised at:\*\* \d{4}-\d{2}-\d{2}T
+```
+
+Then verify by the same Grep result that the header line still carries its `**Created:**` field — the stamp replaces two field *values* and must not have dropped, reordered, or reflowed anything else on the line. If the count is `0`, the stamp did not land (or the drafter emitted an unanticipated header shape): re-apply the two `Edit`s against the header line as actually found, re-run this Grep, and only then hand back. Do not hand back with an unstamped document on the accept path, and do not fabricate the stamp by rewriting the whole header line from the template.
+
 ## Definition of Done
 
 - `prd/prd.md` exists and reflects the draft as modulated by every consultant answer.
 - All self-validation checks pass.
 - The consultant has either **accepted** the merged document or explicitly **rejected** it; in both cases control is handed back to the orchestrator with the terminal state reported clearly.
+- On the **accept** path only: the header is stamped `**Status:** final` with an ISO-8601 UTC `**Last finalised at:**` value, and the finalisation-stamp Grep returned exactly `1`.
 
 ## Anti-Patterns
 
@@ -111,7 +124,10 @@ If any check fails, fix the merge in place and re-run the Grep before re-present
 - Do not consult `requirements/source-manifest.json` or `requirements/requirements.md`. The PRD pipeline is fully independent of those files.
 - Do not paste the merged document body into the conversation when presenting it to the consultant — summarise and point to the file path.
 - Do not re-Read `prd/prd.md` after applying consultant edits inside the accept/edit/reject loop. The Edit tool's success signal is authoritative.
-- Do not use Bash for anything other than the single `cp` seeding step and the `Add-Content` appends to `framework/state/timing.ndjson`.
+- Do not use Bash for anything other than the single `cp` seeding step, the `Add-Content` appends to `framework/state/timing.ndjson`, and the single `Get-Date` capture for the finalisation stamp.
+- Do not stamp `Status: final` before the consultant has accepted. The stamp is a record that the accept gate ran; applying it at seed time, before the first present, or on an `edit` iteration makes it a lie. Never stamp on the `reject` path.
+- Do not change any header field other than the `**Status:**` and `**Last finalised at:**` values, and do not rewrite the header line wholesale from the template — `**Domain:**`, `**Created:**` and their inline HTML comments are drafter-owned and pass through verbatim.
+- Do not invent or back-date the `**Last finalised at:**` value. It is the `Get-Date` UTC instant captured at accept — not a date copied from `**Created:**`, the timing log, or the draft.
 - Do not skip the `consultant_prompted` / `consultant_responded` append around any `AskUserQuestion` call in the accept/edit/reject loop, including the first present and any re-present after an edit.
 - Do not invent intermediate event types or labels. Only `consultant_prompted` and `consultant_responded` with `label="review-iteration-<N>"` and `stage="prd-merger"` may be written; the orchestrator owns `stage_start` / `stage_end` / `run_start` / `run_end`.
 - Do not read `framework/state/timing.ndjson`. Its contents do not gate any merger decision.

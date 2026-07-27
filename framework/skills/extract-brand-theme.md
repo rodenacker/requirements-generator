@@ -9,7 +9,7 @@ It additionally performs a **logo + favicon capture** (see *Logo & favicon captu
 ## Inputs
 
 - `app_dir` — repo-relative prototype app root. Required (`"prototypes/"`). Target file is `<app_dir>/src/styles/theme.css`.
-- `design_system_path` — repo-relative path to `/design-system` output. Optional; default `"design-system/design-system.html"`.
+- `design_system_path` — repo-relative path to `/design-system` output. Optional; default `"design-system/design-system-light.html"`. **Resolution order when the default is used:** try `design-system/design-system-light.html`, then `design-system/design-system-dark.html`, then the legacy unsuffixed `design-system/design-system.html`; use the first that exists. `/design-system` may legitimately have produced only a dark file (a dark-only run against a dark-themed site), so a missing light file is not a missing design system. An explicitly-passed `design_system_path` is used as given, with no fallback.
 - `consultant_brand` — optional object captured by the agent when source (a) is absent: `{ mode: "url" | "tokens", url?: <string>, tokens?: { <css-var>: <value> } }`. `null` if the consultant chose template defaults.
 - `logo_search_glob` — optional; default `"input/*.stadium-assets/*.stadium.design-signals.md"`. Where to look for an ingested Stadium app's `design-signals` asset (which may carry a `logo:` front-matter pointer). Drives *Logo & favicon capture*.
 

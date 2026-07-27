@@ -27,7 +27,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | data-src / data-prop | Audit attributes: requirement citation / closed-set property on generated nodes. | `shared-component-conventions.md` |
 | Definition of done (DoD) | An agent/orchestrator completion checklist gating handback + final status. | — |
 | Design | UX/IA design (structure, workflow, behaviour) — **not** visual styling. | glossary.md §8 |
-| design-system | The brand-token brief (`design-system.html`); source of a prototype's theme. | `/design-system` output |
+| design-system | The brand-token brief (`design-system-{light,dark}.html`); source of a prototype's theme. | `/design-system` output |
 | Design-spec | One prototype's realization plan (posture + positions + workflow + bindings). | `prototypes/template-design-spec.md` |
 | Dispatcher | Role distributing work to parallel sub-agents (e.g. per-surface generation). | `prototype-generator/` |
 | Divergence (divergence profile) | How variants/prototypes differ; goal-driven profile derived once into `scope.json`. | `scope-selector.md` |
@@ -36,10 +36,12 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | General rule (GR-NN) | Deterministic reusable rule the resolver applies without asking. | `shared/general-rules.md` |
 | Grounding | The act of linking a claim to a real source; ungrounded facts fail validation. | — |
 | Handback gate | Orchestrator checkpoint accepting/re-invoking a finished agent. | orchestrators |
+| hue source | The design-system mode whose palette was actually extracted (or domain-inferred light); always written, `meta.primary: true`; the other mode is derived from it. | `cross-mode-derivation-rules.md` |
 | Input tier | Ingest classification (Native / Supported-via-MCP / Unsupported). | `skills/classify-input-tier.md` |
 | Logical surface (LS-NN) | Decomposition-agnostic blueprint surface, pre-screen-count. | `blueprint-architect.md` |
 | Merger | Third triplet agent: strips markers, validates, writes the clean final artefact. | — |
 | Methodology | A named analysis/critique method (OOUX, ADVERSARIAL, GLOSSARY …); "lens" = its alias. | registries |
+| mode (design-system) | The colour scheme a design-system artefact renders (`light`/`dark`); one file per mode, chosen at step-05b. | `step-05b-domain-inference.md` |
 | Orchestrator | Pipeline control-flow owner; sequences agents, owns state/gates; no content edits. | `docs/maintenance.md > Separation of concerns` |
 | Orphan (traceability) | A final-doc fact/requirement that traces to no provenance class; the headline defect of the REQUIREMENTS-TRACEABILITY review. | `reviews/requirements-traceability-reference.md` |
 | Physical screen | A concrete screen produced by realizing a logical surface (`S-NN`). | `realization-strategies.md` |

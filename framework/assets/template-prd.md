@@ -2,7 +2,7 @@
 
 # Product Requirements Document: {{product_name}}
 
-**Domain:** {{domain}} <!-- inferred from inputs; flag [AI-SUGGESTED] if not stated explicitly --> **Status:** draft | final **Created:** {{date}} **Last finalised at:** {{last_finalised_at}}
+**Domain:** {{domain}} <!-- inferred from inputs; flag [AI-SUGGESTED] if not stated explicitly --> **Status:** draft <!-- emit the literal `draft` at draft time; `prd-merger` stamps `final` on consultant accept of the merged document --> **Created:** {{date}} **Last finalised at:** not stamped <!-- emit the literal `not stamped` at draft time; the merger overwrites it with the ISO-8601 UTC accept instant -->
 
 > **Authoring guardrails.** Cells across §1–§14 must obey:
 > - **`GR-20` (selective).** No framework, library, vendor, product, version, or brand name in **§8 Solution overview** cells — that section is the most likely to be consumed by downstream LLM analysers, so it stays capability-level. All other sections (§3 Competitive context, §11 Risks, §12 Dependencies in particular) **may** name specific vendors, competitors, regulators, and tools — those are load-bearing for human stakeholder decisions.
@@ -32,7 +32,7 @@
 **Reading list (companion artefacts):**
 
 - {{companion_doc_1}} <!-- e.g. "requirements/requirements.md — the FE spec derived from this PRD" -->
-- {{companion_doc_2}} <!-- e.g. "design-system/design-system.html — the design tokens" -->
+- {{companion_doc_2}} <!-- e.g. "design-system/design-system-light.html — the design tokens" -->
 
 <!-- rev: run-N YYYY-MM-DD -->
 

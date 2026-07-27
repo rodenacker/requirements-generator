@@ -127,7 +127,9 @@ Each app is processed once — a ledger records what's already been ingested, an
 
 A brand-token brief for a designer in one run — useful when the designer is blocked on visual direction and you need to send something concrete today. Two questions on launch: a required **Domain** (free text, e.g. `loan-origination-portal` — the token set is inferred per-run, no fixed lookup table) and an optional **Reference URL** (a real browser opens at desktop size and extracts the actual colours, typography, and effects from the live CSS; without one, every token is inferred from the domain string alone).
 
-**You get** `design-system/design-system.html` — a self-contained document you open via `file://`: colour swatches, type specimens at their actual sizes, shadow/motion samples, and contrast-validation pairs, each token annotated with its provenance (*extracted from the URL* vs *inferred from the domain*). It also embeds a machine-readable token JSON block, so a downstream tool (Figma plugin, CSS generator, LLM pipeline) can consume the values directly.
+**You get** `design-system/design-system-light.html` and/or `design-system/design-system-dark.html` — one self-contained, single-mode document per colour mode, each opened via `file://`: colour swatches, type specimens at their actual sizes, shadow/motion samples, and contrast-validation pairs, each token annotated with its provenance (*extracted from the URL* vs *inferred from the domain*). It also embeds a machine-readable token JSON block, so a downstream tool (Figma plugin, CSS generator, LLM pipeline) can consume the values directly.
+
+You choose light-only, dark-only, or both — asked after the fetch, so the question can tell you which scheme the site actually ships. Whichever scheme was extracted is the **hue source**: it is always written and marked `primary`, and the other mode is *derived* from the same brand hues rather than fetched again. So pointing this at a dark-themed site and asking for light gives you both files — the dark one as the grounded record, the light one derived from it.
 
 ### 4.4 `/generate-prd`
 

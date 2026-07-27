@@ -2,7 +2,7 @@
 
 # Requirements: {{application_name}}
 
-**Domain:** {{domain}} <!-- inferred from inputs; flag [AI-SUGGESTED] if not stated explicitly --> **Target:** prototype | application <!-- from `requirements/source-manifest.json > target`; `prototype` on every pipeline run (auto-set at the orchestrator's Step 1b; `application` appears only on legacy manifests). Controls the §6.10 sub-block and PI-append; §1.7/§6.6.1/§6.6.2 are always emitted as scope-noted application-build guidance (§0.1) --> **Created:** {{date}} **Status:** draft | final **Last finalised at:** {{last_finalised_at}}
+**Domain:** {{domain}} <!-- inferred from inputs; flag [AI-SUGGESTED] if not stated explicitly --> **Target:** prototype | application <!-- from `requirements/source-manifest.json > target`; `prototype` on every pipeline run (auto-set at the orchestrator's Step 1b; `application` appears only on legacy manifests). Controls the §6.10 sub-block and PI-append; §1.7/§6.6.1/§6.6.2 are always emitted as scope-noted application-build guidance (§0.1) --> **Created:** {{date}} **Status:** draft <!-- emit the literal `draft` at draft time; `requirements-merger` stamps `final` on consultant accept of the merged document --> **Last finalised at:** not stamped <!-- emit the literal `not stamped` at draft time; the merger overwrites it with the ISO-8601 UTC accept instant -->
 
 > **Authoring guardrails.** Cells across §1–§10 must obey:
 > - **`GR-20` No stack specifics.** No framework, library, vendor, product, version, or brand name in any cell. Speak in capability categories ("client-side state management", "binary blob storage tier"). Stack picks happen at code-generation time, not here.

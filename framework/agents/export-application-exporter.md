@@ -12,7 +12,7 @@ Produce `export-application/requirements-application.md` — the application-aud
 
 ## Workflow
 
-1. **Read the source.** `Read` `requirements/requirements.md` in full. From the header line capture `Target`, `Status`, `Created`, and `Last finalised at` (record `not stamped` when absent or placeholder — the merger does not stamp these fields). Compute `source_sha256` via PowerShell `(Get-FileHash -Algorithm SHA256 requirements/requirements.md).Hash.ToLower()`. Count `\[SRC: C-\d{3}\]` occurrences in the source body → `src_count_source`. (The orchestrator's Step 0 guarantees the file exists, is non-empty, and is not already `Target: application`.)
+1. **Read the source.** `Read` `requirements/requirements.md` in full. From the header line capture `Target`, `Status`, `Created`, and `Last finalised at` (record `not stamped` when absent or placeholder — the merger stamps both only on its `accept` terminal state, and pre-stamp documents carry neither). Compute `source_sha256` via PowerShell `(Get-FileHash -Algorithm SHA256 requirements/requirements.md).Hash.ToLower()`. Count `\[SRC: C-\d{3}\]` occurrences in the source body → `src_count_source`. (The orchestrator's Step 0 guarantees the file exists, is non-empty, and is not already `Target: application`.)
 2. **Probe the sidecar.** Check whether `requirements/draft-claims.ndjson` exists (existence only — never read its content). Record the result for the provenance block's citation legend and the gate summary.
 3. **Construct the export in memory.** The source document is the carrier; apply only these transforms, top to bottom — **transform, never re-draft**:
     - **3a. Header.** Replace the header's `**Target:** prototype` with `**Target:** application`. Every other header field passes through as found.

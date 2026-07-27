@@ -74,7 +74,7 @@ requirements-merger → prototype-invariants.md
 
 ---
 
-## 2. design-system-orch.md · 30 nodes / 41 edges / depth 5
+## 2. design-system-orch.md · 31 nodes / 42 edges / depth 5
 
 ```
 orch → design-system-styler, context-hygiene, refusal-registry
@@ -88,7 +88,8 @@ design-system-styler → steps/step-01-activate … step-07-handback,
   step-05-brand-extraction → prompt-templates/brand-extraction.md,
        data/insufficient-data-handling.md, data/color-extraction-rules.md, data/font-rules.md,
        data/typography-scale-rules.md, data/shadow-motion-rules.md
-  step-05b-domain-inference → data/contrast-validation.md, prompt-templates/domain-inference.md
+  step-05b-domain-inference → data/contrast-validation.md, prompt-templates/domain-inference.md,
+       data/cross-mode-derivation-rules.md
   step-06-artifact-generation → prompt-templates/artifact-generation.md, template-design-system.html,
        design-system-standards.html, data/component-catalogue.md, verify-artifact-write
 prompt-templates/artifact-generation.md → template-design-system.html
@@ -98,6 +99,9 @@ preflight-mcp → refusal-registry
 **Notes (unique):**
 - URL-first flow: `step-02` collects only the reference URL; `step-04` fetches it once (CSS **and** `{{business_signals}}` in one session); `step-04b` then sets `{{domain}}` — suggested from the page via `domain-suggestion.md` (`AskUserQuestion` menu) when signals exist, else a free-text prose prompt. Every `step-04` exit routes through `step-04b` (except the RF-06 *Install* abort), so `step-05`'s entry guard skips all no-CSS paths.
 - Deepest tree (depth 5). `step-05b-domain-inference` derives an inferred token set per-run from the `{{domain}}` string (status colours + tokens left unset after step-05).
+- **`step-05b` is interactive** — unusually for a non-`step-0x`-gate step. It classifies the extracted colour scheme, then asks the output-mode menu (`light-only` / `dark-only` / `both`) via `AskUserQuestion`. The question lives here rather than in `step-04b` because it must name the scheme actually found, which is unknown until after `step-05`. This is why the orchestrator's foreground-only justification lists four interactive surfaces, not three.
+- `data/cross-mode-derivation-rules.md` (step-05b only) holds the bidirectional light↔dark derivation rules. **The extracted scheme is the hue source; the other mode is derived from it** — so a dark-themed reference URL makes *light* the derived mode. step-05b uses this file twice: per-token during scheme-aware gap-fill (§B), and for the whole opposite-mode set (§F).
+- **`step-06` renders once per mode** in `{{files_to_write}}` (the consultant's choice ∪ the hue-source mode, so one file or two), hue-source file first and verified before the derived render begins. Output is `design-system/design-system-<mode>.html`; the unsuffixed path is retired. This is a loop over the same node set, not extra nodes.
 - `template-design-system.html` shared by `step-06` (operative loader) and `prompt-templates/artifact-generation.md` (which tells step-06 to read it).
 - `data/component-catalogue.md` (step-06 only) owns the Components CSS + per-family `Live demo` / `States matrix` HTML; step-06 token-substitutes token refs into the template placeholders.
 - `design-system-standards.html` names `template-design-spec.md` only in prose → not an edge. (`.md` sibling is the human-edit SoT; styler reads only the `.html`.)
@@ -363,7 +367,7 @@ prototype-spec-resolver → characters/prototype-spec-resolving.md, flag-gaps-am
 prototype-spec-merger → characters/prototype-spec-finalising.md, prototype-invariants.md
 prototype-app-scaffolder → scaffold-prototype-app.md, extract-brand-theme.md,
        prototypes/scaffolding-instructions.md, prototypes/app-shell-spec.md, verify-artifact-write
-       [cond brand source a] design-system/design-system.html
+       [cond brand source a] design-system/design-system-{light,dark}.html
 prototype-generator → steps/step-01-activate … step-07-handback, steps/step-sub-render-surface.md,
        characters/prototype-generator.md, persona-llm.md, prototypes/shared-component-conventions.md,
        prototypes/ux-baseline-checklist.md, blueprints/<slug>/blueprint.md,
@@ -403,7 +407,7 @@ export-application-exporter → characters/application-exporting.md, verify-arti
 - Single-agent, stateless, **no progress file and no timing events** (standalone-pipeline precedent: design-system / analyse-requirement). Resumability = the step-0a freshness gate re-probing disk.
 - **Pure re-projection** of the finished `requirements/requirements.md` to the application audience: §6.10 fixtures → backend-contract pointers, §7 `prototype-fixture` → `backend-contract`, PI appendix removed, header `Target` flipped, `## Export provenance` block inserted (source sha256 + citation legend). §1.7 / §6.6.1 / §6.6.2 + the §6.1 `Rationale` column pass through verbatim (they are drafted in the pipeline doc). **Zero generated content.**
 - **Freshness anchor:** the export embeds the source's sha256; step 0a compares embedded vs current and recommends Keep (match) or Regenerate (mismatch/garbled). Regenerate is checkpoint-then-delete.
-- Prerequisite gate exits when the source is missing/empty or already `Target: application`; non-final `Status` is a **soft** gate (the merger does not stamp it).
+- Prerequisite gate exits when the source is missing/empty or already `Target: application`; non-final `Status` is a **soft** gate (the merger stamps `final` only on `accept`; pre-stamp documents read non-final without being unfinished).
 - `requirements/draft-claims.ndjson` is existence-probed only (never read) — the provenance legend tells external consumers to bundle it.
 - Write scope: `export-application/` only.
 

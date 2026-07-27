@@ -1,15 +1,16 @@
 ---
 name: step-06-artifact-generation
-description: 'Build the JSON token block, render the visual sections, populate the HTML template, append the static standards HTML verbatim, write to design-system/design-system.html, then verify the write.'
+description: 'Render one single-mode artefact per mode in files_to_write — hue-source mode first: build the JSON token block, render the visual sections, populate the HTML template, append the static standards HTML verbatim, write to design-system/design-system-<mode>.html, then verify each write.'
 # Variables referenced (inherited from agent):
 # prompt_artifact_generation: 'framework/agents/design-system-styler/prompt-templates/artifact-generation.md'
 # template_path: 'framework/assets/template-design-system.html'
 # standards_path: 'framework/assets/design-system-standards.html'
 # component_catalogue: 'framework/agents/design-system-styler/data/component-catalogue.md'
-# output_path: 'design-system/design-system.html'
+# output_path_light: 'design-system/design-system-light.html'
+# output_path_dark: 'design-system/design-system-dark.html'
 ---
 
-# Step 6: Generate the Artefact
+# Step 6: Generate the Artefact(s)
 
 ## 0. Read inputs (batched)
 
@@ -24,15 +25,27 @@ Read all four static render inputs in a **single batched message** (the harness 
 
 With all four in context, apply the artifact-generation prompt's instructions in the order below.
 
+**Read once, render N times.** These four inputs do not vary by mode — do **not** re-read them per mode.
+
 **Inputs (in-memory after step-05b):**
 
-- `{{extracted_colors}}` — 7 brand tokens (status colours always domain-filled)
-- `{{status_colors}}` — 4 status tokens (always `inferred-from-domain`)
-- `{{extracted_typography}}` — 15 typography tokens
-- `{{extracted_effects}}` — 7 effect tokens
-- `{{contrast_validation}}` — 4 pair ratios + adjustments line
+- The **hue-source token set** — 11 colours (status colours always domain-filled), 15 typography, 7 effects — in `{{hue_source_mode}}`'s scheme.
+- The **derived token set**, if `{{derived_mode_requested}}` — the same 33 tokens in the opposite mode, its 11 colours + 3 shadows carrying `derived: …` source strings and its 19 shared tokens copied verbatim.
 - `{{voice}}` — one-line Voice statement synthesised in step-05b
+- **Mode state:** `{{files_to_write}}`, `{{hue_source_mode}}`, `{{mode_choice}}`, `{{hue_source}}`, `{{primary_mode}}`, `{{extracted_scheme}}`
+- **Per-mode contrast:** `{{cv_pass_count_light}}` / `{{cv_adjustments_light}}` / `{{cv_adjustment_count_light}}` and the `_dark` twins
 - `{{extraction_status}}`, `{{extraction_date}}`, `{{domain}}`, `{{domain_provenance}}`, `{{reference_url}}`, `{{css_source_type}}`, `{{css_source_url}}`
+
+## 0-bis. Render Loop
+
+Sections §A–§E below are a **render procedure parameterised by one mode**. Run the whole procedure once per mode in `{{files_to_write}}`, in this order:
+
+1. **`{{hue_source_mode}}` first** — using the hue-source token set.
+2. Then the derived mode, if it is in `{{files_to_write}}` — using the derived token set.
+
+**The hue-source file must be fully written (§D) and verified `pass` (§E) before the derived render begins.** Do not interleave the two renders, and do not batch the two Writes.
+
+Throughout §A–§E, `{{mode}}` means the mode currently being rendered, and *the token set* means that mode's set.
 
 ## A. Source the Template and the Component Catalogue
 
@@ -60,10 +73,18 @@ Apply the prompt template's instructions in order:
         1. Parse the catalogue's `## Render order` list. Each numbered bullet is a family slug (`buttons`, `form-inputs`, `alerts`, `badges`, `cards`, `data-table`, `tabs`, `modal`). A bullet whose line starts with `<!--` or `#` is **skipped** — the family is not rendered.
         2. Extract the single fenced `css` block under `## Component CSS`. Its inner content (no fences) is the **component-css buffer**.
         3. For each enabled family slug, in render order, locate the catalogue heading `## {{slug}}`, then extract the two fenced `html` blocks under `### Live demo` and `### States matrix` (in that order). Wrap each family's two snippets in `<div class="cv-family"><h3>{{Title-Case-Slug}}</h3><p class="cv-note">Live demo</p>{{live-demo-html}}<p class="cv-note">States matrix</p>{{states-matrix-html}}</div>`. Append to the **component-specimens buffer**.
-        4. **Token-substitute** both buffers in memory: for every reference of the form `{{colours.<name>.hex}}`, `{{typography.<name>.value}}`, or `{{effects.<name>.value}}`, replace with the literal value from the in-memory token set built in step-05 / step-05b. This is plain string replacement — no other substitution semantics. After this pass, **no `{{colours.…}}` / `{{typography.…}}` / `{{effects.…}}` references must remain** in either buffer.
-        5. Substitute the component-css buffer into the template's `{{COMPONENT_STYLES}}` placeholder (which sits inside the `<style>` block, immediately before `</style>`).
-        6. Substitute the component-specimens buffer into the template's `{{COMPONENT_SPECIMENS}}` placeholder (which sits inside `<section id="components">`).
-5. **Section 7 — Page-level scalars.** Substitute `{{DOMAIN}}` (the lowercased+trimmed consultant input) and `{{GENERATED_AT}}` (ISO date) into the `<head>` `<title>`, the H1, and the generated-at line.
+        4. **Dark-render neutral swap — only when `{{mode}} == "dark"`.** On the **raw** buffers, before any token substitution, replace every occurrence of `rgba(0,0,0,` with `rgba(255,255,255,`, leaving the alpha and everything else untouched. There are no exemptions. Then assert: **neither buffer still contains the substring `rgba(0,0,0,`** — if one does, the swap was incomplete; halt.
+
+            **This must run before sub-step 5, not after.** The catalogue substitutes `{{effects.shadow_sm|md|lg.value}}` at five sites, and dark shadow tokens are deliberately *black with raised alpha* (dark elevation is carried by the lighter `surface`). Swapping after substitution would flip those shadows to white and destroy the treatment; swapping before means substituted values are untouched by construction. See `component-catalogue.md` → *Dark-render neutral swap*.
+
+            On a light render, skip this sub-step entirely — the catalogue's constants are already authored for a light surface.
+        5. **Token-substitute** both buffers in memory: for every reference of the form `{{colours.<name>.hex}}`, `{{typography.<name>.value}}`, or `{{effects.<name>.value}}`, replace with the literal value from **`{{mode}}`'s token set**. This is plain string replacement — no other substitution semantics. After this pass, **no `{{colours.…}}` / `{{typography.…}}` / `{{effects.…}}` references must remain** in either buffer.
+        6. Substitute the component-css buffer into the template's `{{COMPONENT_STYLES}}` placeholder (which sits inside the `<style>` block, immediately before `</style>`).
+        7. Substitute the component-specimens buffer into the template's `{{COMPONENT_SPECIMENS}}` placeholder (which sits inside `<section id="components">`).
+5. **Section 7 — Page-level scalars.** Substitute `{{DOMAIN}}` (the lowercased+trimmed consultant input) and `{{GENERATED_AT}}` (ISO date) into the `<head>` `<title>`, the H1, and the generated-at line. Also substitute the two mode-scoped placeholders:
+    - `{{MODE_LABEL}}` — `Light` or `Dark`, title-cased, matching `{{mode}}`. It appears in **both** the `<title>` and the H1.
+    - `{{DOC_CHROME_VARS}}` — the fixed literal block for `{{mode}}` from the template's **DOC CHROME** comment section, substituted into the template's `:root`. These are documentation-chrome values: brand-neutral, identical for every run and every domain. Do **not** derive them from brand tokens, and do **not** run them through contrast validation. Copy the block for this mode verbatim; all 15 custom properties must be present.
+6. **Contrast section — this mode's own numbers.** `{{CONTRAST_PAIRS}}` and `{{CONTRAST_ADJUSTMENTS}}` render from `{{mode}}`'s cv variables (`{{cv_pass_count_<mode>}}`, `{{cv_adjustments_<mode>}}`). A derived set was validated independently in step-05b §F and never inherits the hue-source set's ratios.
 
 The artefact is generated even when `{{extraction_status}}` ≠ `"success"`. The doc is always complete (every token domain-inferred if extraction was skipped); the JSON `meta.extraction_status` field records *why* the URL path didn't yield extracted values.
 
@@ -76,10 +97,10 @@ After the template is fully rendered (all placeholders replaced except `{{STANDA
 
 ## C. Pre-Write Self-Check
 
-Before calling `Write`:
+Runs **per file**, before that file's `Write`:
 
 - Render the full artefact (template body + substituted standards) as one string in memory.
-- Confirm: every `{{placeholder}}` has been replaced. No literal `{{...}}` substrings remain. (The standards block contains no placeholders. The catalogue's token references — `{{colours.…}}`, `{{typography.…}}`, `{{effects.…}}` — must also be fully substituted; any survivor indicates a typo in the catalogue or a missing token in the in-memory set, and is a hard halt.)
+- Confirm: every `{{placeholder}}` has been replaced. No literal `{{...}}` substrings remain. (The standards block contains no placeholders. `{{MODE_LABEL}}` and `{{DOC_CHROME_VARS}}` must both be substituted. The catalogue's token references — `{{colours.…}}`, `{{typography.…}}`, `{{effects.…}}` — must also be fully substituted; any survivor indicates a typo in the catalogue or a missing token in the in-memory set, and is a hard halt.)
 - Confirm: the `<script type="application/json" id="design-tokens">` block is present, and its inner content is **valid JSON** — parse it back in memory to verify. If parsing fails, halt and do not Write.
 - Confirm: the JSON `meta`, `colours`, `typography`, `effects`, and `contrast` keys are all present.
 - Confirm: `meta.domain_provenance` is present and is one of `suggested-from-url-accepted | suggested-from-url-overridden | consultant-typed`.
@@ -89,25 +110,46 @@ Before calling `Write`:
 - Confirm: the rendered string contains the literal substring `<section id="standards"` (from the appended standards file) exactly once.
 - Confirm: the rendered string contains the literal substring `<section id="components"` exactly once.
 - Confirm: the rendered string contains the literal substring `class="cv-btn` at least once (smoke test that the component CSS / HTML from the catalogue actually landed in the artefact; a buffer-substitution failure would drop it silently).
-- Compute `sha256` of the rendered byte string (template + standards). Store as `{{expected_sha256}}`.
+
+**Mode assertions (all files):**
+
+- Confirm: `meta.mode` is present and is `light` or `dark`, and **matches the filename suffix** this file is about to be written to.
+- Confirm: the literal `({{MODE_LABEL}})`-substituted text appears in **both** the `<title>` and the H1 — i.e. `(Light)` or `(Dark)`, agreeing with `meta.mode`.
+- Confirm: `meta.mode_choice` is one of `light-only | dark-only | both`.
+- Confirm: `meta.hue_source` is one of `extracted-light | extracted-dark | domain-inferred-light`.
+- Confirm: `meta.primary` is a JSON **boolean** (not the string `"true"`), and equals `(meta.mode == {{hue_source_mode}})`. Across the whole run, **exactly one** written file has `primary: true`.
+- Confirm: the `:root` block contains all 15 documentation-chrome custom properties and no leftover `{{DOC_CHROME_VARS}}`.
+
+**Derived-file assertions (only when `{{mode}} != {{hue_source_mode}}`):**
+
+- Confirm: every one of the 11 colour entries and 3 shadow entries has a `source` beginning `derived: {{mode}} variant of` — a derived file whose colours still claim a CSS selector or a bare `domain-inference (…)` source is a provenance failure and a hard halt.
+- Confirm: every `prov` in the file is still one of the two markers (the derived tokens are `inferred-from-domain`; no third marker was introduced).
+- Confirm: the attribution paragraph contains the derived-variant clause naming `design-system-{{hue_source_mode}}.html`. A derived file must never present itself as extracted.
+
+**Dark-render assertion:** the `rgba(0,0,0,` check belongs to §B.4 sub-step 4 and is made there, on the raw buffers **before** token substitution. Do **not** re-assert it here on the rendered string — dark shadow token values legitimately contain `rgba(0,0,0,`, so the assertion is only meaningful at the swap point.
+
+- Compute `sha256` of **this file's** rendered byte string (template + standards). Store as `{{expected_sha256_<mode>}}`. Never reuse one mode's hash for the other file.
 
 ## D. Write
 
-1. Ensure the `design-system/` directory exists. If not, create it: `Bash mkdir -p design-system`.
-2. Write the rendered string to `design-system/design-system.html` (single atomic Write call).
-3. Store `{{artifact_path}} = "design-system/design-system.html"` and `{{artifact_written}} = true`.
+1. Ensure the `design-system/` directory exists. If not, create it: `Bash mkdir -p design-system` (a no-op on the second render).
+2. Write the rendered string to `design-system/design-system-{{mode}}.html` (single atomic Write call).
+3. Store `{{artifact_written_{{mode}}}} = true` — i.e. `{{artifact_written_light}}` or `{{artifact_written_dark}}`.
 
 ## E. Verify the Write
 
 Invoke `framework/skills/verify-artifact-write.md` with:
 
-- `path = "design-system/design-system.html"`
-- `expected_sha256 = {{expected_sha256}}`
-- `expected_min_bytes = 14000` (HTML body + inlined CSS + JSON block + visual sections + components section + standards appendix runs well above this; a truncated render that drops the components section or the standards appendix will not. The threshold was raised from 8000 to 14000 when the components section was added.)
+- `path = "design-system/design-system-{{mode}}.html"`
+- `expected_sha256 = {{expected_sha256_<mode>}}`
+- `expected_min_bytes = 14000` (HTML body + inlined CSS + JSON block + visual sections + components section + standards appendix runs well above this; a truncated render that drops the components section or the standards appendix will not. The threshold was raised from 8000 to 14000 when the components section was added. It applies **per file** — both modes render the same structure, so both clear it.)
 
-If the skill returns `pass`, advance to step-07.
+If the skill returns `pass`:
 
-If the skill returns `RF-04 trigger`, halt per the refusal-registry surface — the agent does not write a `completed` event for itself, the orchestrator surfaces the refusal, and the consultant resolves the underlying filesystem issue before re-running.
+- If more modes remain in `{{files_to_write}}`, return to §A and render the next one. (The hue-source file is now on disk and verified, which is the precondition for the derived render.)
+- If every mode in `{{files_to_write}}` has been written and verified, advance to step-07.
+
+If the skill returns `RF-04 trigger`, halt per the refusal-registry surface — the agent does not write a `completed` event for itself, the orchestrator surfaces the refusal, and the consultant resolves the underlying filesystem issue before re-running. **Halt immediately; do not proceed to the next mode.** A verified hue-source file plus a failed derived write is a partial run, and step-07's handback gate will reject it.
 
 ---
 

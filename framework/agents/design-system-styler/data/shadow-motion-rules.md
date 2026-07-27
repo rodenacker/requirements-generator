@@ -2,6 +2,8 @@
 
 **Role:** Pure reference knowledge consumed by step-05 (Brand Extraction). Defines extraction heuristics for `box-shadow` elevation tokens and `transition-duration` / `transition-timing-function` tokens from CSS content. Authored for v7b-test (no v3 equivalent). Tokens that cannot be confidently extracted fall through to step-05b for domain-inference.
 
+**Mode note:** extracted shadows belong to **whichever colour scheme the site ships** — a dark-by-default site's shadows typically carry a higher black alpha than a light site's. Capture them as found; the opposite mode's shadow alphas are derived in step-05b per `data/cross-mode-derivation-rules.md` (§3.4 / §4.4), which keeps this geometry verbatim and only re-scales the alpha. The motion tokens (`transition_*`, `easing_standard`) are **mode-independent** and are copied verbatim across modes.
+
 ---
 
 ## 0. Highest-signal source: `computed-tokens.json`

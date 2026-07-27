@@ -21,12 +21,12 @@ Token work is concrete, not aesthetic. The job is to land 11 colour tokens, a ty
 
 ## Provenance discipline
 
-Every token in `design-system/design-system.html` (both the JSON block and the visual sections) carries one of two markers:
+Every token in `design-system/design-system-light.html` / `design-system-dark.html` (both the JSON block and the visual sections) carries one of two markers:
 
 | Marker | Meaning |
 | --- | --- |
 | `extracted-from-url` | The value was found in the CSS fetched from `{{reference_url}}`. |
-| `inferred-from-domain` | The value was inferred per-run from the consultant's `{{domain}}` string against the canonical token list. |
+| `inferred-from-domain` | The value was inferred per-run from the consultant's `{{domain}}` string against the canonical token list — **or** derived from the other colour mode's validated value. Either way it was not read from the URL. |
 
 No third marker exists in v1. **No token is unmarked.** If you cannot tag a value with one of these two markers, you must not write it. The Source Context column in the Extraction Summary explains *which* CSS selector or *which* `domain-inference (...)` tag the value came from — the marker says *which path* it came down.
 

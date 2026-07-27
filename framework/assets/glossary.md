@@ -177,8 +177,20 @@ Canonical source: `framework/assets/prototypes/app-shell-spec.md` + `framework/s
 Aliases: *brand-lock*, *theme*. Not to be confused with: **design-system** (the *brief/artefact* that defines the brand tokens).
 
 ### design-system
-The brand-token brief produced by `/design-system` (`design-system/design-system.html`) — colour/type/shadow/motion tokens. The *source* of a prototype's `theme.css`.
+The brand-token brief produced by `/design-system` (`design-system/design-system-light.html` and/or `design-system-dark.html`) — colour/type/shadow/motion tokens. The *source* of a prototype's `theme.css`. One self-contained file per **mode (design-system)**; the unsuffixed `design-system.html` is retired.
 Not to be confused with: **Design** (UX), **design-spec** (prototype realization), **design philosophy** (posture).
+
+### mode (design-system)
+The colour scheme a design-system artefact renders — `light` or `dark`. One file per mode (`design-system/design-system-<mode>.html`), each a complete single-mode document; there is no in-document switcher and no combined file. The consultant chooses `light-only` / `dark-only` / `both` at step-05b §E — asked *after* extraction, so the question can name the scheme actually found. The mode is marked in the filename, the `<title>`, the H1, and `meta.mode`. Only the 11 colour and 3 shadow tokens differ between modes; the other 19 (typography + motion) are shared verbatim.
+Canonical source: `framework/agents/design-system-styler/steps/step-05b-domain-inference.md` + `framework/agents/design-system-styler/data/cross-mode-derivation-rules.md`.
+Not to be confused with: **hue source** (which mode is the grounded one), **Design** (UX), **design philosophy** (posture).
+
+### hue source
+The colour mode whose palette is **grounded** — the scheme actually extracted from the reference URL, or domain-inferred light when no URL was given. Recorded as `meta.hue_source` (`extracted-light` | `extracted-dark` | `domain-inferred-light`) and carrying `meta.primary: true` in its file. The *other* mode is **derived** from it per `cross-mode-derivation-rules.md`, tagged `inferred-from-domain` with a `derived: <target> variant of <source> <token> (<hex>)` source string, and is never presented as extracted.
+
+Nothing in the pipeline assumes light: a reference URL ships a dark palette as readily as a light one, and when it does, **light is the derived mode**. The hue-source file is always written — it is both the grounded record and the derivation seed — so asking for one mode against a site in the other scheme legitimately produces two files.
+Canonical source: `framework/agents/design-system-styler/data/cross-mode-derivation-rules.md`.
+Not to be confused with: **mode (design-system)** (which scheme a *file* renders), **provenance marker** (the two-value `prov` set, which derivation does not extend).
 
 ### Fixture
 A static in-memory JSON data file shipped with a prototype (`prototypes/src/data/…`). Per PI-02, prototype data is fixture-sourced and mutations persist in-session only.

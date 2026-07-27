@@ -16,6 +16,10 @@ The inference must produce **33 tokens**, by name, matching `framework/assets/te
 
 Every token must have a non-null value. No invention of new tokens. No omission of any listed token.
 
+**These rules produce a `light` token set.** The `background: #FFFFFF` anchor in §3.B.2 and the matching anti-pattern in §7 are **light-mode statements** — they are how this contract stays deterministic, and they are correct for every run whose palette is light. They are *not* a claim that the pipeline is light-only.
+
+On a run whose extracted scheme is **dark** (the reference URL shipped a dark palette — `data/contrast-validation.md` → *Scheme Detection* decides this), step-05b §B converts each value inferred here from light to dark via `data/cross-mode-derivation-rules.md` **before storing it**, so a near-white neutral never lands in a dark set. Likewise, a whole dark set requested alongside a light one is derived in step-05b §F from the same file. Either way the conversion is downstream: **infer light here, unconditionally, and let step-05b re-light it.** The 33-token contract is unchanged.
+
 ---
 
 ## 2. Step A — Voice Synthesis
