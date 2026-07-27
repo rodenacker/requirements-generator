@@ -86,6 +86,8 @@
         <li>The selector accepts keyboard entry as an accelerator (typed date is parsed and reflected in the calendar), but the visible control is the picker.</li>
         <li>Format is locale-aware; the placeholder shows the expected format ("DD/MM/YYYY" or per locale).</li>
         <li>Min / max constraints (where applicable) disable out-of-range dates rather than silently rejecting on submit.</li>
+        <li>The picker affordance is the control's <strong>own</strong> indicator — a native <code>&lt;input type="date"&gt;</code> already draws one, so do not add a second, hand-authored calendar icon beside it.</li>
+        <li>The indicator must stay legible against the field's background in <strong>every</strong> colour mode. Set <code>color-scheme: light</code> / <code>dark</code> on the document (or on the field) to match the mode, so the browser paints its own glyph accordingly; never hardcode a colour, <code>fill</code>, or <code>invert()</code> filter on it — a literal value can only ever be correct in one mode, and the browser's black default disappears on a dark surface.</li>
       </ul>
     </li>
     <li><strong>Accessibility.</strong> The picker is fully keyboard navigable (arrow keys move days, PgUp/PgDn move months). The currently focused date is announced. The associated label is visible.</li>

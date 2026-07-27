@@ -58,6 +58,17 @@ Live demos use the bare semantic markup (`<button class="cv-btn cv-btn-primary">
 
 `disabled` and `:checked` use the genuine HTML attribute / pseudo-class — no force class needed.
 
+## Native-control policy
+
+Some inputs are drawn partly by the **user agent**, not by this catalogue: `type="date"`, `datetime-local`, `time`, `month`, `week` render their own picker indicator; checkboxes and radios render their own box/dot; `<select>` renders its own dropdown chrome.
+
+Two rules follow, and they apply to every family in this file:
+
+1. **Never add a custom icon to a control that already ships one.** A date input styled with a hand-authored SVG calendar glyph shows **two** calendars — the UA's and ours. Date fields therefore use a bare `<input type="date" class="cv-input">` with no icon and no positioning wrapper. (This is why there is no `.cv-input-wrap` / `.cv-input-icon` helper: its only consumer was the date field, and the date field should never have had one.)
+2. **Never colour a UA-drawn part with a literal colour or a filter.** The UA paints those parts from the document's `color-scheme`, which the template sets **per mode** in `:root` (`light` on a light render, `dark` on a dark render — see the DOC CHROME block in `framework/assets/template-design-system.html`). The UA default is a **black** glyph, which is invisible on a dark render's `surface`; a hardcoded light glyph would then be invisible on a light render. Letting `color-scheme` drive it is the only treatment that is correct in both modes, and it is why the catalogue's rules for `::-webkit-calendar-picker-indicator` set nothing but `opacity` and `cursor`.
+
+Note this is **not** covered by the *Dark-render neutral swap* above: the swap only rewrites `rgba(0,0,0,` constants that this catalogue authors. A glyph the browser paints has no declaration in the buffer to rewrite, so it can only be fixed by `color-scheme`.
+
 ---
 
 ## Render order
@@ -255,6 +266,29 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   background: {{colours.background.hex}};
 }
 .cv-textarea { resize: vertical; min-height: 64px; }
+
+/* Native picker controls — date / datetime-local / time / month / week.
+   These inputs ship their OWN user-agent picker indicator, so they get NO
+   custom SVG icon and no icon wrapper: two glyphs on one field is the bug,
+   not the feature.
+
+   The indicator's colour is painted by the UA from the document's
+   `color-scheme`, which the template sets per mode in :root (`light` on a
+   light render, `dark` on a dark render) — see the template's DOC CHROME
+   block. Never hardcode a colour, a fill, or an invert() filter here: the
+   UA default is a black glyph, which vanishes on a dark surface, and a
+   hardcoded light glyph would then vanish on a light one. Opacity and
+   cursor are the only properties this catalogue owns. */
+.cv-input[type="date"]::-webkit-calendar-picker-indicator,
+.cv-input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+.cv-input[type="time"]::-webkit-calendar-picker-indicator,
+.cv-input[type="month"]::-webkit-calendar-picker-indicator,
+.cv-input[type="week"]::-webkit-calendar-picker-indicator {
+  opacity: 0.7;
+  cursor: pointer;
+}
+.cv-input:hover::-webkit-calendar-picker-indicator,
+.cv-input:focus::-webkit-calendar-picker-indicator { opacity: 1; }
 
 /* Checkbox / Radio */
 .cv-check-row { display: flex; align-items: center; gap: 8px; cursor: pointer; }
@@ -541,21 +575,11 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   .cv-btn-loading::before { animation: none; }
 }
 
-/* --- Form: required indicator + input-with-icon ----------------------- */
+/* --- Form: required indicator ----------------------------------------- */
 .cv-required {
   color: {{colours.error.hex}};
   margin-left: 2px;
   font-weight: 600;
-}
-.cv-input-wrap { position: relative; display: block; }
-.cv-input-wrap .cv-input { padding-right: 34px; }
-.cv-input-wrap .cv-input-icon {
-  position: absolute;
-  top: 50%;
-  right: 10px;
-  transform: translateY(-50%);
-  color: {{colours.text_muted.hex}};
-  pointer-events: none;
 }
 .cv-field-error {
   display: inline-flex;
@@ -740,11 +764,8 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
   </div>
   <div class="cv-field">
     <label class="cv-field-label" for="cv-demo-date">Start date</label>
-    <div class="cv-input-wrap">
-      <input id="cv-demo-date" type="date" class="cv-input" placeholder="DD/MM/YYYY">
-      <svg class="cv-icon cv-input-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M5 1v2H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1h-2V1h-1v2H6V1H5zm-2 4h10v8H3V5zm2 2v2h2V7H5zm3 0v2h2V7H8zm3 0v2h2V7h-2z"/></svg>
-    </div>
-    <span class="cv-field-hint">Calendar picker — typed dates parsed in DD/MM/YYYY.</span>
+    <input id="cv-demo-date" type="date" class="cv-input">
+    <span class="cv-field-hint">Native calendar picker — typed dates parsed per locale.</span>
   </div>
   <div class="cv-field">
     <label class="cv-field-label" for="cv-demo-textarea">Notes</label>
@@ -785,9 +806,7 @@ The styler substitutes the *contents* of this single fenced block (no fences, no
     </span>
   </div>
   <div class="cv-state-cell"><span class="cv-state-label">Disabled</span><input type="text" class="cv-input cv-force-disabled" value="Jane Doe" disabled></div>
-  <div class="cv-state-cell"><span class="cv-state-label">Date</span>
-    <div class="cv-input-wrap"><input type="date" class="cv-input"><svg class="cv-icon cv-input-icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M5 1v2H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1h-2V1h-1v2H6V1H5zm-2 4h10v8H3V5z"/></svg></div>
-  </div>
+  <div class="cv-state-cell"><span class="cv-state-label">Date</span><input type="date" class="cv-input"></div>
   <div class="cv-state-cell"><span class="cv-state-label">Switch off</span><label class="cv-switch"><input type="checkbox"><span class="cv-switch-track"></span></label></div>
   <div class="cv-state-cell"><span class="cv-state-label">Switch on</span><span class="cv-switch cv-force-on"><span class="cv-switch-track"></span></span></div>
   <div class="cv-state-cell"><span class="cv-state-label">Switch disabled</span><span class="cv-switch cv-force-disabled"><span class="cv-switch-track"></span></span></div>

@@ -72,7 +72,8 @@
                                  renders. Appears in <title> and the H1, and
                                  must agree with the filename suffix and with
                                  meta.mode in the JSON block.
-    {{DOC_CHROME_VARS}}        — the 15 documentation-chrome CSS custom
+    {{DOC_CHROME_VARS}}        — the mode's `color-scheme` declaration plus
+                                 the 15 documentation-chrome CSS custom
                                  properties for this mode, substituted into
                                  the template's :root block. One of exactly
                                  two fixed literal blocks — see DOC CHROME
@@ -294,15 +295,17 @@
   black borders/tints for a dark render is documented in the catalogue, not
   here.
 
-  DOC CHROME — {{DOC_CHROME_VARS}} carries the 15 :root custom properties
-  that style the DOCUMENTATION UI (page background, body text, section
-  cards, code chips, provenance badges, the contrast-card meta strip). These
-  are NOT brand tokens: they are identical for every run and every domain,
-  so the render stays deterministic, and they are NOT subject to the
-  four-pair token contrast gate (the values below are hand-checked >= 4.5:1).
+  DOC CHROME — {{DOC_CHROME_VARS}} carries this mode's `color-scheme`
+  declaration plus the 15 :root custom properties that style the
+  DOCUMENTATION UI (page background, body text, section cards, code chips,
+  provenance badges, the contrast-card meta strip). These are NOT brand
+  tokens: they are identical for every run and every domain, so the render
+  stays deterministic, and they are NOT subject to the four-pair token
+  contrast gate (the values below are hand-checked >= 4.5:1).
   Substitute exactly one of these two literal blocks:
 
     light:
+      color-scheme: light;
       --bg: #fafafa;
       --fg: #1a1a1a;
       --muted: #5a5a5a;
@@ -320,6 +323,7 @@
       --shadow-card: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
 
     dark:
+      color-scheme: dark;
       --bg: #15171a;
       --fg: #e8eaed;
       --muted: #a0a6ad;
@@ -336,7 +340,19 @@
       --meta-overlay-bg: rgba(0,0,0,.55);
       --shadow-card: 0 1px 2px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.06);
 
-  Two chrome notes worth knowing before editing these values:
+  Three chrome notes worth knowing before editing these values:
+
+    - color-scheme IS LOAD-BEARING, not decoration. It is the only thing
+      that tells the browser what colour to paint the parts of a form
+      control the UA draws itself: the date/time picker indicator, number
+      spinners, the native checkbox and radio, the <select> dropdown popup,
+      and scrollbars. Its default (`light`) makes the browser draw a BLACK
+      calendar glyph inside every `<input type="date">` — invisible against
+      a dark render's `surface`, which is exactly the bug this declaration
+      fixes. It must therefore match the file's mode, and the component
+      catalogue must NOT try to recolour those parts itself (no fill, no
+      invert() filter) — a literal colour can only ever be right in one of
+      the two modes. See component-catalogue.md -> "Native-control policy".
 
     - --meta-overlay-bg MUST flip between modes. `.contrast-meta` sets no
       `color` of its own; it inherits the token-driven `color: {{fg-hex}}`

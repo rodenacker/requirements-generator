@@ -83,7 +83,7 @@ Apply the prompt template's instructions in order:
         7. Substitute the component-specimens buffer into the template's `{{COMPONENT_SPECIMENS}}` placeholder (which sits inside `<section id="components">`).
 5. **Section 7 — Page-level scalars.** Substitute `{{DOMAIN}}` (the lowercased+trimmed consultant input) and `{{GENERATED_AT}}` (ISO date) into the `<head>` `<title>`, the H1, and the generated-at line. Also substitute the two mode-scoped placeholders:
     - `{{MODE_LABEL}}` — `Light` or `Dark`, title-cased, matching `{{mode}}`. It appears in **both** the `<title>` and the H1.
-    - `{{DOC_CHROME_VARS}}` — the fixed literal block for `{{mode}}` from the template's **DOC CHROME** comment section, substituted into the template's `:root`. These are documentation-chrome values: brand-neutral, identical for every run and every domain. Do **not** derive them from brand tokens, and do **not** run them through contrast validation. Copy the block for this mode verbatim; all 15 custom properties must be present.
+    - `{{DOC_CHROME_VARS}}` — the fixed literal block for `{{mode}}` from the template's **DOC CHROME** comment section, substituted into the template's `:root`. These are documentation-chrome values: brand-neutral, identical for every run and every domain. Do **not** derive them from brand tokens, and do **not** run them through contrast validation. Copy the block for this mode verbatim; all 15 custom properties **and** the block's leading `color-scheme: {{mode}};` declaration must be present. That declaration is load-bearing, not cosmetic: it is what makes the browser paint UA-drawn control parts (the `<input type="date">` picker indicator, number spinners, native checkbox/radio, `<select>` popup, scrollbars) in the file's own mode. Omit it on a dark render and every date field shows a black calendar glyph on a dark surface — invisible.
 6. **Contrast section — this mode's own numbers.** `{{CONTRAST_PAIRS}}` and `{{CONTRAST_ADJUSTMENTS}}` render from `{{mode}}`'s cv variables (`{{cv_pass_count_<mode>}}`, `{{cv_adjustments_<mode>}}`). A derived set was validated independently in step-05b §F and never inherits the hue-source set's ratios.
 
 The artefact is generated even when `{{extraction_status}}` ≠ `"success"`. The doc is always complete (every token domain-inferred if extraction was skipped); the JSON `meta.extraction_status` field records *why* the URL path didn't yield extracted values.
@@ -119,6 +119,8 @@ Runs **per file**, before that file's `Write`:
 - Confirm: `meta.hue_source` is one of `extracted-light | extracted-dark | domain-inferred-light`.
 - Confirm: `meta.primary` is a JSON **boolean** (not the string `"true"`), and equals `(meta.mode == {{hue_source_mode}})`. Across the whole run, **exactly one** written file has `primary: true`.
 - Confirm: the `:root` block contains all 15 documentation-chrome custom properties and no leftover `{{DOC_CHROME_VARS}}`.
+- Confirm: the `:root` block contains `color-scheme: light;` on a light render or `color-scheme: dark;` on a dark render — matching `meta.mode`, and appearing exactly once.
+- Confirm: the rendered string contains **no** `::-webkit-calendar-picker-indicator` rule that sets `color`, `fill`, or `filter`, and no `cv-input-icon` / `cv-input-wrap` markup. Date/time inputs render bare (`<input type="date" class="cv-input">`) — the UA supplies the picker glyph and `color-scheme` supplies its colour. See `component-catalogue.md` → *Native-control policy*.
 
 **Derived-file assertions (only when `{{mode}} != {{hue_source_mode}}`):**
 
