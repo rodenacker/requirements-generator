@@ -12,7 +12,11 @@ The behaviour is implemented by a **`PostToolUse` hook** (matcher `Write`) decla
 
 Because it is a hook it is not permission-gated, so it needs no `permissions.allow` entry and never prompts.
 
-**Activation requires a Claude Code restart.** `.claude/settings.json` hooks are read at process start, so a session that was already running when this affordance was added (or when its allowlist is edited) will **not** fire it — the same session-start caching that makes `RF-01`/`RF-06`/`RF-10` tell the consultant to restart after an install. Verified behaviour: the hook command itself works when invoked directly, and only the harness registration is deferred. `/clear` is **not** sufficient; restart Claude Code.
+**Command form (canonical).** The hook command is a bare `node framework/tools/open-artifact.cjs` — repo-relative, forward-slashed, **no `cmd /c` (or any other shell) wrapper, and no `%VAR%` / `$VAR` interpolation**. A hook command must be **shell-agnostic**, because the harness may execute it under Git Bash: MSYS argument translation rewrites `/c` into `C:/`, so `cmd.exe` receives no command, starts **interactively**, consumes the JSON hook payload from stdin as if typed, and exits 0. The harness records `hook_success` and `node` never runs. Env-var interpolation is excluded for the same reason — `%CLAUDE_PROJECT_DIR%` does not expand under `sh`, and `$CLAUDE_PROJECT_DIR` does not expand under `cmd.exe`. Relative is safe on two grounds: hooks run with the cwd at the repo root, and the helper resolves artefact paths from `payload.cwd`, never `process.cwd()` — cwd matters only for module resolution.
+
+**Activation requires a Claude Code restart.** `.claude/settings.json` hooks are read at process start, so a session that was already running when this affordance was added (or when its allowlist is edited) will **not** fire it — the same session-start caching that makes `RF-01`/`RF-06`/`RF-10` tell the consultant to restart after an install. `/clear` is **not** sufficient; restart Claude Code.
+
+A preview that does not fire has exactly **two** causes, and they are distinguished by different actions: **deferred registration** (the settings were edited mid-session → restart Claude Code) or a **command form the shell mangled** (→ run `--selftest`, see *Testing the wiring*). Do not infer the first from a direct invocation of the helper working: invoking it by hand exercises the helper, not the transport, so it succeeds under a mangled command string too. That inference is what turns this into an unbounded restart loop.
 
 ## Path allowlist (canonical)
 
@@ -87,11 +91,24 @@ Set `REQGEN_NO_AUTO_OPEN` to any value other than empty / `0` / `false`. The hel
 - **Windows** — `rundll32.exe url.dll,FileProtocolHandler <file-url>`. Chosen over `cmd /c start "" "<path>"`: no shell, so no quoting or metacharacter hazard, and the path is percent-encoded via `pathToFileURL`.
 - **macOS** — `open <path>` · **Linux** — `xdg-open <path>`. Present but untested, consistent with the workspace's Windows/PowerShell-first posture (`framework/tools/setup-environment.ps1` is `#requires -Version 7.0`).
 
-The hook command itself is `cmd /c`, so on a non-Windows host the hook does not fire at all and the pipelines behave exactly as they did before.
+The hook command is platform-neutral (a bare `node` invocation — see *Command form*), so the hook fires on every host. The **only** platform-dependent code is `launch()`: on a non-Windows host the preview succeeds or fails there alone, and a failure is silently skipped like any other (*Failure semantics*).
 
 ## Testing the allowlist
 
 `framework/tools/open-artifact.cjs --dry-run <repo-relative-path> [...]` prints `OPEN <path>` or `SKIP <path> (<reason>)` per argument without touching disk or launching anything. Use this to verify pattern changes rather than triggering real runs.
+
+## Testing the wiring
+
+`--dry-run` reads its paths from **argv**, so it structurally cannot catch a broken *command string* — it never exercises the transport the harness uses. That is what `--selftest` is for:
+
+`framework/tools/open-artifact.cjs --selftest` reads the registered `PostToolUse` command(s) whose matcher includes `Write` from `.claude/settings.json`, spawns each with a `{"__selftest":true}` payload on stdin — once under a discovered `bash` and once under the platform default — and prints `PASS <shell>: <command>` or `FAIL <shell>: <diagnosis>`. Exit code is non-zero on any failure. The payload marker is honoured **before** the allowlist, `statSync`, hashing and `launch()`, so nothing is written, no browser opens, and no artefact is touched; a real hook payload never carries the key, so it is inert in production.
+
+- **Negative control**: `--selftest --command 'cmd /c "node "%CLAUDE_PROJECT_DIR%\framework\tools\open-artifact.cjs""'` **must FAIL under `sh`**. If it passes, the self-test is not exercising the transport and is worthless.
+- If no `bash` can be found, the run prints a `NOTE` saying the `sh` transport was not probed. A `PASS` after that `NOTE` covers the platform default only.
+
+**Transcript signal.** On success the hook's captured **stderr** contains `open-artifact: opened <rel>`. It must **never** contain a `Microsoft Windows [Version …]` banner — that banner is the signature of a mangled command (`cmd.exe` echoing the payload back at an interactive prompt) and means the helper never ran, whatever the recorded hook status says.
+
+This is the general shape of the problem, not a one-off: the helper **fails open by design** (every path exits 0), so a broken command and "nothing to open" are indistinguishable from the outside. Any fail-open hook therefore needs a payload-level probe — recorded as a requirement in `docs/maintenance.md > Where new system elements go`.
 
 ## Referenced by
 
