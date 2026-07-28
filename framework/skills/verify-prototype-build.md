@@ -12,6 +12,7 @@
 - `name_slug` — the prototype's route segment. Required.
 - `route` — `"/<name_slug>"`. Required.
 - `attempt` — the verify attempt number (1 on first call; the generator's bounded-retry increments it on re-invocation). Optional, default `1`. Stamped onto the phase timing events so a clean run is distinguishable from an N-attempt one.
+- **`colour_mode`** — read from `<app_dir>.scaffold.json` (not passed in). Only `colour_mode.sets` matters here: when it holds **two** entries the smoke exercises both colour modes; otherwise everything below is byte-identical to the single-mode behaviour. A missing or malformed `colour_mode` is treated as single-mode.
 
 ## Outputs
 
@@ -40,9 +41,39 @@ Exactly one of:
     })
     ```
    This relies on the generator's runtime contract: the shared chrome root carries `data-testid="proto-chrome"`, and each route's primary action carries `data-testid="primary-cta"` (omitted only on surfaces with no primary action; the smoke skips the click then). Authoring is additive — never delete other prototypes' smoke specs.
+1b. **Append the both-modes test — only when `colour_mode.sets` has two entries.** Append a second `test()` to the same spec file. It reuses the already-loaded page: one `emulateMedia` call per mode, no extra browser launch and no extra navigation.
+
+    Why per prototype, when the mechanism is app-level: the *mechanism* is proven once by `e2e/theme-modes.smoke.spec.ts` (scaffold-authored). The *components* are new code on every run, and a hardcoded label colour is the most likely colour-mode defect — on real dark palettes `text-white` on a status fill measures ~2.1:1. That cannot be caught once.
+
+    ```ts
+    test('renders legibly in both colour modes', async ({ page }) => {
+      await page.goto(ROUTE, { waitUntil: 'networkidle' })
+      // MANDATORY: kill transitions/animations before measuring — see the note below.
+      await page.addStyleTag({ content:
+        '*,*::before,*::after{transition:none!important;animation:none!important}' })
+      for (const scheme of ['light', 'dark'] as const) {
+        await page.emulateMedia({ colorScheme: scheme })
+        const bad = await page.evaluate(() => { /* the sweep — see below */ })
+        expect(bad, `contrast failures in ${scheme}: ${JSON.stringify(bad)}`).toHaveLength(0)
+        // hover pass: for up to 10 interactive elements, hover then re-measure that element
+      }
+    })
+    ```
+
+    > **Transitions must be disabled before measuring — this is not optional.** The shadcn `Button` carries `transition-all`, and `Input`/`Select`/`Badge` carry `transition-[color,box-shadow]`. `getComputedStyle` during a running transition returns the **current interpolated value**, which immediately after a mode flip is still the *old* colour. Measured empirically on this template: right after adding `.dark`, a primary button still reported `rgb(0,73,193)`/`rgb(250,250,250)` — the light pair — and only after the transition settled did it report the correct `rgb(59,130,206)`/`rgb(10,10,10)`. A sweep that skips this does not merely flake: it silently measures the **light** colours while believing it is testing dark, so it passes a genuinely broken dark mode. The `addStyleTag` above makes every read instant and deterministic; it changes only timing, never the final computed value. Apply the same treatment after `hover()` — hover fills transition too.
+
+    **The sweep**, bounded deliberately — it targets the failure class that bites, not WCAG conformance:
+    - **Elements:** visible text inside `button, a, [role="button"], [data-slot="badge"], td, th, label, h1, h2, h3, h4`.
+    - **Measure:** the element's computed `color` against its *effective* background — walk ancestors until a non-transparent `background-color`, compositing any alpha over what is behind it. Fail below **4.5:1**, or **3:1** for text ≥24px or ≥18.66px bold.
+    - **Skip:** `opacity: 0`, `visibility: hidden`, `display: none`, zero-size, empty/whitespace text, and any element whose effective background involves a `background-image` or gradient. These are the honest false-positive corners; excluding them keeps the gate trustworthy.
+    - **Hover:** for the first ≤10 interactive elements, `hover()` and re-measure **that element's own** text. This is the direct check for a label that passes at rest and fails on hover — on real palettes a primary button can read 4.97:1 at rest and 4.31:1 under `hover:bg-primary/90`.
+    - **Icons:** every `svg` inside those elements must resolve its stroke/fill to `currentColor` or to the same computed `color` as its parent — never a divergent literal.
+    - **Report:** each failure as `{ selector, color, background, ratio, state }` so the generator's retry can locate it.
 2. **lint.** `npm run lint` in `app_dir`. Non-zero exit → return `structured-fail {phase:"lint"}` (excerpt the first error block).
 3. **typecheck.** `npx tsc --noEmit` in `app_dir`. Non-zero → `structured-fail {phase:"typecheck"}`.
-4. **smoke** (unless disabled by the caller for the `RF-11 skip` path). Run `npx playwright test e2e/<name_slug>.smoke.spec.ts --project=desktop-chrome` in `app_dir` (the config's `webServer` auto-starts `npm run dev`).
+4. **smoke** (unless disabled by the caller for the `RF-11 skip` path). Run, in `app_dir` (the config's `webServer` auto-starts `npm run dev`):
+    - single-mode: `npx playwright test e2e/<name_slug>.smoke.spec.ts --project=desktop-chrome` — **unchanged**.
+    - two modes: `npx playwright test e2e/<name_slug>.smoke.spec.ts e2e/theme-modes.smoke.spec.ts --project=desktop-chrome`.
     - If the run aborts because **browsers are missing** (error matching `Executable doesn't exist` / `playwright install`) → return `RF-11 trigger` (do not treat as a test failure).
     - Test failure (assertion failed) → `structured-fail {phase:"smoke"}` with the failing assertion message.
     - Pass → continue.
@@ -66,9 +97,17 @@ $now = (Get-Date).ToUniversalTime().ToString('o')
 - Phases ran in order; the first failure short-circuits and is returned with its phase + a bounded excerpt.
 - The smoke spec exists under `<app_dir>e2e/` and targets `<route>`; other prototypes' smoke specs were not touched.
 - A missing-browser condition returns `RF-11 trigger`, never a `structured-fail {phase:"smoke"}` (the two are different recoveries).
+- The `colour_mode.sets` branch was evaluated in exactly **one** place, and the single-mode path — spec content and Playwright command — is byte-identical to the pre-colour-mode behaviour. Single-mode runs pay nothing.
+- When two modes are live: the both-modes test was appended (not replacing the base test), `e2e/theme-modes.smoke.spec.ts` was included in the run, and a contrast failure surfaced as `structured-fail {phase:"smoke"}` naming the selector and ratio.
 
 ## Anti-patterns
 - Do not conflate "Playwright browsers not installed" (`RF-11`, a setup pause) with "the smoke assertion failed" (`structured-fail`, a build defect).
 - Do not silently skip the smoke — skipping only happens on the explicit `RF-11 skip-smoke-with-warning` path and yields `pass-with-warning`, recorded by the landing-updater.
 - Do not delete or overwrite other prototypes' e2e specs; the smoke spec write is additive per `name_slug`.
 - Do not "fix" a failing phase here — return the structured fail; remediation (regenerate the surface) is the generator's job, and exhaustion is `RF-12`.
+- Do not run the both-modes test when only one token set exists. There is no second palette to exercise, and the sweep would just re-assert the light pass at double cost.
+- Do not add a second Playwright *project* for dark. `emulateMedia` flips the mode in-page; a project re-runs the whole suite in a fresh browser to learn the same thing.
+- Do not set the `.dark` class directly from the spec. Drive it through `emulateMedia` so the app's own init script does the work — injecting the class tests the assertion, not the application.
+- **Do not measure colour without disabling transitions first.** A mid-transition read returns the previous mode's colour, so the sweep "passes" by measuring light values while nominally in dark. This is the one failure mode that makes the gate actively misleading rather than merely absent. Do not substitute a fixed `waitForTimeout` — durations are token-driven (`--transition-*`) and brand-dependent, so a hardcoded wait is a guess.
+- Do not widen the sweep into a general accessibility audit. It is scoped to labels and icons on filled surfaces. If broader coverage is wanted later, add `@axe-core/playwright` deliberately — do not let this grow into it by accident.
+- Do not weaken the sweep to make a prototype pass. A contrast miss consumes the generator's retry budget and can reach `RF-12`; that is intended — a prototype with invisible labels should not reach the landing page.

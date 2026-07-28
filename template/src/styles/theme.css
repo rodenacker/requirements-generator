@@ -55,6 +55,17 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-error: var(--error);
+  --color-info: var(--info);
+  --color-brand-accent: var(--brand-accent);
+
+  /* === On-colours for filled elements ===
+   * Bind labels/icons on a filled surface to these, never to text-white/text-black:
+   * the correct choice inverts between colour modes and between brands. Derived
+   * per mode by framework/skills/extract-brand-theme.md. */
+  --color-success-foreground: var(--success-foreground);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-error-foreground: var(--error-foreground);
+  --color-info-foreground: var(--info-foreground);
 
   /* === Radius scale === */
   --radius-sm: calc(var(--radius) - 4px);
@@ -66,8 +77,9 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
-/* === Professional defaults (FR8) — overwritten per-project by A3 === */
+/* === Professional defaults (FR8) — overwritten per-project by extract-brand-theme === */
 :root {
+  color-scheme: light;
   --radius: 0.625rem;
 
   /* Core palette — neutral professional defaults */
@@ -111,4 +123,20 @@
   --success: #00a256;
   --warning: #eb9b00;
   --error: #e7000b;
+  --info: #0369a1;
+
+  /* Brand accent hue — for callouts/highlights/chart series.
+   * NOT --accent: that var is shadcn's neutral hover/selected surface. */
+  --brand-accent: #0049c1;
+
+  /* On-colours for filled elements — measured, not assumed.
+   * Each is whichever of near-white/near-black scores higher against its fill
+   * across every state that fill appears in (solid + the /90, /80, /60, /50, /30
+   * composites the ui/ primitives use). Note --success-foreground is BLACK:
+   * white on #00a256 is only 3.33:1. The correct choice is per-fill and
+   * per-mode, never inferable from the colour mode. */
+  --success-foreground: #0a0a0a;  /* 5.94:1 on #00a256 */
+  --warning-foreground: #0a0a0a;  /* 8.69:1 on #eb9b00 */
+  --error-foreground: #fafafa;    /* 4.77:1 on #e7000b */
+  --info-foreground: #fafafa;     /* 5.93:1 on #0369a1 */
 }

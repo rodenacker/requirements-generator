@@ -192,6 +192,22 @@ Nothing in the pipeline assumes light: a reference URL ships a dark palette as r
 Canonical source: `framework/agents/design-system-styler/data/cross-mode-derivation-rules.md`.
 Not to be confused with: **mode (design-system)** (which scheme a *file* renders), **provenance marker** (the two-value `prov` set, which derivation does not extend).
 
+### colour-mode strategy
+How a prototype's users move between light and dark — one of `toggle` (a control in the application UI, defaulting to the OS/browser setting), `system` (follows `prefers-color-scheme`, no control), `none` (a single mode, no switching), or `custom` (consultant free text, bounded to the default mode / control placement / 2- vs 3-state). Chosen **once per app** at `/prototype` Step B(4b) and locked into `prototypes/.scaffold.json` alongside the brand (D1); later runs ask nothing.
+
+The question is asked **only** when both `design-system/design-system-light.html` and `design-system/design-system-dark.html` exist. Any other state — one mode file, a consultant-supplied brand, template defaults — is a determined outcome: `strategy: none`, reported in one status line, no menu. `/prototype` never derives a missing mode; that is `/design-system`'s contrast-gated job.
+
+Realized by one mechanism regardless of strategy: a `.dark` class on `<html>`, selecting between `theme.css`'s `:root` and `.dark` token blocks. Distinct from **on-colour**, which is about legibility *within* whichever mode is active.
+Canonical source: `framework/orchestrators/prototype-orch.md` Step B(4b) + `framework/assets/prototypes/app-shell-spec.md`.
+Not to be confused with: **mode (design-system)** (which scheme a design-system *file* renders), **hue source** (which mode is grounded), **design philosophy** (posture).
+
+### on-colour
+The label/icon colour that sits on a filled element — `--primary-foreground` on `--primary`, `--success-foreground` on `--success`, and so on. Derived per colour mode by `framework/skills/extract-brand-theme.md` by **measuring** near-white and near-black against the actual fill and taking the higher scorer — never inferred from the mode, which demonstrably fails (a light-mode brand accent of `#00D6FF` scores 1.74:1 for white and 11.37:1 for black).
+
+Validated against every state the fill appears in, not just at rest: the shipped shadcn primitives composite fills at `/90`, `/80`, `/60`, `/50` and `/30` over the mode's background, and a label that passes at rest can fail on hover. When no candidate clears 4.5:1 across all states, the **fill** is nudged in lightness (hue and saturation preserved) and the change is logged — the same operation `contrast-validation.md` performs upstream, applied where `/design-system`'s deliberately-narrow four-pair gate does not reach.
+Canonical source: `framework/skills/extract-brand-theme.md` > *Contrast & on-colours*.
+Not to be confused with: **colour-mode strategy** (how users switch modes), **mode (design-system)**.
+
 ### Fixture
 A static in-memory JSON data file shipped with a prototype (`prototypes/src/data/…`). Per PI-02, prototype data is fixture-sourced and mutations persist in-session only.
 Not to be confused with: **store** (the live state) and **seed** (the act of loading fixtures into a store).

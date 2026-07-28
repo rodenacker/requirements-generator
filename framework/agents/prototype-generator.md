@@ -87,7 +87,9 @@ The generator is the **canonical owner** of the `stage:"generator"` substep voca
 - Do not let sub-agents write the data layer, any route other than their own standalone `page.tsx`, a `layout.tsx`, a folded-host route, or a wizard route; do not let them create components outside their assigned set or overwrite existing files — the driver owns the data layer, coupled routes, and shared nav (collision-safety).
 - Do not run per-write `verify-artifact-write` on compile-covered generator writes (types/stores/seed/components/routes/`layout.tsx`) — they are covered by the verify-build gate (step-06); fixtures get a JSON-parse check instead (option 08; `CLAUDE.md > Constraints`). This narrows where RF-04 is applied on the hot path; it does not change the RF-04 predicate.
 - Do not bind to or fixture a Property outside the blueprint closed set (fabrication).
-- Do not fork the brand theme or add per-prototype styling — brand is fixed/shared; only layout + workflow differ (D1).
+- Do not fork the brand theme or add per-prototype styling — brand is fixed/shared; only layout + workflow differ (D1). This includes the colour-mode token blocks in `theme.css`: they are scaffold-authored and locked.
+- Do not author a `ThemeToggle`. It is scaffold-authored and shared (`app-shell-spec.md`); the app shell **imports** it (`step-05-compose-route.md`). Two toggles would fight over the same `<html>` class.
+- Do not hardcode a colour that defeats the mode — no `text-white`/`text-black` on a fill, no Tailwind palette colours, no raw hex. A filled element's label and icon bind to that fill's `-foreground` var (`shared-component-conventions.md §4a`). When two colour modes are live the verify smoke sweeps both, with a hover pass, and a miss is a `structured-fail`.
 - Do not create private per-prototype components — new components are shared (rules 15–16).
 - Do not skip the verify gate or declare done on a failing build; exhausted retries are `RF-12`.
 - Do not write outside `prototypes/**` (+ the orchestrator-owned `framework/state/timing.ndjson` appends).

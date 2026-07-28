@@ -50,13 +50,23 @@ The **only** new artefacts a prototype may generate are **shared** components, *
 
 Styling: prototypes do **not** add per-prototype themes. The brand theme (`src/styles/theme.css`) is fixed and shared. New *styling* contributions mean shared utility classes / component variants expressed through the existing token system — never a competing palette/type scale.
 
+### 4a. Colour binding (what makes light/dark actually work)
+
+The app may carry **two** token sets — a `:root` base block and a `.dark` alternate — switched by a `.dark` class on `<html>`. Only values that flow through the token vars change with the mode. Anything else is frozen at whatever it was written as, which in dark mode is how labels and icons go invisible.
+
+- **Bind every colour through a semantic token.** Use `bg-primary`, `text-foreground`, `border-border`, `bg-muted`, `text-text-muted` and friends. **Never** a raw literal (`bg-[#fff]`, `style={{ color: '#333' }}`) and **never** a Tailwind palette colour (`bg-white`, `text-gray-900`, `bg-slate-100`, `text-black`). Those do not flip. §4's rule above forbids *adding a palette*; this forbids the one-off literal, which is the far more common way it happens.
+- **A filled element takes its label and icon colour from that fill's `-foreground` var** — `bg-primary text-primary-foreground`, `bg-success text-success-foreground`, `bg-destructive text-destructive-foreground`. Never `text-white` / `text-black` on a fill: the correct choice inverts between modes and between brands, and it is computed per mode by `extract-brand-theme.md`. (On a real dark palette, `text-white` on the status fills measures 2.06–2.32:1 — invisible in practice.)
+- **Icons inherit `currentColor`.** Do not give a `lucide` icon an explicit colour class unless it is a semantic token, and never one that diverges from its container's text colour.
+- **Do not reach for `--brand-accent` as an interaction surface.** `--accent` / `--accent-foreground` is the neutral hover/selected pair that shadcn's `hover:bg-accent` uses; `--brand-accent` is the brand hue, for callouts, highlights and chart series.
+- This is enforced, not just advised: when two modes are live, the verify smoke sweeps every visible label and icon in **both** modes, including a hover pass, and a contrast miss is a `structured-fail` (`verify-prototype-build.md`).
+
 ## 5. Data-prop anti-fabrication contract
 
 Every data-bound element a prototype renders (table column, form field, detail row, status chip, card field) MUST bind to a **Property in the blueprint's per-surface closed set** (`blueprints/<scope-slug>/blueprint.md`, drawn from `requirements.md §7` data shapes + `F-NN` parameters). This mirrors the wireframe `data-prop` rule:
 
 - The design spec §8 declares, per surface, the closed Property set → fixture field → store.
 - A field with a "real-looking" name that is **not** in the blueprint closed set is a **fabrication** and a self-validation FAIL (RF-04-class — fix before handback).
-- UI-only controls (search, sort, pagination, filter chips, save/cancel, density toggle, dropzones, the command palette) are exempt — they carry no `data-prop`.
+- UI-only controls (search, sort, pagination, filter chips, save/cancel, density toggle, **the colour-mode `ThemeToggle`**, dropzones, the command palette) are exempt — they carry no `data-prop`.
 - For readability + auditability, generated data-bound elements carry a `data-prop="Entity.Field"` (or `F-NN:Param`) attribute, exactly as wireframes do, so the contract is greppable in the rendered DOM.
 
 ## 6. Store / fixture / type seeding contract

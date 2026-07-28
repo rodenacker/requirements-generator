@@ -33,6 +33,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Divergence (divergence profile) | How variants/prototypes differ; goal-driven profile derived once into `scope.json`. | `scope-selector.md` |
 | Drafter | First triplet agent: emits the artefact with provenance markers + claims sidecar. | — |
 | Fixture | Static in-memory JSON data shipped with a prototype (PI-02). | `prototype-invariants.md` |
+| colour-mode strategy | How a prototype's users switch light/dark (`toggle`/`system`/`none`/`custom`); asked once at `/prototype` Step B(4b) **only when both design-system mode files exist**, then locked in `.scaffold.json`. | `prototype-orch.md` Step B(4b) |
 | General rule (GR-NN) | Deterministic reusable rule the resolver applies without asking. | `shared/general-rules.md` |
 | Grounding | The act of linking a claim to a real source; ungrounded facts fail validation. | — |
 | Handback gate | Orchestrator checkpoint accepting/re-invoking a finished agent. | orchestrators |
@@ -42,6 +43,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Merger | Third triplet agent: strips markers, validates, writes the clean final artefact. | — |
 | Methodology | A named analysis/critique method (OOUX, ADVERSARIAL, GLOSSARY …); "lens" = its alias. | registries |
 | mode (design-system) | The colour scheme a design-system artefact renders (`light`/`dark`); one file per mode, chosen at step-05b. | `step-05b-domain-inference.md` |
+| on-colour | The label/icon colour on a filled element (`--*-foreground`); **measured** against the actual fill per mode and across every hover/active composite — never inferred from light/dark. | `skills/extract-brand-theme.md` |
 | Orchestrator | Pipeline control-flow owner; sequences agents, owns state/gates; no content edits. | `docs/maintenance.md > Separation of concerns` |
 | Orphan (traceability) | A final-doc fact/requirement that traces to no provenance class; the headline defect of the REQUIREMENTS-TRACEABILITY review. | `reviews/requirements-traceability-reference.md` |
 | Physical screen | A concrete screen produced by realizing a logical surface (`S-NN`). | `realization-strategies.md` |

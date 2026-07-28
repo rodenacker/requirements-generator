@@ -13,8 +13,8 @@ This skill is prototype-private. It borrows the print-and-parse + on-disk-presen
 - `wireframes_dir` — default `"wireframes/"`; the skill reads `<wireframes_dir><scope_slug>/variants.json` (source D).
 - `manifest_path` — default `"requirements/source-manifest.json"` (source E).
 - `output_dir` — default `"prototypes/.specs/"`; the skill writes `<output_dir><name_slug>/supporting-inputs.json`.
-- `design_system_path` — default `"design-system/design-system-light.html"`. **Existence-only** (Glob); never read/parse the file here — parsing + theming is `framework/skills/extract-brand-theme.md`'s job at scaffold time. Because a `/design-system` run may have produced only a dark file, the existence check accepts **any** design-system artefact: glob `design-system/design-system-{light,dark}.html` plus the legacy unsuffixed `design-system/design-system.html`, and set `ds_present` if any matches. Record which path matched — it is named in the Brand source line below.
-- `scaffold_marker_path` — default `"prototypes/.scaffold.json"`. **Existence-only** (Glob); its presence means the shared app's brand was already locked at the first scaffold and is not re-applied this run.
+- `design_system_dir` — default `"design-system/"`. **Existence-only** (Glob); never read/parse any file here — parsing + theming is `framework/skills/extract-brand-theme.md`'s job at scaffold time. A `/design-system` run may have produced one mode or both, so glob `design-system/design-system-{light,dark}.html` plus the legacy unsuffixed `design-system/design-system.html` and record **all** matches (`ds_matched_paths`) and the modes they represent (`ds_modes`); set `ds_present` if any matched. Both are named in the Brand source line below. Counting the modes here is existence-only — it does not decide anything, it just tells the consultant in advance whether the colour-mode question is coming.
+- `scaffold_marker_path` — default `"prototypes/.scaffold.json"`. **Existence-only** (Glob); its presence means the shared app's brand **and colour mode** were already locked at the first scaffold and are not re-applied this run.
 
 ## Outputs
 
@@ -52,14 +52,18 @@ Role semantics (the drafter threads these): `data-binding` → §8 Property usag
 2. **Build source C (analyse-inputs).** Read `analyses_inputs_registry_path`; retain `status: mvp` rows whose `output_path` resolves on disk.
 3. **Build source D (wireframes).** Glob `<wireframes_dir><scope_slug>/variants.json`. If present, parse it and list each variant `{ variant_id, design_philosophy }`; compute each variant's `manifest_path` + `variant_position_path` under `<wireframes_dir><scope_slug>/<variant_id>/`. If absent → source D is empty.
 4. **Build source E (input docs).** Read `manifest_path` if present; list rows whose `tier != "Unsupported"` as `{ filename, original_path, tier }`.
-4b. **Brand-source status (existence-only).** Glob for any design-system artefact per `design_system_path` above (light, dark, or legacy unsuffixed) → `ds_present` + `ds_matched_path`; Glob `scaffold_marker_path` → `brand_locked`. Do **not** open either file. These drive the single informational **Brand source** line printed in step 5 / step 6 (it is never a numbered pick and never enters `supporting-inputs.json`). The line names `ds_matched_path`, so the consultant can see *which* mode was found — a dark-only design system is a legitimate outcome, not an error. The line text:
+4b. **Brand-source status (existence-only).** Glob for **every** design-system artefact per `design_system_dir` above (light, dark, and legacy unsuffixed) → `ds_present` + `ds_matched_paths` (a **list** — a run may legitimately have produced both modes) + `ds_modes` (the modes found, e.g. `light + dark`); Glob `scaffold_marker_path` → `brand_locked`. Do **not** open any of them. These drive the single informational **Brand source** line printed in step 5 / step 6 (it is never a numbered pick and never enters `supporting-inputs.json`). The line names every matched path and the modes, so the consultant can see *which* modes were found — a dark-only design system is a legitimate outcome, not an error, and finding both is what makes the colour-mode question appear at Step B(4b). The line text:
 
     | `ds_present` | `brand_locked` | Brand source line |
     |---|---|---|
-    | yes | no | `Brand source: <ds_matched_path> — present; will theme this prototype's brand at first scaffold.` |
-    | yes | yes | `Brand source: <ds_matched_path> — present; brand was locked at the first scaffold and is reused (not re-applied this run).` |
+    | yes | no | `Brand source: <ds_matched_paths joined> (<ds_modes>) — present; will theme this prototype's brand at first scaffold.` |
+    | yes | yes | `Brand source: <ds_matched_paths joined> (<ds_modes>) — present; brand was locked at the first scaffold and is reused (not re-applied this run).` |
     | no  | no | `Brand source: none found. Recommended — run /design-system first to brand-lock this prototype; otherwise you'll choose brand tokens (URL / paste / neutral defaults) at scaffold.` |
     | no  | yes | `Brand source: none; the app's brand was locked at the first scaffold and is reused. (Running /design-system now won't re-theme existing prototypes.)` |
+
+    When `ds_present` and **not** `brand_locked`, append one further sentence naming what the mode outcome will be — this is the consultant's advance notice of whether Step B(4b) will ask anything:
+    - both modes found → `Light and dark are both available — you'll choose how users switch between them at scaffold.`
+    - one mode found → `Only <mode> was produced, so the prototype will be <mode>-mode with no switching. Re-run /design-system and pick "Both" if you want light/dark switching.`
 5. **Auto-proceed — all empty.** If B, C, D, E are all empty, print one plain-text line *"No optional inputs on disk; proceeding from `requirements.md` + the blueprint alone."* **followed by the step-4b Brand source line** (so the design-system status is always surfaced even when the numbered menu is skipped), jump to step 9 with empty sources, write the empty-sources JSON, verify, return `selected-none`. No `AskUserQuestion`.
 6. **Build the combined numbered list.** Print, in source order B→C→D→E, a header per non-empty class and number the items **globally** starting at 1 (registry order within each class; do not re-sort). Always print the fixed pre-line for A. Shape:
 

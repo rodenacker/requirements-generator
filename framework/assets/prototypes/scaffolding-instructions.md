@@ -48,9 +48,10 @@ The first generation that creates a real store wires these three files additivel
 ## 4. Brand theme + shell + chrome + landing (authored once)
 
 Before install, the scaffolder:
-1. **Brand theme + logo** — calls `framework/skills/extract-brand-theme.md` to (re)write `prototypes/src/styles/theme.css` from the brand source (a `/design-system` tokens → b consultant → c template defaults). Records `brand_source` + token-block sha. The same skill also captures the app's product **logo + favicon** when an ingested Stadium `design-signals` asset points at one: `prototypes/public/brand/logo.<ext>` (rendered in the application shell by the generator) and `prototypes/src/app/icon.<ext>` (Next.js file-convention favicon — coexists with the template's `favicon.ico`). Records `brand_logo` (or `null`).
-2. **App shell + chrome + landing** — authors the files specified in `framework/assets/prototypes/app-shell-spec.md`: `src/app/layout.tsx` (RootLayout + store seeding + `<PrototypeChrome>`), the chrome organism + its store, `src/data/prototype-registry.ts` (initially empty), and `src/app/page.tsx` (landing, initially "no prototypes yet").
-3. Verifies every authored file via `framework/skills/verify-artifact-write.md`.
+1. **Brand theme + logo** — calls `framework/skills/extract-brand-theme.md` to (re)write `prototypes/src/styles/theme.css` from the brand source (a `/design-system` tokens → b consultant → c template defaults). The skill reads **every** present design-system mode file and writes a `:root` base block plus, when two genuine token sets exist and the strategy is not `none`, a `.dark` alternate block; it derives every on-colour per mode by measurement (see that skill's *Contrast & on-colours*). Records `brand_source`, the sha over both blocks, and `sets`/`base`/`contrast`. The same skill also captures the app's product **logo + favicon** when an ingested Stadium `design-signals` asset points at one: `prototypes/public/brand/logo.<ext>` (rendered in the application shell by the generator) and `prototypes/src/app/icon.<ext>` (Next.js file-convention favicon — coexists with the template's `favicon.ico`). Records `brand_logo` (or `null`).
+2. **App shell + chrome + landing** — authors the files specified in `framework/assets/prototypes/app-shell-spec.md`: `src/app/layout.tsx` (RootLayout + colour-mode init script + store seeding + `<PrototypeChrome>`), the chrome organism + its store, `src/data/prototype-registry.ts` (initially empty), and `src/app/page.tsx` (landing, initially "no prototypes yet").
+3. **Colour-mode files (conditional)** — `src/components/atoms/ThemeToggle.tsx` when `colour_mode.strategy ∈ {toggle, custom}`; `e2e/theme-modes.smoke.spec.ts` when `colour_mode.sets == ["light","dark"]`. Both per `app-shell-spec.md`. Neither is authored otherwise, so a single-mode app carries no dead code.
+4. Verifies every authored file via `framework/skills/verify-artifact-write.md`.
 
 ## 5. Install (once)
 
@@ -67,14 +68,33 @@ Run `npm run build` (or `tsc --noEmit` + `next build`) in `prototypes/`. The emp
   "scaffolded_at": "<ISO-8601>",
   "template_copied_from": "template/",
   "brand_source": "design-system | consultant-url | consultant-tokens | template-defaults",
-  "brand_token_sha256": "<sha of the theme.css token block at scaffold time>",
+  "brand_token_sha256": "<sha over BOTH theme.css token blocks at scaffold time>",
   "brand_logo": { "logo_src": "/brand/logo.png", "favicon_file": "src/app/icon.png", "source_app": "<AppName>" },
+  "colour_mode": {
+    "strategy": "toggle | system | none | custom",
+    "sets": ["light", "dark"],
+    "base": "light | dark",
+    "default": "system | light | dark",
+    "note": "<verbatim consultant freetext — only when strategy == custom>",
+    "contrast": { "checked": 0, "adjustments": "<fill nudges applied, or 'none'>" }
+  },
   "node_version": "<major.minor.patch captured at install>",
   "app_ok": true
 }
 ```
 
 Verify via `verify-artifact-write.md`. `brand_token_sha256` lets later runs detect `/design-system` drift (a non-blocking notice; never auto-re-themes mid-set — see `prototype-orch.md` Step F1). `brand_logo` is `null` when no Stadium logo pointer was found; when non-null it records the captured logo/favicon so the generator can render the logo in each prototype's application shell.
+
+`colour_mode` is the **locked** record of the Step-B(4b) decision, and the discriminator three downstream consumers read:
+
+| Field | Read by | For |
+|---|---|---|
+| `strategy` | `step-05-compose-route.md` | whether the app shell renders `<ThemeToggle />` |
+| `sets` | `verify-prototype-build.md` | whether the smoke exercises both modes |
+| `sets` | `prototype-orch.md` Step F1 | the mode-drift notice |
+| `base`, `contrast` | handback + audit | which set is in `:root`, and any fill nudges applied |
+
+Like the brand, it is written once and never re-authored on a later run. A design-system that later gains a second mode produces a non-blocking drift notice, not a re-theme — adopting it means resetting `prototypes/`.
 
 ---
 

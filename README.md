@@ -131,6 +131,8 @@ A brand-token brief for a designer in one run — useful when the designer is bl
 
 You choose light-only, dark-only, or both — asked after the fetch, so the question can tell you which scheme the site actually ships. Whichever scheme was extracted is the **hue source**: it is always written and marked `primary`, and the other mode is *derived* from the same brand hues rather than fetched again. So pointing this at a dark-themed site and asking for light gives you both files — the dark one as the grounded record, the light one derived from it.
 
+Choosing **both** is also what unlocks light/dark switching in `/prototype`: with two files on disk the prototype gets both token sets and asks you how users switch between them; with one, it uses that mode and asks nothing.
+
 ### 4.4 `/generate-prd`
 
 A strategic, human-audience PRD from the same client inputs — problem framing, success metrics, hypotheses, MVP phasing, risks, stakeholders. Run it when a sponsor needs the *why* (not the *what-the-FE-must-do* that `/requirements` produces). Fully independent of `/requirements` — run it before, after, or alongside, with no state collision.
@@ -237,6 +239,8 @@ When the review you picked critiques the *spec* (a `/review-requirement` artefac
 One clickable, client-side hi-fi prototype of a scope of `requirements.md` per run, accumulating in a **single shared React/Next.js app** under `prototypes/`. The look and feel is **brand-locked and identical across every prototype** (one theme — from `/design-system` if you've run it, otherwise defaults you confirm); what differs is pure UX — a named posture plus trade-off positions reshape the layout and workflows. You scope and name the run, optionally seed it from an analysis or a wireframe variant (a wireframe basis pre-fills the posture and positions), then pick the posture and positions. It runs entirely in the browser against fixture data — there is no backend.
 
 **You get** a shared Next.js app under `prototypes/`: a landing page (`src/app/page.tsx`) listing every prototype grouped by scope, the clickable routes for this one (`src/app/<name-slug>/`), and shared theme / components / fixtures that grow additively across runs. Run `npm run dev` inside `prototypes/` and open the landing — a role switcher and a data-reset control are built into the chrome, so you can hand the running app to a client to click through. (The first run scaffolds the app and runs `npm install` once; later runs reuse it and are much faster.)
+
+**Light and dark.** If `/design-system` produced **both** mode files, the first run asks once how users switch between them — a button in the UI (defaulting to the OS/browser setting), the OS setting alone, no switching at all, or something you describe. The answer is locked with the brand, so later prototypes inherit it without being asked. If only one mode file exists, that mode is used and nothing is asked. The switching control, when you ask for one, sits in the application's own header — not in the prototype chrome, which is a review harness and shouldn't advertise itself as a product feature. Label and icon colours on buttons, badges and status chips are computed per mode by measuring against the actual fill in every hover state, and when both modes are live the build gate checks both — the usual dark-mode failure is a black label left on a dark fill, and it is cheaper to catch than to spot by eye.
 
 ### 4.13 `/export-application`
 
