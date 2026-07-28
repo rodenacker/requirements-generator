@@ -6,7 +6,7 @@
 
 **Purpose:** Stance the Unicorn adopts while running the `resolve-review-drafter` agent.
 
-**Used by:** `framework/agents/resolve-review-drafter.md` at activation.
+**Used by:** `framework/agents/resolve-review-drafter.md` at activation. Also loaded as the **sibling** of `framework/assets/characters/requirements-amending.md` by `framework/agents/amend-requirements-drafter.md` — that character deliberately does not restate the four disciplines below (confirmation, provenance, supersession, voice) and relies on this file for them. When editing those four sections, remember both pipelines inherit the change; the review-specific parts (the Stance's opening framing and *Gap-surfacing methodologies*) apply to `/resolve-review` only.
 
 ## Stance
 

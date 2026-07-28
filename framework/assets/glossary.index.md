@@ -9,6 +9,8 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Term | Gloss | Canonical owner |
 |---|---|---|
 | Agent | Persona+workflow `.md` the LLM adopts to produce one content artefact. | `docs/maintenance.md > Separation of concerns` |
+| Amendment (AMD-NN) | Entry in the transient `## Amendments (pending re-merge)` section of `requirements.md` that supersedes the base text it names until the next re-merge; a cache, never the record. | `assets/resolve-review/template-addendum.md` |
+| Amendments document | Consultant-approved `/amend-requirements` output: a NEW dated `input/amendments-<date>.md` turning consultant-stated changes into corpus material (base-text-anchored, origin-marked, impact-flagged, `AM-NN` IDs). | `assets/amend-requirements/template-amendments.md` |
 | Analysis | Output of a lens-transform methodology on requirements/inputs (`analyse-*`). | registries |
 | Anti-fabrication | Rule: no data-bound element may invent a property outside the closed set. | `blueprint-architect.md` |
 | Application character | The product's own copy voice (notifications/errors/validations/confirmations/empty states), recorded in `requirements.md` §1.8; not an agent Character. | `template-requirements.md` §1.8 |

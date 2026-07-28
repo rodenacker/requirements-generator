@@ -11,14 +11,15 @@
     - [`/design-system`](#43-design-system)
     - [`/generate-prd`](#44-generate-prd)
     - [`/requirements`](#45-requirements)
-    - [`/analyse-inputs`](#46-analyse-inputs)
-    - [`/review-inputs`](#47-review-inputs)
-    - [`/analyse-requirement`](#48-analyse-requirement)
-    - [`/review-requirement`](#49-review-requirement)
-    - [`/resolve-review`](#410-resolve-review)
-    - [`/wireframe`](#411-wireframe)
-    - [`/prototype`](#412-prototype)
-    - [`/export-application`](#413-export-application)
+    - [`/amend-requirements`](#46-amend-requirements)
+    - [`/analyse-inputs`](#47-analyse-inputs)
+    - [`/review-inputs`](#48-review-inputs)
+    - [`/analyse-requirement`](#49-analyse-requirement)
+    - [`/review-requirement`](#410-review-requirement)
+    - [`/resolve-review`](#411-resolve-review)
+    - [`/wireframe`](#412-wireframe)
+    - [`/prototype`](#413-prototype)
+    - [`/export-application`](#414-export-application)
 - [5. Setup](#5-setup)
     - [5.1 First-time install](#51-first-time-install-one-off)
     - [5.2 Office & PDF inputs](#52-to-handle-word-excel-powerpoint-and-pdf-inputs)
@@ -96,6 +97,7 @@ This repository is a **template**. You don't work in the shared copy — you cre
 | `/analyse-requirement` → `crud-coverage`                                       | Worried a CRUD-heavy spec has forgotten operations or ungranted rights            | Matrix flagging missing create/read/update/delete paths and lifecycle holes.     |
 | `/analyse-requirement` → `ooux` or `use-cases`                                 | About to brief a designer on screens and navigation                               | Surfaces the objects + CTAs, or the actor goals + flows.                         |
 | `/resolve-review`                                                              | You've run a review and want its findings *acted on*, not just listed             | Walks the findings with you and writes your approved resolutions into `input/`.  |
+| `/amend-requirements`                                                          | The spec is written and you want to change something in it — no review involved   | Records your changes as a new input document *and* as amendments in the spec, without redrafting it. |
 | `/wireframe`                                                                   | You want to show 2–3 divergent screen options before committing to a high-fi mock | Low-fi HTML variants tied to requirement IDs; compare side-by-side via tabs.     |
 | `/prototype`                                                                   | You want something the client can actually click through, not just look at        | Hi-fi client-side React app on fixture data; brand-locked, UX diverges by posture. |
 | `/export-application`                                                    | The spec is settled and a dev team outside this workspace needs the build-ready version | Strips the prototype scaffolding and stamps provenance — a clean handoff document. |
@@ -104,7 +106,7 @@ This repository is a **template**. You don't work in the shared copy — you cre
 
 Every command runs interactively inside Claude Code and keeps you in the loop. A few behaviours are shared, so they're stated once here rather than repeated per command:
 
-- **Two interaction patterns.** The *document* pipelines (`/requirements`, `/generate-prd`, and `/prototype`'s design spec) follow **draft → you accept → Q&A on anything the system couldn't confidently fill in → merge → you accept**. The *lens* pipelines (`/analyse-inputs`, `/analyse-requirement`, `/review-inputs`, `/review-requirement`) follow **pick a methodology → it runs → you accept → saved under its own folder**. (`/export-application` is simpler still: **one transform → you accept or reject** — no Q&A, nothing invented. `/resolve-review` is its own shape: **pick a review → pick findings → resolve each with you → you accept**.)
+- **Two interaction patterns.** The *document* pipelines (`/requirements`, `/generate-prd`, and `/prototype`'s design spec) follow **draft → you accept → Q&A on anything the system couldn't confidently fill in → merge → you accept**. The *lens* pipelines (`/analyse-inputs`, `/analyse-requirement`, `/review-inputs`, `/review-requirement`) follow **pick a methodology → it runs → you accept → saved under its own folder**. (`/export-application` is simpler still: **one transform → you accept or reject** — no Q&A, nothing invented. `/resolve-review` and `/amend-requirements` share a third shape: **pick or state the changes → resolve each with you → you accept → written to `input/`** — the difference is only where the changes come from, a review's findings or your own statements.)
 - **Read-only.** Analyses and reviews only *read* your inputs or spec — they never modify or delete them. Files you drop in `input/` are removed only by you, manually.
 - **Re-runs are safe.** Each pipeline detects a prior run and offers to **continue**, **start fresh**, or **overwrite** — the prior work is committed to git first, so nothing is lost. Run a lens pipeline again to add another artefact alongside the first.
 - **Input file types** (for the commands that read `input/` — `/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`): text (`.md`, `.txt`, `.drawio`, `.yml`, `.yaml`, `.xml`) and images (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`) are read directly; Office and PDF (`.docx`, `.xlsx`, `.pptx`, `.pdf`) are converted first (needs markitdown — see §5.2); anything else is logged so it doesn't slip through silently.
@@ -145,7 +147,19 @@ Turn the loose pile of client material into a clean, structured requirements spe
 
 **You get** `requirements/requirements.md` — a structured spec where every item is traceable either to something you provided or to a domain-default rule the framework applies (e.g. accessibility, security, error-handling). Anything the system can't confidently fill in is resolved through the Q&A, so the final doc reads as a clean, signed-off spec.
 
-### 4.6 `/analyse-inputs`
+**Re-running it once the spec is finished** offers you three choices instead of silently redrafting: **amend** the document (hands off to `/amend-requirements` — see below), **regenerate** it from the corpus (a full redraft, including the whole Q&A again), or **cancel**. An unfinished run still offers the usual resume.
+
+### 4.6 `/amend-requirements`
+
+Change something in a finished spec without redrafting it. State the changes in your own words — name a section or requirement ID (`§6.3`, `F-07`) or just describe what you want different. Reachable directly, or as the **amend** option when you re-run `/requirements` on a finished spec.
+
+Where a change is already specific, it's recorded as you stated it. Where it's a direction rather than a specification (*"tighten up approvals on rate changes"*), you get two or three concrete alternatives with their consequences spelled out, and you pick one — the framework doesn't just write your vague sentence into the spec and call it a requirement.
+
+**You get** two things. A new `input/amendments-<date>.md` — the **durable** record, ingested as source material the next time you run `/requirements`, which is what eventually folds the change into the spec body with citations. And an `## Amendments (pending re-merge)` section inside `requirements.md` itself, so `/wireframe`, `/prototype`, the analyses, and `/export-application` all honour the change **immediately**, before that re-merge. Nothing existing in `input/` is ever overwritten, and no other line of the spec is touched.
+
+You also get told what the change affects: whether it adds or removes a data property the wireframes bind to, whether it moves the scope boundary, and which existing wireframes or exports were built against the older version of the spec.
+
+### 4.7 `/analyse-inputs`
 
 Go deeper into the raw inputs *before* drafting: pick an analytical lens and the framework re-expresses your `input/` material through it as a stand-alone artefact. Each one is designed to be **copied back into `input/`** so `/requirements` consumes it on the next run. Requires a non-empty `input/`; shares the source manifest with `/requirements`.
 
@@ -165,7 +179,7 @@ Go deeper into the raw inputs *before* drafting: pick an analytical lens and the
 
 **You get** one artefact per run under `analyse-inputs/<METHOD>/`, mostly self-contained HTML that survives a markitdown HTML→MD round-trip (the embedded JSON / YAML / Mermaid bodies are the load-bearing re-ingestion contract).
 
-### 4.7 `/review-inputs`
+### 4.8 `/review-inputs`
 
 Find what's missing or wrong in the raw inputs *before* you draft — a punch-list you act on before `/requirements` runs. Use it when the inputs feel thin, ambiguous, or contradictory.
 
@@ -180,7 +194,7 @@ Find what's missing or wrong in the raw inputs *before* you draft — a punch-li
 
 **You get** one self-contained HTML artefact per run under `review-inputs/<METHOD>/`; `gap-analysis.html` additionally carries an inline-SVG coverage heatmap and is designed to be copied back into `input/` so `/requirements` picks up its shall-form Candidate Requirements on the next run.
 
-### 4.8 `/analyse-requirement`
+### 4.9 `/analyse-requirement`
 
 Go deeper into what your requirements doc already contains: pick a lens and the framework re-expresses `requirements.md` through it as a stand-alone artefact you can share with a designer or developer.
 
@@ -204,7 +218,7 @@ Go deeper into what your requirements doc already contains: pick a lens and the 
 
 **You get** one HTML artefact per run under `analyse-requirements/<METHOD>/` (e.g. `OOUX/ooux-object-map.html`, `FIVE-WHYS/five-whys.html`) — formatted to share directly with whoever needed the insight.
 
-### 4.9 `/review-requirement`
+### 4.10 `/review-requirement`
 
 Find what's missing or wrong in the spec *before* you hand it over — a second pair of eyes before estimation, a design brief, or a sceptical stakeholder.
 
@@ -220,7 +234,7 @@ Find what's missing or wrong in the spec *before* you hand it over — a second 
 
 **You get** one HTML artefact per run under `review-requirements/<METHOD>/` (e.g. `ADVERSARIAL/adversarial-review.html`). Treat it as a punch-list: fix the findings you accept in `requirements.md`, then re-run for a fresh pass.
 
-### 4.10 `/resolve-review`
+### 4.11 `/resolve-review`
 
 Turn the findings of a review you've already run into something the pipeline can consume. A review artefact is a punch-list; this command walks you through acting on it — you pick the review (any `/review-inputs` or `/review-requirement` artefact on disk), pick which findings to address, and resolve each one in turn. Anything the system infers on your behalf is confirmed with you by an explicit affirmative before it's recorded — per finding, or in one go via an explicit *Accept all remaining as drafted* choice — nothing is silently assumed. The approved resolutions are then written as a **new dated document into `input/`** (existing input files are never modified or overwritten), so the next `/requirements` run ingests your decisions like any other client material.
 
@@ -228,13 +242,13 @@ When the review you picked critiques the *spec* (a `/review-requirement` artefac
 
 **You get** one new `input/<review-name>-<date>.md` per run — a consultant-approved resolutions document in which every resolution is marked as stated by you or AI-inferred-and-confirmed by you. One run resolves one review; re-run it for another (the output files accumulate side-by-side).
 
-### 4.11 `/wireframe`
+### 4.12 `/wireframe`
 
 2–3 parallel low-fi HTML wireframe variants for a scope of `requirements.md`. Each variant adopts a divergent position on a UX trade-off dimension (density vs focus, speed vs accuracy, automation vs control, …), is bound to a persona, and traces every interactive element back to a requirement ID. You scope the run and optionally pick supporting analyses you've already produced via `/analyse-requirement` (only ones actually on disk are offered); the variants then generate in parallel, so a 2-variant scope takes about the same wall time as one.
 
 **You get** `wireframes/<scope-slug>/` — a metadata-only `index.html` landing (side-by-side variant columns of screen links plus a trade-off matrix that explains *why* the variants differ) and per-screen HTML files carrying `data-src` (requirement ID) and `data-prop` (data-shape) traceability. Open the landing, click a screen link to open it in a new tab, then drag tabs into separate windows to compare directly.
 
-### 4.12 `/prototype`
+### 4.13 `/prototype`
 
 One clickable, client-side hi-fi prototype of a scope of `requirements.md` per run, accumulating in a **single shared React/Next.js app** under `prototypes/`. The look and feel is **brand-locked and identical across every prototype** (one theme — from `/design-system` if you've run it, otherwise defaults you confirm); what differs is pure UX — a named posture plus trade-off positions reshape the layout and workflows. You scope and name the run, optionally seed it from an analysis or a wireframe variant (a wireframe basis pre-fills the posture and positions), then pick the posture and positions. It runs entirely in the browser against fixture data — there is no backend.
 
@@ -242,7 +256,7 @@ One clickable, client-side hi-fi prototype of a scope of `requirements.md` per r
 
 **Light and dark.** If `/design-system` produced **both** mode files, the first run asks once how users switch between them — a button in the UI (defaulting to the OS/browser setting), the OS setting alone, no switching at all, or something you describe. The answer is locked with the brand, so later prototypes inherit it without being asked. If only one mode file exists, that mode is used and nothing is asked. The switching control, when you ask for one, sits in the application's own header — not in the prototype chrome, which is a review harness and shouldn't advertise itself as a product feature. Label and icon colours on buttons, badges and status chips are computed per mode by measuring against the actual fill in every hover state, and when both modes are live the build gate checks both — the usual dark-mode failure is a black label left on a dark fill, and it is cheaper to catch than to spot by eye.
 
-### 4.13 `/export-application`
+### 4.14 `/export-application`
 
 Export the finished spec as an **application-audience document** you can hand to a dev team outside this workspace. Run it once the requirements have settled — after the analyses, reviews, wireframes, and any manual refinements have shaped `requirements.md` into what you actually want built. It's a pure export of the spec **as it exists at that moment**: nothing is invented at export time — the only wording the export supplies is a small fixed set of replacements spelled out in the exporter itself. The prototype-only scaffolding is removed (the prototype-invariants appendix, and the framework-internal target-mode table), fixture references become backend-contract pointers (with a placeholder path to rebind once a backend requirements document exists), the prototype-scoping preamble is dropped from the guidance sections, and a provenance block is stamped in — including a fingerprint of the exact `requirements.md` version it came from, so a re-run can tell you whether the export is stale. The architectural implications, session-policy, performance-budget, and rationale content is already in the spec (drafted and confirmed during `/requirements`) and carries through with only its prototype-scoping preamble removed.
 

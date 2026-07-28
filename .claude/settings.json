@@ -25,6 +25,8 @@
       "Bash(mkdir -p design-system)",
       "Bash(mkdir -p design-system/.workspace)",
       "Bash(mkdir -p framework/state)",
+      "Bash(mkdir -p amend-requirements)",
+      "Bash(rm -f amend-requirements/amendments-draft.md)",
       "Bash(rm -f requirements/source-manifest.json)",
       "Bash(rm -f requirements/requirements-draft.md)",
       "Bash(rm -f requirements/consultant-answers.md)",
