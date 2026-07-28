@@ -262,7 +262,7 @@ After substitution, compute the SHA-256 of the final HTML byte-string for Step 1
 
 Output one short, concrete line listing the run's scope tier, the counts, the quality-check result, and the new-entries figure. No marketing language. Template:
 
-> *"Wrote `analyse-requirements/GLOSSARY/glossary.html` (run #{run_count}, tier {active_tier}) — {n_defined}/{n_total} entries carry definitions; {n_undefined} are used without explicit definition. Added {n_new} new entries this run; preserved {n_prior} prior entries. Quality checks: 7/7 pass. Open it in a browser; the embedded JSON model keeps the vocabulary machine-readable. Ready, or want changes?"*
+> *"Wrote `analyse-requirements/GLOSSARY/glossary.html` (run #{run_count}, tier {active_tier}) — {n_defined}/{n_total} entries carry definitions; {n_undefined} are used without explicit definition. Added {n_new} new entries this run; preserved {n_prior} prior entries. Quality checks: 7/7 pass. Opened in your browser (if not, open it via `file://`); the embedded JSON model keeps the vocabulary machine-readable. Ready, or want changes?"*
 
 Variants:
 

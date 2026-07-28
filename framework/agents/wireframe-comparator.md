@@ -237,7 +237,7 @@ Output a short in-thread summary:
 Index written for `<scope_slug>`.
 - {N} variants compared (listed).
 - Drift flags: {count} (see _drift.json for detail).
-- Open wireframes/<scope_slug>/index.html in a browser (file://) to view.
+- wireframes/<scope_slug>/index.html has been opened in your browser (if it didn't open, open it via file://).
 - Every screen link opens in a new tab so you can arrange wireframes side-by-side via your browser's native tab-drag.
 ```
 

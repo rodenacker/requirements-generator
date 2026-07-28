@@ -231,7 +231,7 @@ The template scaffold itself is **not edited** — the inline `<style>` block, s
 
 Output one short, concrete line listing the counts and gate result. No marketing language. Template:
 
-> *"Wrote `review-requirements/USER-STORIES/user-stories-review.html` — `{{TOTAL_STORIES}}` stories evaluated. `{{PASS_COUNT}}` ready, `{{FAIL_COUNT}}` with findings (`{{BLOCKING_COUNT}}` blocking · `{{MAJOR_COUNT}}` major · `{{MINOR_COUNT}}` minor). Criterion coverage: `{{N}}` of 6. Quality gates: `{{n_gates_passed}}/9` pass. Open it in a browser. Ready, or want changes?"*
+> *"Wrote `review-requirements/USER-STORIES/user-stories-review.html` — `{{TOTAL_STORIES}}` stories evaluated. `{{PASS_COUNT}}` ready, `{{FAIL_COUNT}}` with findings (`{{BLOCKING_COUNT}}` blocking · `{{MAJOR_COUNT}}` major · `{{MINOR_COUNT}}` minor). Criterion coverage: `{{N}}` of 6. Quality gates: `{{n_gates_passed}}/9` pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

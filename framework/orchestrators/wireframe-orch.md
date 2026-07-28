@@ -105,7 +105,7 @@ Unlike `requirements-orch.md`, this orchestrator does **not** maintain a `.progr
 
 4b. **Stage 4b — Final accept gate** (orchestrator-owned). After the comparator hands back `ok`, surface a single `AskUserQuestion`:
 
-- Question: *"Wireframe set for `{{chosen.scope_slug}}` is ready. Open `wireframes/{{chosen.scope_slug}}/index.html` in your browser (file://) to view — the page is metadata-only (scope details, screen links, side-by-side comparison cards, trade-off matrix). Click any screen link to open the actual wireframe in a new tab; arrange tabs side-by-side via your browser's tab-drag. Accept?"*
+- Question: *"Wireframe set for `{{chosen.scope_slug}}` is ready. `wireframes/{{chosen.scope_slug}}/index.html` has been opened in your browser (if it didn't open, open it via `file://`) — the page is metadata-only (scope details, screen links, side-by-side comparison cards, trade-off matrix). Click any screen link to open the actual wireframe in a new tab; arrange tabs side-by-side via your browser's tab-drag. Accept?"*
 - Header: `Wireframe set`
 - `multiSelect: false`
 - Options:

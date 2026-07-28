@@ -272,7 +272,7 @@ The template scaffold itself is **not edited** — section ordering, IDs, the `<
 
 Output one short, concrete line listing the per-dimension counts, the verdict, and the gate result. No marketing language. Template:
 
-> *"Wrote `review-requirements/ADVERSARIAL/adversarial-review.html` — `{{TOTAL_FINDINGS}}` findings across 8 dimensions (Blocker: `{{BLOCKER_COUNT}}`, Major: `{{MAJOR_COUNT}}`, Minor: `{{MINOR_COUNT}}`), grouped into `{{n_clusters}}` clusters, triage callout lists top `{{n_triage}}` to fix first. Disposition: Patch `{{PATCH_COUNT}}` · Defer `{{DEFER_COUNT}}` · Reject `{{REJECT_COUNT}}`. Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/11` pass. Strict-BMAD re-run triggered on `{{n_dimensions_rerun}}` dimensions. Open it in a browser. Ready, or want changes?"*
+> *"Wrote `review-requirements/ADVERSARIAL/adversarial-review.html` — `{{TOTAL_FINDINGS}}` findings across 8 dimensions (Blocker: `{{BLOCKER_COUNT}}`, Major: `{{MAJOR_COUNT}}`, Minor: `{{MINOR_COUNT}}`), grouped into `{{n_clusters}}` clusters, triage callout lists top `{{n_triage}}` to fix first. Disposition: Patch `{{PATCH_COUNT}}` · Defer `{{DEFER_COUNT}}` · Reject `{{REJECT_COUNT}}`. Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/11` pass. Strict-BMAD re-run triggered on `{{n_dimensions_rerun}}` dimensions. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variant:
 

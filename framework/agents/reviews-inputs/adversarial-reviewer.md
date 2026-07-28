@@ -329,7 +329,7 @@ The template scaffold itself is **not edited**. Only the documented `{{placehold
 
 Output one short, concrete line listing the per-dimension counts, the verdict, the cluster shape, and the gate result. No marketing language. Template:
 
-> *"Wrote `review-inputs/ADVERSARIAL/adversarial-review.html` — `{{TOTAL_FINDINGS}}` findings across 6 dimensions (Blocker: `{{BLOCKER_COUNT}}`, Major: `{{MAJOR_COUNT}}`, Minor: `{{MINOR_COUNT}}`) over `{n_consumable_sources}` sources, grouped into `{{n_clusters}}` clusters, triage callout lists top `{{n_triage}}` to address first. Disposition: Patch `{{PATCH_COUNT}}` · Defer `{{DEFER_COUNT}}` · Reject `{{REJECT_COUNT}}`. Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/13` pass. Strict-BMAD re-run triggered on `{{n_dimensions_rerun}}` dimensions. Open the file via `file://` to navigate via the TOC. Ready, or want changes?"*
+> *"Wrote `review-inputs/ADVERSARIAL/adversarial-review.html` — `{{TOTAL_FINDINGS}}` findings across 6 dimensions (Blocker: `{{BLOCKER_COUNT}}`, Major: `{{MAJOR_COUNT}}`, Minor: `{{MINOR_COUNT}}`) over `{n_consumable_sources}` sources, grouped into `{{n_clusters}}` clusters, triage callout lists top `{{n_triage}}` to address first. Disposition: Patch `{{PATCH_COUNT}}` · Defer `{{DEFER_COUNT}}` · Reject `{{REJECT_COUNT}}`. Verdict: `{{VERDICT}}`. Quality gates: `{{n_gates_passed}}/13` pass. Strict-BMAD re-run triggered on `{{n_dimensions_rerun}}` dimensions. Opened in your browser (if not, open it via `file://`) — navigate via the TOC. Ready, or want changes?"*
 
 Variants:
 

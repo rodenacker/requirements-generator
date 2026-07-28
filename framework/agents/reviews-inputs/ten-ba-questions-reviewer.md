@@ -243,7 +243,7 @@ The template scaffold itself is **not edited** — the inline `<style>` block, s
 
 Output one short, concrete line listing the counts and gate result. No marketing language. Template:
 
-> *"Wrote `review-inputs/TEN-BA-QUESTIONS/ten-ba-questions-review.html` — 10 BA questions selected from `{{CANDIDATE_POOL_SIZE}}` candidates over `{{SOURCE_COUNT}}` sources. Priority: `{{BLOCKING_COUNT}}` blocking · `{{MAJOR_COUNT}}` major · `{{MINOR_COUNT}}` minor. Category coverage: `{{N}}` of 8. Quality gates: `{{n_gates_passed}}/11` pass. Open it in a browser. Ready, or want changes?"*
+> *"Wrote `review-inputs/TEN-BA-QUESTIONS/ten-ba-questions-review.html` — 10 BA questions selected from `{{CANDIDATE_POOL_SIZE}}` candidates over `{{SOURCE_COUNT}}` sources. Priority: `{{BLOCKING_COUNT}}` blocking · `{{MAJOR_COUNT}}` major · `{{MINOR_COUNT}}` minor. Category coverage: `{{N}}` of 8. Quality gates: `{{n_gates_passed}}/11` pass. Opened in your browser (if not, open it via `file://`). Ready, or want changes?"*
 
 Variants:
 

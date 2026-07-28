@@ -15,12 +15,13 @@ Lead with the hue-source file (the grounded one), then the derived file if there
 
 **Single-file template:**
 
-> "Wrote `design-system/design-system-{{mode}}.html` — `{{n_colors_extracted}}/11` colour tokens extracted, `{{n_typo_extracted}}/15` typography tokens extracted, `{{n_effects_extracted}}/7` effects tokens extracted; the rest filled from `{{domain}}` defaults. Contrast: `{{cv_pass_count_<mode>}}/4` pairs pass at WCAG AA (`{{cv_adjustment_count_<mode>}}` adjustments). Ready, or want changes?"
+> "Wrote `design-system/design-system-{{mode}}.html` — `{{n_colors_extracted}}/11` colour tokens extracted, `{{n_typo_extracted}}/15` typography tokens extracted, `{{n_effects_extracted}}/7` effects tokens extracted; the rest filled from `{{domain}}` defaults. Contrast: `{{cv_pass_count_<mode>}}/4` pairs pass at WCAG AA (`{{cv_adjustment_count_<mode>}}` adjustments). Opened in your browser (if not, open it via `file://`). Ready, or want changes?"
 
 **Two-file template:**
 
 > "Wrote two files. `design-system/design-system-{{hue_source_mode}}.html` — **primary**, the extracted palette: `{{n_colors_extracted}}/11` colour tokens extracted, `{{n_typo_extracted}}/15` typography, `{{n_effects_extracted}}/7` effects; the rest filled from `{{domain}}` defaults. Contrast `{{cv_pass_count_<hue>}}/4` (`{{cv_adjustment_count_<hue>}}` adjustments).
 > `design-system/design-system-{{derived_mode}}.html` — derived from the same brand hues, not separately extracted; 11 colours + 3 shadows re-lit, typography and motion shared verbatim. Contrast `{{cv_pass_count_<derived>}}/4` (`{{cv_adjustment_count_<derived>}}` adjustments).
+> Opened in your browser, hue-source first (if they didn't open, open them via `file://`). On a revise, only the re-rendered file(s) re-open.
 > Ready, or want changes?"
 
 Variants — prepend whichever apply:
