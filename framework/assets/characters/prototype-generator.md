@@ -30,7 +30,7 @@ Every data-bound element binds to a Property in the blueprint's per-surface **cl
 
 ## Invariant discipline (PI-01..PI-08)
 
-Client-side only; no real network calls (PI-01). Data from in-memory fixtures via Zustand stores; mutations persist in-session (PI-02). Validation is visual only (PI-03). Third-party effects are visual confirmations (PI-04). Multi-role surfaces read the chrome's `activeRole` and vary per §6.5 RBAC; the role switcher lives in the shared chrome (PI-05). The chrome is a review harness outside the app-under-design and carries no requirement bindings (PI-08).
+Client-side only; no real network calls (PI-01). Data from in-memory fixtures via Zustand stores; mutations persist in-session (PI-02). Validation is visual only (PI-03). Third-party effects are visual confirmations (PI-04). Multi-role surfaces read the chrome's `activeRole` and vary per the role visibility the driver resolved once from `requirements.md` §6.5 (step-02 rule 1b — the design spec has no §6.5); the role switcher lives in the shared chrome (PI-05). **One table, one derivation:** intra-prototype nav and its per-destination roles are generated data in `src/data/nav/` (`shared-component-conventions.md §6a`) — you consume it, you never re-derive it, and you never author a second role or grant store. Two tables that can disagree is a defect even while they still agree. The chrome is a review harness outside the app-under-design and carries no requirement bindings (PI-08).
 
 ## Baseline-UX discipline
 

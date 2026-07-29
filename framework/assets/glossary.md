@@ -232,8 +232,12 @@ A behavioural contract every prototype must satisfy (`PI-01..PI-08`) — e.g. si
 Canonical source: `framework/shared/prototype-invariants.md`.
 
 ### App shell
-The shared layout/structure wrapping every prototype (nav, regions). The prototype **chrome** (`PrototypeChrome` — role switcher, data-reset, nav) is part of the shell and sits *outside* the app under design (PI-08), so it is never treated as a design surface.
+The shared layout/structure wrapping every prototype (nav, regions) — in practice **any** component that wraps a surface's content, whether a per-prototype `layout.tsx` or a `templates/*Shell` composed per page; it is never assumed to be a singleton. The prototype **chrome** (`PrototypeChrome` — role switcher, data-reset, *inter*-prototype nav) sits *outside* the app under design (PI-08), so it is never treated as a design surface. The two navs are different things: the chrome's jumps **between** generated prototypes; the application's own nav (from the **Nav table**) moves **within** one.
 Canonical source: `framework/assets/prototypes/app-shell-spec.md`.
+
+### Nav table
+The generated, per-prototype list of intra-prototype destinations — `{ route, label, surface_id, roles }` per entry — written by the generator driver before sub-agent dispatch and resolved at runtime by route (`NAV_BY_PROTOTYPE[<slug>]`), because app shells are *shared* components and cannot import one prototype's nav. It is the **only** grant table: roles come from `proto-chrome-store.activeRole` (PI-05), per-destination visibility from here. Distinct from the **prototype registry**, which is inter-prototype (one row per prototype, the landing link). Any second derivation — a hand-rolled array, a `navItemsForRole()` helper, a role→pages store method — is a defect.
+Canonical source: `framework/assets/prototypes/shared-component-conventions.md` §6a.
 
 ---
 

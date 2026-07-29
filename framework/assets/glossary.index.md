@@ -45,6 +45,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Merger | Third triplet agent: strips markers, validates, writes the clean final artefact. | — |
 | Methodology | A named analysis/critique method (OOUX, ADVERSARIAL, GLOSSARY …); "lens" = its alias. | registries |
 | mode (design-system) | The colour scheme a design-system artefact renders (`light`/`dark`); one file per mode, chosen at step-05b. | `step-05b-domain-inference.md` |
+| Nav table | The generated, per-prototype list of intra-prototype destinations + their visible roles (`src/data/nav/`); the single source every app shell reads. Not the prototype registry (inter-prototype). | `prototypes/shared-component-conventions.md` §6a |
 | on-colour | The label/icon colour on a filled element (`--*-foreground`); **measured** against the actual fill per mode and across every hover/active composite — never inferred from light/dark. | `skills/extract-brand-theme.md` |
 | Orchestrator | Pipeline control-flow owner; sequences agents, owns state/gates; no content edits. | `docs/maintenance.md > Separation of concerns` |
 | Orphan (traceability) | A final-doc fact/requirement that traces to no provenance class; the headline defect of the REQUIREMENTS-TRACEABILITY review. | `reviews/requirements-traceability-reference.md` |
