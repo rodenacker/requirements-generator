@@ -31,7 +31,14 @@ Copy the entire `template/` tree into `prototypes/`, **excluding**:
 - `.git/` (if present)
 - the example scaffolding files: `src/stores/_example-store.ts`, `src/data/fixtures/_example-data.json`, and the `ExampleItem` interface in `src/types/index.ts`.
 
-Everything else copies verbatim: `package.json`, `package-lock.json`, all configs (`next.config.ts`, `tsconfig.json`, `eslint.config.mjs`, `postcss.config.mjs`, `components.json`, `vitest.config.ts`, `vitest.setup.ts`, `playwright.config.ts`, `next-env.d.ts`), `public/`, `src/components/ui/**` (shadcn primitives), `src/components/{atoms,molecules,organisms,templates,domain}/.gitkeep`, `src/lib/utils.ts`, `src/styles/theme.css`, `src/app/globals.css`, `src/app/favicon.ico`, `src/components/ErrorBoundary.tsx`, `src/data/test-fixtures/.gitkeep`.
+Everything else copies verbatim: `package.json`, `package-lock.json`, all configs (`next.config.ts`, `tsconfig.json`, `eslint.config.mjs`, `postcss.config.mjs`, `components.json`, `vitest.config.ts`, `vitest.setup.ts`, `playwright.config.ts`, `next-env.d.ts`), `.gitignore`, `public/`, `src/components/ui/**` (shadcn primitives), `src/components/{atoms,molecules,organisms,templates,domain}/.gitkeep`, `src/lib/utils.ts`, `src/styles/theme.css`, `src/app/globals.css`, `src/app/favicon.ico`, `src/components/ErrorBoundary.tsx`, `src/data/test-fixtures/.gitkeep`, and `e2e/craft.smoke.spec.ts`.
+
+Three of those carry the visual-craft contract and are load-bearing, not boilerplate:
+- **`src/styles/theme.css`** — the `@theme` scales (type, weights, motion, elevation registration) that `extract-brand-theme.md` then overwrites with brand values.
+- **`src/app/globals.css`** — the base layer (heading face, tabular numerals, token-bound scrollbars, selection), the **global press layer** that gives every clickable element its 98% press, the overlay fade + lift + blur-clear entrance, and the `prefers-reduced-motion` collapse. Copying this is what makes tactility structural rather than something eight parallel sub-agents each have to remember.
+- **`e2e/craft.smoke.spec.ts`** — proves those invariants at runtime, once per app, brand-independently (`app-shell-spec.md > File map`).
+
+**`playwright.config.ts`** declares three projects — `desktop-chrome` (1280×800), `tablet-chrome` (768×1024), `mobile-chrome` (390×844, `hasTouch`). `verify-prototype-build.md` selects among them from the prototype's `device_targets`. All three spread the same resolved browser choice, so none of them reintroduces the "no launchable browser" class the resolution logic exists to prevent.
 
 > Use a copy that honours the exclude list (e.g. robocopy/xcopy on Windows with `/XD node_modules .next .git` and `/XF _example-*`, or an equivalent file-by-file copy). The mechanics live in `scaffold-prototype-app.md`.
 
@@ -70,6 +77,11 @@ Run `npm run build` (or `tsc --noEmit` + `next build`) in `prototypes/`. The emp
   "brand_source": "design-system | consultant-url | consultant-tokens | template-defaults",
   "brand_token_sha256": "<sha over BOTH theme.css token blocks at scaffold time>",
   "brand_logo": { "logo_src": "/brand/logo.png", "favicon_file": "src/app/icon.png", "source_app": "<AppName>" },
+  "brand_fonts": {
+    "href": "<the Google Fonts stylesheet href emitted into layout.tsx, or null>",
+    "families": ["<heading family>", "<body family>"]
+  },
+  "theme_contract": 2,
   "colour_mode": {
     "strategy": "toggle | system | none | custom",
     "sets": ["light", "dark"],
@@ -85,6 +97,17 @@ Run `npm run build` (or `tsc --noEmit` + `next build`) in `prototypes/`. The emp
 
 Verify via `verify-artifact-write.md`. `brand_token_sha256` lets later runs detect `/design-system` drift (a non-blocking notice; never auto-re-themes mid-set — see `prototype-orch.md` Step F1). `brand_logo` is `null` when no Stadium logo pointer was found; when non-null it records the captured logo/favicon so the generator can render the logo in each prototype's application shell.
 
+`brand_fonts` records what `layout.tsx` actually asks the browser to download (`app-shell-spec.md > Brand webfont loading`), so a later run can tell which families were requested without re-parsing `theme.css`. `href` is `null` only if no named family could be resolved — which should not happen, since even `template-defaults` names `Inter`.
+
+**`theme_contract`** is the version of the token contract `theme.css` was written against:
+
+| Value | Means |
+|---|---|
+| absent or `1` | **legacy, colour-only** — written before the type scale, motion tiers and elevation ladder were mapped. Components in that app have no brand elevation, duration or type step to bind to. |
+| `2` | current — colour **plus** `--font-heading`, the 8-step `--text-*` scale with paired line-heights, `--duration-fast/base/slow`, `--ease-standard`, and the four `--elevation-*` per mode block. |
+
+Like the brand and the colour mode, it is written once. A pre-contract-2 app is **not** silently re-themed on a later run (that would change every already-accepted prototype's appearance mid-set, violating D1); it produces a non-blocking **contract-drift** notice at `prototype-orch.md` Step F1, and adopting the new contract means resetting `prototypes/`.
+
 `colour_mode` is the **locked** record of the Step-B(4b) decision, and the discriminator three downstream consumers read:
 
 | Field | Read by | For |
@@ -92,6 +115,7 @@ Verify via `verify-artifact-write.md`. `brand_token_sha256` lets later runs dete
 | `strategy` | `step-05-compose-route.md` | whether the app shell renders `<ThemeToggle />` |
 | `sets` | `verify-prototype-build.md` | whether the smoke exercises both modes |
 | `sets` | `prototype-orch.md` Step F1 | the mode-drift notice |
+| `theme_contract` | `prototype-orch.md` Step F1 | the contract-drift notice (absent/`< 2` ⇒ legacy colour-only theme) |
 | `base`, `contrast` | handback + audit | which set is in `:root`, and any fill nudges applied |
 
 Like the brand, it is written once and never re-authored on a later run. A design-system that later gains a second mode produces a non-blocking drift notice, not a re-theme — adopting it means resetting `prototypes/`.
@@ -102,7 +126,8 @@ Like the brand, it is written once and never re-authored on a later run. A desig
 - `.scaffold.json` exists and `app_ok: true`; `prototypes/package.json` + non-empty `node_modules/` present.
 - The exclude list was honoured: no `_example-*` files under `prototypes/`; no `node_modules`/`.next`/`.git` copied.
 - The empty app builds green (step 6 passed).
-- `theme.css` token block written from the recorded `brand_source`.
+- `theme.css` token block written from the recorded `brand_source`, carrying the **full** contract-2 token set (type scale, motion tiers, elevation ladder) — not colour alone.
+- `layout.tsx` carries the brand webfont links; `.scaffold.json` records `brand_fonts` and `theme_contract: 2`.
 - Every authored file verified via `verify-artifact-write.md`.
 
 ## Anti-patterns

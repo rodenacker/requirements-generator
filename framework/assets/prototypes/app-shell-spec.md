@@ -15,6 +15,7 @@
 | `src/app/layout.tsx` | scaffolder | never | RootLayout: html/body, imports `globals.css`, carries the colour-mode init script, seeds stores on mount, renders `<PrototypeChrome>` around `{children}`. |
 | `src/components/atoms/ThemeToggle.tsx` | scaffolder | never | Colour-mode control. Authored **only** when `.scaffold.json` `colour_mode.strategy ∈ {toggle, custom}`. |
 | `e2e/theme-modes.smoke.spec.ts` | scaffolder | never | Proves the colour-mode mechanism. Authored **only** when `colour_mode.sets == ["light","dark"]`. |
+| `e2e/craft.smoke.spec.ts` | **template (copied, not authored)** | never | Proves the visual-craft invariants: every craft token resolves, Tailwind's `shadow-*`/`text-*`/`font-*` scales regenerate against the brand values, a pressed control scales to 98%, an `aria-disabled` control does not, and `prefers-reduced-motion` collapses the transition. Ships in `template/e2e/` so **every** app gets it — deliberately *not* hung off `theme-modes.smoke.spec.ts`, which only exists when two colour modes do, and craft invariants are mode-independent. The scaffolder authors nothing here; it arrives with the copy. |
 | `src/components/organisms/PrototypeChrome.tsx` | scaffolder | never | The review harness: inter-prototype nav, role switcher (PI-05), data-reset, current-prototype info. |
 | `src/stores/proto-chrome-store.ts` | scaffolder | never | Zustand store for chrome state: `activeRole`, setters. Not persisted (session chrome state). |
 | `src/data/prototype-registry.ts` | scaffolder (empty) | **yes** (landing-updater) | Typed array of all prototypes `{ name, slug, route, scope_slug, scope_label, posture_label, position_labels[], roles[] }`. Imported by landing + chrome. |
@@ -33,6 +34,30 @@
 - `<head>` title "Prototype" (generic; per-prototype `<title>` set by route metadata).
 - **`<html lang="en" suppressHydrationWarning>` — required, not optional.** The init script below mutates `documentElement.className` before React hydrates; without `suppressHydrationWarning` React logs a hydration mismatch, and the smoke's zero-console-errors assertion turns that into a failing gate on **every** prototype.
 - Carries the **colour-mode init script** — see below.
+- Carries the **brand webfont links** — see below.
+
+## Brand webfont loading
+
+**Without this the brand typeface never loads.** `theme.css` sets `--font-sans: '<Family>', sans-serif`, but a font family declared in CSS is not a font *fetched* — with no `@font-face` and no stylesheet link the browser silently falls through to the generic terminal, so a prototype renders in `system-ui` while every token file says otherwise. `/design-system` spends a whole rules file (`design-system-styler/data/font-rules.md`, four enforcement points) choosing a licensable brand face; this is where that choice becomes visible.
+
+Render these as the **first children of `<head>`**, before the colour-mode script:
+
+```tsx
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+/>
+```
+
+- Build the `family=` segments from the **named** family of `--font-heading` and `--font-sans` in `theme.css` (the part before the generic terminal, URL-encoded with `+` for spaces). Emit **one** `family=` segment when the two resolve to the same face — the common case, since the design-system's two families are usually identical.
+- Weights are always `400;500;600;700`. That covers `--brand-body-weight` and `--brand-heading-weight` for every value the design-system emits (`font-rules.md` constrains weights to two of these) plus the `font-medium`/`font-semibold` utilities the primitives use. Do not compute a narrower axis list — a missing weight is synthesised by the browser as a smeared faux-bold, which looks worse than the extra request.
+- `display=swap` is required: text paints immediately in the fallback and reflows once, rather than blocking first paint on a network fetch the smoke gate is timing.
+- Record the emitted href in `.scaffold.json` as `brand_fonts.href` (plus `brand_fonts.families`) so a later run can tell what was requested without re-parsing `theme.css`.
+- When the brand source is `template-defaults`, this still runs — the template default names `Inter`, which is a real face worth loading.
+
+**A `<link>`, not `next/font/google` — deliberate.** `next/font` resolves and self-hosts the face at **build** time, so a machine without network access turns a cosmetic concern into a hard scaffold failure (`RF-13`). A stylesheet link degrades gracefully: offline, or for a family that is not on Google Fonts, the request fails and rendering falls through to the generic terminal that `font-rules.md §4` guarantees every emitted stack carries (`'Manrope', sans-serif` — one named family, one generic). The prototype stays correct and buildable either way; it is only less pretty. Do not "upgrade" this to `next/font` — and note that this layout is `'use client'`, so it cannot export `metadata` and has no server-side font pipeline available to it anyway.
 
 ## Colour-mode mechanism
 
@@ -244,6 +269,11 @@ export interface PrototypeEntry {
   posture_label: string // e.g. "Analytical / Information-Dense"
   position_labels: string[] // plain-English D1–D5 labels from position-vocabulary.md
   roles: string[]       // §3 roles in scope (drives the role switcher)
+  device_targets?: {    // OPTIONAL — absent on prototypes generated before the field existed
+    primary: 'desktop' | 'tablet' | 'mobile'
+    breakpoints: ('mobile' | 'tablet' | 'desktop')[]
+    touch: boolean
+  }
 }
 export const PROTOTYPES: PrototypeEntry[] = [ /* regenerated additively per run */ ]
 ```
@@ -252,7 +282,8 @@ export const PROTOTYPES: PrototypeEntry[] = [ /* regenerated additively per run 
 
 - Imports `PROTOTYPES` from `@/data/prototype-registry`.
 - Groups entries by `scope_slug`; renders one section per scope (heading = `scope_label`).
-- Each prototype → a card (shared `Card`) with: `name`, `posture_label`, `position_labels` as chips (shared `Badge`), `roles`, and a primary link/button to `route`.
+- Each prototype → a card (shared `Card`) with: `name`, `posture_label`, `position_labels` as chips (shared `Badge`), a **device badge** derived from `device_targets` when present (*Desktop only* / *Desktop + tablet* / *Responsive* / *Mobile first* — omitted entirely when the field is absent, never defaulted), `roles`, and a primary link/button to `route`. The device badge is what lets a reviewer comparing two same-scope prototypes see at a glance that one was built for a workstation and the other for a phone.
+- **`device_targets` is optional in the interface on purpose.** The landing must typecheck against registry entries written before the field existed; a required field would break `tsc --noEmit` on any app carrying an older entry.
 - Renders `<ThemeToggle />` in its page header when `colour_mode.strategy ∈ {toggle, custom}`. This is the landing page of the prototypes app, so the control belongs here as app chrome — and it guarantees the mode stays reachable even for a prototype whose nav model needs no app-shell header of its own.
 - Same-scope prototypes sit side-by-side so a reviewer can compare UX approaches (the purpose).
 - Empty state (no prototypes yet): friendly message + "Run /prototype to generate one" (this is the scaffold-time initial content; satisfies `GR-08`).
@@ -263,6 +294,7 @@ export const PROTOTYPES: PrototypeEntry[] = [ /* regenerated additively per run 
 ## Self-validation
 - Shell + chrome authored once; not regenerated per prototype.
 - `layout.tsx` carries `suppressHydrationWarning` on `<html>` and exactly one of the three literal init blocks (or none, for `strategy: none`); the class is never set from a `useEffect`.
+- `layout.tsx` carries the two `preconnect` links and one Google Fonts `stylesheet` link whose `family=` segments match the named families in `theme.css`'s `--font-heading` / `--font-sans`, at weights `400;500;600;700`, with `display=swap`; the href is recorded in `.scaffold.json` `brand_fonts`. No `next/font` import appears anywhere.
 - `ThemeToggle.tsx` exists iff `colour_mode.strategy ∈ {toggle, custom}`; `e2e/theme-modes.smoke.spec.ts` exists iff `colour_mode.sets == ["light","dark"]`. Neither appears in `PrototypeChrome`.
 - `ThemeToggle.tsx` was authored as the **literal block** above: `useSyncExternalStore` + `getServerSnapshot`, no `setState` inside any effect, `data-slot="colour-mode-toggle"` on the `Button`, and an `aria-label` matching `/colour mode/i`. `npm run lint` exits zero (the mount-effect shape does not — `react-hooks/set-state-in-effect`).
 - `theme-modes.smoke.spec.ts` imports `PROTOTYPES` from `@/data/prototype-registry` and covers, beyond the `/` mechanism tests: (a) `[data-slot="colour-mode-toggle"]` visible **plus** the `/colour mode/i` accessible name on **every** `PROTOTYPES[].route` (for `strategy ∈ {toggle, custom}`), and (b) the static `theme.css` token-pair contrast audit over both blocks at 4.5:1. No route or pair is silently skipped.
@@ -295,3 +327,5 @@ export const PROTOTYPES: PrototypeEntry[] = [ /* regenerated additively per run 
 - Do not give the token audit a browser or a `page.goto`. It is pure computation over `theme.css` and runs in milliseconds; navigating would only add flake.
 - Do not apply the colour mode in a `useEffect` in `layout.tsx`. It must be set before first paint, or every load flashes the wrong theme.
 - Do not add `next-themes`. The mechanism above is ~50 lines and avoids a dependency in an environment where npm lifecycle scripts are constrained.
+- **Do not ship a layout with no font link.** A `--font-sans` that names a family nobody fetches is the quietest defect in the whole pipeline: every token file reads correctly, the build passes, the smoke passes, and the prototype renders in `system-ui`. Declaring a family is not loading it.
+- **Do not replace the font `<link>` with `next/font/google`.** It moves the fetch to build time, so an offline machine fails the scaffold (`RF-13`) over a typeface. See the rationale in *Brand webfont loading*.

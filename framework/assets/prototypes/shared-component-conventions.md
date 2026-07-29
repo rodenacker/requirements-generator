@@ -40,6 +40,13 @@ Parallel per-surface sub-agents write into one shared `src/components/**` tree. 
 3. **Driver assigns each sub-agent a disjoint set of filenames it MAY create** — its uniquely-owned new components, **plus** (for a **standalone secondary** surface) its **own** standalone route page `src/app/<name-slug>/<surface-kebab>/page.tsx`, so standalone-route authoring joins the parallel wave. The assignment is explicit and non-overlapping. Standalone-vs-coupled is decided from the §5 realization enum (step-02): only a `standalone-screen` that is not the primary/root surface parallelizes its route; the primary/root page, folded-host routes (drawer/expand/modal — many-to-one), wizard routes, and any per-prototype `layout.tsx` stay **driver-owned**.
 4. **Sub-agents only WRITE files in their assigned set**; they only READ the existing shared library. They never create a component outside their assignment, never write any route other than their own assigned standalone `page.tsx` (never the root page, a `layout.tsx`, a folded-host route, or a wizard route), never overwrite an existing file, and never edit `seed.ts`/`stores/index.ts`/`types/index.ts` (driver-owned).
 5. **Reuse-first**: before the driver marks a component "new", it checks the shared library for an existing component that fits; existing names are reused, never duplicated. Component count grows monotonically across runs (rule 13 payoff: later prototypes write less).
+6. **Widen, never fork, on a device-target mismatch.** Components are shared across every prototype in the app, but `device_targets` is **per prototype** (`visual-craft-standard.md §11`), so a component authored for a desktop-only prototype can be reused by a fully-responsive one. When the driver marks a component `reuse` and this prototype's narrowest breakpoint is narrower than the coverage that component carries, it assigns the component for **`widen`** instead: added to the owning sub-agent's `owned_files` with an explicit instruction to add the missing breakpoint classes. Rules:
+   - **Additive only.** Add `md:`/`lg:` (or restructure the base layer so the narrow case is the default) without changing the component's desktop rendering. An earlier prototype already accepted by the consultant must look the same afterwards.
+   - **Never fork.** `RecordTableMobile` beside `RecordTable`, or a `variant="mobile"` that duplicates the markup, defeats rule 13 and leaves two components to keep in step. One component, more breakpoints.
+   - **Report it.** The sub-agent returns the paths in `components_widened`; step-07 checks that every widened component still typechecks and that no sibling copy was created.
+   - Widening is the **only** sanctioned reason a sub-agent may edit a file it did not create. It stays collision-safe because the driver still assigns each path to exactly one sub-agent, so the disjointness argument in this section is unchanged.
+
+   This is what keeps the shared library monotonically improving instead of bifurcating: the first prototype to need a narrower breakpoint pays for it once, and every later prototype inherits the coverage.
 
 If two surfaces genuinely need the same brand-new component, the driver authors it once before dispatch (slight serialisation) and both surfaces reuse it. This replaces the per-variant-directory isolation the wireframe pipeline gets for free.
 
@@ -52,6 +59,8 @@ The **only** new artefacts a prototype may generate are **shared** components an
 **`src/lib/` is closed to the generator.** The template ships `src/lib/utils.ts` (copied verbatim per `scaffolding-instructions.md`) and nothing else belongs there. Until 2026-07-29 this paragraph licensed *"shared scripts/util helpers … (or `src/lib/`)"* — but `src/lib/**` appears in **no** `owned_files` partition (§3), so a file written there had no owner, no collision-safety, and no gate. A real run used exactly that gap for a `lib/nav.ts` that became one of three competing nav derivations. Shared logic belongs in a shared component or, when it is data, in the driver-owned data layer; there is no third home.
 
 Styling: prototypes do **not** add per-prototype themes. The brand theme (`src/styles/theme.css`) is fixed and shared. New *styling* contributions mean shared utility classes / component variants expressed through the existing token system — never a competing palette/type scale.
+
+**What this rule does and does not forbid.** It forbids a *competing* visual system: a second palette, a rival type scale, a per-prototype visual character. It does **not** forbid — and the visual-craft floor requires — binding to the brand tokens `theme.css` already carries: the `--text-*` scale, the `--elevation-*` ladder behind `shadow-sm/md/lg`, `--font-heading`, the `--duration-*`/`--ease-standard` tiers, press and hover states, and responsive breakpoints. Read as "do not use elevation or a type ramp", this paragraph produced exactly one outcome for the pipeline's whole history: prototypes with zero authored shadows, zero transitions, zero `active:` states, zero breakpoints and a single heading size. The floor is canonical in `framework/assets/prototypes/visual-craft-standard.md`; the uniformity rule and the craft floor are complements, and neither licenses ignoring the other.
 
 ### 4a. Colour binding (what makes light/dark actually work)
 
@@ -215,7 +224,8 @@ pattern that exists in `framework/assets/pattern-catalogue/`.
 ## Self-validation
 - No component definitions under `src/app/<name-slug>/**` (routes compose only).
 - No private per-prototype component folders; every new component is in a shared tier.
-- The driver's ownership map is disjoint (components **and** standalone route files); no two agents were assigned the same path; no standalone route collides with a driver-owned root/`layout.tsx`/host/wizard route; no existing file was overwritten.
+- The driver's ownership map is disjoint (components **and** standalone route files); no two agents were assigned the same path; no standalone route collides with a driver-owned root/`layout.tsx`/host/wizard route; no existing file was overwritten **except** components explicitly assigned for `widen` (§3 rule 6), each still assigned to exactly one sub-agent.
+- Every `components_widened` entry is an additive breakpoint change that left the component's desktop rendering intact, and no sibling/forked variant (`*Mobile`, a duplicate `variant`) was created alongside it.
 - Every data-bound element binds to a blueprint closed-set Property (carries `data-prop`); no fabricated fields in components or fixtures.
 - New stores registered in `stores/index.ts` + `seed.ts`; types in `types/index.ts`; all driver-authored before dispatch.
 - Exactly one store per §8 entity and **no others** — no `user`/`auth`/`session` store carrying roles or grants.
@@ -227,6 +237,8 @@ pattern that exists in `framework/assets/pattern-catalogue/`.
 - Do not let a sub-agent create a component outside its assigned filename set, overwrite an existing component, edit the driver-owned data files, or write a route other than its own assigned standalone `page.tsx` (never the root page, a `layout.tsx`, a folded-host route, or a wizard route).
 - Do not duplicate a component that already exists in the shared library — reuse it.
 - Do not create private per-prototype components or themes (rules 15–16).
+- **Do not fork a component to serve a narrower device target** — widen it (§3 rule 6). A `*Mobile` sibling or a markup-duplicating `variant` leaves two components to maintain and breaks rule 13's monotonic growth.
+- **Do not read the styling paragraph in §4 as a ban on elevation, motion, type hierarchy or breakpoints.** It bans a competing visual system, not the use of the brand's own tokens; the floor is `visual-craft-standard.md`.
 - Do not bind any element to a field absent from the blueprint closed set (fabrication).
 - Do not add fixture fields beyond the closed set.
 - Do not modify shadcn `ui/` primitives — wrap them in `atoms/` if behaviour must change.

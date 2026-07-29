@@ -10,9 +10,79 @@
  * ============================================================ */
 
 @theme {
-  /* Font tokens */
+  /* Font tokens.
+   * --font-sans / --font-mono / --font-heading are the Tailwind `--font-*` FAMILY
+   * namespace, so they generate `font-sans` / `font-mono` / `font-heading`.
+   * Weights deliberately do NOT use `--font-weight-*`: that namespace ALSO emits
+   * `font-<name>` utilities, so `--font-weight-heading` would collide with
+   * `--font-heading`. Weights are plain vars applied in globals.css's base layer. */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-heading: 'Inter', system-ui, -apple-system, sans-serif;
+  --brand-heading-weight: 600;
+  --brand-body-weight: 400;
+
+  /* === Brand type scale ===
+   * Overrides Tailwind's default `--text-*` namespace, so every existing
+   * `text-sm` / `text-2xl` in generated code follows the brand scale with no
+   * code change. `--text-*--line-height` is a real Tailwind pairing key: each
+   * size carries its own line-height. Mapped from the design-system's 8 size
+   * tokens + 3 line-height tokens by framework/skills/extract-brand-theme.md. */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.25;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 1.25;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 1.25;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 1.25;
+
+  /* === Motion ===
+   * `--duration-*` is NOT a Tailwind theme namespace (verified against
+   * tailwindcss 4.2.1), so these do not generate `duration-fast` utilities.
+   * They are consumed two ways:
+   *   1. raw CSS (the press/overlay layers in globals.css), and
+   *   2. arbitrary values where a component needs an explicit tier:
+   *      `duration-[var(--duration-base)]`.
+   * `--default-transition-duration` / `--default-transition-timing-function`
+   * ARE Tailwind keys: binding them means every bare `transition`,
+   * `transition-colors`, `transition-all` already shipped in the shadcn
+   * primitives picks up the brand fast tier with no per-utility change. */
+  --duration-fast: 150ms;
+  --duration-base: 220ms;
+  --duration-slow: 320ms;
+  --default-transition-duration: var(--duration-fast);
+
+  /* `--ease-*` IS a Tailwind namespace (`ease-in` / `ease-out` / `ease-in-out`
+   * ship by default and are used by tw-animate-css + the shadcn primitives —
+   * never overwrite those three). Two additions:
+   *   --ease-standard  brand easing, from the design-system's easing_standard
+   *   --ease-entrance  decelerate curve for overlay entrances; a craft constant,
+   *                    not a brand signal, so extraction never overwrites it. */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+  --default-transition-timing-function: var(--ease-standard);
+
+  /* === Elevation ladder ===
+   * Overrides Tailwind's `--shadow-*` namespace, so `shadow-sm` / `shadow-md` /
+   * `shadow-lg` regenerate against brand elevation. Indirected through
+   * --elevation-* because shadows are MODE-VARYING: a dark set raises the black
+   * alpha over the same geometry (cross-mode-derivation-rules.md §3.4), so the
+   * values live in :root / .dark while the registration lives here.
+   * Meaning-bound (framework/assets/prototypes/visual-craft-standard.md):
+   *   xs hairline · sm resting card · md hover/raised · lg overlay */
+  --shadow-xs: var(--elevation-xs);
+  --shadow-sm: var(--elevation-sm);
+  --shadow-md: var(--elevation-md);
+  --shadow-lg: var(--elevation-lg);
 
   /* === Tailwind color utilities (registered from :root vars) === */
   --color-background: var(--background);
@@ -128,6 +198,16 @@
   /* Brand accent hue — for callouts/highlights/chart series.
    * NOT --accent: that var is shadcn's neutral hover/selected surface. */
   --brand-accent: #0049c1;
+
+  /* Elevation ladder — MODE-VARYING, hence in the token block rather than @theme.
+   * Registered as Tailwind's --shadow-* in @theme above. A dark set keeps this
+   * geometry and raises the black alpha ~1.5–2× (cross-mode-derivation-rules.md
+   * §3.4); extract-brand-theme.md maps each mode's own effects.shadow_* here and
+   * derives --elevation-xs from shadow_sm at half alpha. */
+  --elevation-xs: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+  --elevation-sm: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.08);
+  --elevation-md: 0 4px 6px -1px rgb(0 0 0 / 0.10), 0 2px 4px -2px rgb(0 0 0 / 0.10);
+  --elevation-lg: 0 10px 15px -3px rgb(0 0 0 / 0.12), 0 4px 6px -4px rgb(0 0 0 / 0.10);
 
   /* On-colours for filled elements — measured, not assumed.
    * Each is whichever of near-white/near-black scores higher against its fill

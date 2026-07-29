@@ -6,6 +6,11 @@ import { cn } from "@/lib/utils"
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
+    // `overflow-x-auto` here is a desktop affordance for genuinely wide tables. It is
+    // NOT permission to horizontally scroll a table at a narrow breakpoint: when a
+    // prototype's device_targets include tablet/mobile, GR-18 requires the *generated*
+    // component to render a card list below 768px instead of relying on this scroll.
+    // See framework/assets/prototypes/visual-craft-standard.md §11.
     <div
       data-slot="table-container"
       className="relative w-full overflow-x-auto"
@@ -57,7 +62,12 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+        // A row marked data-clickable gets the pointer + a firm press. The press is
+        // an `accent` fill rather than a scale: scaling a `display: table-row` is
+        // unreliable across engines, and `accent` is already one of the fill states
+        // extract-brand-theme.md measures an on-colour against, so it costs the
+        // contrast contract nothing. Applied in globals.css (visual-craft-standard.md §2).
+        "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted data-clickable:cursor-pointer",
         className
       )}
       {...props}
@@ -70,7 +80,9 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        // data-numeric="true" right-aligns and (via globals.css) sets tabular-nums, so
+        // digits align down the column — visual-craft-standard.md §6.
+        "h-10 px-2 text-left align-middle font-medium whitespace-nowrap text-foreground data-[numeric=true]:text-right [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className
       )}
       {...props}
@@ -83,7 +95,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        "p-2 align-middle whitespace-nowrap data-[numeric=true]:text-right [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className
       )}
       {...props}

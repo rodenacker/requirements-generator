@@ -16,7 +16,7 @@ flowchart TD
     A4 -.->|"if none: dispatch BG"| BG_BP[["A4: blueprint-architect<br/>BACKGROUND, defer_gate"]]
     BG_BP -.->|"join at Step C"| C
 
-    B["Step B - INTERACTIVE GATE<br/>purpose + posture + D1-D5 positions<br/>pre-filled from wireframe basis if any<br/>+ brand only if unscaffolded"]
+    B["Step B - INTERACTIVE GATE<br/>purpose + posture + D1-D5 positions<br/>pre-filled from wireframe basis if any<br/>+ device targets (always asked)<br/>+ brand and colour mode only if unscaffolded"]
     B -.->|"no design-system + create-first"| ExitDS(["Exit: run /design-system,<br/>resume at B"])
     B --> B2{"Scaffolded<br/>already?"}
     B2 --> C
@@ -37,7 +37,7 @@ flowchart TD
     subgraph GEN [Step F2-F3 generator]
         F2d["Driver: data layer<br/>types, fixtures, stores, seed"] --> F2w[["Parallel per-surface sub-agents<br/>ceiling 8: components + routes"]]
         F2w --> F2c["Driver composes coupled routes<br/>root hub, layout, folds, wizards"]
-        F2c --> F3{"verify build:<br/>lint + tsc + next build + smoke"}
+        F2c --> F3{"verify build: lint + tsc + smoke<br/>full route sweep at primary viewport<br/>+ layout-integrity per extra device"}
         F3 -->|structured-fail| RETRY["retry <=2:<br/>regen offending surface"]
         RETRY --> F3
     end

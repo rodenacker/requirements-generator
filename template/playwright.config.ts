@@ -107,5 +107,19 @@ export default defineConfig({
         viewport: { width: 768, height: 1024 },
       },
     },
+    {
+      // Desktop Chrome at mobile viewport, with touch enabled so 44x44 target
+      // assertions and touch-only affordances are exercised. Deliberately NOT a
+      // `devices['Pixel 7']`-style descriptor: those pin their own channel and
+      // executablePath, which would defeat the browser resolution above and
+      // reintroduce the "no launchable browser" failures it exists to prevent.
+      name: 'mobile-chrome',
+      use: {
+        ...browserUse,
+        viewport: { width: 390, height: 844 },
+        hasTouch: true,
+        isMobile: false,
+      },
+    },
   ],
 })

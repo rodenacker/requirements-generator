@@ -12,6 +12,11 @@
   "posture": "{{P1|P2|P3|P4|P5|P6}}",
   "posture_label": "{{e.g. Efficiency-First / Power-Operator}}",
   "dimension_positions": { "D1": 0, "D2": 0, "D3": 0, "D4": 0, "D5": 0, "D6": 0 },
+  "device_targets": {
+    "primary": "{{desktop|tablet|mobile}}",
+    "breakpoints": ["{{desktop}}", "{{tablet}}", "{{mobile}}"],
+    "touch": false
+  },
   "primary_persona": "{{verbatim §3 persona name}}",
   "route": "/{{name-slug}}",
   "wireframe_basis": "{{variant id from wireframes/<scope-slug>/ or null}}",
@@ -78,6 +83,18 @@
 
 **Structural choices implied** (from the posture's recommendations, tuned by positions): navigation {{…}}; primary data display {{…}}; input philosophy {{…}}; disclosure {{…}}; feedback/confirmation density {{…}}; keyboard/bulk emphasis {{…}}.
 
+### 4b. Device & viewport targets
+
+<!-- guidance: copied from the consultant's Step-B(5) answer; the machine-readable copy is the front-matter `device_targets` key, which is what the generator reads. Named viewports and the per-target obligations are canonical in framework/assets/prototypes/visual-craft-standard.md §11 — do not restate them here, and do not derive targets from the posture. -->
+
+| Field | Value |
+|---|---|
+| Consultant choice | {{Desktop only / Desktop + tablet / Fully responsive / Mobile first}} [SRC: consultant] |
+| Breakpoints in scope | {{desktop / tablet+desktop / mobile+tablet+desktop}} |
+| Primary viewport | {{desktop 1280×800 / mobile 390×844}} — the one the full route sweep runs at |
+| Touch targets | {{yes — ≥44×44px / no — 24×24 baseline}} |
+| Why | {{one line: where these users actually work — tie to the §3 persona / requirements context}} |
+
 ## 5. Per-surface realization decisions
 
 <!-- guidance: one block per LS-NN in the blueprint. Realization enum from realization-strategies.md: standalone-screen | inline-drawer | inline-expand | modal | wizard-split. Choice driven by the posture's realization recommendation + positions; cite the basis. Folded surfaces name host_surface + host_state. -->
@@ -119,9 +136,11 @@
 |---|---|---|---|
 | {{LS-NN}} | {{Entity.Field / F-NN:Param}} | {{fixtures/<shape>.json field}} | {{useXStore}} |
 
-## 9. Accessibility & UX-principle checklist (from `ux-baseline-checklist.md`)
+## 9. Accessibility, UX & visual-craft checklist
 
-<!-- guidance: the spec-relevant subset of the baseline floor, with the posture's emphasized items called out. The merger embeds this; the generator self-checks against it; the Playwright smoke asserts the runtime-checkable subset. -->
+<!-- guidance: the spec-relevant subset of two floors — ux-baseline-checklist.md (does it work) and visual-craft-standard.md (does it look and feel designed) — with the posture's emphasized items called out. The merger embeds this; the generator self-checks against it; the Playwright smoke asserts the runtime-checkable subset. Neither floor is waived by a posture or a device target. -->
+
+**Usability & accessibility floor** (`ux-baseline-checklist.md`)
 - [ ] Keyboard: {{operable surfaces, shortcuts if posture leans power}}
 - [ ] Focus visible & not obscured
 - [ ] Name/role/value on all controls
@@ -129,6 +148,18 @@
 - [ ] Not colour-alone for status (GR-16)
 - [ ] Role switcher present on multi-role surfaces (PI-05)
 - [ ] {{posture-emphasized items}}
+
+**Visual & tactile floor** (`visual-craft-standard.md`)
+- [ ] Every clickable element presses to 98% (semantic element, or `data-pressable` on a non-semantic one); press is transform + elevation, never a colour change
+- [ ] Every interactive element has a hover shift (token fill / elevation rung / 1px lift)
+- [ ] Overlays fade + lift 4px + clear a 2px blur — composed from the shipped primitives, never hand-rolled, never instant
+- [ ] Elevation ladder respected (no skipped rung on hover; no heavy border on an elevated surface)
+- [ ] Real type hierarchy from the brand scale; `tabular-nums` + right-align on numeric columns
+- [ ] One consistent section rhythm across the surface; grouped-then-separated spacing
+- [ ] All six interactive states, `loading` visually distinct from `disabled`
+- [ ] Zero hardcoded colour / duration / shadow / type / radius literals; zero Tailwind palette colours
+- [ ] Responsive contract met for §4b's targets: no horizontal page scroll, `GR-18` table collapse, sidebar→drawer below `md:`, single-column forms below `md:`, {{touch-target size}}
+- [ ] {{any posture- or device-specific craft emphasis}}
 
 ## 10. Success criteria
 
@@ -144,4 +175,4 @@
 
 ---
 
-<!-- Self-validation (drafter): no {{placeholders}} remain; every surface in the blueprint has a §5 block; every §8 Property is in the blueprint closed set; the [AI-SUGGESTED] set is tight; positions pass §4/§5 of tradeoff-dimensions-registry.md. -->
+<!-- Self-validation (drafter): no {{placeholders}} remain; every surface in the blueprint has a §5 block; every §8 Property is in the blueprint closed set; the [AI-SUGGESTED] set is tight; positions pass §4/§5 of tradeoff-dimensions-registry.md; the front-matter `device_targets` object matches §4b's table exactly (the front-matter is what the generator reads mechanically — a disagreement between the two silently ships the wrong contract) and was taken from the consultant's Step-B(5) answer, never inferred from the posture. -->

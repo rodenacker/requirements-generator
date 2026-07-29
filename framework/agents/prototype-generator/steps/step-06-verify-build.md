@@ -2,7 +2,7 @@
 
 **Goal:** Prove the prototype lints, typechecks, and clicks — the handback gate.
 
-1. Invoke `framework/skills/verify-prototype-build.md` with `app_dir: "prototypes/"`, `name_slug`, `route: "/<name_slug>"`, `routes`, `attempt: 1` (increment on each re-invocation below). The verify skill emits its own per-phase `stage:"verify"` substeps stamped with `attempt`.
+1. Invoke `framework/skills/verify-prototype-build.md` (pass `device_targets` from the step-02 render plan alongside `routes` — it selects the primary Playwright project and adds one bounded layout-integrity run per extra breakpoint) with `app_dir: "prototypes/"`, `name_slug`, `route: "/<name_slug>"`, `routes`, `attempt: 1` (increment on each re-invocation below). The verify skill emits its own per-phase `stage:"verify"` substeps stamped with `attempt`.
    - **`routes`** = **every** route this prototype authored, primary first: the driver-owned routes from `route_map` (root page, wizard sub-steps; folded surfaces contribute **no** route — they render on their host) plus each sub-agent manifest's `route_written`. Both are already in hand — `route_map` from step-02, the manifests from step-04 — so nothing new is derived here. Deduplicate, and keep `"/<name_slug>"` at index 0.
    - Passing the full list is what makes the gate see secondary routes at all. A run that passes only `route` reverts the gate to primary-route-only coverage, which is how a hydration mismatch and three toggle-less shells previously shipped.
 2. Branch on the verdict:

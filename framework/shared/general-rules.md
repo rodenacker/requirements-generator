@@ -144,11 +144,13 @@ Each rule has a stable ID `GR-NN`, a scope predicate (template field/element it 
 
 ## GR-18 — Table-to-card collapse on mobile
 
-**Applies to:** any §6 table rendered on screens with mobile-breakpoint coverage (< 768 px) per §6.6.5.
+**Applies to:** any table rendered on a surface whose device targets include a breakpoint below 768 px. For a `/prototype` run that is the design spec's `device_targets.breakpoints` (§4b + the front-matter key), chosen by the consultant at `prototype-orch.md` Step B(5); the named viewports are canonical in `framework/assets/prototypes/visual-craft-standard.md §11`.
 
 **Rule:** Below 768 px, collapse tables into a vertical card list showing the primary identifier, 2 – 3 key columns, and a row-action overflow. Do not horizontally scroll a desktop table.
 
 **Rationale:** horizontal-scroll tables on mobile are the most common responsive failure mode in prototypes.
+
+> **Citation correction (2026-07-29).** This rule previously read *"per §6.6.5"*, but §6.6.5 of `template-requirements.md` is **Accessibility** — it has never carried mobile-breakpoint coverage, so the `Applies to` clause resolved to nothing and the rule had no trigger condition any agent could evaluate. Device targets now live in the `/prototype` design spec (they are a per-prototype build decision, not a requirement of the product), which is what the clause above points at. The rule text itself is unchanged.
 
 ## GR-19 — Session timeout defaults by domain
 

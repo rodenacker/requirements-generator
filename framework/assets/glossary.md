@@ -182,7 +182,26 @@ Not to be confused with: **posture** (a preset *over* positions). Avoid the word
 ### Brand
 The fixed visual identity — colour, type, radius, elevation, motion — applied **uniformly across all prototypes** via one shared `theme.css` (sourced from `/design-system` → consultant → defaults). Per-prototype styling is forbidden; divergence between prototypes is pure UX.
 Canonical source: `framework/assets/prototypes/app-shell-spec.md` + `framework/skills/extract-brand-theme.md`.
-Aliases: *brand-lock*, *theme*. Not to be confused with: **design-system** (the *brief/artefact* that defines the brand tokens).
+Aliases: *brand-lock*, *theme*. Not to be confused with: **design-system** (the *brief/artefact* that defines the brand tokens), or **visual-craft floor** (how well the brand's tokens are *used*, which is uniform too but is a quality bar, not an identity).
+
+### visual-craft floor
+The shared, non-negotiable bar for how a generated prototype **looks and feels** — token binding, press response, hover shift, overlay entrances, the elevation ladder, type hierarchy, spacing rhythm, focus, and the responsive contract. It is a *floor*, not a style: it raises quality uniformly and is never a divergence axis, so it coexists with brand-lock rather than competing with it. Complements the **UX baseline** (which governs whether a surface *works*); a posture may emphasise items but never waives either.
+Canonical source: `framework/assets/prototypes/visual-craft-standard.md`.
+Not to be confused with: **brand** (the identity the floor binds to), **UX posture** (layout/workflow divergence), **UX baseline** (usability/accessibility floor).
+
+### press response
+The tactile feedback every clickable element gives when pressed: it scales to **98%** over the fast duration — a firm press, not a collapse. Applied structurally by the template's global press layer in `globals.css` (matching semantic controls plus anything marked `data-pressable`), using the CSS `scale` property so a component-level override cascades instead of compounding. Press is **transform + elevation only, never a colour change**, so it cannot introduce a fill state whose on-colour was never measured. Clickable table rows are the one exception, pressing via the `accent` fill.
+Canonical source: `framework/assets/prototypes/visual-craft-standard.md §2`.
+Not to be confused with: **hover shift** (pointer-arrival feedback) or the `active` state's role in the six required interactive states.
+
+### elevation ladder
+The four meaning-bound elevation rungs — `shadow-xs` hairline, `shadow-sm` resting card, `shadow-md` hovered/raised, `shadow-lg` overlay — registered in `theme.css`'s `@theme` as Tailwind's `--shadow-*` and backed per colour mode by `--elevation-*` (a dark set raises the black alpha over the same geometry). Rungs are never skipped on hover, and elevation is never stacked with a heavy border.
+Canonical source: `framework/assets/prototypes/visual-craft-standard.md §5` (values: `framework/skills/extract-brand-theme.md`).
+
+### device target
+The set of viewports one prototype must work at, chosen by the consultant per prototype at `prototype-orch.md` Step B(5) and recorded as the design spec's `device_targets` (front-matter key + §4b table): `{ primary, breakpoints, touch }` over the named viewports **mobile** 390×844 (touch), **tablet** 768×1024, **desktop** 1280×800. `primary` names the viewport the full per-route smoke runs at; each additional breakpoint gets one bounded layout-integrity check. Per prototype, not per app — two prototypes in the same shared app may legitimately target different devices, and a shared component reused at a narrower target is **widened**, never forked.
+Canonical source: `framework/assets/prototypes/visual-craft-standard.md §11`.
+Not to be confused with: **mode (design-system)** (colour scheme, app-level and scaffold-locked) or **posture** (layout/workflow preset).
 
 ### design-system
 The brand-token brief produced by `/design-system` (`design-system/design-system-light.html` and/or `design-system-dark.html`) — colour/type/shadow/motion tokens. The *source* of a prototype's `theme.css`. One self-contained file per **mode (design-system)**; the unsuffixed `design-system.html` is retired.

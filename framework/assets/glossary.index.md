@@ -31,9 +31,11 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Design | UX/IA design (structure, workflow, behaviour) — **not** visual styling. | glossary.md §8 |
 | design-system | The brand-token brief (`design-system-{light,dark}.html`); source of a prototype's theme. | `/design-system` output |
 | Design-spec | One prototype's realization plan (posture + positions + workflow + bindings). | `prototypes/template-design-spec.md` |
+| Device target | Viewports one prototype must work at (`device_targets`: mobile 390 / tablet 768 / desktop 1280); asked per prototype at `/prototype` Step B(5), carried in the design spec. | `prototypes/visual-craft-standard.md §11` |
 | Dispatcher | Role distributing work to parallel sub-agents (e.g. per-surface generation). | `prototype-generator/` |
 | Divergence (divergence profile) | How variants/prototypes differ; goal-driven profile derived once into `scope.json`. | `scope-selector.md` |
 | Drafter | First triplet agent: emits the artefact with provenance markers + claims sidecar. | — |
+| Elevation ladder | Four meaning-bound shadow rungs (xs hairline / sm resting / md raised / lg overlay); rungs are never skipped. | `prototypes/visual-craft-standard.md §5` |
 | Fixture | Static in-memory JSON data shipped with a prototype (PI-02). | `prototype-invariants.md` |
 | colour-mode strategy | How a prototype's users switch light/dark (`toggle`/`system`/`none`/`custom`); asked once at `/prototype` Step B(4b) **only when both design-system mode files exist**, then locked in `.scaffold.json`. | `prototype-orch.md` Step B(4b) |
 | General rule (GR-NN) | Deterministic reusable rule the resolver applies without asking. | `shared/general-rules.md` |
@@ -51,6 +53,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Orphan (traceability) | A final-doc fact/requirement that traces to no provenance class; the headline defect of the REQUIREMENTS-TRACEABILITY review. | `reviews/requirements-traceability-reference.md` |
 | Physical screen | A concrete screen produced by realizing a logical surface (`S-NN`). | `realization-strategies.md` |
 | Position | Signed `-2..+2` stance on one trade-off dimension; labelled, never shown as notation. | `position-vocabulary.md` |
+| Press response | Every clickable element scales to 98% when pressed (fast duration); transform + elevation only, never colour. | `prototypes/visual-craft-standard.md §2` |
 | Preflight gate | Orchestrator check before any agent runs (prereqs, prior progress). | orchestrators |
 | Processed-ledger | Runtime `state/.stadium-processed.json` keyed by `app_id`; skips already-extracted Stadium-apps (process-once). | `agents/stadium-ingestor.md` |
 | Progress file | Per-orchestrator JSON tracking `called`/`completed` per agent for resume. | orchestrator Tools |
@@ -85,4 +88,5 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Trade-off dimension | One of six axes `D1..D6` a design is positioned on (D6 inactive). | `trade-off-dimensions.md` |
 | Traceability | End-state: every final fact follows back to a citation or marker. | `CLAUDE.md §1` |
 | UX posture | Named preset over dimensions + structural choices (P1–P6); the "design philosophy". Cross-pipeline: manual single pick in `/prototype`, auto-recommended per variant in `/wireframe`. | `wireframes/design-philosophies.md` |
+| Visual-craft floor | Shared bar for how a prototype looks/feels (press, hover, elevation, type, rhythm, responsive); a floor, never a divergence axis. | `prototypes/visual-craft-standard.md` |
 | Wireframe variant | One persona-bound config in `variants.json`; a prototype is one-per-run, not a variant. | `blueprint-architect.md` |

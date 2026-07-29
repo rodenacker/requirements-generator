@@ -11,7 +11,265 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+    font-weight: var(--brand-body-weight);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Headings take the brand heading family + weight. The design-system extracts a
+   * heading family separately from the body family; before this existed it was
+   * mapped nowhere and every heading silently rendered in the body face. */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: var(--brand-heading-weight);
+  }
+
+  /* Optical correction: large display sizes need negative tracking to avoid
+   * looking loose. Bound to the type scale, not applied ad hoc per component. */
+  h1, h2 {
+    letter-spacing: var(--tracking-tight);
+  }
+
+  /* Numeric data must align across rows. Data-management surfaces are mostly
+   * numbers in columns; proportional digits make them unscannable. */
+  .tabular-nums,
+  th[data-numeric="true"],
+  td[data-numeric="true"] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Selection uses the primary pair. `selection:bg-primary` is already one of the
+   * fill states extract-brand-theme.md measures its on-colour against, so this
+   * needs no additional contrast derivation. */
+  ::selection {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+  /* Scrollbars bound to tokens so they flip with the colour mode. A default
+   * light scrollbar on a dark surface is one of the loudest mode-break tells. */
+  * {
+    scrollbar-color: var(--border) transparent;
+    scrollbar-width: thin;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border: 2px solid transparent;
+    background-clip: content-box;
+    border-radius: 9999px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground);
+  }
+}
+
+/* ============================================================================
+ * Tactility — the global press layer.
+ * ============================================================================
+ * Canonical rules: framework/assets/prototypes/visual-craft-standard.md §2.
+ *
+ * This layer exists so press feedback is STRUCTURAL rather than something each
+ * of N parallel per-surface sub-agents has to remember. Every clickable element
+ * scales to 98% when pressed — 0.98, not 0.9, so it reads as a firm press, not
+ * a collapse — using the fast duration and the brand easing.
+ *
+ * Press is transform + elevation ONLY, never a colour change. A new fill
+ * composite (e.g. active:bg-primary/95) would fall outside the enumerated state
+ * table in extract-brand-theme.md > "The states to check", so its on-colour
+ * would never have been measured and the both-modes contrast sweep would be
+ * asserting against a state that was never derived.
+ *
+ * Clickable table rows are handled with the `accent` fill instead (see below):
+ * scaling a `display: table-row` is unreliable across engines, and `accent` IS
+ * already a measured state.
+ *
+ * WHY THE `scale` PROPERTY AND NOT `transform: scale(...)`:
+ * Tailwind v4's scale-* utilities compile to the standalone `scale` property
+ * (`.scale-95 { scale: var(--tw-scale-x) var(--tw-scale-y) }`), NOT to
+ * `transform`. CSS applies `translate`/`rotate`/`scale` AND `transform`, and
+ * they compose multiplicatively — so a `transform: scale(0.98)` here plus a
+ * component-level `active:scale-[0.98]` would render at 0.9604: a visible
+ * over-collapse, which is precisely the "collapse, not press" this rule exists
+ * to avoid. Using the same property means a component-level override CASCADES
+ * (last/most-specific wins) instead of compounding, so a component that needs a
+ * shallower press on a large surface can just set `active:scale-[0.99]`.
+ * `hover:-translate-y-px` uses the separate `translate` property and composes
+ * with this cleanly — that combination is intended.
+ * ========================================================================= */
+@layer base {
+  @media (prefers-reduced-motion: no-preference) {
+    button,
+    [role="button"],
+    summary,
+    [role="tab"],
+    [role="option"],
+    [role="menuitem"],
+    [role="menuitemcheckbox"],
+    [role="menuitemradio"],
+    [data-pressable] {
+      transition:
+        scale var(--duration-fast) var(--ease-standard),
+        box-shadow var(--duration-fast) var(--ease-standard),
+        background-color var(--duration-fast) var(--ease-standard),
+        border-color var(--duration-fast) var(--ease-standard),
+        color var(--duration-fast) var(--ease-standard);
+    }
+
+    button:active,
+    [role="button"]:active,
+    summary:active,
+    [role="tab"]:active,
+    [role="option"]:active,
+    [role="menuitem"]:active,
+    [role="menuitemcheckbox"]:active,
+    [role="menuitemradio"]:active,
+    [data-pressable]:active {
+      scale: 0.98;
+    }
+
+    /* An element that cannot act must not appear to act. */
+    button:disabled:active,
+    [aria-disabled="true"]:active,
+    [data-disabled]:active {
+      scale: 1;
+    }
+
+    /* An element resting on elevation drops one step under the press. */
+    [data-pressable][data-elevated]:active {
+      box-shadow: var(--elevation-sm);
+    }
+  }
+
+  /* Clickable rows: fill shift, not transform. `accent` is a measured state. */
+  tr[data-pressable]:active,
+  tr[data-clickable]:active {
+    scale: 1;
+    background-color: var(--accent);
+  }
+
+  /* The press transform must never clip the focus ring. ring-offset keeps the
+   * indicator outside the scaled box; this guarantees a stacking context so a
+   * neighbouring row/cell cannot paint over it mid-press. */
+  :focus-visible {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/* ============================================================================
+ * Overlay entrances — tooltips, popovers, menus, toasts, dialogs.
+ * ============================================================================
+ * Canonical rules: visual-craft-standard.md §4. Fade + lift 4px + clear a 2px
+ * blur. Never an instant pop-in. Exit is faster and skips the blur, because a
+ * dismissal should feel immediate while an arrival should feel placed.
+ *
+ * Driven by the Radix `data-state` attributes the shadcn primitives already
+ * stamp, so a generated component gets this by composing the primitive.
+ * ========================================================================= */
+@layer components {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-slot="tooltip-content"],
+    [data-slot="popover-content"],
+    [data-slot="dropdown-menu-content"],
+    [data-slot="select-content"],
+    [data-slot="hover-card-content"] {
+      transform-origin: var(--radix-popper-transform-origin, center);
+    }
+
+    [data-slot="tooltip-content"][data-state="delayed-open"],
+    [data-slot="tooltip-content"][data-state="instant-open"],
+    [data-slot="popover-content"][data-state="open"],
+    [data-slot="dropdown-menu-content"][data-state="open"],
+    [data-slot="select-content"][data-state="open"],
+    [data-slot="hover-card-content"][data-state="open"] {
+      animation: proto-overlay-in var(--duration-base) var(--ease-entrance) both;
+    }
+
+    [data-slot="tooltip-content"][data-state="closed"],
+    [data-slot="popover-content"][data-state="closed"],
+    [data-slot="dropdown-menu-content"][data-state="closed"],
+    [data-slot="select-content"][data-state="closed"],
+    [data-slot="hover-card-content"][data-state="closed"] {
+      animation: proto-overlay-out var(--duration-fast) var(--ease-standard) both;
+    }
+
+    /* Dialogs, sheets and alert-dialogs are deliberately NOT listed above.
+     * They already carry tw-animate-css entrance utilities (`animate-in
+     * fade-in-0 zoom-in-95`) directly in their primitive's className, and
+     * utilities outrank @layer components — so a rule here would be dead CSS
+     * that merely looks like it is doing something. Their shipped entrance is
+     * already a fade + zoom, which satisfies §4's "never instant". The
+     * blur + lift is for the light overlays authored fresh above, which carry
+     * no competing animation utilities. */
+  }
+}
+
+@keyframes proto-overlay-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes proto-overlay-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+}
+
+/* ============================================================================
+ * Reduced motion.
+ * ============================================================================
+ * Canonical policy: framework/assets/design-system-standards.md §2 — honour the
+ * user-agent setting, disable non-essential motion, keep state-feedback
+ * indicators. Transitions collapse to ~0 rather than `none` so transitionend
+ * handlers still fire; spinners keep animating because an in-flight indicator IS
+ * state feedback, not decoration.
+ * ========================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-spin,
+  [data-slot="spinner"] {
+    animation-duration: 1s !important;
+    animation-iteration-count: infinite !important;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
   }
 }

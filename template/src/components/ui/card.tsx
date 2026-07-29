@@ -8,6 +8,12 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="card"
       className={cn(
         "flex flex-col gap-6 rounded-xl border bg-card py-6 text-card-foreground shadow-sm",
+        // A card marked data-pressable becomes a tactile surface: pointer, one
+        // elevation rung on hover (sm -> md, never skipping to lg) plus a 1px lift,
+        // and the global 98% press from globals.css. The lift uses the `translate`
+        // property while the press uses `scale`, so the two compose rather than
+        // fight. visual-craft-standard.md §2/§3/§5.
+        "data-pressable:cursor-pointer data-pressable:transition-[scale,box-shadow,translate] data-pressable:hover:-translate-y-px data-pressable:hover:shadow-md",
         className
       )}
       {...props}
