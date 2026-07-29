@@ -70,17 +70,113 @@ Authored **only** for `strategy ∈ {toggle, custom}`. No new dependency — `lu
 - **Three states, cycling System → Light → Dark → System.** A two-state button initialised from the OS can never return to *following* the OS, which is the documented default.
 - Reads/writes `localStorage['prototype-colour-mode']` (`'system' | 'light' | 'dark'`) and applies the resolved value with `documentElement.classList.toggle('dark', …)` — the same expression the init script uses, so there is exactly one way the class is ever set.
 - While in `system`, subscribes to `matchMedia('(prefers-color-scheme: dark)')` `change` and re-applies; unsubscribes on unmount and when leaving `system`.
-- Initial state comes from `localStorage` in a mount effect, **not** during render — the server-rendered markup must not depend on it.
+- Initial state is read from `localStorage` through **`useSyncExternalStore`** (with a `getServerSnapshot` returning `'system'`), **not** during render and **not** seeded into `useState` from a mount effect — the server-rendered markup must not depend on it. See the literal block below; the older mount-effect shape is a hard lint failure.
+- **`data-slot="colour-mode-toggle"` on the `Button` — required.** This is the test hook the per-route presence assertion selects (`e2e/theme-modes.smoke.spec.ts`, below); the hook vocabulary itself is owned by `framework/skills/verify-prototype-build.md`. `data-slot` rather than a new `data-testid` because it is already the in-use convention (the shipped shadcn primitives stamp it on nine components, and the verify sweep already selects `[data-slot="badge"]`) and because it is immune to label drift. Passed as a prop it **replaces** the primitive's own `data-slot="button"` — harmless: nothing in the template, the sweep, or any CSS selects `[data-slot="button"]` (the sweep matches the `button` tag).
 - Icons: `Monitor` / `Sun` / `Moon` (lucide), inheriting `currentColor`. Never a literal colour class.
-- Accessible: `aria-label` naming the *current* state and what the next click does (e.g. *"Colour mode: follows system. Switch to light."*); ≥24×24 CSS px target per `ux-baseline-checklist.md`; visible focus ring.
+- Accessible: `aria-label` naming the *current* state and what the next click does (e.g. *"Colour mode: follows your system setting. Switch to light."*). It **must** match `/colour mode/i` — the smoke asserts the accessible name additively, so a drifted or missing label fails loudly instead of silently. ≥24×24 CSS px target per `ux-baseline-checklist.md`; visible focus ring.
 - **UI-only control.** No `data-src` / `data-prop` — same exemption class as search, sort, pagination and the density toggle (`shared-component-conventions.md`).
 - Persistence here is deliberate, and deliberately unlike `proto-chrome-store.ts` (which is session-only): the mode must be readable **synchronously before paint**, which a Zustand store cannot do.
 
-A `custom` note may adjust the default state, the placement, or 2- vs 3-state. It may not change the class mechanism, the storage key, or add a third palette.
+**Author this literal component** — as with the init blocks above, do not improvise a variant. `localStorage` is an *external* store, so it is read with `useSyncExternalStore`. The older *"initial state comes from `localStorage` in a mount effect"* shape is a **lint failure, not a style preference**: `eslint-plugin-react-hooks@7` (shipped transitively by `eslint-config-next@16`, verified 7.0.1 in `template/`) reports `react-hooks/set-state-in-effect` — *"Calling setState synchronously within an effect can trigger cascading renders"* — so `npm run lint` exits non-zero and `verify-prototype-build.md` returns `structured-fail {phase:"lint"}` on **every** fresh scaffold with `strategy ∈ {toggle, custom}`. The block below is lint-clean and typecheck-clean against `template/`.
+
+```tsx
+'use client'
+
+import { useEffect, useSyncExternalStore } from 'react'
+import { Monitor, Moon, Sun } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+
+type Mode = 'system' | 'light' | 'dark'
+
+const KEY = 'prototype-colour-mode'
+const ORDER: Mode[] = ['system', 'light', 'dark']
+const LABEL: Record<Mode, string> = {
+  system: 'follows your system setting',
+  light: 'light',
+  dark: 'dark',
+}
+
+const listeners = new Set<() => void>()
+
+function subscribe(onChange: () => void) {
+  listeners.add(onChange)
+  window.addEventListener('storage', onChange) // cross-tab
+  return () => {
+    listeners.delete(onChange)
+    window.removeEventListener('storage', onChange)
+  }
+}
+
+function getSnapshot(): Mode {
+  try {
+    const v = localStorage.getItem(KEY)
+    return v === 'light' || v === 'dark' || v === 'system' ? v : 'system'
+  } catch {
+    return 'system'
+  }
+}
+
+function getServerSnapshot(): Mode {
+  return 'system'
+}
+
+function setMode(next: Mode) {
+  try {
+    localStorage.setItem(KEY, next)
+  } catch {
+    /* localStorage disabled — the click still applies for this session */
+  }
+  listeners.forEach((l) => l())
+}
+
+function isDark(mode: Mode) {
+  return (
+    mode === 'dark' ||
+    (mode === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
+  )
+}
+
+export default function ThemeToggle() {
+  const mode = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDark(mode))
+  }, [mode])
+
+  useEffect(() => {
+    if (mode !== 'system') return
+    const mq = matchMedia('(prefers-color-scheme: dark)')
+    const apply = () => document.documentElement.classList.toggle('dark', mq.matches)
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
+  }, [mode])
+
+  const next = ORDER[(ORDER.indexOf(mode) + 1) % ORDER.length]
+  const Icon = mode === 'light' ? Sun : mode === 'dark' ? Moon : Monitor
+
+  return (
+    <Button
+      data-slot="colour-mode-toggle"
+      variant="ghost"
+      size="icon"
+      aria-label={`Colour mode: ${LABEL[mode]}. Switch to ${LABEL[next]}.`}
+      onClick={() => setMode(next)}
+    >
+      <Icon aria-hidden="true" />
+    </Button>
+  )
+}
+```
+
+A `custom` note may adjust the default state, the placement, or 2- vs 3-state. It may not change the class mechanism, the storage key, the `data-slot` hook, or add a third palette.
+
+**Where it is rendered.** The scaffolder renders it on the landing page only (`src/app/page.tsx`, below). Every **prototype route** gets it from the **application shell**, which the generator is unconditionally obliged to carry it in — `framework/agents/prototype-generator/steps/step-05-compose-route.md` rule 2 is canonical for that placement, and this file does not restate it.
 
 ## `e2e/theme-modes.smoke.spec.ts`
 
-Authored **only** when `colour_mode.sets == ["light","dark"]`. Proves the *mechanism* once, against `/` (the landing). The per-prototype smoke proves the *components* — see `verify-prototype-build.md`.
+Authored **only** when `colour_mode.sets == ["light","dark"]`. Proves the *mechanism* once against `/` (the landing), **plus** two app-wide contracts that no other gate covers (below). The per-prototype smoke proves the *components* — see `verify-prototype-build.md`.
+
+This file is authored once and **never regenerated**, so it must derive its coverage from the registry rather than from a fixed route list: `import { PROTOTYPES } from '@/data/prototype-registry'` (the tsconfig `@/*` path applies to `e2e/**`, which the `include` globs cover). Coverage then grows automatically with every future `/prototype` run at zero per-run cost. Skip the per-route loop cleanly when `PROTOTYPES` is empty (the scaffold-time state).
 
 - Drive the mode with `page.emulateMedia({ colorScheme })`, which exercises the real `matchMedia` path the init script uses. Do **not** inject the class directly — that would test the assertion, not the app.
 - **Disable transitions before any colour assertion**: `page.addStyleTag({ content: '*,*::before,*::after{transition:none!important;animation:none!important}' })`. Several shadcn primitives transition `background-color`/`color`, and `getComputedStyle` mid-transition returns the *previous* mode's colour — measured on this template, a primary button reads the light pair for ~150ms after the class flips. Class assertions are unaffected; colour assertions are not.
@@ -89,9 +185,36 @@ Authored **only** when `colour_mode.sets == ["light","dark"]`. Proves the *mecha
 - `strategy: system` — assert no toggle is present and that `emulateMedia` alone flips the app live.
 - Additive: never delete or weaken other specs.
 
+### (a) Per-route toggle presence — `strategy ∈ {toggle, custom}` only
+
+The rule that the toggle lives in the **application shell** (`step-05-compose-route.md` rule 2) is enforced here, not by discipline. For **each** `PROTOTYPES[].route`, in its own `test()` so a failure names the route:
+
+- navigate to the route, then `await expect(page.locator('[data-slot="colour-mode-toggle"]').first()).toBeVisible()`;
+- **additively**, `await expect(page.getByRole('button', { name: /colour mode/i }).first()).toBeVisible()` — the `data-slot` hook alone would pass with a broken or missing `aria-label`, which is itself a requirement of the `ThemeToggle` section above. Two assertions, two distinct failure messages.
+
+A prototype whose surfaces compose **no** shell component at all is the documented fallback in `step-05-compose-route.md`; it is **not** an exemption here — that prototype fails this test, which is the intended signal (the reviewer's colour-mode control is unreachable inside the app). Do not add a skip for it.
+
+### (b) Static token-pair contrast audit — both blocks
+
+The DOM sweep in `verify-prototype-build.md` only measures pairs some component happens to render. This audit checks the **tokens themselves**, so a wrong on-colour is caught even on a pair nothing renders yet. In one `test()`, with **no page navigation** (it is pure computation):
+
+- read `src/styles/theme.css` with `node:fs` (`readFileSync`) at `path.resolve(process.cwd(), 'src/styles/theme.css')` — Playwright runs specs with `cwd` set to the project dir (verified: `cwd` reports `…/prototypes`). Do **not** use `new URL('…', import.meta.url)`: `import.meta` forces this spec to ESM output and the run then dies at config load with *"ReferenceError: require is not defined in ES module scope"*, before any test is collected (verified against `template/`);
+- parse the `:root` and `.dark` blocks into `var → value` maps (hex values). A **block** that is absent is skipped silently — that is the legitimate single-mode case. An individual **var** that is absent is skipped *with a reported reason*, never silently;
+- for each of these ten fill/on-colour pairs — the *Vars produced* rows of the *Contrast & on-colours* table in `framework/skills/extract-brand-theme.md`, restated here as an explicit list so the parser is unambiguous — compute the WCAG contrast ratio from sRGB relative luminance:
+
+  `--primary`/`--primary-foreground`, `--secondary`/`--secondary-foreground`, `--destructive`/`--destructive-foreground`, `--error`/`--error-foreground`, `--success`/`--success-foreground`, `--warning`/`--warning-foreground`, `--info`/`--info-foreground`, `--sidebar-primary`/`--sidebar-primary-foreground`, `--accent`/`--accent-foreground`, `--sidebar-accent`/`--sidebar-accent-foreground`.
+
+  Ten pairs per block — twenty checks when both blocks exist. Deliberately **not** included: `text`/`text_muted` against `background`/`surface`, which `/design-system` already gates (*What is not gated here*, same skill) — nor the `token/NN` opacity composites, which are the DOM sweep's job because they depend on what actually renders.
+- assert **every** pair clears **4.5:1** in **both** blocks. Report each failure as `<block> <fill_var> <fill> × <fg_var> <fg> = <ratio>:1` so the number is in the failure message, and flag any pair below 3:1 as below even the large-text floor.
+- Validated in both directions: the template's own `theme.css` passes all ten `:root` pairs, and a fixture carrying the run's five original `#FFFFFF` on-colours reports exactly those five — `--primary` at 3.98:1 (the same number this file already cites for that fill), `--warning` at 2.95:1, `.dark --secondary` at 1.23:1.
+
+Why this exists: `extract-brand-theme.md` is already correct — it says *"Measure against the fill; never infer from the mode"* and calls an unclearable pair a FAIL. A real run nonetheless reported `contrast: { checked: 42, adjustments: "none" }` while five pairs failed (a light-mode `--warning-foreground: #FFFFFF` measured **2.94:1**, below even the 3:1 large-text floor). The skill needed no amendment; the *claim* needed to be checkable rather than exhortative. Skip a pair only when a var is genuinely absent from `theme.css`, and say which in the failure message — never silently.
+
 ## `PrototypeChrome` (the review harness — PI-08)
 
 A persistent bar/rail **outside** the app-under-design, visually marked as a prototype tool (not part of any requirement). Reads `usePathname()` to find the active prototype in `prototype-registry.ts`.
+
+**Its root element carries `data-testid="proto-chrome"` — required.** Every per-prototype smoke asserts it is visible (`framework/skills/verify-prototype-build.md`, the canonical owner of the runtime test-hook vocabulary — this is a reference, not a second definition). Omitting it does not degrade gracefully: it fails the verify gate on **every** prototype, consumes the generator's whole retry budget, and reaches `RF-12` — while the app itself looks fine in a browser, which makes it an expensive stamp to forget.
 
 Contains:
 1. **Inter-prototype nav** — a "Prototypes" link to `/` (landing) + a quick switcher (dropdown/command) listing all registry entries grouped by scope. Lets a reviewer jump between prototypes of the same scope to compare UX (the core purpose).
@@ -137,8 +260,11 @@ export const PROTOTYPES: PrototypeEntry[] = [ /* regenerated additively per run 
 - Shell + chrome authored once; not regenerated per prototype.
 - `layout.tsx` carries `suppressHydrationWarning` on `<html>` and exactly one of the three literal init blocks (or none, for `strategy: none`); the class is never set from a `useEffect`.
 - `ThemeToggle.tsx` exists iff `colour_mode.strategy ∈ {toggle, custom}`; `e2e/theme-modes.smoke.spec.ts` exists iff `colour_mode.sets == ["light","dark"]`. Neither appears in `PrototypeChrome`.
+- `ThemeToggle.tsx` was authored as the **literal block** above: `useSyncExternalStore` + `getServerSnapshot`, no `setState` inside any effect, `data-slot="colour-mode-toggle"` on the `Button`, and an `aria-label` matching `/colour mode/i`. `npm run lint` exits zero (the mount-effect shape does not — `react-hooks/set-state-in-effect`).
+- `theme-modes.smoke.spec.ts` imports `PROTOTYPES` from `@/data/prototype-registry` and covers, beyond the `/` mechanism tests: (a) `[data-slot="colour-mode-toggle"]` visible **plus** the `/colour mode/i` accessible name on **every** `PROTOTYPES[].route` (for `strategy ∈ {toggle, custom}`), and (b) the static `theme.css` token-pair contrast audit over both blocks at 4.5:1. No route or pair is silently skipped.
 - For `strategy: none` with a dark single set, `<html>` carries a literal `className="dark"` and `theme.css`'s `:root` declares `color-scheme: dark`.
 - Chrome renders the active prototype's roles in the role switcher (PI-05) and a data-reset (PI-02); it is visually distinct and carries no requirement bindings (PI-08).
+- **The chrome root carries `data-testid="proto-chrome"`.** Its absence fails every per-prototype smoke while leaving the app visually fine — check it explicitly rather than by eye.
 - `prototype-registry.ts` and `.registry.json` are kept in sync by the landing-updater; the app imports the TS module (never the root JSON across the src boundary).
 - Landing groups by scope and renders same-scope prototypes together.
 - The empty app (no entries) builds and renders the empty-state landing.
@@ -147,10 +273,16 @@ export const PROTOTYPES: PrototypeEntry[] = [ /* regenerated additively per run 
 - Do not regenerate the shell or chrome per prototype — only the registry module + landing page change between runs.
 - Do not import `prototypes/.registry.json` from inside `src/` (cross-tree import). The app imports `src/data/prototype-registry.ts`.
 - Do not let the chrome leak into the app-under-design's `data-prop`/`data-src` space — it is a harness (PI-08).
-- Do not render the app's **brand logo** in `PrototypeChrome`. The captured brand logo (`public/brand/logo.*`, from `.scaffold.json` `brand_logo`) belongs to the **application shell** — the generator renders it in the per-prototype `src/app/<name_slug>/layout.tsx` brand slot (`step-05-compose-route.md`), not in this review harness. The chrome stays brand-marked-as-a-tool, never carrying the product's own logo.
+- Do not render the app's **brand logo** in `PrototypeChrome`. The captured brand logo (`public/brand/logo.*`, from `.scaffold.json` `brand_logo`) belongs to the **application shell** — the generator renders it in whichever component wraps a surface's content, per-prototype `layout.tsx` or `templates/*Shell` (`step-05-compose-route.md` rule 2, canonical), not in this review harness. The chrome stays brand-marked-as-a-tool, never carrying the product's own logo.
 - Do not have the landing-updater drop or reorder other prototypes' entries — regeneration is additive (a reset removes exactly one entry).
 - Do not theme the chrome off-brand — it uses the shared tokens but is *visually marked* as a tool, not *styled differently per prototype*.
 - **Do not render `ThemeToggle` in `PrototypeChrome`.** Cheaper — the chrome is on every route and needs no generator change — but wrong: PI-08 says the chrome carries nothing that "should be read as a feature of the product being specified", and a consultant answering *"a button in the UI"* is specifying product behaviour. The toggle belongs to the **application shell** (generator, `step-05-compose-route.md`) and the landing page, exactly like the brand logo above. Sitting it beside the role switcher and data-reset would tell reviewers the opposite of what was specified.
-- Do not set the `.dark` class from anywhere but the init script and `ThemeToggle` — one expression, two call sites, no third path.
+- Do not set the `.dark` class from anywhere but the init script and `ThemeToggle` — one expression, three call sites (the init script, the toggle's apply effect, and its `system` `matchMedia` handler), no fourth path.
+- **Do not seed the toggle's initial mode into `useState` from a mount effect.** `localStorage` is an external store; read it with `useSyncExternalStore`. The mount-effect shape is not merely unfashionable — it is a `react-hooks/set-state-in-effect` error under `eslint-plugin-react-hooks@7`, so it fails `npm run lint` and hence the verify gate on every fresh scaffold with a toggle.
+- **Do not omit `data-slot="colour-mode-toggle"` or drift the `aria-label` away from `/colour mode/i`.** Both are asserted per route by `theme-modes.smoke.spec.ts`; the label is a real accessibility requirement, not just a selector.
+- **Do not omit `data-testid="proto-chrome"` from the chrome root.** It costs one attribute and its absence fails every prototype's verify gate.
+- Do not narrow `theme-modes.smoke.spec.ts` to `/`. It is authored once and never regenerated, so route coverage must come from `PROTOTYPES` — a fixed route list freezes coverage at scaffold time, when no prototype exists yet.
+- **Do not use `import.meta.url` in any e2e spec.** It forces ESM output for the spec and the whole Playwright run then fails at config load (*"require is not defined in ES module scope"*) with `No tests found` — a whole-suite outage, not a single failing test. Resolve files from `process.cwd()` instead.
+- Do not give the token audit a browser or a `page.goto`. It is pure computation over `theme.css` and runs in milliseconds; navigating would only add flake.
 - Do not apply the colour mode in a `useEffect` in `layout.tsx`. It must be set before first paint, or every load flashes the wrong theme.
 - Do not add `next-themes`. The mechanism above is ~50 lines and avoids a dependency in an environment where npm lifecycle scripts are constrained.

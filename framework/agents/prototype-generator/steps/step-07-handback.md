@@ -7,6 +7,7 @@
    - every `data-prop` value ∈ the blueprint closed set (Grep the rendered routes/components vs the closed set); fixtures carry only closed-set fields — **zero fabrications**;
    - no component definitions under `src/app/<name_slug>/**`; no private per-prototype components; no existing shared component overwritten; new stores registered in `index.ts` + `seed.ts`;
    - `data-testid="proto-chrome"` (chrome) + `data-testid="primary-cta"` (primary action) present; multi-role surfaces read `activeRole` (PI-05);
+   - **colour-mode toggle belt** — when `prototypes/.scaffold.json` has `colour_mode.strategy ∈ {toggle, custom}`, Grep `ThemeToggle` over the surface-wrapping components (this prototype's `src/app/<name_slug>/layout.tsx` if authored, plus every `src/components/templates/*` its routes compose) and require ≥1 hit; zero hits is a FAIL (`step-05-compose-route.md` rule 2). Run it alongside the closed-set `data-prop` grep above — same pass, two greps;
    - `ux-baseline-checklist.md` floor satisfied on every surface;
    - the verify gate returned `pass` / `pass-with-warning`.
 2. Hand back to the orchestrator:

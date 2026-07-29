@@ -143,7 +143,7 @@ concern.
 | `navigation/stepper-indicator` | T1 | `atoms/StepperIndicator` |
 | `navigation/segmented-control` | T2 | `molecules/SegmentedControl` |
 | `navigation/command-palette` | T2 | `organisms/CommandPalette` |
-| `layouts/app-shell-with-sidebar` | T1 | `templates/AppShellSidebar` (usually the scaffold root layout — reuse) |
+| `layouts/app-shell-with-sidebar` | T1 | `templates/AppShellSidebar` |
 | `layouts/app-shell-with-topnav` | T1 | `templates/AppShellTopnav` |
 | `layouts/centered-form` | T1 | `templates/CenteredFormShell` |
 | `layouts/settings-shell` | T1 | `templates/SettingsShell` |

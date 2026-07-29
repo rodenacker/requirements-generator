@@ -40,7 +40,17 @@ Exactly one of:
       expect(errors, `no console/page errors: ${errors.join(' | ')}`).toHaveLength(0)
     })
     ```
-   This relies on the generator's runtime contract: the shared chrome root carries `data-testid="proto-chrome"`, and each route's primary action carries `data-testid="primary-cta"` (omitted only on surfaces with no primary action; the smoke skips the click then). Authoring is additive — never delete other prototypes' smoke specs.
+   **This file is the canonical owner of the prototype app's runtime test-hook vocabulary.** The hooks and their stampers:
+
+   | Hook | Stamped on | Stamped by |
+   |---|---|---|
+   | `data-testid="proto-chrome"` | the `PrototypeChrome` root | `prototype-app-scaffolder.md` (once, per `app-shell-spec.md`) |
+   | `data-testid="primary-cta"` | each route's primary action | `prototype-generator.md` (per route; omitted only where a surface has no primary action — the smoke then skips the click) |
+   | `data-slot="colour-mode-toggle"` | the `ThemeToggle` `Button` | `prototype-app-scaffolder.md` (once, per `app-shell-spec.md`) |
+
+   Every mention elsewhere — in `prototype-generator.md`'s Self-validation, the generator steps, `app-shell-spec.md` — is a **reference to this table**, not a second definition. Adding a hook means adding a row here first. Authoring the spec is additive — never delete other prototypes' smoke specs.
+
+   `data-slot="colour-mode-toggle"` is asserted per **registered prototype route** by the scaffold-owned `e2e/theme-modes.smoke.spec.ts` (see `app-shell-spec.md`), not by the per-prototype spec above — that file is authored once and reads `PROTOTYPES` from the registry, so its coverage widens with each run without this template changing.
 1b. **Append the both-modes test — only when `colour_mode.sets` has two entries.** Append a second `test()` to the same spec file. It reuses the already-loaded page: one `emulateMedia` call per mode, no extra browser launch and no extra navigation.
 
     Why per prototype, when the mechanism is app-level: the *mechanism* is proven once by `e2e/theme-modes.smoke.spec.ts` (scaffold-authored). The *components* are new code on every run, and a hardcoded label colour is the most likely colour-mode defect — on real dark palettes `text-white` on a status fill measures ~2.1:1. That cannot be caught once.
