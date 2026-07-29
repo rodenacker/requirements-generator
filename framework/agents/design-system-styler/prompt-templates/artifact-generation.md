@@ -183,6 +183,14 @@ One `<li class="swatch-row">` per token (primary / secondary / accent / backgrou
 
 Heading and body families. Each `<div class="type-specimen">` has a meta column (token name, value, source, prov) and a sample column whose inline style is `font-family: {{family-stack}}; font-weight: {{paired-weight}};`. The pangram `The quick brown fox jumps over the lazy dog 1234567890` renders at the default body font-size — the goal is to demonstrate glyph shapes and the family stack, not size.
 
+**Prepend one rendering note** before the two specimen blocks, using the template's `.type-render-note` class:
+
+```html
+<p class="type-render-note">This artefact loads no webfont, so each sample below renders in its named family only if that face is installed on this machine — otherwise you are seeing your system's fallback. The token value is the contract; use it to source the real typeface.</p>
+```
+
+This is not a hedge, it is the honest reading of a self-contained artefact. Without it a consultant reviews a sample labelled `'Manrope', sans-serif` while looking at Segoe UI and concludes the brand font is wrong. Do not soften it, and do not drop it when the family happens to be installed locally — the artefact is read on other machines too.
+
 ### `{{TYPE_SIZE_SPECIMENS}}` (8 rows)
 
 `text-xs`, `text-sm`, `text-base`, `text-lg`, `text-xl`, `text-2xl`, `text-3xl`, `text-4xl`. Each sample inline style: `font-size: {{value}};`. The pangram renders at the literal size.
@@ -242,4 +250,4 @@ The colour constants among them are authored **black-based**, which only reads o
 - Do not begin the derived render until the hue-source file has been written **and** its verify returned `pass`. A derived palette is meaningless without the grounded one on disk, and a half-written pair is worse than a single file.
 - Never write an artefact incrementally. Each render is built fully in memory, then written in one atomic Write call.
 - Never edit a previously-written `design-system-*.html` in this step — overwrites are governed by the orchestrator's startup gate, not by step-06.
-- HTML escaping is not required for token values: hex codes (`#RRGGBB`), CSS lengths (`16px`, `1.5`), font-family stacks (`"Segoe UI", system-ui, sans-serif`), and shadow declarations contain no HTML-special characters under any extraction status. The attribution paragraph and source-context strings come from a closed set of pre-defined formats that likewise contain no HTML-special characters.
+- HTML escaping is not required for token values: hex codes (`#RRGGBB`), CSS lengths (`16px`, `1.5`), font-family stacks (`'Manrope', sans-serif`), and shadow declarations contain no HTML-special characters under any extraction status. The attribution paragraph and source-context strings come from a closed set of pre-defined formats that likewise contain no HTML-special characters.

@@ -84,6 +84,8 @@ Every per-file check below applies to **each** written artefact.
 - On a derived file: every one of the 11 colour and 3 shadow entries has a `source` beginning `derived: <mode> variant of`, and the attribution names the hue-source sibling. The 19 shared tokens carry the hue-source file's markers verbatim.
 - Every `prov` value in every JSON is one of `extracted-from-url` or `inferred-from-domain`. No third marker — derived tokens are `inferred-from-domain`.
 - Each file's contrast section reports **that mode's own** four ratios; a derived set did not inherit the hue-source set's numbers.
+- `typography.heading_family.value` and `typography.body_family.value` each name a real typeface and **no non-brand family** per `data/font-rules.md` §1 — no `Arial`, `Helvetica`, `Segoe UI`, `system-ui`, or any other system face, and no `next/font` hash alias. Each is in the emitted stack shape `'<Family>', <generic>`: one named family, one generic terminal. (The documentation chrome's own `system-ui` is exempt and is not what this checks — see step-06 §C.)
+- Each artefact carries the family-specimen rendering note (`class="type-render-note"`) exactly once.
 - Status-colour entries (success/warning/error/info) all carry `prov: "inferred-from-domain"` regardless of the URL outcome.
 - The JSON `meta.extraction_status` field is one of `success | no_url | fetch_failed | no_css | css_fetch_failed | insufficient_data | workspace_read_failed | playwright_unavailable`.
 - When `{{reference_url}}` was non-null at step-02 and the run did not exit via `playwright_unavailable`, `metadata.json`'s `extraction_method` field is one of `playwright | webfetch-fallback`. (Absent on the no-URL path.)
@@ -110,6 +112,7 @@ Every per-file check below applies to **each** written artefact.
 - **Do not write the derived file before the hue-source file is written and verified.** Render, write, and verify one mode at a time, hue-source first.
 - Do not silently write a file the consultant did not ask for. The hue-source file is always written, but step-05b §E and step-07 §A must both say so explicitly when it exceeds the request.
 - Do not extract status colours from CSS. They are always `inferred-from-domain`, regardless of what the URL contains.
+- **Do not accept a system face as a brand family.** `Arial`, `Helvetica`, `Segoe UI`, `Verdana`, `Georgia`, `Times New Roman` and the rest of `data/font-rules.md` §1 are fallbacks a site declares, not typefaces it chose — and `Arial` is a *named* family, so the pre-2026 "skip generic families" rule let it through and shipped it as a client's brand font. When every family in an extracted chain is non-brand, leave the token **unset** and let step-05b infer a real webfont from the domain. Never substitute a "closest match" in place, and never keep the name with a caveat — the token's provenance honestly becomes `inferred-from-domain` and step-07 says why.
 - Do not skip step-05b. Even when the URL extraction succeeds, step-05b runs to fill any unset tokens and to apply contrast validation.
 - Do not write the artefact incrementally. Render in memory; compute sha256; Write once; verify.
 - Do not loop the accept/revise/restart prompt without a consultant response. The loop terminates on Accept; Revise applies a specific change and re-presents; Restart returns to step-02.

@@ -96,6 +96,7 @@ The four status colours are **always** filled here regardless of any URL extract
 ### C.1 Families and weights
 
 - **`heading-family`** — pick from common, broadly-licensed sans-serifs unless the Voice signals otherwise. Defaults: `Inter`, `Manrope`, `Poppins`, `Source Sans Pro`, `DM Sans`. Use a serif (`Source Serif 4`, `Playfair Display`) only when the Voice is explicitly editorial, legal, or luxury.
+  - **An inferred family — heading or body — must name a real, licensable webfont, and must never be a non-brand family** per `data/font-rules.md` §1 — no `Arial`, `Helvetica`, `Segoe UI`, or any other system face, and never a bare generic. The defaults above all comply; when the Voice pushes you off them, stay on a genuine typeface. Emit the value in the stack shape that file's *Font Output Rules* fix — `'<Family>', <one generic>`, e.g. `'Manrope', sans-serif`.
 - **`heading-weight`** — `600` (medium-bold) for clean/clinical/professional voices; `700` (bold) for confident/energetic/conversion voices.
 - **`body-family`** — `Inter` is the safe default. Match `heading-family` (single-family stack) for dense/utilitarian voices (internal-tooling, government); diverge (different family for body) only when the Voice signals editorial contrast.
 - **`body-weight`** — always `400` unless the Voice signals otherwise (rare).

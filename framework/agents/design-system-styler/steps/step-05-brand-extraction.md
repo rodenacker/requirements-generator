@@ -77,7 +77,11 @@ Store: `{{extracted_colors}}` as the structure defined in `brand-extraction.md` 
 
 ### 4. Typography — Families
 
-Apply `font-rules.md` (already loaded) Section 4 to extract `heading_family`, `heading_weight`, `body_family`, `body_weight`. Tokens that could not be extracted remain `null`.
+Apply `font-rules.md` (already loaded) to extract `heading_family`, `heading_weight`, `body_family`, `body_weight` — its Section 0 on the Playwright path (`computed-tokens.json` present), its Section 4 on the WebFetch fallback. Tokens that could not be extracted remain `null`.
+
+Both paths reject **non-brand families** per `font-rules.md` §1 (system faces such as `Arial`, `Helvetica`, `Segoe UI`; generics; `next/font` hash aliases). A chain with no surviving candidate leaves the family `null` for step-05b to infer — this is the ordinary unset path, not an error. When that happens, also store the rejection record §1 calls for:
+
+- `{{font_rejected_heading}}` / `{{font_rejected_body}}` — the first *named* family in the rejected chain (the value the pre-§1 rule would have selected), or `null` if the chain held no named family at all. Step-07 surfaces it so the consultant sees why the family is domain-inferred.
 
 ### 5. Typography — Scale, Weights, Line-Heights
 
@@ -106,6 +110,7 @@ Assemble the structured output per Section 7 format from `brand-extraction.md`:
 - `{{extracted_typography}}` — 15 typography tokens
 - `{{extracted_effects}}` — 7 effect tokens
 - `{{extraction_status}} = "success"` (only if extraction completed without an early skip; otherwise the prior status is preserved)
+- `{{font_rejected_heading}}` / `{{font_rejected_body}}` — set per Section 4 above, else `null`. Carry them through step-05b unchanged (they describe what the *URL* held, so a domain-inferred fill does not clear them) so step-07 §A can state why a family is `inferred-from-domain`.
 
 Contrast validation runs **after** step-05b, not here — it must validate against the final token set, including any domain-inferred fills.
 

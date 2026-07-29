@@ -62,7 +62,7 @@ Apply the prompt template's instructions in order:
 3. **Section 5 — Provenance tagging.** Every token in the JSON gets `prov` set to one of `extracted-from-url` or `inferred-from-domain`. Every visual snippet that surfaces a token gets a matching `<span class="prov prov-{{prov-slug}}">{{prov}}</span>` element (`prov-slug` is the prov value verbatim — `extracted-from-url` or `inferred-from-domain`, used directly as a CSS class suffix).
 4. **Section 6 — Render visual snippets.** Build the four pre-rendered HTML blocks and substitute them into the template placeholders:
     - `{{COLOUR_SWATCHES}}` — 11 `<li class="swatch-row">` blocks per the COLOUR ROW SCHEMA. Each `<div class="swatch">` carries `style="background:{{hex}}"`; each row also surfaces the hex (in `<code>`), source-context, and provenance.
-    - `{{TYPE_FAMILY_SPECIMENS}}` — 2 `<div class="type-specimen">` blocks (heading + body). Inline style on the sample: `font-family: {{family-stack}}; font-weight: {{paired-weight}}`. The token-value shown in the meta column is the literal family stack.
+    - `{{TYPE_FAMILY_SPECIMENS}}` — 2 `<div class="type-specimen">` blocks (heading + body). Inline style on the sample: `font-family: {{family-stack}}; font-weight: {{paired-weight}}`. The token-value shown in the meta column is the literal family stack. **Prepend one rendering note** before the two blocks (see `artifact-generation.md` → `{{TYPE_FAMILY_SPECIMENS}}`): the artefact loads no webfont, so the sample only renders in the named family when that face is installed on the reader's machine. Use existing chrome markup for the note — no new CSS class, no template edit.
     - `{{TYPE_SIZE_SPECIMENS}}` — 8 `<div class="type-specimen">` blocks (text-xs..text-4xl). Inline style on the sample: `font-size: {{value}}`. Sample text is the fixed pangram.
     - `{{TYPE_LH_SPECIMENS}}` — 3 `<div class="type-specimen">` blocks (tight/base/loose). Sample is a two-line span (the pangram repeated, or wrapped) so the line-height is visible. Inline style: `line-height: {{value}}`.
     - `{{SHADOW_SPECIMENS}}` — 3 `<div class="shadow-card">` blocks. Inline style: `box-shadow: {{value}}` on the card; render the token name, the literal value (in `<code>`), and the provenance label.
@@ -110,6 +110,17 @@ Runs **per file**, before that file's `Write`:
 - Confirm: the rendered string contains the literal substring `<section id="standards"` (from the appended standards file) exactly once.
 - Confirm: the rendered string contains the literal substring `<section id="components"` exactly once.
 - Confirm: the rendered string contains the literal substring `class="cv-btn` at least once (smoke test that the component CSS / HTML from the catalogue actually landed in the artefact; a buffer-substitution failure would drop it silently).
+- Confirm: the rendered string contains the literal substring `class="type-render-note"` exactly once (the family-specimen rendering caveat landed — see `artifact-generation.md` → `{{TYPE_FAMILY_SPECIMENS}}`).
+
+**Brand-family assertions (all files):**
+
+Check the **two in-memory token values** `typography.heading_family.value` and `typography.body_family.value` — **not** the rendered string. Those two values are the sole source of every brand `font-family:` declaration in the artefact (the ~20 component-catalogue substitution sites plus the 2 family specimens), so two checks are exhaustive. A whole-string scan would false-positive on the documentation chrome, which legitimately declares `system-ui` and is exempt (see the `DOC CHROME` comment in `template-design-system.html`).
+
+- Confirm: neither value contains a **non-brand family** from group (a), (b), or (d) of `data/font-rules.md` §1, in any position.
+- Confirm: neither value contains a group-(c) position-dependent face (`Roboto`, `Noto Sans`, `Ubuntu`, `Cantarell`, `Oxygen`, `Droid Sans`) in any position **other than first**. First position is a legitimate brand choice.
+- Confirm: each value matches the emitted stack shape `'<Family>', <generic>` — exactly one quoted named family, then exactly one generic terminal, nothing more.
+
+Any failure is a **hard halt before the `Write`**. This should never fire: `font-rules.md` §1 stops a non-brand family at extraction and `domain-inference.md` §C.1 stops one at inference, so a violation reaching step-06 means one of those two rules was skipped. It is a fail-closed backstop, not the primary mechanism — do not "repair" the value here and continue, and do not downgrade the halt to a warning. Shipping `Arial` as a client's brand font is the defect this whole rule exists to prevent, and unlike an unreachable contrast ratio it has a free, deterministic correct answer (leave the token unset; step-05b infers a real webfont).
 
 **Mode assertions (all files):**
 

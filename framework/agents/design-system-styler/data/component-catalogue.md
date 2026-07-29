@@ -29,7 +29,7 @@ There are no exemptions. Every black constant in this file is a border, a tint, 
 
 This applies to the **rendered mode**, independent of which scheme was extracted: a dark render gets the swap whether the dark palette was the hue source or was derived from a light one.
 
-**No HTML escaping required.** Token values are hex codes (`#RRGGBB`), CSS lengths (`16px`), font-family stacks (`"Segoe UI", system-ui, sans-serif`), shadow declarations (`0 1px 2px rgba(0,0,0,0.08)`), durations (`200ms`), and easing curves (`cubic-bezier(0.4, 0, 0.2, 1)`). None contain HTML-special characters.
+**No HTML escaping required.** Token values are hex codes (`#RRGGBB`), CSS lengths (`16px`), font-family stacks (`'Manrope', sans-serif`), shadow declarations (`0 1px 2px rgba(0,0,0,0.08)`), durations (`200ms`), and easing curves (`cubic-bezier(0.4, 0, 0.2, 1)`). None contain HTML-special characters.
 
 **Determinism:** for a fixed token set, the rendered components section is byte-identical across runs. The styler does not interpret the catalogue prose — it extracts code blocks and substitutes tokens.
 
@@ -40,7 +40,7 @@ Inside the CSS block and the HTML snippets below, any reference of the form `{{<
 | Reference pattern | Substituted value example |
 |---|---|
 | `{{colours.<name>.hex}}` | `#3b82f6` |
-| `{{typography.<name>.value}}` | `"Segoe UI", system-ui, sans-serif` or `600` or `16px` |
+| `{{typography.<name>.value}}` | `'Manrope', sans-serif` or `600` or `16px` |
 | `{{effects.<name>.value}}` | `0 1px 2px rgba(0,0,0,0.08)` or `200ms` or `cubic-bezier(0.4,0,0.2,1)` |
 
 Token paths used in this catalogue must exist in the JSON shape defined in the template header comment. Adding a reference to a token that isn't in that shape will leave a literal `{{...}}` after substitution and trigger the step-06 self-check halt.

@@ -340,6 +340,23 @@
       --meta-overlay-bg: rgba(0,0,0,.55);
       --shadow-card: 0 1px 2px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.06);
 
+  The chrome's TYPEFACE is part of the same deal, and is deliberately
+  `system-ui, sans-serif` in the `html, body` rule below. Two reasons, both
+  intentional: the reviewer's eye must separate document furniture from the
+  brand specimens (a doc rendered in the brand font makes every specimen look
+  correct), and the artefact loads no webfont, so the chrome has nothing else
+  it could honestly use. It is therefore EXEMPT from the non-brand-family
+  prohibition in font-rules.md §1, which governs brand family tokens only.
+
+  Do not "fix" this back to a long platform stack. The previous value ended
+  `..., Roboto, "Helvetica Neue", Arial, sans-serif` and was the only literal
+  Arial in the pipeline. Note also that trimming to
+  `-apple-system, BlinkMacSystemFont, sans-serif` would be WORSE than either:
+  on Windows the two Apple keywords match nothing, so the chrome falls through
+  to `sans-serif`, and Chrome's default sans-serif on Windows IS Arial — you
+  would remove the name and keep the rendering. `system-ui` resolves to Segoe
+  UI on Windows and SF Pro on macOS in one keyword, with no legacy names.
+
   Three chrome notes worth knowing before editing these values:
 
     - color-scheme IS LOAD-BEARING, not decoration. It is the only thing
@@ -391,8 +408,7 @@
       padding: 0;
       background: var(--bg);
       color: var(--fg);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                   "Helvetica Neue", Arial, sans-serif;
+      font-family: system-ui, sans-serif;
       font-size: 14px;
       line-height: 1.5;
     }
@@ -592,6 +608,18 @@
     }
 
     /* --- typography ------------------------------------------------------ */
+    /* Rendering caveat above the family specimens. This artefact loads no
+       webfont (see the self-containment note at the top of this file), so a
+       specimen only renders in its named family when that face happens to be
+       installed on the reader's machine. The note says so; the token value is
+       the contract. Unscoped on purpose — the styler emits it inside
+       {{TYPE_FAMILY_SPECIMENS}}, which has no wrapper element of its own. */
+    .type-render-note {
+      font-size: 11px;
+      color: var(--muted);
+      margin: 0 0 12px 0;
+    }
+
     .type-specimen {
       display: grid;
       grid-template-columns: 200px 1fr;
