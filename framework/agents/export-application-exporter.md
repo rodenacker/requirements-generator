@@ -21,22 +21,30 @@ Two properties are absolute and outrank every other instruction in this file:
     - `source_sha256` via PowerShell `(Get-FileHash -Algorithm SHA256 requirements/requirements.md).Hash.ToLower()`;
     - `source_bytes` via `(Get-Item requirements/requirements.md).Length`;
     - `src_count_source` — the count of `\[SRC: C-\d{3}\]` occurrences in the source body;
-    - `L_src` — the multiset of source **lines** containing `[SRC: C-\d{3}]` (needed by self-validation check 11, the citation-fidelity check);
+    - `L_src` — the multiset of source **lines** containing `[SRC: C-\d{3}]` (needed by self-validation check 11, the citation-fidelity check). Exclude lines that lie wholly inside a `[PROTO-ONLY]` span: those lines are deleted by 3e, so requiring them to survive would make check 11 unsatisfiable;
+    - `span_open` / `span_close` — counts of `\[PROTO-ONLY\]` and `\[/PROTO-ONLY\]` in the source. They must be equal; an imbalance is a **source defect** — do not attempt to guess the missing delimiter. Report it at the gate and halt before the Write, exactly as for an `RF-04 trigger`;
     - the ordered §6.10 fixture sub-block rows (operation, fixture reference, notes), for the check-14 bijection.
 
     (The orchestrator's Step 0 guarantees the file exists, is non-empty, and is not already `Target: application`.)
+1b. **Normative-residue gate — the one place this agent blocks.** Run the detector in `framework/shared/prototype-scope.md > Normative-section prototype-vocabulary ban` over that section's closed normative set, against the source you just read. **Exclude** any fragment inside a `[PROTO-ONLY]` span (3e deletes those) and the §6.10 fixture column (transform-owned).
+
+    - **No hits** — continue to step 2.
+    - **One or more hits** — **halt before any write.** Report `normative-residue-halt` to the orchestrator with one line per hit (`section`, `row/ID`, the offending fragment quoted, and — for §6.2 — the `Enforcement point` value). Say plainly that these are **source defects**, that the fix is `/amend-requirements` or a `/requirements` re-run followed by a free re-export, and that this agent will not repair them: rewriting a cited normative cell is exactly the falsification it exists to prevent. Do **not** write the artefact, do **not** open the accept/reject gate, and do **not** offer an override.
+
+    **Why this reverses the disclose-don't-block policy that governs everything else here.** Disclosure is the right answer for prose a human will read and discount. It is the wrong answer for a normative row a code generator will act on: the measured case is a §6.2 business rule with `Enforcement point = data` mandating session-scoped fixture data, which an application build reads as "ship without persistence". A residue note under the heading does not stop that; refusing to produce the document does. Gap-pass rule `B8` is meant to catch this at draft time — a hit here means `B8` was skipped, demoted, or answered `confirmed` in error, so the honest report names the upstream gap rather than papering over it.
+
 2. **Probe the sidecar.** Check whether `requirements/draft-claims.ndjson` exists (existence only — never read its content). Record the result for the provenance block's citation legend and the gate summary.
 3. **Construct the export in memory.** The source document is the carrier; apply only these transforms, top to bottom — **transform, never re-draft**:
     - **3a. Header.** Replace the header's `**Target:** prototype` with `**Target:** application`. Every other header field passes through as found. If the source's **first line** is a `<!-- ROLE: … -->` framework-meta comment, drop that line: it names internal framework files and asserts `Audience is LLM-only`, both false for a document whose whole purpose is to leave the system.
     - **3b. Insert `## Export provenance`** immediately after the header line and the blank line that follows it, before whatever block comes next. (Do **not** anchor on the template's authoring-guardrails blockquote — the merger strips it, and it is absent from every finalised document.) Row set and per-row byte rules: see **Export provenance block** below.
     - **3c. §6.10 swap.** Replace the fixture sub-block with the application sub-block. Anchor on the **table header row** `| Operation | Fixture reference | Notes |`, *not* on the `#### Under \`target = prototype\`` heading — some source documents carry the table with no such heading. Emit the `#### Under \`target = application\`` heading only when a `#### Under \`target = prototype\`` heading was present; otherwise swap the table in place. New columns: `Operation | Backend contract pointer | Notes`. Per source row `(operation, fixture_reference, notes)`: `Operation` and `Notes` cells pass through **verbatim** (including any `[SRC: C-NNN]` tags); the pointer cell is `→ ../backend/requirements.md#operation-<kebab-case(operation)>` (strip any `[SRC: …]` tag from the operation name **before** kebab-casing; lower-case; non-alphanumerics collapsed to single hyphens); the fixture path is dropped. Row count and row order are preserved (A14 bijection intact). Insert a blockquote above the table: *"Pointer base `../backend/requirements.md` is a placeholder until a backend requirements document exists; rebind the base path on handoff. Pointers only — this document never restates the contract."*
 
-      **The citation lock (EL-1 below) does not apply to this transform.** `Operation` cells routinely carry `[SRC: C-NNN]` tags; the lock must not block the swap. Only the middle cell is replaced, and the two flanking cells are copied byte-for-byte.
+      **A `[SRC: C-NNN]` tag in an `Operation` cell never blocks this swap.** Such tags are routine; only the middle cell is replaced, and the two flanking cells are copied byte-for-byte, tags included.
     - **3d. §7 relabel.** Replace every shape's `**Source:** prototype-fixture` line with `**Source:** backend-contract`. Nothing else in §7 changes.
-    - **3e. Prototype-scope elision.** Apply the procedure in **Prototype-scope elision** below. This transform **drops** prototype-scope sentences from five named scope-note blockquotes and replaces §0.1 wholesale; it never rewrites a sentence into new prose.
-    - **3f. Residue sweep and in-place disclosure.** Apply the procedure in **Residue detection and disclosure** below. Residue passes through **byte-identical** and is disclosed three ways (section-local note, provenance row, gate warning). Residue is **never rewritten** — that is the defect this agent exists to prevent.
+    - **3e. Prototype-scope removal.** Apply the procedure in **Prototype-scope removal** below: delete every `[PROTO-ONLY] … [/PROTO-ONLY]` span whole, then replace §0.1 wholesale. This transform never rewrites a sentence into new prose, and — unlike its predecessor — never decides for itself what counts as prototype-scoped. The source marked it; this step deletes what is marked.
+    - **3f. Residue sweep and disclosure — the under-marking canary.** Apply the procedure in **Residue detection and disclosure** below. Residue passes through **byte-identical** and is disclosed three ways (section-local note, provenance row, gate warning); it is **never rewritten**. With 3e now marker-driven, this sweep carries a second and more important job: nothing else in the system can tell "the drafter marked everything" apart from "the drafter marked nothing", so `R > 0` is the only available signal that the **source** is under-marked. Report it as such.
     - **3g. Remove the `## Prototype invariants` appendix** — from its heading to end of file. Also drop the now-orphaned trailing `---` separator the removal leaves behind, when one is left dangling at end of file. This "PI-heading→EOF" behaviour is a contract that `framework/agents/resolve-review-drafter.md` and `framework/assets/resolve-review/template-addendum.md` depend on for their Amendments-placement rule — do not narrow or widen it.
-    - **3h. Everything else** — including §1.6, §1.8, §6.1's `Rationale` column, §6.2, §6.4, §6.5, §6.7, §10, all `[SRC: C-NNN]` tags, and any `## Amendments (pending re-merge)` section (a `/resolve-review` addendum; retained as-is by deliberate consultant decision — do not strip or resolve it) — passes through **byte-identical**. The only exceptions are the §0.1 section and the individual sentences dropped by 3e.
+    - **3h. Everything else** — including §1.6, §1.8, §6.1's `Rationale` column, §6.2, §6.4, §6.5, §6.7, §10, all `[SRC: C-NNN]` tags, and any `## Amendments (pending re-merge)` section (a `/resolve-review` addendum; retained as-is by deliberate consultant decision — do not strip or resolve it) — passes through **byte-identical**. The only exceptions are the §0.1 section and the scope spans deleted by 3e.
 4. **Self-validate** against the in-memory render (checklist below). Fix and re-run until every check passes. Never satisfy a check by weakening the check, and never satisfy a residue check by rewriting the residue.
 5. **Write + verify.** `Write` `export-application/requirements-application.md`. Immediately call `framework/skills/verify-artifact-write.md` with `path: "export-application/requirements-application.md"`, `expected_sha256: <sha256 of the written bytes>`, `expected_min_bytes: <source_bytes − 6000>`. The floor is **derived, never hard-coded**: this transform removes only the PI appendix (~4 KB, a near-constant template block) and the §0.1 table (~2 KB) while adding the ~2 KB provenance block, so the shortfall is near-constant in absolute terms. A ratio would get *looser* as documents grow; the subtractive form does not. On `RF-04 trigger`, halt per `framework/shared/refusal-registry.md > RF-04` — do not advance to the gate.
 
@@ -45,8 +53,8 @@ Two properties are absolute and outrank every other instruction in this file:
     - §6.10: N fixture rows → N pointer rows (placeholder base noted);
     - §7: N shapes relabelled `backend-contract`;
     - §0.1 replaced; PI appendix removed;
-    - **elisions applied:** the ledger — one line per elision (`anchor`, `sentences dropped`), or `none`;
-    - **known residue:** N locations, each named, or `none` — flagged as **content defects to fix in `requirements/requirements.md`**, not export defects. Say so plainly: the export cannot repair them without falsifying a citation, and re-exporting after a source fix is free;
+    - **scope spans deleted:** `S`, or `none` (a legal outcome — say so without alarm);
+    - **known residue:** `R` locations, each named, or `none` — flagged as **source defects to fix in `requirements/requirements.md`**, not export defects. Name the likely cause plainly: the drafter did not wrap this framing in a `[PROTO-ONLY]` span. The export cannot repair it — rewriting prototype framing in place is the defect this agent exists to prevent, and re-exporting after a source fix is free. When `S = 0` **and** `R > 0`, say explicitly that the source looks **unmarked** rather than clean;
     - `[SRC: C-NNN]` count preserved (N = N) and citation-line fidelity passed;
     - sidecar present/absent note;
     - source status (and Step 0 override, if any).
@@ -55,32 +63,27 @@ Two properties are absolute and outrank every other instruction in this file:
 
     There is **no Edit option by design.** Content changes belong in `requirements/requirements.md` — the authoritative document — followed by a re-export. The export captures no consultant answers, so regenerating is free.
 
-## Prototype-scope elision
+## Prototype-scope removal
 
-Two operations. Neither invents prose; the first drops sentences, the second substitutes one fixed label and replaces one framework-meta section with a fixed literal.
+Two operations. Neither invents prose: the first deletes marked spans, the second replaces one framework-meta section with a fixed literal.
 
-### The scope-note blockquotes
+### Scope-span deletion
 
-**In scope — exactly these five anchors, and only the first blockquote under each:** a heading beginning `## 1.7`, `#### 6.6.1`, `#### 6.6.2`, `### 6.10`, or `## 7.`. Body prose, table rows, bullets, and every other blockquote in the document are **out of scope** — prototype framing found there is residue (3f), never elided.
+The source marks its own prototype-only content. `requirements-drafter.md` emits paired scope spans — `[PROTO-ONLY] … [/PROTO-ONLY]` — at populate time, and `requirements-merger.md` retains them verbatim into `requirements/requirements.md`. Canonical definition (syntax, the no-block-crossing constraint, what gets marked, lifecycle): `framework/shared/prototype-scope.md > Prototype-only content marking`. Do not restate or reinterpret it here.
 
-**Prototype-scope predicate (PSP).** A sentence matches PSP when it contains any of:
+**Procedure — this is the entire transform:**
 
-```
-target = prototype | manifest.target | not a prototype design input | prototype behaviour is governed by
-Prototype sub-block | Prototype target | Prototype (fixture) | fixture reference | in-memory fixtures
-fixtures stand in for | PI-\d{2}
-```
+1. Delete every match of `\[PROTO-ONLY\][\s\S]*?\[/PROTO-ONLY\]` (**non-greedy**), including both delimiters. Collapse a doubled space the deletion leaves behind; change nothing else on the line.
+2. If a blockquote line is left with no content after its `> ` prefix, drop the line entirely.
+3. Record `S` = the number of spans deleted, for self-validation and the gate summary.
 
-The predicate is deliberately vocabulary-based, not a literal-sentence map. The drafter paraphrases the template's scope notes freely — §6.10's blockquote appears as at least six different sentences across real runs — so a literal map silently misses most of them while every check reports success.
+**What is deliberately absent.** No vocabulary predicate, no sentence splitting, no citation lock, no label-preservation special case, no per-anchor procedure, and no elision ledger. The previous design needed all six, and every one of them was a place judgement could enter. A span whose boundaries the drafter set is a fact about the document; a sentence a predicate *thinks* is prototype-scoped is a guess.
 
-**Procedure, per anchor:**
+**A span may contain `[SRC: C-NNN]`, and deleting it is not a citation violation.** The whole cited unit goes — text and tag together — so no tag is left sitting on bytes it was not minted against. This is precisely the distinction that matters: deleting a cited unit is safe; *rewriting text under a retained tag* remains forbidden and is still the defect this agent exists to prevent.
 
-1. **EL-1 — citation lock.** If the blockquote contains `[SRC:`, do **nothing**. Record the location as residue and pass the blockquote through verbatim. Citation-bound bytes are frozen.
-2. **Label preservation (`## 1.7` / `#### 6.6.1` / `#### 6.6.2` only).** If the blockquote's leading bolded run matches PSP, replace that whole run with the fixed literal `**Application-build guidance.**` (period inside the bold). Tolerate either delimiter placement in the source — both `…PI-08.**` and `…PI-03** (…)` occur. This is the only fixed replacement in the transform set; it exists because eliding the sentence outright would destroy a label the reader needs.
-3. **Elide.** Split the remainder into sentences (split conservatively — on `. ` followed by a capital letter — and let anything ambiguous fall through unmatched rather than risk a mis-elision). Drop every sentence matching PSP. Keep every other sentence **byte-identical**, preserving surrounding whitespace. Run-specific tails are load-bearing and must survive: one real run's §7 blockquote carries `Field set reconstructed from the OpenAPI schemas (…)` after its PSP sentence.
-4. If the blockquote is left empty, drop the blockquote line entirely.
-5. **EL-2 — absence is not an error.** A missing anchor, a missing blockquote, or a blockquote with no PSP match is skipped **silently** — no error, no residue entry, and above all no fabricated application-mode sentence to fill the gap. Real source documents omit the §6.10 and §7 blockquotes entirely.
-6. **Ledger.** Record one entry per elision (`anchor`, `line`, `sentences dropped`) for self-validation check 12 and the gate summary.
+**Absence is not an error.** `S = 0` is a legal outcome and raises nothing on its own. What reports a source that *should* have carried spans is **Residue detection and disclosure** below — that is its whole purpose now.
+
+**Never re-derive a span.** If prototype framing appears outside a span, it is residue: pass it through byte-identical and disclose it. Do not infer where a span "should have been" and delete accordingly. That would reintroduce the prose-reading judgement this design exists to remove, and it would do so invisibly.
 
 ### §0.1 — wholesale replacement
 
@@ -96,9 +99,11 @@ The section it replaces is framework-internal meta (manifests, the merger, this 
 
 ## Residue detection and disclosure
 
-**Residue** is prototype-mode framing that survives 3a–3e: content the transforms cannot handle deterministically, either because it sits outside the five elision anchors or because the citation lock froze it.
+**Residue** is prototype-mode framing that survives 3a–3e. Now that 3e is marker-driven, that means exactly one thing: **content the drafter did not wrap in a `[PROTO-ONLY]` span.**
 
-Run this alternation over the post-elision body:
+**This sweep is load-bearing and must never be deleted as "redundant now that spans exist".** Marker discipline is the one thing in this pipeline that cannot be verified upstream: `[SRC:]` tags are checked against real quotes by `framework/skills/grounding-verifier.md`, but nothing can confirm the drafter marked every span it should have — the absence of a span is indistinguishable from the absence of prototype framing. This sweep is the **only** check anywhere in the system that can catch an under-marking drafter, and it is also what makes unmarked legacy documents safe to run through the export at all: they produce `S = 0` and a loud `R`, rather than a silent clean bill of health.
+
+Run this alternation over the post-deletion body:
 
 ```
 PI-\d{2}|target = prototype|prototype-fixture|\bfixtures?/|(?i)session-scoped|does not persist|client-stub|simulat|review harness|visual[- ]only|no backend endpoint
@@ -148,7 +153,8 @@ Ten rows, `| Field | Value |`.
 - `framework/assets/characters/application-exporting.md` — persona, loaded at activation.
 - `framework/skills/verify-artifact-write.md` — invoked at step 5.
 - `framework/shared/refusal-registry.md` — `RF-04` semantics surfaced at step 5.
-- `framework/assets/template-requirements.md` — **not read.** It is the canonical origin of the scope-note blockquotes the PSP targets and of the §0.1 section replaced by 3e. If its §0.1, §6.10, §7, §1.7 or §6.6.x scope-note wording changes, re-check the PSP vocabulary here for coverage. (Per `docs/maintenance.md > Create abstraction`, this agent is the only consumer, so the predicate is inlined rather than extracted.)
+- `framework/shared/prototype-scope.md` — **read at activation.** Canonical owner of two things this agent depends on: the `[PROTO-ONLY]` span definition that 3e deletes (syntax, the no-block-crossing constraint, what qualifies, the lifecycle), and the normative-section set + realization-vocabulary detector that step 1b runs. Never restate or reinterpret either inside this file.
+- `framework/assets/template-requirements.md` — **not read.** It is the canonical origin of the five pinned scope-note blockquotes and of the §0.1 section replaced by 3e. The blockquotes now carry their own `[PROTO-ONLY]` spans and are pinned there by a `<!-- verbatim: -->` directive, so this agent no longer needs to recognise their wording — that coupling, and the vocabulary predicate it once required, are gone. If §0.1's wording changes, re-check the fixed literal below.
 
 ## Output
 
@@ -168,40 +174,43 @@ Ten rows, `| Field | Value |`.
 
 1. **Header.** `\*\*Target:\*\* application` → exactly 1. `\*\*Target:\*\* prototype` → 0. The H1 title is byte-identical to the source's. No leading `<!-- ROLE:` comment.
 2. **Provenance block.** `^## Export provenance$` → exactly 1, immediately after the header line and one blank line. All **10** rows present. `^\| Source sha256 \| [0-9a-f]{64} \|$` → exactly 1 — **bare hash, single-space padding, no backticks** (the orchestrator's Step 0a gate reads this row; drift here silently kills it). `^\| Exported at \| \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z \|$` → exactly 1.
-3. **Resolution markers.** `\[AI-SUGGESTED:|\[STANDARD-RULE:|\[OUT-OF-SCOPE:|\| (?:non-)?blocking\]|AI-\d{3}` → 0, scoped to the body **excluding** any `## Amendments (pending re-merge)` section. A hit is a source defect — report it at the gate, never strip it silently. `GR-\d{2}` is deliberately **not** in this alternation: legitimate rule citations appear in `/resolve-review` addendum `**Grounding:**` lines that the addendum template requires be copied verbatim, and including it produced a check the agent could not legally repair.
+3. **Resolution markers and scope spans.** `\[AI-SUGGESTED:|\[STANDARD-RULE:|\[OUT-OF-SCOPE:|\| (?:non-)?blocking\]|AI-\d{3}|\[/?PROTO-ONLY\]` → 0, scoped to the body **excluding** any `## Amendments (pending re-merge)` section. A hit is a source defect — report it at the gate, never strip it silently. `GR-\d{2}` is deliberately **not** in this alternation: legitimate rule citations appear in `/resolve-review` addendum `**Grounding:**` lines that the addendum template requires be copied verbatim, and including it produced a check the agent could not legally repair.
 4. **PI appendix removed.** `^## Prototype invariants$` → 0. No dangling `---` at end of file.
 5. **§0.1 replaced.** `^## 0\.1 Document scope$` → exactly 1. `Target-mode applicability` → 0. `Mode-conditional` → 0 (the retired table's header cell — the surest proof the old table is gone).
-6. **Scope notes elided.** `not a prototype design input` → 0. `^> \*\*Application-build guidance\.\*\*` → equals the count of label-preservation substitutions in the ledger (0–3; a lower count is legal under EL-2).
+6. **Scope spans deleted.** `\[PROTO-ONLY\]` → 0 and `\[/PROTO-ONLY\]` → 0 (also covered by check 3; asserted separately because this is 3e's whole contract). `not a prototype design input` → 0. `^> \*\*Application-build guidance\.\*\*` → equals the number of §1.7 / §6.6.1 / §6.6.2 sections present in the source (0–3). The label now survives because the template places it **outside** the span — there is no label-preservation transform any more, so a shortfall here means the source's label drifted, not that the export dropped it. No blockquote line is left with an empty body after its `> ` prefix.
 7. **§6.10 sub-block.** `#### Under \`target = prototype\`` → 0. Every pointer matches `→ \.\./backend/requirements\.md#operation-[a-z0-9-]+`, and the pointer count equals the source fixture sub-block's row count.
 8. **§7 relabel.** `^\*\*Source:\*\* backend-contract$` count equals the source's `^\*\*Source:\*\* prototype-fixture$` count. `^### Shape: ` count unchanged from the source.
-9. **Residue disclosed, not zero.** Run the residue alternation → count `R`. The `Known residue` row enumerates **exactly `R`** locations and reads `none` **iff** `R = 0`; every residue location has a section-local `> **Residue note:**` under its heading. This check replaces the former `PI-\d{2}` → 0 and `fixtures?/` → 0 checks, which were **unsatisfiable**: they contradicted the byte-identical pass-through rule, and the agent resolved the contradiction by paraphrasing citation-bound text. **Residue is legal; undisclosed residue is not.**
+9. **Residue disclosed, not zero — the under-marking canary.** Run the residue alternation → count `R`. The `Known residue` row enumerates **exactly `R`** locations and reads `none` **iff** `R = 0`; every residue location has a section-local `> **Residue note:**` under its heading. **Residue is legal; undisclosed residue is not.** Never satisfy this check by forcing `R` to zero — the former `PI-\d{2}` → 0 and `fixtures?/` → 0 checks did exactly that, were unsatisfiable against the byte-identical pass-through rule, and the agent resolved the contradiction by paraphrasing citation-bound text. This check does **not** become redundant now that spans exist; it is the only signal anywhere in the system that the source is under-marked, so deleting it would make a silent drafter regression permanently invisible.
 10. **No placeholders.** `\{\{[a-z_]+\}\}` → 0.
 
 **Non-greppable assertions:**
 
 11. **Citation-line fidelity — the check that catches paraphrase under a retained tag.** Count equality is **not** sufficient and must not be relied on. Build `L_exp` = the multiset of render lines containing `[SRC: C-\d{3}]`. Normalise §6.10 rows only: substitute each source row's fixture-reference cell back into the pointer cell, matched by row ordinal. After normalisation, `L_exp` must equal `L_src` as an **exact multiset of byte strings**. Any differing line is a citation-integrity failure — restore the source bytes and re-run. (This is the check a real defect defeated: a Notes cell was rewritten from `simulated async invoke per PI-01 [SRC: C-082]` to `… under simulated server behaviour [SRC: C-082]` while the `[SRC:]` count stayed at 255 = 255.)
-12. **Ledger closed.** Every elision is one of the five anchors, applied to its first blockquote only, at most once, with every non-PSP sentence byte-preserved. **Zero free-form rewrites.** No elision was applied to a blockquote carrying `[SRC:]` (EL-1).
+12. **Span deletion was total and surgical.** Exactly `S` spans were deleted, `S` equals the source's `span_open` count, and every deletion removed a **whole** span — both delimiters and everything between them, nothing more. **Zero free-form rewrites**: no line that merely *contained* a span was otherwise altered beyond collapsing a doubled space. No span was inferred, extended, or re-drawn.
 13. **§6.1 intact.** The §6.1 table — including the `Rationale` column — is byte-identical to the source: row count and `F-NN` ID set unchanged.
 14. **§6.10 bijection.** Row count and row order preserved; every `Operation` maps to an existing §6.1 `F-NN` (A14); `Operation` and `Notes` cells byte-identical to the source rows.
-15. **Change-set bound.** The set of lines differing from the source is exactly the union of: the header line; the dropped `<!-- ROLE: … -->` comment; the inserted provenance block; the §0.1 section; the §6.10 sub-block; the §7 `**Source:**` lines; the ledger's elisions; the inserted residue notes; and the deleted PI appendix with its dangling separator. **Any changed line outside that union is a defect** — restore the source bytes.
+15. **Change-set bound.** The set of lines differing from the source is exactly the union of: the header line; the dropped `<!-- ROLE: … -->` comment; the inserted provenance block; the §0.1 section; the §6.10 sub-block; the §7 `**Source:**` lines; the lines carrying a deleted `[PROTO-ONLY]` span (and blockquote lines dropped because a deletion emptied them); the inserted residue notes; and the deleted PI appendix with its dangling separator. **Any changed line outside that union is a defect** — restore the source bytes.
 16. **Heading-set diff** is exactly `{+ ## Export provenance, + ## 0.1 Document scope, − ## 0.1 Target-mode applicability, − ## Prototype invariants, − 8 × ### PI-NN}` plus the §6.10 sub-block heading flip (`− #### Under \`target = prototype\``, `+ #### Under \`target = application\``) when that heading was present in the source. Nothing else added or removed.
 
 Any failed check is fixed **in the render** and the whole set re-run before the Write. Never satisfy a check by weakening the check, and never satisfy a residue check by rewriting the residue.
 
 ## Definition of Done
 
-- `export-application/requirements-application.md` exists, `verify-artifact-write` returned `pass`, all self-validation checks pass, the `Gate outcome` row is stamped, and the consultant chose `Accept` at the gate (or `Reject` — terminal, reported honestly as not accepted).
+- `export-application/requirements-application.md` exists, `verify-artifact-write` returned `pass`, all self-validation checks pass, the `Gate outcome` row is stamped, and the consultant chose `Accept` at the gate (or `Reject` — terminal, reported honestly as not accepted); **or**
+- the step-1b normative-residue gate halted the run: **zero writes**, no gate opened, and every hit reported by section, row and quoted fragment. This is a legitimate terminal, not a failure of this agent — report it as an upstream source defect with the `/amend-requirements` route named.
 
 ## Anti-Patterns
 
 - Do not re-draft, reword, reformat, or "improve" any retained content. The only legal changes are the step-3 transforms.
 - **Do not paraphrase, condense, or "clarify" prototype framing the transforms do not cover.** Unmapped framing is disclosed residue, never rewritten — this is the defect this design exists to prevent. A free-form "rewrite stray tokens in plain language" sweep is exactly what corrupted a cited cell in a real run.
-- **Do not elide inside a blockquote carrying a `[SRC:` tag** (EL-1). A retained citation tag must sit on the exact bytes it was minted against; rewriting the text while keeping the tag falsifies provenance against `draft-claims.ndjson`.
-- Do not treat a missing anchor, missing blockquote, or absent PSP match as an error (EL-2), and above all do not fabricate an application-mode sentence to fill the gap. Not every source document emits every scope-note blockquote.
-- Do not drop a non-PSP sentence from a scope-note blockquote. The tails carry run-specific, load-bearing prose.
+- **Do not infer, extend, re-draw, or "correct" a `[PROTO-ONLY]` span.** Span boundaries are set by the drafter and are a fact about the document; deciding for yourself where a span *should* have been is the prose-reading judgement this design was built to eliminate, and it would do its damage invisibly. Framing outside a span is residue — disclose it, never delete it.
+- Do not rewrite text under a retained `[SRC:]` tag. Deleting a whole span that *contains* a citation is safe (text and tag go together); altering cited bytes while keeping the tag falsifies provenance against `draft-claims.ndjson`. Keep the two straight.
+- Do not treat `S = 0` (no spans found) as an error or as proof the document is clean — it is a legal outcome, and on an unmarked legacy source it is the expected one. The residue count `R` is what distinguishes "nothing to mark" from "nobody marked it"; report both.
+- Do not guess a missing span delimiter when `span_open ≠ span_close`. That is a source defect: report it at the gate and halt before the Write.
+- Do not delete any part of a line beyond the span itself. Everything outside the delimiters — including a `[SRC:]` tag sitting outside them — is retained byte-identical.
 - Do not label §1.7 / §6.6.1 / §6.6.2 "binding" — §0.1's replacement text calls them advisory, and §1.7's rows are all drafter-inferred.
 - Do not apply the citation lock to the §6.10 swap (3c). `Operation` cells routinely carry `[SRC:]` tags and the swap must still fire.
-- Do not generate content: no new requirement rows, no new rationale cells, no new `[SRC:]` tags, no recovered facts. The provenance block, the §0.1 replacement, the `**Application-build guidance.**` label, and the residue notes are the only net-new prose, and every one of them is a fixed literal spelled out in this file.
+- Do not generate content: no new requirement rows, no new rationale cells, no new `[SRC:]` tags, no recovered facts. The provenance block, the §0.1 replacement, and the residue notes are the only net-new prose, and every one of them is a fixed literal spelled out in this file. The `**Application-build guidance.**` label is **no longer** net-new — it comes from the source, which places it outside the span; do not synthesise it when it is missing.
 - Do not read `requirements/draft-claims.ndjson`, `requirements/source-manifest.json`, `framework/assets/template-requirements.md`, or anything under `input/`. The source document is the sole content input.
 - Do not write outside `export-application/`. No state files, no timing events, no progress file.
 - Do not strip a resolution marker found in the source — that is a source defect to report at the gate, not repair silently.
@@ -212,5 +221,8 @@ Any failed check is fixed **in the render** and the whole set re-run before the 
 - Do not offer an `Edit` option at the gate, and do not repair content in place. Content changes route back to `requirements/requirements.md` and a re-export.
 - Do not skip the `Gate outcome` stamp on either terminal. An unstamped rejected export is indistinguishable from an accepted one and the orchestrator's freshness gate would recommend keeping it.
 - Do not skip `verify-artifact-write.md`, and do not advance to the gate on `RF-04 trigger`.
-- Do not paste the document body into the gate summary; summarise the transforms, the ledger, the residue, and the counts.
+- Do not paste the document body into the gate summary; summarise the transforms, the span count `S`, the residue count `R`, and the counts.
+- **Do not delete the residue sweep on the grounds that spans made it redundant.** It is the only check in the whole system capable of catching an under-marking drafter, and the only reason an unmarked source fails loudly instead of silently.
+- Do not write the artefact, open the accept/reject gate, or offer an override when step 1b halts. A normative row carrying prototype-realization vocabulary is not a disclosure case — it is the one defect class where shipping the document is worse than not shipping it, because a downstream generator will act on it.
+- Do not repair a step-1b hit by rewriting the cell, wrapping it in a span, or dropping the row. The fix is upstream and belongs to the consultant; this agent's job is to refuse clearly and name the route.
 - Do not invoke any skill, asset, or tool not listed in this document.

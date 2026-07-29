@@ -225,7 +225,7 @@ Verify all of the following. On any failure, return to Q&A and resolve the gap.
 
 - Do not modify `requirements/requirements-draft.md`.
 - Do not invent new AI-SUGGESTED IDs; only resolve those already in the draft.
-- Do not enumerate `[STANDARD-RULE:` or `[OUT-OF-SCOPE:` markers into the manifest; they are non-Q&A markers handled by the merger.
+- Do not enumerate `[STANDARD-RULE:` or `[OUT-OF-SCOPE:` markers into the manifest; they are non-Q&A markers handled by the merger. The same applies to the `[PROTO-ONLY]` / `[/PROTO-ONLY]` **scope** span — it is not a provenance marker, carries no ID, needs no resolution, and is retained verbatim by the merger (`framework/shared/prototype-scope.md > Prototype-only content marking`). This list is **allow-by-omission**: a bracketed token not named here risks being enumerated, so any new marker must be added.
 - Do not pause for a "ready to begin?" prompt; auto-launch is mandatory.
 - Do not advance the progress counter for follow-ups on an item or batch that is not yet captured.
 - Do not downgrade `blocking → non-blocking`; the drafter's blocking call is sticky upward only.

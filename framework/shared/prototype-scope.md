@@ -40,6 +40,108 @@ Topics that belong to backend, infrastructure, or implementation domains and can
 - **Third-party service integration internals** — SDK configuration, webhook handlers, API keys.
 - **Server-side business logic implementation** — calculation engines, rule processors, scheduling. UI surfaces of derived values (§7.X Derivations) remain in scope as business-language rules.
 
+## Prototype-only content marking (`[PROTO-ONLY]`) — canonical definition
+
+This section is the **canonical owner** of the `[PROTO-ONLY]` marker per `docs/maintenance.md > Canonical-source rule`. Every other file references it; no other file redefines it.
+
+### Why the marker exists
+
+`requirements/requirements.md` is written for a prototype target but must be re-projectable to an application audience by `/export-application`, whose whole value is being a *mechanical* transform. Without a marker, the export has to identify prototype-specific content **by reading prose** — the only consumer in this framework asked to classify content rather than match a token. That heuristic is measurably fragile: the drafter has produced six different wordings of the §6.10 scope-note across six runs. The marker replaces classification-by-reading with deletion-by-structure.
+
+### Syntax — a paired span
+
+```
+[PROTO-ONLY] …prototype-specific text… [/PROTO-ONLY]
+```
+
+- **Deletion is one regex:** `\[PROTO-ONLY\][\s\S]*?\[/PROTO-ONLY\]` (non-greedy). No sentence splitting is ever required — sentence-boundary detection over markdown containing inline code and abbreviations is exactly the heuristic this marker exists to remove.
+- **A span may contain a `[SRC: C-NNN]` tag.** The paired form makes nesting unambiguous; a prototype-realization note can be input-grounded like any other content.
+- **A span must not cross a markdown block boundary.** It may not run from one table row into the next, nor from a blockquote into body prose, nor across a list-item boundary. One span, one block. This is what makes deletion structurally safe.
+- **Balance is checkable:** in the draft and the merged document, opener count equals closer count. In the export, both are zero.
+- **Never write a bracketed delimiter inside prose that lands in `requirements.md`.** Documentation of the marker is indistinguishable from a use of it: two bracketed delimiters in order form a real span (deleted at export, inflating the span count), and a lone one unbalances the drafter's open-equals-close check. Where the marker must be *described* in the template or the document — the authoring-guardrails legend and §0.1 both do — write the bare word in code ticks (`` `PROTO-ONLY` ``, `` `/PROTO-ONLY` ``) and say "square-bracketed" in prose. Files outside the document — this one, agent files, `docs/` — are exempt and use the real brackets freely.
+
+### It is a *scope* marker, not a provenance marker
+
+The four provenance markers (`[AI-SUGGESTED]`, `[STANDARD-RULE]`, `[OUT-OF-SCOPE]`, `[POSTURE-DEFAULT]` — closed set, see `CLAUDE.md > Markers in content`) all answer **"where did this value come from?"**. `[PROTO-ONLY]` answers **"which build target does this apply to?"** — a different axis.
+
+Two consequences follow, and both are load-bearing:
+
+1. **The mutual-exclusion rule does not apply.** `framework/agents/requirements-drafter.md > Citation scope` forbids a field from carrying both a provenance marker and a `[SRC:]` tag, because both sit on the provenance axis and a field has exactly one provenance. `[PROTO-ONLY]` sits on the scope axis, so it may co-occur freely with `[SRC:]` **and** with any one provenance marker.
+2. **The provenance set stays closed at four.** Adding `[PROTO-ONLY]` does not widen it. `framework/assets/glossary.md` lists it as a *scope marker*, separately.
+
+### What gets marked
+
+Prototype-specific content is anything that is **true of the prototype and false (or meaningless) for the application build**:
+
+- The prototype-scoped portion of a pinned scope-note blockquote (§1.7, §6.6.1, §6.6.2, §6.10, §7) — the sentence explaining that the section is not a prototype design input, or that fixtures stand in for the backend.
+- A `PI-NN` reference in body prose.
+- A realization note inside a cell describing how the prototype fakes a behaviour (fixture-backed, session-scoped, simulated, client-stub, visual-only).
+
+**What is *not* marked:** the `## Prototype invariants` appendix (already deletable by heading→EOF, a contract `/resolve-review` depends on), the §6.10 fixture-reference column and §7 `**Source:**` lines (both owned by dedicated export transforms), and the §0.1 section (replaced wholesale at export).
+
+**The marker never wraps a normative requirement.** A `[PROTO-ONLY]` span inside a §6.1/§6.2/§6.3 statement would mean "this requirement only applies to the prototype", which is not a thing a requirement can be — the realization *note* is markable, the requirement itself is not. See **Normative-section prototype-vocabulary ban** below.
+
+### Lifecycle
+
+| Stage | Behaviour |
+|---|---|
+| `requirements-drafter` | **Emits** spans at populate time (Workflow step 3), alongside `[SRC:]`. Not a gap-pass concern — prototype scope is a property of content already present, not a gap. |
+| `requirements-resolver` | **Ignores.** Not enumerated into the manifest; no Q&A. |
+| `requirements-merger` | **Retains verbatim**, exactly as it retains `[SRC:]`. Resolution markers are stripped because their job ends at merge; reference and scope markers survive because downstream consumers need them. |
+| `/export-application` | **Deletes** every span, then drops any blockquote left empty. |
+| `/wireframe`, `/prototype` | May read spans as prototype-realization guidance. Neither is required to. |
+
+### Unmarked documents
+
+Documents produced before this marker existed carry no spans. They are **out of scope** — there is no fallback branch, no migration, and no gate. An unmarked document simply yields zero span deletions, and the export's residue sweep (which is retained precisely for this) reports the surviving prototype framing at the gate. Absence of the marker is indistinguishable from absence of prototype framing, so **the residue sweep is the only check that can catch a drafter that under-marks** — it must never be removed on the grounds that the marker made it redundant.
+
+## Normative-section prototype-vocabulary ban — canonical definition
+
+This section is the **canonical owner** of the normative-section set and the realization-vocabulary detector. Consumers: `framework/skills/completeness-gap-pass.md` rule **B8** (raises a consultant question at draft time) and `framework/agents/export-application-exporter.md` step 1.5 (halts the export as a backstop). Neither restates it.
+
+### The defect this prevents
+
+A real run produced `§6.2 BR-08 — "When a list is requested, then the system shall serve session-scoped fixture data"`, enforcement point **`data`**, carrying `[SRC: C-018]`. Two other rows in the same document said comparable things: a §1.6 environment assumption and a §6.6.4 compliance bullet. None carried a `PI-NN` token.
+
+That row is not a formatting problem. `enforcement point = data` is the column a backend generator consumes, so the exported document instructs a downstream system to build a production application with **no persistence**. The citation freezes the bytes, so `/export-application` cannot repair it — it can only disclose it, and a provenance row hundreds of lines away does not stop anyone. The only place this is fixable is where it is written.
+
+### Normative sections (closed set)
+
+A cell, row, or bullet in any of these is **normative** — it states what the application must do, and a downstream generator may act on it:
+
+| Section | Normative unit |
+|---|---|
+| §1.6 Assumptions & dependencies | `Statement` cell |
+| §6.1 Functional | `Statement` and `Acceptance criteria` cells |
+| §6.2 Business rules | `Statement`, `Acceptance criteria`, `Enforcement point` cells |
+| §6.3 Validation rules | `Rule` and `Error message` cells |
+| §6.4 UI feature needs (incl. §6.4.5) | `Feature need` / `Expected UI behaviour` / `Recovery action` cells |
+| §6.6.4 Compliance UI behaviour | each bullet |
+| §7 Data shapes (incl. §7.X) | `Notes` cells and derivation `Rule` cells |
+| §6.10 Consumed backend contracts | `Notes` cell only (the fixture column is transform-owned) |
+
+Everything else — narrative prose, scope-note blockquotes, §1.7, §6.6.1, §6.6.2, §8, the PI appendix — is **outside** this set. Prototype framing there is ordinary markable content.
+
+### Realization vocabulary (the detector)
+
+A normative unit trips the detector when it contains any of:
+
+```
+PI-\d{2} | fixture | (?i)session-scoped | does not persist | client-stub
+simulat | review harness | visual[- ]only | no backend endpoint | in-memory only
+```
+
+**The detector raises a question. It never rewrites, and it never auto-marks.** This distinction is the whole design: a heuristic that asks a human costs one question when it is wrong; a heuristic that silently edits content is the failure mode that corrupted a citation-bound cell in a real run. The detector is deliberately broad for the same reason — a false positive is cheap.
+
+### Disposition
+
+1. **At draft time** — gap-pass rule `B8` emits `[AI-SUGGESTED: AI-NNN | blocking]` on the offending unit with a `draft_context` asking the consultant to choose. This reuses the existing Q&A channel; no new resolver or merger machinery exists for it.
+   - **Confirmed** — the behaviour is genuinely part of the domain (some real systems *are* session-scoped, and "fixture" is legitimate vocabulary in test-data domains). The value stays, unmarked, and never trips again.
+   - **Corrected** — the consultant supplies application-correct wording. If the prototype realization is worth recording, they include it inside a scope span, which moves it out of the normative unit.
+2. **At export time** — `export-application-exporter.md` step 1.5 re-runs the detector over the normative set. A surviving hit **halts before any write**. This is the one place the exporter's disclose-don't-block policy is deliberately reversed: disclosure is the right answer for prose, and the wrong answer for a rule a code generator will act on.
+
+**A `[PROTO-ONLY]` span does not launder a normative unit.** Wrapping a requirement statement in a span would assert "this requirement applies only to the prototype", which is not a thing a requirement can be. Mark the realization *note*; never the requirement.
+
 ## Finding-scope classification
 
 The two lists above answer *"should this topic be discovered / designed for the prototype?"*. A

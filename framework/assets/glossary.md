@@ -276,6 +276,11 @@ Canonical source: `CLAUDE.md §1` + `framework/assets/prototypes/shared-componen
 ### Provenance markers
 The closed set of inline tags carrying *why a value is what it is*: `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` (LLM inference needing resolution), `[STANDARD-RULE: GR-NN]` (deterministic, resolver skips), `[OUT-OF-SCOPE: domain-default]` (prototype-only exclusion), `[POSTURE-DEFAULT]` (value fixed by the chosen UX posture, resolver skips, merger strips).
 Canonical source: marker legend in `CLAUDE.md > Markers in content`.
+Contrast **Scope marker** — a different axis, and not a member of this closed set.
+
+### Scope marker (`[PROTO-ONLY]`)
+A paired inline span — `[PROTO-ONLY] … [/PROTO-ONLY]` — wrapping content that is true of the prototype and false or meaningless for the application build. Distinct in *axis* from a **Provenance marker**: provenance answers *"where did this value come from?"*, scope answers *"which build target does this apply to?"*. Because the axes are independent, a scope span may co-occur with a `[SRC: C-NNN]` citation and with one provenance marker, and is therefore exempt from the provenance markers' mutual-exclusion rule. The merger **retains** it (as it retains `[SRC:]`); `/export-application` deletes each span whole with a single non-greedy regex, which is what makes that export a mechanical transform rather than a prose-reading heuristic. A span never crosses a markdown block boundary, and never wraps a normative requirement — only a realization note about one.
+Canonical source: `framework/shared/prototype-scope.md > Prototype-only content marking`.
 
 ### General rule (GR-NN)
 A deterministic, reusable design/answer rule (`framework/shared/general-rules.md`) the resolver applies without asking the consultant (surfaced via `[STANDARD-RULE: GR-NN]`). Append-only; never renumber.

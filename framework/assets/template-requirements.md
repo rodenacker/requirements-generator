@@ -13,7 +13,9 @@
 > - `[STANDARD-RULE: GR-NN]` — deterministic answer from `framework/shared/general-rules.md`; resolver skips.
 > - `[OUT-OF-SCOPE: domain-default]` — required by template but outside prototype scope per `framework/shared/prototype-scope.md`; emitted under `target = prototype` only; resolver skips, consultant can scan-review.
 >
-> Citation: input-grounded cells carry a trailing `[SRC: C-NNN]` tag in the draft, backed by `requirements/draft-claims.ndjson`. The merger **retains** `[SRC:]` tags in the final doc (LLM-only audience) and strips all other markers.
+> Citation: input-grounded cells carry a trailing `[SRC: C-NNN]` tag in the draft, backed by `requirements/draft-claims.ndjson`. The merger **retains** `[SRC:]` tags in the final doc (LLM-only audience) and strips the three resolution markers above.
+>
+> Prototype-only content is wrapped in a paired **scope** span — a square-bracketed `PROTO-ONLY` delimiter opens it and a square-bracketed `/PROTO-ONLY` delimiter closes it — marking text that is true of the prototype and false or meaningless for the application build. This is a *different axis* from the three markers above (which answer "where did this value come from?"), so a span may contain a `[SRC: C-NNN]` tag and may sit alongside a resolution marker. The merger **retains** spans; `/export-application` deletes each one whole, which is what keeps that export a mechanical transform. A span never crosses a markdown block boundary, and never wraps a normative requirement — only a realization note about one. Canonical definition: `framework/shared/prototype-scope.md > Prototype-only content marking`.
 >
 > Field-level marking when only some sub-fields are inferred; heading-level marking when the whole item is invented. Fill every field — no blanks.
 
@@ -23,7 +25,7 @@
 
 <!-- format: table[4-col: section, prototype, application, mode-conditional?]; one row per mode-conditional section -->
 
-> The `target` field on the source manifest is `prototype` (every pipeline run; auto-set at the orchestrator's Step 1b) or `application` (legacy manifests only — the drafter no longer has a consultant-chosen application emit mode). The `application` column below therefore describes the **exported** document produced by `/export-application` from the finished pipeline doc, plus the dormant legacy-manifest behaviour. (This §0.1 section itself does **not** survive the export — `/export-application` replaces it with a short `## 0.1 Document scope` note, since manifests and the merger are framework-internal concepts for an external audience. The scope-note blockquotes below likewise have their prototype-scoping lead sentence elided at export; if their wording changes here, re-check the prototype-scope predicate in `framework/agents/export-application-exporter.md` for coverage.) Rows marked *scope-noted* are emitted in **every** pipeline doc with an application-build-guidance blockquote ("not a prototype design input"). Rows marked *content-conditional* are omitted when they have no content under either target.
+> The `target` field on the source manifest is `prototype` (every pipeline run; auto-set at the orchestrator's Step 1b) or `application` (legacy manifests only — the drafter no longer has a consultant-chosen application emit mode). The `application` column below therefore describes the **exported** document produced by `/export-application` from the finished pipeline doc, plus the dormant legacy-manifest behaviour. (This §0.1 section itself does **not** survive the export — `/export-application` replaces it with a short `## 0.1 Document scope` note, since manifests and the merger are framework-internal concepts for an external audience. The scope-note blockquotes below carry their prototype-scoping sentence inside a paired `PROTO-ONLY` scope span, which the export deletes whole; each is additionally pinned by a `<!-- verbatim: -->` directive, so the drafter must copy it byte-for-byte. Changing one here changes what the drafter emits — there is no separate predicate in the exporter to keep in sync any more, but the drafter's pinned-scope-note self-validation compares against **this** file.) Rows marked *scope-noted* are emitted in **every** pipeline doc with an application-build-guidance blockquote ("not a prototype design input"). Rows marked *content-conditional* are omitted when they have no content under either target.
 
 | Section | `prototype` | `application` | Mode-conditional? |
 | --- | --- | --- | --- |
@@ -98,8 +100,9 @@
 
 <!-- format: table[3-col: capability_category, driving_requirements, recommendation]; capability_category from drafter's inline catalogue (≤15 entries); recommendation optional -->
 <!-- emit: always — scope-noted application-build guidance (backend capability plan, consumed by application-build, /export-application + a future BFF/DB generator); rows seeded [AI-SUGGESTED: AI-NNN | non-blocking] -->
+<!-- verbatim: emit the scope-note blockquote below byte-for-byte. Do not paraphrase, condense, re-order, or re-punctuate it. `/export-application` removes its prototype-scoped framing by exact match; drift silently ships a self-contradicting application document. One of the five pinned scope-notes (§1.7, §6.6.1, §6.6.2, §6.10, §7). -->
 
-> **Application-build guidance — not a prototype design input; prototype behaviour is governed by PI-01/PI-03/PI-08.** Capability categories derived by the drafter from §6 functional requirements + §10 volumes + §6.7 reporting needs, against an inline catalogue of ≤15 categories (see `framework/agents/requirements-drafter.md > derive-architectural-implications`). Drafter seeds every row as `[AI-SUGGESTED: AI-NNN | non-blocking]`; resolver Q&A refines. Recommendation column is **optional** and **non-deterministic** — a stack choice belongs in the code-generation step, not here.
+> **Application-build guidance.** [PROTO-ONLY] Not a prototype design input; prototype behaviour is governed by PI-01/PI-03/PI-08. [/PROTO-ONLY] Capability categories derived by the drafter from §6 functional requirements + §10 volumes + §6.7 reporting needs, against an inline catalogue of ≤15 categories (see `framework/agents/requirements-drafter.md > derive-architectural-implications`). Drafter seeds every row as `[AI-SUGGESTED: AI-NNN | non-blocking]`; resolver Q&A refines. Recommendation column is **optional** and **non-deterministic** — a stack choice belongs in the code-generation step, not here.
 
 | Capability category | Driving requirement(s) | Recommendation (optional) |
 | --- | --- | --- |
@@ -366,8 +369,9 @@ classDiagram
 
 <!-- format: table[3-col: field, value, source]; quantified — minutes/seconds/hours, never "soon"; GR-19 supplies defaults when input is silent -->
 <!-- emit: always — scope-noted application-build guidance (§0.1). GR-19 supplies [STANDARD-RULE] defaults when input is silent; remaining fields [AI-SUGGESTED | non-blocking] when inferred, [SRC: C-NNN] when stated. -->
+<!-- verbatim: emit the scope-note blockquote below byte-for-byte. Do not paraphrase, condense, re-order, or re-punctuate it. `/export-application` removes its prototype-scoped framing by exact match; drift silently ships a self-contradicting application document. One of the five pinned scope-notes (§1.7, §6.6.1, §6.6.2, §6.10, §7). -->
 
-> **Application-build guidance — not a prototype design input; prototype behaviour is governed by PI-01/PI-03** (server + auth are simulated, so this policy table binds the production application, not the prototype).
+> **Application-build guidance.** [PROTO-ONLY] Not a prototype design input; prototype behaviour is governed by PI-01/PI-03 — server + auth are simulated, so this policy table binds the production application, not the prototype. [/PROTO-ONLY]
 
 | Field                    | Value                                                                             | Source            |
 | ------------------------ | --------------------------------------------------------------------------------- | ----------------- |
@@ -382,8 +386,9 @@ classDiagram
 
 <!-- format: table[3-col: metric, target, source]; targets quantified with units & percentile (e.g. "p95 ≤ 2.0s", "≤ 250KB gzipped") — never "fast" or "small" -->
 <!-- emit: always — scope-noted application-build guidance (§0.1). Values [AI-SUGGESTED | non-blocking] when inferred from §10 volumes, [SRC: C-NNN] when stated. -->
+<!-- verbatim: emit the scope-note blockquote below byte-for-byte. Do not paraphrase, condense, re-order, or re-punctuate it. `/export-application` removes its prototype-scoped framing by exact match; drift silently ships a self-contradicting application document. One of the five pinned scope-notes (§1.7, §6.6.1, §6.6.2, §6.10, §7). -->
 
-> **Application-build guidance — not a prototype design input; prototype behaviour is governed by PI-08** (the prototype is a review harness, never perf-optimised — these budgets bind the production application).
+> **Application-build guidance.** [PROTO-ONLY] Not a prototype design input; prototype behaviour is governed by PI-08 — the prototype is a review harness, never perf-optimised, so these budgets bind the production application. [/PROTO-ONLY]
 
 | Metric                                                | Target    | Source            |
 | ----------------------------------------------------- | --------- | ----------------- |
@@ -444,8 +449,9 @@ classDiagram
 
 <!-- format: prototype: table[3-col: operation, fixture_reference, notes]; application: table[3-col: operation, backend_contract_pointer, notes]; emit only the sub-block matching manifest.target -->
 <!-- guidance: every operation maps to §6.1 F-NN (A14); application-mode pointer never restates the contract -->
+<!-- verbatim: emit the scope-note blockquote below byte-for-byte, and emit it ALWAYS — real runs have omitted this blockquote entirely, and paraphrased it six different ways when they did emit it. Do not paraphrase, condense, re-order, or re-punctuate it. `/export-application` removes its prototype-scoped framing by exact match; drift silently ships a self-contradicting application document. One of the five pinned scope-notes (§1.7, §6.6.1, §6.6.2, §6.10, §7). -->
 
-> FE-facing only. The drafter emits one sub-block matching `manifest.target`; the merger does not see both. (The application sub-block is produced at export time by `/export-application`, or by a legacy application-target manifest run.)
+> FE-facing only: the backend operations this frontend consumes. [PROTO-ONLY] The drafter emits one sub-block matching `manifest.target`; the merger does not see both. (The application sub-block is produced at export time by `/export-application`, or by a legacy application-target manifest run.) [/PROTO-ONLY]
 
 #### Under `target = prototype`
 
@@ -467,8 +473,9 @@ classDiagram
 
 <!-- format: per-shape table[5-col: field, type, required∈{yes,no}, ui_display∈{form-input,table-col,detail,chip,enum,hidden}, notes]; followed by trailing meta lines: domain_concept→§2.1, source∈{prototype-fixture,backend-contract}, enums -->
 <!-- guidance: every persistent §2.1 concept appears here (A6); ui_display=hidden gates D2 marker behaviour -->
+<!-- verbatim: emit the scope-note blockquote below byte-for-byte, and emit it ALWAYS — real runs have omitted this blockquote entirely. Do not paraphrase, condense, re-order, or re-punctuate it; run-specific tails (e.g. "Field set reconstructed from the OpenAPI schemas …") are appended AFTER the pinned text, never woven into it. `/export-application` removes its prototype-scoped framing by exact match; drift silently ships a self-contradicting application document. One of the five pinned scope-notes (§1.7, §6.6.1, §6.6.2, §6.10, §7). -->
 
-> Shape of data the FE reads and writes. Under `target = prototype`: the shape of in-memory fixtures (PI-02). Under `target = application`: the shape of payloads exchanged with the backend (authoritative shape lives in the sibling backend requirements doc). Persistence design — indexes, FK constraints, storage layout — is the backend doc's concern, not this section's.
+> Shape of data the FE reads and writes: the payloads exchanged with the backend, whose authoritative definition lives in the sibling backend requirements document. [PROTO-ONLY] Under `target = prototype` that shape is realized as in-memory fixtures (PI-02). [/PROTO-ONLY] Persistence design — indexes, FK constraints, storage layout — is the backend doc's concern, not this section's.
 
 ### Shape: {{shape_name}}
 

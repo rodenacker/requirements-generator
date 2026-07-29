@@ -40,9 +40,9 @@ This orchestrator does **not** maintain a `.progress.json` file and writes **no*
         - **No provenance row could be extracted at all** — treat as stale, with the same recommendation. Under the tolerant pattern above this now means the export genuinely predates the provenance block; it is no longer the routine outcome it was under the previous over-strict pattern, which matched no real export and silently degraded every re-run to the stale branch.
     - **Keep** / **Cancel** — output a one-line confirmation, exit cleanly, no writes.
     - **Regenerate** — perform the **Reset procedure** below, then proceed to step 1.
-1. **Run the exporter** — invoke `framework/agents/export-application-exporter.md` in the foreground. Wait until the agent reports handback (gate below).
+1. **Run the exporter** — invoke `framework/agents/export-application-exporter.md` in the foreground. Wait until the agent reports one of the two terminals below (**Handback gate**): a normal handback, or a `normative-residue-halt` clean exit with zero writes.
 
-There is no step 2. After the handback gate is met, the orchestrator emits the context-hygiene completion tip (`framework/shared/context-hygiene.md`, verbatim plain text) and declares done.
+There is no step 2. After the **Terminal 2** handback gate is met, the orchestrator emits the context-hygiene completion tip (`framework/shared/context-hygiene.md`, verbatim plain text) and declares done. On **Terminal 1** (`normative-residue-halt`) it emits no tip and does not declare done — it reports the halt and exits.
 
 ## Reset procedure (regenerate an existing export)
 
@@ -55,14 +55,16 @@ After the reset completes, proceed to step 1.
 
 ## Handback gate
 
-The exporter has handed control back when:
+**Terminal 1 — `normative-residue-halt` (clean exit, zero writes).** The exporter's step-1b gate found prototype-realization vocabulary in a normative unit (§1.6 / §6.1 / §6.2 / §6.3 / §6.4 / §6.6.4 / §7 / §6.10 `Notes` — see `framework/shared/prototype-scope.md > Normative-section prototype-vocabulary ban`) and halted before writing. This is a **legitimate terminal, not a failure**: surface the agent's per-hit report verbatim, state that no file was written, and name the route — fix the rows in `requirements/requirements.md` via `/amend-requirements` or a `/requirements` re-run, then re-export (free, since the export captures no consultant answers). Do **not** re-invoke the agent, do not offer an override, and do not declare the run successful. Then exit; emit no context-hygiene tip (that is the success-path affordance).
+
+**Terminal 2 — normal handback.** The exporter has handed control back when:
 
 - `export-application/requirements-application.md` exists,
 - the agent's `verify-artifact-write` invocation returned `pass`,
 - the consultant has chosen `Accept` at the agent's accept/reject gate (a `Reject` is also terminal — report the run honestly as not accepted; do not declare success. Content fixes belong in `requirements/requirements.md`, followed by a re-export — there is no in-gate edit path by design),
 - the artefact's `Gate outcome` provenance row is stamped to match the consultant's choice.
 
-If any of the above is not satisfied, do not declare done. Surface the agent's report to the consultant and let the agent continue or be re-invoked.
+If any of Terminal 2's conditions is not satisfied **and** the agent did not report `normative-residue-halt`, do not declare done. Surface the agent's report to the consultant and let the agent continue or be re-invoked.
 
 ## Inputs
 
@@ -90,7 +92,7 @@ Every other read or write belongs to the invoked agent, per its own agent file.
 - Step 0 ran first and its exits were honoured: missing/empty source → plain-text exit with zero writes; already-application source → plain-text exit with zero writes; non-final `Status` → soft gate honoured (override recorded when `proceed-anyway`).
 - Step 0a ran whenever step 0 did not exit, and the consultant's choice was honoured: `Keep`/`Cancel` exited with zero writes and no Bash; `Regenerate` checkpointed (no `--no-verify`, no amend, no push) before deleting exactly the one artefact path.
 - The step-0a hash comparison used the backtick-tolerant pattern and a case-normalised comparison — a `Regenerate` recommendation was **not** produced by a pattern that failed to match a well-formed provenance row. `Keep` was never offered on an artefact whose `Gate outcome` row reads `rejected`.
-- If the agent was invoked, its handback gate was met, it offered exactly `{ Accept, Reject }`, and it ran in the foreground — never via Agent / Task / fork / sub-agent.
+- If the agent was invoked, either its Terminal-2 handback gate was met (it offered exactly `{ Accept, Reject }`) **or** it reported `normative-residue-halt` — in which case zero files were written, no gate was offered, the per-hit report was surfaced verbatim, and the run was **not** declared successful. It ran in the foreground either way — never via Agent / Task / fork / sub-agent.
 - On a successful run, the context-hygiene completion tip (`framework/shared/context-hygiene.md`) was emitted to the consultant verbatim after the handback gate, on the success path only.
 - No file outside `export-application/` was written by orchestrator or agent; no `.progress.json`, no timing events.
 
@@ -98,7 +100,8 @@ Every other read or write belongs to the invoked agent, per its own agent file.
 
 - Step 0 exited cleanly (missing source / already-application / `exit-and-finalise-first`), or
 - the consultant chose `Keep` / `Cancel` at step 0a (clean exits, zero writes), or
-- the agent ran to handback: `export-application/requirements-application.md` exists, `verify-artifact-write` returned `pass`, and the consultant chose `Accept` (or `Reject` — terminal, reported as not accepted).
+- the agent ran to handback: `export-application/requirements-application.md` exists, `verify-artifact-write` returned `pass`, and the consultant chose `Accept` (or `Reject` — terminal, reported as not accepted), or
+- the agent reported `normative-residue-halt` at its step-1b gate: zero writes, no gate offered, hits reported per-section with the `/amend-requirements` route named, run reported as not exported.
 
 ## Anti-Patterns
 
@@ -114,5 +117,7 @@ Every other read or write belongs to the invoked agent, per its own agent file.
 - Do not tighten the step-0a provenance pattern to require a bare hash or exact single-space padding. Exports already on disk predate the pinned byte format, and an over-strict pattern silently degrades every re-run to the stale branch — which is exactly what the previous pattern did: it matched no real export, so the freshness gate never once reported `fresh`.
 - Do not offer `Keep` when the prior artefact's `Gate outcome` row reads `rejected`. A rejected export is not a deliverable, however fresh its hash.
 - Do not offer the consultant an in-gate Edit option, and do not route content fixes through the export. Content changes belong in `requirements/requirements.md` followed by a re-export.
+- Do not treat `normative-residue-halt` as an agent failure to retry, and do not re-invoke the agent hoping for a different result — the detector is deterministic over an unchanged source. Do not offer an override, and do not emit the context-hygiene tip on this branch; it is a clean exit, but not a success.
+- Do not add `framework/shared/prototype-scope.md` to this orchestrator's reads. The normative-residue gate belongs to the agent; the orchestrator only consumes its reported terminal.
 - Do not paraphrase or redefine refusal predicates — `RF-04` semantics are canonical in `framework/shared/refusal-registry.md`.
 - Do not read `input/` or `requirements/source-manifest.json` from this orchestrator or its agent.

@@ -19,16 +19,19 @@
 
 ## Priority scoring (consumed by the cap step)
 
-Every tuple whose decision tree resolves to `marker_kind = "AI-SUGGESTED"` is assigned a `priority_score` (integer, 0–10) drawn from the closed table below. The score is keyed on the `rule_id` that emitted the tuple — A1..A16, B1..B7, D1..D4. Tuples whose `marker_kind` is not `"AI-SUGGESTED"` carry `priority_score = 0` and the score is unused.
+Every tuple whose decision tree resolves to `marker_kind = "AI-SUGGESTED"` is assigned a `priority_score` (integer, 0–10) drawn from the closed table below. The score is keyed on the `rule_id` that emitted the tuple — A1..A16, B1..B8, D1..D4. Tuples whose `marker_kind` is not `"AI-SUGGESTED"` carry `priority_score = 0` and the score is unused.
 
 | Rule(s) | Score | Rationale |
 |---|---|---|
+| B8 prototype vocabulary in a normative unit | 10 | Never demote. An unresolved hit is a rule a downstream code generator will act on — the measured case is a §6.2 BR with `enforcement point = data` mandating session-scoped fixture data, which reads to an application build as "ship without persistence". It is also the one rule here whose miss is caught nowhere else: `/export-application` halts on it rather than shipping, so a demoted tuple converts into a blocked export later. |
 | A1 personas↔stories · A3 personas↔RBAC · A9 §10 volumes · A10 §1.5 In-scope rows · A13 §6.8 notification audiences · A16 §1.8 application character | 10 | Cross-cuts UI pattern choice and drives §6.5 / §6.7 / §6.8 — wrong guesses propagate. A16's voice cross-cuts all downstream copy realisation (wireframe + prototype). |
 | A2 goals↔stories · A8 §5 flow actors · A11 §2.5 state-transition rows · A12 §6.7 report source concepts · D3 visible state-transition effects | 7 | Drives flow logic and UI narrative; revision is bounded but costs design rework. |
 | A14 §6.10 operations · B2 conditional `<action>†BR-NN` rows · B5 acceptance-criteria fabrications | 5 | Behavioural detail. Adjustable post-hoc; surfacing is valuable but not load-bearing. |
 | A4 entity-RBAC columns · A5 flow-RBAC columns · A6 persistent entity stubs · A7 entity↔concept refs · A15 §7.X derived shapes · B1 goal→story filler · B7 §6.6.1/§6.6.2 guidance fields · D1 server-side §6.2 BR projections · D2 hidden-field defaults | 3 | Bijection-filler / scope-noted application-build guidance — structural completeness, low decision-value per item. The set that the cap demotes first. |
 
 Tier C is never AI-SUGGESTED (it routes to `[OUT-OF-SCOPE]` or value-only by target), so it has no row here. Tier B3 (warn-only), B4 (warn-only), and B6 (warn-only; priority is filled by `GR-24` as `[STANDARD-RULE]`) emit no AI-SUGGESTED tuples, so they have no row either.
+
+**B8 is exempt from the cap.** Every other rule's tuples may be demoted when the `GR-22` cap binds; a demoted B8 tuple would leave a normative row that `/export-application` step 1.5 refuses to export, converting a cheap question now into a blocked export later. If the cap would demote a B8 tuple, demote a score-3 tuple instead.
 
 The table is the **closed set** of priority scores. Adding a new Tier A/B/D rule to this skill must include an explicit row here when the rule ships; otherwise the cap step has no basis to rank that rule's tuples and they would tie at score 0 (sorted last among AI-SUGGESTED items, demoted first).
 
@@ -82,6 +85,7 @@ The Tier C sections below are short-circuited at step 4 — they are completenes
 | B5 | Every §4.2 story / §6.1 F-NN / §6.2 BR-NN / §5 task-flow step has a populated `Acceptance criteria` cell | fabricate from observable signals when input is silent; `[AI-SUGGESTED: non-blocking]`. Phrase behaviourally per `GR-21`; never visually. §6.1 / §6.2 cells use EARS keywords per `GR-23`; §4.2 / §5 / §6.4 stay observable-signal. |
 | B6 | Every §4.2 story / §6.1 F-NN / §6.4 UI-NN has a `Priority` value (`Must` / `Should` / `Could` / `Won't`) | **no fabrication, no `[AI-SUGGESTED]`.** Priority is filled at decision-tree step 2 by `GR-24` (`[STANDARD-RULE: GR-24]`) when the input is silent. Warn only if a row is still missing a priority after the GR-24 pass. |
 | B7 | Every §6.6.1 field not resolved by `GR-19` and every §6.6.2 metric has a populated value | fabricate from the §1 domain + §10 volume bands; `[AI-SUGGESTED: non-blocking]` (the sections are scope-noted application-build guidance — a wrong guess cannot propagate into the prototype build). This rule pulls §6.6.x fields into decision-tree step 3 so they are never OOS-routed at steps 4/5; `framework/shared/prototype-scope.md` confirms these sections are not Filter-Out content. |
+| B8 | No **normative** unit carries prototype-realization vocabulary | Run the detector in `framework/shared/prototype-scope.md > Normative-section prototype-vocabulary ban` over that section's closed normative set (§1.6 / §6.1 / §6.2 / §6.3 / §6.4 incl. §6.4.5 / §6.6.4 / §7 incl. §7.X / §6.10 `Notes`). Each hit emits one tuple, `[AI-SUGGESTED: AI-NNN | blocking]`, whose `draft_context` quotes the offending fragment and asks the consultant to choose: **confirmed** (genuinely part of the domain — some real systems *are* session-scoped, and "fixture" is legitimate in test-data domains) or **corrected** (supply application-correct wording; a realization note worth keeping goes inside a `PROTO-ONLY` scope span, which moves it out of the normative unit). **No fabrication, no auto-rewrite, no auto-marking** — this rule only raises the question. Identical under both targets. |
 
 ## Tier D — mixed (in-scope only when visually manifested)
 

@@ -57,7 +57,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Properties closed set | Blueprint's per-surface list of allowed data properties; the anti-fabrication boundary. | `blueprint-architect.md` |
 | Prototype | One hi-fi clickable client-side realization of a scope; accrues in one shared app. | `prototype-orch.md` |
 | Prototype invariant (PI-NN) | Behavioural contract every prototype satisfies (`PI-01..08`). | `shared/prototype-invariants.md` |
-| Provenance markers | Closed tag set: `[AI-SUGGESTED]` `[STANDARD-RULE]` `[OUT-OF-SCOPE]` `[POSTURE-DEFAULT]`. | `CLAUDE.md > Markers in content` |
+| Provenance markers | Closed tag set: `[AI-SUGGESTED]` `[STANDARD-RULE]` `[OUT-OF-SCOPE]` `[POSTURE-DEFAULT]`. Excludes the scope marker — different axis. | `CLAUDE.md > Markers in content` |
 | Realization (realization strategy) | Closed-enum IA choice turning a surface into screen(s): standalone/drawer/expand/wizard/modal. | `realization-strategies.md` |
 | Refusal (RF-NN) | Canonical halt predicate; pause/hard-halt with defined severity. | `shared/refusal-registry.md` |
 | Resolver | Second triplet agent: resolves `[AI-SUGGESTED]` markers with the consultant. | — |
@@ -66,6 +66,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Review resolutions document | Consultant-approved `/resolve-review` output: a NEW dated `input/` file turning selected review findings into corpus material (verbatim-anchored, origin-marked, supersession-explicit). | `assets/resolve-review/template-resolutions.md` |
 | Reviewer | Anyone evaluating a generated prototype (uses the role switcher). | — |
 | Scope | The requirement-ID subset a wireframe/prototype run addresses; captured in `scope.json`. | `scope-selector.md` |
+| Scope marker (`[PROTO-ONLY]`) | Paired span marking prototype-only content; different axis from a provenance marker, so it co-occurs with `[SRC:]`. Merger retains; `/export-application` deletes whole. | `shared/prototype-scope.md` |
 | Scope-slug | Kebab-case scope id naming `blueprints/`/`wireframes/`; cf. name-slug (a prototype). | `scope-selector.md` |
 | Seed | The act of hydrating a store from fixtures (`seedFromFixtures()`). | — |
 | Self-validation | An agent's pre-handback checks; each write verified by `verify-artifact-write`. | `skills/verify-artifact-write.md` |
