@@ -75,7 +75,7 @@ requirements-merger → prototype-invariants.md
 
 ---
 
-## 2. design-system-orch.md · 31 nodes / 42 edges / depth 5
+## 2. design-system-orch.md · 32 nodes / 44 edges / depth 5
 
 ```
 orch → design-system-styler, context-hygiene, refusal-registry
@@ -88,11 +88,12 @@ design-system-styler → steps/step-01-activate … step-07-handback,
   step-04b-domain → prompt-templates/domain-suggestion.md (only when {{business_signals}} present)
   step-05-brand-extraction → prompt-templates/brand-extraction.md,
        data/insufficient-data-handling.md, data/color-extraction-rules.md, data/font-rules.md,
-       data/typography-scale-rules.md, data/shadow-motion-rules.md
+       data/font-availability-rules.md, data/typography-scale-rules.md, data/shadow-motion-rules.md
   step-05b-domain-inference → data/contrast-validation.md, prompt-templates/domain-inference.md,
        data/cross-mode-derivation-rules.md
   step-06-artifact-generation → prompt-templates/artifact-generation.md, template-design-system.html,
-       design-system-standards.html, data/component-catalogue.md, verify-artifact-write
+       design-system-standards.html, data/component-catalogue.md, data/font-availability-rules.md,
+       verify-artifact-write
 prompt-templates/artifact-generation.md → template-design-system.html
 preflight-mcp → refusal-registry
 ```
@@ -105,6 +106,7 @@ preflight-mcp → refusal-registry
 - **`step-06` renders once per mode** in `{{files_to_write}}` (the consultant's choice ∪ the hue-source mode, so one file or two), hue-source file first and verified before the derived render begins. Output is `design-system/design-system-<mode>.html`; the unsuffixed path is retired. This is a loop over the same node set, not extra nodes.
 - `template-design-system.html` shared by `step-06` (operative loader) and `prompt-templates/artifact-generation.md` (which tells step-06 to read it).
 - `data/component-catalogue.md` (step-06 only) owns the Components CSS + per-family `Live demo` / `States matrix` HTML; step-06 token-substitutes token refs into the template placeholders.
+- `data/font-availability-rules.md` is the only styler data file read by **two** steps: `step-05` (§4b classifies each extracted family's availability and picks a substitute) and `step-06` (§C's assertions check `param` against its §4.1 / §4.2 lists). The second read is deliberate duplication, not an oversight — §C is a fail-closed gate and must not depend on an earlier step's context surviving. It also owns the one **outbound network call outside `step-04`**: at most five single-family `fonts.googleapis.com` probes via `WebFetch` (up to two spelling candidates per family slot, plus one known-good control), reached only when the on-disk evidence and the curated tables are both inconclusive. A probe failure resolves to `unverified` and the run continues, so this path has **no `RF-NN`** — the same "convenience with a correct degraded outcome" reasoning as `artifact-preview.md`.
 - `design-system-standards.html` names `template-design-spec.md` only in prose → not an edge. (`.md` sibling is the human-edit SoT; styler reads only the `.html`.)
 - The styler subtree reaches nothing in `requirements/`, `state/`, or the shared policy files; the orchestrator no longer reads `requirements/` or `state/` either (the context-bloat preflight was retired).
 

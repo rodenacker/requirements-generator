@@ -219,6 +219,15 @@ Nothing in the pipeline assumes light: a reference URL ships a dark palette as r
 Canonical source: `framework/agents/design-system-styler/data/cross-mode-derivation-rules.md`.
 Not to be confused with: **mode (design-system)** (which scheme a *file* renders), **provenance marker** (the two-value `prov` set, which derivation does not extend).
 
+### font substitution
+Keeping a brand typeface that **cannot be loaded from Google Fonts** in first position of a family token and adding a verified Google-hosted stand-in behind it — `'Gotham', 'Montserrat', sans-serif`. The first name is the **brand family** (what the client actually uses); the second is the **loadable family** (what the artefact and the prototypes actually fetch). The CSS cascade performs the substitution at render time, so a machine with the licensed face installed renders the real brand font unchanged.
+
+Applies to the **availability** axis only, and only to a family that has already passed the **brand-ness** axis (`font-rules.md` §1). A family that is *not* a brand — `Arial`, `Segoe UI`, `system-ui` — is never substituted; it is left unset and domain-inferred. Substitution happens only on positive evidence of unavailability (a curated table row, or a failed probe alongside a *succeeding* control); when availability cannot be established the outcome is `unverified` and the brand family is left untouched, because silently replacing a real brand font with a lookalike is worse than loading nothing.
+
+Recorded as `meta.brand_fonts.families[].status` (`google-native` | `substituted` | `unverified`) plus a deduped `links` array, consumed verbatim by the artefact's `<head>` and, downstream, by `/prototype` via `.scaffold.json`. `status` is an **availability** enum, not a provenance marker — the `prov` set stays closed at two, and a substituted token keeps whichever marker it already had.
+Canonical source: `framework/agents/design-system-styler/data/font-availability-rules.md`.
+Not to be confused with: **non-brand family** (`font-rules.md` §1 — the other axis, with the opposite outcome), **provenance marker** (which substitution does not extend).
+
 ### colour-mode strategy
 How a prototype's users move between light and dark — one of `toggle` (a control in the application UI, defaulting to the OS/browser setting), `system` (follows `prefers-color-scheme`, no control), `none` (a single mode, no switching), or `custom` (consultant free text, bounded to the default mode / control placement / 2- vs 3-state). Chosen **once per app** at `/prototype` Step B(4b) and locked into `prototypes/.scaffold.json` alongside the brand (D1); later runs ask nothing.
 

@@ -258,6 +258,7 @@
     <li>These standards are static and domain-agnostic within the productivity / data-management application class. They do not vary by brand, domain, or generated tokens.</li>
     <li>When a specific prototype needs an exception, document it in the design-spec (<code>framework/assets/template-design-spec.md</code>), not by editing the design-system output.</li>
     <li>Components not covered above still inherit the universal rules in sections 2–5 (animation, interaction, accessibility, content).</li>
+    <li><strong>Where a family token names two typefaces</strong> (e.g. <code>'Gotham', 'Montserrat', sans-serif</code>), the first is the brand's own typeface and the second is a Google-Fonts stand-in that this document and the prototypes actually load — the brand face is licensed and not available as a webfont here. The substitute is chosen for the closest match in weight, width and x-height, but it is not the brand face. In production, licence and self-host the first-named typeface; the stack then renders it with no code change, and the stand-in stays as the fallback.</li>
   </ul>
 
   <p class="back-to-top"><a href="#top">Back to top ↑</a></p>

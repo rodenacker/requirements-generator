@@ -3,7 +3,8 @@
   `framework/agents/design-system-styler/steps/step-06-artifact-generation.md`.
 
   Purpose: Self-contained HTML scaffold for the brand design-system doc.
-  `<!doctype html>` + inlined `<style>` + `<body>` — no external CSS/JS, no CDN.
+  `<!doctype html>` + inlined `<style>` + `<body>` — no external CSS/JS, and no
+  CDN resource other than the brand webfont links described below.
   Viewable via `file://` in a browser; shareable with consultants without tooling.
 
   Dual-purpose encoding:
@@ -19,7 +20,8 @@
   (human); drop a section in one, drop it in the other.
 
   Section order — contractual, do not reorder:
-    1. <head>             — <title>, <meta>, inlined <style>.
+    1. <head>             — <title>, <meta>, {{BRAND_FONT_LINKS}}, inlined
+                            <style>.
     2. <script id="design-tokens"> — JSON token block.
     3. <header>           — H1, attribution blockquote, generated-at line.
     4. <nav class="doc-toc"> — Anchor links to every section below
@@ -130,7 +132,17 @@
         "mode_choice":        "<light-only | dark-only | both>",
         "hue_source":         "<extracted-light | extracted-dark |
                                 domain-inferred-light>",
-        "primary":            "<true | false>"
+        "primary":            "<true | false>",
+        "brand_fonts": {
+          "families": [
+            {"role": "heading", "brand": "<family>", "loadable": "<family-or-null>",
+             "param": "<google-family-param-or-null>",
+             "status": "<google-native | substituted | unverified>",
+             "evidence": "<which ladder tier decided it>"},
+            {"role": "body",    ... }
+          ],
+          "links": ["<one css2 url per distinct loadable family>"]
+        }
       },
       "colours": {
         "primary":    {"hex": "#RRGGBB", "prov": "extracted-from-url|inferred-from-domain", "source": "<source context>"},
@@ -179,6 +191,19 @@
         "adjustments": "<comma-separated adjustments record or 'none'>"
       }
     }
+
+  meta.brand_fonts.families[].status IS NOT A PROVENANCE MARKER. `prov` has
+  exactly two values (extracted-from-url | inferred-from-domain) and that set is
+  closed — a substituted family keeps whichever marker it already had, because
+  substitution is about delivery, not about where the value came from. `status`
+  answers a different question ("can this face be fetched?"), which is why it
+  lives in `meta` alongside `extraction_status` rather than on the token. Do not
+  add a third `prov` value for it.
+
+  brand_fonts is derived from the two typography family tokens, and typography
+  is mode-invariant, so this object is BYTE-IDENTICAL in the light and dark
+  files. Canonical definition of every field, and of the ladder that sets
+  `status`: framework/agents/design-system-styler/data/font-availability-rules.md.
 
   COLOUR ROW SCHEMA — {{COLOUR_SWATCHES}} substitutes 11 <li> blocks of:
 
@@ -270,7 +295,33 @@
   radio inputs + :checked; modal uses native <details>/<summary>. No JS.
 
   No external <script> tags in this template — the JSON block is data, not code.
-  No HTTP/CDN resources referenced anywhere. The file is openable via file://.
+  The file is openable via file://.
+
+  BRAND FONT LINKS — {{BRAND_FONT_LINKS}} in <head> is the ONE deliberate
+  exception to "no CDN resources", and it is narrow: one
+  <link rel="stylesheet"> per loadable brand family, pointing at
+  fonts.googleapis.com. No scripts, no images, no other host. Rendered by
+  step-06 from `meta.brand_fonts.links`; see
+  `framework/agents/design-system-styler/data/font-availability-rules.md` §6.3.
+
+  Why it earns the exception: without it, EVERY family specimen renders in the
+  reader's system fallback while its label says `'Manrope', sans-serif`. The
+  consultant cannot see the typography they are being asked to approve, and the
+  ~20 component specimens are drawn in a face the brand does not use. The
+  artefact keeps every property that made the no-CDN rule worth having: it is
+  still one file, still openable via file://, still fully readable offline, and
+  still free of executable third-party content. Offline, the font requests
+  simply fail and each specimen falls through to the generic terminal that
+  font-rules.md §4 guarantees every emitted stack carries — the same graceful
+  degradation `framework/assets/prototypes/app-shell-spec.md` chose for
+  `/prototype`, and the reason a <link> is right where a build-time fetch
+  would not be.
+
+  Do not "restore" the invariant by deleting the placeholder, and do not
+  broaden it: a second host, a <script>, or a remote image is a different
+  decision and this comment does not authorise it. A family whose availability
+  could not be verified contributes no link at all, so the artefact never
+  requests a face that is not known to exist.
 
   MODES — this template is rendered ONCE PER COLOUR MODE. Each render is a
   complete, single-mode document; there is no in-document mode switcher.
@@ -341,12 +392,19 @@
       --shadow-card: 0 1px 2px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.06);
 
   The chrome's TYPEFACE is part of the same deal, and is deliberately
-  `system-ui, sans-serif` in the `html, body` rule below. Two reasons, both
-  intentional: the reviewer's eye must separate document furniture from the
-  brand specimens (a doc rendered in the brand font makes every specimen look
-  correct), and the artefact loads no webfont, so the chrome has nothing else
-  it could honestly use. It is therefore EXEMPT from the non-brand-family
+  `system-ui, sans-serif` in the `html, body` rule below. The reviewer's eye
+  must separate document furniture from the brand specimens — a doc rendered in
+  the brand font makes every specimen look correct, because the surrounding
+  page agrees with it. It is therefore EXEMPT from the non-brand-family
   prohibition in font-rules.md §1, which governs brand family tokens only.
+
+  This reason is now the ONLY reason, and it carries the whole decision alone.
+  The second one used to be "the artefact loads no webfont, so the chrome has
+  nothing else it could honestly use" — no longer true now that
+  {{BRAND_FONT_LINKS}} loads the brand faces. The chrome could render in the
+  brand font, and must still not: the separation argument was always the
+  load-bearing one, and a loaded webfont makes honouring it MORE important,
+  not less. Do not let the brand family reach the chrome.
 
   Do not "fix" this back to a long platform stack. The previous value ended
   `..., Roboto, "Helvetica Neue", Arial, sans-serif` and was the only literal
@@ -391,6 +449,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Design System ({{MODE_LABEL}}) — {{DOMAIN}}</title>
+{{BRAND_FONT_LINKS}}
   <style>
     :root {
 {{DOC_CHROME_VARS}}

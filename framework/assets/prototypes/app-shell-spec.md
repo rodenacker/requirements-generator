@@ -47,17 +47,25 @@ Render these as the **first children of `<head>`**, before the colour-mode scrip
 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 <link
   rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+  href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap"
+/>
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
 />
 ```
 
-- Build the `family=` segments from the **named** family of `--font-heading` and `--font-sans` in `theme.css` (the part before the generic terminal, URL-encoded with `+` for spaces). Emit **one** `family=` segment when the two resolve to the same face — the common case, since the design-system's two families are usually identical.
+- **When `.scaffold.json` has a non-null `brand_fonts`, emit its `links` array verbatim — one `<link rel="stylesheet">` per entry — and derive nothing.** `/design-system` already resolved which name in each stack is actually fetchable and built one URL per family; that record exists precisely so this step does not have to guess. The example above shows the two-family shape as two separate links.
+  - **Do not merge them into one `?family=A&family=B` request.** Verified behaviour: Google returns **200 and silently drops** a family it does not recognise, so a combined request cannot fail visibly — a missing brand font looks exactly like a working one. One link per family keeps each face's success its own.
+  - A slot whose availability could not be confirmed is deliberately **absent** from `links`. Do not add it back: its stack still names the brand family first, so it renders if the face is installed and falls through to the generic terminal otherwise.
+  - A **two-name** stack (`'Gotham', 'Montserrat', sans-serif`) means the brand face is licensed and not on Google Fonts; `links` requests the *second* name. Never build a `family=` segment from the first name of such a stack — `?family=Gotham` returns 400, and inside a combined request it fails silently.
+- **Legacy / non-design-system fallback** — when `brand_fonts` is null (a `design-system-*.html` written before the field existed, or brand source `consultant-url` / `consultant-tokens` / `template-defaults`): build the `family=` segments from the **named** family of `--font-heading` and `--font-sans` in `theme.css` (the part before the generic terminal, URL-encoded with `+` for spaces), one link per distinct family. Emit **one** link when the two resolve to the same face — the common case, since the design-system's two families are usually identical.
 - Weights are always `400;500;600;700`. That covers `--brand-body-weight` and `--brand-heading-weight` for every value the design-system emits (`font-rules.md` constrains weights to two of these) plus the `font-medium`/`font-semibold` utilities the primitives use. Do not compute a narrower axis list — a missing weight is synthesised by the browser as a smeared faux-bold, which looks worse than the extra request.
 - `display=swap` is required: text paints immediately in the fallback and reflows once, rather than blocking first paint on a network fetch the smoke gate is timing.
-- Record the emitted href in `.scaffold.json` as `brand_fonts.href` (plus `brand_fonts.families`) so a later run can tell what was requested without re-parsing `theme.css`.
+- Record what was emitted in `.scaffold.json` under `brand_fonts` — `{ families, links }` as `extract-brand-theme.md` returned it, or on the legacy fallback path `{ links }` alone — so a later run can tell what was requested without re-parsing `theme.css`.
 - When the brand source is `template-defaults`, this still runs — the template default names `Inter`, which is a real face worth loading.
 
-**A `<link>`, not `next/font/google` — deliberate.** `next/font` resolves and self-hosts the face at **build** time, so a machine without network access turns a cosmetic concern into a hard scaffold failure (`RF-13`). A stylesheet link degrades gracefully: offline, or for a family that is not on Google Fonts, the request fails and rendering falls through to the generic terminal that `font-rules.md §4` guarantees every emitted stack carries (`'Manrope', sans-serif` — one named family, one generic). The prototype stays correct and buildable either way; it is only less pretty. Do not "upgrade" this to `next/font` — and note that this layout is `'use client'`, so it cannot export `metadata` and has no server-side font pipeline available to it anyway.
+**A `<link>`, not `next/font/google` — deliberate.** `next/font` resolves and self-hosts the face at **build** time, so a machine without network access turns a cosmetic concern into a hard scaffold failure (`RF-13`). A stylesheet link degrades gracefully: offline, or for a family whose availability `/design-system` could not confirm, the request simply does not happen or does not succeed, and rendering falls through to the generic terminal that `font-rules.md §4` guarantees every emitted stack carries (`'Manrope', sans-serif` — one named family, one generic; `'Gotham', 'Montserrat', sans-serif` for a substituted slot — two named families, still one generic). The prototype stays correct and buildable either way; it is only less pretty. Do not "upgrade" this to `next/font` — and note that this layout is `'use client'`, so it cannot export `metadata` and has no server-side font pipeline available to it anyway.
 
 ## Colour-mode mechanism
 
@@ -230,9 +238,23 @@ The DOM sweep in `verify-prototype-build.md` only measures pairs some component 
 
   `--primary`/`--primary-foreground`, `--secondary`/`--secondary-foreground`, `--destructive`/`--destructive-foreground`, `--error`/`--error-foreground`, `--success`/`--success-foreground`, `--warning`/`--warning-foreground`, `--info`/`--info-foreground`, `--sidebar-primary`/`--sidebar-primary-foreground`, `--accent`/`--accent-foreground`, `--sidebar-accent`/`--sidebar-accent-foreground`.
 
-  Ten pairs per block — twenty checks when both blocks exist. Deliberately **not** included: `text`/`text_muted` against `background`/`surface`, which `/design-system` already gates (*What is not gated here*, same skill) — nor the `token/NN` opacity composites, which are the DOM sweep's job because they depend on what actually renders.
-- assert **every** pair clears **4.5:1** in **both** blocks. Report each failure as `<block> <fill_var> <fill> × <fg_var> <fg> = <ratio>:1` so the number is in the failure message, and flag any pair below 3:1 as below even the large-text floor.
-- Validated in both directions: the template's own `theme.css` passes all ten `:root` pairs, and a fixture carrying the run's five original `#FFFFFF` on-colours reports exactly those five — `--primary` at 3.98:1 (the same number this file already cites for that fill), `--warning` at 2.95:1, `.dark --secondary` at 1.23:1.
+  Deliberately **not** included: `text`/`text_muted` against `background`/`surface`, which `/design-system` already gates (*What is not gated here*, same skill).
+- **and for each pair, every `token/NN` opacity state that fill appears in** — composited over that block's own `--background` before measuring, exactly as `extract-brand-theme.md`'s procedure step 1 does. The state list and its **`Modes`** applicability are canonical in that skill's *The states to check* table; resolved against the ten pairs above it comes to:
+
+  | Pair | Extra states | Modes |
+  |---|---|---|
+  | `--primary` | `/90` | both |
+  | `--secondary` | `/80`, `/90` | both |
+  | `--destructive`, `--error` | `/90` | both |
+  | `--destructive`, `--error` | `/60` | `.dark` block only |
+  | `--accent`, `--sidebar-accent` | `/50` | `.dark` block only |
+
+  **Filter by `Modes` — a mode-blind audit is worse than no audit.** `destructive/60` comes from `dark:bg-destructive/60`, which a light set never paints; scored against the light block it reports a fill the app cannot render. Measured on the template's own `:root`: a bogus **3.01:1** failure. Same for `accent/50` (`dark:hover:bg-accent/50`).
+
+  Roughly sixteen checks per block, still pure arithmetic over hex — no page, no DOM, no colour-syntax parsing (`theme.css` is hex by contract, `extract-brand-theme.md > Token mapping`).
+- assert **every** pair clears **4.5:1** at its **worst** state in **both** blocks — worst-state, not resting-state, mirroring `extract-brand-theme.md`'s procedure step 2. Report each failure as `<block> <fill_var>[/<NN>] <composited fill> × <fg_var> <fg> = <ratio>:1` so the number and the state are both in the failure message, and flag any pair below 3:1 as below even the large-text floor.
+- **Why the composites belong here and not only in the DOM sweep.** The sweep measures pairs some component happens to render on one route; this audit measures the palette. That distinction stopped being academic on 2026-07-30: the per-prototype sweep hand-rolled its colour parser, could not read the `oklab()` that Tailwind v4 compiles `bg-primary/90` into, and treated the unparseable fill as *absent* — so for the whole period that bug existed, the `token/NN` states had **no** enforcement anywhere, which is precisely the class `extract-brand-theme.md`'s worst-state rule and fill-nudge exist for. Two independent gates on the composite states is the point, not duplication.
+- Validated in both directions: the template's own `theme.css` passes all ten `:root` pairs **and their light-mode composites** (worst: `destructive/90` at 4.65:1 after the 2026-07-30 fill nudge — it measured **4.35:1** before, which is the defect this extension caught on its first run); a fixture carrying the run's five original `#FFFFFF` on-colours reports exactly those five — `--primary` at 3.98:1 (the same number this file already cites for that fill), `--warning` at 2.95:1, `.dark --secondary` at 1.23:1; and a two-mode fixture whose `.dark --destructive: #EC5555` / `--destructive-foreground: #000000` reports the `/60` state at **3.11:1** while its solid pair passes at 6.00:1 — the exact miss a solids-only audit cannot see.
 
 Why this exists: `extract-brand-theme.md` is already correct — it says *"Measure against the fill; never infer from the mode"* and calls an unclearable pair a FAIL. A real run nonetheless reported `contrast: { checked: 42, adjustments: "none" }` while five pairs failed (a light-mode `--warning-foreground: #FFFFFF` measured **2.94:1**, below even the 3:1 large-text floor). The skill needed no amendment; the *claim* needed to be checkable rather than exhortative. Skip a pair only when a var is genuinely absent from `theme.css`, and say which in the failure message — never silently.
 
@@ -294,10 +316,11 @@ export const PROTOTYPES: PrototypeEntry[] = [ /* regenerated additively per run 
 ## Self-validation
 - Shell + chrome authored once; not regenerated per prototype.
 - `layout.tsx` carries `suppressHydrationWarning` on `<html>` and exactly one of the three literal init blocks (or none, for `strategy: none`); the class is never set from a `useEffect`.
-- `layout.tsx` carries the two `preconnect` links and one Google Fonts `stylesheet` link whose `family=` segments match the named families in `theme.css`'s `--font-heading` / `--font-sans`, at weights `400;500;600;700`, with `display=swap`; the href is recorded in `.scaffold.json` `brand_fonts`. No `next/font` import appears anywhere.
+- `layout.tsx` carries the two `preconnect` links and **one Google Fonts `stylesheet` link per loadable family** — each naming exactly one `family=`, at weights `400;500;600;700`, with `display=swap`. The set matches `.scaffold.json` `brand_fonts.links` exactly, which on a `design-system` brand source is the design-system's own `meta.brand_fonts.links`. No combined `family=A&family=B` href, and no `next/font` import anywhere.
 - `ThemeToggle.tsx` exists iff `colour_mode.strategy ∈ {toggle, custom}`; `e2e/theme-modes.smoke.spec.ts` exists iff `colour_mode.sets == ["light","dark"]`. Neither appears in `PrototypeChrome`.
 - `ThemeToggle.tsx` was authored as the **literal block** above: `useSyncExternalStore` + `getServerSnapshot`, no `setState` inside any effect, `data-slot="colour-mode-toggle"` on the `Button`, and an `aria-label` matching `/colour mode/i`. `npm run lint` exits zero (the mount-effect shape does not — `react-hooks/set-state-in-effect`).
 - `theme-modes.smoke.spec.ts` imports `PROTOTYPES` from `@/data/prototype-registry` and covers, beyond the `/` mechanism tests: (a) `[data-slot="colour-mode-toggle"]` visible **plus** the `/colour mode/i` accessible name on **every** `PROTOTYPES[].route` (for `strategy ∈ {toggle, custom}`), and (b) the static `theme.css` token-pair contrast audit over both blocks at 4.5:1. No route or pair is silently skipped.
+- The token-pair audit scores each pair at its **worst** state, not just the solid one — the `token/NN` composites from `extract-brand-theme.md`'s *states to check* table are included, **filtered by that table's `Modes` column** so no `dark:`-only state (`destructive/60`, `accent/50`, `input/30`) is ever scored against the `:root` block. A missing var is skipped with a reported reason; a missing block is skipped silently (the legitimate single-mode case).
 - For `strategy: none` with a dark single set, `<html>` carries a literal `className="dark"` and `theme.css`'s `:root` declares `color-scheme: dark`.
 - Chrome renders the active prototype's roles in the role switcher (PI-05) and a data-reset (PI-02); it is visually distinct and carries no requirement bindings (PI-08).
 - The role switcher renders roles inaccessible on the **current screen** as **disabled** (not hidden), resolved from `NAV_BY_PROTOTYPE` — the full PI-05 clause, not just hide-when-single-role.

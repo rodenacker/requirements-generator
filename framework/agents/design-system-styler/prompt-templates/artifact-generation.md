@@ -71,7 +71,8 @@ The `{{TOKENS_JSON}}` placeholder receives a JSON-serialised object with five to
     "mode": "{{mode}}",
     "mode_choice": "{{mode_choice}}",
     "hue_source": "{{hue_source}}",
-    "primary": {{primary}}
+    "primary": {{primary}},
+    "brand_fonts": {{brand_fonts}}
   },
   "colours": { ... 11 entries ... },
   "typography": { ... 15 entries ... },
@@ -90,8 +91,9 @@ The `{{TOKENS_JSON}}` placeholder receives a JSON-serialised object with five to
 - `meta.mode_choice`: what the consultant selected at step-05b — one of `light-only | dark-only | both`. The **same value in every written file**, so a reader of one file can tell what was asked for.
 - `meta.hue_source`: which palette is grounded, and how — one of `extracted-light` (the URL shipped a light scheme), `extracted-dark` (the URL shipped a dark scheme), or `domain-inferred-light` (no URL, or extraction did not complete; the light set came from domain inference). The **same value in every written file**.
 - `meta.primary`: a JSON **boolean** (not a string). `true` in exactly one written file — **the hue-source mode's file**, because that palette is the one grounded in the real brand; the derived mode is `false`. Derive it as `mode == hue_source_mode`. When only one file is written it is necessarily `true`.
+- `meta.brand_fonts`: the loadable-font contract assembled in step-05b §G — a `families` array of exactly two entries (`heading`, then `body`) plus a deduped `links` array. Emit `{{brand_fonts}}` as the object it already is; **do not rebuild or reorder it**. Its `status` values (`google-native | substituted | unverified`) are an *availability* enum, **not** a third `prov` marker — the `prov` set stays closed at two. Because typography is mode-invariant, this object is byte-identical in both written files. Canonical field definitions: `data/font-availability-rules.md` §6.2.
 
-Note that `meta.mode` varies per file while `mode_choice` and `hue_source` do not; `primary` is the join between them. The five top-level keys (`meta`, `colours`, `typography`, `effects`, `contrast`) and the 11 / 15 / 7 token counts are **unchanged** — these `meta` fields are purely additive, so existing downstream parsers of the `design-tokens` block keep working.
+Note that `meta.mode` varies per file while `mode_choice`, `hue_source` and `brand_fonts` do not; `primary` is the join between them. The five top-level keys (`meta`, `colours`, `typography`, `effects`, `contrast`) and the 11 / 15 / 7 token counts are **unchanged** — these `meta` fields are purely additive, so existing downstream parsers of the `design-tokens` block keep working.
 
 Each colour / typography / effects entry has the shape `{"hex" | "value": "...", "prov": "extracted-from-url|inferred-from-domain", "source": "..."}`. The full key list is documented in the template's JSON SHAPE comment block.
 
@@ -179,17 +181,50 @@ Rendering the derived mode is not a different procedure; it is the same procedur
 
 One `<li class="swatch-row">` per token (primary / secondary / accent / background / surface / text / text-muted / success / warning / error / info). Hex values in `#RRGGBB` (uppercase hash, 6-digit). Inline style on `.swatch`: `background: {{hex}}`.
 
+### `{{BRAND_FONT_LINKS}}` (0–2 links, in `<head>`)
+
+Emit `meta.brand_fonts.links` **verbatim**, one `<link>` element per entry, indented two spaces to match the surrounding `<head>`:
+
+```html
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap">
+```
+
+- The list is already built, deduped and ordered by step-05b §G per `data/font-availability-rules.md` §6.3. **Do not rebuild it here** and do not re-derive family names from the token stacks — a substituted stack names two families and only one of them is fetchable, which is exactly the ambiguity `brand_fonts` exists to remove.
+- **Never merge two families into one `family=A&family=B` request.** Such a request returns 200 even when one family does not exist, so a mistake becomes undetectable. One link per family keeps each face's success its own.
+- When `links` is `[]` (neither family's availability could be verified), substitute the single line `  <!-- no verified webfont for either brand family -->` so the placeholder is still replaced and step-06 §C's no-leftover-placeholder check passes.
+- Add nothing else: no `preconnect`, no second host, no `<script>`. The template comment authorises these links and only these.
+
 ### `{{TYPE_FAMILY_SPECIMENS}}` (2 rows)
 
 Heading and body families. Each `<div class="type-specimen">` has a meta column (token name, value, source, prov) and a sample column whose inline style is `font-family: {{family-stack}}; font-weight: {{paired-weight}};`. The pangram `The quick brown fox jumps over the lazy dog 1234567890` renders at the default body font-size — the goal is to demonstrate glyph shapes and the family stack, not size.
 
-**Prepend one rendering note** before the two specimen blocks, using the template's `.type-render-note` class:
+For a slot whose `meta.brand_fonts` entry has `status: "substituted"`, append one line to that row's meta column, after the source and before the prov badge, so the reader can see at a glance which face they are actually looking at:
 
 ```html
-<p class="type-render-note">This artefact loads no webfont, so each sample below renders in its named family only if that face is installed on this machine — otherwise you are seeing your system's fallback. The token value is the contract; use it to source the real typeface.</p>
+<span class="type-source">{{brand}} is licensed and not on Google Fonts — rendering in {{loadable}}</span>
 ```
 
-This is not a hedge, it is the honest reading of a self-contained artefact. Without it a consultant reviews a sample labelled `'Manrope', sans-serif` while looking at Segoe UI and concludes the brand font is wrong. Do not soften it, and do not drop it when the family happens to be installed locally — the artefact is read on other machines too.
+**Prepend one rendering note** before the two specimen blocks, using the template's `.type-render-note` class. Pick the variant that matches this run's `meta.brand_fonts` — **exactly one** note is emitted either way, so step-06 §C's "`class="type-render-note"` appears exactly once" check holds:
+
+**(a) every family loadable** — both entries have a non-null `param`:
+
+```html
+<p class="type-render-note">The brand families below are loaded from Google Fonts, so these samples show the real letterforms. Open this file without a network connection and each sample falls back to your system font instead — the token value is always the contract.</p>
+```
+
+**(b) one loadable, one not** — exactly one entry has `status: "unverified"`:
+
+```html
+<p class="type-render-note">{{loadable-family}} is loaded from Google Fonts and renders here for real. {{unverified-family}} could not be confirmed as available, so it is not loaded — that sample renders in it only if the face is installed on this machine, otherwise you are seeing your system's fallback.</p>
+```
+
+**(c) neither loadable** — both entries are `unverified`:
+
+```html
+<p class="type-render-note">This artefact loads no webfont for these families — neither could be confirmed as available — so each sample below renders in its named family only if that face is installed on this machine. Otherwise you are seeing your system's fallback. The token value is the contract; use it to source the real typeface.</p>
+```
+
+The note is not a hedge, it is the honest reading of what the file actually does. Without an accurate one a consultant reviews a sample labelled `'Manrope', sans-serif` while looking at Segoe UI and concludes the brand font is wrong. Do not soften any variant, do not merge them into one hedged sentence covering every case, and **do not keep using variant (c) once the links are emitted** — a note claiming the artefact loads no webfont while `<head>` loads two is worse than no note, because it teaches the reader to distrust a specimen that is in fact correct.
 
 ### `{{TYPE_SIZE_SPECIMENS}}` (8 rows)
 
@@ -250,4 +285,4 @@ The colour constants among them are authored **black-based**, which only reads o
 - Do not begin the derived render until the hue-source file has been written **and** its verify returned `pass`. A derived palette is meaningless without the grounded one on disk, and a half-written pair is worse than a single file.
 - Never write an artefact incrementally. Each render is built fully in memory, then written in one atomic Write call.
 - Never edit a previously-written `design-system-*.html` in this step — overwrites are governed by the orchestrator's startup gate, not by step-06.
-- HTML escaping is not required for token values: hex codes (`#RRGGBB`), CSS lengths (`16px`, `1.5`), font-family stacks (`'Manrope', sans-serif`), and shadow declarations contain no HTML-special characters under any extraction status. The attribution paragraph and source-context strings come from a closed set of pre-defined formats that likewise contain no HTML-special characters.
+- HTML escaping is not required for token values: hex codes (`#RRGGBB`), CSS lengths (`16px`, `1.5`), font-family stacks (`'Manrope', sans-serif`, or `'Gotham', 'Montserrat', sans-serif` for a substituted slot), and shadow declarations contain no HTML-special characters under any extraction status. The `&` separating query parameters inside a `brand_fonts.links` URL is **not** escaped either: each link carries only `family=` and `display=`, and `&display=swap` is valid unescaped in an HTML attribute. The attribution paragraph and source-context strings come from a closed set of pre-defined formats that likewise contain no HTML-special characters.

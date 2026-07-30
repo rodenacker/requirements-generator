@@ -85,13 +85,182 @@ Exactly one of:
       // MANDATORY: kill transitions/animations before measuring — see the note below.
       await page.addStyleTag({ content:
         '*,*::before,*::after{transition:none!important;animation:none!important}' })
+      await page.evaluate(INSTALL_SWEEP)   // the literal block below — author it verbatim
       for (const scheme of ['light', 'dark'] as const) {
         await page.emulateMedia({ colorScheme: scheme })
-        const bad = await page.evaluate(() => { /* the sweep — see below */ })
+        const bad = await page.evaluate(() => (window as any).__protoSweep.measureAll('rest'))
         expect(bad, `contrast failures in ${scheme}: ${JSON.stringify(bad)}`).toHaveLength(0)
         // hover pass: for up to 10 interactive elements, hover then re-measure that element
+        // via __protoSweep.measureOne(node, 'hover')
       }
+      await page.emulateMedia({ colorScheme: null })
     })
+    ```
+
+    **`INSTALL_SWEEP` — author this block VERBATIM. Do not improvise the colour resolution.**
+    Everything below the `resolve()`/`effectiveBg()` pair (the selector list, the thresholds, the icon check) is ordinary and may be adapted; **those two functions may not be**. They were re-derived from prose on every run until 2026-07-30, and the version one run produced could not read `oklab()` — which is what Tailwind v4 compiles **every** opacity modifier into (`bg-primary/90` → `color-mix(in oklab, …)`; `getComputedStyle` returns `oklab(0.773639 -0.0852014 -0.0883295 / 0.9)`). It treated the unparseable fill as *absent*, walked past it to an ancestor, and measured the label against a colour the element never had. Verified against Chromium, not assumed.
+
+    ```ts
+    const INSTALL_SWEEP = () => {
+      interface RGBA { r: number; g: number; b: number; a: number }
+
+      const canvas = document.createElement('canvas')
+      canvas.width = 1
+      canvas.height = 1
+      const ctx = canvas.getContext('2d', { willReadFrequently: true })
+
+      /**
+       * oklab/oklch -> sRGB. FALLBACK ONLY — the canvas below converts natively in any
+       * current Chromium. This exists because `playwright.config.ts` resolves whichever
+       * system Chrome/Edge is installed (see its browser-resolution block), so the
+       * browser's colour support is NOT pinned and a version too old for `oklch` is a
+       * real deployment, not a hypothetical.
+       */
+      const oklabToRgb = (L: number, a: number, bb: number, alpha: number): RGBA => {
+        // oklab -> LMS' -> linear LMS -> linear sRGB (Ottosson's inverse matrices).
+        const l_ = L + 0.3963377774 * a + 0.2158037573 * bb
+        const m_ = L - 0.1055613458 * a - 0.0638541728 * bb
+        const s_ = L - 0.0894841775 * a - 1.291485548 * bb
+        const l = l_ * l_ * l_, m = m_ * m_ * m_, s = s_ * s_ * s_
+        const lr = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s
+        const lg = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s
+        const lb = -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s
+        const enc = (v: number) => {
+          const c = v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(Math.max(v, 0), 1 / 2.4) - 0.055
+          return Math.min(255, Math.max(0, Math.round(c * 255)))
+        }
+        return { r: enc(lr), g: enc(lg), b: enc(lb), a: alpha }
+      }
+
+      /** Parse `oklab(L a b / A)` / `oklch(L C H / A)`. Hue units are REQUIRED, not optional:
+       *  treating `rad`/`turn`/`grad` as degrees silently returns a wildly wrong colour
+       *  (`oklch(0.7 0.15 4.36rad)` -> rgb(233,114,147) instead of rgb(75,163,247)). */
+      const parseModern = (value: string): RGBA | null => {
+        const m = /^ok(lab|lch)\(([^)]+)\)$/i.exec(value.trim())
+        if (!m) return null
+        const kind = m[1].toLowerCase()
+        const [coords, alphaPart] = m[2].split('/')
+        const n = coords.trim().split(/\s+/)
+        if (n.length < 3) return null
+        const num = (t: string, ref = 1) =>
+          t.endsWith('%') ? (parseFloat(t) / 100) * ref : parseFloat(t)
+        const L = num(n[0])
+        let A: number, B: number
+        if (kind === 'lab') {
+          A = num(n[1], 0.4)
+          B = num(n[2], 0.4)
+        } else {
+          const C = num(n[1], 0.4)
+          const hRaw = n[2].trim()
+          const v = parseFloat(hRaw)
+          // `grad` MUST be tested before `rad` — "grad" ends with "rad", so the
+          // looser test swallows it and reads 277.8grad as 277.8 radians.
+          const deg = /grad$/i.test(hRaw) ? v * 0.9
+            : /rad$/i.test(hRaw) ? (v * 180) / Math.PI
+            : /turn$/i.test(hRaw) ? v * 360
+            : v                                  // bare number or `deg`
+          const h = (deg * Math.PI) / 180
+          A = C * Math.cos(h)
+          B = C * Math.sin(h)
+        }
+        const alpha = alphaPart === undefined || alphaPart.trim() === '' || alphaPart.trim() === 'none'
+          ? 1 : num(alphaPart.trim())
+        if ([L, A, B, alpha].some((v) => !Number.isFinite(v))) return null
+        return oklabToRgb(L, A, B, alpha)
+      }
+
+      /**
+       * Resolve any CSS colour to RGBA, or null if it cannot be measured.
+       *
+       * Order matters. The canvas is tried FIRST because it is the browser's own
+       * converter: it handles oklab, oklch, lab, color(srgb …) and color(display-p3 …)
+       * with correct gamut mapping, so it stays right for syntax this file has never
+       * heard of. Read the PIXEL, never the `fillStyle` read-back string — Chrome echoes
+       * `oklab(...)` straight back, which is exactly what defeats a string parser.
+       *
+       * A rejected assignment is a silent NO-OP, not a throw, so it is detected with two
+       * sentinels: if the value is genuinely unassignable both probes survive. Two rather
+       * than one so a candidate that IS the sentinel colour cannot false-trip.
+       */
+      const resolve = (value: string): RGBA | null => {
+        if (!value || value === 'none' || value === 'transparent') return null
+        if (ctx) {
+          ctx.fillStyle = '#ff00ff'
+          ctx.fillStyle = value
+          let assigned = ctx.fillStyle !== '#ff00ff'
+          if (!assigned) {
+            ctx.fillStyle = '#00ffff'
+            ctx.fillStyle = value
+            assigned = ctx.fillStyle !== '#00ffff'
+          }
+          if (assigned) {
+            try {
+              ctx.clearRect(0, 0, 1, 1)
+              ctx.fillRect(0, 0, 1, 1)
+              const d = ctx.getImageData(0, 0, 1, 1).data
+              return { r: d[0], g: d[1], b: d[2], a: d[3] / 255 }
+            } catch { /* fall through to the converter */ }
+          }
+        }
+        return parseModern(value)   // null here => the caller reports `unresolved`
+      }
+
+      const lum = ({ r, g, b }: RGBA) => {
+        const f = (v: number) => {
+          const s = v / 255
+          return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4)
+        }
+        return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b)
+      }
+      const ratio = (x: RGBA, y: RGBA) => {
+        const a = lum(x), b = lum(y)
+        return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05)
+      }
+      const over = (fg: RGBA, bg: RGBA): RGBA => ({
+        r: fg.r * fg.a + bg.r * (1 - fg.a),
+        g: fg.g * fg.a + bg.g * (1 - fg.a),
+        b: fg.b * fg.a + bg.b * (1 - fg.a),
+        a: 1,
+      })
+
+      /**
+       * The element's effective background, compositing alpha over what sits behind it.
+       *
+       * A `backgroundColor` that is neither transparent nor resolvable is returned as
+       * `unresolved`, NEVER skipped. Skipping deletes that layer from the composite and
+       * yields a confident wrong ratio in BOTH directions: worse than reality over a dark
+       * page (a false fail) and better than reality over a light one (a false pass — the
+       * dangerous direction). Any future syntax then surfaces as "cannot measure" instead.
+       */
+      const effectiveBg = (
+        el: Element,
+      ): { colour?: RGBA; gradient?: boolean; unresolved?: string } => {
+        const chain: RGBA[] = []
+        let node: Element | null = el
+        while (node) {
+          const cs = getComputedStyle(node)
+          if (cs.backgroundImage && cs.backgroundImage !== 'none') return { gradient: true }
+          const raw = cs.backgroundColor
+          const bg = resolve(raw)
+          if (!bg && raw && raw !== 'none' && raw !== 'transparent' && !/^rgba?\(.*0\)$/.test(raw)) {
+            return { unresolved: raw }
+          }
+          if (bg && bg.a > 0) {
+            chain.push(bg)
+            if (bg.a >= 1) break
+          }
+          node = node.parentElement
+        }
+        let base: RGBA = chain.length && chain[chain.length - 1].a >= 1
+          ? (chain.pop() as RGBA)
+          : { r: 255, g: 255, b: 255, a: 1 }
+        for (let i = chain.length - 1; i >= 0; i -= 1) base = over(chain[i], base)
+        return { colour: base }
+      }
+      // …then measureOne(el, state) / measureAll(state) per the bullets below, exposed as
+      // window.__protoSweep. An `unresolved` background OR text colour is pushed as a
+      // finding with `ratio: null` and a note naming the syntax — it FAILS the test.
+    }
     ```
 
     > **Transitions must be disabled before measuring — this is not optional.** The shadcn `Button` carries `transition-all`, and `Input`/`Select`/`Badge` carry `transition-[color,box-shadow]`. `getComputedStyle` during a running transition returns the **current interpolated value**, which immediately after a mode flip is still the *old* colour. Measured empirically on this template: right after adding `.dark`, a primary button still reported `rgb(0,73,193)`/`rgb(250,250,250)` — the light pair — and only after the transition settled did it report the correct `rgb(59,130,206)`/`rgb(10,10,10)`. A sweep that skips this does not merely flake: it silently measures the **light** colours while believing it is testing dark, so it passes a genuinely broken dark mode. The `addStyleTag` above makes every read instant and deterministic; it changes only timing, never the final computed value. Apply the same treatment after `hover()` — hover fills transition too.
@@ -100,9 +269,10 @@ Exactly one of:
     - **Elements:** visible text inside `button, a, [role="button"], [data-slot="badge"], td, th, label, h1, h2, h3, h4`.
     - **Measure:** the element's computed `color` against its *effective* background — walk ancestors until a non-transparent `background-color`, compositing any alpha over what is behind it. Fail below **4.5:1**, or **3:1** for text ≥24px or ≥18.66px bold.
     - **Skip:** `opacity: 0`, `visibility: hidden`, `display: none`, zero-size, empty/whitespace text, and any element whose effective background involves a `background-image` or gradient. These are the honest false-positive corners; excluding them keeps the gate trustworthy.
+      **This list is closed. An unparseable colour is NOT a skip** — it is an `unresolved` finding that fails the test (see `effectiveBg` above). Adding "unresolvable → skip" here looks like tidying and is the exact bug this block was written to kill: it converts a colour the checker cannot read into a silent pass.
     - **Hover:** for the first ≤10 interactive elements, `hover()` and re-measure **that element's own** text. This is the direct check for a label that passes at rest and fails on hover — on real palettes a primary button can read 4.97:1 at rest and 4.31:1 under `hover:bg-primary/90`.
     - **Icons:** every `svg` inside those elements must resolve its stroke/fill to `currentColor` or to the same computed `color` as its parent — never a divergent literal.
-    - **Report:** each failure as `{ selector, color, background, ratio, state }` so the generator's retry can locate it.
+    - **Report:** each failure as `{ selector, color, background, ratio, required, state }` so the generator's retry can locate it — plus, for an unmeasurable colour, `{ …, ratio: null, note: 'unresolved <background|text> colour — checker cannot parse this colour syntax' }` carrying the offending value in `background`/`color`. `ratio: null` is the marker that distinguishes a **checker limitation** from a **contrast miss**: regenerating a surface cannot fix it, so if every finding in a run carries it, the defect is in the sweep or the browser, not in the prototype.
 1c. **Append the layout-integrity test — only when `device_targets.breakpoints` holds more than one entry.** Append a third `test()` to the same spec file, guarded so it runs only outside the primary project.
 
     **Scoped to the primary `route` only, and to non-primary projects only — a deliberate, disclosed bound**, for the same reason the both-modes test is bounded (step 1b): `routes × devices` would multiply the slowest phase, and the layout primitives being checked (the app shell, the table, the form grid) are **shared** across every route, so a missing breakpoint fails on the primary route as readily as on a secondary one. The added cost is **one page load per extra breakpoint**, not one per route per breakpoint. If a future run finds a responsive defect only a secondary route renders, widen this to `routes` then — but widen it knowingly and say so, rather than discovering the bound by accident.
@@ -175,6 +345,7 @@ $now = (Get-Date).ToUniversalTime().ToString('o')
 - A missing-browser condition returns `RF-11 trigger`, never a `structured-fail {phase:"smoke"}` (the two are different recoveries).
 - The `colour_mode.sets` branch was evaluated in exactly **one** place, and the single-mode path — spec content and Playwright command — is byte-identical to the pre-colour-mode behaviour. Single-mode runs pay nothing.
 - When two modes are live: the both-modes test was appended (not replacing the base test), `e2e/theme-modes.smoke.spec.ts` was included in the run, and a contrast failure surfaced as `structured-fail {phase:"smoke"}` naming the selector and ratio.
+- **The `INSTALL_SWEEP` block was authored verbatim**: `resolve()` tries the canvas **first** and reads the pixel (never the `fillStyle` read-back string), detects a rejected assignment with the two-sentinel probe, falls back to `parseModern` (with `rad`/`turn`/`grad` hue units handled), and returns null only when both paths fail. `effectiveBg()` returns `unresolved` for a non-transparent colour it cannot resolve, and that finding fails the test. Confirm by reading the generated spec, not by assuming: this pair has been silently re-derived wrong before.
 
 ## Anti-patterns
 - **Do not collapse the per-route loop back to a single route, and do not sample a subset of `routes`.** That is the exact hole a real run shipped through: a hydration mismatch and three toggle-less shells, all on secondary routes, all invisible because only `/<name_slug>` was ever visited. If a route is genuinely unvisitable, say which and why in the returned summary — never drop it silently (`CLAUDE.md`: no silent caps).
@@ -190,3 +361,5 @@ $now = (Get-Date).ToUniversalTime().ToString('o')
 - **Do not measure colour without disabling transitions first.** A mid-transition read returns the previous mode's colour, so the sweep "passes" by measuring light values while nominally in dark. This is the one failure mode that makes the gate actively misleading rather than merely absent. Do not substitute a fixed `waitForTimeout` — durations are token-driven (`--duration-fast` / `--duration-base` / `--duration-slow`, plus `--default-transition-duration` which every bare `transition` utility resolves through) and brand-dependent, so a hardcoded wait is a guess.
 - Do not widen the sweep into a general accessibility audit. It is scoped to labels and icons on filled surfaces. If broader coverage is wanted later, add `@axe-core/playwright` deliberately — do not let this grow into it by accident.
 - Do not weaken the sweep to make a prototype pass. A contrast miss consumes the generator's retry budget and can reach `RF-12`; that is intended — a prototype with invisible labels should not reach the landing page.
+- **Do not treat an unparseable colour as absent.** Dropping an unresolvable layer from the background composite is not a conservative default — it measures the label against an ancestor the element never sat on, which reads *worse* than reality over a dark page and *better* over a light one. The false-pass direction is the dangerous one, and it is silent. A colour the checker cannot read is an `unresolved` finding, never a skip and never a `null` swallowed by the caller.
+- **Do not re-derive `resolve()`/`effectiveBg()` from the prose bullets.** Author the literal block. Every hand-rolled version so far has parsed only `rgb()`/`rgba()`/hex, which misses every Tailwind opacity modifier in the app — the states most likely to fail, and the ones `extract-brand-theme.md`'s worst-state rule exists for.

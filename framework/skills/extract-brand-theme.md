@@ -20,6 +20,7 @@ It additionally performs a **logo + favicon capture** (see *Logo & favicon captu
 ## Outputs
 
 - `{ "source": "design-system" | "consultant-url" | "consultant-tokens" | "template-defaults", "theme_path": "<app_dir>/src/styles/theme.css", "token_sha256": "<sha over BOTH token blocks as written>", "sets": ["light"] | ["dark"] | ["light","dark"], "base": "light" | "dark", "contrast": { "checked": <int>, "adjustments": "<record or 'none'>" }, "brand_logo": { "logo_src": "/brand/<file>", "favicon_file": "src/app/icon.<ext>", "source_app": "<AppName>" } | null }` — returned to the agent, which records these in `.scaffold.json` (drift detection + logo record on later runs). Paths in `brand_logo` are app-relative (`logo_src` is the web path under `public/`; `favicon_file` is relative to `<app_dir>`). `brand_logo` is `null` when no logo was found.
+- `brand_fonts` is included in the returned object as `{ "families": [...], "links": [...] }`, copied **verbatim** from the design-system's `meta.brand_fonts` (source (a) only). The agent records it in `.scaffold.json` as `brand_fonts`, and `framework/assets/prototypes/app-shell-spec.md > Brand webfont loading` emits `links` as-is. It is `null` when the design-system file predates the field or when the source is (b)/(c)/(d) — see *Brand webfont contract* below.
 - `sets` names the token sets actually written. It is `["light","dark"]` **only** when two genuine sets were parsed **and** `colour_mode.strategy != "none"`. It is the value the orchestrator, the scaffolder, and `verify-prototype-build.md` branch on.
 - `RF-04 trigger` if the theme write fails verification. (Logo/favicon copies are static-asset writes — existence/byte-checked, not `RF-04`-gated; a missing logo is a graceful no-op, never fatal.)
 
@@ -53,8 +54,9 @@ It additionally performs a **logo + favicon capture** (see *Logo & favicon captu
 | `colours.warning.hex` | `--warning` |
 | `colours.error.hex` | `--destructive`, `--error` |
 | `colours.info.hex` | `--info`, `--chart-3` |
-| `typography.body_family.value` | `--font-sans` (in the `@theme` block) |
-| `typography.heading_family.value` | `--font-heading` (in the `@theme` block) |
+| `typography.body_family.value` | `--font-sans` (in the `@theme` block) — verbatim, including a two-name substituted stack |
+| `typography.heading_family.value` | `--font-heading` (in the `@theme` block) — verbatim, including a two-name substituted stack |
+| `meta.brand_fonts` | *not a CSS var* — returned to the agent for `.scaffold.json`; consumed by `app-shell-spec.md` to build the `<head>` font links |
 | `typography.body_weight.value` | `--brand-body-weight` (in the `@theme` block) |
 | `typography.heading_weight.value` | `--brand-heading-weight` (in the `@theme` block) |
 | `typography.size_xs … size_4xl` (all 8) | `--text-xs … --text-4xl` (in the `@theme` block) |
@@ -67,6 +69,13 @@ It additionally performs a **logo + favicon capture** (see *Logo & favicon captu
 | *derived from* `effects.shadow_sm` | `--elevation-xs` — the same geometry at **half alpha** and y-offset `1px` (per block) |
 
 - **Key names are the design-system's own:** `text_muted` with an **underscore**, `body_family`, `heading_family` — there is no `typography.font-sans` or `font-mono` key in the schema. `--font-mono` keeps the template default (the design-system emits no mono family).
+- **A family value is copied verbatim, however many names it holds.** `heading_family.value` is normally `'<Family>', <generic>`, but a slot whose brand typeface is licensed and not on Google Fonts arrives as `'<Brand>', '<Loadable>', <generic>` (`'Gotham', 'Montserrat', sans-serif`) — the brand face first, its verified Google-Fonts stand-in behind it, per `framework/agents/design-system-styler/data/font-availability-rules.md` §6.1. Write it into `--font-heading` / `--font-sans` **unchanged**. Do not collapse it to one name, do not reorder it, and do not "clean up" what looks like a redundant fallback: the cascade is what performs the substitution, and a machine that has the licensed face installed renders the real brand font because the brand name is still first.
+
+**Brand webfont contract.** `--font-heading` and `--font-sans` declare a family; they do not fetch one. The fetch is a `<link>` in `layout.tsx`, and **which name to request is not something this skill's consumers may re-derive** — a two-name stack has two candidates and only one of them is fetchable. So:
+
+- **Source (a)** — return `meta.brand_fonts` verbatim. `links` is already built, deduped, and one-family-per-URL; `families[].status` says which slot is `google-native`, `substituted`, or `unverified` (an `unverified` slot is deliberately absent from `links` — its availability could not be confirmed, so nothing is requested for it).
+- **Sources (b)/(c)/(d)** — return `brand_fonts: null`. There is no availability record to pass on, so `app-shell-spec.md` falls back to deriving one `family=` segment per named family from the stack, exactly as it did before this field existed. That path is also what a design-system file written before `meta.brand_fonts` existed takes, so older outputs keep working unchanged.
+- **Never build the link URLs here.** This skill's job ends at reporting what the design-system decided; `app-shell-spec.md` owns the `<head>` markup.
 - **Typography and motion tokens are mode-invariant** — the design-system copies all 15 typography tokens across modes verbatim, and durations/easing carry no colour — so they live in `@theme` only and are taken from the **base** set. Elevation is the one exception (below).
 - **Weights do not use Tailwind's `--font-weight-*` namespace.** That namespace emits `font-<name>` utilities, exactly as the `--font-*` family namespace does, so a `--font-weight-heading` would collide with `--font-heading`. The two weights are therefore plain custom properties (`--brand-heading-weight`, `--brand-body-weight`), applied to `body` and `h1–h6` by the template's `globals.css` base layer. Do not "fix" this by moving them into `--font-weight-*`.
 - **Line-height mapping is deliberately 2-of-3.** Tailwind pairs a line-height to each size via the real `--text-<size>--line-height` key, so the design-system's 3 line-heights are distributed by role: `lh_base` to the body sizes (`xs`–`lg`), `lh_tight` to the display sizes (`xl`–`4xl`). `lh_loose` has no size to own — it is a prose-block value with no Tailwind size pairing — so it is intentionally unmapped rather than forced onto a size where it would make headings airy. This is the one token in the contract that is knowingly dropped; it is recorded here so the drop is auditable rather than accidental.
@@ -100,23 +109,29 @@ Runs once **per written token set**, using only that set's own tokens. This is w
 
 ### The states to check
 
-A label must clear its threshold against **every** fill state it will ever sit on, not just the resting one. The shipped `ui/` primitives use a fixed, enumerable set of fills; each opacity-modified value composites over **that mode's `background`** before measuring:
+A label must clear its threshold against **every** fill state it will ever sit on, not just the resting one. The shipped `ui/` primitives use a fixed, enumerable set of fills; each opacity-modified value composites over **that mode's `background`** before measuring.
 
-| Fill state | Where |
-|---|---|
-| `primary` solid, `primary/90` | button default + hover; badge default + hover; `selection:bg-primary` |
-| `secondary` solid, `secondary/80`, `secondary/90` | button secondary + hover; badge secondary + hover |
-| `destructive` solid, `destructive/90`, `destructive/60` | button + badge destructive, hover, and the dark resting fill |
-| `accent` solid, `accent/50` | ghost/outline button hover, badge link hover, select item focus |
-| `input/30`, `input/50` | outline button + input + select dark fill and hover; tabs active |
-| `muted/50` | table row hover |
-| `background` | tabs active (light) |
+**The `Modes` column is normative, not annotation.** A state whose utility carries a `dark:` prefix never renders in a light set, and scoring it there produces a bogus failure — measured: the light template's `destructive/60` reports 3.01:1 for a fill that light mode never paints. Read `Modes` before scoring, and skip any state the set being written does not paint. This column is the canonical source for that applicability; the static token-pair audit in `framework/assets/prototypes/app-shell-spec.md` derives its state list from it rather than re-deciding.
+
+| Fill state | Modes | Where |
+|---|---|---|
+| `primary` solid, `primary/90` | both | button default + hover; badge default + hover; `selection:bg-primary` |
+| `secondary` solid, `secondary/80`, `secondary/90` | both | button secondary + hover; badge secondary + hover |
+| `destructive` solid, `destructive/90` | both | button + badge destructive, and hover |
+| `destructive/60` | **dark** | `dark:bg-destructive/60` — the dark resting fill on button + badge |
+| `accent` solid | both | ghost/outline button hover, badge link hover, select item focus |
+| `accent/50` | **dark** | `dark:hover:bg-accent/50` — ghost button hover |
+| `input/30`, `input/50` | **dark** | `dark:bg-input/30` + `dark:hover:bg-input/50` — outline button, input, checkbox, select, tabs active |
+| `muted/50` | both | table row hover + footer |
+| `background` | **light** | tabs active — `data-[state=active]:bg-background` is unprefixed but `dark:` overrides it with `input/30`, so it only ever paints in a light set |
+
+Every `Modes` value above was read off the shipped `ui/` primitives (`bg-input` → `button.tsx:28`, `checkbox.tsx:20`, `input.tsx:11`, `select.tsx:40`, `tabs.tsx:69`; `accent/50` → `button.tsx:32`; `muted/50` → `table.tsx:52,70`), not inferred from the state's name. Re-read them if a primitive changes.
 
 Threshold **4.5:1** (3:1 only for text ≥24px, or ≥18.66px bold — do not apply it to icons or button labels).
 
 ### The procedure
 
-1. For each fill token, build its state list from the table. Composite every `token/NN` over that mode's `background`.
+1. For each fill token, build its state list from the table, **filtered by the `Modes` column to the set being written** — a `dark`-only state is not scored in a light set and vice versa. Composite every `token/NN` over that mode's `background`.
 2. Score near-white and near-black against **every** state; each candidate's score is its **worst** state.
 3. If the better candidate clears the threshold → that is the `-foreground` value. Done.
 4. **If neither candidate clears it → nudge the fill.** Preserve hue and saturation; step the fill's lightness (toward the mode's `background` for a dark set, away from it for a light set) in 2% increments, re-scoring after each step, until the better candidate clears 4.5:1 across all states. Cap at 20 steps; if still failing, take the best achieved, and record it as a miss rather than looping. Apply the nudged value to the fill var **and** re-derive its states.

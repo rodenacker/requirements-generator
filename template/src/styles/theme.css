@@ -167,7 +167,13 @@
   --muted-foreground: #555555;
   --accent: #eef2f9;
   --accent-foreground: #1c222b;
-  --destructive: #e7000b;
+  /* --destructive: #e7000b → #dd000b (one 2% lightness step, hue + saturation
+   * preserved, per extract-brand-theme.md's fill-nudge procedure). #e7000b cleared
+   * 4.57:1 solid but only 4.35:1 on hover:bg-destructive/90 — and near-black scored
+   * worse (4.15:1), so no on-colour worked and the FILL had to move. #dd000b gives
+   * 4.93:1 solid / 4.65:1 on /90. --error carries the same source hex by contract
+   * (extract-brand-theme.md maps colours.error.hex to both), so it moves too. */
+  --destructive: #dd000b;
   --destructive-foreground: #fafafa;
   --border: #e1e3e6;
   --input: #e1e3e6;
@@ -192,7 +198,7 @@
   --text-muted: #555555;
   --success: #00a256;
   --warning: #eb9b00;
-  --error: #e7000b;
+  --error: #dd000b;   /* tracks --destructive — same source hex by contract */
   --info: #0369a1;
 
   /* Brand accent hue — for callouts/highlights/chart series.
@@ -212,11 +218,13 @@
   /* On-colours for filled elements — measured, not assumed.
    * Each is whichever of near-white/near-black scores higher against its fill
    * across every state that fill appears in (solid + the /90, /80, /60, /50, /30
-   * composites the ui/ primitives use). Note --success-foreground is BLACK:
+   * composites the ui/ primitives use — filtered to the states this mode actually
+   * paints; /60, /50 and /30 are dark:-only). Note --success-foreground is BLACK:
    * white on #00a256 is only 3.33:1. The correct choice is per-fill and
-   * per-mode, never inferable from the colour mode. */
+   * per-mode, never inferable from the colour mode. Ratios below are the WORST
+   * state, not the resting one. */
   --success-foreground: #0a0a0a;  /* 5.94:1 on #00a256 */
   --warning-foreground: #0a0a0a;  /* 8.69:1 on #eb9b00 */
-  --error-foreground: #fafafa;    /* 4.77:1 on #e7000b */
+  --error-foreground: #fafafa;    /* 4.93:1 on #dd000b, 4.65:1 on its /90 */
   --info-foreground: #fafafa;     /* 5.93:1 on #0369a1 */
 }

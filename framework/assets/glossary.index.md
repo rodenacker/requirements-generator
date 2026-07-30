@@ -38,6 +38,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Elevation ladder | Four meaning-bound shadow rungs (xs hairline / sm resting / md raised / lg overlay); rungs are never skipped. | `prototypes/visual-craft-standard.md §5` |
 | Fixture | Static in-memory JSON data shipped with a prototype (PI-02). | `prototype-invariants.md` |
 | colour-mode strategy | How a prototype's users switch light/dark (`toggle`/`system`/`none`/`custom`); asked once at `/prototype` Step B(4b) **only when both design-system mode files exist**, then locked in `.scaffold.json`. | `prototype-orch.md` Step B(4b) |
+| font substitution | Keeping an unobtainable **brand family** first in a token stack and adding a verified Google-hosted **loadable family** behind it (`'Gotham', 'Montserrat', sans-serif`); recorded in `meta.brand_fonts`, never a `prov` marker. | `font-availability-rules.md` |
 | General rule (GR-NN) | Deterministic reusable rule the resolver applies without asking. | `shared/general-rules.md` |
 | Grounding | The act of linking a claim to a real source; ungrounded facts fail validation. | — |
 | Handback gate | Orchestrator checkpoint accepting/re-invoking a finished agent. | orchestrators |

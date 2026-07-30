@@ -78,8 +78,13 @@ Run `npm run build` (or `tsc --noEmit` + `next build`) in `prototypes/`. The emp
   "brand_token_sha256": "<sha over BOTH theme.css token blocks at scaffold time>",
   "brand_logo": { "logo_src": "/brand/logo.png", "favicon_file": "src/app/icon.png", "source_app": "<AppName>" },
   "brand_fonts": {
-    "href": "<the Google Fonts stylesheet href emitted into layout.tsx, or null>",
-    "families": ["<heading family>", "<body family>"]
+    "families": [
+      { "role": "heading", "brand": "<family>", "loadable": "<family-or-null>",
+        "param": "<google-family-param-or-null>",
+        "status": "google-native | substituted | unverified" },
+      { "role": "body", "...": "..." }
+    ],
+    "links": ["<one Google Fonts stylesheet href per distinct loadable family>"]
   },
   "theme_contract": 2,
   "colour_mode": {
@@ -97,7 +102,9 @@ Run `npm run build` (or `tsc --noEmit` + `next build`) in `prototypes/`. The emp
 
 Verify via `verify-artifact-write.md`. `brand_token_sha256` lets later runs detect `/design-system` drift (a non-blocking notice; never auto-re-themes mid-set — see `prototype-orch.md` Step F1). `brand_logo` is `null` when no Stadium logo pointer was found; when non-null it records the captured logo/favicon so the generator can render the logo in each prototype's application shell.
 
-`brand_fonts` records what `layout.tsx` actually asks the browser to download (`app-shell-spec.md > Brand webfont loading`), so a later run can tell which families were requested without re-parsing `theme.css`. `href` is `null` only if no named family could be resolved — which should not happen, since even `template-defaults` names `Inter`.
+`brand_fonts` records what `layout.tsx` actually asks the browser to download (`app-shell-spec.md > Brand webfont loading`), so a later run can tell which families were requested without re-parsing `theme.css` — and, crucially, **without re-deriving which name in a stack is fetchable.** On a `design-system` brand source it is `meta.brand_fonts` copied verbatim from the design-system artefact, where `/design-system` already resolved availability (`font-availability-rules.md`); a `substituted` entry means the brand's own typeface is licensed and not on Google Fonts, so `theme.css` names it first and `links` requests the stand-in behind it. On the other three brand sources `families` is derived from the named families in `theme.css` and every `status` is `google-native`.
+
+`links` holds **one URL per family, never a combined `?family=A&family=B` request** — Google returns 200 and silently drops an unrecognised family, so a combined request cannot surface a missing brand font. It is `[]` only when no family's availability could be confirmed, which cannot happen on the `template-defaults` path since that names `Inter`.
 
 **`theme_contract`** is the version of the token contract `theme.css` was written against:
 

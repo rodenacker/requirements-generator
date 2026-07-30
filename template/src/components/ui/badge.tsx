@@ -12,8 +12,15 @@ const badgeVariants = cva(
         default: "bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
         secondary:
           "bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
+        // text-destructive-foreground, NOT text-white: stock shadcn hardcodes
+        // text-white here, which cannot flip with the colour mode. On a real dark
+        // palette (--destructive: #EC5555) white measures 3.50:1 on the solid fill.
+        // The token is derived per mode by measuring against every state this fill
+        // appears in — including dark:bg-destructive/60 below — so binding it is
+        // only safe while the palette clears that worst state; the static token-pair
+        // audit in app-shell-spec.md is what keeps that true.
         destructive:
-          "bg-destructive text-white focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40 [a&]:hover:bg-destructive/90",
+          "bg-destructive text-destructive-foreground focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40 [a&]:hover:bg-destructive/90",
         outline:
           "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         ghost: "[a&]:hover:bg-accent [a&]:hover:text-accent-foreground",

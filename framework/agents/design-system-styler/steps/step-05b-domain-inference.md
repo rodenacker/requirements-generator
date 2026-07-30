@@ -65,6 +65,16 @@ This keeps dark neutral targets defined in exactly one file. Do not copy dark ne
 
 Tokens that were **extracted** are never converted — they are already in the extracted scheme.
 
+### B.2 Availability of an inferred family
+
+A `heading_family` or `body_family` filled by this loop is **`google-native` by construction** — `domain-inference.md` §C.1 draws only from `font-availability-rules.md` §4.1, the verified Google-hosted list. So:
+
+- Confirm the filled family's name is in §4.1 (a name that is not is an inference bug — re-pick from §4.1's defaults rather than shipping an unloadable family).
+- Set `{{font_availability_<slot>}} = { brand: <family>, loadable: <family>, param: <family with spaces as +>, status: "google-native", evidence: "domain-inference default (verified Google-hosted)" }`.
+- **Do not run the evidence ladder and do not probe.** There is nothing to establish; the value came from the verified list.
+
+An **extracted** family keeps whatever record step-05 §4b already produced, including a `substituted` three-name value. This loop never rewrites it.
+
 After this loop, every token in the in-memory state has a non-null value in `{{extracted_scheme}}`'s scheme, a non-empty Source Context, and a Provenance marker. This set is the **hue-source set**.
 
 ## C. Status Colours (Always Domain-Inferred)
@@ -150,12 +160,17 @@ Before advancing, set:
 - `{{voice}}` to the one-line Voice statement synthesised in §A. Step-07 prints it in the diagnostic summary.
 - **Mode state:** `{{extracted_scheme}}`, `{{hue_source_mode}}`, `{{hue_source}}`, `{{mode_choice}}`, `{{derived_mode_requested}}`, `{{primary_mode}}`, `{{files_to_write}}`.
 - **Per-mode contrast:** `{{cv_pass_count_light}}` / `{{cv_adjustments_light}}` / `{{cv_adjustment_count_light}}` and the `_dark` twins. Exactly one set is populated when a single file is written; both are populated when two are.
+- **`{{brand_fonts}}`** — assemble the `meta.brand_fonts` object in the shape `font-availability-rules.md` §6.2 specifies, from `{{font_availability_heading}}` and `{{font_availability_body}}` (set by step-05 §4b for extracted families, by §B.2 above for inferred ones):
+  - `families` — exactly two entries, `role: "heading"` first then `role: "body"`, even when both resolve to the same face.
+  - `links` — one URL per **distinct** non-null `param`, built per §6.3 (`?family=<param>:wght@400;500;600;700&display=swap`, one family per link, never combined). Deduped when heading and body share a face; `[]` when neither family is loadable.
+  - Typography is mode-invariant, so `{{brand_fonts}}` is a single object written **identically into both mode files** — do not derive a per-mode variant.
 
 Confirm before advancing:
 
 - Every token in the hue-source set has a non-null value, a Source Context, and one of the two provenance markers.
 - If `{{derived_mode_requested}}`, the derived set likewise has all 33 tokens, with its 11 colours + 3 shadows carrying `derived: …` source strings and its 19 shared tokens carrying the hue-source markers.
 - `{{files_to_write}}` contains `{{hue_source_mode}}`, and `{{primary_mode}} == {{hue_source_mode}}`.
+- `{{brand_fonts}}.families` has two entries with `status` in `google-native | substituted | unverified`; every non-null `param` is in `font-availability-rules.md` §4.1; and each `substituted` entry's token value carries `brand` then `loadable` in that order.
 
 The artefact is generated even on non-success status. The doc is always complete; the status records *why* the URL path didn't yield extracted values.
 

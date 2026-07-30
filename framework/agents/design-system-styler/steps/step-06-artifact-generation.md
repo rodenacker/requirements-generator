@@ -14,18 +14,19 @@ description: 'Render one single-mode artefact per mode in files_to_write — hue
 
 ## 0. Read inputs (batched)
 
-Read all four static render inputs in a **single batched message** (the harness runs the reads concurrently); none depends on another, so there is no reason to serialise the reads:
+Read all five static render inputs in a **single batched message** (the harness runs the reads concurrently); none depends on another, so there is no reason to serialise the reads:
 
 - `framework/agents/design-system-styler/prompt-templates/artifact-generation.md` — the generation instructions applied below.
 - `framework/assets/template-design-system.html` — the structural base (§A).
 - `framework/agents/design-system-styler/data/component-catalogue.md` — the Components section source (§A / §B.4).
 - `framework/assets/design-system-standards.html` — the static standards appendix (§B-bis).
+- `framework/agents/design-system-styler/data/font-availability-rules.md` — §4.1 / §4.2 are the lists §C's availability assertions check against, and §6.3 is the link shape. Re-read here rather than relying on step-05's context: §C is a fail-closed gate and must not depend on an earlier step's read surviving.
 
 **If `design-system-standards.html` cannot be read** (absent or unreadable), halt — do not write a partial artefact. (This is the same guard previously stated in §B-bis; it now applies to the batched read.)
 
-With all four in context, apply the artifact-generation prompt's instructions in the order below.
+With all five in context, apply the artifact-generation prompt's instructions in the order below.
 
-**Read once, render N times.** These four inputs do not vary by mode — do **not** re-read them per mode.
+**Read once, render N times.** These five inputs do not vary by mode — do **not** re-read them per mode.
 
 **Inputs (in-memory after step-05b):**
 
@@ -35,6 +36,7 @@ With all four in context, apply the artifact-generation prompt's instructions in
 - **Mode state:** `{{files_to_write}}`, `{{hue_source_mode}}`, `{{mode_choice}}`, `{{hue_source}}`, `{{primary_mode}}`, `{{extracted_scheme}}`
 - **Per-mode contrast:** `{{cv_pass_count_light}}` / `{{cv_adjustments_light}}` / `{{cv_adjustment_count_light}}` and the `_dark` twins
 - `{{extraction_status}}`, `{{extraction_date}}`, `{{domain}}`, `{{domain_provenance}}`, `{{reference_url}}`, `{{css_source_type}}`, `{{css_source_url}}`
+- `{{brand_fonts}}` — the loadable-font contract assembled in step-05b §G. Mode-invariant: the same object goes into both files.
 
 ## 0-bis. Render Loop
 
@@ -62,7 +64,8 @@ Apply the prompt template's instructions in order:
 3. **Section 5 — Provenance tagging.** Every token in the JSON gets `prov` set to one of `extracted-from-url` or `inferred-from-domain`. Every visual snippet that surfaces a token gets a matching `<span class="prov prov-{{prov-slug}}">{{prov}}</span>` element (`prov-slug` is the prov value verbatim — `extracted-from-url` or `inferred-from-domain`, used directly as a CSS class suffix).
 4. **Section 6 — Render visual snippets.** Build the four pre-rendered HTML blocks and substitute them into the template placeholders:
     - `{{COLOUR_SWATCHES}}` — 11 `<li class="swatch-row">` blocks per the COLOUR ROW SCHEMA. Each `<div class="swatch">` carries `style="background:{{hex}}"`; each row also surfaces the hex (in `<code>`), source-context, and provenance.
-    - `{{TYPE_FAMILY_SPECIMENS}}` — 2 `<div class="type-specimen">` blocks (heading + body). Inline style on the sample: `font-family: {{family-stack}}; font-weight: {{paired-weight}}`. The token-value shown in the meta column is the literal family stack. **Prepend one rendering note** before the two blocks (see `artifact-generation.md` → `{{TYPE_FAMILY_SPECIMENS}}`): the artefact loads no webfont, so the sample only renders in the named family when that face is installed on the reader's machine. Use existing chrome markup for the note — no new CSS class, no template edit.
+    - `{{BRAND_FONT_LINKS}}` — `meta.brand_fonts.links` emitted verbatim, one `<link rel="stylesheet">` per entry, into `<head>` (see `artifact-generation.md` → `{{BRAND_FONT_LINKS}}`). The list is already built and deduped by step-05b §G — do **not** rebuild it from the token stacks, and never merge two families into one request. When `links` is `[]`, substitute the single HTML comment the prompt template specifies so the placeholder is still replaced.
+    - `{{TYPE_FAMILY_SPECIMENS}}` — 2 `<div class="type-specimen">` blocks (heading + body). Inline style on the sample: `font-family: {{family-stack}}; font-weight: {{paired-weight}}`. The token-value shown in the meta column is the literal family stack; a `substituted` slot also carries the brand→substitute line. **Prepend one rendering note** before the two blocks — pick the variant matching this run's `meta.brand_fonts` per `artifact-generation.md` → `{{TYPE_FAMILY_SPECIMENS}}` (all families loadable / one loadable / none). Exactly one note is emitted in every case. Use existing chrome markup for the note — no new CSS class, no template edit.
     - `{{TYPE_SIZE_SPECIMENS}}` — 8 `<div class="type-specimen">` blocks (text-xs..text-4xl). Inline style on the sample: `font-size: {{value}}`. Sample text is the fixed pangram.
     - `{{TYPE_LH_SPECIMENS}}` — 3 `<div class="type-specimen">` blocks (tight/base/loose). Sample is a two-line span (the pangram repeated, or wrapped) so the line-height is visible. Inline style: `line-height: {{value}}`.
     - `{{SHADOW_SPECIMENS}}` — 3 `<div class="shadow-card">` blocks. Inline style: `box-shadow: {{value}}` on the card; render the token name, the literal value (in `<code>`), and the provenance label.
@@ -100,11 +103,12 @@ After the template is fully rendered (all placeholders replaced except `{{STANDA
 Runs **per file**, before that file's `Write`:
 
 - Render the full artefact (template body + substituted standards) as one string in memory.
-- Confirm: every `{{placeholder}}` has been replaced. No literal `{{...}}` substrings remain. (The standards block contains no placeholders. `{{MODE_LABEL}}` and `{{DOC_CHROME_VARS}}` must both be substituted. The catalogue's token references — `{{colours.…}}`, `{{typography.…}}`, `{{effects.…}}` — must also be fully substituted; any survivor indicates a typo in the catalogue or a missing token in the in-memory set, and is a hard halt.)
+- Confirm: every `{{placeholder}}` has been replaced. No literal `{{...}}` substrings remain. (The standards block contains no placeholders. `{{MODE_LABEL}}`, `{{DOC_CHROME_VARS}}` and `{{BRAND_FONT_LINKS}}` must all be substituted — `{{BRAND_FONT_LINKS}}` becomes an HTML comment rather than nothing when there is no loadable family, so an empty `links` list is still a substitution. The catalogue's token references — `{{colours.…}}`, `{{typography.…}}`, `{{effects.…}}` — must also be fully substituted; any survivor indicates a typo in the catalogue or a missing token in the in-memory set, and is a hard halt.)
 - Confirm: the `<script type="application/json" id="design-tokens">` block is present, and its inner content is **valid JSON** — parse it back in memory to verify. If parsing fails, halt and do not Write.
 - Confirm: the JSON `meta`, `colours`, `typography`, `effects`, and `contrast` keys are all present.
 - Confirm: `meta.domain_provenance` is present and is one of `suggested-from-url-accepted | suggested-from-url-overridden | consultant-typed`.
-- Confirm: every `prov` value in the JSON is one of `extracted-from-url` or `inferred-from-domain`. No third marker.
+- Confirm: `meta.brand_fonts` is present, with `families` and `links` keys.
+- Confirm: every `prov` value in the JSON is one of `extracted-from-url` or `inferred-from-domain`. No third marker. (`meta.brand_fonts.families[].status` is an availability enum, not a `prov` value — it must never appear as one.)
 - Confirm: status-colour entries (success/warning/error/info) all carry `prov: "inferred-from-domain"` regardless of the URL outcome.
 - Confirm: the document closes with `</body>\n</html>` (the template's literal closing tags are intact and not duplicated).
 - Confirm: the rendered string contains the literal substring `<section id="standards"` (from the appended standards file) exactly once.
@@ -116,11 +120,29 @@ Runs **per file**, before that file's `Write`:
 
 Check the **two in-memory token values** `typography.heading_family.value` and `typography.body_family.value` — **not** the rendered string. Those two values are the sole source of every brand `font-family:` declaration in the artefact (the ~20 component-catalogue substitution sites plus the 2 family specimens), so two checks are exhaustive. A whole-string scan would false-positive on the documentation chrome, which legitimately declares `system-ui` and is exempt (see the `DOC CHROME` comment in `template-design-system.html`).
 
-- Confirm: neither value contains a **non-brand family** from group (a), (b), or (d) of `data/font-rules.md` §1, in any position.
+- Confirm: neither value contains a **non-brand family** from group (a), (b), or (d) of `data/font-rules.md` §1, in any position. Match on **whole family names**, not substrings — a name is a comma-delimited entry in the stack, so `'Rockwell', 'Zilla Slab', serif` is not a `Slab` match and `Roboto Slab` is not a `Roboto` match.
 - Confirm: neither value contains a group-(c) position-dependent face (`Roboto`, `Noto Sans`, `Ubuntu`, `Cantarell`, `Oxygen`, `Droid Sans`) in any position **other than first**. First position is a legitimate brand choice.
-- Confirm: each value matches the emitted stack shape `'<Family>', <generic>` — exactly one quoted named family, then exactly one generic terminal, nothing more.
+- Confirm: each value matches **one** of the two legal emitted stack shapes:
+    - `'<Family>', <generic>` — exactly one quoted named family, then exactly one generic terminal, nothing more. This is the shape for every slot whose `meta.brand_fonts` entry is `google-native` or `unverified`.
+    - `'<Brand>', '<Loadable>', <generic>` — exactly two quoted named families, then exactly one generic terminal. Legal **only** when that slot's `meta.brand_fonts` entry has `status: "substituted"`, and only when the two quoted names equal that entry's `brand` and `loadable`, **in that order**. Defined in `data/font-availability-rules.md` §6.1.
+  A three-name stack with no matching `substituted` record — or with the two names transposed — is a hard halt: it means either a captured fallback tail leaked into the token (the defect the one-family rule exists to stop) or the brand and its stand-in got swapped, which would ship the substitute as the client's brand font.
+
+**Brand-font availability assertions (all files):**
+
+- Confirm: `meta.brand_fonts.families` has exactly two entries, `role: "heading"` then `role: "body"`.
+- Confirm: every `status` is one of `google-native | substituted | unverified`. No other value, and this enum never appears as a `prov` value anywhere in the JSON.
+- Confirm: every non-null `param` is **either** a family listed in `data/font-availability-rules.md` §4.1, spelled identically, **or** an entry whose `evidence` records first-hand verification — a `fonts.googleapis.com` href on the source page (E1) or a successful probe (E3). Those two tiers are *stronger* evidence than the list, not weaker: the list is a cache of past probes, so a family verified this run must not be rejected for being absent from it. Only a `param` with neither backing is a halt — that one has never been shown to exist, and linking it would emit a request that fails silently.
+  - A `substituted` entry's `param` is the exception with no exception: a **substitute** must always be in §4.1, because we chose it and had no reason to pick an unverified one.
+- Confirm: no `loadable` is a family named in `data/font-availability-rules.md` §4.2 (the group-(b)/(c) faces and the names containing them). Those are Google-hosted but illegal in second position.
+- Confirm: on a `google-native` entry, `loadable == brand`. On an `unverified` entry, `loadable` and `param` are both `null`.
+- Confirm: `meta.brand_fonts.links` has exactly one entry per **distinct** non-null `param`, each of the form `https://fonts.googleapis.com/css2?family=<param>:wght@400;500;600;700&display=swap`, and **no** entry carries more than one `family=` segment.
+- Confirm: the rendered string contains exactly as many `<link rel="stylesheet" href="https://fonts.googleapis.com` **elements** as there are entries in `links`. Count elements, **not** raw `fonts.googleapis.com` occurrences: the template's own comment block names that host while explaining the exception and ships with the artefact, so a substring count is always one high and would halt every run.
+- Confirm: the rendered string contains no `<link`, `<script src`, `<img src`, `url(http`, or `@import` pointing at any host other than `fonts.googleapis.com`. The template comment authorises these font links and only these.
+- Confirm: the rendered string still contains `system-ui` in the documentation-chrome `html, body` rule. The chrome must not have picked up the brand family now that a webfont actually loads.
 
 Any failure is a **hard halt before the `Write`**. This should never fire: `font-rules.md` §1 stops a non-brand family at extraction and `domain-inference.md` §C.1 stops one at inference, so a violation reaching step-06 means one of those two rules was skipped. It is a fail-closed backstop, not the primary mechanism — do not "repair" the value here and continue, and do not downgrade the halt to a warning. Shipping `Arial` as a client's brand font is the defect this whole rule exists to prevent, and unlike an unreachable contrast ratio it has a free, deterministic correct answer (leave the token unset; step-05b infers a real webfont).
+
+The availability assertions are the same kind of backstop for the second axis. **Do not repair here either** — in particular, do not "fix" an unlisted `param` by substituting a family you believe exists, and do not downgrade a `substituted` entry to `unverified` to get past the check. Both hide the real fault, which is upstream in step-05 §4b or step-05b §B.2.
 
 **Mode assertions (all files):**
 
@@ -138,6 +160,7 @@ Any failure is a **hard halt before the `Write`**. This should never fire: `font
 - Confirm: every one of the 11 colour entries and 3 shadow entries has a `source` beginning `derived: {{mode}} variant of` — a derived file whose colours still claim a CSS selector or a bare `domain-inference (…)` source is a provenance failure and a hard halt.
 - Confirm: every `prov` in the file is still one of the two markers (the derived tokens are `inferred-from-domain`; no third marker was introduced).
 - Confirm: the attribution paragraph contains the derived-variant clause naming `design-system-{{hue_source_mode}}.html`. A derived file must never present itself as extracted.
+- Confirm: `meta.brand_fonts` and the `{{BRAND_FONT_LINKS}}` block are **byte-identical** to the hue-source file's. Typography is mode-invariant, so a derived file loading a different face — or loading none — means the shared token set was not actually shared.
 
 **Dark-render assertion:** the `rgba(0,0,0,` check belongs to §B.4 sub-step 4 and is made there, on the raw buffers **before** token substitution. Do **not** re-assert it here on the rendered string — dark shadow token values legitimately contain `rgba(0,0,0,`, so the assertion is only meaningful at the swap point.
 
