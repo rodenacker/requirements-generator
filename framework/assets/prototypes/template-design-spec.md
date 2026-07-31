@@ -161,6 +161,22 @@
 - [ ] Responsive contract met for §4b's targets: no horizontal page scroll, `GR-18` table collapse, sidebar→drawer below `md:`, single-column forms below `md:`, {{touch-target size}}
 - [ ] {{any posture- or device-specific craft emphasis}}
 
+**Component minimum-feature contracts** (`design-system-standards.md §1`, projected as C1–C10 in `ux-baseline-checklist.md`)
+
+<!-- guidance: per surface, list ONLY the §1 families that surface actually composes — read them off §7's inventory row. §1 is a minimum-feature contract, not a required roster: a surface with no table gets no table row. Do not restate the §1 definitions; name the family + the surface. step-04 passes this per surface as `component_contracts`; step-07 checks the pagination item spec↔code; the smoke asserts the table items per route. -->
+
+| Surface | Families composed | Contract items that apply |
+|---|---|---|
+| {{LS-NN}} | {{Tables / Date fields / Buttons / Inputs / Navigation / Feedback}} | {{C1–C5 tables · C6 date · C7 buttons · C8 inputs · C9 nav · C10 feedback}} |
+
+**Exceptions** — a §1 item a surface legitimately does not meet
+
+<!-- guidance: §1 line 20 scopes the contract to "whatever it uses", and §1 line 196 routes per-prototype exceptions HERE rather than to an edit of the design-system output. A row downgrades that ONE check to a warning in step-07 and omits that one assertion in the smoke; the reason is echoed to the consultant at the Step-G accept. A row with NO reason is a FAIL, not a pass — the reason is the whole mechanism. Leave the table empty (or absent) when there are none; an empty table is the expected state. Do NOT use this to record a miss you could have fixed. -->
+
+| Surface | §1 item | Reason |
+|---|---|---|
+| {{LS-NN}} | {{e.g. C2 pagination footer}} | {{why this surface's table is not a §1 data table — e.g. "fixed 3-row key/value summary in a drawer, not a collection of comparable records"}} |
+
 ## 10. Success criteria
 
 <!-- guidance: how a reviewer judges the prototype delivered its purpose, PLUS the verify-gate acceptance. -->

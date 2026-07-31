@@ -53,7 +53,11 @@ states:
   selected (per row): row highlighted
 
 behaviours-built-in:
-  - row-tap navigates to detail (or selects, in selectable variant)
+  - row-tap navigates to detail (or selects, in selectable variant). This is the
+    PROTECTED carve-out: a data-list row is not a data-table row, so
+    design-system-standards.md §1's no-whole-row-click rule does not reach it. Stamp
+    data-clickable / data-pressable on the row per visual-craft-standard.md §2. Do not
+    generalise this to collections/table
   - keyboard: arrow keys navigate rows; Enter activates primary action
   - long-press (mobile) opens row-action menu
   - swipe-actions (mobile): optional swipe-to-archive / delete

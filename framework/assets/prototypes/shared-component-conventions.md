@@ -14,7 +14,7 @@ The template ships `src/components/{ui,atoms,molecules,organisms,templates,domai
 
 | Tier | Holds | Example |
 |---|---|---|
-| `ui/` | shadcn primitives (shipped; do not modify) | `Button`, `Table`, `Dialog`, `Input`, `Badge`, `Select`, `Sheet`, `Tabs`, `Card` |
+| `ui/` | shadcn primitives (shipped; do not modify) | `Button`, `Table`, `Dialog`, `Input`, `Badge`, `Select`, `Sheet`, `Tabs`, `Card`, `Pagination` |
 | `atoms/` | tiny single-purpose wrappers over `ui/` | `StatusBadge`, `FieldLabel` |
 | `molecules/` | small compositions | `SearchFilterBar`, `ConfirmDialog`, `FormField` |
 | `organisms/` | task components | `RecordTable`, `RecordFormModal`, `DetailDrawer`, `BulkActionBar`, `Wizard` |
@@ -156,7 +156,7 @@ concern.
 |---|---|---|
 | `standalone-screen` | route `page.tsx` composes the primary-pattern component inside the shared app shell (`templates/` shell when list+detail) | no overlay container; route page authored by the surface's sub-agent for a standalone **secondary**, by the driver for the **primary/root** (§3) |
 | `inline-drawer` | `organisms/DetailDrawer` (wraps `ui/Sheet`); host surface uses `templates/ListDetailShell` | folded onto `host_surface`/`host_state` |
-| `inline-expand` | disclosure **within** the host collection (e.g. `organisms/RecordTable` `expandable-row` variant) — a host modifier, **no new component** | folded onto host |
+| `inline-expand` | disclosure **within** the host collection (e.g. `organisms/RecordTable` `expandable-row` variant) — a host modifier, **no new component**. On a **data-table** host the trigger is a **chevron `<button>` in a dedicated cell**, never the row: `design-system-standards.md §1 > Tables` forbids whole-row click, so a row-triggered expand has no legal form here | folded onto host |
 | `modal` | `organisms/RecordFormModal` (form payload) or `molecules/ConfirmDialog` (confirmation), each wrapping `ui/Dialog` | pick by `primary_pattern` |
 | `wizard-split` | `organisms/Wizard` + `templates/WizardShell` (+ `atoms/StepperIndicator`) | multi-screen flow |
 
@@ -164,7 +164,7 @@ concern.
 
 | Catalogue pattern | Tier | Shared component (name + tier) |
 |---|---|---|
-| `collections/table` | T1 | `organisms/RecordTable` (+ built-in sort headers; `molecules/Pagination` chrome) |
+| `collections/table` | T1 | `organisms/RecordTable` (built-in sort headers) **+ `molecules/Pagination` — required, not optional** (`design-system-standards.md §1 > Tables`: the footer always carries pagination, even at one page). Both enter the driver's ownership map at §3 rule 2; `Pagination` is never a drafter judgement call, and `step-07` fails a `RecordTable` surface whose design-spec §7 row omits it |
 | `collections/master-detail-list` | T1 | `templates/ListDetailShell` + `organisms/RecordList` + detail composition |
 | `collections/data-list` | T1 | `organisms/RecordList` |
 | `collections/dashboard` | T1 | `organisms/Dashboard` composing `molecules/KpiTile` + cards |
@@ -188,7 +188,7 @@ concern.
 | `feedback/notification-banner` | T2 | `atoms/NotificationBanner` |
 | `feedback/confirmation-receipt` | T2 | `organisms/ConfirmationReceipt` |
 | `navigation/tabs` | T1 | `ui/Tabs` (shipped primitive) |
-| `navigation/pagination` | T1 | `molecules/Pagination` |
+| `navigation/pagination` | T1 | `ui/Pagination` (shipped primitive — invoked, not authored, like the `:186` toast) wrapped by `molecules/Pagination`, which adds the page-size selector (`5/10/20/50`, default `20`) and the total count that `design-system-standards.md §1 > Tables` requires. The `role="navigation"` landmark + accessible name come from the primitive — **never hand-stamp them**, and never hand-roll the nav out of bare buttons; the per-route smoke asserts that landmark |
 | `navigation/stepper-indicator` | T1 | `atoms/StepperIndicator` |
 | `navigation/segmented-control` | T2 | `molecules/SegmentedControl` |
 | `navigation/command-palette` | T2 | `organisms/CommandPalette` |

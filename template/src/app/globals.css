@@ -154,7 +154,10 @@
     }
   }
 
-  /* Clickable rows: fill shift, not transform. `accent` is a measured state. */
+  /* Clickable rows: fill shift, not transform. `accent` is a measured state.
+   * NOT for data-table rows — design-system-standards.md §1 > Tables forbids whole-row
+   * click, and the generator's sweep fails a clicked <tr> inside a <table> regardless of
+   * these attributes. This rule serves row-LIKE lists that are not data tables. */
   tr[data-pressable]:active,
   tr[data-clickable]:active {
     scale: 1;

@@ -39,7 +39,7 @@ Exactly one of:
     import { test, expect } from '@playwright/test'
     const ROUTES = ['<route>', '<route-2>', '<route-3>']  // = `routes`; `route` first
     for (const ROUTE of ROUTES) {
-      test(`${ROUTE} renders, is clickable, no console errors`, async ({ page }) => {
+      test(`${ROUTE} renders, is clickable, meets table contracts, no console errors`, async ({ page }) => {
         const errors: string[] = []
         page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
         page.on('pageerror', e => errors.push(String(e)))
@@ -51,12 +51,46 @@ Exactly one of:
           'colour-mode toggle reachable in the application shell').toBeVisible()
         await expect(page.getByRole('button', { name: /colour mode/i }).first(),
           'colour-mode toggle carries its accessible name').toBeVisible()
+        // Component minimum-feature contracts (design-system-standards.md §1 > Tables).
+        // Omit any assertion the design spec's §9 Exceptions table waives for this
+        // surface — and say so in a comment naming the recorded reason, so a waived
+        // assertion is never mistaken for one that was forgotten.
+        for (const t of await page.locator('table').all()) {
+          const scope = t.locator('xpath=ancestor-or-self::*[self::section or self::main][1]')
+          await expect(
+            scope.locator('[role="navigation"][aria-label*="pagination" i]').first(),
+            'every data table has a pagination footer, even at one page (§1 Tables)',
+          ).toBeVisible()
+          expect(
+            await t.locator('tr[data-clickable], tr[data-pressable]').count(),
+            'no clickable data-table row (§1 Tables) — identifier links live in their own cell',
+          ).toBe(0)
+          // aria-sort is asserted ONLY on columns that carry data, anchored on the
+          // column's data-prop cells. An unanchored "every th" assertion is not
+          // decidable at runtime: a selection or action-column <th> carries no marker
+          // of its own, so it would fail a correct table.
+          const dataCols = new Set(
+            await t.locator('tbody td[data-prop]').evaluateAll(cells =>
+              cells.map(c => (c as HTMLTableCellElement).cellIndex)),
+          )
+          const heads = t.locator('thead th')
+          for (const i of dataCols) {
+            await expect(
+              heads.nth(i),
+              `data column ${i} announces sort state via aria-sort (§1 Tables / §4)`,
+            ).toHaveAttribute('aria-sort', /ascending|descending|none/)
+          }
+        }
         const cta = page.getByTestId('primary-cta')
         if (await cta.count()) { await expect(cta.first()).toBeEnabled(); await cta.first().click() }
         expect(errors, `no console/page errors on ${ROUTE}: ${errors.join(' | ')}`).toHaveLength(0)
       })
     }
     ```
+
+   **The table block costs no extra page load** — it runs inside a visit the sweep already performs, and it is DOM queries only (no navigation, no hover, no measurement). That is what keeps it inside this file's bounded-gate discipline while still covering **every** authored route.
+
+   **It asserts ARIA the framework guarantees, not a convention it hopes for.** The pagination landmark comes from the shipped `ui/pagination` primitive (`template/src/components/ui/pagination.tsx`), so it is correct by construction rather than by eight parallel sub-agents each remembering the same `aria-label`; `aria-sort` is mandated by `design-system-standards.md §1 > Tables` **and** §4. Both are rows in the hook table below. The `data-prop` anchor on the sort assertion is load-bearing: it is the only marker that distinguishes a data column from a selection/action column at runtime.
    **Every authored route is visited — this is load-bearing, not thoroughness for its own sake.** Until 2026-07-29 the template hardcoded a single `const ROUTE = '<route>'`, so a prototype's secondary routes had **zero** runtime coverage: a real run shipped a hydration mismatch on a secondary page that the `no console/page errors` assertion above would have caught on the first visit, and a shell with no colour-mode toggle on three of five pages. Both were invisible to every gate. Do not collapse this back to one route, and do not sample a subset — the route list is small (one per standalone surface) and each visit is a page load, not a suite.
 
    The **two toggle assertions are deliberately paired**: `data-slot` alone passes with a missing or drifted `aria-label`, which is itself a requirement of the `ThemeToggle` contract (`framework/assets/prototypes/app-shell-spec.md`). Two assertions, two distinct failure messages. A prototype that composes **no** shell component on any route is the documented fallback in `step-05-compose-route.md` rule 2 — it is **not** an exemption here; it fails these assertions deliberately, because the reviewer then has no colour-mode control inside the app.
@@ -67,6 +101,8 @@ Exactly one of:
    | `data-testid="proto-chrome"` | the `PrototypeChrome` root | `prototype-app-scaffolder.md` (once, per `app-shell-spec.md`) |
    | `data-testid="primary-cta"` | each route's primary action | `prototype-generator.md` (per route; omitted only where a surface has no primary action — the smoke then skips the click) |
    | `data-slot="colour-mode-toggle"` | the `ThemeToggle` `Button` | `prototype-app-scaffolder.md` (once, per `app-shell-spec.md`) |
+   | `role="navigation"` + `aria-label="pagination"` | the `Pagination` `<nav>` root | `template/src/components/ui/pagination.tsx` (**shipped**, so the hook is correct by construction — never hand-stamped by a generated component, and never hand-rolled out of bare buttons) |
+   | `aria-sort` | each sortable data-column `<th>` | the generated collection organism, per `design-system-standards.md §1 > Tables` + §4. Anchored on the column's `data-prop` cells — see the per-table assertion in step 1 |
 
    Every mention elsewhere — in `prototype-generator.md`'s Self-validation, the generator steps, `app-shell-spec.md` — is a **reference to this table**, not a second definition. Adding a hook means adding a row here first. Authoring the spec is additive — never delete other prototypes' smoke specs.
 
@@ -342,6 +378,7 @@ $now = (Get-Date).ToUniversalTime().ToString('o')
 - The per-route colour-mode toggle assertions were emitted **iff** `colour_mode.strategy ∈ {toggle, custom}` — both of them (`data-slot` **and** the `/colour mode/i` accessible name), on every route.
 - The both-modes contrast test targets `ROUTES[0]` only, and that bound is stated in the spec file's own comment rather than left implicit.
 - **Device projects match `device_targets.breakpoints` exactly** — one `--project` per breakpoint, primary first; the layout-integrity test was appended **iff** more than one breakpoint is listed, is guarded to the non-primary projects, carries the touch-target assertion **iff** `touch === true`, and states its primary-route-only bound in its own comment. A desktop-only prototype pays nothing: one project, no third test, command byte-identical to the pre-device behaviour.
+- **The per-table component-contract block was emitted on every route test**, asserting the pagination landmark, zero clickable rows, and `aria-sort` on each `data-prop`-anchored data column. Any assertion omitted for a design-spec §9 `Exceptions` row carries an inline comment naming the surface and the recorded reason — a waived assertion is distinguishable from a forgotten one by reading the spec. A route with no `<table>` emits the block and iterates zero times; that is correct, not a skip.
 - A missing-browser condition returns `RF-11 trigger`, never a `structured-fail {phase:"smoke"}` (the two are different recoveries).
 - The `colour_mode.sets` branch was evaluated in exactly **one** place, and the single-mode path — spec content and Playwright command — is byte-identical to the pre-colour-mode behaviour. Single-mode runs pay nothing.
 - When two modes are live: the both-modes test was appended (not replacing the base test), `e2e/theme-modes.smoke.spec.ts` was included in the run, and a contrast failure surfaced as `structured-fail {phase:"smoke"}` naming the selector and ratio.
@@ -354,6 +391,8 @@ $now = (Get-Date).ToUniversalTime().ToString('o')
 - Do not delete or overwrite other prototypes' e2e specs; the smoke spec write is additive per `name_slug`.
 - Do not "fix" a failing phase here — return the structured fail; remediation (regenerate the surface) is the generator's job, and exhaustion is `RF-12`.
 - Do not run the both-modes test when only one token set exists. There is no second palette to exercise, and the sweep would just re-assert the light pass at double cost.
+- **Do not widen the `aria-sort` assertion to every `<th>`.** A selection or action-column header carries no runtime marker distinguishing it from a data column, so an unanchored assertion fails correct tables and would be weakened or deleted at the first false positive. The `data-prop` anchor is the predicate; keep it.
+- **Do not drop a §1 table assertion because a surface "obviously" does not need it.** The only sanctioned waiver is a reasoned design-spec §9 `Exceptions` row, reproduced as a comment beside the omission. Judging it inline is how a gate quietly stops covering the common case.
 - Do not add a second Playwright *project* for dark. `emulateMedia` flips the mode in-page; a project re-runs the whole suite in a fresh browser to learn the same thing. **This does not extend to viewports** — a viewport genuinely cannot be flipped in-page without re-running layout under a different browser metric, so device breakpoints *are* projects (`tablet-chrome`, `mobile-chrome`). The distinction: colour mode is a media-query the page can be asked to re-evaluate; a viewport is a property of the browser context. Keep the device projects bounded instead (step 1c: primary route only, non-primary projects only).
 - **Do not run the full per-route sweep, or the both-modes contrast test, at every device project.** That turns a bounded addition into `routes × devices` and makes the slowest phase the dominant cost of a run. Guard them to the primary project; the extra breakpoints get only the layout-integrity test.
 - **Do not skip the extra `--project` flags** when `device_targets.breakpoints` lists more than one entry. A declared-but-never-invoked project is exactly the state `tablet-chrome` sat in before this: present in the config, referenced by nothing, and providing zero coverage while looking like it provided some.

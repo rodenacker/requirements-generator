@@ -67,6 +67,13 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
         // unreliable across engines, and `accent` is already one of the fill states
         // extract-brand-theme.md measures an on-colour against, so it costs the
         // contrast contract nothing. Applied in globals.css (visual-craft-standard.md §2).
+        //
+        // NOT FOR DATA-TABLE ROWS. design-system-standards.md §1 > Tables forbids
+        // whole-row click outright; step-07's mechanical sweep and the per-route smoke
+        // both fail on a clicked <tr> in a table, attribute or not. The support stays
+        // here for row-LIKE lists that are not data tables (a collections/data-list row,
+        // a stacked card row, a footer row). In a data table, make the identifier a
+        // link/button in its own cell and put row actions in a dedicated action column.
         "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted data-clickable:cursor-pointer",
         className
       )}

@@ -12,9 +12,12 @@ It is a **floor, not a style**: it prescribes how to bind the brand tokens and h
 
 | Concern | Canonical owner |
 |---|---|
+| Component minimum-feature contracts (tables, date fields, buttons, inputs, navigation, feedback) | `framework/assets/design-system-standards.md §1` — surfaced through `framework/assets/prototypes/ux-baseline-checklist.md > Component minimum-feature contracts` (function, not craft) |
 | Animation policy, `prefers-reduced-motion`, duration tiers | `framework/assets/design-system-standards.md §2` |
 | The six required interactive states | `framework/assets/design-system-standards.md §3` |
 | Touch-target minimum on touch surfaces (44×44) | `framework/assets/design-system-standards.md §4` |
+| Content & microcopy (voice, button labels, error messages, capitalisation, empty-state copy) | `framework/assets/design-system-standards.md §5` — **owned there, not yet consumed by this pipeline**; listed so the gap is visible rather than rediscovered |
+| Pattern usage rules (modal vs drawer, table vs card grid, toast vs banner, filters vs search) | `framework/assets/design-system-standards.md §6` — **owned there, not yet consumed by this pipeline**; the `pattern-catalogue/` is the pipeline's working source |
 | Colour binding through semantic tokens; the no-palette-colour rule | `framework/assets/prototypes/shared-component-conventions.md §4a` |
 | Measured on-colours and the enumerated fill-state table | `framework/skills/extract-brand-theme.md > Contrast & on-colours` |
 | Table-to-card collapse below 768px | `framework/shared/general-rules.md > GR-18` |
@@ -58,7 +61,9 @@ The template's `globals.css` applies this **globally** to `button`, `[role="butt
 
 **Do not author your own press scale.** The global layer owns it. If a large surface genuinely needs a shallower press, override with `active:scale-[0.99]` — never add a scale *on top* of the global one under a different property. Tailwind v4's `scale-*` utilities compile to the standalone **`scale`** property, not to `transform`, and CSS composes `scale` and `transform` multiplicatively: a `transform: scale(0.98)` plus an `active:scale-[0.98]` renders at **0.9604**, the visible over-collapse this whole rule exists to avoid. The global layer therefore uses the `scale` property too, so a component-level override *cascades* instead of compounding. (`hover:-translate-y-px` uses the separate `translate` property and composes cleanly — that pairing is intended.)
 
-**Clickable table rows are the one exception to the scale rule** — they press via the `accent` fill instead. `transform` on `display: table-row` is unreliable across engines, and `accent` is already a measured state, so this costs the contrast contract nothing. The template's base layer handles it for `tr[data-pressable]` / `tr[data-clickable]`; give clickable rows one of those attributes.
+**Clickable rows are the one exception to the scale rule** — they press via the `accent` fill instead. `transform` on `display: table-row` is unreliable across engines, and `accent` is already a measured state, so this costs the contrast contract nothing. The template's base layer handles it for `tr[data-pressable]` / `tr[data-clickable]`; give clickable rows one of those attributes.
+
+**But a data table row is never a click target** (`design-system-standards.md §1 > Tables`, canonical). Whole-row click is an invisible affordance, ambiguous against text selection, hostile to keyboard users, and conflicts with checkbox/multi-select. On a data table the row's primary identifier becomes a **link or button in its own cell**, and row-scoped actions live in a **dedicated action column** — so the press response is the cell control's, earned semantically. The attributes above remain correct for row-*like* lists that are not data tables (a `collections/data-list` row, a stacked card row, a footer row); they are not an escape hatch for a `<table>`.
 
 ## 3. Hover — every interactive element must shift
 

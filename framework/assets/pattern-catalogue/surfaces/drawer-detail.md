@@ -53,7 +53,11 @@ states:
   closed: drawer fully off-screen; trigger restores it
 
 behaviours-built-in:
-  - opens from a row click / CTA on the outer surface
+  - opens from a trigger on the outer surface. When that surface is a DATA TABLE the
+    trigger is a dedicated cell control — the identifier rendered as a link, or an
+    explicit button in the action column — never the row itself
+    (design-system-standards.md §1 > Tables forbids whole-row click). Row-click is a
+    legal trigger only for a non-table host (collections/data-list, collections/card-grid)
   - Escape closes; backdrop click closes (modal variants)
   - on close, focus returns to the trigger element
   - keyboard: focus moves into the drawer on open; trap when modal

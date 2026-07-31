@@ -2,11 +2,11 @@
 
 **Role:** asset (prototype-private).
 
-**Purpose:** The non-negotiable UX floor **every** generated prototype must satisfy, regardless of the chosen posture (`design-philosophies.md`). Each item is a crisp, **self-validatable** statement the `prototype-generator` (and its per-surface sub-agents) check each rendered screen against; the `prototype-spec-merger` appends the relevant subset into each design spec's §10. A baseline miss is **fail-closed** — the generator fixes it before the verify gate, or the verify gate (`verify-prototype-build.md`) and self-validation surface it.
+**Purpose:** The non-negotiable UX floor **every** generated prototype must satisfy, regardless of the chosen posture (`design-philosophies.md`). Each item is a crisp, **self-validatable** statement the `prototype-generator` (and its per-surface sub-agents) check each rendered screen against; the `prototype-spec-merger` appends the relevant subset into each design spec's §9. A baseline miss is **fail-closed** — the generator fixes it before the verify gate, or the verify gate (`verify-prototype-build.md`) and self-validation surface it.
 
 A posture *emphasizes* some of these harder (recorded per-posture in `design-philosophies.md`), but a posture **never licenses violating** the floor.
 
-**Used by:** `framework/agents/prototype-generator.md` + `prototype-generator/steps/step-sub-render-surface.md` (render-time self-check), `framework/agents/prototype-spec-merger.md` (appends §10), `framework/skills/verify-prototype-build.md` (Playwright smoke asserts the runtime-checkable subset).
+**Used by:** `framework/agents/prototype-generator.md` + `prototype-generator/steps/{step-04-dispatch-surface-subagents, step-sub-render-surface, step-05-compose-route, step-07-handback}.md` (dispatch payload, render-time self-check, mechanical sweep), `framework/agents/prototype-spec-merger.md` (appends §9), `framework/skills/verify-prototype-build.md` (Playwright smoke asserts the runtime-checkable subset).
 
 ---
 
@@ -77,14 +77,35 @@ Every collection/data surface and every async action must explicitly design **al
 - [ ] **Role switcher present** on every multi-role surface, in the prototype chrome (PI-05, PI-08).
 - [ ] **Data binding closed** — every data-bound element binds to a Property in the blueprint's per-surface closed set; no invented fields (mirrors the wireframe `data-prop` rule; see `shared-component-conventions.md`).
 
+## Component minimum-feature contracts
+
+**Canonical owner: `framework/assets/design-system-standards.md §1` — the definitions live there and are not redefined here.** The checkboxes below are the self-validatable projection of §1, in the same spirit as the Nielsen / Shneiderman / WCAG restatements above: a sub-agent checks these without a second read, and `step-04` passes the applicable families in its dispatch payload.
+
+**Scope.** §1 is a *minimum-feature* contract, not a required roster (`design-system-standards.md:20`). It binds whichever component families a surface actually composes. A **data table** here means §1's sense — rows of comparable records for scanning, sorting and acting upon — not every use of `ui/table`. A per-prototype exception is recorded in design-spec §9's Exceptions table with a reason (`design-system-standards.md:196`), never taken silently.
+
+**Already structural — do not re-implement, just do not fight it:** numeric right-align + `tabular-nums` comes from `ui/table.tsx`'s `TableHead data-numeric`; the visible-label rule is enforced by `ui/label.tsx`.
+
+- [ ] **C1 Tables — sort.** Every data column is sortable; sort state is visible on the active header (asc/desc/none), carried as `aria-sort`, and persists across pagination.
+- [ ] **C2 Tables — pagination.** The table footer **always** carries pagination — explicit Next/Back, "Page N of M", a page-size selector of **5 / 10 / 20 / 50** defaulting to **20**, and the total record count — **even when there is only one page** (consistency over cleverness). Composed from the shipped `ui/pagination` primitive, so the `role="navigation"` landmark and its accessible name come for free.
+- [ ] **C3 Tables — three states explicit.** Empty, loading and error are designed, never an absent or silent table (reinforces the three-states section above).
+- [ ] **C4 Tables — truncation.** Long cell text truncates with a **tooltip on hover** carrying the full value; row height stays uniform across the page.
+- [ ] **C5 Tables — rows are NOT clickable.** No `onClick`, `data-clickable` or `data-pressable` on a data-table `<tr>`. The primary identifier is a link/button in its own cell; row-scoped actions live in a **dedicated action column**. (Whole-row click is an invisible affordance, ambiguous against text selection, hostile to keyboard users, and conflicts with multi-select.) Row-click stays legal for row-*like* lists that are not data tables — see `pattern-catalogue/collections/data-list.md`.
+- [ ] **C6 Date fields.** A real picker, never free text as the only input mode; keyboard entry is an accelerator, not the control. Locale-aware format shown in the placeholder. Min/max **disable** out-of-range dates rather than rejecting on submit. No second hand-authored calendar icon beside a native indicator; the indicator's legibility comes from `color-scheme`, never a hardcoded colour/`fill`/`invert()`.
+- [ ] **C7 Buttons.** Label is verb-led and action-specific ("Save changes", not "OK"). Loading is visually distinct from disabled. Destructive = colour **and** icon. **One primary per surface.** Navigation uses a link, not a button.
+- [ ] **C8 Inputs.** A **suitable placeholder** on every field (format hint or example — complementing, never replacing, the visible label). The focused field is distinguishable by **more than colour**. Required is indicated visibly **and** programmatically. Helper and error text have dedicated slots. Validation runs **on blur** for a field and **on submit** for the form — never aggressively per keystroke.
+- [ ] **C9 Navigation.** Current location is indicated (`aria-current`). The URL reflects the current view so it is shareable, bookmarkable and reloadable. No sub-flow trap — there is always a way back. No primary nav hidden behind a hamburger on desktop.
+- [ ] **C10 Feedback.** Severity is carried by colour **and** icon. Modals trap focus, close on `Esc`, return focus to the trigger, and carry an elevation shadow **and** a 1px border so the edge survives a same-colour background. Toasts only for ephemeral, non-critical confirmation — errors and warnings persist until acknowledged; never a toast for a critical error.
+
 ---
 
 ## How the generator uses this
 
-1. While rendering a surface, the per-surface sub-agent self-checks each rendered screen against this list (`step-sub-render-surface.md`).
-2. Any miss is fixed before returning the surface manifest — never deferred.
-3. `verify-prototype-build.md`'s Playwright smoke asserts the runtime-checkable subset (focus visible, keyboard reach of the primary CTA, no console errors, role switcher present, the three states reachable where applicable).
-4. The merger embeds the spec-relevant subset into design-spec §10 so the contract is auditable per prototype.
+1. `step-04` passes the applicable subset in each sub-agent's dispatch payload (`ux_baseline_subset`, plus `component_contracts` for the §1 families that surface composes) — a compact restatement, not a file path.
+2. While rendering a surface, the per-surface sub-agent self-checks each rendered screen against this list (`step-sub-render-surface.md`); `step-05-compose-route.md` binds driver-owned routes to the same floor.
+3. Any miss is fixed before returning the surface manifest — never deferred.
+4. `step-07-handback.md`'s mechanical sweep fails the build on the grep-decidable items (no clickable data-table row) and on the §7↔code pagination consistency check.
+5. `verify-prototype-build.md`'s Playwright smoke asserts the runtime-checkable subset (focus visible, keyboard reach of the primary CTA, no console errors, role switcher present, the three states reachable where applicable, and per table: the pagination landmark, `aria-sort` on data columns, no clickable row).
+6. The merger embeds the spec-relevant subset into design-spec §9 so the contract is auditable per prototype, alongside the Exceptions table that records any §1 item a surface legitimately does not meet.
 
 ## Anti-patterns
 
@@ -92,3 +113,6 @@ Every collection/data surface and every async action must explicitly design **al
 - Do not relabel a generic spinner as a "loading state". The three states are explicit designs, not placeholders.
 - Do not rely on colour alone for status (also a `GR-16` violation).
 - Do not duplicate the WCAG/Nielsen/Shneiderman *definitions* elsewhere; reference this file.
+- Do not redefine a §1 contract here or downstream — `design-system-standards.md §1` owns the definitions; the C1–C10 items above are a projection for self-validation, and a divergence between them is a bug in this file.
+- Do not drop pagination because the fixture set fits on one page. §1 requires the footer regardless; a one-page table with no pagination is the most common form of this miss.
+- Do not treat an undocumented omission as an exception. An exception is a reasoned row in design-spec §9; anything else is a FAIL.
