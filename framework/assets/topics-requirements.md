@@ -31,6 +31,7 @@ Adding a new topic ships its `Dimension` value with the row; consumers read the 
 | § | Topic | Emit predicate | Dimension |
 | --- | --- | --- | --- |
 | — | **In plain terms** (summary — *first* section of the finished document) | always, **merger-authored** — the drafter emits no such section; `requirements-merger` inserts it after the header once every resolution is applied | Scope |
+| — | **Contents** (table of contents — *second* section, directly under the summary) | always, **merger-authored** — the drafter emits no such section; `requirements-merger` derives it from the shipped heading set after every other transform | Scope |
 | 1 | Application context | always | Scope |
 | 1.5 | Scope (in / out / deferred) | always | Scope |
 | 1.6 | Assumptions & dependencies | conditional — ≥1 assumption / dependency stated or domain-implied (no filler rows) | Scope |

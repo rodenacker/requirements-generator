@@ -40,6 +40,21 @@
 
 ---
 
+## Contents
+
+<!-- format: nested markdown list of anchor links, one entry per heading; no prose, no counts, no annotations -->
+<!-- emit: MERGER-AUTHORED. The drafter does NOT emit this section — `requirements/requirements-draft.md` has no `## Contents`. `framework/agents/requirements-merger.md` derives it from the shipped document's own heading set and inserts it immediately after `## In plain terms`, so the summary stays the first `## ` heading in the file. -->
+<!-- Depth: every `##`, `###` and `####` heading, instance-generated ones included (`### {{persona_name}}`, `#### {{aggregate_root}}`, the §5 flow headings, `### Shape: {{shape_name}}`, the §6.10 `Under target = …` sub-block heading). `##### Story:` headings are excluded — too many, too long, and §4.2's persona heading already lands the reader on them. -->
+<!-- Two sections carry a flat top-level entry and NO children: `## For downstream use` (so §0.1 and the reading note stay out of the reading path) and `## Prototype invariants` (the reader needs to know it exists, not to navigate 8 `### PI-NN` subsections). -->
+<!-- The transient `## Amendments (pending re-merge)` section gets no entry: it is transient by design, `## In plain terms` already names `/amend-requirements`, and `framework/skills/apply-amendments-section.md` is bounded to touching that one section and nothing else. -->
+<!-- A TOC entry is a pointer whose own text names its referent, so `framework/shared/output-readability.md` rule 4 exempts it from carrying a quotation. -->
+
+- [1. Application context](#1-application-context)
+- [1.5 Scope](#15-scope)
+- {{one_entry_per_remaining_heading_nested_by_level}}
+
+---
+
 ## 1. Application context
 
 <!-- format: narrative[4-field: name, purpose, domain, business_goal]; one short paragraph or phrase per field; no bullets -->

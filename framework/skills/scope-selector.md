@@ -133,6 +133,8 @@ On `Keep`, advance to step 5.2. On `Enter new slug`, parse the next turn, normal
 - Every §6.4.x UI feature row.
 - Every §7 data shape name (`### <Name>` headers under §7).
 
+**Enumerate from headings, never from the `## Contents` table of contents.** The merged document opens with a merger-authored TOC whose entries repeat every flow and shape name as a link line (`- [Flow: …](#flow-…)`). Anchor every enumeration on the heading itself (`^### Flow: `, `^### Shape: `) so a TOC entry cannot be counted as a second flow or shape.
+
 Treat the auto-resolved IDs from Step 3.2 as the **pre-selected** starting set; the consultant edits from there rather than starting blank.
 
 5.3 **Surface a sequence of multi-select prompts**, one per category, in this order: Functional, Business rules, UI needs, Goals, Task flows, Data shapes. For each category, use `AskUserQuestion` with `multiSelect: true`. Question text: *"Which `{{category}}` items are in scope for `{{scope_slug}}`?"*. Header: `Scope ({{category}})`. Options: each enumerated ID/name with the auto-resolved ones marked *"(Recommended)"* in their label; description = the one-line summary truncated to 80 chars. Add a final option `None / Skip this category` and a `Cancel — go back to confirmation` option. On `Cancel`, return to Step 4. If a category has zero enumerated items, skip its prompt silently.

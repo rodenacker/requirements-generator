@@ -60,6 +60,7 @@ Run against the in-memory render **before** the Write at step 5, and against the
 - Do not insert a second `## Amendments (pending re-merge)` section, and do not merge two into one. One section, extended in place, always.
 - Do not place the section after the `## Prototype invariants` heading. `/export-application` strips PI-heading→EOF and the amendments would vanish at export with no error.
 - Do not place the section after `## For downstream use` either. That heading declares everything below it framework-internal reference material and not a requirement — consultant-approved amendments filed under it are misread by every human who opens the document.
+- Do not add a `## Contents` entry for the section, and do not "repair" the TOC because the section is missing from it. The omission is deliberate: the section is transient, `## In plain terms` already names `/amend-requirements`, and this skill's one-section bound is worth more than one link line. The merger re-derives the whole TOC on the next re-merge.
 - Do not touch a byte outside the section. In particular, do not restamp the header line, do not reflow neighbouring sections, and do not "tidy" pre-existing `AMD-NN` blocks.
 - Do not roll back `source_doc_path` on an `RF-04`. The `input/` document is the durable record; the section is a cache. Losing the cache is recoverable, losing the record is not.
 - Do not renumber or rewrite pre-existing `AMD-NN` entries to close gaps. Numbering is append-only within the section's life.
