@@ -71,12 +71,12 @@ No sixth marker exists. **No cell is unmarked.** Provenance lets the consultant 
 
 ## `[AI-SUGGESTED]` discipline
 
-The `[AI-SUGGESTED]` marker is the global invariant for facts not traceable to inputs and not covered by a numbered general requirement. Thoughts, emotions, and pain points are the canonical cases — most journey-maps will have high density in these columns when `/input/` contains no user research.
+The `[AI-SUGGESTED]` marker is the global invariant for facts not traceable to inputs and not covered by a numbered general requirement. Thoughts, emotions, and pain points are the canonical cases — most journey-maps will have high density in these columns when `/documentation/` contains no user research.
 
 - Every inferred cell is prefixed with `[AI-SUGGESTED]` in its text content **and** carries `.provenance-ai-suggested` on its `<td>`. Both invariants must hold; neither alone is sufficient.
 - The analyser **never** invents personas, scenarios, actions, or touchpoints under the `[AI-SUGGESTED]` marker. The marker is for thoughts / emotions / pain-points only, plus opportunities and ownership when they are not directly supported by `§5` or `§8`.
 - The Step 11 handback summary states the per-artefact `[AI-SUGGESTED]` density. The consultant sees the figure without opening the file.
-- Density above 75% on any journey triggers the soft warning. The warning says: *"This journey is mostly inferred. Drop research into `/input/` and re-run for higher-confidence emotion / pain-point columns."*
+- Density above 75% on any journey triggers the soft warning. The warning says: *"This journey is mostly inferred. Drop research into `/documentation/` and re-run for higher-confidence emotion / pain-point columns."*
 
 ## Stand-alone discipline
 

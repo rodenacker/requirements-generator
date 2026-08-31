@@ -226,7 +226,7 @@ Any failed check is fixed **in the render** and the whole set re-run before the 
 - Do not label §1.7 / §6.6.1 / §6.6.2 "binding" — §0.1's replacement text calls them advisory, and §1.7's rows are all drafter-inferred.
 - Do not apply the citation lock to the §6.10 swap (3c). `Operation` cells routinely carry `[SRC:]` tags and the swap must still fire.
 - Do not generate content: no new requirement rows, no new rationale cells, no new `[SRC:]` tags, no recovered facts. The provenance block, the §0.1 replacement, and the residue notes are the only net-new prose, and every one of them is a fixed literal spelled out in this file. The `**Application-build guidance.**` label is **no longer** net-new — it comes from the source, which places it outside the span; do not synthesise it when it is missing.
-- Do not read `requirements/draft-claims.ndjson`, `requirements/source-manifest.json`, `framework/assets/template-requirements.md`, or anything under `input/`. The source document is the sole content input.
+- Do not read `requirements/draft-claims.ndjson`, `requirements/source-manifest.json`, `framework/assets/template-requirements.md`, or anything under `documentation/`. The source document is the sole content input.
 - Do not write outside `export-application/`. No state files, no timing events, no progress file.
 - Do not strip a resolution marker found in the source — that is a source defect to report at the gate, not repair silently.
 - Do not drop, reorder, or merge §6.10 rows during the swap; the A14 bijection and row order survive the transform.

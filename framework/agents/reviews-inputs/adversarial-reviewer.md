@@ -49,7 +49,7 @@ Steps in order (including sub-steps 3a, 4b, 4s, 4c). Do not skip steps; do not c
 
 - `Read requirements/source-manifest.json` in full. The orchestrator's Step 1 manifest preflight guarantees this file exists (if absent at orchestrator step 1, the input-handler is invoked first).
 - Compute and remember the SHA-256 of the file's bytes — this is `manifest_fingerprint`, the value that lands in the artefact's `MANIFEST_FINGERPRINT` field and in Quality Gate 11.
-- If the file is empty, malformed JSON, or parses to a zero-row methodology list, halt with the structured error: *"`requirements/source-manifest.json` is present but {empty | malformed | enumerates zero input files}. Run `/requirements` (which re-invokes the input-handler) or drop input material in `input/` and re-invoke `/review-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
+- If the file is empty, malformed JSON, or parses to a zero-row methodology list, halt with the structured error: *"`requirements/source-manifest.json` is present but {empty | malformed | enumerates zero input files}. Run `/requirements` (which re-invokes the input-handler) or drop input material in `documentation/` and re-invoke `/review-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
 - Parse the manifest's row list. Each row carries (at minimum): `filename`, `tier`, `original_path`, `converted_sibling` (when applicable), `sha256`, `conversions_applied`. Classify rows:
     - `consumable_rows` = rows where `tier != "Unsupported"` — these will be ingested at Step 3.
     - `skipped_rows` = rows where `tier == "Unsupported"` — these contribute to the skipped roster only.
@@ -64,18 +64,18 @@ For each row in `consumable_rows`, resolve the read path per the Read-path resol
 
 After the ingest:
 
-- If `bundle` is empty (zero consumable rows), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `input/` and re-invoke `/requirements` (which rebuilds the manifest) before retrying `/review-inputs`."* — analogous to RF-03.
+- If `bundle` is empty (zero consumable rows), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/requirements` (which rebuilds the manifest) before retrying `/review-inputs`."* — analogous to RF-03.
 - Compute the **per-source quote index** for every bundle entry: split `text_or_transcription` into line-bounded substrings and build a JSON map `{filename → [substrings]}`. This is `quote_index_by_filename`. Workers use it to validate that every `evidence` field they emit is a verbatim substring of the cited source's content.
 - Build the **skipped roster** as a JSON array `[{"filename": row.filename, "reason": row.conversions_applied}, ...]` for every `skipped_rows` entry. This is `skipped_roster_json`.
 - Serialise `bundle` to JSON (call this `bundle_json`). Compute `bundle_sha256` = sha256 of `bundle_json`'s bytes. Workers will echo this in their payload header for defence-in-depth.
 
 State the Step-3 result aloud:
 
-> *"Step 3 — ingested 4 consumable sources into the bundle: `brief.docx` (Supported-via-MCP, reading `input/brief.docx.converted.md`), `whiteboard-photo.png` (Native-multimodal, reading the frozen description `input/whiteboard-photo.png.converted.md`), `workshop-notes.md` (Native-text), `interview-transcript.md` (Native-text). 1 skipped row: `proposal.pages` (Unsupported, reason: `markitdown: failed — Apple Pages format not supported`). Bundle SHA-256: `{bundle_sha256[:12]}…`. Bundle serialised size: `{bundle_serialised_bytes}` bytes."*
+> *"Step 3 — ingested 4 consumable sources into the bundle: `brief.docx` (Supported-via-MCP, reading `documentation/brief.docx.converted.md`), `whiteboard-photo.png` (Native-multimodal, reading the frozen description `documentation/whiteboard-photo.png.converted.md`), `workshop-notes.md` (Native-text), `interview-transcript.md` (Native-text). 1 skipped row: `proposal.pages` (Unsupported, reason: `markitdown: failed — Apple Pages format not supported`). Bundle SHA-256: `{bundle_sha256[:12]}…`. Bundle serialised size: `{bundle_serialised_bytes}` bytes."*
 
 ### Step 3a — Bundle-size cap (defence-in-depth against runaway parallel context cost)
 
-- If `bundle_serialised_bytes > 200_000` (200 KB), halt with the structured message: *"Input set too large for parallel dispatch — the serialised bundle is `{bundle_serialised_bytes / 1024:.0f}` KB and would inflate to `~{6 * bundle_serialised_bytes / 1024:.0f}` KB when inlined across 6 parallel workers. Reduce `input/` volume, split the corpus into batches by topic/role, or fall back to sequential dispatch (not implemented in this version). Failing handback."* This is a self-standing guard at the bundle layer.
+- If `bundle_serialised_bytes > 200_000` (200 KB), halt with the structured message: *"Input set too large for parallel dispatch — the serialised bundle is `{bundle_serialised_bytes / 1024:.0f}` KB and would inflate to `~{6 * bundle_serialised_bytes / 1024:.0f}` KB when inlined across 6 parallel workers. Reduce `documentation/` volume, split the corpus into batches by topic/role, or fall back to sequential dispatch (not implemented in this version). Failing handback."* This is a self-standing guard at the bundle layer.
 - The 200 KB cap is sized so that 6 parallel worker prompts × 200 KB inlined bundle = ~1.2 MB of bundle context per run, plus the per-dimension reference slice and character content (≤30 KB each). The cap protects against runaway parallel context cost — the serialised bundle inflated by parallel dispatch — and is independent of any orchestrator-level guard.
 - On `pass`: advance to Step 4.
 

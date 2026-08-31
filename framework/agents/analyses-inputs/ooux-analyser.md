@@ -93,8 +93,8 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
   - `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler. The description already contains a faithful transcription plus a structured what/how breakdown that enumerates the OOUX-relevant items: objects, their attributes, relationships and cardinality, plus actors and CTAs. Treat it as the canonical text source; do **not** re-interpret pixels. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. **Visual sources can be high-leverage for OOUX** — ERD diagrams, domain model sketches, and whiteboard photos often carry explicit entity names and relationships that prose lacks, and the frozen description surfaces them as enumerated text.
   - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
-- If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `input/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
-- If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `input/` and re-invoke `/analyse-inputs`."*
+- If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
+- If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."*
 - State per-tier ingest decisions aloud:
 
   > *"Step 2: read manifest (`manifest_sha256 = <first 12 chars>…`, target = prototype). 4 consumable rows: `brief.docx` (Supported-via-MCP), `domain-model.png` (Native-multimodal), `interview-notes.md` (Native-text), `entities.yaml` (Native-text). 1 skipped row: `proposal.pages` (Unsupported)."*
@@ -299,7 +299,7 @@ Run all 8 hard gates from `framework/assets/analyses-inputs/ooux-reference.md > 
 
 Surface `AskUserQuestion` with three options:
 
-1. `Revise — exit so the consultant can enrich input/ and re-invoke /analyse-inputs (Recommended)`
+1. `Revise — exit so the consultant can enrich documentation/ and re-invoke /analyse-inputs (Recommended)`
 2. `Override — proceed and write a known-defective artefact (Run-history bullet records every violation)`
 3. `Restart — re-run from Round 1 with a fresh manifest pass`
 
@@ -369,8 +369,8 @@ Variants:
 - If `inferred_count > 0`, append: *"{inferred_count} objects inferred from context (provenance: `inferred-from-<filename>`) — these are listed in Diagnostics; confirm or revise each."*
 - If `drift_mode == "re-extract"`, append: *"Drift handling: Rounds 1–6 re-run from scratch on the current manifest; {n_preserved} prior canonical names preserved through re-extraction, {n_dropped} dropped (recorded in Run-history)."*
 - If `drift_mode == "append-only"`, append: *"Drift handling: prior objects preserved verbatim; only new content from new manifest rows was appended this run."*
-- If `prior_run == null`, append: *"This is the first run; re-run after enriching `input/` to extend the object map."*
-- Always append: *"To re-ingest into `/requirements`, copy `analyse-inputs/OOUX/ooux-object-map.html` into `input/` and re-run `/requirements` — instructions are in the Next-steps banner of the artefact."*
+- If `prior_run == null`, append: *"This is the first run; re-run after enriching `documentation/` to extend the object map."*
+- Always append: *"To re-ingest into `/requirements`, copy `analyse-inputs/OOUX/ooux-object-map.html` into `documentation/` and re-run `/requirements` — instructions are in the Next-steps banner of the artefact."*
 
 **B. Accept / Revise / Restart loop.**
 

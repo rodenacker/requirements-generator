@@ -31,7 +31,7 @@ Add new predicates by appending; never renumber.
 
 **Severity:** pause.
 
-**Trigger:** One or more files in `input/` have an extension that the tier rubric in `framework/skills/classify-input-tier.md` maps to `Unsupported`, AND at least one file in `input/` is non-Unsupported (so the run is not blocked by RF-03).
+**Trigger:** One or more files in `documentation/` have an extension that the tier rubric in `framework/skills/classify-input-tier.md` maps to `Unsupported`, AND at least one file in `documentation/` is non-Unsupported (so the run is not blocked by RF-03).
 
 **Surface:** No prompt — the agent records the unsupported files in the manifest with `tier: "Unsupported", kind: "primary", conversions_applied: "none"` and proceeds with the supported files. The drafter skips Unsupported rows per its workflow. The unsupported files remain on disk for forensic record.
 
@@ -41,10 +41,10 @@ Add new predicates by appending; never renumber.
 
 **Severity:** pause.
 
-**Trigger:** Every file in `input/` classifies to `Unsupported` (or `input/` is empty after the one-message wait completed). The drafter has no readable inputs.
+**Trigger:** Every file in `documentation/` classifies to `Unsupported` (or `documentation/` is empty after the one-message wait completed). The drafter has no readable inputs.
 
 **Surface:** `AskUserQuestion` with the choice set `{ retry-after-fix, abort }`.
-- `retry-after-fix` — the consultant drops a supported file into `input/`; the input-handler re-enumerates and re-classifies, then continues from preflight.
+- `retry-after-fix` — the consultant drops a supported file into `documentation/`; the input-handler re-enumerates and re-classifies, then continues from preflight.
 - `abort` — the agent halts with a failed handback; the orchestrator does not write a `completed` event.
 
 **Recovery:** `retry-after-fix` is the standard path; `abort` exits cleanly.

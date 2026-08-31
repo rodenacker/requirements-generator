@@ -1,19 +1,19 @@
 # describe-visual-input.md
 
-**Purpose:** Produce **one frozen, structured, citable textual description** of a single visual input — a UI mock-up, wireframe, screenshot, ERD, flow chart, use-case diagram, or the like — as a markdown sibling that every downstream input-consumer reads **instead of** re-interpreting the pixels. This is the "interpret-once" contract: the visual is interpreted a single time at ingestion, the result is reviewable and correctable by the consultant, and the `/requirements` drafter, the `/generate-prd` drafter, every `/analyse-inputs` analyser, and every `/review-inputs` reviewer consume the same text. The original is left in place; the sibling is written next to it under `input/` with the suffix `.converted.md` (append-extension form). Each description is one invocation; the skill is invoked once per `Native-multimodal` row, and once per `Vector-renderable` row after `framework/skills/render-visual-to-raster.md` has produced a raster.
+**Purpose:** Produce **one frozen, structured, citable textual description** of a single visual input — a UI mock-up, wireframe, screenshot, ERD, flow chart, use-case diagram, or the like — as a markdown sibling that every downstream input-consumer reads **instead of** re-interpreting the pixels. This is the "interpret-once" contract: the visual is interpreted a single time at ingestion, the result is reviewable and correctable by the consultant, and the `/requirements` drafter, the `/generate-prd` drafter, every `/analyse-inputs` analyser, and every `/review-inputs` reviewer consume the same text. The original is left in place; the sibling is written next to it under `documentation/` with the suffix `.converted.md` (append-extension form). Each description is one invocation; the skill is invoked once per `Native-multimodal` row, and once per `Vector-renderable` row after `framework/skills/render-visual-to-raster.md` has produced a raster.
 
 The skill is the **bounded interpretation** the input-handler delegates (see `framework/agents/input-handler.md` Persona). Its discipline is fixed by the template it populates (`framework/assets/template-visual-description.md`) and the anti-patterns below — it transcribes and structures what the visual *shows*; it does not mine requirements, infer business intent, or invent data not visible.
 
 **Inputs:**
 - `image_path` — the raster image to vision-read. For a `Native-multimodal` row this is the `original_path`. For a `Vector-renderable` row this is the **temporary raster** returned by `framework/skills/render-visual-to-raster.md`.
-- `original_path` — the `input/` file the sibling is named after (the consultant-dropped original). For raster rows this equals `image_path`; for vector rows it is the `.svg`/`.drawio`/`.vsdx` original, **not** the temporary raster.
+- `original_path` — the `documentation/` file the sibling is named after (the consultant-dropped original). For raster rows this equals `image_path`; for vector rows it is the `.svg`/`.drawio`/`.vsdx` original, **not** the temporary raster.
 - `source_kind` — `"raster"` or `"rendered-vector"`. Drives the `conversions_applied` sub-tags.
 - `render_tool` — the renderer name (e.g. `inkscape`, `drawio`, `libreoffice`), present only when `source_kind == "rendered-vector"`.
 - The template asset `framework/assets/template-visual-description.md` (read once, populated top-to-bottom).
 - No external/MCP tool is required — Claude's vision is native via `Read`.
 
 **Outputs:**
-- A sibling file at `input/<filename-with-ext>.converted.md` (e.g. `input/wireframe-login.png.converted.md`, `input/erd.svg.converted.md`) containing the populated description.
+- A sibling file at `documentation/<filename-with-ext>.converted.md` (e.g. `documentation/wireframe-login.png.converted.md`, `documentation/erd.svg.converted.md`) containing the populated description.
 - A `conversions_applied` string for the manifest row: `"vision-described"` plus optional sub-tags separated by `; ` — for example `"vision-described; ui-mockup"`, `"vision-described; erd; rendered-from-vector; render-tool=inkscape"`, or the failure form `"failed — vision"`.
 
 **Used by:**
@@ -21,7 +21,7 @@ The skill is the **bounded interpretation** the input-handler delegates (see `fr
 
 ## Procedure
 
-1. Determine the sibling path: append `.converted.md` to the **full original filename** (extension included). For `input/wireframe.png` the sibling is `input/wireframe.png.converted.md`; for `input/erd.svg` it is `input/erd.svg.converted.md`. The append-extension form (not extension-replace) prevents a visual from colliding with a same-stem Office file's sibling (`chart.png.converted.md` vs `chart.converted.md`). If a file already exists at the sibling path, the **input-handler's step-5 idempotency guard** decides whether this skill is even invoked — this skill always (over)writes when invoked.
+1. Determine the sibling path: append `.converted.md` to the **full original filename** (extension included). For `documentation/wireframe.png` the sibling is `documentation/wireframe.png.converted.md`; for `documentation/erd.svg` it is `documentation/erd.svg.converted.md`. The append-extension form (not extension-replace) prevents a visual from colliding with a same-stem Office file's sibling (`chart.png.converted.md` vs `chart.converted.md`). If a file already exists at the sibling path, the **input-handler's step-5 idempotency guard** decides whether this skill is even invoked — this skill always (over)writes when invoked.
 2. `Read` `image_path` to surface the image as multimodal vision input.
 3. `Read` `framework/assets/template-visual-description.md` and populate it **top-to-bottom in one pass**, classifying the diagram type and filling every section. Apply the marker discipline exactly:
    - Cite every Tier-A (*what*) item with `[SRC: <original-filename>]` — the original's filename, not the temp raster's.
@@ -50,12 +50,12 @@ The `conversions_applied` string is consultant-facing and forensic; the input-ha
 
 ## Self-validation
 
-- The sibling exists at `input/<filename-with-ext>.converted.md` after a successful description. Its byte size is ≥ 256.
+- The sibling exists at `documentation/<filename-with-ext>.converted.md` after a successful description. Its byte size is ≥ 256.
 - The sha256 returned to the caller matches the bytes on disk (verified via `verify-artifact-write.md`).
 - Every `{{placeholder}}` in the template was replaced; no section was left blank (empty sections carry the template's explicit sentinel).
 - Every Tier-A (*what*) item carries a `[SRC: <original-filename>]` citation naming the **original** file (not the temporary raster). No marker outside `[SRC]` / `[AI-SUGGESTED]` appears.
-- On a failed description, the sibling is **not** written; the caller is told via `conversions_applied: "failed — vision"`; the original under `input/` is untouched.
-- The original consultant-dropped file is never modified. For a vector row, the temporary raster is the skill's scratch input; the skill does not leave it under `input/`.
+- On a failed description, the sibling is **not** written; the caller is told via `conversions_applied: "failed — vision"`; the original under `documentation/` is untouched.
+- The original consultant-dropped file is never modified. For a vector row, the temporary raster is the skill's scratch input; the skill does not leave it under `documentation/`.
 
 ## Anti-Patterns
 

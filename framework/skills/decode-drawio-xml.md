@@ -5,8 +5,8 @@
 The primary render path remains preferred (geometry is read by vision, not guessed). This skill is the graceful-degradation tier — see `framework/shared/setup-instructions/visual-render.md`.
 
 **Inputs:**
-- `vector_path` — the `.drawio` file under `input/` to decode.
-- `sibling_path` — the description sibling to write: `input/<filename-with-ext>.converted.md` (append-extension form, e.g. `flow.drawio.converted.md`), matching the render path's sibling exactly so downstream Read-path resolution is identical.
+- `vector_path` — the `.drawio` file under `documentation/` to decode.
+- `sibling_path` — the description sibling to write: `documentation/<filename-with-ext>.converted.md` (append-extension form, e.g. `flow.drawio.converted.md`), matching the render path's sibling exactly so downstream Read-path resolution is identical.
 
 **Outputs:** exactly one of:
 - `ok` — the sibling at `sibling_path` was written (template fully populated, marker discipline applied) and verified via `framework/skills/verify-artifact-write.md`. The input-handler retains the row's `tier: "Vector-renderable"` and records `conversions_applied: "drawio-xml-fallback[; multi-page-source-first-page-only]"`.

@@ -27,23 +27,23 @@ This analyser sits firmly in the **extraction** camp. The subject of every job i
 
 | Lens | Methodology | Question answered | Operates on |
 |---|---|---|---|
-| Cross-cutting pattern recognition | thematic-analysis (input variant) | What recurring patterns do the inputs carry? | raw `input/` |
-| Outcome-tree discovery | opportunity-solution-trees (input variant) | What desired outcomes do the inputs name and which opportunities ladder up? | raw `input/` |
-| Current-state workflow mapping | journey-mapping (input variant) | What is the as-is user workflow described in the inputs? | raw `input/` |
-| Hierarchical task decomposition | task-analysis (input variant) | How do the inputs decompose user goals into sub-goals and operations? | raw `input/` |
-| **Jobs × situations × outcomes × forces** | **jtbd (input variant)** | **What jobs are users hiring the product to do, and what forces drive or resist their progress?** | **raw `input/`** |
+| Cross-cutting pattern recognition | thematic-analysis (input variant) | What recurring patterns do the inputs carry? | raw `documentation/` |
+| Outcome-tree discovery | opportunity-solution-trees (input variant) | What desired outcomes do the inputs name and which opportunities ladder up? | raw `documentation/` |
+| Current-state workflow mapping | journey-mapping (input variant) | What is the as-is user workflow described in the inputs? | raw `documentation/` |
+| Hierarchical task decomposition | task-analysis (input variant) | How do the inputs decompose user goals into sub-goals and operations? | raw `documentation/` |
+| **Jobs × situations × outcomes × forces** | **jtbd (input variant)** | **What jobs are users hiring the product to do, and what forces drive or resist their progress?** | **raw `documentation/`** |
 
 JTBD on raw inputs is the **right complement** to the existing `/analyse-requirement` JTBD because:
 
 1. The sibling lenses the synthesised `requirements/requirements.md`, which has already normalised consultant phrasing into *"the system shall …"* clauses — JTBD on that document surfaces jobs the **normaliser** preserved, not the jobs the **inputs** named.
 2. Push / Pull / Anxiety / Habit signals live in primary source material (interviews, complaints, "we've always done it this way" prose). Synthesised requirements strip those signals out. Surfacing them **before** synthesis preserves the rich motivation data JTBD depends on.
-3. The output can be **fed back** to `/requirements` as an additional source (manual copy into `input/`) — letting the consultant anchor the next requirements draft in extracted user motivation rather than feature wishlist.
+3. The output can be **fed back** to `/requirements` as an additional source (manual copy into `documentation/`) — letting the consultant anchor the next requirements draft in extracted user motivation rather than feature wishlist.
 
 ### Why this analyser uses HTML, not Markdown + Mermaid
 
 - **Visual job-card grid + opportunity matrix.** The methodology depends on a 5×5 importance × satisfaction grid with an innovation-zone highlight, and on cluster-grouped job cards with sticky-note clause boxes (WHEN amber, WANT-TO blue, SO-I-CAN green) + scoring dot rows + forces strips. None of that renders cleanly in markdown.
 - **Mirror of the sibling.** `/analyse-requirement` JTBD also uses HTML with the same job-card grid + opportunity matrix; keeping the formats aligned makes side-by-side comparison trivial when a consultant runs both.
-- **Re-ingestibility intact.** HTML still classifies as `Native-text` per `framework/skills/classify-input-tier.md` (UTF-8 passes the sniff; the `[SRC: <filename>]` markers survive as plain text). When the consultant copies the HTML into `input/`, the drafter reads its job-card content as candidate-requirement seeds directly. Markitdown conversion is **not** invoked for `Native-text` HTML — the drafter reads the HTML in-context.
+- **Re-ingestibility intact.** HTML still classifies as `Native-text` per `framework/skills/classify-input-tier.md` (UTF-8 passes the sniff; the `[SRC: <filename>]` markers survive as plain text). When the consultant copies the HTML into `documentation/`, the drafter reads its job-card content as candidate-requirement seeds directly. Markitdown conversion is **not** invoked for `Native-text` HTML — the drafter reads the HTML in-context.
 
 ---
 
@@ -65,7 +65,7 @@ The artefact has a fixed top-to-bottom shape (rendered by the template; placehol
    - Forces strip: Push / Pull / Anxiety / Habit lines; forces with no input mention render as `not-named-in-inputs` with the `not-named` CSS class.
 5. **Opportunity matrix** (`<section id="tables">`). 5×5 grid plotting jobs by Importance (Y) × Satisfaction (X). Top-right quadrant (Imp ≥ 4 ∧ Sat ≤ 2) highlighted as the innovation-opportunity zone.
 6. **Diagnostics** (`<details id="diagnostics">`, collapsed by default). Manifest fingerprint, source roster (Consumed table + Skipped table), gate results (1–7 pass / fail), provenance counts (jobs cited from each source), measure counts (measurable / `(no-metric-in-inputs)`), scoring marker counts (`consultant-assigned-no-signal`), force counts (named / `not-named-in-inputs`), run history.
-7. **Downstream-use footer** (`<details class="downstream-toggle">`, collapsed by default). Re-ingestion instructions (how to copy this file into `input/` for a subsequent `/requirements` run). Pipeline-machinery prose; visible only on expand.
+7. **Downstream-use footer** (`<details class="downstream-toggle">`, collapsed by default). Re-ingestion instructions (how to copy this file into `documentation/` for a subsequent `/requirements` run). Pipeline-machinery prose; visible only on expand.
 
 ---
 
@@ -276,7 +276,7 @@ Run at Round 6 close, before render. Each gate operates on the in-memory state. 
 
 On any hard-gate failure: do **not** write the artefact. Surface `AskUserQuestion` with three options:
 
-1. `Revise — exit so the consultant can enrich input/ and re-invoke /analyse-inputs (Recommended)`
+1. `Revise — exit so the consultant can enrich documentation/ and re-invoke /analyse-inputs (Recommended)`
 2. `Override — proceed and write a known-defective artefact (Run-history bullet records every violation)`
 3. `Restart — re-run from Round 1 with a fresh manifest pass`
 
@@ -338,7 +338,7 @@ The analyser **never** reads:
 
 The JTBD-inputs artefact is **re-ingestible by `/requirements`** as a fresh source. The contract:
 
-1. Consultant copies `analyse-inputs/JTBD/jtbd-job-map.html` into `input/` (file copy; the orchestrator does not automate this).
+1. Consultant copies `analyse-inputs/JTBD/jtbd-job-map.html` into `documentation/` (file copy; the orchestrator does not automate this).
 2. Consultant re-invokes `/requirements` (or any of `/analyse-inputs`, `/review-inputs`, `/generate-prd`).
 3. The shared `framework/agents/input-handler.md` agent detects the new file on its drift check; surfaces the manifest-refresh prompt; classifies the file via `framework/skills/classify-input-tier.md` as `Native-text` (HTML passes the UTF-8 / printable-ratio sniff); adds it to `requirements/source-manifest.json` as a new row.
 4. The `/requirements` drafter reads the new row's `original_path` (no markitdown conversion needed — `Native-text` is read directly) and extracts candidate-requirement seeds from the job-card content. The `[SRC: <filename>]` markers inside the JTBD artefact reference the original briefs / interview notes; the drafter's own `[SRC: C-NNN]` claim IDs cite the JTBD artefact; the audit trail is preserved end-to-end through the dual-citation chain.

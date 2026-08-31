@@ -1,4 +1,4 @@
-<!-- ROLE: asset (analysis reference). Methodology definition for the opportunity-solution-trees input-analyser. Modelled on framework/assets/analyses-inputs/thematic-analysis-reference.md (operational shape) and adapted from framework/assets/analyses/opportunity-solution-trees-reference.md (Torres methodology). Industry framing: Teresa Torres, "Continuous Discovery Habits" (2021); canonical exposition at producttalk.org/opportunity-solution-trees/. Adapted for forward-discovery against raw consultant inputs rather than reverse-discovery against a merged PRD. Inductive Rounds 1-5 extract the tree from inputs; Round 6 produces the candidate-requirements bridge that /requirements consumes when this artefact is re-dropped into input/. -->
+<!-- ROLE: asset (analysis reference). Methodology definition for the opportunity-solution-trees input-analyser. Modelled on framework/assets/analyses-inputs/thematic-analysis-reference.md (operational shape) and adapted from framework/assets/analyses/opportunity-solution-trees-reference.md (Torres methodology). Industry framing: Teresa Torres, "Continuous Discovery Habits" (2021); canonical exposition at producttalk.org/opportunity-solution-trees/. Adapted for forward-discovery against raw consultant inputs rather than reverse-discovery against a merged PRD. Inductive Rounds 1-5 extract the tree from inputs; Round 6 produces the candidate-requirements bridge that /requirements consumes when this artefact is re-dropped into documentation/. -->
 
 # Opportunity Solution Tree (inputs-side) reference
 
@@ -28,24 +28,24 @@ The sibling analyser at `framework/agents/analyses/opportunity-solution-trees-an
 - Raw inputs almost never carry **explicit Assumption Tests**. The `(no assumption tests in inputs)` placeholder is the expected state; the analyser does not fabricate tests.
 - Raw inputs carry **sparse Solutions**. Many consultant inputs describe pains but stop short of feature commitments. 1:1 Opportunity-Solution pairings and Opportunities with zero source-grounded Solutions are permitted; the latter get the `unaddressed-in-inputs` flag (informational, not a gate failure).
 
-The artefact's load-bearing addition versus the reverse-discovery sibling is the **candidate-requirements bridge** (Round 6 sub-step A) — a per-Opportunity list of *"The system should `<verb> <object>` so that `<outcome>`"* lines, citing the parent Opportunity's `[SRC: <filename>]` set. The consultant re-drops the artefact into `input/` to feed `/requirements`; the drafter classifies it as `Native-text` and reads the bridge section as candidate-requirement seeds, the same way it reads `thematic-analysis`'s `Theme-to-requirement-candidates` section.
+The artefact's load-bearing addition versus the reverse-discovery sibling is the **candidate-requirements bridge** (Round 6 sub-step A) — a per-Opportunity list of *"The system should `<verb> <object>` so that `<outcome>`"* lines, citing the parent Opportunity's `[SRC: <filename>]` set. The consultant re-drops the artefact into `documentation/` to feed `/requirements`; the drafter classifies it as `Native-text` and reads the bridge section as candidate-requirement seeds, the same way it reads `thematic-analysis`'s `Theme-to-requirement-candidates` section.
 
 ### Why apply OST to raw inputs?
 
 | Lens | Methodology | Question answered | Operates on |
 |---|---|---|---|
-| Vocabulary × definitions | glossary (input variant) | Which terms appear in the raw material? | raw `input/` |
-| Jobs × situations | jtbd (input variant) | What jobs are users trying to get done? | raw `input/` |
-| Causal chain × root drivers | five-whys (input variant) | Why does this concern exist in the inputs? | raw `input/` |
-| Cross-cutting patterns | thematic-analysis | What recurring patterns do the inputs carry? | raw `input/` |
-| **Strategic ladder × discovery space** | **opportunity-solution-trees** | **Which Outcome do the inputs imply, and what Opportunities + candidate Solutions ladder to it?** | **raw `input/`** |
+| Vocabulary × definitions | glossary (input variant) | Which terms appear in the raw material? | raw `documentation/` |
+| Jobs × situations | jtbd (input variant) | What jobs are users trying to get done? | raw `documentation/` |
+| Causal chain × root drivers | five-whys (input variant) | Why does this concern exist in the inputs? | raw `documentation/` |
+| Cross-cutting patterns | thematic-analysis | What recurring patterns do the inputs carry? | raw `documentation/` |
+| **Strategic ladder × discovery space** | **opportunity-solution-trees** | **Which Outcome do the inputs imply, and what Opportunities + candidate Solutions ladder to it?** | **raw `documentation/`** |
 
-OST complements `thematic-analysis`: TA emphasises *what* themes recur across sources; OST emphasises *why* (the outcome the work serves) and *how* (the candidate solutions the inputs hint at). A consultant may run both and re-ingest both into `input/` for a richer `/requirements` run.
+OST complements `thematic-analysis`: TA emphasises *what* themes recur across sources; OST emphasises *why* (the outcome the work serves) and *how* (the candidate solutions the inputs hint at). A consultant may run both and re-ingest both into `documentation/` for a richer `/requirements` run.
 
 ### Why HTML with embedded SVG tree + Mermaid source + JSON body
 
 - **Self-contained, diagram-first.** The artefact is a single HTML file the consultant can open in a browser with the Opportunity Solution Tree at the top as a pre-rendered, self-contained layered SVG — one `<svg class="tree-svg">` in which the analyser places every node and every edge in a single `viewBox` coordinate space, so edges meet their nodes by construction at any node count. No Mermaid runtime, no external assets. This matches the framework's HTML-output, diagrams-first convention.
-- **Re-ingestibility via embedded fenced blocks.** Re-ingestion is still load-bearing: the consultant re-drops the artefact into `input/` to feed `/requirements`. The embedded `language-json` `opportunity-solution-tree-body` block (tree model + candidate-requirement seeds) and the collapsed `mermaid-source` block survive a markitdown HTML→Markdown conversion, so the model round-trips cleanly and the drafter reads the candidate-requirement seeds without parsing presentational HTML. The "HTML cannot round-trip into `/requirements`" rationale that previously justified staying in markdown is therefore obsolete — the embedded JSON body block is what makes the HTML round-trip cleanly now.
+- **Re-ingestibility via embedded fenced blocks.** Re-ingestion is still load-bearing: the consultant re-drops the artefact into `documentation/` to feed `/requirements`. The embedded `language-json` `opportunity-solution-tree-body` block (tree model + candidate-requirement seeds) and the collapsed `mermaid-source` block survive a markitdown HTML→Markdown conversion, so the model round-trips cleanly and the drafter reads the candidate-requirement seeds without parsing presentational HTML. The "HTML cannot round-trip into `/requirements`" rationale that previously justified staying in markdown is therefore obsolete — the embedded JSON body block is what makes the HTML round-trip cleanly now.
 - **Diagram as inline SVG.** The layered tree diagram is a pre-rendered, self-contained inline `<svg class="tree-svg">` (nodes + edges in one `viewBox` coordinate space); the `graph TD` source is kept in an adjacent collapsed `<details class="mermaid-block">` block as an export / re-ingestion adjunct, embedded as text and **not** validated by `mmdc` (the inline tree is the visible diagram — matching the other inline-SVG analyses; no `mmdc` dependency).
 
 The requirements-side twin already produced HTML + SVG as a final audit deliverable; the inputs-side variant now produces the same self-contained HTML shape while keeping its load-bearing candidate-requirements bridge re-ingestible through the embedded body block.
@@ -73,9 +73,9 @@ The artefact has a fixed top-to-bottom shape:
 7. **Solutions.** Grouped by parent Opportunity (sub-heading `### Under Op-NN`); plus a final group `### [ORPHAN-SOLUTION] Under Op-?: (none stated in inputs)` collecting solutions with no source-grounded parent Opportunity. Each Solution:
     - Verbatim text (`<verb> <object>` or `<feature name>`).
     - Source extract + `[SRC: <filename>]`.
-8. **Assumption Tests.** Grouped by parent Solution (sub-heading `### For S-NN`). When Layer 4 is entirely absent, render the single placeholder line: *"`(no assumption tests in inputs)` — raw consultant inputs rarely carry explicit risk / assumption / open-question phrasing; this layer is expected to be absent. Add risk / assumption material to `input/` and re-run to populate it."*
+8. **Assumption Tests.** Grouped by parent Solution (sub-heading `### For S-NN`). When Layer 4 is entirely absent, render the single placeholder line: *"`(no assumption tests in inputs)` — raw consultant inputs rarely carry explicit risk / assumption / open-question phrasing; this layer is expected to be absent. Add risk / assumption material to `documentation/` and re-run to populate it."*
 9. **Opportunity Solution Tree.** A `#diagrams` section with the tree as a pre-rendered inline SVG (per the diagram spec below), and the `graph TD` source kept in an adjacent collapsed `<details class="mermaid-source">` block.
-10. **Candidate requirements (bridge to `/requirements`).** Heading `## Candidate requirements`. One sub-section per Opportunity (`### From Op-NN`); each sub-section a bullet list of *"The system should `<verb> <object>` so that `<outcome>`."* lines, each ending in `[SRC: <filename>]` inherited from the parent Opportunity. Opportunities flagged `[UNADDRESSED]` render a single bullet: *"`(no source-grounded solutions; recommend-elicit-solution)` — the inputs name this opportunity but commit no solution to it. Add elicitation material naming candidate solutions to `input/` and re-run, or accept as out-of-scope."*
+10. **Candidate requirements (bridge to `/requirements`).** Heading `## Candidate requirements`. One sub-section per Opportunity (`### From Op-NN`); each sub-section a bullet list of *"The system should `<verb> <object>` so that `<outcome>`."* lines, each ending in `[SRC: <filename>]` inherited from the parent Opportunity. Opportunities flagged `[UNADDRESSED]` render a single bullet: *"`(no source-grounded solutions; recommend-elicit-solution)` — the inputs name this opportunity but commit no solution to it. Add elicitation material naming candidate solutions to `documentation/` and re-run, or accept as out-of-scope."*
 11. **Coverage diagnostics.** Heading `## Coverage diagnostics`. Four sub-lists (each emits an italic *"(no entries this run)"* line when empty):
     - **Orphan solutions** — solutions under sentinel `Op-?`.
     - **Unaddressed opportunities** — opportunities with no source-grounded Solution children.
@@ -121,7 +121,7 @@ For each candidate Outcome, capture:
 
 - **One candidate** → set as the primary root Outcome; advance to Round 2.
 - **≥ 2 candidates** → surface an `AskUserQuestion` listing every candidate with its classification and supporting `[SRC: <filename>]`. Consultant picks the primary. Non-primary candidates are preserved with `[CANDIDATE-OUTCOME]` markers in the `## Candidate outcomes` section and do **not** ladder Opportunities (the tree has one root).
-- **Zero candidates** after best-effort → hard halt with the structured error: *"No outcome-like signal was extracted from the consumed inputs. Add a brief / proposal / goal statement to `input/` and re-invoke `/analyse-inputs`."* (analogous to RF-03).
+- **Zero candidates** after best-effort → hard halt with the structured error: *"No outcome-like signal was extracted from the consumed inputs. Add a brief / proposal / goal statement to `documentation/` and re-invoke `/analyse-inputs`."* (analogous to RF-03).
 
 ---
 
@@ -278,11 +278,11 @@ For each Opportunity in the tree, derive one or more **candidate-requirement** l
 **Sourcing:**
 
 - When Solutions exist for the Opportunity, derive the `<verb> <object>` from the matched Solutions' verbatim text.
-- When the Opportunity is `[UNADDRESSED]`, emit a single bullet: *"`(no source-grounded solutions; recommend-elicit-solution)` — the inputs name this opportunity but commit no solution to it. Add elicitation material naming candidate solutions to `input/` and re-run, or accept as out-of-scope."* This bullet satisfies **Gate 5**.
+- When the Opportunity is `[UNADDRESSED]`, emit a single bullet: *"`(no source-grounded solutions; recommend-elicit-solution)` — the inputs name this opportunity but commit no solution to it. Add elicitation material naming candidate solutions to `documentation/` and re-run, or accept as out-of-scope."* This bullet satisfies **Gate 5**.
 
 **Mechanism downstream:**
 
-- When the consultant drops this artefact into `input/`, the input-handler classifies it as `Native-text` and the `/requirements` drafter reads the `## Candidate requirements` section as candidate-requirement seeds.
+- When the consultant drops this artefact into `documentation/`, the input-handler classifies it as `Native-text` and the `/requirements` drafter reads the `## Candidate requirements` section as candidate-requirement seeds.
 - The drafter normalises voice, assigns `R-NN` IDs, and merges into `§6` of `requirements/requirements-draft.md`. The drafter's `[SRC: C-NNN]` claim-IDs coexist with this artefact's `[SRC: <filename>]` markers in the draft; the merger strips both at requirements-finalisation time, producing a clean `requirements/requirements.md`.
 
 ### Sub-step B — Coverage diagnostics
@@ -398,7 +398,7 @@ The three relaxations are defended at the methodology level (here) so the discip
 
 On any hard-gate failure: do **not** write the artefact. Surface `AskUserQuestion` with three options:
 
-1. `Revise — exit so the consultant can enrich input/ and re-invoke /analyse-inputs (Recommended)`
+1. `Revise — exit so the consultant can enrich documentation/ and re-invoke /analyse-inputs (Recommended)`
 2. `Override — proceed and write a known-defective artefact (Run-history bullet records every violation)`
 3. `Restart — re-run from Round 1 with a fresh manifest pass`
 

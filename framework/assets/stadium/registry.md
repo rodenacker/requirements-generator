@@ -2,7 +2,7 @@
 
 **What this is.** The Stadium-6 knowledge base (KB): a set of **durable, app-independent** reference files describing how a Twenty57 **Stadium 6** web application is structured on disk and what its extracted facts mean. It is read by the Stadium extractor (`framework/tools/extract_stadium_app.py`, via its `--kb` flag — today only `module-catalogue.md`, for module glosses) and by the requirements drafter (to interpret the per-app extracted assets it ingests). These facts hold across every Stadium app and rarely change; they belong here, not in any one app's inputs.
 
-**Distinct from per-app extracted assets.** When a consultant points the extractor at one Stadium app folder, it emits per-app assets (`<stem>.stadium.<category>.md`) into that engagement's `input/` directory. Those describe *one* application and live with the engagement. This KB describes the *platform* and is checked into the framework. `asset-schemas.md` is the bridge — it documents the shape of those per-app assets and how the drafter cites them.
+**Distinct from per-app extracted assets.** When a consultant points the extractor at one Stadium app folder, it emits per-app assets (`<stem>.stadium.<category>.md`) into that engagement's `documentation/` directory. Those describe *one* application and live with the engagement. This KB describes the *platform* and is checked into the framework. `asset-schemas.md` is the bridge — it documents the shape of those per-app assets and how the drafter cites them.
 
 ## Files
 

@@ -97,11 +97,11 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` → `Read row.converted_sibling` as text — a frozen textual description (vision description for `Native-multimodal` / `Vector-renderable`; markitdown rendering for `Supported-via-MCP`) prepared by the input-handler. Treat it as the canonical text source; do **not** re-interpret pixels or re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract. The description already carries a faithful transcription plus a structured what/how breakdown (objects, fields, relationships, actors, tasks, flows, states, business rules, advisory IA/layout/styling), so it supplies the actors, explicit-goal, and inference-anchor signals this analyser harvests. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
-- If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no manifest rows at all), halt with: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `input/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; hard halt analogous to RF-03.
-- If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row is `Unsupported`), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `input/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
+- If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no manifest rows at all), halt with: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; hard halt analogous to RF-03.
+- If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row is `Unsupported`), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
 - State the per-tier ingest decisions aloud, e.g.:
 
-  > *"Step 2: read manifest (`manifest_fingerprint = <first 12 chars>…`). 4 consumable rows: `brief.docx` (Supported-via-MCP, reading `input/brief.docx.converted.md`), `whiteboard-photo.png` (Native-multimodal, reading the frozen description `input/whiteboard-photo.png.converted.md`), `interview-notes.md` (Native-text), `pricing-sheet.xlsx` (Supported-via-MCP). 1 skipped row: `proposal.pages` (Unsupported, reason: `markitdown: Apple Pages not supported`)."*
+  > *"Step 2: read manifest (`manifest_fingerprint = <first 12 chars>…`). 4 consumable rows: `brief.docx` (Supported-via-MCP, reading `documentation/brief.docx.converted.md`), `whiteboard-photo.png` (Native-multimodal, reading the frozen description `documentation/whiteboard-photo.png.converted.md`), `interview-notes.md` (Native-text), `pricing-sheet.xlsx` (Supported-via-MCP). 1 skipped row: `proposal.pages` (Unsupported, reason: `markitdown: Apple Pages not supported`)."*
 
 ### Step 3 — Detect prior artefact (additive vs re-extract)
 
@@ -239,7 +239,7 @@ Run all 7 hard gates from `framework/assets/analyses-inputs/user-goal-analysis-r
 
 **On any gate failure:** surface `AskUserQuestion` with three options:
 
-1. `Revise — exit so the consultant can enrich input/ and re-invoke /analyse-inputs (Recommended)`
+1. `Revise — exit so the consultant can enrich documentation/ and re-invoke /analyse-inputs (Recommended)`
 2. `Override — proceed and write a known-defective register (Run-history bullet records every violation)`
 3. `Restart — re-run from Pass 1 with a fresh manifest pass`
 
@@ -256,7 +256,7 @@ On **Revise**: hand back with `failed-handback`. On **Override**: record each fa
 
 | Placeholder | Value |
 |---|---|
-| `{{PLAIN_SUMMARY}}` | 2–5 plain-English sentences — what this goal register is (a GORE-based analysis of raw consultant inputs), what it found (goal count: explicit and inferred; Cooper-type coverage; key conflicts if any), and what the consultant should do with it (audit inferred goals; confirm blockers; optionally copy into `input/` for a `/requirements` round-trip). A faithful condensation: introduces no goal, count, or fact not already in the register; carries no `[SRC]` of its own. Methodology jargon glossed at first use (e.g. "user goal (what the user is trying to achieve)", "actor/persona (a role or person whose goals are surfaced)"); client domain terms NOT glossed (GLOSSARY methodology owns those). HTML-escaped. |
+| `{{PLAIN_SUMMARY}}` | 2–5 plain-English sentences — what this goal register is (a GORE-based analysis of raw consultant inputs), what it found (goal count: explicit and inferred; Cooper-type coverage; key conflicts if any), and what the consultant should do with it (audit inferred goals; confirm blockers; optionally copy into `documentation/` for a `/requirements` round-trip). A faithful condensation: introduces no goal, count, or fact not already in the register; carries no `[SRC]` of its own. Methodology jargon glossed at first use (e.g. "user goal (what the user is trying to achieve)", "actor/persona (a role or person whose goals are surfaced)"); client domain terms NOT glossed (GLOSSARY methodology owns those). HTML-escaped. |
 
 **Meta-grid placeholders:**
 
@@ -331,15 +331,15 @@ Variants:
 
 - If Step 10 was Override'd, prepend: *"Quality-check violations were accepted as known — the Run-history bullet records every flagged item."*
 - If a Cooper category is empty, append: *"Cooper-coverage gap: {no-life-signal-in-inputs / no-experience-signal-in-inputs}. Sparse life/experience goals are expected on data-management inputs; adding material that names identity or felt-experience would surface them if they exist."*
-- If `(no-metric-in-inputs)` / `(no-satisficing-criterion-in-inputs)` counts > 0, append: *"Criterion gap: {n} goals carry no measure/threshold from the inputs. Adding explicit success-metric or quality-threshold language to `input/` lets the next run anchor them."*
+- If `(no-metric-in-inputs)` / `(no-satisficing-criterion-in-inputs)` counts > 0, append: *"Criterion gap: {n} goals carry no measure/threshold from the inputs. Adding explicit success-metric or quality-threshold language to `documentation/` lets the next run anchor them."*
 - If `inferred_count > 0`, append: *"Inference note: {inferred_count} goals are inferred (amber cards). Each names its anchor + technique — review them; on a `/requirements` round-trip the {blocking_count} blocking ones become mandatory resolver confirmations."*
 - If `drift_mode == "re-extract"`, append: *"Drift handling: Passes 1–6 re-run from scratch; AI-NN ids re-minted; {n_dropped} prior goals dropped (recorded in Run-history)."*
 - If `drift_mode == "append-only"`, append: *"Drift handling: prior goals, hierarchy, actor map, and conflicts preserved verbatim; only new goals from new manifest rows were appended."*
-- If `prior_run == null`, append: *"This is the first run; re-run after enriching `input/` to widen coverage additively."*
+- If `prior_run == null`, append: *"This is the first run; re-run after enriching `documentation/` to widen coverage additively."*
 
 **B. Round-trip instruction (always emitted).**
 
-> *"To feed this register into a subsequent `/requirements` run, copy `analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` into `input/`; the input-handler will surface a manifest-refresh prompt and the drafter will ingest it. Explicit goals seed `§4 User goals & stories`; inferred goals surface to the resolver as `AI-NNN` questions (blocking ones as mandatory confirmations), so you validate every inference before it becomes a requirement. The `[SRC: <filename>]` markers preserve the audit trail back to the original briefs / notes / decks."*
+> *"To feed this register into a subsequent `/requirements` run, copy `analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` into `documentation/`; the input-handler will surface a manifest-refresh prompt and the drafter will ingest it. Explicit goals seed `§4 User goals & stories`; inferred goals surface to the resolver as `AI-NNN` questions (blocking ones as mandatory confirmations), so you validate every inference before it becomes a requirement. The `[SRC: <filename>]` markers preserve the audit trail back to the original briefs / notes / decks."*
 
 **C. Accept / Revise / Restart loop.** Use `AskUserQuestion`:
 

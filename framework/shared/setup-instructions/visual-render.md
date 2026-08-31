@@ -6,7 +6,7 @@ The renderer turns a vector diagram into a raster so the system can produce a fa
 
 **`.drawio` degrades gracefully — it does not need a renderer to be usable.** When `drawio` is absent (or a render fails), the input-handler falls back to reading the diagram's mxGraph XML directly (`framework/skills/decode-drawio-xml.md`): explicit content — node/entity labels, edge connectivity, and cardinality/direction read from edge-style tokens — is captured authoritatively, while anything that depends on visual geometry (lane membership, positional grouping) is flagged as inferred (`[AI-SUGGESTED]`) rather than asserted. Installing draw.io Desktop is still preferred (the rendered-then-vision path reads geometry directly, at full fidelity), but a missing draw.io no longer loses the file.
 
-You only need the renderer(s) for the formats you actually drop in `input/`. The preflight succeeds if **any** suitable binary is found.
+You only need the renderer(s) for the formats you actually drop in `documentation/`. The preflight succeeds if **any** suitable binary is found.
 
 ## Install
 
@@ -54,9 +54,9 @@ The step-4b preflight tests presence with `Get-Command <name>` (PowerShell) / `c
 
   (Installed manually instead of via winget? Put `drawio.cmd` in any directory already on your `PATH` and point it at your `draw.io.exe`.) Then restart Claude Code (the session caches `PATH` at start) and re-invoke the pipeline; `Get-Command drawio` should now resolve.
 - **Render produces a tiny/blurry raster and the description misses labels** — increase the export width in `framework/skills/render-visual-to-raster.md` (target ≥ 1500 px on the long edge).
-- **`.vsdx` fails to render (LibreOffice)** — `.vsdx` support is **best-effort**: complex Visio stencils or password-protected files may not convert. If LibreOffice errors, the row demotes to `Unsupported` (`conversions_applied: "failed — render"`). Workaround: open the file in Visio/LibreOffice and export it to `.svg` or `.png` yourself, then drop that into `input/` instead.
+- **`.vsdx` fails to render (LibreOffice)** — `.vsdx` support is **best-effort**: complex Visio stencils or password-protected files may not convert. If LibreOffice errors, the row demotes to `Unsupported` (`conversions_applied: "failed — render"`). Workaround: open the file in Visio/LibreOffice and export it to `.svg` or `.png` yourself, then drop that into `documentation/` instead.
 - **`.drawio` renders only the first page** — multi-page `.drawio`/`.vsdx` sources render their primary page only in MVP. Export each page separately if you need all of them.
 
 ## Uninstall
 
-Uninstall the renderer(s) via the same channel you installed them (the OS package manager or the app's uninstaller). After uninstall, re-running a pipeline with any `Vector-renderable` file in `input/` will fire `RF-01` again at step 4b.
+Uninstall the renderer(s) via the same channel you installed them (the OS package manager or the app's uninstaller). After uninstall, re-running a pipeline with any `Vector-renderable` file in `documentation/` will fire `RF-01` again at step 4b.

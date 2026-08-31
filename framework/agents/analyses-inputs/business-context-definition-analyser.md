@@ -102,11 +102,11 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
   - `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler. The description already enumerates the business-context-relevant items: organisational entities, business problems / needs / goals / objectives, and the actors and tasks the visual depicts (org charts, strategy-deck slide structure, whiteboard layout, screenshot annotations are transcribed and structured). Treat it as the canonical text source; do **not** re-interpret pixels. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp`.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
-- If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no manifest rows at all), halt with: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `input/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; hard halt analogous to RF-03.
-- If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row is `Unsupported`), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `input/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
+- If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no manifest rows at all), halt with: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; hard halt analogous to RF-03.
+- If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row is `Unsupported`), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
 - State the per-tier ingest decisions aloud, e.g.:
 
-  > *"Step 2: read manifest (`manifest_fingerprint = <first 12 chars>…`). 4 consumable rows: `brief.docx` (Supported-via-MCP, reading `input/brief.docx.converted.md`), `strategy-deck.pptx` (Supported-via-MCP), `ops-review.pdf` (Supported-via-MCP), `exec-interview.md` (Native-text). 1 skipped row: `org-chart.vsdx` (Unsupported, reason: `markitdown: Visio not supported`)."*
+  > *"Step 2: read manifest (`manifest_fingerprint = <first 12 chars>…`). 4 consumable rows: `brief.docx` (Supported-via-MCP, reading `documentation/brief.docx.converted.md`), `strategy-deck.pptx` (Supported-via-MCP), `ops-review.pdf` (Supported-via-MCP), `exec-interview.md` (Native-text). 1 skipped row: `org-chart.vsdx` (Unsupported, reason: `markitdown: Visio not supported`)."*
 
 ### Step 3 — Detect prior artefact (additive vs re-extract)
 
@@ -257,7 +257,7 @@ Run all 7 hard gates from `framework/assets/analyses-inputs/business-context-def
 
 **On any gate failure:** surface `AskUserQuestion` with three options:
 
-1. `Revise — exit so the consultant can enrich input/ and re-invoke /analyse-inputs (Recommended)`
+1. `Revise — exit so the consultant can enrich documentation/ and re-invoke /analyse-inputs (Recommended)`
 2. `Override — proceed and write a known-defective report (Run-history bullet records every violation)`
 3. `Restart — re-run from Pass 1 with a fresh manifest pass`
 
@@ -274,7 +274,7 @@ On **Revise**: hand back with `failed-handback`. On **Override**: record each fa
 
 | Placeholder | Value |
 |---|---|
-| `{{PLAIN_SUMMARY}}` | 2–5 plain-English sentences: what this business-context analysis is (an enterprise-motivation synthesis covering problems, needs, goals — the *business goal* (desired organisational end-state) — and problem statements, linked in a *causal chain* (problem → need → goal → problem-statement)); what it found (explicit items cited, inferred items anchored and marked); what the consultant should do with it (audit the amber inferred cards, then optionally copy the file into `input/` for a `/requirements` round-trip). A faithful condensation of the artefact below — it introduces no new fact, count, or citation not already present, and carries no `[SRC]` of its own. Methodology jargon is glossed at first use (e.g. "business goal (the desired organisational end-state)", "causal chain (the problem → need → goal → problem-statement link)"); client domain terms are NOT glossed. HTML-escaped. |
+| `{{PLAIN_SUMMARY}}` | 2–5 plain-English sentences: what this business-context analysis is (an enterprise-motivation synthesis covering problems, needs, goals — the *business goal* (desired organisational end-state) — and problem statements, linked in a *causal chain* (problem → need → goal → problem-statement)); what it found (explicit items cited, inferred items anchored and marked); what the consultant should do with it (audit the amber inferred cards, then optionally copy the file into `documentation/` for a `/requirements` round-trip). A faithful condensation of the artefact below — it introduces no new fact, count, or citation not already present, and carries no `[SRC]` of its own. Methodology jargon is glossed at first use (e.g. "business goal (the desired organisational end-state)", "causal chain (the problem → need → goal → problem-statement link)"); client domain terms are NOT glossed. HTML-escaped. |
 
 **Meta-grid placeholders:**
 
@@ -343,16 +343,16 @@ Variants:
 
 - If Step 10 was Override'd, prepend: *"Quality-check violations were accepted as known — the Run-history bullet records every flagged item."*
 - If a collection is empty, append the honest absence (e.g. *"No Vision stated in the inputs (`no-vision-stated-in-inputs`); no Problem Statement framed — a thin brief yields a thin, honest report."*).
-- If `OBJECTIVE_COUNT` includes `(no-target-in-inputs)` markers, append: *"Target gap: {n} objectives carry no measurable target from the inputs. Adding explicit KPI/deadline language to `input/` lets the next run anchor them."*
+- If `OBJECTIVE_COUNT` includes `(no-target-in-inputs)` markers, append: *"Target gap: {n} objectives carry no measurable target from the inputs. Adding explicit KPI/deadline language to `documentation/` lets the next run anchor them."*
 - If `inferred_count > 0`, append: *"Inference note: {inferred_count} items are inferred (amber cards). Each names its anchor + technique — review them; on a `/requirements` round-trip the {blocking_count} blocking ones become mandatory resolver confirmations."*
 - If `deferred_to_user_goal_analysis` is non-empty, append: *"Boundary note: {n} actor goals were deferred to user-goal-analysis (see Diagnostics) — run `/analyse-inputs` → User Goal Analysis to capture them at the actor altitude."*
 - If `drift_mode == "re-extract"`, append: *"Drift handling: Passes 1–6 re-run from scratch; AI-NN ids re-minted; {n_dropped} prior items dropped (recorded in Run-history)."*
 - If `drift_mode == "append-only"`, append: *"Drift handling: prior cards, causal chain, goal hierarchy, and tensions preserved verbatim; only new items from new manifest rows were appended."*
-- If `prior_run == null`, append: *"This is the first run; re-run after enriching `input/` to widen coverage additively."*
+- If `prior_run == null`, append: *"This is the first run; re-run after enriching `documentation/` to widen coverage additively."*
 
 **B. Round-trip instruction (always emitted).**
 
-> *"To feed this report into a subsequent `/requirements` run, copy `analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html` into `input/`; the input-handler will surface a manifest-refresh prompt and the drafter will ingest it. Explicit Goals / Objectives / Needs seed the strategic framing (why each requirement exists) and the Problem Statement seeds scope framing; inferred items surface to the resolver as `AI-NNN` questions (blocking ones as mandatory confirmations), so you validate every inference before it frames a requirement. The `[SRC: <filename>]` markers and `causal_links` preserve the audit trail back to the original briefs / notes / decks."*
+> *"To feed this report into a subsequent `/requirements` run, copy `analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html` into `documentation/`; the input-handler will surface a manifest-refresh prompt and the drafter will ingest it. Explicit Goals / Objectives / Needs seed the strategic framing (why each requirement exists) and the Problem Statement seeds scope framing; inferred items surface to the resolver as `AI-NNN` questions (blocking ones as mandatory confirmations), so you validate every inference before it frames a requirement. The `[SRC: <filename>]` markers and `causal_links` preserve the audit trail back to the original briefs / notes / decks."*
 
 **C. Accept / Revise / Restart loop.** Use `AskUserQuestion`:
 

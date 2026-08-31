@@ -22,7 +22,7 @@
 
 ## Conditional invocation
 
-The input-handler must call this skill when, and only when, the post-classification view of `input/` shows at least one file whose tier is `Vector-renderable`. Calling it on a run with no vector inputs would surface `RF-01` for a renderer the agent does not need, and is a defect. (Symmetric to `preflight-mcp.md`'s conditional-invocation rule for `Supported-via-MCP`.)
+The input-handler must call this skill when, and only when, the post-classification view of `documentation/` shows at least one file whose tier is `Vector-renderable`. Calling it on a run with no vector inputs would surface `RF-01` for a renderer the agent does not need, and is a defect. (Symmetric to `preflight-mcp.md`'s conditional-invocation rule for `Supported-via-MCP`.)
 
 ## Self-validation
 

@@ -235,7 +235,7 @@ A by-hand fixture (there is no live `requirements/requirements.md` in this gener
 
 | Unit | Final-doc value (abridged) | Draft antecedent | Ledger lookup | Verdict |
 |---|---|---|---|---|
-| F-01 | "…persist the invoice… [SRC: C-014]" | `[SRC: C-014]` | C-014 quote is a substring of `input/brief.md` | **SOURCED** |
+| F-01 | "…persist the invoice… [SRC: C-014]" | `[SRC: C-014]` | C-014 quote is a substring of `documentation/brief.md` | **SOURCED** |
 | F-02 | "…export to PDF [SRC: C-031]" | `[SRC: C-031]` | C-031 **absent** from `draft-claims.ndjson` | **BROKEN-CITATION** (`tag_without_sidecar`) |
 | F-03 | "…retain records for 7 years [SRC: C-009]" | `[SRC: C-009]` | C-009 quote = "kept for seven years" — **not a substring** of the cited file (value hand-edited from 5→7) | **BROKEN-CITATION** (`quote_not_found`) → also flagged **DRIFTED** in the drift list |
 | BR-04 | "…manager approval over £10,000" | draft `[AI-SUGGESTED: AI-007]` | resolver AI-007 `status:"corrected"`, `resolved_value:"£10,000"` → final matches | **ACCEPTED-INFERENCE** |

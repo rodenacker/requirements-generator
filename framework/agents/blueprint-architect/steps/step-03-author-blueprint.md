@@ -46,7 +46,7 @@ Walk the surface's `Sources` and collect property references from two places onl
 
 1. **§7 data shapes** — when the Sources list cites `§7 <ShapeName>` (or when the intent implies an entity is rendered, even if §7 isn't cited explicitly), enumerate the relevant fields from that shape. Use the `Shape.Field` notation, e.g. `FileLog.ProcessDate, FileLog.SettingName, FileLog.CurrentFileName, FileLog.RecordCount, FileLog.CurrentStatus, FileLog.HasBulkErrorFile`. Honour each row's `UI-display` hint (`hidden` fields like `Id` are typically excluded unless the surface needs them; `table-col` / `detail` / `chip` / `form-input` fields are renderable).
 
-2. **F-NN-named parameters** — when an `F-NN` in Sources names input/query/path parameters that are not §7 fields (e.g. F-05's `FileSettingId`, `FileSettingName`, `FileName` query parameters), enumerate them using `F-NN:ParamName` notation. The F-NN's exact prose is the only authority — if F-05 says "FileSettingId, FileSettingName, and FileName", those are the three; do not invent additional parameters.
+2. **F-NN-named parameters** — when an `F-NN` in Sources names documentation/query/path parameters that are not §7 fields (e.g. F-05's `FileSettingId`, `FileSettingName`, `FileName` query parameters), enumerate them using `F-NN:ParamName` notation. The F-NN's exact prose is the only authority — if F-05 says "FileSettingId, FileSettingName, and FileName", those are the three; do not invent additional parameters.
 
 Compose the Properties cell as a comma-separated list mixing both notations as needed:
 

@@ -1,6 +1,6 @@
 # apply-amendments-section.md
 
-**Purpose:** Insert or extend the single transient `## Amendments (pending re-merge)` section in `requirements/requirements.md` from a set of consultant-approved amendment entries held in memory, and verify the write. Owns the mechanics that must not diverge between callers: the placement rule, `AMD-NN` continuation numbering, the byte-isolation guarantee, the pairing assertion against the paired `input/` document, and the write-verify. The **shape** of the section and of each `AMD-NN` block is not defined here — it is canonical in `framework/assets/resolve-review/template-addendum.md`, which this skill reads.
+**Purpose:** Insert or extend the single transient `## Amendments (pending re-merge)` section in `requirements/requirements.md` from a set of consultant-approved amendment entries held in memory, and verify the write. Owns the mechanics that must not diverge between callers: the placement rule, `AMD-NN` continuation numbering, the byte-isolation guarantee, the pairing assertion against the paired `documentation/` document, and the write-verify. The **shape** of the section and of each `AMD-NN` block is not defined here — it is canonical in `framework/assets/resolve-review/template-addendum.md`, which this skill reads.
 
 Extracted from `framework/agents/resolve-review-drafter.md` Step 9b (items 2–6) when a second caller appeared; the caller-specific parts — deciding *whether* to apply the section, and composing the entry content — deliberately stay with the callers.
 
@@ -14,7 +14,7 @@ Extracted from `framework/agents/resolve-review-drafter.md` Step 9b (items 2–6
     - `origin_marker` — exactly one of `CONSULTANT-STATED` / `AI-INFERRED, CONSULTANT-CONFIRMED`.
     - `grounding` — the fully-rendered Grounding payload (tag + one-line implication), or `null` to omit the line entirely.
 - `run_header` — the fully-rendered `### Run …` sub-block header line. Caller-specific by design: `/resolve-review` renders the review-sourced form, `/amend-requirements` the consultant-sourced form. Both forms are defined in `template-addendum.md`.
-- `source_doc_path` — the paired `input/` document written and verified **before** this invocation. Used for the pairing assertion; never modified.
+- `source_doc_path` — the paired `documentation/` document written and verified **before** this invocation. Used for the pairing assertion; never modified.
 
 **Outputs:** exactly one of:
 - `pass` — the section was inserted or extended and the write verified. The caller records its applied outcome.
@@ -62,6 +62,6 @@ Run against the in-memory render **before** the Write at step 5, and against the
 - Do not place the section after `## For downstream use` either. That heading declares everything below it framework-internal reference material and not a requirement — consultant-approved amendments filed under it are misread by every human who opens the document.
 - Do not add a `## Contents` entry for the section, and do not "repair" the TOC because the section is missing from it. The omission is deliberate: the section is transient, `## In plain terms` already names `/amend-requirements`, and this skill's one-section bound is worth more than one link line. The merger re-derives the whole TOC on the next re-merge.
 - Do not touch a byte outside the section. In particular, do not restamp the header line, do not reflow neighbouring sections, and do not "tidy" pre-existing `AMD-NN` blocks.
-- Do not roll back `source_doc_path` on an `RF-04`. The `input/` document is the durable record; the section is a cache. Losing the cache is recoverable, losing the record is not.
+- Do not roll back `source_doc_path` on an `RF-04`. The `documentation/` document is the durable record; the section is a cache. Losing the cache is recoverable, losing the record is not.
 - Do not renumber or rewrite pre-existing `AMD-NN` entries to close gaps. Numbering is append-only within the section's life.
 - Do not restate the section's shape, preamble text, or `### Run …` header forms in this file. They are read from `framework/assets/resolve-review/template-addendum.md` at step 1 (canonical-source rule, `docs/maintenance.md`).

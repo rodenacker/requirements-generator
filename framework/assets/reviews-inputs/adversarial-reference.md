@@ -65,7 +65,7 @@ The reviewer does **not** read:
 - `analyse-requirements/*` or `analyse-inputs/*` outputs — derived; reviewing the raw inputs against a parallel analysis of those same inputs conflates "what the source material says" with "what an analyser inferred". The review's contract is to critique the inputs as the inputs.
 - `design-system/*`, `review-requirements/*` (including the requirement-doc adversarial review), `framework/state/*`, `framework/shared/*` (except as textual references in this document) — out of scope.
 
-The raw consultant input set is the contract. If the inputs don't say it, the inputs don't say it — and that is a finding. **Inputs re-ingested from `/analyse-inputs` outputs (a thematic-analysis or opportunity-solution-tree artefact re-dropped into `input/`) are part of the input set and are reviewed as such**; they are not skipped or treated specially. The whole point is that the merged input corpus is what `/requirements` will draft from.
+The raw consultant input set is the contract. If the inputs don't say it, the inputs don't say it — and that is a finding. **Inputs re-ingested from `/analyse-inputs` outputs (a thematic-analysis or opportunity-solution-tree artefact re-dropped into `documentation/`) are part of the input set and are reviewed as such**; they are not skipped or treated specially. The whole point is that the merged input corpus is what `/requirements` will draft from.
 
 ---
 

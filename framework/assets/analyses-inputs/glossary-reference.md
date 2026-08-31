@@ -238,7 +238,7 @@ Run after the collections close and before the write. Each captures `{ gate_id, 
 ### Failure handling
 
 On any gate failure: do **not** write. Surface `AskUserQuestion` with:
-1. `Revise — exit so the consultant can enrich input/ and re-invoke /analyse-inputs (Recommended)`
+1. `Revise — exit so the consultant can enrich documentation/ and re-invoke /analyse-inputs (Recommended)`
 2. `Override — proceed and write a known-defective report (Run-history records every violation)`
 3. `Restart — re-run from Round 1`
 
@@ -268,7 +268,7 @@ Complete when: every core term carries a maturity rating and either a cited defi
 
 ## Downstream consumption — establishing the canonical vocabulary in `/requirements`
 
-When the consultant copies `glossary.html` into `input/` and re-invokes `/requirements`, the input-handler classifies it `Supported-via-MCP` (markitdown → `glossary.html.converted.md`, preserving the `glossary-body` JSON as a fenced code block and the `[SRC]` / `[AI-SUGGESTED]` markers as literal text). The drafter then:
+When the consultant copies `glossary.html` into `documentation/` and re-invokes `/requirements`, the input-handler classifies it `Supported-via-MCP` (markitdown → `glossary.html.converted.md`, preserving the `glossary-body` JSON as a fenced code block and the `[SRC]` / `[AI-SUGGESTED]` markers as literal text). The drafter then:
 
 - adopts every **settled** (L3 or consultant-confirmed) definition as the **canonical vocabulary** — `/requirements` uses these terms consistently and seeds `§2 Domain model` / `§7 Data entities` from them;
 - treats every **`[AI-SUGGESTED: AI-NNN | blocking]`** proposal (definition, refinement, canonical-resolution) as a **mandatory resolver confirmation** — the consultant validates each proposed meaning, refinement, or canonical-term choice before it anchors a requirement;

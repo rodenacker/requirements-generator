@@ -10,7 +10,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 |---|---|---|
 | Agent | Persona+workflow `.md` the LLM adopts to produce one content artefact. | `docs/maintenance.md > Separation of concerns` |
 | Amendment (AMD-NN) | Entry in the transient `## Amendments (pending re-merge)` section of `requirements.md` that supersedes the base text it names until the next re-merge; a cache, never the record. | `assets/resolve-review/template-addendum.md` |
-| Amendments document | Consultant-approved `/amend-requirements` output: a NEW dated `input/amendments-<date>.md` turning consultant-stated changes into corpus material (base-text-anchored, origin-marked, impact-flagged, `AM-NN` IDs). | `assets/amend-requirements/template-amendments.md` |
+| Amendments document | Consultant-approved `/amend-requirements` output: a NEW dated `documentation/amendments-<date>.md` turning consultant-stated changes into corpus material (base-text-anchored, origin-marked, impact-flagged, `AM-NN` IDs). | `assets/amend-requirements/template-amendments.md` |
 | Analysis | Output of a lens-transform methodology on requirements/inputs (`analyse-*`). | registries |
 | Anti-fabrication | Rule: no data-bound element may invent a property outside the closed set. | `blueprint-architect.md` |
 | Application character | The product's own copy voice (notifications/errors/validations/confirmations/empty states), recorded in `requirements.md` §1.8; not an agent Character. | `template-requirements.md` §1.8 |
@@ -19,7 +19,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Blueprint | Shared scope IR: logical surfaces + closed sets + allowed realizations; no patterns/realization chosen. | `blueprint-architect.md` |
 | Brand | Fixed visual identity applied uniformly across all prototypes (one `theme.css`). | `prototypes/app-shell-spec.md` |
 | Build target | Manifest output-mode field, auto-set to prototype (fixtures); application = legacy value / export-time concern (`/export-application`). | `prototype-invariants.md` PI-06 |
-| Category asset (`.stadium-assets`) | Lean citation-ready `Native-text` file the Stadium extractor writes under `input/<AppName>.stadium-assets/`; consumed by the normal pipelines. | `skills/extract-stadium-app.md` |
+| Category asset (`.stadium-assets`) | Lean citation-ready `Native-text` file the Stadium extractor writes under `documentation/<AppName>.stadium-assets/`; consumed by the normal pipelines. | `skills/extract-stadium-app.md` |
 | Character | Persona file giving an agent its stance/voice; not a product persona. | `assets/characters/` |
 | Checkpoint | Preserved partial state (often a git commit) before a destructive step. | — |
 | Citation (`[SRC: …]`) | Inline marker grounding a claim in an input source; retained in the final `requirements.md` as downstream provenance (only resolution markers are stripped). | `CLAUDE.md > Markers in content` |
@@ -67,7 +67,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Resolver | Second triplet agent: resolves `[AI-SUGGESTED]` markers with the consultant. | — |
 | Resumability | A `/clear` + re-invoke continues at the first incomplete agent. | `CLAUDE.md §1` |
 | Review | Output of a critique methodology (`review-*`); interrogates rather than transforms. | registries |
-| Review resolutions document | Consultant-approved `/resolve-review` output: a NEW dated `input/` file turning selected review findings into corpus material (verbatim-anchored, origin-marked, supersession-explicit). | `assets/resolve-review/template-resolutions.md` |
+| Review resolutions document | Consultant-approved `/resolve-review` output: a NEW dated `documentation/` file turning selected review findings into corpus material (verbatim-anchored, origin-marked, supersession-explicit). | `assets/resolve-review/template-resolutions.md` |
 | Reviewer | Anyone evaluating a generated prototype (uses the role switcher). | — |
 | Scope | The requirement-ID subset a wireframe/prototype run addresses; captured in `scope.json`. | `scope-selector.md` |
 | Scope marker (`[PROTO-ONLY]`) | Paired span marking prototype-only content; different axis from a provenance marker, so it co-occurs with `[SRC:]`. Merger retains; `/export-application` deletes whole. | `shared/prototype-scope.md` |
@@ -81,7 +81,7 @@ Add a row here whenever a `### Term` is added to `glossary.md`; keep the two in 
 | Stadium extractor | Runtime-code helper (`tools/extract_stadium_app.py`) that shards a Stadium-app into category assets; an ingestion exception. | `skills/extract-stadium-app.md` |
 | Stadium ingestion command (`/ingest-stadium`) | Standalone command that extracts a Stadium-app into its category assets; sole trigger for Stadium extraction. | `orchestrators/ingest-stadium-orch.md` |
 | Stadium ingestor | Agent owning per-app Stadium extraction for `/ingest-stadium` (detect, skip-if-ledgered, preflight, extract, write ledger). | `agents/stadium-ingestor.md` |
-| Stadium-app (input unit) | A deployed Twenty57 Stadium 6 app dropped into `input/`; extracted once by `/ingest-stadium`; excluded + nudged at the input-handler's Step S. | `agents/stadium-ingestor.md` |
+| Stadium-app (input unit) | A deployed Twenty57 Stadium 6 app dropped into `documentation/`; extracted once by `/ingest-stadium`; excluded + nudged at the input-handler's Step S. | `agents/stadium-ingestor.md` |
 | Store | Client-side state container a prototype reads/writes, initialised from fixtures. | `shared-component-conventions.md` |
 | surface_plan | Per-variant JSON authoring realization + pattern picks + screens per `LS-NN`. | `blueprint-architect.md` |
 | Target-user (persona) | A persona of the product under design (`requirements.md §3`); not the consultant. | `requirements.md §3` |

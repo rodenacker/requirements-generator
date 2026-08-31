@@ -21,7 +21,7 @@ methodologies:
   #     Candidate-requirements bridge plus an embedded
   #     <pre><code class="language-json" id="opportunity-solution-tree-body">
   #     model that `/requirements` consumes when the artefact is re-dropped into
-  #     `input/` via the markitdown HTML->MD round-trip).
+  #     `documentation/` via the markitdown HTML->MD round-trip).
   #   - `journey-mapping` (NN/G Journey Mapping 101 + Kalbach 2020,
   #     current-state user-journey mapping adapted for raw consultant inputs
   #     — one persona per journey card, [SRC: <filename>] citations on every
@@ -48,7 +48,7 @@ methodologies:
   #     embedded <pre><code class="language-yaml"> structured tree that
   #     survives markitdown HTML→MD conversion as fenced code, making
   #     the artefact the primary structural-input-handoff to the
-  #     /requirements drafter when copied into input/ for re-ingestion).
+  #     /requirements drafter when copied into documentation/ for re-ingestion).
   #   - `jtbd` (Jobs-To-Be-Done — hybrid Christensen-Moesta canonical
   #     statement form `When <situation>, I want to <motivation>, so I
   #     can <outcome>` + four forces of progress (push/pull/anxiety/
@@ -64,7 +64,7 @@ methodologies:
   #     sets name Push and Pull but rarely Anxiety and Habit); self-
   #     contained HTML job-card grid + 5×5 opportunity matrix; re-
   #     ingestible by /requirements via Native-text classification when
-  #     copied into input/, with end-to-end audit trail preserved
+  #     copied into documentation/, with end-to-end audit trail preserved
   #     through dual-citation chain).
   #   - `ooux` (Sophia Prater's ORCA process — six rounds Discovery →
   #     Objects → Relationships → CTAs → Attributes → CCPs — adapted for
@@ -97,7 +97,7 @@ methodologies:
   #     synonym-merge log in diagnostics is the most-interpretive surface
   #     and the audit trail consultants use to confirm or revise
   #     cross-source identity decisions; re-ingestible by `/requirements`
-  #     when copied into `input/` with end-to-end audit trail preserved
+  #     when copied into `documentation/` with end-to-end audit trail preserved
   #     through the markitdown HTML→MD pathway).
   #   - `swim-lane-process-mapping` (Rummler-Brache Cross-Functional
   #     Process Mapping + Disconnect Analysis — Rummler & Brache 1990,
@@ -138,7 +138,7 @@ methodologies:
   #     table, the Disconnect Register table with five category
   #     pills, a Gaps section for inferred nodes, and a collapsed
   #     diagnostics block; re-ingestible by /requirements when
-  #     copied into input/, with the Disconnect Register's
+  #     copied into documentation/, with the Disconnect Register's
   #     `consultant_follow_up: yes` rows flowing into the resolver
   #     pipeline as AI-NNN questions in the existing grammar).
   #   - `user-goal-analysis` (User Goal Analysis — a pragmatic Goal-Oriented
@@ -197,7 +197,7 @@ methodologies:
   #     goals are user-goal-analysis's exclusive lane — encountered actor goals
   #     are routed to a `deferred-to-user-goal-analysis` boundary-audit log
   #     (decision-tree D0 + gate Q6), never classified as Business Goals, so a
-  #     consultant can run both methods on one input/ and get two clean,
+  #     consultant can run both methods on one documentation/ and get two clean,
   #     non-overlapping registers. Self-contained, dependency-free HTML (NO
   #     Mermaid): a CSS-only four-stage causal-chain map (diagram-first),
   #     need/problem/goal/problem-statement cards, a BMM AND/OR goal tree, a
@@ -257,7 +257,7 @@ methodologies:
   - name: glossary
     status: mvp
     group: Vocabulary & objects
-    description: Choose this when you want one agreed vocabulary for the system's spec and design — the significant terms across your raw inputs surfaced, classified as domain or application terms, defined from the inputs, and rated for how settled each shared understanding is. It produces an HTML glossary that reads as a lookup reference — per-term cards with a domain/application badge, a 0-4 maturity badge, the cited definition, and, where the inputs leave a term undefined, weak, synonymous, or conflicting, a fenced proposed definition or canonical resolution for you to confirm. Re-drop it into input/ so /requirements adopts the agreed terms as canonical vocabulary and the blocking proposals reach the resolver as questions you confirm before they anchor requirements.
+    description: Choose this when you want one agreed vocabulary for the system's spec and design — the significant terms across your raw inputs surfaced, classified as domain or application terms, defined from the inputs, and rated for how settled each shared understanding is. It produces an HTML glossary that reads as a lookup reference — per-term cards with a domain/application badge, a 0-4 maturity badge, the cited definition, and, where the inputs leave a term undefined, weak, synonymous, or conflicting, a fenced proposed definition or canonical resolution for you to confirm. Re-drop it into documentation/ so /requirements adopts the agreed terms as canonical vocabulary and the blocking proposals reach the resolver as questions you confirm before they anchor requirements.
     output_path: analyse-inputs/GLOSSARY/glossary.html
     reference_asset: framework/assets/analyses-inputs/glossary-reference.md
     template_asset: framework/assets/analyses-inputs/template-glossary.html
@@ -267,7 +267,7 @@ methodologies:
   - name: task-analysis
     status: mvp
     group: Process & tasks
-    description: Choose this when the raw inputs describe how users accomplish goals step by step and you want that procedure decomposed before /requirements drafts from it. It produces an HTML hierarchical task analysis — a numbered sub-goal and operation tree with a plan on every non-terminal and the data each step reads or writes. Re-drop the artefact into input/ so the drafter uses its structured tree as a completeness target and seeds acceptance-criteria branches and data entities from it.
+    description: Choose this when the raw inputs describe how users accomplish goals step by step and you want that procedure decomposed before /requirements drafts from it. It produces an HTML hierarchical task analysis — a numbered sub-goal and operation tree with a plan on every non-terminal and the data each step reads or writes. Re-drop the artefact into documentation/ so the drafter uses its structured tree as a completeness target and seeds acceptance-criteria branches and data entities from it.
     output_path: analyse-inputs/TASK-ANALYSIS/task-analysis.html
     reference_asset: framework/assets/analyses-inputs/task-analysis-reference.md
     template_asset: framework/assets/analyses-inputs/template-task-analysis.html
@@ -277,7 +277,7 @@ methodologies:
   - name: thematic-analysis
     status: mvp
     group: Synthesis & themes
-    description: Choose this when your raw inputs are unstructured — interviews, notes, decks — and you want the recurring patterns surfaced before drafting requirements. It produces a self-contained HTML report of the codes and themes the inputs carry, with a pre-rendered theme-map diagram, candidate requirements bridged from each theme, and an embedded machine-readable model. Re-drop it into input/ so /requirements drafts from the themes, or use it yourself to sanity-check coverage.
+    description: Choose this when your raw inputs are unstructured — interviews, notes, decks — and you want the recurring patterns surfaced before drafting requirements. It produces a self-contained HTML report of the codes and themes the inputs carry, with a pre-rendered theme-map diagram, candidate requirements bridged from each theme, and an embedded machine-readable model. Re-drop it into documentation/ so /requirements drafts from the themes, or use it yourself to sanity-check coverage.
     output_path: analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html
     reference_asset: framework/assets/analyses-inputs/thematic-analysis-reference.md
     template_asset: framework/assets/analyses-inputs/template-thematic-analysis.html
@@ -287,7 +287,7 @@ methodologies:
   - name: opportunity-solution-trees
     status: mvp
     group: Users, goals & value
-    description: Choose this when the raw inputs name a desired outcome and you want the opportunities and solution options mapped before requirements lock in. It produces a self-contained HTML discovery tree of outcome → opportunities → solutions → assumption tests (Torres 2016), with a pre-rendered tree diagram, candidate-requirement seeds, and an embedded machine-readable model. Re-drop it into input/ so /requirements picks up the seeds, and use the assumption tests to decide what to validate first.
+    description: Choose this when the raw inputs name a desired outcome and you want the opportunities and solution options mapped before requirements lock in. It produces a self-contained HTML discovery tree of outcome → opportunities → solutions → assumption tests (Torres 2016), with a pre-rendered tree diagram, candidate-requirement seeds, and an embedded machine-readable model. Re-drop it into documentation/ so /requirements picks up the seeds, and use the assumption tests to decide what to validate first.
     output_path: analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html
     reference_asset: framework/assets/analyses-inputs/opportunity-solution-trees-reference.md
     template_asset: framework/assets/analyses-inputs/template-opportunity-solution-trees.html
@@ -307,7 +307,7 @@ methodologies:
   - name: jtbd
     status: mvp
     group: Users, goals & value
-    description: Choose this when you want the requirements anchored to user motivation, drawn from what the raw inputs say about why users act. It produces an HTML job map of the jobs, outcomes, and forces of progress (push / pull / anxiety / habit) the inputs describe, with opportunity scores (importance vs satisfaction — which jobs are most underserved). Re-drop it into input/ as a Native-text source so the requirements that follow target jobs and outcomes rather than features.
+    description: Choose this when you want the requirements anchored to user motivation, drawn from what the raw inputs say about why users act. It produces an HTML job map of the jobs, outcomes, and forces of progress (push / pull / anxiety / habit) the inputs describe, with opportunity scores (importance vs satisfaction — which jobs are most underserved). Re-drop it into documentation/ as a Native-text source so the requirements that follow target jobs and outcomes rather than features.
     output_path: analyse-inputs/JTBD/jtbd-job-map.html
     reference_asset: framework/assets/analyses-inputs/jtbd-reference.md
     template_asset: framework/assets/analyses-inputs/template-jtbd.html
@@ -317,7 +317,7 @@ methodologies:
   - name: ooux
     status: mvp
     group: Vocabulary & objects
-    description: Choose this when your raw inputs span many sources and you need one reconciled object model — merging synonyms like Customer, Client, and Account holder — before requirements. It produces an HTML object map combining a sticky-note column-board and an embedded machine-readable object model, with every object tagged by source. Re-drop it into input/ so /requirements ingests the full object model in one pass, and review the synonym-merge log to confirm the cross-source identity calls.
+    description: Choose this when your raw inputs span many sources and you need one reconciled object model — merging synonyms like Customer, Client, and Account holder — before requirements. It produces an HTML object map combining a sticky-note column-board and an embedded machine-readable object model, with every object tagged by source. Re-drop it into documentation/ so /requirements ingests the full object model in one pass, and review the synonym-merge log to confirm the cross-source identity calls.
     output_path: analyse-inputs/OOUX/ooux-object-map.html
     reference_asset: framework/assets/analyses-inputs/ooux-reference.md
     template_asset: framework/assets/analyses-inputs/template-ooux.html
@@ -327,7 +327,7 @@ methodologies:
   - name: swim-lane-process-mapping
     status: mvp
     group: Process & tasks
-    description: Choose this when the raw inputs describe a cross-functional process and you want the actor handoffs and their gaps surfaced before drafting. It produces an HTML set of Rummler-Brache swim-lane flowcharts plus a Disconnect Register classifying every lane-to-lane handoff as clean or defective (the "white-space" gaps Rummler attributed 80% of process failures to). Re-drop it into input/ so processes seed task flows and handoffs seed integration constraints, and chase the flagged handoff gaps with stakeholders.
+    description: Choose this when the raw inputs describe a cross-functional process and you want the actor handoffs and their gaps surfaced before drafting. It produces an HTML set of Rummler-Brache swim-lane flowcharts plus a Disconnect Register classifying every lane-to-lane handoff as clean or defective (the "white-space" gaps Rummler attributed 80% of process failures to). Re-drop it into documentation/ so processes seed task flows and handoffs seed integration constraints, and chase the flagged handoff gaps with stakeholders.
     output_path: analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html
     reference_asset: framework/assets/analyses-inputs/swim-lane-process-mapping-reference.md
     template_asset: framework/assets/analyses-inputs/template-swim-lane-process-mapping.html
@@ -337,7 +337,7 @@ methodologies:
   - name: affinity-mapping
     status: mvp
     group: Synthesis & themes
-    description: Choose this when you have a large, messy pile of raw notes and want them clustered bottom-up into themes before imposing any structure. It produces an HTML affinity diagram — atomic notes grouped into labelled clusters and 4–8 super-themes, with orphans and cross-cluster tensions called out. Re-drop it into input/ so super-themes seed vision anchors and clusters seed task-flow groupings, and use the orphans as out-of-scope candidates.
+    description: Choose this when you have a large, messy pile of raw notes and want them clustered bottom-up into themes before imposing any structure. It produces an HTML affinity diagram — atomic notes grouped into labelled clusters and 4–8 super-themes, with orphans and cross-cluster tensions called out. Re-drop it into documentation/ so super-themes seed vision anchors and clusters seed task-flow groupings, and use the orphans as out-of-scope candidates.
     output_path: analyse-inputs/AFFINITY-MAPPING/affinity-map.html
     reference_asset: framework/assets/analyses-inputs/affinity-mapping-reference.md
     template_asset: framework/assets/analyses-inputs/template-affinity-mapping.html
@@ -347,7 +347,7 @@ methodologies:
   - name: user-goal-analysis
     status: mvp
     group: Users, goals & value
-    description: Choose this when you want the actor and end-user goals behind the request made explicit — both the goals the inputs state and the ones they imply. It produces an HTML goal register grouped by goal type, with an AND/OR refinement tree, an actor map, and a conflicts table, and inferred goals flagged for confirmation. Re-drop it into input/ so explicit goals seed user stories and inferred goals reach the resolver as questions you confirm before they become requirements.
+    description: Choose this when you want the actor and end-user goals behind the request made explicit — both the goals the inputs state and the ones they imply. It produces an HTML goal register grouped by goal type, with an AND/OR refinement tree, an actor map, and a conflicts table, and inferred goals flagged for confirmation. Re-drop it into documentation/ so explicit goals seed user stories and inferred goals reach the resolver as questions you confirm before they become requirements.
     output_path: analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html
     reference_asset: framework/assets/analyses-inputs/user-goal-analysis-reference.md
     template_asset: framework/assets/analyses-inputs/template-user-goal-analysis.html
@@ -357,7 +357,7 @@ methodologies:
   - name: business-context-definition
     status: mvp
     group: Business context
-    description: Choose this when you need the enterprise motivation behind the request — the business problems, needs, and goals — rather than the individual actor goals user-goal-analysis covers. It produces an HTML report linking business problem → need → goal → problem-statement in one causal chain, with inferred items flagged for confirmation. Re-drop it into input/ so the chain seeds strategic framing and requirement traceability, and run user-goal-analysis alongside it for actor-level goals.
+    description: Choose this when you need the enterprise motivation behind the request — the business problems, needs, and goals — rather than the individual actor goals user-goal-analysis covers. It produces an HTML report linking business problem → need → goal → problem-statement in one causal chain, with inferred items flagged for confirmation. Re-drop it into documentation/ so the chain seeds strategic framing and requirement traceability, and run user-goal-analysis alongside it for actor-level goals.
     output_path: analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html
     reference_asset: framework/assets/analyses-inputs/business-context-definition-reference.md
     template_asset: framework/assets/analyses-inputs/template-business-context-definition.html
@@ -370,7 +370,7 @@ methodologies:
 
 **Purpose:** Methodology registry for `/analyse-inputs`. Sibling of `framework/assets/analyses/registry.md`. The frontmatter above is the **machine-readable** contract — `framework/skills/analysis-selector.md` filters `status == "mvp"` to present options to the consultant when invoked with `registry_path: "framework/assets/analyses-inputs/registry.md"`; `framework/orchestrators/analyse-inputs-orch.md` looks up `analyser_agent` for the chosen methodology and invokes it at step 3.
 
-**Source material:** unlike `/analyse-requirement` (whose analysers read `requirements/requirements.md`), methodologies registered here operate over the raw consultant-dropped material in `input/`, enumerated via `requirements/source-manifest.json`. The shared `framework/agents/input-handler.md` builds the manifest on demand at the orchestrator's step 1.
+**Source material:** unlike `/analyse-requirement` (whose analysers read `requirements/requirements.md`), methodologies registered here operate over the raw consultant-dropped material in `documentation/`, enumerated via `requirements/source-manifest.json`. The shared `framework/agents/input-handler.md` builds the manifest on demand at the orchestrator's step 1.
 
 **Used by:**
 

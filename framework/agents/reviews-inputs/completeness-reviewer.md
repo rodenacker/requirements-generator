@@ -49,7 +49,7 @@ Twenty steps in order. Do not skip steps; do not collapse steps. Each step's suc
 - `Read requirements/source-manifest.json` in full. The orchestrator's Step 1 manifest preflight guarantees this file exists (if absent at orchestrator step 1, the input-handler is invoked first).
 - Compute and remember the SHA-256 of the file's bytes — this is `manifest_fingerprint`, the value that lands in the artefact's `MANIFEST_FINGERPRINT` field and in Quality Gate 10.
 - Capture the manifest's `target` field into in-memory variable `build_target`. Expected values: `"prototype"`, `"application"`, or `null`. Other values are treated as `null` with a Diagnostics-block note.
-- If the file is empty, malformed JSON, or parses to a zero-row methodology list, halt with the structured error: *"`requirements/source-manifest.json` is present but {empty | malformed | enumerates zero input files}. Run `/requirements` (which re-invokes the input-handler) or drop input material in `input/` and re-invoke `/review-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
+- If the file is empty, malformed JSON, or parses to a zero-row methodology list, halt with the structured error: *"`requirements/source-manifest.json` is present but {empty | malformed | enumerates zero input files}. Run `/requirements` (which re-invokes the input-handler) or drop input material in `documentation/` and re-invoke `/review-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
 - Parse the manifest's row list. Classify rows:
     - `consumable_rows` = rows where `tier != "Unsupported"` — these will be ingested at Step 3.
     - `skipped_rows` = rows where `tier == "Unsupported"` — these contribute to the skipped roster only.
@@ -64,7 +64,7 @@ For each row in `consumable_rows`, resolve the read path per the Read-path resol
 
 After the ingest:
 
-- If `corpus` is empty (zero consumable rows), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `input/` and re-invoke `/requirements` (which rebuilds the manifest) before retrying `/review-inputs` → `completeness-review`."* — analogous to RF-03.
+- If `corpus` is empty (zero consumable rows), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/requirements` (which rebuilds the manifest) before retrying `/review-inputs` → `completeness-review`."* — analogous to RF-03.
 - Compute the **per-source quote index** for every corpus entry: split `text` into line-bounded substrings and build a JSON map `{filename → [substrings]}`. This is `quote_index_by_filename`. Used at Step 17 gate 4 to validate every Evidence field is either a verbatim substring or the literal sentinel `(no mention in consumed corpus)`.
 - Build the **skipped roster** as a list `[{"filename": row.filename, "reason": row.conversions_applied}, ...]` for every `skipped_rows[*]` entry.
 

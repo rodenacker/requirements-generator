@@ -23,19 +23,19 @@
 | Command | Produces |
 |---|---|
 | `/start` | Dispatcher — lists the other commands and launches the chosen one. |
-| `/ingest-stadium` | Extracts a **Stadium 6 application** dropped in `input/` into citation-ready assets under `input/<App>.stadium-assets/`, consumed by every input pipeline as ordinary inputs. |
+| `/ingest-stadium` | Extracts a **Stadium 6 application** dropped in `documentation/` into citation-ready assets under `documentation/<App>.stadium-assets/`, consumed by every input pipeline as ordinary inputs. |
 | `/requirements` | LLM-audience FE spec (`requirements/requirements.md`). A completed run offers `{ amend, regenerate, cancel }`; `amend` delegates to `/amend-requirements`. |
-| `/amend-requirements` | Consultant-stated changes to a finished `requirements.md` — recorded as a NEW dated `input/amendments-<date>.md` and applied as the transient `## Amendments (pending re-merge)` section. |
+| `/amend-requirements` | Consultant-stated changes to a finished `requirements.md` — recorded as a NEW dated `documentation/amendments-<date>.md` and applied as the transient `## Amendments (pending re-merge)` section. |
 | `/generate-prd` | Human-audience PRD (`prd/prd.md`) — strategic framing, success metrics, hypotheses, MVP phasing, risks. Independent of `/requirements`. |
 | `/design-system` | Brand-token brief, one file per colour mode (`design-system/design-system-{light,dark}.html`). The extracted scheme is the hue source; the other mode is derived from the same brand hues. |
 | `/analyse-requirement` | Lens-transforms `requirements/requirements.md` (`framework/assets/analyses/registry.md`). |
-| `/analyse-inputs` | Lens-transforms raw `input/` material (`framework/assets/analyses-inputs/registry.md`). |
+| `/analyse-inputs` | Lens-transforms raw `documentation/` material (`framework/assets/analyses-inputs/registry.md`). |
 | `/review-requirement` | Critiques `requirements/requirements.md` (`framework/assets/reviews/registry.md`). |
-| `/review-inputs` | Critiques raw `input/` material (`framework/assets/reviews-inputs/registry.md`). |
+| `/review-inputs` | Critiques raw `documentation/` material (`framework/assets/reviews-inputs/registry.md`). |
 | `/wireframe` | 2–3 parallel low-fi HTML wireframe variants for a scope of `requirements/requirements.md`; its `blueprint-architect` + `scope-selector` + `design-philosophies.md` are reused by `/prototype`. |
 | `/prototype` | One hi-fi, clickable, client-side-only Next.js prototype per run, accumulating in one shared app under `prototypes/` behind a single landing page. Brand-locked; divergence is pure UX (posture + D1–D5). |
 | `/export-application` | Application-audience re-projection of the finished `requirements.md` (`export-application/requirements-application.md`) — zero improvised content, Accept/Reject gate. |
-| `/resolve-review` | Consultant-approved resolutions from an existing `review-inputs/` or `review-requirements/` artefact, written as a NEW dated file into `input/`. |
+| `/resolve-review` | Consultant-approved resolutions from an existing `review-inputs/` or `review-requirements/` artefact, written as a NEW dated file into `documentation/`. |
 
 **For.** Solo consultants / BAs running Claude Code locally to produce deterministic, citation-grounded handoff artefacts — specs, PRDs, analyses, reviews, wireframes, and prototypes — from briefs, decks, screenshots, spreadsheets, PDFs.
 
@@ -47,12 +47,12 @@
 | PRD — `prd/prd.md` | Human & LLM |
 | Analyses — `analyse-inputs/**`, `analyse-requirements/**` | Human & LLM |
 | Reviews — `review-inputs/**`, `review-requirements/**` | Human & LLM |
-| Resolutions document — `input/<stem>-<date>.md` (`/resolve-review`) | Human & LLM |
-| Amendments document — `input/amendments-<date>.md` + the transient `## Amendments (pending re-merge)` section | Human & LLM |
+| Resolutions document — `documentation/<stem>-<date>.md` (`/resolve-review`) | Human & LLM |
+| Amendments document — `documentation/amendments-<date>.md` + the transient `## Amendments (pending re-merge)` section | Human & LLM |
 | Design system — `design-system/design-system-{light,dark}.html` | Human & LLM |
 | Application export — `export-application/requirements-application.md` | Human & LLM |
-| Stadium assets — `input/<App>.stadium-assets/**` (`/ingest-stadium`) | LLM |
-| Visual-input descriptions — `input/*.converted.md` | LLM |
+| Stadium assets — `documentation/<App>.stadium-assets/**` (`/ingest-stadium`) | LLM |
+| Visual-input descriptions — `documentation/*.converted.md` | LLM |
 | Blueprint — `blueprints/<scope-slug>/{blueprint.md, scope.json}` | LLM |
 | Prototype design spec — `prototypes/.specs/<name-slug>/design-spec.md` | LLM |
 | Wireframes — `wireframes/<scope-slug>/**` | Human |

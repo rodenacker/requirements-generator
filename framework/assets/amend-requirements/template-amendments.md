@@ -4,7 +4,7 @@ kind: template
 
 Populate-top-to-bottom skeleton for the /amend-requirements amendments document,
 written by framework/agents/amend-requirements-drafter.md (staged at
-amend-requirements/amendments-draft.md, finalised as a NEW dated file under input/).
+amend-requirements/amendments-draft.md, finalised as a NEW dated file under documentation/).
 
 This file is the CANONICAL DEFINITION of:
   - the AM-NN amendment-entry IDs (document-local, always starting at AM-01)
@@ -63,7 +63,7 @@ Impact flag vocabulary (canonical here — closed set, computed by the drafter, 
 
 <!-- Consultant-approved input document produced by /amend-requirements.
      Corpus material: the next source-manifest build ingests this file like any other
-     input/ file (Native-text tier). Each amendment below states what the requirements
+     documentation/ file (Native-text tier). Each amendment below states what the requirements
      document should assert, anchored to the base text it replaces. Where an amendment
      changes a fact stated elsewhere in the corpus, its Supersedes line is
      authoritative: treat the superseded statement as replaced, not contradicted.

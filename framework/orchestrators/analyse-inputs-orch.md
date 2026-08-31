@@ -17,7 +17,7 @@ Do **not** invoke any agent as a background / sub / async agent (e.g., via the A
 
 ## Purpose
 
-Run a registry-driven, single-agent analysis pipeline whose source material is the raw input documents in `input/` rather than the synthesised `requirements/requirements.md`. The orchestrator does not know which analyser will be invoked at design time; it discovers the available analysers at runtime via `framework/assets/analyses-inputs/registry.md` and the `analysis-selector` skill. The pipeline ships its framework first; methodologies are added one at a time in follow-up developments. Until at least one row in the registry has `status: mvp`, the selector returns `empty-registry` and the pipeline exits cleanly with a "no input analyses available yet" message — by design.
+Run a registry-driven, single-agent analysis pipeline whose source material is the raw input documents in `documentation/` rather than the synthesised `requirements/requirements.md`. The orchestrator does not know which analyser will be invoked at design time; it discovers the available analysers at runtime via `framework/assets/analyses-inputs/registry.md` and the `analysis-selector` skill. The pipeline ships its framework first; methodologies are added one at a time in follow-up developments. Until at least one row in the registry has `status: mvp`, the selector returns `empty-registry` and the pipeline exits cleanly with a "no input analyses available yet" message — by design.
 
 ## Stand-alone constraint
 
@@ -25,7 +25,7 @@ This orchestrator and its analyser agents are **isolated from the `/requirements
 
 **Writes (allowed):**
 - `analyse-inputs/<METHOD>/*` — the analyser's output path (per the chosen registry row's `output_path` field).
-- `requirements/source-manifest.json` — **only** when step 1's input-handler invocation enters its `mode = "create"` (absent) or `mode = "refresh"` (stale, consultant chose Refresh) branch. The manifest path is shared with `/requirements`, `/generate-prd`, and `/review-inputs`; the write is bounded to a single canonical file. The input-handler also writes `input/<basename>.converted.md` siblings as part of the same invocation. On `mode = "no-op"` (fresh) and `mode = "proceed-stale"`, no write to this path occurs.
+- `requirements/source-manifest.json` — **only** when step 1's input-handler invocation enters its `mode = "create"` (absent) or `mode = "refresh"` (stale, consultant chose Refresh) branch. The manifest path is shared with `/requirements`, `/generate-prd`, and `/review-inputs`; the write is bounded to a single canonical file. The input-handler also writes `documentation/<basename>.converted.md` siblings as part of the same invocation. On `mode = "no-op"` (fresh) and `mode = "proceed-stale"`, no write to this path occurs.
 - `framework/state/timing.ndjson` — **not** written by this orchestrator. This pipeline does not maintain timing state; timing observability is a `/requirements`-pipeline concern.
 - `framework/state/.progress.json` — **not** written by this orchestrator. The pipeline loops back to the selector in memory only (see **Selection loop**); resumability is reconstructed from on-disk artefact presence, never from a progress file. The orchestrator passes `progress_path: null` to the input-handler at step 1 so the agent's `RF-01 continue-later` write is suppressed.
 
@@ -34,9 +34,9 @@ This orchestrator and its analyser agents are **isolated from the `/requirements
 - The chosen analyser's `analyser_agent` path (resolved from the registry row at step 0). Read-only.
 - The chosen methodology's prior artefact (path resolved from the registry row's `output_path`) at step 2. Read-only for the existence check; deletion is via `Bash` on the Overwrite branch only.
 - `requirements/source-manifest.json` — read at step 1 (existence check). The chosen analyser also reads this manifest as its primary source enumeration.
-- `input/*` — read by the analyser per the manifest's rows (every file `tier ≠ "Unsupported"`). The orchestrator itself does not read `input/`.
+- `documentation/*` — read by the analyser per the manifest's rows (every file `tier ≠ "Unsupported"`). The orchestrator itself does not read `documentation/`.
 
-The analyser agent itself remains fully stand-alone-ish — its only `requirements/` read is `requirements/source-manifest.json`; its only `input/` reads are the files listed in that manifest. See each input-analyser's own `Stand-alone-ish constraint` section.
+The analyser agent itself remains fully stand-alone-ish — its only `requirements/` read is `requirements/source-manifest.json`; its only `documentation/` reads are the files listed in that manifest. See each input-analyser's own `Stand-alone-ish constraint` section.
 
 ## No progress file
 
@@ -53,7 +53,7 @@ Steps 0–3 form an in-memory loop whose head is the step-0 methodology selector
     - `cancelled` — this is the pipeline's sole post-preflight exit. If `run_count == 0`, emit *"Cancelled. No analysis run."*; if `run_count ≥ 1`, emit *"Done — ran {{run_count}} {{noun}} this session."* where `{{noun}}` is "analysis" when `run_count == 1` and "analyses" otherwise, then append the context-hygiene completion tip (`framework/shared/context-hygiene.md`, verbatim plain text). Then exit cleanly.
     - `empty-registry` — emit *"No input-analysis methodologies are available yet. See `plans/` for candidate methodologies and their build checklists."* and exit cleanly. This is a defensive guard; with MVP methodologies registered it should not fire. (Only reachable on the first iteration; once a methodology has run, the registry is non-empty.)
 
-1. **Input-handle (first iteration only)** — performed only when `preflight_done` is `false`; on later loop iterations skip this step and go straight to step 2. Invoke `framework/agents/input-handler.md` in the foreground with `input_dir: "input/"`, `manifest_path: "requirements/source-manifest.json"`, and `progress_path: null`. The agent owns the manifest lifecycle: it decides at its step 0 whether to **create** (manifest absent), **refresh** (present-and-stale, with consultant consent at its drift prompt), **no-op** (present-and-fresh, silent), or **halt** (present-but-corrupt). The orchestrator does not branch on manifest state itself; this single invocation is uniform regardless of what is on disk. Wait until the agent hands back per its Definition of Done. If the agent fails its handback via `RF-01 continue-later` (with `progress_path: null` the agent records nothing on disk), `RF-03 abort`, `RF-04 manifest-corruption halt`, or `Cancel` at the step-0 drift prompt, exit cleanly. On successful handback, set `preflight_done = true` and advance to step 2.
+1. **Input-handle (first iteration only)** — performed only when `preflight_done` is `false`; on later loop iterations skip this step and go straight to step 2. Invoke `framework/agents/input-handler.md` in the foreground with `documentation_dir: "documentation/"`, `manifest_path: "requirements/source-manifest.json"`, and `progress_path: null`. The agent owns the manifest lifecycle: it decides at its step 0 whether to **create** (manifest absent), **refresh** (present-and-stale, with consultant consent at its drift prompt), **no-op** (present-and-fresh, silent), or **halt** (present-but-corrupt). The orchestrator does not branch on manifest state itself; this single invocation is uniform regardless of what is on disk. Wait until the agent hands back per its Definition of Done. If the agent fails its handback via `RF-01 continue-later` (with `progress_path: null` the agent records nothing on disk), `RF-03 abort`, `RF-04 manifest-corruption halt`, or `Cancel` at the step-0 drift prompt, exit cleanly. On successful handback, set `preflight_done = true` and advance to step 2.
 
 2. **Detect prior artefact for the chosen methodology** — `Read chosen.output_path`.
     - **No prior artefact** — proceed directly to step 3.
@@ -100,16 +100,16 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 
 - `framework/assets/analyses-inputs/registry.md` — read via the analysis-selector skill at step 0. Source of truth for the methodology list and per-methodology file paths.
 - `framework/skills/analysis-selector.md` — invoked at step 0 with `registry_path: "framework/assets/analyses-inputs/registry.md"`.
-- `framework/agents/input-handler.md` — invoked at step 1 with `input_dir: "input/"`, `manifest_path: "requirements/source-manifest.json"`, `progress_path: null` **on every path**. The agent owns the create / refresh / no-op / halt decision internally; the orchestrator never branches on manifest state. Shared with `/requirements`, `/generate-prd`, `/review-inputs`.
+- `framework/agents/input-handler.md` — invoked at step 1 with `documentation_dir: "documentation/"`, `manifest_path: "requirements/source-manifest.json"`, `progress_path: null` **on every path**. The agent owns the create / refresh / no-op / halt decision internally; the orchestrator never branches on manifest state. Shared with `/requirements`, `/generate-prd`, `/review-inputs`.
 - `framework/agents/analyses-inputs/<method>-analyser.md` — the analyser agent invoked at step 3, resolved per the chosen registry row's `analyser_agent` field. No analyser exists on disk in this PR; the first one ships in the next follow-up development.
 - `requirements/source-manifest.json` — read at step 1 by the input-handler (existence check + freshness comparison). Re-built by the input-handler when absent or when the consultant chooses `Refresh` at the input-handler's step-0 drift prompt; otherwise left unchanged.
-- `input/` — read by the analyser per-row (originals or converted siblings) per its own workflow; the orchestrator does not read it.
+- `documentation/` — read by the analyser per-row (originals or converted siblings) per its own workflow; the orchestrator does not read it.
 - `framework/shared/refusal-registry.md` — `RF-01`, `RF-03`, `RF-04` semantics surfaced by this orchestrator, by the input-handler at step 1, and by the analyser at its write step.
 - `framework/shared/context-hygiene.md` — the canonical `/clear` completion tip appended to the selection-loop exit message.
 
 ## Output
 
-- `<chosen.output_path>` — produced by the analyser at its write step. The orchestrator produces no other artefact directly. The step-1 input-handler invocation, when it fires, additionally produces `requirements/source-manifest.json` and `input/*.converted.md` siblings as documented in the stand-alone constraint exception.
+- `<chosen.output_path>` — produced by the analyser at its write step. The orchestrator produces no other artefact directly. The step-1 input-handler invocation, when it fires, additionally produces `requirements/source-manifest.json` and `documentation/*.converted.md` siblings as documented in the stand-alone constraint exception.
 
 ## Tools
 
@@ -137,7 +137,7 @@ Each input-analyser additionally records a source-roster section in its artefact
 - If the consultant chose `Overwrite` at step 2, the git checkpoint commit ran without `--no-verify`, without amend, and without push, and the prior artefact was deleted before the agent was invoked.
 - If the analyser was invoked, its handback gate was met (artefact exists, verify pass, consultant accepted).
 - Every invoked agent was run in the foreground, never via the Agent / Task / fork / sub-agent mechanism.
-- No file was written outside `analyse-inputs/<chosen.name>/`, with the documented step-1 exception of `requirements/source-manifest.json` and `input/*.converted.md` siblings produced by the input-handler.
+- No file was written outside `analyse-inputs/<chosen.name>/`, with the documented step-1 exception of `requirements/source-manifest.json` and `documentation/*.converted.md` siblings produced by the input-handler.
 - `framework/state/.progress.json` was not written by this orchestrator on any branch. No selection-loop state (`run_count`, `preflight_done`) was persisted to disk; the loop ran in memory only.
 - `framework/state/timing.ndjson` was not written by this orchestrator on any branch.
 

@@ -111,7 +111,7 @@ methodologies:
   # The two question-style rows below use `elicitation-with-options` (gap-surfacing peer flow),
   # mirroring their review-requirements twins but grounded in the input corpus: provenance is
   # [SRC: <filename>] / absent-from-corpus (not §N.N), fingerprint is the manifest sha, output is a
-  # new input/ file, and there is no requirements.md amendment (source-manifest rows skip Step 9b).
+  # new documentation/ file, and there is no requirements.md amendment (source-manifest rows skip Step 9b).
   - method_dir: TEN-BA-QUESTIONS
     method_slug: ten-ba-questions
     filename_stem: ten-ba-questions-inputs-review-resolutions
@@ -441,7 +441,7 @@ methodologies:
 
 - `method_dir` — **the lookup key.** For review-inputs artefacts: the bare parent directory name under `review-inputs/` (uppercase, legacy v1 keying). For review-requirements artefacts: the root-qualified `review-requirements/<METHOD>` — qualified because the same method dir name can exist under both roots (e.g. `ADVERSARIAL`). The orchestrator derives the key per this rule at its step 0 and passes it as `methodology_key`.
 - `method_slug` — lowercase methodology slug, matching the source registry's `name` field. Recorded in the resolutions document's provenance table.
-- `filename_stem` — the output filename stem: the final document is `input/<filename_stem>-<YYYY-MM-DD>.md` (same-day collision → `-2`, `-3`, …). Explicit per row so slugs already ending in `-review` don't produce `…-review-review-resolutions…`.
+- `filename_stem` — the output filename stem: the final document is `documentation/<filename_stem>-<YYYY-MM-DD>.md` (same-day collision → `-2`, `-3`, …). Explicit per row so slugs already ending in `-review` don't produce `…-review-review-resolutions…`.
 - `id_prefix` — the finding-ID prefix (`ADV`, `COMP`, `AMB`, `GAP`). **Finding IDs are per-run labels** — the source review resets them on every fresh run — so the resolutions document anchors on verbatim content (`verbatim_anchor`) and treats IDs as convenience labels only.
 - `parse_source` — `embedded-json` (parse the `<script type="application/json" id="{json_block_id}">` block; on parse failure fall back to the HTML articles and say so in-thread) or `html-articles` (walk the finding articles directly).
 - `json_block_id` — the embedded JSON block's element id; `null` for `html-articles` rows.

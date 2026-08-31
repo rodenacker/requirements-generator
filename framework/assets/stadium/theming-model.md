@@ -38,4 +38,4 @@ Apps bundle a consistent font set under `ClientApp/src/assets/fonts/` — typica
 
 ## The manual bridge to `/design-system`
 
-`/design-system` (the brand-token styler) **cannot read `input/`** — it works from a URL → suggested domain → tokens. So the extracted styling facts reach it **manually**: the consultant reads the per-app `design-signals` asset (theme name, classification, custom CSS list, any extracted brand image under `embedded/`), forms an **informed domain** from it, and supplies that domain to the styler. There is no automatic feed. Everything in `design-signals` is Tier-B / advisory — it biases the design, it does not bind it.
+`/design-system` (the brand-token styler) **cannot read `documentation/`** — it works from a URL → suggested domain → tokens. So the extracted styling facts reach it **manually**: the consultant reads the per-app `design-signals` asset (theme name, classification, custom CSS list, any extracted brand image under `embedded/`), forms an **informed domain** from it, and supplies that domain to the styler. There is no automatic feed. Everything in `design-signals` is Tier-B / advisory — it biases the design, it does not bind it.

@@ -52,7 +52,7 @@ methodologies:
   - name: gap-analysis
     status: mvp
     group: Completeness & gaps
-    description: Choose this when you want a visual, drafter-aligned gap map — the raw inputs measured against this project's own requirements template — rather than the BA-literature canon its sibling completeness-review uses. It produces an HTML report with a coverage heatmap and gap matrix, each gap scored Impact × Confidence → MoSCoW priority (must / should / could / won't) and every Must/Should gap carrying a ready-drafted candidate requirement (in "the system shall …" form). Ratify, edit, or reject each candidate, then drop the HTML into input/ so the next /requirements run ingests and cites it.
+    description: Choose this when you want a visual, drafter-aligned gap map — the raw inputs measured against this project's own requirements template — rather than the BA-literature canon its sibling completeness-review uses. It produces an HTML report with a coverage heatmap and gap matrix, each gap scored Impact × Confidence → MoSCoW priority (must / should / could / won't) and every Must/Should gap carrying a ready-drafted candidate requirement (in "the system shall …" form). Ratify, edit, or reject each candidate, then drop the HTML into documentation/ so the next /requirements run ingests and cites it.
     output_path: review-inputs/GAP-ANALYSIS/gap-analysis.html
     reference_asset: framework/assets/reviews-inputs/gap-analysis-reference.md
     template_asset: framework/assets/reviews-inputs/template-gap-analysis.html
@@ -62,7 +62,7 @@ methodologies:
   - name: ten-ba-questions
     status: mvp
     group: Stakeholder & BA gaps
-    description: Choose this before drafting requirements when you want the most consequential business-analysis gaps in the raw inputs named rather than an exhaustive coverage audit — pick its siblings completeness-review or gap-analysis instead when you want every gap mapped. It produces a self-contained HTML list of the ten most pressing stakeholder questions the gathered material leaves unanswered, ranked by business impact, across eight BA gap categories, each sourced to an input file or marked absent-from-corpus. Take the ten questions to your stakeholders and fold the answers back into input/ before /requirements drafts.
+    description: Choose this before drafting requirements when you want the most consequential business-analysis gaps in the raw inputs named rather than an exhaustive coverage audit — pick its siblings completeness-review or gap-analysis instead when you want every gap mapped. It produces a self-contained HTML list of the ten most pressing stakeholder questions the gathered material leaves unanswered, ranked by business impact, across eight BA gap categories, each sourced to an input file or marked absent-from-corpus. Take the ten questions to your stakeholders and fold the answers back into documentation/ before /requirements drafts.
     output_path: review-inputs/TEN-BA-QUESTIONS/ten-ba-questions-review.html
     reference_asset: framework/assets/reviews-inputs/ten-ba-questions-reference.md
     template_asset: framework/assets/reviews-inputs/template-ten-ba-questions.html
@@ -72,7 +72,7 @@ methodologies:
   - name: ten-ux-questions
     status: mvp
     group: UX gaps
-    description: Choose this before drafting requirements when you want the most consequential UX-design-discovery gaps in the raw inputs named — its complementary sibling ten-ba-questions covers the business-analysis gaps (scope, rules, data ownership); pick the exhaustive completeness-review or gap-analysis instead when you want every gap mapped. It produces a self-contained HTML list of the ten most pressing design questions the gathered material leaves unanswered, ranked by design impact, across eight UX gap categories (users & segmentation, context of use, goals & success signals, task flows & decision points, decision-supporting data, errors & recovery, collaboration, trust & audit), each sourced to an input file or marked absent-from-corpus. Take the ten questions to your stakeholders and users and fold the answers back into input/ before /requirements drafts.
+    description: Choose this before drafting requirements when you want the most consequential UX-design-discovery gaps in the raw inputs named — its complementary sibling ten-ba-questions covers the business-analysis gaps (scope, rules, data ownership); pick the exhaustive completeness-review or gap-analysis instead when you want every gap mapped. It produces a self-contained HTML list of the ten most pressing design questions the gathered material leaves unanswered, ranked by design impact, across eight UX gap categories (users & segmentation, context of use, goals & success signals, task flows & decision points, decision-supporting data, errors & recovery, collaboration, trust & audit), each sourced to an input file or marked absent-from-corpus. Take the ten questions to your stakeholders and users and fold the answers back into documentation/ before /requirements drafts.
     output_path: review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html
     reference_asset: framework/assets/reviews-inputs/ten-ux-questions-reference.md
     template_asset: framework/assets/reviews-inputs/template-ten-ux-questions.html
@@ -85,7 +85,7 @@ methodologies:
 
 **Purpose:** Methodology registry for `/review-inputs`. Sibling of `framework/assets/reviews/registry.md` (which drives `/review-requirement`) and of `framework/assets/analyses-inputs/registry.md` (which drives `/analyse-inputs`). The frontmatter above is the **machine-readable** contract — `framework/skills/analysis-selector.md` filters `status == "mvp"` to present options to the consultant when invoked with `registry_path: "framework/assets/reviews-inputs/registry.md"`; `framework/orchestrators/review-inputs-orch.md` looks up `reviewer_agent` for the chosen methodology and invokes it at step 3.
 
-**Source material:** like `/analyse-inputs` (and unlike `/review-requirement`, whose reviewers read `requirements/requirements.md`), methodologies registered here operate over the raw consultant-dropped material in `input/`, enumerated via `requirements/source-manifest.json`. The shared `framework/agents/input-handler.md` builds the manifest on demand at the orchestrator's step 1.
+**Source material:** like `/analyse-inputs` (and unlike `/review-requirement`, whose reviewers read `requirements/requirements.md`), methodologies registered here operate over the raw consultant-dropped material in `documentation/`, enumerated via `requirements/source-manifest.json`. The shared `framework/agents/input-handler.md` builds the manifest on demand at the orchestrator's step 1.
 
 **Pipeline cleavage:**
 

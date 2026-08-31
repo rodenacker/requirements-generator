@@ -27,7 +27,7 @@ The methodology is **multi-actor, not single-actor.** A journey map follows one 
 
 ## Reader & plain language
 
-This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `input/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `documentation/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
 
 - **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
 - **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. swim lane (a row showing who does each step), actor/role (the person or system responsible for a lane), process step (an atomic action in the flow), handoff (a lane-crossing transfer of control between actors), decision point (a branching step with guard conditions), and any swim-lane-specific term. **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
@@ -159,7 +159,7 @@ The analyser does **not** halt the orchestrator on a quality-gate failure — it
 The swim-lane diagrams are pre-rendered inline `<svg>` (no `mmdc` / Mermaid-render dependency); a geometric overlap from `svg-overlap-check` is recorded as a diagnostics layout warning, never a halt.
 - **Zero candidate processes** (no consumed source describes a workflow with ≥ 2 actors and ≥ 1 handoff) → halt with the structured error: *"Cannot produce a swim-lane process map without any cross-functional process named in the inputs. If the inputs describe a single-actor workflow, consider `/analyse-inputs` → `task-analysis`. If they describe persona-shaped emotion, consider `journey-mapping`. Add a brief, interview note, or process description that names ≥ 2 actors with a handoff between them, then re-invoke `/analyse-inputs`."*
 
-A thin manifest — one with few sources, many `Unsupported` rows, or sources lacking trigger-event language — is **not** a failure mode of the analyser; it is a **signal** the analyser is built to surface in the Disconnect Register and Diagnostics section. The right consultant action is to enrich `input/` and re-run, or to bring the open disconnects to the next elicitation conversation.
+A thin manifest — one with few sources, many `Unsupported` rows, or sources lacking trigger-event language — is **not** a failure mode of the analyser; it is a **signal** the analyser is built to surface in the Disconnect Register and Diagnostics section. The right consultant action is to enrich `documentation/` and re-run, or to bring the open disconnects to the next elicitation conversation.
 
 The consultant sees every flagged item in the artefact's collapsed `<details id="diagnostics">` block and in the visible **Disconnect Register**; they don't see a stack trace.
 
@@ -182,7 +182,7 @@ The artefact's downstream consumers are **two-fold**:
 
 1. **The consultant** — directly via the visible Disconnect Register. Every non-`clean` row carries a `suggested_question` the consultant brings to the next elicitation conversation (or back to the original source author). Closing disconnects before `/requirements` runs prevents fabricated integration requirements downstream.
 
-2. **The `/requirements` drafter** — secondarily via re-ingestion. The consultant copies `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` into `input/`, the input-handler classifies it as `Supported-via-MCP`, markitdown converts the HTML to `input/swim-lane-process-mapping.html.converted.md` (the `<pre><code class="language-yaml">` structured block survives as a fenced code block; the Mermaid `<pre class="mermaid">` blocks survive as plain `<pre>` blocks with Mermaid source legible to the drafter; the tables become markdown tables), and the drafter consumes the converted markdown via the refreshed manifest.
+2. **The `/requirements` drafter** — secondarily via re-ingestion. The consultant copies `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` into `documentation/`, the input-handler classifies it as `Supported-via-MCP`, markitdown converts the HTML to `documentation/swim-lane-process-mapping.html.converted.md` (the `<pre><code class="language-yaml">` structured block survives as a fenced code block; the Mermaid `<pre class="mermaid">` blocks survive as plain `<pre>` blocks with Mermaid source legible to the drafter; the tables become markdown tables), and the drafter consumes the converted markdown via the refreshed manifest.
 
 The discipline:
 
@@ -191,5 +191,5 @@ The discipline:
 - **`[SRC: <filename>]` markers survive** because they are plain text inside cells, register rows, and YAML strings.
 - **`[AI-SUGGESTED: AI-NNN | blocking]` markers** flow into the resolver as consultant questions using the shared namespace grammar — no schema changes downstream.
 - **Disconnect Register rows with `consultant_follow_up: yes`** become resolver-pipeline `AI-NNN` questions when the artefact is re-ingested.
-- **The trailing Next-steps banner** instructs the consultant on the copy-into-`input/` pathway and emphasises that the Disconnect Register is the artefact's primary elicitation value — closing disconnects is the most leveraged consultant action.
+- **The trailing Next-steps banner** instructs the consultant on the copy-into-`documentation/` pathway and emphasises that the Disconnect Register is the artefact's primary elicitation value — closing disconnects is the most leveraged consultant action.
 - **The analyser does not auto-copy** — the `/analyse-inputs` write-isolation rule (docs/maintenance.md > Stand-alone constraints (write isolation)) forbids it.

@@ -43,4 +43,4 @@ and confirm ten `test.stadium.*.md` files appear in `<scratch-dir>`.
 
 ## Uninstall
 
-Nothing Stadium-specific is installed. Removing Python (or removing it from `PATH`) will re-trigger `RF-01` the next time a Stadium app is dropped in `input/`.
+Nothing Stadium-specific is installed. Removing Python (or removing it from `PATH`) will re-trigger `RF-01` the next time a Stadium app is dropped in `documentation/`.

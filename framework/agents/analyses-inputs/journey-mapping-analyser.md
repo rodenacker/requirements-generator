@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **j
 
 ## Purpose
 
-Produce `analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` — a self-contained HTML journey atlas (with embedded `<script type="application/json" id="journey-mapping-meta">` block, inline `<style>`, inline SVG emotion curves, CSS-grid swim-lane tables) — by applying the journey-mapping reference (`framework/assets/analyses-inputs/journey-mapping-reference.md`) literally and exhaustively to the consumable files enumerated in `requirements/source-manifest.json`. The artefact has **diagrams-first ordering**: a compact `<header id="overview">`, a prominent `<section id="diagrams">` gallery (one `<article class="diagram-block">` per persona with inline SVG emotion curve + CSS-grid swim-lane table), a secondary `<section id="narratives">` with pain → opportunity bridges + moments-of-truth, and a collapsed `<details id="diagnostics">` at the bottom. Every persona is verbatim from the inputs (no invented personas). Every non-empty cell carries `[SRC: <filename>]` (or `[STANDARD-RULE: GR-NN]`) rendered inline as plain text so it survives the markitdown round-trip back into `input/` for `/requirements` consumption. Every quality check in the reference is a hard gate.
+Produce `analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` — a self-contained HTML journey atlas (with embedded `<script type="application/json" id="journey-mapping-meta">` block, inline `<style>`, inline SVG emotion curves, CSS-grid swim-lane tables) — by applying the journey-mapping reference (`framework/assets/analyses-inputs/journey-mapping-reference.md`) literally and exhaustively to the consumable files enumerated in `requirements/source-manifest.json`. The artefact has **diagrams-first ordering**: a compact `<header id="overview">`, a prominent `<section id="diagrams">` gallery (one `<article class="diagram-block">` per persona with inline SVG emotion curve + CSS-grid swim-lane table), a secondary `<section id="narratives">` with pain → opportunity bridges + moments-of-truth, and a collapsed `<details id="diagnostics">` at the bottom. Every persona is verbatim from the inputs (no invented personas). Every non-empty cell carries `[SRC: <filename>]` (or `[STANDARD-RULE: GR-NN]`) rendered inline as plain text so it survives the markitdown round-trip back into `documentation/` for `/requirements` consumption. Every quality check in the reference is a hard gate.
 
 ## Output section order
 
@@ -77,8 +77,8 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` → `Read row.converted_sibling` as text — a frozen textual description (vision description for `Native-multimodal` / `Vector-renderable`; markitdown rendering for `Supported-via-MCP`) prepared by the input-handler. Treat it as the canonical text source; do **not** re-interpret pixels or re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
-- If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `input/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
-- If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `input/` and re-invoke `/analyse-inputs`."*
+- If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
+- If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."*
 - State per-tier ingest decisions aloud:
 
   > *"Step 2: read manifest (`manifest_sha256 = <first 12 chars>…`). 4 consumable rows: `brief.docx` (Supported-via-MCP), `whiteboard-photo.png` (Native-multimodal), `interview-notes.md` (Native-text), `slack-export.md` (Native-text). 1 skipped row: `proposal.pages` (Unsupported)."*
@@ -271,7 +271,7 @@ Run all 8 hard gates from the reference. Each gate captures `{gate_id, status: p
 
 Surface `AskUserQuestion` with three options:
 
-1. `Revise — exit so the consultant can enrich input/ and re-invoke /analyse-inputs (Recommended)`
+1. `Revise — exit so the consultant can enrich documentation/ and re-invoke /analyse-inputs (Recommended)`
 2. `Override — proceed and write a known-defective artefact (Run-history bullet records every violation)`
 3. `Restart — re-run from Round 1 with a fresh manifest pass`
 
@@ -498,10 +498,10 @@ Output one short, concrete line:
 Variants:
 
 - If Step 10 was Override'd, prepend: *"Quality-gate violations accepted as known — diagnostics block records every flagged item."*
-- If any persona had `[GAP-NO-EVIDENCE]` cells, append: *"{n_gap} cells stayed empty (`[GAP-NO-EVIDENCE]` — listed in diagnostics). Add elicitation material covering {first 2 gap persona/phase/lane} to `input/` and re-run to fill them, or accept the gaps."*
+- If any persona had `[GAP-NO-EVIDENCE]` cells, append: *"{n_gap} cells stayed empty (`[GAP-NO-EVIDENCE]` — listed in diagnostics). Add elicitation material covering {first 2 gap persona/phase/lane} to `documentation/` and re-run to fill them, or accept the gaps."*
 - If `drift_mode == "re-extract"`, append: *"Drift handling: Rounds 1–6 re-run from scratch on the current manifest; {n_preserved} prior persona slugs preserved through re-extraction, {n_dropped} dropped (recorded in Run-history)."*
 - If `drift_mode == "append-only"`, append: *"Drift handling: prior journey cards preserved verbatim; only new content from new manifest rows was appended this run."*
-- If `prior_run == null`, append: *"This is the first run; re-run after enriching `input/` or after `/requirements` to widen the atlas additively."*
+- If `prior_run == null`, append: *"This is the first run; re-run after enriching `documentation/` or after `/requirements` to widen the atlas additively."*
 
 #### B. Accept / Revise / Restart loop
 

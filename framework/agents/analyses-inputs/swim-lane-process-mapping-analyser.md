@@ -21,7 +21,7 @@ The rendered artefact is laid out top-to-bottom as:
 6. **Gaps and inferred nodes** (`<section id="gaps">`) — two sub-lists: blocking, non-blocking. (Disconnects already classified in §4; this section classifies inferred nodes / lanes / payloads.)
 7. **Diagnostics** (`<details id="diagnostics">`) — collapsed by default; 9 gate-result lines, source roster (Consumed + Skipped tables), per-process diagram-validity (svg-overlap) results, run history.
 8. **Next steps** (`<section class="next-steps">`) — instructions to bring open disconnects to the next consultant conversation (the primary elicitation value).
-9. **Downstream-use footer** (`<details class="downstream-toggle">`, collapsed) — copy-into-`input/` pathway instructions for `/requirements` re-ingestion (markitdown round-trip, YAML survival, Mermaid source survival).
+9. **Downstream-use footer** (`<details class="downstream-toggle">`, collapsed) — copy-into-`documentation/` pathway instructions for `/requirements` re-ingestion (markitdown round-trip, YAML survival, Mermaid source survival).
 
 Section order lives in `framework/assets/analyses-inputs/template-swim-lane-process-mapping.html`, not in this analyser. The analyser emits the same placeholder blocks regardless; the template decides where they land.
 
@@ -86,8 +86,8 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
   - `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler. The description already enumerates the swim-lane-relevant material it depicts: actors / lanes, process steps, handoffs and their trigger events, decision branches, and the payloads that cross lane boundaries. Treat it as the canonical text source; do **not** re-interpret pixels. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. **Process diagrams, BPMN sketches, whiteboard photos, flowcharts are high-leverage sources for this analyser** — they often carry explicit handoff structure the prose lacks, and the frozen description surfaces it as text: numbered steps, arrow directions, role labels on lanes, branch labels on decision points, swim-lane partition boundaries, and message annotations on edges are all transcribed and structured.
   - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
-- If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `input/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
-- If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `input/` and re-invoke `/analyse-inputs`."*
+- If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
+- If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."*
 - State per-tier ingest decisions aloud:
 
   > *"Step 2: read manifest (`manifest_sha256 = <first 12 chars>…`, target = prototype). 4 consumable rows: `brief.docx` (Supported-via-MCP), `process-whiteboard.png` (Native-multimodal — process diagram), `interview-notes.md` (Native-text), `slack-export.md` (Native-text). 1 skipped row: `proposal.pages` (Unsupported)."*
@@ -360,7 +360,7 @@ Plus four **structural integrity checks**:
 
 Surface `AskUserQuestion` with three options:
 
-1. `Revise — exit so the consultant can enrich input/ and re-invoke /analyse-inputs (Recommended)`
+1. `Revise — exit so the consultant can enrich documentation/ and re-invoke /analyse-inputs (Recommended)`
 2. `Override — proceed and write a known-defective artefact (Run-history bullet records every violation)`
 3. `Restart — re-run from Round 1 with a fresh manifest pass`
 
@@ -408,7 +408,7 @@ Every consultant-supplied string is **HTML-escaped** before injection (`<`, `>`,
 
 **Substitutions:**
 
-- `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences: what this swim-lane process mapping analysis is (Rummler-Brache cross-functional process map + Disconnect Register), what it found (number of processes, actors, handoffs, and how many disconnects require follow-up), and what the consultant should do with it (work through the non-`clean` disconnect rows; copy into `input/` to feed `/requirements`). A faithful condensation of the rendered body — introduces no fact, count, or citation not already present; carries no `[SRC]` of its own. Methodology jargon glossed at first use (swim lane, actor/role, handoff, disconnect); client domain terms NOT glossed. HTML-escaped.
+- `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences: what this swim-lane process mapping analysis is (Rummler-Brache cross-functional process map + Disconnect Register), what it found (number of processes, actors, handoffs, and how many disconnects require follow-up), and what the consultant should do with it (work through the non-`clean` disconnect rows; copy into `documentation/` to feed `/requirements`). A faithful condensation of the rendered body — introduces no fact, count, or citation not already present; carries no `[SRC]` of its own. Methodology jargon glossed at first use (swim lane, actor/role, handoff, disconnect); client domain terms NOT glossed. HTML-escaped.
 - `{{TITLE}}` — *"Swim-Lane Process Mapping — `<domain>`"* if a domain string is available, else *"Swim-Lane Process Mapping"*.
 - `{{DOMAIN}}` — verbatim from manifest meta if present, else *"(not declared in manifest)"*.
 - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
@@ -466,8 +466,8 @@ Variants:
 - If `svg-overlap-check` reported overlaps, append: *"Diagram: {n} SVG overlap(s) recorded as layout warnings in Diagnostics — the Disconnect Register + Steps/Decisions tables + YAML remain the canonical deliverables and the Mermaid export is the clean fallback."*
 - If `drift_mode == "re-extract"`, append: *"Drift handling: Rounds 1–7 re-run from scratch on the current manifest; {n_preserved} prior ids preserved through re-extraction, {n_dropped} dropped (recorded in Run-history)."*
 - If `drift_mode == "append-only"`, append: *"Drift handling: prior processes preserved verbatim; only new content from new manifest rows was appended this run."*
-- If `prior_run == null`, append: *"This is the first run; re-run after enriching `input/` to extend the process map additively."*
-- Always append: *"To use this artefact for elicitation, work through the Disconnect Register's non-`clean` rows. To re-ingest into `/requirements`, copy `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` into `input/` and re-run `/requirements` — instructions are in the Next-steps banner."*
+- If `prior_run == null`, append: *"This is the first run; re-run after enriching `documentation/` to extend the process map additively."*
+- Always append: *"To use this artefact for elicitation, work through the Disconnect Register's non-`clean` rows. To re-ingest into `/requirements`, copy `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` into `documentation/` and re-run `/requirements` — instructions are in the Next-steps banner."*
 
 **B. Accept / Revise / Restart loop.**
 
@@ -572,7 +572,7 @@ Before handing back, verify all of the following against the written artefact an
 - **Do not fabricate disconnect trigger events.** A description like *"finance is triggered by an approval email from the manager"* when the inputs never name the trigger is the worst failure mode — it injects a fabricated integration contract that propagates as a fabricated requirement. The description for an `ambiguous-trigger` disconnect names the missing element ("trigger event is not named in the inputs"); the resolver question asks the consultant to supply it.
 - **Do not merge two distinct named actors into one lane.** Keep them distinct unless the inputs genuinely treat them as the same actor under two names; in that case surface as `[GAP-ACTOR-CONFLATION]` for consultant confirmation rather than silently merging.
 - **Do not inflate the disconnect register.** Spurious disconnects waste consultant attention and erode trust. The cleanliness rubric is the gate; apply it strictly and uniformly. `clean` is the explicit pass — supported by positive evidence — never the silent default.
-- **Do not auto-copy the artefact to `input/`.** The `/analyse-inputs` write-isolation rule (docs/maintenance.md > Stand-alone constraints (write isolation)) forbids it. The trailing Next-steps banner instructs the consultant to copy manually.
+- **Do not auto-copy the artefact to `documentation/`.** The `/analyse-inputs` write-isolation rule (docs/maintenance.md > Stand-alone constraints (write isolation)) forbids it. The trailing Next-steps banner instructs the consultant to copy manually.
 - **Do not re-invoke `markitdown-mcp`.** Conversions are the input-handler's responsibility; the manifest's `converted_sibling` is the contract. Re-converting would drift the analyser's reads from the manifest's recorded `sha256`.
 - **Do not skip the per-process diagram.** Gate 9 requires every process to render a pre-rendered inline `<svg>` swim-lane in which every step is a node and every actor a lane. There is no `mmdc` / Mermaid-render dependency; `svg-overlap-check` records any geometric overlap as a diagnostics layout warning (never a halt). Do not bundle a Mermaid renderer or require `mmdc` — the `<pre class="mermaid-source">` blocks are copy-paste / re-ingestion text only.
 - **Do not loop the Step 10 fail-Restart-fail cycle more than three times.** On the fourth fail, force the Revise path with a one-line note that further iteration is not productive without consultant input.

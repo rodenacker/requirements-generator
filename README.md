@@ -29,7 +29,7 @@
 
 ## 1. Overview
 
-Drop the client material you've been given into `input/`, run a slash command, and get back handoff-ready artefacts:
+Drop the client material you've been given into `documentation/`, run a slash command, and get back handoff-ready artefacts:
 
 - Structured Requirements Document
 - Product Requirement Document (PRD)
@@ -53,7 +53,7 @@ This repository is a **template**. You don't work in the shared copy — you cre
 
 **Start a new engagement**
 
-1. **Create your own copy.** On the repository's GitHub page, click **Use this template → Create a new repository**. Name it for the engagement (e.g. `acme-loan-portal`) and set its visibility to **Private** (or **Internal**, per company policy). Make **one copy per client engagement** — don't reuse a copy across clients, so each client's material stays isolated and you start from a clean `input/`.
+1. **Create your own copy.** On the repository's GitHub page, click **Use this template → Create a new repository**. Name it for the engagement (e.g. `acme-loan-portal`) and set its visibility to **Private** (or **Internal**, per company policy). Make **one copy per client engagement** — don't reuse a copy across clients, so each client's material stays isolated and you start from a clean `documentation/`.
 2. **Clone it to your machine** with `git clone <your-new-repo-url>`, then open the folder in VS Code.
 3. **Install the tools** (first time on your workstation only). The fastest way is the bundled **setup script** — open a **PowerShell 7** terminal (`pwsh`) in the repo root and run it:
 
@@ -68,14 +68,14 @@ This repository is a **template**. You don't work in the shared copy — you cre
 
 **Do the work**
 
-4. **Add the client material** to the `input/` folder — briefs, decks, screenshots, spreadsheets, PDFs.
+4. **Add the client material** to the `documentation/` folder — briefs, decks, screenshots, spreadsheets, PDFs.
 5. **Open Claude Code** in the VS Code side panel and run a command. Start with **`/start`** to pick from a menu, or run one directly. What each command does and when to reach for it is in [§3](#3-when-to-use-which-command) and [§4](#4-commands).
 6. **Stay in the loop.** The commands are interactive — they draft, ask you to accept, and resolve anything they couldn't confidently fill in. Your answers shape the final artefacts.
 
 **Take the assets onward**
 
 7. **The outputs are your deliverables.** Each command writes to its own folder — `requirements/`, `prd/`, `analyse-requirements/`, `design-system/`, `wireframes/`, `prototypes/`, and the rest. Hand them to a client, a designer, or the next stage (e.g. an application-build framework). Use **`/export-application`** for a clean, dependency-free handoff of the finished spec.
-8. **Leave the framework alone.** `framework/`, `.claude/`, `docs/`, and `CLAUDE.md` are the engine — your work belongs only in `input/` and the output folders. You're a consumer of the framework, not an editor of it.
+8. **Leave the framework alone.** `framework/`, `.claude/`, `docs/`, and `CLAUDE.md` are the engine — your work belongs only in `documentation/` and the output folders. You're a consumer of the framework, not an editor of it.
 
 **Getting a newer version.** Your copy is a point-in-time snapshot of the framework. Updates aren't applied in place — when you start your **next** engagement, take a fresh copy (step 1 again) and you'll have the current version. There's nothing to upgrade mid-engagement.
 
@@ -84,7 +84,7 @@ This repository is a **template**. You don't work in the shared copy — you cre
 | Run                                                                       | When                                          | Result                                                                              |
 | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | `/requirements`                                                                | Client just sent a pile of attachments                       | Turns inputs into a structured doc you can use for prototyping. Export with `/export-application` for Stadium 8.                          |
-| `/ingest-stadium`                                                              | Client handed you a Stadium 6 low-code app, not just documents | Extracts the app into citation-ready assets under `input/` that `/requirements` and the other input commands then read like any other material. Run it before `/requirements`. |
+| `/ingest-stadium`                                                              | Client handed you a Stadium 6 low-code app, not just documents | Extracts the app into citation-ready assets under `documentation/` that `/requirements` and the other input commands then read like any other material. Run it before `/requirements`. |
 | `/design-system`                                                               | Designer is waiting on a brand brief                                              | One run produces a complete colour + typography + effects brief for prototyping or Stadium 8.                 |
 | `/generate-prd`                                                                | A stakeholder is asking for the *why* — problem, metrics, MVP phasing, risks      | Strategic PRD from the inputs.                               |
 | `/review-inputs` → `adversarial`                                               | You want a tough critique of the raw inputs before drafting                       | Six-dimension critique of the raw input set — coverage, ambiguity, cross-source conflict, costly silences. |
@@ -96,7 +96,7 @@ This repository is a **template**. You don't work in the shared copy — you cre
 | `/analyse-requirement` → `data-model`                                          | About to brief a developer on data structure                                      | Surfaces the entities, fields, and relationships the spec implies.       |
 | `/analyse-requirement` → `crud-coverage`                                       | Worried a CRUD-heavy spec has forgotten operations or ungranted rights            | Matrix flagging missing create/read/update/delete paths and lifecycle holes.     |
 | `/analyse-requirement` → `ooux` or `use-cases`                                 | About to brief a designer on screens and navigation                               | Surfaces the objects + CTAs, or the actor goals + flows.                         |
-| `/resolve-review`                                                              | You've run a review and want its findings *acted on*, not just listed             | Walks the findings with you and writes your approved resolutions into `input/`.  |
+| `/resolve-review`                                                              | You've run a review and want its findings *acted on*, not just listed             | Walks the findings with you and writes your approved resolutions into `documentation/`.  |
 | `/amend-requirements`                                                          | The spec is written and you want to change something in it — no review involved   | Records your changes as a new input document *and* as amendments in the spec, without redrafting it. |
 | `/wireframe`                                                                   | You want to show 2–3 divergent screen options before committing to a high-fi mock | Low-fi HTML variants tied to requirement IDs; compare side-by-side via tabs.     |
 | `/prototype`                                                                   | You want something the client can actually click through, not just look at        | Hi-fi client-side React app on fixture data; brand-locked, UX diverges by posture. |
@@ -106,10 +106,10 @@ This repository is a **template**. You don't work in the shared copy — you cre
 
 Every command runs interactively inside Claude Code and keeps you in the loop. A few behaviours are shared, so they're stated once here rather than repeated per command:
 
-- **Two interaction patterns.** The *document* pipelines (`/requirements`, `/generate-prd`, and `/prototype`'s design spec) follow **draft → you accept → Q&A on anything the system couldn't confidently fill in → merge → you accept**. The *lens* pipelines (`/analyse-inputs`, `/analyse-requirement`, `/review-inputs`, `/review-requirement`) follow **pick a methodology → it runs → you accept → saved under its own folder**. (`/export-application` is simpler still: **one transform → you accept or reject** — no Q&A, nothing invented. `/resolve-review` and `/amend-requirements` share a third shape: **pick or state the changes → resolve each with you → you accept → written to `input/`** — the difference is only where the changes come from, a review's findings or your own statements.)
-- **Read-only.** Analyses and reviews only *read* your inputs or spec — they never modify or delete them. Files you drop in `input/` are removed only by you, manually.
+- **Two interaction patterns.** The *document* pipelines (`/requirements`, `/generate-prd`, and `/prototype`'s design spec) follow **draft → you accept → Q&A on anything the system couldn't confidently fill in → merge → you accept**. The *lens* pipelines (`/analyse-inputs`, `/analyse-requirement`, `/review-inputs`, `/review-requirement`) follow **pick a methodology → it runs → you accept → saved under its own folder**. (`/export-application` is simpler still: **one transform → you accept or reject** — no Q&A, nothing invented. `/resolve-review` and `/amend-requirements` share a third shape: **pick or state the changes → resolve each with you → you accept → written to `documentation/`** — the difference is only where the changes come from, a review's findings or your own statements.)
+- **Read-only.** Analyses and reviews only *read* your inputs or spec — they never modify or delete them. Files you drop in `documentation/` are removed only by you, manually.
 - **Re-runs are safe.** Each pipeline detects a prior run and offers to **continue**, **start fresh**, or **overwrite** — the prior work is committed to git first, so nothing is lost. Run a lens pipeline again to add another artefact alongside the first.
-- **Input file types** (for the commands that read `input/` — `/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`): text (`.md`, `.txt`, `.drawio`, `.yml`, `.yaml`, `.xml`) and images (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`) are read directly; Office and PDF (`.docx`, `.xlsx`, `.pptx`, `.pdf`) are converted first (needs markitdown — see §5.2); anything else is logged so it doesn't slip through silently.
+- **Input file types** (for the commands that read `documentation/` — `/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`): text (`.md`, `.txt`, `.drawio`, `.yml`, `.yaml`, `.xml`) and images (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`) are read directly; Office and PDF (`.docx`, `.xlsx`, `.pptx`, `.pdf`) are converted first (needs markitdown — see §5.2); anything else is logged so it doesn't slip through silently.
 
 The [system flowchart](https://rodenacker.github.io/requirements-generator/docs/requirements-generator-flow.html) linked above gives the visual map and a deeper per-methodology description.
 
@@ -119,11 +119,11 @@ Run it inside Claude Code to pick from a menu instead of remembering command nam
 
 ### 4.2 `/ingest-stadium`
 
-Turn a **Stadium 6 application** into inputs the other commands can read. When a client hands you a deployed Stadium low-code app instead of (or alongside) documents, drop it into `input/` — either the deployed app folder or a one-line `*.stadium` pointer file naming its path — and run this first. It extracts the app **once** into a set of lean, citation-ready requirement assets that `/requirements`, `/generate-prd`, `/analyse-inputs`, and `/review-inputs` then consume like any other input material.
+Turn a **Stadium 6 application** into inputs the other commands can read. When a client hands you a deployed Stadium low-code app instead of (or alongside) documents, drop it into `documentation/` — either the deployed app folder or a one-line `*.stadium` pointer file naming its path — and run this first. It extracts the app **once** into a set of lean, citation-ready requirement assets that `/requirements`, `/generate-prd`, `/analyse-inputs`, and `/review-inputs` then consume like any other input material.
 
 Each app is processed once — a ledger records what's already been ingested, and re-ingesting is a deliberate, prompted choice — so your hand-edits to the extracted assets are never silently overwritten. The raw app folder itself is left out of every other command's input set; only the extracted assets are read (the other input commands nudge you to run this if they spot an un-ingested app). Runs a bundled Python extractor — see §5.5.
 
-**You get** `input/<AppName>.stadium-assets/` — thirteen per-app assets (eleven deterministic category files covering the data model, sources, business rules, access control, surfaces, per-view user tasks, navigation, and more, plus two advisory ones), ready to be picked up on the next `/requirements` (or `/generate-prd` / `/analyse-inputs` / `/review-inputs`) run.
+**You get** `documentation/<AppName>.stadium-assets/` — thirteen per-app assets (eleven deterministic category files covering the data model, sources, business rules, access control, surfaces, per-view user tasks, navigation, and more, plus two advisory ones), ready to be picked up on the next `/requirements` (or `/generate-prd` / `/analyse-inputs` / `/review-inputs`) run.
 
 ### 4.3 `/design-system`
 
@@ -143,7 +143,7 @@ A strategic, human-audience PRD from the same client inputs — problem framing,
 
 ### 4.5 `/requirements`
 
-Turn the loose pile of client material into a clean, structured requirements spec. Drop the files into `input/` first, then run it.
+Turn the loose pile of client material into a clean, structured requirements spec. Drop the files into `documentation/` first, then run it.
 
 **You get** `requirements/requirements.md` — a structured spec where every item is traceable either to something you provided or to a domain-default rule the framework applies (e.g. accessibility, security, error-handling). Anything the system can't confidently fill in is resolved through the Q&A, so the final doc reads as a clean, signed-off spec.
 
@@ -155,13 +155,13 @@ Change something in a finished spec without redrafting it. State the changes in 
 
 Where a change is already specific, it's recorded as you stated it. Where it's a direction rather than a specification (*"tighten up approvals on rate changes"*), you get two or three concrete alternatives with their consequences spelled out, and you pick one — the framework doesn't just write your vague sentence into the spec and call it a requirement.
 
-**You get** two things. A new `input/amendments-<date>.md` — the **durable** record, ingested as source material the next time you run `/requirements`, which is what eventually folds the change into the spec body with citations. And an `## Amendments (pending re-merge)` section inside `requirements.md` itself, so `/wireframe`, `/prototype`, the analyses, and `/export-application` all honour the change **immediately**, before that re-merge. Nothing existing in `input/` is ever overwritten, and no other line of the spec is touched.
+**You get** two things. A new `documentation/amendments-<date>.md` — the **durable** record, ingested as source material the next time you run `/requirements`, which is what eventually folds the change into the spec body with citations. And an `## Amendments (pending re-merge)` section inside `requirements.md` itself, so `/wireframe`, `/prototype`, the analyses, and `/export-application` all honour the change **immediately**, before that re-merge. Nothing existing in `documentation/` is ever overwritten, and no other line of the spec is touched.
 
 You also get told what the change affects: whether it adds or removes a data property the wireframes bind to, whether it moves the scope boundary, and which existing wireframes or exports were built against the older version of the spec.
 
 ### 4.7 `/analyse-inputs`
 
-Go deeper into the raw inputs *before* drafting: pick an analytical lens and the framework re-expresses your `input/` material through it as a stand-alone artefact. Each one is designed to be **copied back into `input/`** so `/requirements` consumes it on the next run. Requires a non-empty `input/`; shares the source manifest with `/requirements`.
+Go deeper into the raw inputs *before* drafting: pick an analytical lens and the framework re-expresses your `documentation/` material through it as a stand-alone artefact. Each one is designed to be **copied back into `documentation/`** so `/requirements` consumes it on the next run. Requires a non-empty `documentation/`; shares the source manifest with `/requirements`.
 
 | If you want to see…                                                                                                                | Pick                          | What it's called                  |
 | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | --------------------------------- |
@@ -192,7 +192,7 @@ Find what's missing or wrong in the raw inputs *before* you draft — a punch-li
 | The **ten most consequential business-analysis questions** the raw inputs leave unanswered, ranked by business impact across eight BA gap categories, each sourced to a file or marked absent-from-corpus | `ten-ba-questions`    |
 | The **ten most consequential UX-discovery questions** the raw inputs leave unanswered, ranked by design impact across eight UX gap categories (users, context, goals, task flows, supporting data, errors, collaboration, trust) | `ten-ux-questions`    |
 
-**You get** one self-contained HTML artefact per run under `review-inputs/<METHOD>/`; `gap-analysis.html` additionally carries an inline-SVG coverage heatmap and is designed to be copied back into `input/` so `/requirements` picks up its shall-form Candidate Requirements on the next run.
+**You get** one self-contained HTML artefact per run under `review-inputs/<METHOD>/`; `gap-analysis.html` additionally carries an inline-SVG coverage heatmap and is designed to be copied back into `documentation/` so `/requirements` picks up its shall-form Candidate Requirements on the next run.
 
 ### 4.9 `/analyse-requirement`
 
@@ -236,11 +236,11 @@ Find what's missing or wrong in the spec *before* you hand it over — a second 
 
 ### 4.11 `/resolve-review`
 
-Turn the findings of a review you've already run into something the pipeline can consume. A review artefact is a punch-list; this command walks you through acting on it — you pick the review (any `/review-inputs` or `/review-requirement` artefact on disk), pick which findings to address, and resolve each one in turn. Anything the system infers on your behalf is confirmed with you by an explicit affirmative before it's recorded — per finding, or in one go via an explicit *Accept all remaining as drafted* choice — nothing is silently assumed. The approved resolutions are then written as a **new dated document into `input/`** (existing input files are never modified or overwritten), so the next `/requirements` run ingests your decisions like any other client material.
+Turn the findings of a review you've already run into something the pipeline can consume. A review artefact is a punch-list; this command walks you through acting on it — you pick the review (any `/review-inputs` or `/review-requirement` artefact on disk), pick which findings to address, and resolve each one in turn. Anything the system infers on your behalf is confirmed with you by an explicit affirmative before it's recorded — per finding, or in one go via an explicit *Accept all remaining as drafted* choice — nothing is silently assumed. The approved resolutions are then written as a **new dated document into `documentation/`** (existing input files are never modified or overwritten), so the next `/requirements` run ingests your decisions like any other client material.
 
-When the review you picked critiques the *spec* (a `/review-requirement` artefact) rather than the raw inputs, the command additionally offers — opt-in — to cache the same resolutions as a transient **Amendments** section inside `requirements.md`, so downstream commands can use them immediately. The cache is temporary by design: the next `/requirements` re-merge regenerates the doc and folds the resolutions in properly from `input/`.
+When the review you picked critiques the *spec* (a `/review-requirement` artefact) rather than the raw inputs, the command additionally offers — opt-in — to cache the same resolutions as a transient **Amendments** section inside `requirements.md`, so downstream commands can use them immediately. The cache is temporary by design: the next `/requirements` re-merge regenerates the doc and folds the resolutions in properly from `documentation/`.
 
-**You get** one new `input/<review-name>-<date>.md` per run — a consultant-approved resolutions document in which every resolution is marked as stated by you or AI-inferred-and-confirmed by you. One run resolves one review; re-run it for another (the output files accumulate side-by-side).
+**You get** one new `documentation/<review-name>-<date>.md` per run — a consultant-approved resolutions document in which every resolution is marked as stated by you or AI-inferred-and-confirmed by you. One run resolves one review; re-run it for another (the output files accumulate side-by-side).
 
 ### 4.12 `/wireframe`
 
@@ -280,7 +280,7 @@ The three pieces every command needs:
 
 ### 5.2 To handle Word, Excel, PowerPoint, and PDF inputs
 
-Needed for any command that reads `input/` (`/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`) when your client sends Office or PDF files (typical). Easiest: `/setup markitdown`. Manually: install **Python 3.10+** (<https://www.python.org/>; verify with `python --version`), then install **markitdown with its Office/PDF converters** plus the MCP server:
+Needed for any command that reads `documentation/` (`/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`) when your client sends Office or PDF files (typical). Easiest: `/setup markitdown`. Manually: install **Python 3.10+** (<https://www.python.org/>; verify with `python --version`), then install **markitdown with its Office/PDF converters** plus the MCP server:
 
 ```
 pip install "markitdown[docx,pptx,xlsx,xls,pdf,outlook]"
@@ -324,7 +324,7 @@ Setup notes and troubleshooting: `framework/shared/setup-instructions/node-toolc
 
 ### 5.5 To ingest Stadium 6 apps
 
-Needed only for `/ingest-stadium`, which runs a bundled Python extractor over a Stadium app dropped in `input/`. The extractor is **standard-library only** — there are no packages to install — so if you already installed **Python 3.10+** for Office/PDF inputs (§5.2), you're done. Otherwise install Python (<https://www.python.org/>; verify with `python --version`), or run `/setup python`.
+Needed only for `/ingest-stadium`, which runs a bundled Python extractor over a Stadium app dropped in `documentation/`. The extractor is **standard-library only** — there are no packages to install — so if you already installed **Python 3.10+** for Office/PDF inputs (§5.2), you're done. Otherwise install Python (<https://www.python.org/>; verify with `python --version`), or run `/setup python`.
 
 If Python is missing when you launch `/ingest-stadium`, the command tells you exactly what to install and resumes after you do.
 

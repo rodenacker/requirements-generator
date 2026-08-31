@@ -85,7 +85,7 @@ The PRD pipeline emits exactly two markers:
 **Not emitted:**
 - `[STANDARD-RULE: GR-NN]` — the `GR-NN` rules in `framework/shared/general-rules.md` are UI behaviour guardrails (validation timing, badge mapping, table sorting). None apply to PRD content.
 - `[OUT-OF-SCOPE: domain-default]` — the PRD's §10 *is* the out-of-scope discussion. A marker inside §10 saying "out of scope" would be self-referential nonsense, and §10 is not the only place out-of-scope content appears — it's just the discussion of it.
-- `[REQ: §X.Y]` — the PRD pipeline is fully independent of `requirements/requirements.md`. It reads only `requirements/source-manifest.json` and the input files under `input/`. Cross-doc pointers into `requirements.md` would widen the closed marker set forbidden by CLAUDE.md §1.
+- `[REQ: §X.Y]` — the PRD pipeline is fully independent of `requirements/requirements.md`. It reads only `requirements/source-manifest.json` and the input files under `documentation/`. Cross-doc pointers into `requirements.md` would widen the closed marker set forbidden by CLAUDE.md §1.
 
 ## Citation scope
 

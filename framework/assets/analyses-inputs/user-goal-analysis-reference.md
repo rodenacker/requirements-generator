@@ -34,12 +34,12 @@ This analyser sits in a **bounded-inference** camp, not the pure-extraction camp
 
 | Lens | Methodology | Question answered | Operates on |
 |---|---|---|---|
-| Cross-cutting pattern recognition | thematic-analysis | What recurring patterns do the inputs carry? | raw `input/` |
-| Outcome-tree discovery | opportunity-solution-trees | What desired outcomes do the inputs name and which **solutions** ladder down from them? | raw `input/` |
-| Current-state workflow mapping | journey-mapping | What is the as-is user workflow? | raw `input/` |
-| Hierarchical task decomposition | task-analysis (HTA) | How does a **given** goal decompose DOWN into sub-goals + operations? | raw `input/` |
-| Jobs × situations × outcomes × forces | jtbd | What jobs are users hiring the product to do? (extraction only) | raw `input/` |
-| **Goals — stated + inferred — classified + refined** | **user-goal-analysis** | **What do the actors actually want to achieve (explicitly AND latently), of what type, in what hierarchy?** | **raw `input/`** |
+| Cross-cutting pattern recognition | thematic-analysis | What recurring patterns do the inputs carry? | raw `documentation/` |
+| Outcome-tree discovery | opportunity-solution-trees | What desired outcomes do the inputs name and which **solutions** ladder down from them? | raw `documentation/` |
+| Current-state workflow mapping | journey-mapping | What is the as-is user workflow? | raw `documentation/` |
+| Hierarchical task decomposition | task-analysis (HTA) | How does a **given** goal decompose DOWN into sub-goals + operations? | raw `documentation/` |
+| Jobs × situations × outcomes × forces | jtbd | What jobs are users hiring the product to do? (extraction only) | raw `documentation/` |
+| **Goals — stated + inferred — classified + refined** | **user-goal-analysis** | **What do the actors actually want to achieve (explicitly AND latently), of what type, in what hierarchy?** | **raw `documentation/`** |
 
 The scope boundaries are **hard** — they are enforced as analyser anti-patterns and as the character's discipline:
 
@@ -76,7 +76,7 @@ The artefact has a fixed top-to-bottom shape (rendered by the template; placehol
 7. **Conflicts** (`<section id="conflicts">`). A table of goal pairs that pull against each other (e.g. a security goal vs an ease-of-access goal), each with a one-line tension note and `[SRC: <filename>]` on the evidence. Empty is a legitimate state (rendered as "no goal conflicts surfaced in the consumed inputs").
 8. **JSON body block** (`<section id="body">` → `<pre><code class="language-json" id="user-goal-analysis-body">`). The machine-readable re-ingestion contract per the JSON SCHEMA below.
 9. **Diagnostics** (`<details id="diagnostics">`, collapsed). Manifest fingerprint, source roster (Consumed + Skipped tables), 7 gate results, provenance counts (explicit / inferred per source), inference-technique breakdown, criterion counts, flagged low-confidence inferred goals, run history.
-10. **Downstream footer** (`<details class="downstream-toggle">`, collapsed). Re-ingestion instructions: how to copy the register into `input/` for a subsequent `/requirements` run.
+10. **Downstream footer** (`<details class="downstream-toggle">`, collapsed). Re-ingestion instructions: how to copy the register into `documentation/` for a subsequent `/requirements` run.
 
 ---
 
@@ -217,7 +217,7 @@ Run at Pass 6 close, before render. Each operates on the in-memory state. Failur
 
 On any hard-gate failure: do **not** write the artefact. Surface `AskUserQuestion` with three options:
 
-1. `Revise — exit so the consultant can enrich input/ and re-invoke /analyse-inputs (Recommended)`
+1. `Revise — exit so the consultant can enrich documentation/ and re-invoke /analyse-inputs (Recommended)`
 2. `Override — proceed and write a known-defective register (Run-history bullet records every violation)`
 3. `Restart — re-run from Pass 1 with a fresh manifest pass`
 
@@ -328,7 +328,7 @@ Emitted into `<pre><code class="language-json" id="user-goal-analysis-body">`. S
 
 The User Goal Analysis register is **re-ingestible by `/requirements`** as a fresh source. The contract:
 
-1. Consultant copies `analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` into `input/` (file copy; the orchestrator does not automate this).
+1. Consultant copies `analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html` into `documentation/` (file copy; the orchestrator does not automate this).
 2. Consultant re-invokes `/requirements` (or `/analyse-inputs`, `/review-inputs`, `/generate-prd`).
 3. The shared `framework/agents/input-handler.md` detects the new file, surfaces the manifest-refresh prompt, classifies it via `framework/skills/classify-input-tier.md` as `Native-text` (HTML passes the UTF-8 / printable-ratio sniff), and adds it as a manifest row.
 4. The `/requirements` drafter reads the register:

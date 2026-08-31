@@ -18,9 +18,9 @@ The drafter itself dispatches no sub-agents (its Tools section excludes `Agent`)
 
 ## Purpose
 
-Run a single-shot, single-agent pipeline that turns changes the consultant states in-thread about a finished `requirements/requirements.md` into one NEW consultant-approved amendments document under `input/`, plus the paired transient `## Amendments (pending re-merge)` section in that document.
+Run a single-shot, single-agent pipeline that turns changes the consultant states in-thread about a finished `requirements/requirements.md` into one NEW consultant-approved amendments document under `documentation/`, plus the paired transient `## Amendments (pending re-merge)` section in that document.
 
-The `input/` document is the durable record (the next `/requirements` run ingests it as corpus); the host-document section is its cache for downstream runs that happen before that re-merge. One run = at most one new `input/` file; to amend again, re-invoke.
+The `documentation/` document is the durable record (the next `/requirements` run ingests it as corpus); the host-document section is its cache for downstream runs that happen before that re-merge. One run = at most one new `documentation/` file; to amend again, re-invoke.
 
 ## Two entry points
 
@@ -37,17 +37,17 @@ This orchestrator and its drafter agent are **isolated from every other pipeline
 
 **Writes (allowed):**
 - `amend-requirements/amendments-draft.md` — the drafter's staged draft (transient; deleted by the drafter on successful finalise, or by this orchestrator's step-1 Discard branch).
-- `input/amendments-<date>[-N].md` — exactly one NEW file per accepted run, written by the drafter at its Step 8. Additive only — no existing `input/` file is ever modified, overwritten, or deleted (`framework/shared/input-safety.md > IS-01`).
-- `requirements/requirements.md` — written by the **drafter** at its Step 9 via `framework/skills/apply-amendments-section.md`, bounded to inserting/extending the single `## Amendments (pending re-merge)` section, always after the paired `input/` write verified.
+- `documentation/amendments-<date>[-N].md` — exactly one NEW file per accepted run, written by the drafter at its Step 8. Additive only — no existing `documentation/` file is ever modified, overwritten, or deleted (`framework/shared/input-safety.md > IS-01`).
+- `requirements/requirements.md` — written by the **drafter** at its Step 9 via `framework/skills/apply-amendments-section.md`, bounded to inserting/extending the single `## Amendments (pending re-merge)` section, always after the paired `documentation/` write verified.
 - `framework/state/.progress.json` / `framework/state/timing.ndjson` — **not** written by this orchestrator or its agent on any branch. No progress file, no timing events.
 
-Both `input/`-additive and Amendments-section writes are documented in `docs/maintenance.md > Stand-alone constraints (write isolation)`, where they are shared with `/resolve-review` — the Amendments-section mechanics are owned by `framework/skills/apply-amendments-section.md`, which both pipelines call.
+Both `documentation/`-additive and Amendments-section writes are documented in `docs/maintenance.md > Stand-alone constraints (write isolation)`, where they are shared with `/resolve-review` — the Amendments-section mechanics are owned by `framework/skills/apply-amendments-section.md`, which both pipelines call.
 
 **Reads (allowed):**
 - `requirements/requirements.md` — a **bounded** header + count extraction at step 0 (`Grep` only: the `Status` / `Last finalised at` header values, the `AMD-\d+` count, the `### Run ` count). The document's **content** is read in full by the drafter, not the orchestrator.
 - `amend-requirements/amendments-draft.md` — existence check at step 1.
 
-The orchestrator never reads `input/`, never reads any amendment content, never invokes the input-handler, and never touches the source manifest. Pickup of the new `input/` file is the next manifest create/refresh's job, owned by whichever pipeline runs the input-handler next.
+The orchestrator never reads `documentation/`, never reads any amendment content, never invokes the input-handler, and never touches the source manifest. Pickup of the new `documentation/` file is the next manifest create/refresh's job, owned by whichever pipeline runs the input-handler next.
 
 ## No progress file
 
@@ -78,10 +78,10 @@ This pipeline is single-shot and short: no `.progress.json`, no timing NDJSON, n
 
 The drafter has handed control back when **either**:
 
-- **Accepted run:** the new `input/amendments-<date>[-N].md` file exists; the agent's `verify-artifact-write` invocation for it returned `pass`; the consultant chose `Accept` in the agent's Step 7 loop; the staged draft has been deleted; the agent's Step 9 reached a recorded outcome (`framework/skills/apply-amendments-section.md` returned `pass`); and the Step-10 advisory report was emitted. **Or**
-- **Clean exit:** the agent reported one of its documented no-write terminal states (cancel at its Step 2 or Step 3, including the third invalid intake reply) with an honest one-line report and nothing written to `input/`.
+- **Accepted run:** the new `documentation/amendments-<date>[-N].md` file exists; the agent's `verify-artifact-write` invocation for it returned `pass`; the consultant chose `Accept` in the agent's Step 7 loop; the staged draft has been deleted; the agent's Step 9 reached a recorded outcome (`framework/skills/apply-amendments-section.md` returned `pass`); and the Step-10 advisory report was emitted. **Or**
+- **Clean exit:** the agent reported one of its documented no-write terminal states (cancel at its Step 2 or Step 3, including the third invalid intake reply) with an honest one-line report and nothing written to `documentation/`.
 
-If neither is satisfied — including an `RF-04` halt at the agent's Step 6, Step 8 (where the staged draft is deliberately left in place), or Step 9 (where the `input/` file is deliberately left in place and the section did not apply) — do not declare done; surface the agent's report to the consultant.
+If neither is satisfied — including an `RF-04` halt at the agent's Step 6, Step 8 (where the staged draft is deliberately left in place), or Step 9 (where the `documentation/` file is deliberately left in place and the section did not apply) — do not declare done; surface the agent's report to the consultant.
 
 ## Inputs
 
@@ -93,12 +93,12 @@ If neither is satisfied — including an `RF-04` halt at the agent's Step 6, Ste
 
 ## Output
 
-- `input/amendments-<YYYY-MM-DD>[-N].md` — produced by the drafter on the accepted path, plus the `## Amendments (pending re-merge)` section it inserts/extends in `requirements/requirements.md` (its Step 9). The orchestrator produces no artefact directly. (`amend-requirements/amendments-draft.md` is transient staging, not a pipeline output.)
+- `documentation/amendments-<YYYY-MM-DD>[-N].md` — produced by the drafter on the accepted path, plus the `## Amendments (pending re-merge)` section it inserts/extends in `requirements/requirements.md` (its Step 9). The orchestrator produces no artefact directly. (`amend-requirements/amendments-draft.md` is transient staging, not a pipeline output.)
 
 ## Tools
 
 - `Grep` — the step-0 pre-flight extraction from `requirements/requirements.md`: the header line's `Status` / `Last finalised at` values, the `AMD-\d+` count, and the `### Run ` count. No other grep.
-- `Read` — the existence/size check on `requirements/requirements.md` (step 0) and on `amend-requirements/amendments-draft.md` (step 1). No content reads — in particular the orchestrator never reads the document body, any amendment content, or any file under `input/`.
+- `Read` — the existence/size check on `requirements/requirements.md` (step 0) and on `amend-requirements/amendments-draft.md` (step 1). No content reads — in particular the orchestrator never reads the document body, any amendment content, or any file under `documentation/`.
 - `Bash` — `rm -f amend-requirements/amendments-draft.md` on the step-1 Discard branch only. No other Bash usage; never delete any other path; never commit or push.
 - `AskUserQuestion` — the step-1 `{ Discard, Cancel }` stale-draft prompt only. The step-0 advisories are printed text; the drafter owns every other prompt (the intake, the per-change asks, accept/revise/restart).
 
@@ -111,13 +111,13 @@ The orchestrator's tools are limited to the operations above. Every other read o
 - Step 1 ran on every path that passed step 0: the Discard branch deleted only `amend-requirements/amendments-draft.md` (no git checkpoint, by design); the Cancel branch exited with zero writes.
 - The drafter was invoked exactly once, in the foreground, with all five parameters; it was never dispatched via the Agent / Task tool.
 - The handback gate was met before declaring done — accepted-run conditions or a documented clean exit; an `RF-04` halt was not papered over. On an accepted run, the context-hygiene completion tip was emitted verbatim, on the success path only.
-- No file was written outside `amend-requirements/`, the drafter's single new `input/` file, and the drafter's bounded Amendments-section write to `requirements/requirements.md`. Nothing under `framework/state/` was written on either entry path. The input-handler was not invoked. The source manifest was neither read nor written.
+- No file was written outside `amend-requirements/`, the drafter's single new `documentation/` file, and the drafter's bounded Amendments-section write to `requirements/requirements.md`. Nothing under `framework/state/` was written on either entry path. The input-handler was not invoked. The source manifest was neither read nor written.
 
 ## Definition of Done
 
 The pipeline is done when exactly one of:
 
-- The drafter handed back an accepted run (new `input/` file exists + verified + consultant-accepted + staged draft deleted + section applied + advisory report emitted), and the orchestrator surfaced the agent's handback line; or
+- The drafter handed back an accepted run (new `documentation/` file exists + verified + consultant-accepted + staged draft deleted + section applied + advisory report emitted), and the orchestrator surfaced the agent's handback line; or
 - A clean exit fired: the step-0 missing-source exit, consultant cancel at step 1, or one of the drafter's documented no-write terminal states; or
 - The drafter halted on `RF-04` and the orchestrator surfaced the halt without declaring done.
 
@@ -125,7 +125,7 @@ The pipeline is done when exactly one of:
 
 - Do not perform any task other than the steps listed above.
 - Do not advance past the handback gate before it is met, and do not declare done on an `RF-04` halt.
-- Do not read the document body, any amendment content, or any file under `input/`. Content work belongs to the drafter.
+- Do not read the document body, any amendment content, or any file under `documentation/`. Content work belongs to the drafter.
 - Do not hard-gate on a non-`final` `Status`. It is passed through as an advisory; amending a draft-status document is legitimate.
 - Do not surface the intake, the per-change asks, or the accept/revise/restart prompt from the orchestrator. All three belong to the drafter.
 - Do not invoke the drafter as a background / sub / async agent. Foreground, same thread, always.

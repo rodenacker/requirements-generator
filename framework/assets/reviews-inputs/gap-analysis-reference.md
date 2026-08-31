@@ -60,7 +60,7 @@ This reference's **yardstick = `framework/assets/topics-requirements.md`** — t
 - A **Candidate Requirement** (shall-form, behavioural) — the drafter-ingestible candidate that would close the gap.
 - A severity bucket (`MoSCoW`, derived from Impact × Confidence).
 
-When the consultant copies the produced `gap-analysis.html` into `input/` and runs `/requirements`, the embedded structured JSON block is parsed by the drafter (via markitdown HTML→MD conversion). Candidate Requirements keyed by `topic_ref` give the drafter pre-formed candidates for exactly the topics that would otherwise hit the `completeness-gap-pass` skill's `[AI-SUGGESTED]` fabrication path. Gaps the consultant has already seen and (by not removing them) endorsed become drafter-cited requirements (`[SRC: gap-analysis.html]`) instead of drafter-fabricated `[AI-SUGGESTED]` ones. Resolver Q&A burden drops correspondingly.
+When the consultant copies the produced `gap-analysis.html` into `documentation/` and runs `/requirements`, the embedded structured JSON block is parsed by the drafter (via markitdown HTML→MD conversion). Candidate Requirements keyed by `topic_ref` give the drafter pre-formed candidates for exactly the topics that would otherwise hit the `completeness-gap-pass` skill's `[AI-SUGGESTED]` fabrication path. Gaps the consultant has already seen and (by not removing them) endorsed become drafter-cited requirements (`[SRC: gap-analysis.html]`) instead of drafter-fabricated `[AI-SUGGESTED]` ones. Resolver Q&A burden drops correspondingly.
 
 ---
 

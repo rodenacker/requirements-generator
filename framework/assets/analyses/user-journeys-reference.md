@@ -71,14 +71,14 @@ The analysis is complete when:
 
 The journey-map's *stages, touchpoints, actions* derive cleanly from `requirements/requirements.md > §5 Task flows` + `§8 Source UI references`.
 
-The *thoughts, emotions, pain points, opportunities* columns are typically **not** present in client briefs or PRDs — they come from user research (interview transcripts, survey results, contextual inquiries). When such research isn't in `/input/`:
+The *thoughts, emotions, pain points, opportunities* columns are typically **not** present in client briefs or PRDs — they come from user research (interview transcripts, survey results, contextual inquiries). When such research isn't in `/documentation/`:
 
 1. The analyser **infers** these columns from:
    - Domain knowledge (`requirements/requirements.md > §1 Application context` + `§2 Domain model`).
    - `§4 User goals & stories` (frequency / expertise / stakes as emotional proxies — high stakes → anxiety, rare event → confusion, high frequency → impatience with friction).
    - Existing-tool critique in `§8 Source UI references` (pain points reflect frustration with current tooling).
 2. Each inferred cell is flagged `[AI-SUGGESTED]`.
-3. The completeness report surfaces the inferred cells; consultant resolves via Q&A or via dropping research docs into `/input/` and re-running `/analyse-requirement`.
+3. The completeness report surfaces the inferred cells; consultant resolves via Q&A or via dropping research docs into `/documentation/` and re-running `/analyse-requirement`.
 
 **Richer inputs → richer journey outputs.** The methodology degrades gracefully: with thin evidence, the journey is mostly inferred and flagged; with rich evidence (interviews, surveys), inferences shrink and confidence rises.
 

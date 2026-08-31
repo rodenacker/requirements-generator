@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **t
 
 ## Purpose
 
-Produce `analyse-inputs/TASK-ANALYSIS/task-analysis.html` — a self-contained HTML5 Hierarchical Task Analysis (Annett & Duncan 1967; Stanton 2006) of the user goal(s) the raw consultant inputs evidence, augmented with a Sub-Goal Template-derived per-terminal information layer (Ormerod & Shepherd 2004) — by applying the task-analysis reference (`framework/assets/analyses-inputs/task-analysis-reference.md`) literally and exhaustively to the consumable files enumerated in `requirements/source-manifest.json`. The artefact has **eight sections in order**: a compact overview header, per-goal summary blocks, a visual nested `<ol>` / `<details>` tree with Plan-type badges, a `<pre><code class="language-yaml">` machine-readable structured tree (the downstream `/requirements` re-ingestion contract — markitdown preserves `<pre><code>` blocks as fenced code when the consultant copies the HTML into `input/`), a Plans table, an Information-requirements table, a Gaps section listing every inferred node and every silent-Plan branch with blocking/non-blocking classification, and a collapsed diagnostics block. A trailing **Next steps** banner instructs the consultant how to feed the artefact back into `/requirements`. Every node, every Plan, every information-requirement entry carries either `[SRC: <filename>]` (matching a manifest row) or `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` (inferred non-terminals + inferred Plans only). **Inferred terminal operations are forbidden** (Diaper & Stanton 2004 anti-confabulation rule). **Missing-coordination branches escalate through a three-tier process and never silently default to `sequence`** (Stanton 2006 — Plans are "the most important and most often neglected component of HTA"). Every quality check in the reference is a hard gate.
+Produce `analyse-inputs/TASK-ANALYSIS/task-analysis.html` — a self-contained HTML5 Hierarchical Task Analysis (Annett & Duncan 1967; Stanton 2006) of the user goal(s) the raw consultant inputs evidence, augmented with a Sub-Goal Template-derived per-terminal information layer (Ormerod & Shepherd 2004) — by applying the task-analysis reference (`framework/assets/analyses-inputs/task-analysis-reference.md`) literally and exhaustively to the consumable files enumerated in `requirements/source-manifest.json`. The artefact has **eight sections in order**: a compact overview header, per-goal summary blocks, a visual nested `<ol>` / `<details>` tree with Plan-type badges, a `<pre><code class="language-yaml">` machine-readable structured tree (the downstream `/requirements` re-ingestion contract — markitdown preserves `<pre><code>` blocks as fenced code when the consultant copies the HTML into `documentation/`), a Plans table, an Information-requirements table, a Gaps section listing every inferred node and every silent-Plan branch with blocking/non-blocking classification, and a collapsed diagnostics block. A trailing **Next steps** banner instructs the consultant how to feed the artefact back into `/requirements`. Every node, every Plan, every information-requirement entry carries either `[SRC: <filename>]` (matching a manifest row) or `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` (inferred non-terminals + inferred Plans only). **Inferred terminal operations are forbidden** (Diaper & Stanton 2004 anti-confabulation rule). **Missing-coordination branches escalate through a three-tier process and never silently default to `sequence`** (Stanton 2006 — Plans are "the most important and most often neglected component of HTA"). Every quality check in the reference is a hard gate.
 
 ## Output section order
 
@@ -21,7 +21,7 @@ The rendered artefact is laid out top-to-bottom as:
 6. **Information requirements table** (`<section id="information-table">`) — `<table class="info-table">` listing every terminal operation's data nouns × direction × sources.
 7. **Gaps and inferred nodes** (`<section id="gaps">`) — three sub-lists: blocking, non-blocking, silent-Plan branches.
 8. **Diagnostics** (`<details id="diagnostics">`) — collapsed by default; gate results, source roster, run history.
-9. **Next steps** (`<section class="next-steps">`) — brief guidance to copy the file into `input/` and re-run `/requirements`.
+9. **Next steps** (`<section class="next-steps">`) — brief guidance to copy the file into `documentation/` and re-run `/requirements`.
 10. **Downstream use** (`<details class="downstream-toggle">`) — collapsed by default; full re-ingestion / markitdown mechanics for downstream `/requirements` consumption.
 
 Section order lives in `framework/assets/analyses-inputs/template-task-analysis.html`, not in this analyser. The analyser emits the same placeholder blocks regardless; the template decides where they land.
@@ -85,8 +85,8 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
   - `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler. The description already enumerates the task-analysis-relevant items: actors, the tasks they perform, ordered steps, branch/loop coordination, and states. Treat it as the canonical text source; do **not** re-interpret pixels. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Diagrams, flowcharts, and wireframes often carry coordination logic — the description's transcription surfaces numbered steps, arrow directions, branch labels, and loop notations as text.
   - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
-- If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `input/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
-- If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `input/` and re-invoke `/analyse-inputs`."*
+- If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
+- If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."*
 - State per-tier ingest decisions aloud:
 
   > *"Step 2: read manifest (`manifest_sha256 = <first 12 chars>…`, target = prototype). 4 consumable rows: `brief.docx` (Supported-via-MCP), `whiteboard-photo.png` (Native-multimodal), `interview-notes.md` (Native-text), `slack-export.md` (Native-text). 1 skipped row: `proposal.pages` (Unsupported)."*
@@ -306,7 +306,7 @@ Plus four **structural integrity checks** (catch shape bugs that the gates don't
 
 Surface `AskUserQuestion` with three options:
 
-1. `Revise — exit so the consultant can enrich input/ and re-invoke /analyse-inputs (Recommended)`
+1. `Revise — exit so the consultant can enrich documentation/ and re-invoke /analyse-inputs (Recommended)`
 2. `Override — proceed and write a known-defective artefact (Run-history bullet records every violation)`
 3. `Restart — re-run from Round 1 with a fresh manifest pass`
 
@@ -326,7 +326,7 @@ On **Restart**: re-enter Step 4. Cap at three fail-Restart cycles; on the fourth
 
 Every consultant-supplied string is **HTML-escaped** before injection (`<`, `>`, `&`, `"`, `'`). The YAML inside `<pre><code>` is rendered as plain text within the `<pre><code>` block — do **not** double-escape inside YAML. Persona-style strings inside `<svg><text>` would be XML-escaped if any SVG was emitted (this analyser emits no SVG — the visual tree is HTML `<ol>` / `<details>`, not SVG).
 
-- `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences: what this task hierarchy (HTA — hierarchical task analysis, as defined by Annett & Duncan 1967 and Stanton 2006) is, what it found (goal count, terminal-operation count, inferred-node count if any, any blocking gaps), and what the consultant should do with it (e.g. review inferred nodes, copy into `input/` to feed `/requirements`). A faithful condensation of the closed `tree` — it introduces no fact, count, or citation not already present in the tree and tables, and carries no `[SRC]` of its own. Methodology jargon is glossed at first use (e.g. "task hierarchy / HTA (hierarchical task analysis)", "plan/sequence (how sub-tasks are coordinated)"); client domain terms are NOT glossed. HTML-escaped.
+- `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences: what this task hierarchy (HTA — hierarchical task analysis, as defined by Annett & Duncan 1967 and Stanton 2006) is, what it found (goal count, terminal-operation count, inferred-node count if any, any blocking gaps), and what the consultant should do with it (e.g. review inferred nodes, copy into `documentation/` to feed `/requirements`). A faithful condensation of the closed `tree` — it introduces no fact, count, or citation not already present in the tree and tables, and carries no `[SRC]` of its own. Methodology jargon is glossed at first use (e.g. "task hierarchy / HTA (hierarchical task analysis)", "plan/sequence (how sub-tasks are coordinated)"); client domain terms are NOT glossed. HTML-escaped.
 - `{{TITLE}}` — *"Task Analysis — `<domain>`"* if a domain string is available in the manifest meta or first goal's source brief, else *"Task Analysis"*.
 - `{{DOMAIN}}` — verbatim from the manifest's domain field if present, else *"(not declared in manifest)"*.
 - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
@@ -394,11 +394,11 @@ Output one short, concrete line:
 Variants:
 
 - If Step 10 was Override'd, prepend: *"Quality-gate violations accepted as known — diagnostics block records every flagged item."* If gate 2 was overridden specifically, add: *"GATE 2 OVERRIDE: inferred terminal operations exist. These will propagate as fabricated requirements when this artefact is fed to `/requirements`. Confirm you accept this risk."*
-- If `inferred_count > 0`, append: *"{blocking_gap_count} blocking gaps will surface as resolver questions when this artefact is fed to `/requirements`. Add elicitation material covering the silent branches (first 2: {{first 2 gap labels}}) to `input/` and re-run to close them, or accept them as known-blocking."*
+- If `inferred_count > 0`, append: *"{blocking_gap_count} blocking gaps will surface as resolver questions when this artefact is fed to `/requirements`. Add elicitation material covering the silent branches (first 2: {{first 2 gap labels}}) to `documentation/` and re-run to close them, or accept them as known-blocking."*
 - If `drift_mode == "re-extract"`, append: *"Drift handling: Rounds 1–7 re-run from scratch on the current manifest; {n_preserved} prior node ids preserved through re-extraction, {n_dropped} dropped (recorded in Run-history)."*
 - If `drift_mode == "append-only"`, append: *"Drift handling: prior tree preserved verbatim; only new content from new manifest rows was appended this run."*
-- If `prior_run == null`, append: *"This is the first run; re-run after enriching `input/` to widen the tree additively."*
-- Always append: *"To use this artefact as additional input for `/requirements`, copy `analyse-inputs/TASK-ANALYSIS/task-analysis.html` into `input/` and re-run `/requirements` — instructions are in the artefact's Next-steps banner."*
+- If `prior_run == null`, append: *"This is the first run; re-run after enriching `documentation/` to widen the tree additively."*
+- Always append: *"To use this artefact as additional input for `/requirements`, copy `analyse-inputs/TASK-ANALYSIS/task-analysis.html` into `documentation/` and re-run `/requirements` — instructions are in the artefact's Next-steps banner."*
 
 **B. Accept / Revise / Restart loop.**
 
@@ -504,7 +504,7 @@ Before handing back, verify all of the following against the written artefact an
 - **Do not produce a single-leaf tree.** Gate 7 — each goal must have ≥ 2 terminal operations. A single-leaf tree indicates either a trivial goal (in which case HTA is the wrong lens — surface the structured error) or a failed decomposition.
 - **Do not silently embed `[AI-SUGGESTED]` on any terminal.** Gate 2 enforcement at render time.
 - **Do not embed the structured tree in a `<script type="application/json">` block.** Markitdown strips `<script>` tags during HTML→MD conversion. The structured tree must live in `<pre><code class="language-yaml">` so it survives the round-trip as a fenced code block — that survival is the load-bearing downstream contract.
-- **Do not auto-copy the artefact to `input/`.** The `/analyse-inputs` write-isolation rule (docs/maintenance.md > Stand-alone constraints (write isolation)) forbids it. The trailing Next-steps banner instructs the consultant to copy manually.
+- **Do not auto-copy the artefact to `documentation/`.** The `/analyse-inputs` write-isolation rule (docs/maintenance.md > Stand-alone constraints (write isolation)) forbids it. The trailing Next-steps banner instructs the consultant to copy manually.
 - **Do not re-invoke `markitdown-mcp`.** Conversions are the input-handler's responsibility; the manifest's `converted_sibling` is the contract. Re-converting would drift the analyser's reads from the manifest's recorded `sha256`.
 - **Do not loop the Step 10 fail-Restart-fail cycle more than three times.** On the fourth fail, force the Revise path with a one-line note that further iteration is not productive without consultant input.
 - **Do not paste the artefact body into the conversation.** The file is on disk; the consultant opens it in a browser via `file://`.

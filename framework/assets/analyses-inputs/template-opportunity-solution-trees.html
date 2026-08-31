@@ -26,7 +26,7 @@
   text inside `<pre class="mermaid-source">` for export only; the rendered
   visual is the pre-rendered inline layered SVG tree diagram in #diagrams.
 
-  The artefact is re-ingestible into `input/` for the /requirements drafter
+  The artefact is re-ingestible into `documentation/` for the /requirements drafter
   via markitdown conversion:
   - The pre-rendered layered SVG tree diagram carries the visible diagram.
   - The Mermaid block (inside <pre class="mermaid-source">) survives HTML->MD
@@ -270,7 +270,7 @@
           The full tree model in JSON — outcome, opportunities, solutions, assumption
           tests, laddering edges, candidate-requirement seeds. This block survives
           markitdown HTML->MD conversion as a fenced <code>```json</code> code block,
-          so when the artefact is copied into <code>input/</code> for /requirements
+          so when the artefact is copied into <code>documentation/</code> for /requirements
           re-ingestion the drafter consumes the complete model (and the
           candidate-requirements bridge) in one shot.
         </p>
@@ -1046,7 +1046,7 @@
       <summary>For downstream use — re-ingesting this artefact into /requirements</summary>
       <div class="downstream-note">
         <p>
-          To re-ingest this artefact into <code>/requirements</code>, copy this file into <code>input/</code> (e.g. <code>input/opportunity-solution-tree.html</code>) and re-run <code>/requirements</code>. The input-handler classifies it as <code>Supported-via-MCP</code>; markitdown converts it to <code>input/opportunity-solution-tree.html.converted.md</code>. The embedded JSON body block (the <code>language-json</code> code block, carrying the tree model + the candidate-requirement seeds) and the Mermaid tree source survive verbatim as fenced code blocks; <code>[SRC: &lt;filename&gt;]</code> markers survive as plain text. The drafter consumes the converted markdown via the refreshed manifest.
+          To re-ingest this artefact into <code>/requirements</code>, copy this file into <code>documentation/</code> (e.g. <code>documentation/opportunity-solution-tree.html</code>) and re-run <code>/requirements</code>. The input-handler classifies it as <code>Supported-via-MCP</code>; markitdown converts it to <code>documentation/opportunity-solution-tree.html.converted.md</code>. The embedded JSON body block (the <code>language-json</code> code block, carrying the tree model + the candidate-requirement seeds) and the Mermaid tree source survive verbatim as fenced code blocks; <code>[SRC: &lt;filename&gt;]</code> markers survive as plain text. The drafter consumes the converted markdown via the refreshed manifest.
         </p>
       </div>
     </details>

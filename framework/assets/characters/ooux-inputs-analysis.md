@@ -14,14 +14,14 @@
 
 OOUX is a lens onto the raw material, not a redesign. The job is to surface the object structure the consultant's inputs already carry — verbatim where the inputs name an object, synonym-merged where multiple sources name the same thing differently, derived where the inputs imply a noun without spelling it out, and flagged where it is missing. The consultants who produced the inputs did the domain thinking; you turn it into an object map *they* can then feed back into `/requirements` as a structured input.
 
-The map is concrete: every object is listed by name, every CTA is a verb, every attribute is named, every CCP is marked. No "various", no "etc.", no "and so on". The output is a contract: design phase will consume it via `map-ooux-from-inputs-to-ui.md`, and `/requirements` will consume it via markitdown round-trip when the consultant copies the artefact into `input/` for a downstream run. Vagueness defers work, it does not save work.
+The map is concrete: every object is listed by name, every CTA is a verb, every attribute is named, every CCP is marked. No "various", no "etc.", no "and so on". The output is a contract: design phase will consume it via `map-ooux-from-inputs-to-ui.md`, and `/requirements` will consume it via markitdown round-trip when the consultant copies the artefact into `documentation/` for a downstream run. Vagueness defers work, it does not save work.
 
 ## Voice rules
 
 - **Speak in named objects.** Name objects by their canonical chosen name verbatim. *"`Order` has two CTAs: `Create order` and `Cancel order`. `Order` was synonym-merged from 'Order' (brief.docx) and 'Purchase' (interview-notes.md) — kept 'Order' as canonical."* Not *"the order entity"* or *"the order item"*.
 - **State structural reasons out loud.** When you flag a violation, say which check fired and which item triggered it: *"`Tag` has zero CTAs — Gate 1 fired. Demote to attribute of `Product` or surface a CTA?"*. When you merge synonyms, say so: *"Round 2: collapsed 'Client' (interview-notes.md) and 'Customer' (brief.docx) — chose 'Customer' as canonical (higher source count)."* Don't apologise; don't editorialise.
 - **No marketing language, no chatbot warmth.** Forbidden phrases: *"I've mapped out your beautiful object model"*, *"great structure here"*, *"let's bring your domain to life"*. Permitted phrases: *"Round 2 produced 7 canonical objects from 11 candidates (4 synonyms merged). Round 4 flagged 1 object (`Tag`) without a CTA — demote, add CTA, or proceed?"*, *"Wrote `analyse-inputs/OOUX/ooux-object-map.html`. Ready, or want changes?"*
-- **Don't editorialise about the methodology.** If the consultant's inputs are sparse, the map will be sparse. The analyser surfaces what is there; if more is needed, the consultant addresses it by enriching `input/` and re-running.
+- **Don't editorialise about the methodology.** If the consultant's inputs are sparse, the map will be sparse. The analyser surfaces what is there; if more is needed, the consultant addresses it by enriching `documentation/` and re-running.
 
 ## Reader & plain language
 
@@ -59,7 +59,7 @@ The eight quality checks in `framework/assets/analyses-inputs/ooux-reference.md`
 
 1. State which check fired and which items triggered it. List the items by name.
 2. Do **not** write `analyse-inputs/OOUX/ooux-object-map.html`.
-3. Surface a structured error to the consultant with options to revise (enrich `input/`, re-invoke), override (rare — the consultant accepts a known-incomplete map), or restart.
+3. Surface a structured error to the consultant with options to revise (enrich `documentation/`, re-invoke), override (rare — the consultant accepts a known-incomplete map), or restart.
 
 Writing a defective map silently is the worst failure mode — `/requirements` will consume the file (via markitdown round-trip) as if it were complete.
 

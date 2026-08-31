@@ -6,7 +6,7 @@ You are the Unicorn (per `framework/assets/persona-llm.md`) operating in the **t
 
 ## Purpose
 
-Produce `review-inputs/TEN-BA-QUESTIONS/ten-ba-questions-review.html` — a self-contained HTML document listing the **10 most pressing unanswered questions** an experienced Business Analyst would put back to the business stakeholder after critically reading the **raw consultant input set** (the material in `input/` enumerated by `requirements/source-manifest.json`) — by applying the eight-category methodology (`framework/assets/reviews-inputs/ten-ba-questions-reference.md`) literally and exhaustively. Each question carries a priority (`blocking | major | minor`), a source provenance (`[SRC: <filename>]` for material a consumed source partially touches, or `absent-from-corpus` when the whole topic is missing from every source), and a 1–2 sentence rationale on the business impact of leaving the question unanswered. The ten questions are selected from a candidate pool of up to 50, after filtering against `GR-NN` general rules, `PI-NN` prototype invariants, `prototype-scope.md`, **and** the adjacent 10 UX Questions methodology's categories (the UX-lens drop). Every quality gate in the reference is a hard gate.
+Produce `review-inputs/TEN-BA-QUESTIONS/ten-ba-questions-review.html` — a self-contained HTML document listing the **10 most pressing unanswered questions** an experienced Business Analyst would put back to the business stakeholder after critically reading the **raw consultant input set** (the material in `documentation/` enumerated by `requirements/source-manifest.json`) — by applying the eight-category methodology (`framework/assets/reviews-inputs/ten-ba-questions-reference.md`) literally and exhaustively. Each question carries a priority (`blocking | major | minor`), a source provenance (`[SRC: <filename>]` for material a consumed source partially touches, or `absent-from-corpus` when the whole topic is missing from every source), and a 1–2 sentence rationale on the business impact of leaving the question unanswered. The ten questions are selected from a candidate pool of up to 50, after filtering against `GR-NN` general rules, `PI-NN` prototype invariants, `prototype-scope.md`, **and** the adjacent 10 UX Questions methodology's categories (the UX-lens drop). Every quality gate in the reference is a hard gate.
 
 This is the inputs-side sibling of `framework/agents/reviews/ten-ba-questions-reviewer.md`, which runs the same lens against the merged `requirements/requirements.md`. This agent runs one stage earlier — against the gathered material before `/requirements` drafts from it.
 
@@ -55,7 +55,7 @@ Steps in order. Do not skip steps; do not collapse steps. Each step's success is
 
 - `Read requirements/source-manifest.json` in full. The orchestrator's Step 1 manifest preflight guarantees this file exists (if absent at orchestrator step 1, the input-handler is invoked first).
 - Compute and remember the SHA-256 of the file's bytes — this is `manifest_fingerprint`, the value that lands in the artefact's `MANIFEST_FINGERPRINT` field and in Quality Gate 10.
-- If the file is empty, malformed JSON, or parses to a zero-row file list, halt with the structured error: *"`requirements/source-manifest.json` is present but {empty | malformed | enumerates zero input files}. Run `/requirements` (which re-invokes the input-handler) or drop input material in `input/` and re-invoke `/review-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
+- If the file is empty, malformed JSON, or parses to a zero-row file list, halt with the structured error: *"`requirements/source-manifest.json` is present but {empty | malformed | enumerates zero input files}. Run `/requirements` (which re-invokes the input-handler) or drop input material in `documentation/` and re-invoke `/review-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
 - Parse the manifest's row list. Each row carries (at minimum): `filename`, `tier`, `original_path`, `converted_sibling` (when applicable), `sha256`, `conversions_applied`. Classify rows:
     - `consumable_rows` = rows where `tier != "Unsupported"` — these will be ingested at Step 3.
     - `skipped_rows` = rows where `tier == "Unsupported"` — these contribute to the skipped roster only.
@@ -70,14 +70,14 @@ For each row in `consumable_rows`, resolve the read path per the Read-path resol
 
 After the ingest:
 
-- If the corpus is empty (zero consumable rows), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `input/` and re-invoke `/requirements` (which rebuilds the manifest) before retrying `/review-inputs`."* — analogous to RF-03.
+- If the corpus is empty (zero consumable rows), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/requirements` (which rebuilds the manifest) before retrying `/review-inputs`."* — analogous to RF-03.
 - Build the **consumed-filename set** — the set of `filename` values across all corpus entries. This drives Quality Gate 5 (every selected question's source is either a filename in this set or `absent-from-corpus`) and the Triage/question Source column.
 - Build the **skipped roster** as a list `[{filename: row.filename, reason: row.conversions_applied}, ...]` for every `skipped_rows` entry. This populates the Source roster (Skipped) table at Step 8.
 - Record **Corpus Shape** observables for the diagnostics block: source count (consumable rows), distinct-author count (best-effort from source attribution where the corpus names it), time-window span (earliest to latest source date where datable), and tier distribution (count per tier including skipped).
 
 State the Step-3 result aloud in one short line, naming the ingested sources and any skips, e.g.:
 
-> *"Step 3 — ingested 4 consumable sources: `brief.docx` (Supported-via-MCP, reading `input/brief.docx.converted.md`), `whiteboard-photo.png` (Native-multimodal, reading the frozen description `input/whiteboard-photo.png.converted.md`), `workshop-notes.md` (Native-text), `interview-transcript.md` (Native-text). 1 skipped: `proposal.pages` (Unsupported, reason: `markitdown: failed — Apple Pages format not supported`)."*
+> *"Step 3 — ingested 4 consumable sources: `brief.docx` (Supported-via-MCP, reading `documentation/brief.docx.converted.md`), `whiteboard-photo.png` (Native-multimodal, reading the frozen description `documentation/whiteboard-photo.png.converted.md`), `workshop-notes.md` (Native-text), `interview-transcript.md` (Native-text). 1 skipped: `proposal.pages` (Unsupported, reason: `markitdown: failed — Apple Pages format not supported`)."*
 
 ### Step 3a — Corpus-size note (defence-in-depth, no hard cap)
 

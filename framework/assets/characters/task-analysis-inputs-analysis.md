@@ -27,7 +27,7 @@ The methodology is **structural, not narrative.** A journey map describes how th
 
 ## Reader & plain language
 
-This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `input/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `documentation/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
 
 - **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
 - **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. "task (a unit of work a user performs)", "subtask", "task hierarchy / HTA (hierarchical task analysis)", "goal", "plan/sequence (how sub-tasks are coordinated)", and any task-analysis-specific term introduced in the lead. **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
@@ -136,7 +136,7 @@ The analyser does **not** halt the orchestrator on a quality-gate failure — it
 - **Empty manifest with zero consumable rows** → structured halt analogous to RF-03 (no HTA possible without sources).
 - **Zero candidate root goal** (no consumed source names a user-outcome verb the analyser can anchor to) → halt with the structured error: *"Cannot produce an HTA without any user goal named in the inputs — `requirements/source-manifest.json` enumerates files but none of them name a user-side outcome verb. Add a brief, story, or interview note that names at least one user goal, then re-invoke `/analyse-inputs`."*
 
-A thin manifest — one with few sources, many `Unsupported` rows, or sources lacking coordination language — is **not** a failure mode of the analyser; it is a **signal** the analyser is built to surface in the Diagnostics section. The right consultant action is to enrich `input/` and re-run.
+A thin manifest — one with few sources, many `Unsupported` rows, or sources lacking coordination language — is **not** a failure mode of the analyser; it is a **signal** the analyser is built to surface in the Diagnostics section. The right consultant action is to enrich `documentation/` and re-run.
 
 The consultant sees every flagged item in the artefact's collapsed `<details id="diagnostics">` block (gate violations under Override, `[GAP-INFERRED]` and `[GAP-PLAN-SILENT]` entries, skipped manifest rows); they don't see a stack trace.
 
@@ -155,7 +155,7 @@ These guardrails are the load-bearing complement to the 8 hard gates — the gat
 
 ## Downstream-input discipline
 
-The artefact's primary downstream consumer is the **`/requirements` drafter**, not a design-spec author. The consultant copies `analyse-inputs/TASK-ANALYSIS/task-analysis.html` into `input/`, the input-handler classifies it as `Supported-via-MCP`, markitdown converts the HTML to `input/task-analysis.html.converted.md` (the `<pre><code class="language-yaml">` structured block survives the round-trip as a fenced code block; the visual tree becomes indented bullets; the tables become markdown tables), and the drafter consumes the converted markdown via the refreshed manifest.
+The artefact's primary downstream consumer is the **`/requirements` drafter**, not a design-spec author. The consultant copies `analyse-inputs/TASK-ANALYSIS/task-analysis.html` into `documentation/`, the input-handler classifies it as `Supported-via-MCP`, markitdown converts the HTML to `documentation/task-analysis.html.converted.md` (the `<pre><code class="language-yaml">` structured block survives the round-trip as a fenced code block; the visual tree becomes indented bullets; the tables become markdown tables), and the drafter consumes the converted markdown via the refreshed manifest.
 
 The discipline:
 

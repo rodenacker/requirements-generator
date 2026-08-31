@@ -37,7 +37,7 @@ This analyser sits firmly in the bottom-up extraction camp. The subject of every
 
 ### Why apply affinity mapping to raw inputs?
 
-Consultants drop heterogeneous mixes of briefs, decks, interview notes, screenshots, and spreadsheets into `input/`. Reading those documents builds an intuitive sense of recurring concerns — but the intuition is unreviewable, the patterns are forgotten by the time `/requirements` runs, and the *latent* themes that span multiple stakeholders and document types (the concerns no single source names but that emerge from pattern repetition) are exactly what a downstream drafter needs to anchor on.
+Consultants drop heterogeneous mixes of briefs, decks, interview notes, screenshots, and spreadsheets into `documentation/`. Reading those documents builds an intuitive sense of recurring concerns — but the intuition is unreviewable, the patterns are forgotten by the time `/requirements` runs, and the *latent* themes that span multiple stakeholders and document types (the concerns no single source names but that emerge from pattern repetition) are exactly what a downstream drafter needs to anchor on.
 
 | Lens | Methodology | Question answered | Unit of analysis |
 |---|---|---|---|
@@ -51,7 +51,7 @@ Affinity mapping is the right tool when the corpus is messy enough that the cons
 
 ### Why an HTML artefact with embedded JSON, not pure Markdown
 
-- **Re-ingestibility into `/requirements`.** The full hierarchy survives markitdown HTML→MD as a fenced ` ```json ` code block inside `<pre><code class="language-json">`, so the drafter consumes the complete cluster + super-theme + orphan + tension model in one shot when the consultant copies the artefact into `input/`.
+- **Re-ingestibility into `/requirements`.** The full hierarchy survives markitdown HTML→MD as a fenced ` ```json ` code block inside `<pre><code class="language-json">`, so the drafter consumes the complete cluster + super-theme + orphan + tension model in one shot when the consultant copies the artefact into `documentation/`.
 - **Diagram-first ordering.** The pre-rendered inline-SVG mindmap lives immediately after the overview (with the `mindmap` source as a collapsed export adjunct beneath it); consultants reviewing the artefact via `file://` see the rendered hierarchical synthesis first, full notes second — no external tooling required.
 - **Conditional secondary diagram.** A second inline-SVG directed graph (with its `flowchart TD` source as a collapsed export adjunct) surfaces cross-cluster tensions only when they exist; a deterministic "no tensions" copy keeps the section header structurally present.
 

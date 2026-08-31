@@ -52,4 +52,4 @@ After restarting, the input-handler's preflight runs automatically on the next p
 pip uninstall markitdown-mcp
 ```
 
-After uninstall, re-running `/requirements` with any `Supported-via-MCP` file in `input/` will fire `RF-01` again.
+After uninstall, re-running `/requirements` with any `Supported-via-MCP` file in `documentation/` will fire `RF-01` again.

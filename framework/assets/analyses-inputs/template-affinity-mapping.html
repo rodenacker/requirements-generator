@@ -15,7 +15,7 @@
   text inside `<pre class="mermaid-source">` for export only (collapsed
   `<details>`); the rendered visual is the inline `<svg>`.
 
-  The artefact is re-ingestible into `input/` for the /requirements drafter
+  The artefact is re-ingestible into `documentation/` for the /requirements drafter
   via markitdown conversion:
   - The pre-rendered inline <svg> mindmap (+ optional tensions graph) carry
     the visible diagrams.
@@ -333,7 +333,7 @@
         <p class="caption">
           The full hierarchy in JSON. This block survives markitdown HTML→MD
           conversion as a fenced <code>```json</code> code block, so when the
-          artefact is copied into <code>input/</code> for /requirements
+          artefact is copied into <code>documentation/</code> for /requirements
           re-ingestion, the drafter consumes the complete model in one shot:
           super-themes feed §1 vision anchors, clusters feed §5 task-flow
           groupings and §3 acceptance-criteria threads, orphans feed §10
@@ -1405,10 +1405,10 @@
       <div class="downstream-note">
         <p>
           To re-ingest this artefact into <code>/requirements</code>, copy this
-          file into <code>input/</code> (e.g. <code>input/affinity-map.html</code>)
+          file into <code>documentation/</code> (e.g. <code>documentation/affinity-map.html</code>)
           and re-run <code>/requirements</code>. The input-handler classifies it
           as <code>Supported-via-MCP</code>; markitdown converts it to
-          <code>input/affinity-map.html.converted.md</code>. The embedded JSON
+          <code>documentation/affinity-map.html.converted.md</code>. The embedded JSON
           body block (the <code>language-json</code> code block) and the Mermaid
           <code>mindmap</code> + optional <code>flowchart TD</code> sources
           survive verbatim as fenced code blocks; <code>[SRC: &lt;filename&gt;]</code>

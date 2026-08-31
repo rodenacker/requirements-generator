@@ -13,4 +13,4 @@ Follow the orchestrator exactly — run the four agents in the prescribed order:
 
 Honour every handback gate defined in the orchestrator. Do not perform any task that is not listed in the orchestrator. The final artefact is `prd/prd.md`.
 
-This pipeline is fully independent of `requirements/requirements.md` — it reads only the shared input manifest and the files under `input/`. It can run before, after, or alongside `/requirements` without state collision (each pipeline has its own progress file).
+This pipeline is fully independent of `requirements/requirements.md` — it reads only the shared input manifest and the files under `documentation/`. It can run before, after, or alongside `/requirements` without state collision (each pipeline has its own progress file).

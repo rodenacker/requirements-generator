@@ -21,8 +21,8 @@ It is referenced (not restated) by each producing agent's or character's *Reader
 | `prd/prd.md` | `/generate-prd` |
 | `analyse-inputs/**`, `analyse-requirements/**` | `/analyse-inputs`, `/analyse-requirement` |
 | `review-inputs/**`, `review-requirements/**` | `/review-inputs`, `/review-requirement` |
-| `input/<stem>-<date>.md` resolutions document | `/resolve-review` |
-| `input/amendments-<date>.md` + the transient `## Amendments (pending re-merge)` section | `/amend-requirements` |
+| `documentation/<stem>-<date>.md` resolutions document | `/resolve-review` |
+| `documentation/amendments-<date>.md` + the transient `## Amendments (pending re-merge)` section | `/amend-requirements` |
 | `design-system/design-system-{light,dark}.html` | `/design-system` |
 | `export-application/requirements-application.md` | `/export-application` |
 | `wireframes/<scope-slug>/**` | `/wireframe` |
@@ -30,8 +30,8 @@ It is referenced (not restated) by each producing agent's or character's *Reader
 
 **Exempt** (LLM-only — no human reads them, so none of the rules below apply):
 
-- `input/<App>.stadium-assets/**`
-- `input/*.converted.md` visual-input descriptions
+- `documentation/<App>.stadium-assets/**`
+- `documentation/*.converted.md` visual-input descriptions
 - `blueprints/<scope-slug>/{blueprint.md, scope.json}`
 - `prototypes/.specs/<name-slug>/design-spec.md`
 - every `.ndjson` sidecar (`draft-claims`, `resolver-answers`, `timing`, per-analysis machine sidecars, …)

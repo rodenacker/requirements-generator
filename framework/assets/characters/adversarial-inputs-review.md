@@ -130,7 +130,7 @@ The parent reviewer reads the manifest, ingests each consumable source via the R
 
 **Workers have no `Read` tool.** They cannot consult disk. The bundle is the only ground truth. A worker that emits a finding whose Evidence is not a verbatim substring of the cited source's bundle entry (or is not the sanctioned skipped-placeholder for Dimension 1) has fabricated — drop the finding rather than fail the validator.
 
-The bundle has a cap: if the serialised bundle exceeds 200 KB, the parent halts before dispatch with the structured message *"input set too large for parallel dispatch — reduce `input/` volume or split into batches"*. This is a self-standing guard at the bundle layer — the final gate against runaway parallel context cost from parallel dispatch.
+The bundle has a cap: if the serialised bundle exceeds 200 KB, the parent halts before dispatch with the structured message *"input set too large for parallel dispatch — reduce `documentation/` volume or split into batches"*. This is a self-standing guard at the bundle layer — the final gate against runaway parallel context cost from parallel dispatch.
 
 ## Stand-alone discipline
 

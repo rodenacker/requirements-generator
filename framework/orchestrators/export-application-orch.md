@@ -120,4 +120,4 @@ Every other read or write belongs to the invoked agent, per its own agent file.
 - Do not treat `normative-residue-halt` as an agent failure to retry, and do not re-invoke the agent hoping for a different result — the detector is deterministic over an unchanged source. Do not offer an override, and do not emit the context-hygiene tip on this branch; it is a clean exit, but not a success.
 - Do not add `framework/shared/prototype-scope.md` to this orchestrator's reads. The normative-residue gate belongs to the agent; the orchestrator only consumes its reported terminal.
 - Do not paraphrase or redefine refusal predicates — `RF-04` semantics are canonical in `framework/shared/refusal-registry.md`.
-- Do not read `input/` or `requirements/source-manifest.json` from this orchestrator or its agent.
+- Do not read `documentation/` or `requirements/source-manifest.json` from this orchestrator or its agent.

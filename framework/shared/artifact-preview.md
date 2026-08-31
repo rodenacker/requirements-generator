@@ -46,7 +46,7 @@ Repo-relative, forward-slashed. **Allowlist-only** — anything unmatched is ski
 - **`design-system/.workspace/**`** — an extra segment; the transient styler workspace never matches.
 - **`design-system/design-system.html`** — legacy unsuffixed artefact, no longer authored (existence-checked and deleted only). Left out rather than resurrected.
 - **`prototypes/**`** — `/prototype` produces a Next.js app served by `npm run dev`, not a `file://` artefact. Previewing it needs a dev-server-and-navigate affordance, which is out of scope here.
-- **`framework/**`, `template/**`, `input/**`** — templates and inputs are not run outputs.
+- **`framework/**`, `template/**`, `documentation/**`** — templates and inputs are not run outputs.
 - **Non-`.html` artefacts** (`*.sidecar.json`, `_drift.json`, `manifest.json`, `variant-position.json`, `scope.json`) and the markdown-artefact pipelines (`/requirements`, `/generate-prd`, `/export-application`, `/resolve-review`) — nothing to open in a browser.
 
 The matcher is **`Write` only**, not `Edit`/`MultiEdit`. Every artefact-producing step in these pipelines writes in a single atomic `Write`; an `Edit` against an artefact is a hand-fix, not a pipeline product, and does not warrant a tab.

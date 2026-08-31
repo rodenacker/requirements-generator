@@ -1,10 +1,10 @@
 # check-manifest-freshness.md
 
-**Purpose:** Compare the on-disk state of `input_dir` against the rows recorded in the manifest at `manifest_path`. Return a structured verdict the caller can branch on. Pure read-only — never writes, never mutates, never surfaces `AskUserQuestion`.
+**Purpose:** Compare the on-disk state of `documentation_dir` against the rows recorded in the manifest at `manifest_path`. Return a structured verdict the caller can branch on. Pure read-only — never writes, never mutates, never surfaces `AskUserQuestion`.
 
 **Inputs:**
 - `manifest_path` — repo-relative path to the manifest JSON. Required.
-- `input_dir` — repo-relative path to the input folder. Required.
+- `documentation_dir` — repo-relative path to the documentation folder. Required.
 
 **Outputs:**
 - A structured verdict row returned to the caller:
@@ -22,11 +22,11 @@
     - Otherwise `Read manifest_path` and JSON-parse the contents. If parse fails → return `{ verdict: "corrupt-manifest" }`.
     - Schema check: the parsed object must have root-level `schema_version`, `generated_at`, `target`, `rows`; every row in `rows` must have all seven row-level fields per `framework/skills/build-source-manifest.md > Schema` (`filename`, `tier`, `kind`, `sha256`, `conversions_applied`, `original_path`, `converted_sibling`). On any schema failure → return `{ verdict: "corrupt-manifest" }`.
 
-2. **Enumerate disk.** Glob `input_dir`, applying **every exclusion in `framework/shared/input-exclusions.md`**:
+2. **Enumerate disk.** Glob `documentation_dir`, applying **every exclusion in `framework/shared/input-exclusions.md`**:
     - `IX-01` — dotfiles and consultant scratch files (basename begins with `.`).
     - `IX-02` — `*.converted.md` siblings (input-handler outputs, not consultant-dropped originals).
-    - `IX-03` — Stadium application units: `*.stadium` pointer files, and every path under a directory carrying the **full** Stadium signature (it directly contains `administration.db`, **OR** `App_Data/Updates/*.sapz`, **OR** a `ClientApp/` folder). The `/ingest-stadium` command turns these into `input/<AppName>.stadium-assets/*.md` assets, which **are** enumerated here as ordinary files.
-    - `IX-04` — `input/*.stadium-assets/embedded/**` brand chrome (advisory images copied by the extractor; never manifest rows). Their sibling `*.stadium-assets/*.md` assets **are** enumerated.
+    - `IX-03` — Stadium application units: `*.stadium` pointer files, and every path under a directory carrying the **full** Stadium signature (it directly contains `administration.db`, **OR** `App_Data/Updates/*.sapz`, **OR** a `ClientApp/` folder). The `/ingest-stadium` command turns these into `documentation/<AppName>.stadium-assets/*.md` assets, which **are** enumerated here as ordinary files.
+    - `IX-04` — `documentation/*.stadium-assets/embedded/**` brand chrome (advisory images copied by the extractor; never manifest rows). Their sibling `*.stadium-assets/*.md` assets **are** enumerated.
 
     This is the same exclusion set the input-handler applies at its Step S / Step 1, sourced from the same canonical file — so disk enumeration and manifest enumeration cannot diverge (a divergence here is what previously produced spurious `added` drift). Call this set `disk_files` (set of repo-relative paths of the same shape as the manifest's `original_path` field).
 
@@ -49,7 +49,7 @@
 
 - The manifest was parsed via JSON-decode and conformed to the schema in `framework/skills/build-source-manifest.md > Schema` before any comparison ran.
 - The `disk_files` enumeration applied **every** exclusion in `framework/shared/input-exclusions.md` (`IX-01`..`IX-04`), using the full three-part Stadium signature for `IX-03`.
-- **Hardening (closes the `embedded/` drift class):** no path matching `input/*.stadium-assets/embedded/**` appears in `disk_files`. If any does, `IX-04` was mis-applied — fail loudly (re-run the enumeration) rather than emitting a `stale` verdict whose `added` list is spurious brand chrome.
+- **Hardening (closes the `embedded/` drift class):** no path matching `documentation/*.stadium-assets/embedded/**` appears in `disk_files`. If any does, `IX-04` was mis-applied — fail loudly (re-run the enumeration) rather than emitting a `stale` verdict whose `added` list is spurious brand chrome.
 - For every file in `manifest_files ∩ disk_files`, a sha256 was computed against the current bytes and compared.
 - The returned verdict is exactly one of `fresh`, `stale`, or `corrupt-manifest`.
 - When the verdict is `stale`, at least one of `removed`, `added`, or `modified` is non-empty. When the verdict is `fresh`, all three are empty.
@@ -57,7 +57,7 @@
 ## Tools
 
 - Read — read the file at `manifest_path`.
-- Glob — enumerate `input_dir`; check existence of `manifest_path`.
+- Glob — enumerate `documentation_dir`; check existence of `manifest_path`.
 - Bash — compute sha256 over each file in `manifest_files ∩ disk_files` (PowerShell `Get-FileHash -Algorithm SHA256`). No other Bash usage is permitted; in particular, the skill never writes to disk or modifies any file.
 
 ## Anti-Patterns

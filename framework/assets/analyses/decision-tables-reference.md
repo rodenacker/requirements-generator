@@ -6,7 +6,7 @@
 
 **Output file:** `analyse-requirements/DECISION-TABLES/decision-tables.html` — a self-contained HTML artefact (no external CSS/JS, no `<script>`, no CDN, no Mermaid runtime; opens via `file://`). **Diagrams-first** section order: Overview → TOC → Diagrams (decision-health strip + Decision Requirements Diagram) → Tables (decision tables + completeness register + consistency register + business-rules catalogue) → Diagnostics.
 
-**Re-ingestion:** the artefact embeds a `<pre><code class="language-json" id="decision-tables-body">` model that survives the markitdown HTML→MD round-trip as a fenced ```json block. A consultant may re-drop the HTML into `input/`; `/requirements` then ingests the structured rule model, and every completeness gap marked `[AI-SUGGESTED: AI-NNN | blocking]` reaches the resolver as a mandatory confirmation. This is the load-bearing downstream contract — distinct from the sidecar (below).
+**Re-ingestion:** the artefact embeds a `<pre><code class="language-json" id="decision-tables-body">` model that survives the markitdown HTML→MD round-trip as a fenced ```json block. A consultant may re-drop the HTML into `documentation/`; `/requirements` then ingests the structured rule model, and every completeness gap marked `[AI-SUGGESTED: AI-NNN | blocking]` reaches the resolver as a mandatory confirmation. This is the load-bearing downstream contract — distinct from the sidecar (below).
 
 **Sidecar:** `analyse-requirements/DECISION-TABLES/decision-tables.sidecar.json` — per `framework/assets/analyses/sidecar-schema.md`. Exposes the **`upstream-only`** role (the blueprint-architect does not consume decision-table rules at MVP; the analysis is a requirements-improvement aid like `five-whys` and `mvp-slicing`). Emitting it keeps `sidecar_present == true` so selecting this lens in `/wireframe` never trips the `RF-09` legacy-prose fallback.
 
@@ -169,7 +169,7 @@ The analyser MAY `Glob`+`Read` `analyse-requirements/STATE-DIAGRAM/state-diagram
 
 ### Downstream-use footer (collapsed, after diagnostics)
 
-8. `<details class="downstream-toggle">` — re-ingestion mechanics (how to copy the HTML into `input/`, what the markitdown round-trip preserves, how blocking gaps reach the `/requirements` resolver). Collapsed by default; machinery prose moved here so it does not interrupt the reader. The JSON/`<pre><code>` block remains in the non-collapsed `#body` section (markitdown-survival contract — cannot be collapsed).
+8. `<details class="downstream-toggle">` — re-ingestion mechanics (how to copy the HTML into `documentation/`, what the markitdown round-trip preserves, how blocking gaps reach the `/requirements` resolver). Collapsed by default; machinery prose moved here so it does not interrupt the reader. The JSON/`<pre><code>` block remains in the non-collapsed `#body` section (markitdown-survival contract — cannot be collapsed).
 
 ---
 
@@ -243,4 +243,4 @@ The rendered artefact is read by a human (the consultant, sometimes a client sta
 - **Gloss methodology jargon at first use.** In the lead and any handback prose: "decision table (a grid of conditions → actions)", "condition (an input variable the table reads)", "action/conclusion (the outcome a rule assigns)", "rule (one row of the table)", "hit policy (how overlapping rules resolve)", "completeness (every reachable condition-value combination has an assigned outcome)", "gap (a reachable combination with no stated rule)", "consistency (no two rules conflict)", "conflict (two overlapping rules with differing conclusions)". Client domain terms are **never** glossed here — that is the GLOSSARY methodology's job.
 - **Plain layer confined.** The lead and glosses are the only plain-English additions. The decision tables, registers, JSON block, and diagnostics keep their existing concrete, telegraphic discipline unchanged.
 - **Keep every `[SRC: C-NNN]`.** Never demote or drop source citations. They reassure the reader and feed the downstream sidecar.
-- **Machinery prose collapsed.** Re-ingestion instructions (how to copy into `input/`, what markitdown preserves, how blocking gaps reach the resolver) live in the `<details class="downstream-toggle">` footer. The `<pre><code class="language-json" id="decision-tables-body">` block stays in the non-collapsed `#body` section (required for round-trip survival).
+- **Machinery prose collapsed.** Re-ingestion instructions (how to copy into `documentation/`, what markitdown preserves, how blocking gaps reach the resolver) live in the `<details class="downstream-toggle">` footer. The `<pre><code class="language-json" id="decision-tables-body">` block stays in the non-collapsed `#body` section (required for round-trip survival).

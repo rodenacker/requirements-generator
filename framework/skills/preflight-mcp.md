@@ -22,10 +22,10 @@
 
 ## Conditional invocation
 
-The input-handler must call this skill when, and only when, the post-classification view of `input/` shows at least one file whose tier is `Supported-via-MCP`. Calling preflight-mcp on a run with only Native-text and Native-multimodal inputs would surface `RF-01` for a tool the agent does not need, and is a defect.
+The input-handler must call this skill when, and only when, the post-classification view of `documentation/` shows at least one file whose tier is `Supported-via-MCP`. Calling preflight-mcp on a run with only Native-text and Native-multimodal inputs would surface `RF-01` for a tool the agent does not need, and is a defect.
 
 A clean ordering for the input-handler:
-1. Enumerate `input/`.
+1. Enumerate `documentation/`.
 2. Classify each file via `framework/skills/classify-input-tier.md`.
 3. **If any classified row has `tier = Supported-via-MCP`, call this skill.** Otherwise skip.
 4. Proceed to conversion (or skip the conversion step if no MCP-tier files remain).

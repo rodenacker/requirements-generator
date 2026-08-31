@@ -4,7 +4,7 @@ kind: template
 
 Populate-top-to-bottom skeleton for the /resolve-review resolutions document,
 written by framework/agents/resolve-review-drafter.md (staged at
-resolve-review/resolutions-draft.md, finalised as a NEW dated file under input/).
+resolve-review/resolutions-draft.md, finalised as a NEW dated file under documentation/).
 
 This file is the CANONICAL DEFINITION of:
   - the two origin markers: [CONSULTANT-STATED] and [AI-INFERRED, CONSULTANT-CONFIRMED]
@@ -64,7 +64,7 @@ Marker legend (canonical):
 
 <!-- Consultant-approved input document produced by /resolve-review.
      Corpus material: the next source-manifest build ingests this file like any
-     other input/ file (Native-text tier). Finding IDs below are per-run labels
+     other documentation/ file (Native-text tier). Finding IDs below are per-run labels
      from the source review and reset whenever that review is re-run — the
      verbatim finding quotes are the durable anchors. Where a resolution changes
      a fact stated elsewhere in the corpus, its Supersedes line is authoritative:

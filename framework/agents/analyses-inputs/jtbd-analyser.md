@@ -94,11 +94,11 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
   - `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler. The description already transcribes the visible text and enumerates the JTBD-relevant material it depicts (whiteboard layout, sticky-note clusters, slide structure, screenshot annotations — actors, situations, motivations are transcribed and structured). Treat it as the canonical text source; do **not** re-interpret pixels. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
-- If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no manifest rows at all), halt with the structured error: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `input/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
-- If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row is `Unsupported`), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `input/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
+- If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no manifest rows at all), halt with the structured error: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; this is a hard halt analogous to RF-03.
+- If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row is `Unsupported`), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
 - State the per-tier ingest decisions aloud:
 
-  > *"Step 2: read manifest (`manifest_fingerprint = <first 12 chars>…`). 4 consumable rows: `brief.docx` (Supported-via-MCP, reading `input/brief.docx.converted.md`), `whiteboard-photo.png` (Native-multimodal, reading `input/whiteboard-photo.png.converted.md` — the frozen description), `interview-notes.md` (Native-text), `slack-export.md` (Native-text). 1 skipped row: `proposal.pages` (Unsupported, reason: `markitdown: failed — Apple Pages format not supported`)."*
+  > *"Step 2: read manifest (`manifest_fingerprint = <first 12 chars>…`). 4 consumable rows: `brief.docx` (Supported-via-MCP, reading `documentation/brief.docx.converted.md`), `whiteboard-photo.png` (Native-multimodal, reading `documentation/whiteboard-photo.png.converted.md` — the frozen description), `interview-notes.md` (Native-text), `slack-export.md` (Native-text). 1 skipped row: `proposal.pages` (Unsupported, reason: `markitdown: failed — Apple Pages format not supported`)."*
 
 ### Step 3 — Detect prior artefact (additive vs re-extract)
 
@@ -263,7 +263,7 @@ Run all 7 hard gates from `framework/assets/analyses-inputs/jtbd-reference.md > 
 
 Surface `AskUserQuestion` with three options:
 
-1. `Revise — exit so the consultant can enrich input/ and re-invoke /analyse-inputs (Recommended)`
+1. `Revise — exit so the consultant can enrich documentation/ and re-invoke /analyse-inputs (Recommended)`
 2. `Override — proceed and write a known-defective artefact (Run-history bullet records every violation)`
 3. `Restart — re-run from Round 1 with a fresh manifest pass`
 
@@ -372,17 +372,17 @@ Output one short, concrete line listing the run's counts, the quality-check resu
 Variants:
 
 - If Step 10 was Override'd, prepend: *"Quality-check violations were accepted as known — the Run-history bullet for this run records every flagged item."*
-- If `forces_unnamed > 0`, append: *"Force-naming gap: {forces_unnamed} of {4 * cluster_count} force slots carry `not-named-in-inputs`. Most raw inputs name Push and Pull but not Anxiety and Habit — adding switch-interview material to `input/` (questions about change-resistance and existing-tool inertia) is the right move to close the gap."*
-- If `no_metric_count > 0`, append: *"Outcome-measure gap: {no_metric_count} of {job_count} outcomes carry `(no-metric-in-inputs)`. Adding explicit success-metric language or comparative figures to `input/` lets the next run anchor these outcomes."*
+- If `forces_unnamed > 0`, append: *"Force-naming gap: {forces_unnamed} of {4 * cluster_count} force slots carry `not-named-in-inputs`. Most raw inputs name Push and Pull but not Anxiety and Habit — adding switch-interview material to `documentation/` (questions about change-resistance and existing-tool inertia) is the right move to close the gap."*
+- If `no_metric_count > 0`, append: *"Outcome-measure gap: {no_metric_count} of {job_count} outcomes carry `(no-metric-in-inputs)`. Adding explicit success-metric language or comparative figures to `documentation/` lets the next run anchor these outcomes."*
 - If `drift_mode == "re-extract"`, append: *"Drift handling: Rounds 1–6 re-run from scratch on the current manifest; {n_preserved} prior cluster headings preserved through re-extraction, {n_dropped} dropped (recorded in Run-history)."*
 - If `drift_mode == "append-only"`, append: *"Drift handling: prior jobs preserved verbatim; only new jobs from new manifest rows were appended this run."*
-- If `prior_run == null`, append: *"This is the first run; re-run after enriching `input/` to widen coverage additively."*
+- If `prior_run == null`, append: *"This is the first run; re-run after enriching `documentation/` to widen coverage additively."*
 
 **B. Round-trip instruction (always emitted).**
 
 Append, once, the consultant-facing round-trip note:
 
-> *"To feed this map into a subsequent `/requirements` run, copy `analyse-inputs/JTBD/jtbd-job-map.html` into `input/`; the input-handler will surface a manifest-refresh prompt and the drafter will ingest it as one more source. The `[SRC: <filename>]` markers inside the map preserve the audit trail back to the original briefs / interview notes that justified each job."*
+> *"To feed this map into a subsequent `/requirements` run, copy `analyse-inputs/JTBD/jtbd-job-map.html` into `documentation/`; the input-handler will surface a manifest-refresh prompt and the drafter will ingest it as one more source. The `[SRC: <filename>]` markers inside the map preserve the audit trail back to the original briefs / interview notes that justified each job."*
 
 **C. Accept / Revise / Restart loop.**
 
@@ -485,7 +485,7 @@ Before handing back, verify all of the following against the written artefact an
 - **Do not collapse the six rounds into a single pass.** Each round's output feeds the next; the round-by-round structure is what makes the map reviewable.
 - **Do not let Step 10's validate sweep add jobs.** `final_jobs` is closed at the end of Step 9. The validate sweep emits gate results, not new entities.
 - **Do not re-invoke `markitdown-mcp`.** Conversions are the input-handler's responsibility; the manifest's `converted_sibling` path is the contract. Re-converting would produce drift between the analyser's reads and the manifest's recorded `sha256` field.
-- **Do not write the artefact on a Step 10 gate failure unless the consultant explicitly chose Override.** A silently defective JTBD map propagates fabricated jobs into requirements seeds when the artefact is dropped into `input/` — the worst failure mode for this analyser.
+- **Do not write the artefact on a Step 10 gate failure unless the consultant explicitly chose Override.** A silently defective JTBD map propagates fabricated jobs into requirements seeds when the artefact is dropped into `documentation/` — the worst failure mode for this analyser.
 - **Do not loop the Step 10 fail-Restart-fail cycle more than three times.** On the fourth fail, force the Revise path with a one-line note that further iteration is not productive without consultant input.
 - **Do not paste the artefact body into the conversation.** The file is on disk; the consultant opens it in a browser (`file://`).
 - **Do not use the Agent or Task tool to delegate any step.** All work happens in this thread. No MCP tools are authorised.

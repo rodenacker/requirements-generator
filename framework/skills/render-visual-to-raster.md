@@ -3,11 +3,11 @@
 **Purpose:** Render one `Vector-renderable` input file (`.svg`, `.drawio`, `.vsdx`) to a **temporary raster** (PNG) so that `framework/skills/describe-visual-input.md` can vision-describe it. Vector diagrams encode their meaning in geometry (crow's-foot cardinality, arrow direction, lane partitioning) that is lost when their XML is read as text — rendering to a raster recovers the visual semantics for the describer. The renderer is an external CLI binary, gated upstream by `framework/skills/preflight-cli.md` (input-handler step 4b). The original vector file is left untouched; the raster is scratch, consumed immediately and not registered in the manifest.
 
 **Inputs:**
-- `vector_path` — the `.svg`/`.drawio`/`.vsdx` file under `input/` to render.
+- `vector_path` — the `.svg`/`.drawio`/`.vsdx` file under `documentation/` to render.
 - `renderer` — the resolved CLI binary name(s) returned by `framework/skills/preflight-cli.md` (e.g. `inkscape`, `rsvg-convert`, `drawio`, `soffice`). Guaranteed present by the preflight having run first.
 
 **Outputs:**
-- `raster_path` — a temporary PNG at `framework/state/.visual-render-scratch/<filename-with-ext>.png`, consumed by `describe-visual-input.md` and then removed. Never written under `input/` (it must not be enumerated as a new input).
+- `raster_path` — a temporary PNG at `framework/state/.visual-render-scratch/<filename-with-ext>.png`, consumed by `describe-visual-input.md` and then removed. Never written under `documentation/` (it must not be enumerated as a new input).
 - A status: `ok` (raster produced, non-empty) or `failed — render` (the renderer errored or produced an empty/zero-byte raster). On `failed — render` the input-handler demotes the row's `tier` to `Unsupported`.
 
 **Used by:**
@@ -40,14 +40,14 @@ A multi-page source (multi-page `.drawio`/`.vsdx`) renders its first/primary pag
 
 ## Self-validation
 
-- The output raster is written under `framework/state/.visual-render-scratch/`, never under `input/`.
+- The output raster is written under `framework/state/.visual-render-scratch/`, never under `documentation/`.
 - On `ok`, the raster exists and is non-zero bytes.
-- On `failed — render`, no partial raster is left behind (a zero-byte output is deleted), and the original vector under `input/` is untouched.
+- On `failed — render`, no partial raster is left behind (a zero-byte output is deleted), and the original vector under `documentation/` is untouched.
 - The skill never modifies the original vector file.
 
 ## Anti-Patterns
 
-- Do not write the raster under `input/`. A raster under `input/` would be enumerated as a new `Native-multimodal` input on the next run, creating a phantom file and a second description. Scratch lives under `framework/state/`.
+- Do not write the raster under `documentation/`. A raster under `documentation/` would be enumerated as a new `Native-multimodal` input on the next run, creating a phantom file and a second description. Scratch lives under `framework/state/`.
 - Do not register the raster in the manifest. Only the original vector gets a row; its `converted_sibling` is the description, not the raster. The raster is transient.
 - Do not call this skill before `preflight-cli.md` has confirmed a renderer. Doing so risks a runtime failure inside the render call rather than a clean `RF-01` surface.
 - Do not describe the raster here. Rendering and describing are separate skills; this one produces a raster and returns. `describe-visual-input.md` owns the vision step.

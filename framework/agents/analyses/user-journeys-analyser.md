@@ -91,7 +91,7 @@ Output: per phase, `actions: [{text, provenance, source}]` and `touchpoints: [{t
 This is the **inferred-heavy** round. Apply `user-journeys-reference.md > Input-coverage asymmetry` rules verbatim.
 
 - **Thoughts.** For every phase, infer 1–3 thoughts the persona has during that phase. Sources, in order: `§1 Application context`, `§3 Target users` (role description, expertise level), `§4 User goals & stories` (context column — stakes, frequency, expertise), `§8 Source UI references` (existing-tool friction). Where none of these anchor the thought, mark `ai-suggested` and prefix the cell text with `[AI-SUGGESTED]`. Where any of them anchor it, mark with that section's provenance.
-- **Emotion score.** Integer in [−2, +2] per phase: −2 (frustrated / panicked) → −1 (anxious / uncertain) → 0 (neutral) → +1 (engaged / hopeful) → +2 (delighted / confident). Score derivation, in order: explicit emotional cue in `§4` context column → high-stakes signal (any-stakes language anchors a lower score at decision/commit phases) → expertise mismatch (novice + complex action → lower score) → default 0. Almost all emotion scores end up `ai-suggested` unless `/input/` research is supplied.
+- **Emotion score.** Integer in [−2, +2] per phase: −2 (frustrated / panicked) → −1 (anxious / uncertain) → 0 (neutral) → +1 (engaged / hopeful) → +2 (delighted / confident). Score derivation, in order: explicit emotional cue in `§4` context column → high-stakes signal (any-stakes language anchors a lower score at decision/commit phases) → expertise mismatch (novice + complex action → lower score) → default 0. Almost all emotion scores end up `ai-suggested` unless `/documentation/` research is supplied.
 - **Pain points.** For every phase, surface 0–N pain points. Sources: `§6 Requirements > §Constraints` (compliance friction, format errors, validation rules), `§8 Source UI references` (legacy-tool critique). Where neither anchors a pain, mark `ai-suggested` and prefix `[AI-SUGGESTED]`. Pain points without an anchor are explicitly inferred — they are not forbidden, but they carry their provenance honestly.
 - **Moments of truth.** A phase is a moment of truth if the emotion score drops by ≥ 1 from the previous phase, **or** if the journey's stakes are explicitly stated as high in `§4` context. Tag the row in-memory; the renderer adds `.moment-of-truth` to the `<tr>` in Step 9.
 
@@ -183,7 +183,7 @@ Output one short, concrete line listing the per-round counts, the quality-check 
 Variants:
 
 - If Step 8 was Override'd, prepend: *"Quality-check violations were accepted as known — diagnostics block records every flagged item."*
-- If soft check #9 fired on any journey, append: *"Density warning: `{{n_journeys_over_75}}` journey(s) exceed 75% AI-SUGGESTED. Drop research into `/input/` and re-run for higher-confidence emotion / pain-point columns."*
+- If soft check #9 fired on any journey, append: *"Density warning: `{{n_journeys_over_75}}` journey(s) exceed 75% AI-SUGGESTED. Drop research into `/documentation/` and re-run for higher-confidence emotion / pain-point columns."*
 
 **B. Accept / Revise / Restart loop**
 

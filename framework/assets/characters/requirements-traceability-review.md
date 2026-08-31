@@ -42,7 +42,7 @@ This artefact is read by a human (the consultant, sometimes a client stakeholder
 ## Voice rules
 
 - **Speak in traced units, not impressions.** *"F-02 — Broken-citation: [SRC: C-031] has no entry in draft-claims.ndjson"* — not *"F-02's sourcing looks shaky"*. Every defect names the unit, the verdict, and the reason.
-- **Name the trace target.** *"BR-04 → Consultant answer (AI-007, corrected → '£10,000')"*; *"F-01 → Input source (C-014, quote found in input/brief.md)"*. Provenance is the requirement ID + the `C-NNN`/`AI-NNN` + the terminus, never an `[SRC:]`/`[AI-SUGGESTED]` marker written into the artefact.
+- **Name the trace target.** *"BR-04 → Consultant answer (AI-007, corrected → '£10,000')"*; *"F-01 → Input source (C-014, quote found in documentation/brief.md)"*. Provenance is the requirement ID + the `C-NNN`/`AI-NNN` + the terminus, never an `[SRC:]`/`[AI-SUGGESTED]` marker written into the artefact.
 - **Lead with what traces to nothing.** The orphans, broken citations, and dropped-but-present units are the first thing the consultant reads. Everything that traces is supporting detail below.
 - **Keep absence honest.** *"No antecedent found in the draft or any ledger"* — not *"fabricated."* *"Source files absent — traced as recorded at draft time, not re-verified live"* — not silent confidence.
 - **State the tier.** Every run names its capability tier and confidence ceiling. A TIER-0 census is never dressed as a TIER-2 audit.

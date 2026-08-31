@@ -16,11 +16,11 @@ Do **not** invoke the agent as a background / sub / async agent (e.g., via the A
 
 ## Purpose
 
-Run a single foreground agent (`stadium-ingestor`) that turns any **Stadium 6 application** dropped in `input/` (a deployed app folder, or a one-line `*.stadium` pointer to one) into the lean, citation-ready per-app assets under `input/<AppName>.stadium-assets/`. Gate completion on the agent's handback. When an app has already been ingested (its `app_id` is in the processed-ledger), surface a **re-ingest gate** before invoking the agent, and — on `re-ingest` — reset that app's prior state so the agent re-extracts it.
+Run a single foreground agent (`stadium-ingestor`) that turns any **Stadium 6 application** dropped in `documentation/` (a deployed app folder, or a one-line `*.stadium` pointer to one) into the lean, citation-ready per-app assets under `documentation/<AppName>.stadium-assets/`. Gate completion on the agent's handback. When an app has already been ingested (its `app_id` is in the processed-ledger), surface a **re-ingest gate** before invoking the agent, and — on `re-ingest` — reset that app's prior state so the agent re-extracts it.
 
 ## Stand-alone constraint
 
-This orchestrator and its agent are isolated from the `/requirements` (and `/generate-prd`, `/analyse-inputs`, `/review-inputs`) pipelines. They do **not** read or write `requirements/` (no `requirements/source-manifest.json`, no `requirements/requirements.md`), and they do **not** touch any other agent's working state (`framework/state/.progress.json`, resolver sidecars, timing log). They read/write only: `input/` (the dropped app / pointer — read-only — and the generated `input/<AppName>.stadium-assets/` assets — written by the agent), `framework/state/.stadium-processed.json` (the processed-ledger), `framework/state/stadium/` (the forensic `model.json`), and the Stadium knowledge base `framework/assets/stadium/` (read-only). Building the source manifest is **not** this pipeline's job — the next input-handler run (any consuming pipeline) enumerates the produced assets as ordinary `Native-text` inputs.
+This orchestrator and its agent are isolated from the `/requirements` (and `/generate-prd`, `/analyse-inputs`, `/review-inputs`) pipelines. They do **not** read or write `requirements/` (no `requirements/source-manifest.json`, no `requirements/requirements.md`), and they do **not** touch any other agent's working state (`framework/state/.progress.json`, resolver sidecars, timing log). They read/write only: `documentation/` (the dropped app / pointer — read-only — and the generated `documentation/<AppName>.stadium-assets/` assets — written by the agent), `framework/state/.stadium-processed.json` (the processed-ledger), `framework/state/stadium/` (the forensic `model.json`), and the Stadium knowledge base `framework/assets/stadium/` (read-only). Building the source manifest is **not** this pipeline's job — the next input-handler run (any consuming pipeline) enumerates the produced assets as ordinary `Native-text` inputs.
 
 ## No progress file
 
@@ -37,16 +37,16 @@ There is no step 2. After the handback gate is met, the orchestrator emits the c
 
 Run this once, at the very start of every invocation, before step 1.
 
-1. **Scan `input/` for Stadium units** (a lightweight detection scan — the agent re-detects authoritatively at step 1):
-    - `Glob input/*.stadium` — pointer files.
-    - `Glob input/*/administration.db` — deployed app folders (the directory containing `administration.db` is the app folder; same signature the freshness check uses in `framework/skills/check-manifest-freshness.md`).
+1. **Scan `documentation/` for Stadium units** (a lightweight detection scan — the agent re-detects authoritatively at step 1):
+    - `Glob documentation/*.stadium` — pointer files.
+    - `Glob documentation/*/administration.db` — deployed app folders (the directory containing `administration.db` is the app folder; same signature the freshness check uses in `framework/skills/check-manifest-freshness.md`).
     - For each detected unit, resolve `app_path` (a pointer's target, else the folder) and `app_id` = the basename of `app_path`.
 2. **Read the ledger.** `Read framework/state/.stadium-processed.json` (treat absent / unparseable as `{}`). Partition the detected units into **new** (`app_id` not a ledger key) and **already-ingested** (`app_id` is a ledger key).
 3. **Branch.**
     - **No units detected** — proceed to step 1 with no prompt (the agent will report "no Stadium application found").
     - **Only new units** — proceed to step 1 with no prompt (the agent extracts them).
     - **One or more already-ingested units** — for each already-ingested unit, surface a single `AskUserQuestion`:
-        - Question: *"Stadium app `<app_name>` (`<app_id>`) has already been ingested (assets exist under `input/<AppName>.stadium-assets/`). Re-ingest it (discard the prior assets and hand-edits, re-extract from the current app), skip it (keep the existing assets), or cancel the whole run?"*
+        - Question: *"Stadium app `<app_name>` (`<app_id>`) has already been ingested (assets exist under `documentation/<AppName>.stadium-assets/`). Re-ingest it (discard the prior assets and hand-edits, re-extract from the current app), skip it (keep the existing assets), or cancel the whole run?"*
         - Header: `Already ingested`
         - Options:
             1. `Skip — keep existing assets (Recommended)`
@@ -63,12 +63,12 @@ Run this once, at the very start of every invocation, before step 1.
 
 This procedure runs **only** for an `app_id` whose gate answer was `Re-ingest`. Perform the steps in this order; if any step fails, stop and surface the failure to the consultant — do not proceed for that app.
 
-1. **Resolve the assets directory.** Read the ledger entry `[<app_id>]`; use its recorded `assets_dir` field when present, else derive `input/<app_name>.stadium-assets/` from its `app_name`. Also derive the forensic model dir `framework/state/stadium/<app_id>/`.
+1. **Resolve the assets directory.** Read the ledger entry `[<app_id>]`; use its recorded `assets_dir` field when present, else derive `documentation/<app_name>.stadium-assets/` from its `app_name`. Also derive the forensic model dir `framework/state/stadium/<app_id>/`.
 2. **Git checkpoint.** Stage and commit the current state of the assets and ledger so everything the subsequent steps delete is preserved in history before deletion.
-    - `Bash git add input/<AppName>.stadium-assets framework/state/.stadium-processed.json` (each "if it exists" — omit any path absent on disk rather than letting `git add` fail).
+    - `Bash git add documentation/<AppName>.stadium-assets framework/state/.stadium-processed.json` (each "if it exists" — omit any path absent on disk rather than letting `git add` fail).
     - `Bash git commit -m "checkpoint: stadium app <app_id> before re-ingest"` (use `--allow-empty` only if nothing was staged, so the checkpoint marker exists regardless).
     - Do not push, do not amend, do not bypass hooks.
-3. **Delete the prior assets.** `Bash rm -rf input/<AppName>.stadium-assets` (best-effort; the whole per-app assets dir, including `embedded/`).
+3. **Delete the prior assets.** `Bash rm -rf documentation/<AppName>.stadium-assets` (best-effort; the whole per-app assets dir, including `embedded/`).
 4. **Delete the forensic model dir.** `Bash rm -rf framework/state/stadium/<app_id>` (best-effort; forensic and regenerated on re-extract).
 5. **Remove the ledger entry.** Read `framework/state/.stadium-processed.json`, delete the `<app_id>` key, and `Write` the result back; verify via `framework/skills/verify-artifact-write.md`. (If removing the last key, write `{}`.)
 
@@ -78,7 +78,7 @@ After the reset completes for every re-ingest app, proceed to step 1.
 
 The ingestor has handed control back when:
 
-- Every detected Stadium unit is accounted for in the agent's summary as **extracted** (its `app_id` now in the ledger with assets present under `input/<AppName>.stadium-assets/`), **skipped** (already in the ledger — hand-edits preserved), or **failed** (extractor error / bad pointer / Python `continue-skip` — un-ledgered so a later run retries), and
+- Every detected Stadium unit is accounted for in the agent's summary as **extracted** (its `app_id` now in the ledger with assets present under `documentation/<AppName>.stadium-assets/`), **skipped** (already in the ledger — hand-edits preserved), or **failed** (extractor error / bad pointer / Python `continue-skip` — un-ledgered so a later run retries), and
 - Every freshly-extracted app's ledger write was verified via `verify-artifact-write` (`pass`), and
 - No `RF-01 continue-later` exit is pending (that exit ends the run cleanly without a handback — see the agent).
 
@@ -87,7 +87,7 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 ## Inputs
 
 - `framework/agents/stadium-ingestor.md` — the single agent invoked by this orchestrator.
-- `input/*.stadium` pointers and `input/*/administration.db` app folders — globbed at startup (detection scan only).
+- `documentation/*.stadium` pointers and `documentation/*/administration.db` app folders — globbed at startup (detection scan only).
 - `framework/state/.stadium-processed.json` — read at startup to partition new vs already-ingested units; on a re-ingest reset, an entry is deleted and the file re-written (the agent otherwise owns ledger writes).
 - `framework/skills/verify-artifact-write.md` — verify the ledger write on a re-ingest reset.
 - `framework/shared/refusal-registry.md` — `RF-01` (Python preflight) semantics surfaced by the agent; `RF-04` write-verify semantics on the ledger reset write.
@@ -95,13 +95,13 @@ If any of the above is not satisfied, do not declare done. Surface the agent's r
 
 ## Output
 
-- The per-app assets under `input/<AppName>.stadium-assets/`, the forensic `model.json` under `framework/state/stadium/<app-id>/`, and the updated processed-ledger `framework/state/.stadium-processed.json` — all produced by the agent in step 1. The orchestrator itself produces no artefact; on a re-ingest reset it only deletes prior state and re-writes the ledger with an entry removed.
+- The per-app assets under `documentation/<AppName>.stadium-assets/`, the forensic `model.json` under `framework/state/stadium/<app-id>/`, and the updated processed-ledger `framework/state/.stadium-processed.json` — all produced by the agent in step 1. The orchestrator itself produces no artefact; on a re-ingest reset it only deletes prior state and re-writes the ledger with an entry removed.
 
 ## Tools
 
-- `Glob` — detect `input/*.stadium` pointers and `input/*/administration.db` app folders at startup.
+- `Glob` — detect `documentation/*.stadium` pointers and `documentation/*/administration.db` app folders at startup.
 - `Read` — read `framework/state/.stadium-processed.json` at startup (and to remove a key on re-ingest reset). No reads outside the paths named in **Stand-alone constraint**.
-- `Bash` — git checkpoint commit + `rm -rf input/<AppName>.stadium-assets` + `rm -rf framework/state/stadium/<app_id>` during a re-ingest reset only. No other Bash usage; never destructive operations beyond those named paths; never push or skip hooks.
+- `Bash` — git checkpoint commit + `rm -rf documentation/<AppName>.stadium-assets` + `rm -rf framework/state/stadium/<app_id>` during a re-ingest reset only. No other Bash usage; never destructive operations beyond those named paths; never push or skip hooks.
 - `Write` — re-write `framework/state/.stadium-processed.json` with a key removed, during a re-ingest reset only (verified via `verify-artifact-write.md`).
 - `AskUserQuestion` — surface the `{ Skip, Re-ingest, Cancel }` gate at startup when a detected unit is already in the ledger.
 
@@ -131,7 +131,7 @@ In either case the orchestrator emits the context-hygiene tip (success path) and
 - Do not call any skill, asset, or tool not invoked transitively by the agent or listed in this orchestrator's **Tools** section.
 - Do not run the agent as a background / sub / async agent. It must run in the foreground so the `RF-01` choice and per-app progress happen in-thread.
 - Do not run the re-ingest reset for an app whose gate answer was `Skip`, and do not run it when the consultant chose `Cancel`.
-- Do not delete anything outside `input/<AppName>.stadium-assets/` and `framework/state/stadium/<app_id>/` during a reset, and do not remove any ledger key other than the re-ingested `app_id`. The `input/<AppName>.stadium-assets/` deletion is the one Stadium-side exception sanctioned by `framework/shared/input-safety.md` `IS-03`; consultant-dropped originals (the app folder / `*.stadium` pointer) are never deleted (`IS-01`).
+- Do not delete anything outside `documentation/<AppName>.stadium-assets/` and `framework/state/stadium/<app_id>/` during a reset, and do not remove any ledger key other than the re-ingested `app_id`. The `documentation/<AppName>.stadium-assets/` deletion is the one Stadium-side exception sanctioned by `framework/shared/input-safety.md` `IS-03`; consultant-dropped originals (the app folder / `*.stadium` pointer) are never deleted (`IS-01`).
 - Do not commit with `--no-verify`, force-push, amend, or otherwise bypass git hooks during the checkpoint commit.
 - Do not read or write `requirements/`, `framework/state/.progress.json`, the timing log, or any other pipeline's working state. This pipeline is stand-alone.
 - Do not build or refresh the source manifest. That is the input-handler's job on the next consuming-pipeline run; the produced assets are ordinary `Native-text` inputs.

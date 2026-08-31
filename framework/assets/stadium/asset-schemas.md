@@ -2,7 +2,7 @@
 
 The canonical schema-doc for the **per-app** assets the Stadium extractor emits, plus the thin contract the requirements drafter follows when citing them. (For the platform concepts behind these assets see `glossary.md`; for the per-app assets' *origin* see `sapz-spec.md` + `admindb-schema.md`.)
 
-When the extractor runs with `--emit-assets <dir> --stem <Stem>`, it writes one lean markdown file per category as **`<Stem>.stadium.<category>.md>`** into that engagement's `input/` directory. Two tiers of asset exist:
+When the extractor runs with `--emit-assets <dir> --stem <Stem>`, it writes one lean markdown file per category as **`<Stem>.stadium.<category>.md>`** into that engagement's `documentation/` directory. Two tiers of asset exist:
 
 - **Tier-1 (deterministic, Python)** — written by `emit_assets()` in `extract_stadium_app.py`. Eleven files: `overview`, `data-model`, `data-sources`, `business-rules`, `access-control`, `surfaces`, `tasks`, `navigation`, `glossary`, `design-signals`, `modules`.
 - **Tier-2 (LLM-inferred, advisory)** — added on top by the extraction skill: `task-flows`, `quality-signals`. These are inference, not extraction; they are advisory throughout.

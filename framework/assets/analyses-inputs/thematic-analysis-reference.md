@@ -24,21 +24,21 @@ This analyser sits firmly in the extraction camp. The subject of every code is a
 
 ### Why apply a thematic-analysis pass to raw inputs?
 
-Consultants drop briefs, decks, screenshots, interview notes, and meeting transcripts into `input/`. Reading those documents builds an intuitive sense of what matters — but the intuition is unreviewable and the patterns are forgotten by the time `/requirements` runs. A thematic analysis surfaces those patterns explicitly:
+Consultants drop briefs, decks, screenshots, interview notes, and meeting transcripts into `documentation/`. Reading those documents builds an intuitive sense of what matters — but the intuition is unreviewable and the patterns are forgotten by the time `/requirements` runs. A thematic analysis surfaces those patterns explicitly:
 
 | Lens | Methodology | Question answered | Operates on |
 |---|---|---|---|
-| Domain vocabulary × definitions | glossary (input variant) | Which terms appear in the raw material? | raw `input/` |
-| Jobs-to-be-done × situations | jtbd (input variant) | What jobs are users trying to get done? | raw `input/` |
-| Causal chain × root drivers | five-whys (input variant) | Why does this concern exist in the inputs? | raw `input/` |
-| **Pattern recognition × cross-source themes** | **thematic-analysis** | **What recurring patterns do the inputs carry, and what candidate requirements do they imply?** | **raw `input/`** |
+| Domain vocabulary × definitions | glossary (input variant) | Which terms appear in the raw material? | raw `documentation/` |
+| Jobs-to-be-done × situations | jtbd (input variant) | What jobs are users trying to get done? | raw `documentation/` |
+| Causal chain × root drivers | five-whys (input variant) | Why does this concern exist in the inputs? | raw `documentation/` |
+| **Pattern recognition × cross-source themes** | **thematic-analysis** | **What recurring patterns do the inputs carry, and what candidate requirements do they imply?** | **raw `documentation/`** |
 
 Thematic analysis is the **right first methodology** for `/analyse-inputs` because qualitative-research TA was designed for transcripts, interview notes, and source documents — exactly the shape of raw consultant material. By contrast, the merged `requirements/requirements.md` that `/analyse-requirement` lenses has already normalised the consultant's phrasing into *"the system shall …"* statements; TA on that document would surface themes about the normaliser, not about the consultant's inputs.
 
 ### Why HTML with embedded Mermaid source + JSON body
 
 - **Self-contained, diagram-first.** The artefact is a single HTML file the consultant can open in a browser with the theme-map at the top as a pre-rendered inline SVG — no Mermaid runtime, no external assets. This matches the framework's HTML-output, diagrams-first convention shared by the other analysers.
-- **Re-ingestibility via embedded fenced blocks.** The artefact must still be droppable back into `input/` as a fresh source for a later `/requirements` run. The embedded `language-json` `thematic-analysis-body` block (themes + codes + candidate-requirement seeds) and the collapsed `mermaid-source` block survive a markitdown HTML→Markdown conversion, so the structured model round-trips cleanly; the drafter reads the candidate-requirement seeds without having to parse presentational HTML.
+- **Re-ingestibility via embedded fenced blocks.** The artefact must still be droppable back into `documentation/` as a fresh source for a later `/requirements` run. The embedded `language-json` `thematic-analysis-body` block (themes + codes + candidate-requirement seeds) and the collapsed `mermaid-source` block survive a markitdown HTML→Markdown conversion, so the structured model round-trips cleanly; the drafter reads the candidate-requirement seeds without having to parse presentational HTML.
 - **Diagram as inline SVG.** The theme-map is a pre-rendered inline `<svg>`; the Mermaid source is kept in an adjacent collapsed `<details class="mermaid-block">` block as an export / re-ingestion adjunct, embedded as text and **not** validated by `mmdc` (the inline SVG is the visible diagram — matching the other inline-SVG analyses; no `mmdc` dependency).
 
 ---
@@ -220,7 +220,7 @@ For each concern:
 
 - The marker payload is the concern name from the 10-area frame, written in the case shown above (`Functional`, `Data`, `NFR`, `Integration`, `Security`, `Workflow`, `UX`, `Reporting`, `Compliance`, `Operations`).
 - The marker appears **only** in the `Coverage gaps and silent areas` section of the artefact. It must not appear in `Themes`, `Theme-to-requirement-candidates`, or the Mermaid diagram.
-- The marker is **never** an invitation to invent a theme. The remedy is consultant action (enrich `input/` and re-run, or accept the gap).
+- The marker is **never** an invitation to invent a theme. The remedy is consultant action (enrich `documentation/` and re-run, or accept the gap).
 
 ---
 
@@ -298,7 +298,7 @@ Run at Phase 6 close, before render. Each check operates on the in-memory state.
 
 On any hard-check failure: do **not** write the artefact. Surface `AskUserQuestion` with three options:
 
-1. `Revise — exit so the consultant can enrich input/ and re-invoke /analyse-inputs (Recommended)`
+1. `Revise — exit so the consultant can enrich documentation/ and re-invoke /analyse-inputs (Recommended)`
 2. `Override — proceed and write a known-defective artefact (Run-history bullet records every violation)`
 3. `Restart — re-run from Phase 1 with a fresh manifest pass`
 

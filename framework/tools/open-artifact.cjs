@@ -53,7 +53,7 @@ const { pathToFileURL } = require('url');
 //     the comparator's entry point and links to these on click)
 //   design-system/.workspace/**                   (transient styler scratch)
 //   design-system/design-system.html              (legacy, no longer authored)
-//   prototypes/** framework/** template/** input/**
+//   prototypes/** framework/** template/** documentation/**
 const ALLOW = [
   /^analyse-requirements\/[^/]+\/[^/]+\.html$/,
   /^analyse-inputs\/[^/]+\/[^/]+\.html$/,

@@ -4,7 +4,7 @@
 
 > **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json` and produce a **Rummler-Brache cross-functional process map + Disconnect Analysis** (Rummler & Brache 1990) of every discrete process the inputs describe. Each process is rendered as a **pre-rendered inline-SVG swim-lane** (one horizontal lane per actor, geometry computed by the analyser at render time, no client-side Mermaid runtime), with the Mermaid `flowchart TD` source kept as a collapsed export adjunct; every node carries a `[SRC: <filename>]` citation to a manifest row (or `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` if inferred). The analytical core is the **Disconnect Register** — every lane-to-lane handoff is classified `clean | ambiguous-trigger | missing-actor | unstated-exception | conflicting-source`, exposing the "white-space" gaps Rummler attributed 80% of process failures to. Inferred routing nodes and inferred lane assignments are permitted but must be marked `inferred: true` and surfaced; **inferred trigger events on the disconnect register are forbidden** (a fabricated trigger would propagate a fabricated requirement downstream).
 
-**Output file:** `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` — a self-contained HTML5 artefact with inline CSS, an inline YAML process model inside a `<pre><code class="language-yaml">` block (the LLM-readable copy that survives markitdown HTML→MD conversion when re-ingested via `input/`), a process gallery of pre-rendered inline-SVG swim-lane diagrams (each with the Mermaid `flowchart TD` source as a collapsed export adjunct), an actor inventory table, a **Disconnect Register**, and a collapsed diagnostics section. Browsable directly via `file://`.
+**Output file:** `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` — a self-contained HTML5 artefact with inline CSS, an inline YAML process model inside a `<pre><code class="language-yaml">` block (the LLM-readable copy that survives markitdown HTML→MD conversion when re-ingested via `documentation/`), a process gallery of pre-rendered inline-SVG swim-lane diagrams (each with the Mermaid `flowchart TD` source as a collapsed export adjunct), an actor inventory table, a **Disconnect Register**, and a collapsed diagnostics section. Browsable directly via `file://`.
 
 **Analyser agent:** `framework/agents/analyses-inputs/swim-lane-process-mapping-analyser.md`
 
@@ -73,12 +73,12 @@ The register is the artefact's analytical bite — without it, the methodology d
 
 | Lens | Methodology | Question answered | Operates on |
 |---|---|---|---|
-| Vocabulary × definitions | glossary (input variant) | Which terms appear in the raw material? | raw `input/` |
-| Cross-cutting patterns | thematic-analysis | What recurring patterns do the inputs carry? | raw `input/` |
-| Discovery tree | opportunity-solution-trees | Outcomes → opportunities → solutions in the inputs? | raw `input/` |
-| Current-state user workflow | journey-mapping | How does the user move through the as-is workflow? (linear, persona-shaped) | raw `input/` |
-| Goal decomposition × per-terminal data | task-analysis | What atomic operations does the user perform, in what coordination structure, against what data? (hierarchical, goal-shaped) | raw `input/` |
-| **Cross-functional process × handoff disconnects** | **swim-lane-process-mapping** | **What discrete processes do the inputs describe, who owns each step, and where do the handoffs between actors break down?** | **raw `input/`** |
+| Vocabulary × definitions | glossary (input variant) | Which terms appear in the raw material? | raw `documentation/` |
+| Cross-cutting patterns | thematic-analysis | What recurring patterns do the inputs carry? | raw `documentation/` |
+| Discovery tree | opportunity-solution-trees | Outcomes → opportunities → solutions in the inputs? | raw `documentation/` |
+| Current-state user workflow | journey-mapping | How does the user move through the as-is workflow? (linear, persona-shaped) | raw `documentation/` |
+| Goal decomposition × per-terminal data | task-analysis | What atomic operations does the user perform, in what coordination structure, against what data? (hierarchical, goal-shaped) | raw `documentation/` |
+| **Cross-functional process × handoff disconnects** | **swim-lane-process-mapping** | **What discrete processes do the inputs describe, who owns each step, and where do the handoffs between actors break down?** | **raw `documentation/`** |
 
 Swim-lane process mapping is **complementary** to `journey-mapping` and `task-analysis`: a journey map is linear and persona-shaped (one persona's emotional arc through a workflow); an HTA is hierarchical and goal-shaped (root goal → sub-goals → terminals); a swim-lane process map is **multi-actor and handoff-shaped** (cross-functional flow with explicit responsibility transfer). The three methodologies surface different signals — running all three before `/requirements` is the high-leverage combination when the inputs describe multi-stakeholder processes (claim approval, onboarding, dispute resolution, escalation paths).
 
@@ -86,7 +86,7 @@ Swim-lane process mapping is **complementary** to `journey-mapping` and `task-an
 
 The `/analyse-requirements/` pipeline ships a sibling methodology called `activity-diagram` (UML 2.5 activity-diagram catalogue with swim-lane partitioning). It reads the synthesised `requirements/requirements.md`. **This analyser is distinct** for four reasons:
 
-1. **Different input source.** `activity-diagram` reads `requirements/requirements.md`; this analyser reads `requirements/source-manifest.json` + the raw `input/*` files it enumerates.
+1. **Different input source.** `activity-diagram` reads `requirements/requirements.md`; this analyser reads `requirements/source-manifest.json` + the raw `documentation/*` files it enumerates.
 2. **Different citation grammar.** `activity-diagram` cites `§5.N` task-flow sections; this analyser uses `[SRC: <filename>]` (manifest row `filename` field).
 3. **Different methodological emphasis.** `activity-diagram` produces a UML 2.5 catalogue (initial / activity-final / decision / merge / fork / join + control-flow edges) for design-spec authoring; this analyser produces a **Rummler-Brache cross-functional map + Disconnect Register** for surfacing the gaps in the consultant's input set before `/requirements` runs.
 4. **Different downstream contract.** `activity-diagram` is read by design-spec authors after requirements are merged; this analyser's primary downstream consumer is the consultant (the Disconnect Register drives the follow-up elicitation) and secondarily the `/requirements` drafter (the embedded YAML process model becomes acceptance-criteria scaffolding).
@@ -97,7 +97,7 @@ The two are complementary; consultants commonly run this one before `/requiremen
 
 - **Multi-process gallery.** A process map gallery (one diagram per discrete process) is markedly easier to scan as HTML sections than as a single Markdown stream. Sibling `journey-mapping`, `task-analysis`, and `jtbd` are the input-side HTML precedents.
 - **Pre-rendered inline SVG.** The analyser computes each process's swim-lane geometry at render time and emits one inline `<svg>` per process (matching the requirements-side `activity-diagram` precedent). The artefact ships **no inline Mermaid runtime and no external CDN** — the no-CDN, no-external-resources constraint is framework-wide, and the SVG renders in-page with no tooling. The Mermaid `flowchart TD` source is kept beneath each diagram in a collapsed `<pre class="mermaid-source">` block as an export / re-ingestion adjunct (consultants can copy it into `mmdc` or `https://mermaid.live` to view it elsewhere). The Mermaid source is **not validated by `mmdc`** — the inline SVG is the visible, authoritative diagram.
-- **Re-ingestible structure.** The artefact's secondary downstream use is as a re-fed input to `/requirements`. The consultant copies `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` into `input/`, the input-handler classifies it as `Supported-via-MCP`, markitdown converts to `input/swim-lane-process-mapping.html.converted.md`, and the drafter reads the converted markdown via the manifest. **`<pre><code class="language-yaml">` blocks survive markitdown's HTML→MD conversion as fenced code** — so the structured YAML process model lives in a `<pre><code>` block (not a `<script type="application/json">` block, which markitdown strips). The Mermaid source blocks also degrade to `<pre>` text in the converted markdown, so the drafter sees both the structured model and the diagram source.
+- **Re-ingestible structure.** The artefact's secondary downstream use is as a re-fed input to `/requirements`. The consultant copies `analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html` into `documentation/`, the input-handler classifies it as `Supported-via-MCP`, markitdown converts to `documentation/swim-lane-process-mapping.html.converted.md`, and the drafter reads the converted markdown via the manifest. **`<pre><code class="language-yaml">` blocks survive markitdown's HTML→MD conversion as fenced code** — so the structured YAML process model lives in a `<pre><code>` block (not a `<script type="application/json">` block, which markitdown strips). The Mermaid source blocks also degrade to `<pre>` text in the converted markdown, so the drafter sees both the structured model and the diagram source.
 - **Self-contained.** Inline `<style>`, no external CSS / fonts / CDN / JS. Network-isolated; browsable via `file://`; shareable as a single attachment.
 
 ---
@@ -115,10 +115,10 @@ The artefact has a fixed top-to-bottom shape, populated into `framework/assets/a
    - **Decisions table** — every decision node with its branch labels and source citations.
 3. **Actor inventory** (`<section id="actors">`) — `<table>` listing every lane discovered across all processes: id, display name, kind (`role` / `system` / `external-service`), processes it appears in, source citations.
 4. **Disconnect Register** (`<section id="disconnects">`) — the analytical core. A table with one row per handoff: disconnect id, process, from-step + lane, to-step + lane, category pill (colour-coded), description, source citations, consultant follow-up flag, suggested question. Followed by a per-category summary (counts of `clean` / `ambiguous-trigger` / `missing-actor` / `unstated-exception` / `conflicting-source`).
-5. **Structured YAML model** (`<section id="structured-model">`) — `<pre><code class="language-yaml">` block carrying the full machine-readable process model. Schema below. This is the load-bearing re-ingestion contract for the `/requirements` drafter when the consultant copies the artefact into `input/`.
+5. **Structured YAML model** (`<section id="structured-model">`) — `<pre><code class="language-yaml">` block carrying the full machine-readable process model. Schema below. This is the load-bearing re-ingestion contract for the `/requirements` drafter when the consultant copies the artefact into `documentation/`.
 6. **Gaps and inferred nodes** (`<section id="gaps">`) — every `inferred: true` node, every `[AI-SUGGESTED: AI-NNN | blocking|non-blocking]` marker in the tree, with the suggested consultant prompt and the source span where the inference was made. Distinct from the Disconnect Register (which classifies handoffs); this section classifies inferred nodes / lanes / routing.
 7. **Diagnostics** (collapsed `<details id="diagnostics">`) — counts summary, the 9 quality-gate results (PASS / FAIL), source roster (consumed + skipped tables), manifest fingerprint, run history (append-only bullet list), per-process diagram-validity (svg-overlap) results.
-8. **Next steps banner** (after diagnostics) — instructions to copy the artefact into `input/` for `/requirements` re-ingestion; reminder that the Disconnect Register is the primary elicitation surface for the next consultant conversation.
+8. **Next steps banner** (after diagnostics) — instructions to copy the artefact into `documentation/` for `/requirements` re-ingestion; reminder that the Disconnect Register is the primary elicitation surface for the next consultant conversation.
 
 Section order lives in the template, not in the analyser. The analyser emits the same placeholder blocks regardless; the template decides where they land.
 
@@ -403,7 +403,7 @@ Plus four **structural integrity checks**:
 
 On any hard-gate failure: do **not** write the artefact. Surface `AskUserQuestion` with three options:
 
-1. `Revise — exit so the consultant can enrich input/ and re-invoke /analyse-inputs (Recommended)`
+1. `Revise — exit so the consultant can enrich documentation/ and re-invoke /analyse-inputs (Recommended)`
 2. `Override — proceed and write a known-defective artefact (Run-history bullet records every violation)`
 3. `Restart — re-run from Round 1 with a fresh manifest pass`
 
@@ -430,7 +430,7 @@ All five are documented in the literature or framework conventions; each maps to
 Two additional anti-patterns are framework-wide:
 
 6. **Do not bundle external CDN / fonts / JS.** The artefact is self-contained — inline CSS, pre-rendered inline `<svg>` diagrams (no Mermaid runtime, no CDN), no fonts, no external resources. (Frame-wide invariant; mirrors `activity-diagram`.)
-7. **Do not auto-copy the artefact to `input/`.** The agent's write-isolation rule (docs/maintenance.md > Stand-alone constraints (write isolation)) forbids `/analyse-inputs` from writing outside `analyse-inputs/<METHOD>/*`. The trailing **Next steps** banner in the artefact instructs the consultant to copy manually; the analyser does not.
+7. **Do not auto-copy the artefact to `documentation/`.** The agent's write-isolation rule (docs/maintenance.md > Stand-alone constraints (write isolation)) forbids `/analyse-inputs` from writing outside `analyse-inputs/<METHOD>/*`. The trailing **Next steps** banner in the artefact instructs the consultant to copy manually; the analyser does not.
 
 ---
 
@@ -461,7 +461,7 @@ The analysis is complete when:
 The analyser has **two** primary downstream consumers:
 
 1. **The consultant** — directly via the Disconnect Register. The register is the elicitation surface for the next consultant conversation; every non-`clean` disconnect carries a `suggested_question` the consultant can either answer (closing the disconnect) or push back to the original source.
-2. **The `/requirements` drafter** — secondarily via re-ingestion when the consultant copies the artefact into `input/`. The drafter consumes:
+2. **The `/requirements` drafter** — secondarily via re-ingestion when the consultant copies the artefact into `documentation/`. The drafter consumes:
    - **YAML structured model** → bijection target for `framework/skills/completeness-gap-pass.md`. Every process should map to ≥ 1 `§5 Task flows` entry; every handoff should map to ≥ 1 integration / acceptance criterion in `§6 Requirements`.
    - **Actor inventory** → `§3 Target users` and `§4 User goals & stories` hints. Roles become persona seeds; systems and external services become `§2 Domain model` aggregate-root candidates.
    - **Disconnect Register** → resolver questions. Every `consultant_follow_up: yes` row maps to a resolver-pipeline `AI-NNN` question using the existing grammar — no schema changes needed.
@@ -476,6 +476,6 @@ The `map-swim-lane-process-mapping-from-inputs-to-ui.md` skill is a stub at MVP 
 
 The trailing **Next steps** banner in the artefact instructs the consultant:
 
-> *"This artefact's primary value is the **Disconnect Register** — the table flagging every handoff where the inputs leave a question open. Each non-`clean` row carries a suggested question; bring those to the next consultant conversation (or back to the source author). Closing disconnects before `/requirements` runs prevents fabricated integration requirements downstream. To re-ingest this artefact into `/requirements`, copy this file into `input/` (e.g. `input/swim-lane-process-mapping.html`) and re-run `/requirements`. The input-handler will classify it as `Supported-via-MCP`, markitdown will convert it to `input/swim-lane-process-mapping.html.converted.md` (preserving the structured YAML block as fenced code and the Mermaid source as `<pre>` blocks), and the drafter will consume it via the refreshed manifest. The YAML structured model becomes a bijection target for `/requirements`'s completeness gap pass; decision branch guards seed acceptance-criteria branches; `data-store` and `external-system` steps hint at `§7 Data entities` and `§2 Domain model` aggregates; any `[AI-SUGGESTED: AI-NNN | blocking]` and unresolved disconnects flow into the resolver as consultant questions."*
+> *"This artefact's primary value is the **Disconnect Register** — the table flagging every handoff where the inputs leave a question open. Each non-`clean` row carries a suggested question; bring those to the next consultant conversation (or back to the source author). Closing disconnects before `/requirements` runs prevents fabricated integration requirements downstream. To re-ingest this artefact into `/requirements`, copy this file into `documentation/` (e.g. `documentation/swim-lane-process-mapping.html`) and re-run `/requirements`. The input-handler will classify it as `Supported-via-MCP`, markitdown will convert it to `documentation/swim-lane-process-mapping.html.converted.md` (preserving the structured YAML block as fenced code and the Mermaid source as `<pre>` blocks), and the drafter will consume it via the refreshed manifest. The YAML structured model becomes a bijection target for `/requirements`'s completeness gap pass; decision branch guards seed acceptance-criteria branches; `data-store` and `external-system` steps hint at `§7 Data entities` and `§2 Domain model` aggregates; any `[AI-SUGGESTED: AI-NNN | blocking]` and unresolved disconnects flow into the resolver as consultant questions."*
 
 The analyser does **not** auto-copy. The consultant copies manually.

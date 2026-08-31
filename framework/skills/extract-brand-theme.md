@@ -15,7 +15,7 @@ It additionally performs a **logo + favicon capture** (see *Logo & favicon captu
 - `design_system_path` — **deprecated**, accepted for compatibility. When passed explicitly it pins a single file, used as given with no glob and no sibling; the result is necessarily single-mode.
 - `colour_mode` — the strategy object resolved by the orchestrator at Step B(4b): `{ strategy: "toggle"|"system"|"none"|"custom", default?: "system"|"light"|"dark", chosen_mode?: "light"|"dark", note?: <string> }`. `chosen_mode` is set only when `strategy == "none"` **and** two sets were available (the consultant picked one). Optional; absent behaves as `{ strategy: "none" }`.
 - `consultant_brand` — optional object captured by the agent when source (a) is absent: `{ mode: "url" | "tokens", url?: <string>, tokens?: { <css-var>: <value> } }`. `null` if the consultant chose template defaults.
-- `logo_search_glob` — optional; default `"input/*.stadium-assets/*.stadium.design-signals.md"`. Where to look for an ingested Stadium app's `design-signals` asset (which may carry a `logo:` front-matter pointer). Drives *Logo & favicon capture*.
+- `logo_search_glob` — optional; default `"documentation/*.stadium-assets/*.stadium.design-signals.md"`. Where to look for an ingested Stadium app's `design-signals` asset (which may carry a `logo:` front-matter pointer). Drives *Logo & favicon capture*.
 
 ## Outputs
 
@@ -121,9 +121,9 @@ A label must clear its threshold against **every** fill state it will ever sit o
 | `destructive/60` | **dark** | `dark:bg-destructive/60` — the dark resting fill on button + badge |
 | `accent` solid | both | ghost/outline button hover, badge link hover, select item focus |
 | `accent/50` | **dark** | `dark:hover:bg-accent/50` — ghost button hover |
-| `input/30`, `input/50` | **dark** | `dark:bg-input/30` + `dark:hover:bg-input/50` — outline button, input, checkbox, select, tabs active |
+| `documentation/30`, `documentation/50` | **dark** | `dark:bg-input/30` + `dark:hover:bg-input/50` — outline button, input, checkbox, select, tabs active |
 | `muted/50` | both | table row hover + footer |
-| `background` | **light** | tabs active — `data-[state=active]:bg-background` is unprefixed but `dark:` overrides it with `input/30`, so it only ever paints in a light set |
+| `background` | **light** | tabs active — `data-[state=active]:bg-background` is unprefixed but `dark:` overrides it with `documentation/30`, so it only ever paints in a light set |
 
 Every `Modes` value above was read off the shipped `ui/` primitives (`bg-input` → `button.tsx:28`, `checkbox.tsx:20`, `input.tsx:11`, `select.tsx:40`, `tabs.tsx:69`; `accent/50` → `button.tsx:32`; `muted/50` → `table.tsx:52,70`), not inferred from the state's name. Re-read them if a primitive changes.
 
@@ -167,7 +167,7 @@ Independent of the token source above (a/b/c) — the logo has one source today:
 1. Glob `logo_search_glob`. If none match → `brand_logo = null`; skip (a brandless-logo prototype is a valid outcome).
 2. Read only the **YAML front-matter** of each match (sorted lexicographically for determinism). Take the first whose
    `logo:` value is non-null (not the literal `null`). Its `logo:` and `favicon:` values are `embedded/<file>` pointers
-   relative to that asset's directory (`input/<AppName>.stadium-assets/`); resolve them to absolute source paths. Capture
+   relative to that asset's directory (`documentation/<AppName>.stadium-assets/`); resolve them to absolute source paths. Capture
    `source_app` from the front-matter `app:` field.
 3. If the resolved `logo:` source file exists, copy it to `<app_dir>/public/brand/logo.<ext>` (preserve extension;
    `<ext>` from the source). Set `brand_logo.logo_src = "/brand/logo.<ext>"` (the web path the app shell renders).

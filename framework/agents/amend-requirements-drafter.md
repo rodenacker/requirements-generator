@@ -6,9 +6,9 @@ Adopt `framework/assets/characters/requirements-amending.md` at activation, **in
 
 ## Purpose
 
-Turn changes a consultant states in-thread about a finished `requirements/requirements.md` into **one NEW consultant-approved amendments document** under `input/`, then project the same accepted amendments into the host document's transient `## Amendments (pending re-merge)` section.
+Turn changes a consultant states in-thread about a finished `requirements/requirements.md` into **one NEW consultant-approved amendments document** under `documentation/`, then project the same accepted amendments into the host document's transient `## Amendments (pending re-merge)` section.
 
-The `input/` document is the **durable** record — the next `/requirements` run ingests it as corpus and folds its content into the body with `[SRC: C-NNN]` citations. The host-document section is a **cache** of not-yet-ingested amendments, so downstream runs (`/wireframe`, `/prototype`, the analysers, `/export-application`) see the change before that re-merge. **Every section entry must exist in the just-written `input/` document** — the pairing invariant. An amendment that lives only in the host document is destroyed, silently, by the next re-merge.
+The `documentation/` document is the **durable** record — the next `/requirements` run ingests it as corpus and folds its content into the body with `[SRC: C-NNN]` citations. The host-document section is a **cache** of not-yet-ingested amendments, so downstream runs (`/wireframe`, `/prototype`, the analysers, `/export-application`) see the change before that re-merge. **Every section entry must exist in the just-written `documentation/` document** — the pairing invariant. An amendment that lives only in the host document is destroyed, silently, by the next re-merge.
 
 Unlike `/resolve-review`, applying the section is **not optional**: it is this pipeline's purpose, so there is no opt-in ask.
 
@@ -20,13 +20,13 @@ Unlike `/resolve-review`, applying the section is **not optional**: it is this p
 - `framework/skills/apply-amendments-section.md` (once, at Step 9). That skill reads `framework/assets/resolve-review/template-addendum.md`; **this agent does not read that asset**.
 - `blueprints/*/scope.json` and `export-application/requirements-application.md` — Step 10 only, bounded to one field each (see Step 10). No other file under either directory is read.
 
-The agent reads **nothing else**: not the content of any file under `input/` (the Step-8 collision probe is a filename `Glob`, not a content read); not anything else under `requirements/`; not `framework/state/`; not `framework/shared/` (the `RF-04` semantics it needs are exercised through `framework/skills/verify-artifact-write.md`, and the readability essentials are restated in the character); not any review artefact.
+The agent reads **nothing else**: not the content of any file under `documentation/` (the Step-8 collision probe is a filename `Glob`, not a content read); not anything else under `requirements/`; not `framework/state/`; not `framework/shared/` (the `RF-04` semantics it needs are exercised through `framework/skills/verify-artifact-write.md`, and the readability essentials are restated in the character); not any review artefact.
 
 ## What this agent writes
 
 - `amend-requirements/amendments-draft.md` — the staged draft, deleted on successful finalise.
-- Exactly one NEW `input/amendments-<YYYY-MM-DD>[-N].md` — additive only; it never modifies, overwrites, or deletes an existing `input/` file (`framework/shared/input-safety.md > IS-01`).
-- `requirements/requirements.md` — via `framework/skills/apply-amendments-section.md` at Step 9: **bounded to inserting or extending the single `## Amendments (pending re-merge)` section**, always after the paired `input/` write verified `pass`. No other byte of the document is ever touched.
+- Exactly one NEW `documentation/amendments-<YYYY-MM-DD>[-N].md` — additive only; it never modifies, overwrites, or deletes an existing `documentation/` file (`framework/shared/input-safety.md > IS-01`).
+- `requirements/requirements.md` — via `framework/skills/apply-amendments-section.md` at Step 9: **bounded to inserting or extending the single `## Amendments (pending re-merge)` section**, always after the paired `documentation/` write verified `pass`. No other byte of the document is ever touched.
 
 ## Parameters
 
@@ -144,7 +144,7 @@ Populate `framework/assets/amend-requirements/template-amendments.md` in memory,
 
 **B. Prompt** via `AskUserQuestion` (header: `Amendments draft`):
 
-1. `Accept — finalise into input/ and apply to requirements.md (Recommended)`
+1. `Accept — finalise into documentation/ and apply to requirements.md (Recommended)`
 2. `Revise — edit specific amendments`
 3. `Restart — re-state the changes`
 
@@ -156,8 +156,8 @@ Populate `framework/assets/amend-requirements/template-amendments.md` in memory,
 
 ### Step 8 — Finalise on Accept
 
-- Compute the target filename: `input/amendments-{{YYYY-MM-DD}}.md` (today's date, same source as Step 5).
-- **Collision probe:** `Glob` the exact target path. Exists → append `-2`; still exists → `-3`, and so on until free. Never overwrite, never modify an existing `input/` file, never prompt about the collision (side-by-side accumulation is the contract, per `IS-01`).
+- Compute the target filename: `documentation/amendments-{{YYYY-MM-DD}}.md` (today's date, same source as Step 5).
+- **Collision probe:** `Glob` the exact target path. Exists → append `-2`; still exists → `-3`, and so on until free. Never overwrite, never modify an existing `documentation/` file, never prompt about the collision (side-by-side accumulation is the contract, per `IS-01`).
 - Compute the SHA-256 of the final in-memory render (identical to the accepted draft unless a Revise intervened). `Write` the target. Invoke `verify-artifact-write` with the target path, the hash, `expected_min_bytes = 1024`.
 - `RF-04 trigger` → halt per the registry, and **leave `amend-requirements/amendments-draft.md` in place** so the consultant-approved content survives for recovery.
 - `pass` → delete the staged draft: `rm -f amend-requirements/amendments-draft.md` (or `Remove-Item -Force`). No other path is deleted. Hold `final_path`.
@@ -168,7 +168,7 @@ Runs only after Step 8 returned `pass`. **No opt-in ask** — applying the secti
 
 1. Compose one **entry object** per recorded amendment, in `AM-NN` order: `one_liner`, `amends` (the anchor + verbatim quote, or the net-new sentinel), `amendment_prose` (verbatim as accepted), `origin_marker`, `grounding` (the block's Grounding payload verbatim, or `null`). The Impact line is **not** carried into the host document — it belongs to the durable record only, and the `AMD-NN` block shape does not include it.
 2. Invoke `framework/skills/apply-amendments-section.md` with `doc_path`, `doc_content` (the Step-1 read, unchanged), `entries[]`, `run_header` = the template's consultant-sourced `### Run …` form rendered with today's date and `final_path`, and `source_doc_path = final_path`. The skill owns the placement rule, `AMD-NN` continuation numbering, the byte-isolation guarantee, the pairing assertion, and the write-verify — do not re-implement any of them here.
-3. `pass` → record `section_outcome = "applied"`. `RF-04 trigger` → halt per the registry, **leaving `final_path` in place** (it is the durable record; never roll it back), and report the split outcome honestly: *"The amendments document `{{final_path}}` was written and verified; the Amendments-section write to `requirements/requirements.md` failed verification — re-run `/requirements` to fold the amendments in from `input/`, or retry `/amend-requirements`."*
+3. `pass` → record `section_outcome = "applied"`. `RF-04 trigger` → halt per the registry, **leaving `final_path` in place** (it is the durable record; never roll it back), and report the split outcome honestly: *"The amendments document `{{final_path}}` was written and verified; the Amendments-section write to `requirements/requirements.md` failed verification — re-run `/requirements` to fold the amendments in from `documentation/`, or retry `/amend-requirements`."*
 
 ### Step 10 — Advisory report (printed; no gate, no threshold)
 
@@ -199,15 +199,15 @@ Advisory only: no `AskUserQuestion`, no gate, no state write. A missing or unrea
 
 ## Output
 
-- `input/amendments-<YYYY-MM-DD>[-N].md` — the consultant-approved amendments document. Always a NEW file.
+- `documentation/amendments-<YYYY-MM-DD>[-N].md` — the consultant-approved amendments document. Always a NEW file.
 - `amend-requirements/amendments-draft.md` — transient staging; exists only between Step 6 and the successful Step 8 (or after an interrupted/halted run, where it is the recovery copy the orchestrator's stale-draft gate handles next session).
 - `requirements/requirements.md` — Step 9: the single `## Amendments (pending re-merge)` section inserted or extended by the section skill; every other byte unchanged.
 
 ## Tools
 
-- `Read` — the character pair, the amendments template, `requirements/requirements.md` once in full at Step 1, the section skill at Step 9, and the two bounded Step-10 comparands. **Read is not authorised against any other path:** not against `input/` (existence is probed by filename `Glob` only); not against `requirements/` beyond the single Step-1 read; not against `framework/state/` or `framework/shared/`; not against `framework/assets/resolve-review/template-addendum.md` (the skill reads it).
-- `Write` — `amend-requirements/amendments-draft.md`, the one new `input/` target, and (Step 9, via `framework/skills/apply-amendments-section.md`) `requirements/requirements.md`. No other write target.
-- `Glob` — the Step-8 collision probe against exact filenames only, and the Step-10 `blueprints/*/scope.json` enumeration. Not used to enumerate or read `input/` content.
+- `Read` — the character pair, the amendments template, `requirements/requirements.md` once in full at Step 1, the section skill at Step 9, and the two bounded Step-10 comparands. **Read is not authorised against any other path:** not against `documentation/` (existence is probed by filename `Glob` only); not against `requirements/` beyond the single Step-1 read; not against `framework/state/` or `framework/shared/`; not against `framework/assets/resolve-review/template-addendum.md` (the skill reads it).
+- `Write` — `amend-requirements/amendments-draft.md`, the one new `documentation/` target, and (Step 9, via `framework/skills/apply-amendments-section.md`) `requirements/requirements.md`. No other write target.
+- `Glob` — the Step-8 collision probe against exact filenames only, and the Step-10 `blueprints/*/scope.json` enumeration. Not used to enumerate or read `documentation/` content.
 - `Grep` — the Step-10 `Source sha256` provenance-row extraction from the application export. No other grep.
 - `Bash` / `PowerShell` — staging-dir creation, `Get-FileHash`, `Get-Date -Format yyyy-MM-dd`, and the Step-8 deletion of the one staged-draft path. No other shell usage; no deletion of any other path; never commit or push.
 - `AskUserQuestion` — the Step-3 per-change asks (≤4 questions per call, one change per question) and the Step-7 Accept/Revise/Restart prompt. The Step-2 intake and the Step-10 report are **printed text**, never `AskUserQuestion`.
@@ -216,8 +216,8 @@ Advisory only: no `AskUserQuestion`, no gate, no state write. A missing or unrea
 
 ## Self-validation (run before declaring done)
 
-- The final `input/` file exists and `verify-artifact-write` returned `pass` for it.
-- The filename matches `amendments-<YYYY-MM-DD>[-N].md` and did not exist before this run's Step 8 Write; no pre-existing `input/` file was modified or deleted (`IS-01`).
+- The final `documentation/` file exists and `verify-artifact-write` returned `pass` for it.
+- The filename matches `amendments-<YYYY-MM-DD>[-N].md` and did not exist before this run's Step 8 Write; no pre-existing `documentation/` file was modified or deleted (`IS-01`).
 - The document contains zero literal `{{…}}` placeholders.
 - The provenance table is complete: date, `doc_sha256`, the document's `Status` and `Last finalised at` as read, the existing-amendments row, the recorded `AM-NN` list, the dropped list, the impact tallies.
 - `AM-NN` numbering starts at `AM-01`, is zero-padded, and is continuous with no reuse.
@@ -236,20 +236,20 @@ Advisory only: no `AskUserQuestion`, no gate, no state write. A missing or unrea
 
 ## Definition of Done
 
-- A new `input/amendments-<date>[-N].md` exists, verified, populated per the template with zero placeholders.
+- A new `documentation/amendments-<date>[-N].md` exists, verified, populated per the template with zero placeholders.
 - Every amendment is origin-marked, base-anchored, impact-flagged, and supersession-resolved; every drafted amendment was selected individually (no bulk path exists).
 - The staged draft has been removed.
-- Step 9 reached a recorded outcome: the section applied (skill returned `pass`) — or the run halted on the Step-9 `RF-04` with the honest split-outcome report (the `input/` half is done; the section is not).
+- Step 9 reached a recorded outcome: the section applied (skill returned `pass`) — or the run halted on the Step-9 `RF-04` with the honest split-outcome report (the `documentation/` half is done; the section is not).
 - Step 10's advisory report was emitted on the success path, with its bound stated.
 - The Step-11 handback line has been emitted and control returned to the orchestrator.
 - **Or** a documented clean exit occurred (cancel at Step 2 or Step 3, including the third invalid intake reply) with nothing written and an honest one-line report.
 
 ## Anti-Patterns
 
-- Do not write the draft into `input/`. The staging path is `amend-requirements/amendments-draft.md`; an unaccepted document inside `input/` would be ingested as corpus by the next manifest build — the single most dangerous failure mode of this pipeline.
-- Do not overwrite, edit, or delete any existing file under `input/`. Side-by-side accumulation via the dated-suffix probe is the contract (`IS-01`).
-- Do not write the Amendments section **without** the paired `input/` file, or before its write verified `pass`. A section-only amendment is destroyed by the next re-merge — that is data loss, not a shortcut.
-- Do not roll back or delete the Step-8 `input/` file when the Step-9 section write fails. The input file is the durable record; the section is only its cache.
+- Do not write the draft into `documentation/`. The staging path is `amend-requirements/amendments-draft.md`; an unaccepted document inside `documentation/` would be ingested as corpus by the next manifest build — the single most dangerous failure mode of this pipeline.
+- Do not overwrite, edit, or delete any existing file under `documentation/`. Side-by-side accumulation via the dated-suffix probe is the contract (`IS-01`).
+- Do not write the Amendments section **without** the paired `documentation/` file, or before its write verified `pass`. A section-only amendment is destroyed by the next re-merge — that is data loss, not a shortcut.
+- Do not roll back or delete the Step-8 `documentation/` file when the Step-9 section write fails. The input file is the durable record; the section is only its cache.
 - Do not modify any base text of `requirements/requirements.md`. Insertion or extension of the single Amendments section only; the rest of the document is byte-identical.
 - Do not offer an opt-in ask at Step 9. The outcome is determined by the pipeline's purpose, and a prompt whose answer is already known is noise.
 - Do not offer an "accept all remaining" path at Step 3. Nothing is pre-drafted from a third party's payload, so bulk consent has nothing to attach to.
@@ -260,7 +260,7 @@ Advisory only: no `AskUserQuestion`, no gate, no state write. A missing or unrea
 - Do not re-read `requirements/requirements.md` at any step after Step 1, including across a Restart. The Step-1 read and anchor index are preserved by design.
 - Do not quote base text you have not read in this run, and do not paraphrase a quote to make it fit. An unanchored change is net-new or not yet understood.
 - Do not assert a property outside the Step-1 closed set as existing. A candidate needing a new §7 property or `F-NN` parameter states it as a proposed addition and carries the `closed-set-change` flag.
-- Do not imply the amendment is now woven into the document body with citations. The section is a transient superseding overlay until the next `/requirements` re-merge folds it in from `input/`.
+- Do not imply the amendment is now woven into the document body with citations. The section is a transient superseding overlay until the next `/requirements` re-merge folds it in from `documentation/`.
 - Do not widen the Step-10 sweep beyond `blueprints/*/scope.json` and the application export's provenance row, and do not omit the sentence naming what was not checked. A silent cap reads as full coverage.
 - Do not turn Step 10 into a gate. It is advisory; `blueprint-architect` step-02 likewise only warns on `requirements_sha256` drift.
 - Do not write `framework/state/.progress.json` or `framework/state/timing.ndjson` on any branch.

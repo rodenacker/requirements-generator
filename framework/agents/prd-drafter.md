@@ -18,7 +18,7 @@ The PRD pipeline is **fully independent of `requirements/requirements.md`**. Thi
     - `Native-text` — `Read` `original_path` once into context (it carries no `converted_sibling`).
     - `Native-multimodal`, `Vector-renderable`, `Supported-via-MCP` — `Read` `converted_sibling` once into context. Do not read the original; the sibling (frozen vision description for the two visual tiers, markitdown rendering for `Supported-via-MCP`) is the drafter-facing surface.
     - `Unsupported` — skip. The row is a forensic record only.
-   The manifest is the sole enumeration of inputs; do not Glob `input/` directly. The manifest's root-level `target` field is informational only for the PRD pipeline — it is surfaced in §1 metadata's `Build target reference` field but does not branch any decision tree.
+   The manifest is the sole enumeration of inputs; do not Glob `documentation/` directly. The manifest's root-level `target` field is informational only for the PRD pipeline — it is surfaced in §1 metadata's `Build target reference` field but does not branch any decision tree.
 
 2. Extract facts mentally by template section as you read; do not re-read inputs per section.
 
@@ -124,7 +124,7 @@ Marked fields (`[AI-SUGGESTED]`) carry no `[SRC:]` tag — the marker is the fie
 One JSON object per non-empty line, in `claim_id` order, written by step 6a after the draft is on disk. Schema:
 
 ```json
-{"claim_id":"PC-001","draft_locator":"§4.stakeholder[CFO].signoff_domain","claim_text":"Budget gate for MVP and Phase 2","source_file":"input/PrototypeBrief.md","source_quote":"CFO must approve any spend over $100K per phase"}
+{"claim_id":"PC-001","draft_locator":"§4.stakeholder[CFO].signoff_domain","claim_text":"Budget gate for MVP and Phase 2","source_file":"documentation/PrototypeBrief.md","source_quote":"CFO must approve any spend over $100K per phase"}
 ```
 
 - `claim_id` — must match the `[SRC: PC-NNN]` tag at the same locator in the draft body. Unique within the file. **PRD-namespaced (`PC-`)** to avoid visual collision with requirements-pipeline `C-NNN` IDs.
@@ -149,7 +149,7 @@ The grounding-verifier emits one or more NDJSON lines per FAIL. Reasons and reme
 ## Inputs
 
 - `requirements/source-manifest.json` — the sole enumeration of input files. The drafter Reads each row per the **Read-path resolution** rule in `framework/skills/build-source-manifest.md` (`converted_sibling` when non-null — `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP`; else `original_path` — `Native-text`) and skips Unsupported rows.
-- The files registered in the manifest, under `input/`.
+- The files registered in the manifest, under `documentation/`.
 - `framework/assets/template-prd.md` — the canonical structure to populate.
 - `framework/assets/topics-prd.md` — bijection invariants (used by the gap-pass skill).
 - `framework/shared/refusal-registry.md` — `RF-04 artifact_write_unverified` semantics for the post-Write verification.
@@ -180,7 +180,7 @@ If any check fails, fix the draft (or sidecar, where indicated) and re-run.
 
 Most bullets are checked **before** the Write at **Workflow** step 6 — they assert in-memory invariants of the draft. A small number reference post-Write artefacts (the claims sidecar at step 6a, the verifier output at step 6b) and are satisfied at the workflow step indicated in the bullet itself.
 
-- `requirements/source-manifest.json` was read; every row was read per the **Read-path resolution** rule (`Native-text` via `original_path`; `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` via `converted_sibling`); every row with `tier = "Unsupported"` was skipped. No file under `input/` was Read except via the manifest.
+- `requirements/source-manifest.json` was read; every row was read per the **Read-path resolution** rule (`Native-text` via `original_path`; `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` via `converted_sibling`); every row with `tier = "Unsupported"` was skipped. No file under `documentation/` was Read except via the manifest.
 - Template structure preserved; no `{{placeholders}}` remain; every field populated.
 - Every inferred value carries exactly one `[AI-SUGGESTED: PAI-NNN | blocking|non-blocking]` marker with a unique PAI-NNN ID and a single classification from `{blocking, non-blocking}`. Stated-from-input values carry no marker. **Stated-from-input values in the **Citation scope** carry exactly one trailing `[SRC: PC-NNN]` tag with a unique, monotonically assigned id; no field carries both a marker and a `[SRC:]` tag.**
 - **No forbidden markers.** Grep over the draft body for `\[STANDARD-RULE:|\[OUT-OF-SCOPE:|\[REQ:` returns zero matches. The PRD pipeline does not emit those marker classes.
@@ -213,7 +213,7 @@ Most bullets are checked **before** the Write at **Workflow** step 6 — they as
 
 ## Anti-Patterns
 
-- Do not Glob `input/` directly. Read only the files registered in `requirements/source-manifest.json`, per the **Read-path resolution** rule.
+- Do not Glob `documentation/` directly. Read only the files registered in `requirements/source-manifest.json`, per the **Read-path resolution** rule.
 - Do not Read the original of ANY row that carries a non-null `converted_sibling`. The `*.converted.md` sibling is the drafter-facing surface; re-interpreting an image's or vector's pixels when its frozen description sibling exists defeats the single-interpretation contract.
 - Do not skip `framework/skills/verify-artifact-write.md` after writing the draft at step 6. A truncated draft that schema-validates against itself in memory will fail the resolver in confusing ways far from the failure site. (The sidecar at step 6a does **not** get a `verify-artifact-write` — the grounding-verifier at step 6b reads the sidecar deterministically in the immediate next sub-step and reports `ndjson_parse_error` on corruption, so the verifier is the substantive sidecar check.)
 - Do not change the structure of the PRD template.

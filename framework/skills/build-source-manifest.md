@@ -1,6 +1,6 @@
 # build-source-manifest.md
 
-**Purpose:** Emit a source manifest from the post-classification, post-conversion view of the consultant-dropped input folder. The manifest is the downstream consumer's sole input enumeration — consumers do not glob the input folder and do not classify files. Every readable file a consumer will consume has a row here; unsupported files are recorded for forensic record but not read.
+**Purpose:** Emit a source manifest from the post-classification, post-conversion view of the consultant-dropped documentation folder. The manifest is the downstream consumer's sole input enumeration — consumers do not glob the documentation folder and do not classify files. Every readable file a consumer will consume has a row here; unsupported files are recorded for forensic record but not read.
 
 **Inputs:**
 - `manifest_path` — repo-relative path to the manifest file to write. Required. The four input-handler-using pipelines (`/requirements`, `/generate-prd`, `/analyse-inputs`, `/review-inputs`) all pass `requirements/source-manifest.json` so they share a single canonical manifest on disk; future pipelines may pass a different path.
@@ -33,8 +33,8 @@
       "kind": "primary",
       "sha256": "<hex of original_path file bytes>",
       "conversions_applied": "none | markitdown-mcp[; sub-tag...] | vision-described[; sub-tag...] | drawio-xml-fallback[; sub-tag...] | failed — <reason>",
-      "original_path": "input/<basename>",
-      "converted_sibling": "input/<basename>.converted.md | input/<filename-with-ext>.converted.md | null"
+      "original_path": "documentation/<basename>",
+      "converted_sibling": "documentation/<basename>.converted.md | documentation/<filename-with-ext>.converted.md | null"
     }
   ]
 }
@@ -74,11 +74,11 @@ For each classified row from `classify-input-tier.md`, in input-order:
 2. Fill `filename`, `original_path`, `kind: "primary"`.
 3. Branch on tier:
     - `Native-text` — `tier` as classified, `conversions_applied: "none"`, `converted_sibling: null`.
-    - `Native-multimodal` and description succeeded — `tier: "Native-multimodal"`, `conversions_applied: "vision-described[; sub-tag...]"`, `converted_sibling: "input/<filename-with-ext>.converted.md"`.
-    - `Vector-renderable` and render+description succeeded — `tier: "Vector-renderable"`, `conversions_applied: "vision-described; rendered-from-vector; render-tool=<name>"`, `converted_sibling: "input/<filename-with-ext>.converted.md"`.
-    - `Vector-renderable` `.drawio` read via XML-decode fallback (renderer absent or render failed, but `decode-drawio-xml.md` returned `ok`) — `tier: "Vector-renderable"`, `conversions_applied: "drawio-xml-fallback[; multi-page-source-first-page-only]"`, `converted_sibling: "input/<filename-with-ext>.converted.md"`.
+    - `Native-multimodal` and description succeeded — `tier: "Native-multimodal"`, `conversions_applied: "vision-described[; sub-tag...]"`, `converted_sibling: "documentation/<filename-with-ext>.converted.md"`.
+    - `Vector-renderable` and render+description succeeded — `tier: "Vector-renderable"`, `conversions_applied: "vision-described; rendered-from-vector; render-tool=<name>"`, `converted_sibling: "documentation/<filename-with-ext>.converted.md"`.
+    - `Vector-renderable` `.drawio` read via XML-decode fallback (renderer absent or render failed, but `decode-drawio-xml.md` returned `ok`) — `tier: "Vector-renderable"`, `conversions_applied: "drawio-xml-fallback[; multi-page-source-first-page-only]"`, `converted_sibling: "documentation/<filename-with-ext>.converted.md"`.
     - `Native-multimodal` description failed or `Vector-renderable` render/description failed (for `.drawio`, the XML fallback also failed) — `tier: "Unsupported"`, `conversions_applied: "failed — vision"` or `"failed — render"`, `converted_sibling: null`.
-    - `Supported-via-MCP` and conversion succeeded — `tier: "Supported-via-MCP"`, `conversions_applied: "markitdown-mcp[; sub-tag...]"`, `converted_sibling: "input/<basename>.converted.md"`.
+    - `Supported-via-MCP` and conversion succeeded — `tier: "Supported-via-MCP"`, `conversions_applied: "markitdown-mcp[; sub-tag...]"`, `converted_sibling: "documentation/<basename>.converted.md"`.
     - `Supported-via-MCP` and conversion failed — `tier: "Unsupported"`, `conversions_applied: "failed — <reason>"`, `converted_sibling: null`.
     - `Unsupported` (originally) — `tier: "Unsupported"`, `conversions_applied: "none"`, `converted_sibling: null`.
 
@@ -88,10 +88,10 @@ After all rows are constructed, set `schema_version: 1`, `generated_at: <ISO-860
 
 - Every input file from the classifier produced exactly one row.
 - Every row has all seven fields, with the correct types per the schema.
-- For every row with `tier ∈ {"Supported-via-MCP", "Native-multimodal", "Vector-renderable"}`, `converted_sibling` is non-null and points to an existing file under `input/` (markitdown rendering for Supported-via-MCP; frozen vision description for the other two).
+- For every row with `tier ∈ {"Supported-via-MCP", "Native-multimodal", "Vector-renderable"}`, `converted_sibling` is non-null and points to an existing file under `documentation/` (markitdown rendering for Supported-via-MCP; frozen vision description for the other two).
 - For every row with `tier ∈ {"Native-text", "Unsupported"}`, `converted_sibling` is `null`.
 - `schema_version` is `1`. `generated_at` parses as ISO-8601 UTC. `target` equals the caller-supplied `inherited_target` (which is `null` on create, or one of `"prototype"` / `"application"` on refresh).
-- The manifest is written via `Write` and verified via `framework/skills/verify-artifact-write.md` with `expected_min_bytes` set to the byte length of the smallest legal manifest (a manifest with `rows: []` is the lower bound — the input-handler only reaches this skill when `input/` is non-empty, but the schema permits it).
+- The manifest is written via `Write` and verified via `framework/skills/verify-artifact-write.md` with `expected_min_bytes` set to the byte length of the smallest legal manifest (a manifest with `rows: []` is the lower bound — the input-handler only reaches this skill when `documentation/` is non-empty, but the schema permits it).
 
 After self-validation passes, the input-handler inspects the manifest to decide whether to surface `RF-03 input_no_supported_files`: if every row has `tier: "Unsupported"`, fire `RF-03`. Otherwise hand back to the calling orchestrator.
 

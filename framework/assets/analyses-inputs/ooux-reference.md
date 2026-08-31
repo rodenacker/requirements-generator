@@ -167,7 +167,7 @@ The artefact's surfaces, in rendered (DOM) order — an "In plain terms" lead si
 
 2. **Relationship matrix** (`<section id="tables">` with `<table class="rel-matrix">`) — tabular fallback. One row per recorded relationship. Source / label / target / cardinality / nested?. Mirrors the requirements-side template's §4. Survives markitdown round-trip as an MD table.
 
-3. **Machine-readable body block** (`<section id="object-map-body">` with `<pre><code class="language-json" id="ooux-object-map-body">`) — the full machine-readable object model in JSON. See the JSON schema below. **This is the load-bearing markitdown-survival contract.** When the consultant copies the HTML into `input/` and reruns `/requirements`, this block converts to a fenced ```json code block in `.converted.md` and the drafter consumes the full model in one shot.
+3. **Machine-readable body block** (`<section id="object-map-body">` with `<pre><code class="language-json" id="ooux-object-map-body">`) — the full machine-readable object model in JSON. See the JSON schema below. **This is the load-bearing markitdown-survival contract.** When the consultant copies the HTML into `documentation/` and reruns `/requirements`, this block converts to a fenced ```json code block in `.converted.md` and the drafter consumes the full model in one shot.
 
 4. **Source roster** (`<section id="source-roster">`) — table of consumed manifest rows (`filename`, `tier`, `sha256[:8]`, `nouns_contributed`) and table of skipped rows (`filename`, `reason`). Sits below the object-map body — the audit trail establishing which sources fed the map, not the headline.
 

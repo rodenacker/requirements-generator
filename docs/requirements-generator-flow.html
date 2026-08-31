@@ -137,7 +137,7 @@
     background: var(--card);
     color: var(--ink);
   }
-  /* Folder: special style for the input/ source — not a pipeline, just a drop folder */
+  /* Folder: special style for the documentation/ source — not a pipeline, just a drop folder */
   .block.folder {
     border: 3px double var(--ink);
     border-radius: 70%;
@@ -520,9 +520,9 @@
   <div class="dag-canvas">
 
     <!-- ===== Blocks ===== -->
-    <!-- Row 1: Inputs spine -->
+    <!-- Row 1: documentation/ spine -->
     <a class="block opt"   href="#input-reviews"   style="left: 20px;  top: 70px;"><span class="cmd">/review-inputs</span><span class="label">critique the raw corpus</span><span class="count">6 methodologies</span></a>
-    <div class="block folder"                      style="left: 380px; top: 70px;"><span class="cmd">input/</span><span class="label">briefs · decks · PDFs · screenshots</span></div>
+    <div class="block folder"                      style="left: 380px; top: 70px;"><span class="cmd">documentation/</span><span class="label">briefs · decks · PDFs · screenshots</span></div>
     <a class="block opt"   href="#input-analyses"  style="left: 740px; top: 70px;"><span class="cmd">/analyse-inputs</span><span class="label">derive models from raw inputs</span><span class="count">11 methodologies</span></a>
 
     <!-- PRD: side branch off the right -->
@@ -556,11 +556,11 @@
       </defs>
 
       <!-- === Solid arrows (mechanical reads / canonical flow) === -->
-      <!-- Inputs → Review-Inputs (left) -->
+      <!-- documentation/ → Review-Inputs (left) -->
       <path d="M 378 109 L 240 109" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
-      <!-- Inputs → Analyse-Inputs (right) -->
+      <!-- documentation/ → Analyse-Inputs (right) -->
       <path d="M 622 109 L 760 109" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
-      <!-- Inputs → Requirements (down central spine) -->
+      <!-- documentation/ → Requirements (down central spine) -->
       <path d="M 500 132 L 500 360" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
       <!-- Requirements → Review-Requirement (left) -->
       <path d="M 378 400 L 244 400" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
@@ -584,11 +584,11 @@
       <path d="M 110 595 C 110 720, 250 770, 368 768" stroke="#222" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
 
       <!-- === Dotted feedback arrows (consultant-mediated) === -->
-      <!-- Review-Inputs → Inputs ("Manually Update") -->
+      <!-- Review-Inputs → documentation/ ("Manually Update") -->
       <path d="M 140 70 C 140 18, 440 18, 440 70" stroke="#888" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow-soft)"/>
-      <!-- Analyse-Inputs → Inputs ("Add to inputs") -->
+      <!-- Analyse-Inputs → documentation/ ("Add to documentation") -->
       <path d="M 860 70 C 860 18, 560 18, 560 70" stroke="#888" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow-soft)"/>
-      <!-- PRD → Inputs ("Add to inputs") — curve up from PRD top, sweeping left into Inputs' right edge -->
+      <!-- PRD → documentation/ ("Add to documentation") — curve up from PRD top, sweeping left into documentation/'s right edge -->
       <path d="M 800 260 C 740 200, 700 130, 630 128" stroke="#888" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow-soft)"/>
       <!-- Review-Requirement → Requirements ("Manually Update") -->
       <path d="M 140 380 C 120 350, 320 360, 370 380" stroke="#888" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow-soft)"/>
@@ -596,12 +596,12 @@
       <path d="M 860 400 C 860 470, 720 544, 630 565" stroke="#888" stroke-width="1.5" stroke-dasharray="4 4" fill="none" marker-end="url(#arrow-soft)"/>
 
       <!-- === Edge labels === -->
-      <!-- "Manually Update" between Review-Inputs and Inputs -->
+      <!-- "Manually Update" between Review-Inputs and documentation/ -->
       <g><rect class="edge-label-bg" x="240" y="22" width="100" height="18" rx="3"/><text class="edge-label" x="290" y="34" text-anchor="middle">Manually Update</text></g>
-      <!-- "Add to inputs" between Inputs and Analyse-Inputs -->
-      <g><rect class="edge-label-bg" x="610" y="22" width="84"  height="18" rx="3"/><text class="edge-label" x="652" y="34" text-anchor="middle">Add to inputs</text></g>
-      <!-- "Add to inputs" along PRD → Inputs (positioned just above PRD, on its curve) -->
-      <g><rect class="edge-label-bg" x="700" y="170" width="84" height="18" rx="3"/><text class="edge-label" x="742" y="182" text-anchor="middle">Add to inputs</text></g>
+      <!-- "Add to documentation" between documentation/ and Analyse-Inputs -->
+      <g><rect class="edge-label-bg" x="591" y="22" width="122" height="18" rx="3"/><text class="edge-label" x="652" y="34" text-anchor="middle">Add to documentation</text></g>
+      <!-- "Add to documentation" along PRD → documentation/ (positioned just above PRD, on its curve) -->
+      <g><rect class="edge-label-bg" x="681" y="170" width="122" height="18" rx="3"/><text class="edge-label" x="742" y="182" text-anchor="middle">Add to documentation</text></g>
       <!-- "Manually Update" between Review-Requirement and Requirements -->
       <g><rect class="edge-label-bg" x="240" y="360" width="100" height="18" rx="3"/><text class="edge-label" x="290" y="372" text-anchor="middle">Manually Update</text></g>
       <!-- "brand tokens" along the Design-System → Prototype arrow -->
@@ -613,7 +613,7 @@
   </div>
 
   <div class="dag-legend">
-    <span class="legend-chip"><span class="box folder"></span> Input folder (source)</span>
+    <span class="legend-chip"><span class="box folder"></span> Documentation folder (source)</span>
     <span class="legend-chip"><span class="box spine"></span> Spine pipeline (Requirements, Wireframes, Prototype)</span>
     <span class="legend-chip"><span class="box opt"></span> Optional pipeline (lens / enrichment)</span>
     <span class="legend-chip"><span class="box aside"></span> Stand-alone base pipeline</span>
@@ -624,7 +624,7 @@
 
 <!-- ============== §2 REVIEWS vs ANALYSES ============== -->
 <h2 class="section" id="purpose"><span class="num">§2</span>Reviews vs Analyses — purpose at a glance</h2>
-<p class="lede">Both optional pipeline families lens the same source material (raw <code>input/</code> or merged <code>requirements.md</code>), but they produce categorically different outputs and demand different consultant actions.</p>
+<p class="lede">Both optional pipeline families lens the same source material (raw <code>documentation/</code> or merged <code>requirements.md</code>), but they produce categorically different outputs and demand different consultant actions.</p>
 
 <div class="purpose-grid">
 
@@ -637,7 +637,7 @@
       <dt>Output shape</dt>
       <dd>A punch-list of findings — never an auto-patch. The artefact is something the consultant <em>reads and acts on</em>, not a positive contract for downstream tools.</dd>
       <dt>Consultant action</dt>
-      <dd>Manual edits to <code>input/</code> files (for <code>/review-inputs</code>) or to <code>requirements.md</code> (for <code>/review-requirement</code>). Some findings also generate follow-up elicitation questions for the client.</dd>
+      <dd>Manual edits to <code>documentation/</code> files (for <code>/review-inputs</code>) or to <code>requirements.md</code> (for <code>/review-requirement</code>). Some findings also generate follow-up elicitation questions for the client.</dd>
       <dt>Pick when</dt>
       <dd>You suspect the source is incomplete, ambiguous, or weak, and you want a structured list of <em>specifically what to fix</em> before drafting or designing further.</dd>
       <dt>Examples</dt>
@@ -654,7 +654,7 @@
       <dt>Output shape</dt>
       <dd>A positive artefact — object map, theme map, task tree, journey card, state diagram, opportunity-solution tree — that another pipeline can consume as input.</dd>
       <dt>Consultant action</dt>
-      <dd>Copy the artefact into <code>input/</code> for re-ingestion by the next <code>/requirements</code> pass (for <code>/analyse-inputs</code>), or for <code>/analyse-requirement</code> — select it as an input to <code>/wireframe</code>.</dd>
+      <dd>Copy the artefact into <code>documentation/</code> for re-ingestion by the next <code>/requirements</code> pass (for <code>/analyse-inputs</code>), or for <code>/analyse-requirement</code> — select it as an input to <code>/wireframe</code>.</dd>
       <dt>Pick when</dt>
       <dd>You want to enrich the source with a structural lens (motivation, object model, process flow, sentiment journey) before drafting or designing — and you want that lens to flow forward as a positive contract.</dd>
       <dt>Examples</dt>
@@ -674,15 +674,15 @@
     <tr><th style="width: 26%;">From</th><th>What the consultant does with the output</th></tr>
     <tr>
       <td><code>/generate-prd</code></td>
-      <td>Copy strategic content (success metrics, MVP phasing, hypotheses) <strong>into <code>input/</code></strong> before running <code>/requirements</code>.</td>
+      <td>Copy strategic content (success metrics, MVP phasing, hypotheses) <strong>into <code>documentation/</code></strong> before running <code>/requirements</code>.</td>
     </tr>
     <tr>
       <td><code>/analyse-inputs</code> · any methodology</td>
-      <td>Copy the derived artefact (theme map, task tree, OOUX object model, JTBD job map …) from <code>analyse-inputs/&lt;METHOD&gt;/</code> <strong>into <code>input/</code></strong> before running <code>/requirements</code>. Most analysers ship a re-ingestion block (YAML/JSON + Mermaid) that survives markitdown HTML → MD conversion.</td>
+      <td>Copy the derived artefact (theme map, task tree, OOUX object model, JTBD job map …) from <code>analyse-inputs/&lt;METHOD&gt;/</code> <strong>into <code>documentation/</code></strong> before running <code>/requirements</code>. Most analysers ship a re-ingestion block (YAML/JSON + Mermaid) that survives markitdown HTML → MD conversion.</td>
     </tr>
     <tr>
       <td><code>/review-inputs</code> · any methodology</td>
-      <td>Read the punch-list and <strong>manually edit the source files in <code>input/</code></strong> — add missing context, resolve ambiguity, surface stakeholder voices. Then re-run <code>/requirements</code> against the improved corpus.</td>
+      <td>Read the punch-list and <strong>manually edit the source files in <code>documentation/</code></strong> — add missing context, resolve ambiguity, surface stakeholder voices. Then re-run <code>/requirements</code> against the improved corpus.</td>
     </tr>
     <tr>
       <td><code>/review-requirement</code> · any methodology</td>
@@ -690,7 +690,7 @@
     </tr>
     <tr>
       <td><code>/resolve-review</code></td>
-      <td>The assisted alternative to hand-editing after a review: pick an existing review artefact (<code>review-inputs/</code> or <code>review-requirements/</code>), select the findings to act on, and resolve each one interactively — every AI-inferred resolution is confirmed by an explicit affirmative, either per finding or in one go via an explicit <em>Accept all remaining as drafted</em> choice (nothing is silently assumed). The approved resolutions are written as a <strong>new dated document into <code>input/</code></strong> (never overwriting an existing file), ready for the next <code>/requirements</code> run. Review-requirements-sourced runs can additionally (opt-in) cache the same resolutions as a transient <em>Amendments</em> section in <code>requirements.md</code> until the next re-merge folds them in.</td>
+      <td>The assisted alternative to hand-editing after a review: pick an existing review artefact (<code>review-inputs/</code> or <code>review-requirements/</code>), select the findings to act on, and resolve each one interactively — every AI-inferred resolution is confirmed by an explicit affirmative, either per finding or in one go via an explicit <em>Accept all remaining as drafted</em> choice (nothing is silently assumed). The approved resolutions are written as a <strong>new dated document into <code>documentation/</code></strong> (never overwriting an existing file), ready for the next <code>/requirements</code> run. Review-requirements-sourced runs can additionally (opt-in) cache the same resolutions as a transient <em>Amendments</em> section in <code>requirements.md</code> until the next re-merge folds them in.</td>
     </tr>
     <tr>
       <td>Select relevant analyses (OOUX object map, user-journeys, task-flows, trade-off-dimension matrix) as supporting inputs when you run <code>/wireframe</code> (Stage&nbsp;1b — completed analyses are read sidecar-first) or <code>/prototype</code> (basis&nbsp;B of its A–E input selection), so the produced screens and prototype reflect the lensed structure. They also remain reference reading you use to set scope and trade-off-dimension positions.</td>
@@ -720,9 +720,9 @@
     <div class="card base solo">
       <h4>/ingest-stadium</h4>
       <div class="role">Stadium 6 app → citation-ready input assets</div>
-      <div class="field"><span class="field-label">Inputs</span><div class="field-body">A <strong>Stadium 6 application</strong> dropped in <code>input/</code> — a deployed app folder (<code>administration.db</code> + <code>App_Data/Updates/*.sapz</code> + <code>ClientApp/</code>) or a one-line <code>*.stadium</code> pointer naming its path. Runs a bundled, standard-library-only Python extractor.</div></div>
+      <div class="field"><span class="field-label">Inputs</span><div class="field-body">A <strong>Stadium 6 application</strong> dropped in <code>documentation/</code> — a deployed app folder (<code>administration.db</code> + <code>App_Data/Updates/*.sapz</code> + <code>ClientApp/</code>) or a one-line <code>*.stadium</code> pointer naming its path. Runs a bundled, standard-library-only Python extractor.</div></div>
       <div class="field"><span class="field-label">When to use</span><div class="field-body">First, whenever the client's material is a Stadium low-code app rather than (or alongside) documents. Extraction happens <strong>once per app</strong> — a process-once ledger skips an already-ingested app unless you deliberately re-ingest via the prompt, so your hand-edits to the assets are never silently overwritten.</div></div>
-      <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>input/&lt;AppName&gt;.stadium-assets/</code> — thirteen lean, citation-ready assets (eleven deterministic category files: overview, data model, data sources, business rules, access control, surfaces, user tasks, navigation, glossary, design signals, modules; plus two advisory <code>[AI-SUGGESTED]</code> ones: task flows, quality signals). A forensic <code>model.json</code> lands under <code>framework/state/</code> and is never manifested.</div></div>
+      <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>documentation/&lt;AppName&gt;.stadium-assets/</code> — thirteen lean, citation-ready assets (eleven deterministic category files: overview, data model, data sources, business rules, access control, surfaces, user tasks, navigation, glossary, design signals, modules; plus two advisory <code>[AI-SUGGESTED]</code> ones: task flows, quality signals). A forensic <code>model.json</code> lands under <code>framework/state/</code> and is never manifested.</div></div>
       <div class="field"><span class="field-label">How to use</span><div class="field-body">Nothing further — the assets are ordinary <code>Native-text</code> inputs. The next <code>/requirements</code> (or <code>/generate-prd</code> / <code>/analyse-inputs</code> / <code>/review-inputs</code>) run enumerates them automatically; those commands exclude the raw app folder and nudge you here if they spot an un-ingested app.</div></div>
     </div>
   </div>
@@ -739,61 +739,61 @@
     <a class="back-link" href="#flowchart">↑ Back to flowchart</a>
   </summary>
   <div class="acc-body">
-    <p class="panel-lede">Critique the raw <code>input/</code> corpus — missing context, ambiguity, contradiction, stakeholder-voice gaps. Output is a punch-list you act on by hand-editing files in <code>input/</code> before running <code>/requirements</code>.</p>
+    <p class="panel-lede">Critique the raw <code>documentation/</code> corpus — missing context, ambiguity, contradiction, stakeholder-voice gaps. Output is a punch-list you act on by hand-editing files in <code>documentation/</code> before running <code>/requirements</code>.</p>
     <div class="panel-grid">
 
       <div class="card opt">
         <h4>adversarial</h4>
         <div class="role">BMAD six-dimension critique</div>
-        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>. Treats the corpus as <em>the stakeholder voice</em>, not evidence-of-elicitation.</div></div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>. Treats the corpus as <em>the stakeholder voice</em>, not evidence-of-elicitation.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">Before <code>/requirements</code> when you suspect the input set is uneven — coverage holes, mixed first- / second-hand voices, sources contradicting each other.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-inputs/ADVERSARIAL/adversarial-review.html</code> — six-dimension findings (stakeholder coverage, workflow coverage, ambiguity, cross-source conflict, quantitative signal, scope signal) with corpus-handling recommendations.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Hand-edit the source files in <code>input/</code> to address each finding (add context, reconcile conflict, label second-hand voices), then re-run <code>/requirements</code>.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Hand-edit the source files in <code>documentation/</code> to address each finding (add context, reconcile conflict, label second-hand voices), then re-run <code>/requirements</code>.</div></div>
       </div>
 
       <div class="card opt">
         <h4>completeness-review</h4>
         <div class="role">BA-canon sweep</div>
-        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>. Measures against the BA literature canon (IEEE 29148, Volere, BABOK, Wiegers, INCOSE, ISO 25010) across ten coverage dimensions.</div></div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>. Measures against the BA literature canon (IEEE 29148, Volere, BABOK, Wiegers, INCOSE, ISO 25010) across ten coverage dimensions.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">Pick this when you need a broad, authority-grounded gap punch-list to drive client follow-up elicitation. Complementary to <em>gap-analysis</em>.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-inputs/COMPLETENESS-REVIEW/completeness-review.html</code> — disposition-classified findings (Needs-Clarification / Standard-Rule-Applies / Out-of-Scope) plus per-source elicitation questions.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Use the elicitation questions to chase the client; once you receive answers, add them as new files under <code>input/</code> and re-run <code>/requirements</code>.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Use the elicitation questions to chase the client; once you receive answers, add them as new files under <code>documentation/</code> and re-run <code>/requirements</code>.</div></div>
       </div>
 
       <div class="card opt">
         <h4>ambiguity-review</h4>
         <div class="role">Berry/Kamsties + Femmer taxonomy</div>
-        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the input set reads "soft" — vague verbs, weak modals, optional language, undefined pronouns — and you want to nail down each ambiguity before the drafter inherits it.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-inputs/AMBIGUITY-REVIEW/ambiguity-review.html</code> — every lexical / syntactic / referential / vague / subjective / weak-verb / optionality finding with a ready-to-paste stakeholder elicitation question.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Run the questions past the client; capture answers in <code>input/</code> (or rewrite the ambiguous source if you have the authority) and re-run <code>/requirements</code>.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Run the questions past the client; capture answers in <code>documentation/</code> (or rewrite the ambiguous source if you have the authority) and re-run <code>/requirements</code>.</div></div>
       </div>
 
       <div class="card opt">
         <h4>gap-analysis</h4>
         <div class="role">Template-bijection delta</div>
-        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>. Measures against this project's drafter template — <em>not</em> the BA canon.</div></div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>. Measures against this project's drafter template — <em>not</em> the BA canon.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When you want a visual, drafter-aligned gap map with <em>pre-drafted</em> shall-form candidate requirements. Complementary to <em>completeness-review</em>.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-inputs/GAP-ANALYSIS/gap-analysis.html</code> — inline-SVG coverage heatmap, gap-matrix table by dimension × MoSCoW. Every Must/Should gap ships a shall-form Candidate Requirement.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body"><strong>Copy <code>gap-analysis.html</code> directly into <code>input/</code></strong> and re-run <code>/requirements</code> — the drafter cites it via its filename and absorbs the candidate requirements. Edit any rows you reject before re-ingestion.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body"><strong>Copy <code>gap-analysis.html</code> directly into <code>documentation/</code></strong> and re-run <code>/requirements</code> — the drafter cites it via its filename and absorbs the candidate requirements. Edit any rows you reject before re-ingestion.</div></div>
       </div>
 
       <div class="card opt">
         <h4>ten-ba-questions</h4>
         <div class="role">Top-10 BA gaps in the corpus</div>
-        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">Before <code>/requirements</code> when you want the most consequential business-analysis gaps <em>named</em> rather than an exhaustive coverage audit — pick <em>completeness-review</em> or <em>gap-analysis</em> when you want every gap mapped.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-inputs/TEN-BA-QUESTIONS/ten-ba-questions-review.html</code> — the ten most pressing stakeholder questions the gathered material leaves unanswered, ranked by business impact across eight BA gap categories, each sourced to an input file or marked absent-from-corpus.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Take the ten questions to your stakeholders and fold the answers into <code>input/</code> before re-running <code>/requirements</code> — or feed the artefact to <code>/resolve-review</code> to turn the answers into an approved input document.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Take the ten questions to your stakeholders and fold the answers into <code>documentation/</code> before re-running <code>/requirements</code> — or feed the artefact to <code>/resolve-review</code> to turn the answers into an approved input document.</div></div>
       </div>
 
       <div class="card opt">
         <h4>ten-ux-questions</h4>
         <div class="role">Top-10 UX gaps in the corpus</div>
-        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">Before <code>/requirements</code> when you want the most consequential UX-discovery gaps <em>named</em> — its sibling <em>ten-ba-questions</em> covers the business-analysis gaps (scope, rules, data ownership); pick <em>completeness-review</em> or <em>gap-analysis</em> when you want every gap mapped.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-inputs/TEN-UX-QUESTIONS/ten-ux-questions-review.html</code> — the ten most pressing design questions the material leaves unanswered, ranked by design impact across eight UX gap categories (users &amp; segmentation, context of use, goals &amp; success signals, task flows &amp; decision points, decision-supporting data, errors &amp; recovery, collaboration, trust &amp; audit).</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Take the ten questions to stakeholders and users and fold the answers into <code>input/</code> before re-running <code>/requirements</code> — or feed the artefact to <code>/resolve-review</code> to turn the answers into an approved input document.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Take the ten questions to stakeholders and users and fold the answers into <code>documentation/</code> before re-running <code>/requirements</code> — or feed the artefact to <code>/resolve-review</code> to turn the answers into an approved input document.</div></div>
       </div>
 
     </div>
@@ -811,106 +811,106 @@
     <a class="back-link" href="#flowchart">↑ Back to flowchart</a>
   </summary>
   <div class="acc-body">
-    <p class="panel-lede">Transform raw inputs into structured models (theme maps, task trees, object models, journeys). Every analyser ships a re-ingestion block that survives copy-into-<code>input/</code> and feeds the drafter on the next <code>/requirements</code> run.</p>
+    <p class="panel-lede">Transform raw inputs into structured models (theme maps, task trees, object models, journeys). Every analyser ships a re-ingestion block that survives copy-into-<code>documentation/</code> and feeds the drafter on the next <code>/requirements</code> run.</p>
     <div class="panel-grid">
 
       <div class="card opt">
         <h4>task-analysis</h4>
         <div class="role">Hierarchical Task Analysis</div>
-        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs describe a goal-decomposition workflow — multi-step tasks with branches, iterations, and information requirements — and you want a numbered tree the drafter can ladder against.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/TASK-ANALYSIS/task-analysis.html</code> — numbered goal / sub-goal / operation tree with mandatory Plans (sequence / selection / iteration / concurrent / discretionary) and per-terminal data-noun annotations. Embedded YAML structured tree.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy the HTML <strong>into <code>input/</code></strong>; the drafter's gap-pass treats the embedded YAML tree as a bijection target — Plans seed acceptance-criteria branches, information requirements hint at §7 Data entities.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy the HTML <strong>into <code>documentation/</code></strong>; the drafter's gap-pass treats the embedded YAML tree as a bijection target — Plans seed acceptance-criteria branches, information requirements hint at §7 Data entities.</div></div>
       </div>
 
       <div class="card opt">
         <h4>thematic-analysis</h4>
         <div class="role">Braun &amp; Clarke six-phase</div>
-        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs are heavy on qualitative material (interview notes, open-ended survey responses, stakeholder narratives) and you want to surface latent patterns before drafting.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html</code> — codes, themes, theme-map (Mermaid), and a Candidate-Requirements bridge linking each theme to draftable scope.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>input/</code></strong>; the drafter picks the candidate-requirement bridge up like any other source.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>documentation/</code></strong>; the drafter picks the candidate-requirement bridge up like any other source.</div></div>
       </div>
 
       <div class="card opt">
         <h4>opportunity-solution-trees</h4>
         <div class="role">Teresa Torres 2016 (forward discovery)</div>
-        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs name a desired outcome and you want to ladder it down through opportunities and solutions before the drafter commits to feature scope.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/OPPORTUNITY-SOLUTION-TREES/opportunity-solution-tree.html</code> — four-layer discovery tree (Outcome → Opportunities → Solutions → Assumption-tests) with a Candidate-Requirements bridge.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>input/</code></strong>; the drafter consumes the bridge section to seed scope. Use the assumption-tests to drive validation work in parallel.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>documentation/</code></strong>; the drafter consumes the bridge section to seed scope. Use the assumption-tests to drive validation work in parallel.</div></div>
       </div>
 
       <div class="card opt">
         <h4>journey-mapping</h4>
         <div class="role">NN/G + Kalbach current-state journey</div>
-        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs describe an end-to-end user experience (one or more personas) and you need a concrete backbone for §5 task flows, §6 integration constraints, §4 NFRs, user stories, and priorities.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/JOURNEY-MAPPING/journey-mapping.html</code> — one journey card per persona with phases, steps, touchpoints, channels, thoughts, emotion-curve SVG, pain-points, opportunities, moments of truth.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>input/</code></strong>; HTML survives markitdown round-trip with <code>[SRC: &lt;filename&gt;]</code> citations intact so the drafter inherits the audit trail.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>documentation/</code></strong>; HTML survives markitdown round-trip with <code>[SRC: &lt;filename&gt;]</code> citations intact so the drafter inherits the audit trail.</div></div>
       </div>
 
       <div class="card opt">
         <h4>jtbd</h4>
         <div class="role">Christensen-Moesta + Ulwick</div>
-        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When you want the requirements to anchor on user motivation rather than features — "when X, I want Y, so I can Z" — and you have raw inputs that imply jobs without naming them.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/JTBD/jtbd-job-map.html</code> — canonical statements, four forces (push / pull / anxiety / habit), 5×5 Ulwick opportunity matrix.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>input/</code></strong>; the drafter cites jobs as positive scope and forces as design-influence context.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>documentation/</code></strong>; the drafter cites jobs as positive scope and forces as design-influence context.</div></div>
       </div>
 
       <div class="card opt">
         <h4>ooux</h4>
         <div class="role">Sophia Prater ORCA</div>
-        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>. Synonym merge across sources is the load-bearing Round 2.</div></div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>. Synonym merge across sources is the load-bearing Round 2.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs imply a domain object model (entities, relationships, CTAs) and you want it canonicalised — with conflicting names merged and provenance preserved — before the drafter commits to §7 Data.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/OOUX/ooux-object-map.html</code> — Mermaid <code>erDiagram</code>, OOUX sticky-note column-board, relationship matrix, and an embedded JSON object-map body block (load-bearing for drafter re-ingestion).</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>input/</code></strong>; the JSON body and erDiagram both survive markitdown HTML → MD as fenced code so the drafter consumes the full object model in one shot.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>documentation/</code></strong>; the JSON body and erDiagram both survive markitdown HTML → MD as fenced code so the drafter consumes the full object model in one shot.</div></div>
       </div>
 
       <div class="card opt">
         <h4>swim-lane-process-mapping</h4>
         <div class="role">Rummler-Brache + Disconnect Analysis</div>
-        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs describe multi-actor processes with handoffs (the "white space" between functional silos) and you want every lane-to-lane handoff classified — clean or one of four disconnect types.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/SWIM-LANE-PROCESS-MAPPING/swim-lane-process-mapping.html</code> — Mermaid <code>flowchart TD</code> per process with <code>subgraph</code> lanes, Actor inventory, Disconnect Register, embedded YAML model.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>input/</code></strong>; the YAML model becomes a bijection target — processes → §5 task flows, handoffs → §6 integrations, decisions → acceptance-criteria branches, data-stores → §7 entities.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>documentation/</code></strong>; the YAML model becomes a bijection target — processes → §5 task flows, handoffs → §6 integrations, decisions → acceptance-criteria branches, data-stores → §7 entities.</div></div>
       </div>
 
       <div class="card opt">
         <h4>affinity-mapping</h4>
         <div class="role">Kawakita KJ + Beyer/Holtzblatt</div>
-        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the inputs are a dense pile of atomic claims (interview snippets, sticky-notes, observations) and you want them clustered bottom-up into 4–8 super-themes without imposing a prior frame.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/AFFINITY-MAPPING/affinity-map.html</code> — Mermaid mindmap, cluster cards with stable/drifted confidence chips (Jaccard between two anti-anchoring passes), orphans table, optional tension flowchart, embedded JSON hierarchy.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>input/</code></strong>; super-theme insight statements feed §1 vision anchors, clusters seed §5 task-flow groupings and acceptance-criteria threads, orphans feed §10 out-of-scope candidates, tensions feed trade-off-aware criteria.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Copy <strong>into <code>documentation/</code></strong>; super-theme insight statements feed §1 vision anchors, clusters seed §5 task-flow groupings and acceptance-criteria threads, orphans feed §10 out-of-scope candidates, tensions feed trade-off-aware criteria.</div></div>
       </div>
 
       <div class="card opt">
         <h4>glossary</h4>
         <div class="role">Ubiquitous-language vocabulary</div>
-        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>. (Distinct from the same-named <code>/analyse-requirement</code> method, which reads <code>requirements.md</code>.)</div></div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>. (Distinct from the same-named <code>/analyse-requirement</code> method, which reads <code>requirements.md</code>.)</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When you want <em>one</em> agreed vocabulary for the system before drafting — significant terms surfaced, classified domain vs application, defined from the inputs, and rated for how settled each shared understanding is.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/GLOSSARY/glossary.html</code> — per-term cards with domain/application + 0–4 maturity badges and cited definitions, plus fenced proposed definitions / canonical resolutions wherever a term is left undefined, weak, synonymous, or conflicting.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Re-drop <strong>into <code>input/</code></strong> so <code>/requirements</code> adopts the agreed terms as canonical vocabulary; the blocking proposals reach the resolver as questions you confirm before they anchor requirements.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Re-drop <strong>into <code>documentation/</code></strong> so <code>/requirements</code> adopts the agreed terms as canonical vocabulary; the blocking proposals reach the resolver as questions you confirm before they anchor requirements.</div></div>
       </div>
 
       <div class="card opt">
         <h4>user-goal-analysis</h4>
         <div class="role">Actor &amp; end-user goals (GORE)</div>
-        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When you want the actor and end-user goals behind the request made explicit — both the goals the inputs state <em>and</em> the ones they imply. The actor-goal complement to <em>business-context-definition</em>.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/USER-GOAL-ANALYSIS/user-goal-analysis.html</code> — a goal register grouped by goal type, an AND/OR refinement tree, an actor map, and a conflicts table; inferred goals flagged for confirmation.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Re-drop <strong>into <code>input/</code></strong> so explicit goals seed §4 user stories and inferred goals reach the resolver as questions you confirm before they become requirements.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Re-drop <strong>into <code>documentation/</code></strong> so explicit goals seed §4 user stories and inferred goals reach the resolver as questions you confirm before they become requirements.</div></div>
       </div>
 
       <div class="card opt">
         <h4>business-context-definition</h4>
         <div class="role">Enterprise motivation (BMM + BABOK)</div>
-        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via <code>source-manifest.json</code>.</div></div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via <code>source-manifest.json</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When you need the <em>enterprise</em> motivation behind the request — the business problems, needs, and goals — rather than the individual actor goals <em>user-goal-analysis</em> covers. Run the two side-by-side for two clean, non-overlapping registers.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html</code> — a report linking business problem → need → goal → problem-statement in one causal chain; inferred items flagged for confirmation.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Re-drop <strong>into <code>input/</code></strong> so the causal chain seeds strategic framing and requirement traceability; run <em>user-goal-analysis</em> alongside it for actor-level goals.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Re-drop <strong>into <code>documentation/</code></strong> so the causal chain seeds strategic framing and requirement traceability; run <em>user-goal-analysis</em> alongside it for actor-level goals.</div></div>
       </div>
 
     </div>
@@ -930,10 +930,10 @@
     <div class="card base solo">
       <h4>/generate-prd</h4>
       <div class="role">Strategic PRD for stakeholders</div>
-      <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code> via the shared <code>source-manifest.json</code>. Independent of <code>requirements.md</code> — never reads or writes it.</div></div>
+      <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code> via the shared <code>source-manifest.json</code>. Independent of <code>requirements.md</code> — never reads or writes it.</div></div>
       <div class="field"><span class="field-label">When to use</span><div class="field-body">When you need a stakeholder-facing PRD (strategic framing, success metrics, hypotheses, MVP phasing, risks). Run before <code>/requirements</code> so its strategic framing can be folded back as a drafting input.</div></div>
       <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>prd/prd.md</code> — narrative PRD with <code>PC-NNN</code> / <code>PAI-NNN</code> citation IDs (namespaced to avoid collision with <code>/requirements</code>).</div></div>
-      <div class="field"><span class="field-label">How to use</span><div class="field-body"><strong>Copy the relevant parts of <code>prd/prd.md</code> (success metrics, MVP phasing, hypothesis statements) into <code>input/</code></strong> before running <code>/requirements</code>. The PRD then becomes another source the drafter cites alongside the original material.</div></div>
+      <div class="field"><span class="field-label">How to use</span><div class="field-body"><strong>Copy the relevant parts of <code>prd/prd.md</code> (success metrics, MVP phasing, hypothesis statements) into <code>documentation/</code></strong> before running <code>/requirements</code>. The PRD then becomes another source the drafter cites alongside the original material.</div></div>
     </div>
   </div>
 </details>
@@ -951,8 +951,8 @@
     <div class="card base solo">
       <h4>/requirements</h4>
       <div class="role">Citation-grounded system spec</div>
-      <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>input/</code>, enumerated via the shared <code>source-manifest.json</code>. Multimodal sources (screenshots, diagrams) read natively.</div></div>
-      <div class="field"><span class="field-label">When to use</span><div class="field-body">First proper pipeline of any engagement, once the input drop is complete (and any pre-requirements lensing — PRD, input reviews, input analyses — has been folded back into <code>input/</code>). Re-run after every meaningful change.</div></div>
+      <div class="field"><span class="field-label">Inputs</span><div class="field-body">Every file in <code>documentation/</code>, enumerated via the shared <code>source-manifest.json</code>. Multimodal sources (screenshots, diagrams) read natively.</div></div>
+      <div class="field"><span class="field-label">When to use</span><div class="field-body">First proper pipeline of any engagement, once the input drop is complete (and any pre-requirements lensing — PRD, input reviews, input analyses — has been folded back into <code>documentation/</code>). Re-run after every meaningful change.</div></div>
       <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>requirements/requirements.md</code> — citation-grounded, deterministic spec. Inline <code>[SRC: C-NNN]</code> traces stripped on merge; <code>[AI-SUGGESTED]</code> / <code>[STANDARD-RULE]</code> / <code>[OUT-OF-SCOPE]</code> markers retained.</div></div>
       <div class="field"><span class="field-label">How to use</span><div class="field-body">The downstream contract every other pipeline keys off. Hand to <code>/wireframe</code> as-is. Lens with <code>/analyse-requirement</code> or <code>/review-requirement</code> before sign-off; fold review verdicts back as manual edits.</div></div>
     </div>
@@ -972,7 +972,7 @@
     <div class="card base solo">
       <h4>/design-system</h4>
       <div class="role">Brand token set</div>
-      <div class="field"><span class="field-label">Inputs</span><div class="field-body">Domain text (e.g. "hospitality booking platform") + optional live URL the styler can scrape. Does not read <code>input/</code> or <code>requirements/</code> — runs in parallel to <code>/requirements</code>.</div></div>
+      <div class="field"><span class="field-label">Inputs</span><div class="field-body">Domain text (e.g. "hospitality booking platform") + optional live URL the styler can scrape. Does not read <code>documentation/</code> or <code>requirements/</code> — runs in parallel to <code>/requirements</code>.</div></div>
       <div class="field"><span class="field-label">When to use</span><div class="field-body">Whenever you want a tokenised brand basis — colours, type, shadow, motion, contrast pairs — for downstream high-fidelity work. Can run any time; fully stand-alone.</div></div>
       <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>design-system/design-system-light.html</code> and/or <code>design-system/design-system-dark.html</code> — one self-contained, single-mode HTML file per colour mode, each with an embedded LLM-readable token JSON block plus visual swatches, type specimens, shadow / motion / contrast pairs viewable via <code>file://</code>. The consultant picks light-only / dark-only / both after extraction; the extracted scheme is the hue source (always written, <code>meta.primary: true</code>) and the other mode is derived from the same brand hues.</div></div>
       <div class="field"><span class="field-label">How to use</span><div class="field-body">Reference for any prototype or hi-fi UI work after wireframes settle. <strong>Note:</strong> the low-fi <code>/wireframe</code> output uses its own bundled <code>wireframe-ds.css</code>, not the styler's output — design-system tokens land in the next fidelity step, not in the lo-fi variants.</div></div>
@@ -1000,7 +1000,7 @@
         <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">Before handing the spec to design or engineering — flush out defects so downstream work starts from a patched doc, not inherited weaknesses.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/ADVERSARIAL/adversarial-review.html</code> — eight-dimension findings (clarity, completeness, consistency, testability, feasibility, risk, scope, traceability).</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Manually edit <code>requirements/requirements.md</code> to address each finding, or feed corrections back as new files in <code>input/</code> and re-run <code>/requirements</code>.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Manually edit <code>requirements/requirements.md</code> to address each finding, or feed corrections back as new files in <code>documentation/</code> and re-run <code>/requirements</code>.</div></div>
       </div>
 
       <div class="card opt">
@@ -1018,7 +1018,7 @@
         <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">Before design or estimation — surface the ten most pressing stakeholder questions the doc has left unanswered.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/TEN-BA-QUESTIONS/ten-ba-questions-review.html</code> — ten ranked elicitation questions, each tied to a doc section.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Ask the client; capture answers as a new file in <code>input/</code> and re-run <code>/requirements</code> to fold them in.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Ask the client; capture answers as a new file in <code>documentation/</code> and re-run <code>/requirements</code> to fold them in.</div></div>
       </div>
 
       <div class="card opt">
@@ -1027,7 +1027,7 @@
         <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">Before designing screens — surface the ten most pressing UX questions the doc has left unanswered, so wireframes don't lock decisions against gaps.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>review-requirements/TEN-UX-QUESTIONS/ten-ux-questions-review.html</code> — ten ranked UX questions tied to user goals and screen-level decisions.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Ask the client (or make defensible defaults), capture as new files in <code>input/</code>, re-run <code>/requirements</code> before running <code>/wireframe</code>.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Ask the client (or make defensible defaults), capture as new files in <code>documentation/</code>, re-run <code>/requirements</code> before running <code>/wireframe</code>.</div></div>
       </div>
 
       <div class="card opt">
@@ -1075,8 +1075,8 @@
       <h4>/resolve-review</h4>
       <div class="role">Review findings → approved input document</div>
       <div class="field"><span class="field-label">Inputs</span><div class="field-body">One existing review artefact, picked from disk — any <code>review-inputs/&lt;METHOD&gt;/</code> or <code>review-requirements/&lt;METHOD&gt;/</code> output. Run a review first.</div></div>
-      <div class="field"><span class="field-label">When to use</span><div class="field-body">After a review, when you want its findings <em>acted on</em> rather than just listed — the assisted alternative to hand-editing <code>input/</code> files or <code>requirements.md</code>. You select which findings to address and resolve each one in turn; every AI-inferred resolution is confirmed by an explicit affirmative — per finding, or in one go via an explicit <em>Accept all remaining as drafted</em> choice — before it is recorded.</div></div>
-      <div class="field"><span class="field-label">Delivers</span><div class="field-body">One <strong>new</strong> dated resolutions document under <code>input/</code> per run — existing input files are never modified or overwritten. Each resolution is origin-marked (consultant-stated vs AI-inferred-and-confirmed) and carries a Supersedes line so cross-source-conflict detection stays honest. On review-requirements-sourced runs you can additionally opt in to a transient <em>Amendments (pending re-merge)</em> section cached inside <code>requirements.md</code> for immediate downstream use.</div></div>
+      <div class="field"><span class="field-label">When to use</span><div class="field-body">After a review, when you want its findings <em>acted on</em> rather than just listed — the assisted alternative to hand-editing <code>documentation/</code> files or <code>requirements.md</code>. You select which findings to address and resolve each one in turn; every AI-inferred resolution is confirmed by an explicit affirmative — per finding, or in one go via an explicit <em>Accept all remaining as drafted</em> choice — before it is recorded.</div></div>
+      <div class="field"><span class="field-label">Delivers</span><div class="field-body">One <strong>new</strong> dated resolutions document under <code>documentation/</code> per run — existing input files are never modified or overwritten. Each resolution is origin-marked (consultant-stated vs AI-inferred-and-confirmed) and carries a Supersedes line so cross-source-conflict detection stays honest. On review-requirements-sourced runs you can additionally opt in to a transient <em>Amendments (pending re-merge)</em> section cached inside <code>requirements.md</code> for immediate downstream use.</div></div>
       <div class="field"><span class="field-label">How to use</span><div class="field-body">Re-run <code>/requirements</code> — the resolutions document is picked up like any other input file and your decisions are folded into the regenerated spec (which also clears the transient Amendments cache). One run resolves one review; re-invoke for another.</div></div>
     </div>
   </div>
@@ -1156,7 +1156,7 @@
         <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">Before APIs or async flows are specified — clarify how user, system components, and external services interact across a scenario.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/SEQUENCE-DIAGRAM/sequence-diagram.html</code> — actor / lifeline / message sequence per scenario.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Hand to engineering as the basis for API design; use to spot async-handling decisions the spec should make explicit, then re-run <code>/requirements</code> with that clarification in <code>input/</code>.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Hand to engineering as the basis for API design; use to spot async-handling decisions the spec should make explicit, then re-run <code>/requirements</code> with that clarification in <code>documentation/</code>.</div></div>
       </div>
 
       <div class="card opt">
@@ -1192,7 +1192,7 @@
         <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When you suspect rationale is thin — drill each requirement down to a user goal, business driver, or external mandate.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/FIVE-WHYS/five-whys.html</code> — per-requirement why-chain, flagging thin or speculative justifications for consultant follow-up.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Use flagged thin-rationale rows as interview prompts with the client; capture answers in <code>input/</code> and re-run <code>/requirements</code>.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Use flagged thin-rationale rows as interview prompts with the client; capture answers in <code>documentation/</code> and re-run <code>/requirements</code>.</div></div>
       </div>
 
       <div class="card opt">
@@ -1237,7 +1237,7 @@
         <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>. Optionally seeds from an on-disk <em>state-diagram</em> analysis (runs cold without it).</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the requirements are dense with conditional logic — validation, conditional fields, eligibility, status-and-role-driven enable/disable — and you want it pulled into structured rule tables and checked for gaps before building.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/DECISION-TABLES/decision-tables.html</code> — DMN decision tables (condition columns to a conclusion, hit policy per table), a completeness check flagging unhandled condition combinations, and a consistency check flagging conflicting rules, with the rule model embedded for re-ingestion.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Use the tables as the form-validation, conditional-visibility, and action-enablement spec your screens enforce; chase the flagged gaps and conflicts before wireframing, and re-drop the HTML into <code>input/</code> so <code>/requirements</code> turns each blocking gap into a question.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Use the tables as the form-validation, conditional-visibility, and action-enablement spec your screens enforce; chase the flagged gaps and conflicts before wireframing, and re-drop the HTML into <code>documentation/</code> so <code>/requirements</code> turns each blocking gap into a question.</div></div>
       </div>
 
       <div class="card opt">
@@ -1246,7 +1246,7 @@
         <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code>. Optionally seeds its controlled vocabulary from an on-disk <em>glossary</em> analysis (runs cold without it).</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">When the app is list-heavy and you need to specify how users filter, sort, and search records before wireframing those list surfaces.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>analyse-requirements/FACETED-CLASSIFICATION/facet-map.html</code> — a facet map of the orthogonal dimensions records can be sliced along (status, type, owner, date-range), each with its value set and the data property it filters on, plus an orthogonality check, per-surface filter/sort scaffolding notes, and a facet-value-scoped controlled vocabulary.</div></div>
-        <div class="field"><span class="field-label">How to use</span><div class="field-body">Use the facets as the filter-chip, facet-rail, and sort-axis specification your list surfaces are designed against; re-drop into <code>input/</code> so <code>/requirements</code> hardens the filter/sort UI requirements.</div></div>
+        <div class="field"><span class="field-label">How to use</span><div class="field-body">Use the facets as the filter-chip, facet-rail, and sort-axis specification your list surfaces are designed against; re-drop into <code>documentation/</code> so <code>/requirements</code> hardens the filter/sort UI requirements.</div></div>
       </div>
 
     </div>
@@ -1290,7 +1290,7 @@
       <div class="card base solo">
         <h4>/prototype</h4>
         <div class="role">Hi-fi clickable prototype (one shared app)</div>
-        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code> (scoped via the shared <code>scope-selector</code>) + your <strong>A–E</strong> supporting-input selection — <strong>A</strong> requirement, <strong>B</strong> <code>analyse-requirements/*</code>, <strong>C</strong> <code>analyse-inputs/*</code>, <strong>D</strong> <code>wireframes/&lt;scope&gt;/*</code>, <strong>E</strong> <code>input/*</code> — plus <code>design-system/design-system-light.html</code> or <code>-dark.html</code> for brand (if present; else reference-URL / paste-tokens / template defaults) and <code>template/</code> as the one-time scaffold source.</div></div>
+        <div class="field"><span class="field-label">Inputs</span><div class="field-body"><code>requirements/requirements.md</code> (scoped via the shared <code>scope-selector</code>) + your <strong>A–E</strong> supporting-input selection — <strong>A</strong> requirement, <strong>B</strong> <code>analyse-requirements/*</code>, <strong>C</strong> <code>analyse-inputs/*</code>, <strong>D</strong> <code>wireframes/&lt;scope&gt;/*</code>, <strong>E</strong> <code>documentation/*</code> — plus <code>design-system/design-system-light.html</code> or <code>-dark.html</code> for brand (if present; else reference-URL / paste-tokens / template defaults) and <code>template/</code> as the one-time scaffold source.</div></div>
         <div class="field"><span class="field-label">When to use</span><div class="field-body">After <code>requirements.md</code> is accepted and wireframes have settled a direction, when you want a <em>clickable</em> artefact to demo with the client. Run it again — different posture or positions, same brand — to add a divergent prototype for side-by-side comparison.</div></div>
         <div class="field"><span class="field-label">Delivers</span><div class="field-body"><code>prototypes/</code> — one shared Next.js app: a landing page listing every prototype grouped by scope, a per-run prototype under <code>src/app/&lt;name-slug&gt;/</code>, shared components / fixtures / one <code>theme.css</code>, and a <code>PrototypeChrome</code> with a role switcher (PI-05) + data reset. Every data-bound element is traceable to a blueprint Property closed set (anti-fabrication); the build is verified (lint + typecheck + build + Playwright smoke) and honours invariants <code>PI-01</code>..<code>PI-08</code>.</div></div>
         <div class="field"><span class="field-label">How to use</span><div class="field-body">Pipeline per run: scope + name → A–E inputs → blueprint (reused if present) → purpose + posture + positions → design-spec <em>draft → resolve → merge</em> → scaffold-if-needed → parallel per-surface generation → verify → landing update. Open the landing page, click into the prototype, and walk the client through the workflow. Designating a <code>/wireframe</code> variant as the basis pre-fills the posture and D1–D5 positions from that variant.</div></div>

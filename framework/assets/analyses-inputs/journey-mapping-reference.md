@@ -4,7 +4,7 @@
 
 > **Method:** Walk every consumable source enumerated in `requirements/source-manifest.json`. For each named actor surfaced in the inputs, build one current-state journey map of the as-is workflow described in the briefs / decks / interview notes / screenshots — phases (3–6), steps per phase (3–8, user-as-subject verb phrases), touchpoints, channels, thoughts (verbatim quotes only), emotions (proxy-derived, −2…+2 scale), pain points, backstage systems, opportunities, and moments of truth. Render the artefact as self-contained HTML at `analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` with **diagrams-first ordering** — a compact overview, then one `<article class="diagram-block">` per persona (inline SVG emotion curve + CSS-grid swim-lane table) stacked in the `#diagrams` gallery, then narrative bridges + moments-of-truth in `#narratives`, then collapsed diagnostics. Every non-empty cell carries one `[SRC: <filename>]` or `[STANDARD-RULE: GR-NN]` marker naming a manifest row's `filename` field (basename + extension). Coverage gaps surface as `[GAP-NO-EVIDENCE]` notes inside the diagnostics block — **never** as fabricated cells. Across re-runs the artefact is **additive**: prior journey cards, swim-lane cell contents, bridges, and moments-of-truth are preserved; new manifest content extends them.
 
-**Output file:** `analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` — self-contained HTML (inline `<style>`, inline SVG, no external JS, no CDN, no remote font). Mirrors the precedent set by `analyse-requirements/USER-JOURNEYS/user-journeys-map.html`. Re-ingestible into `input/` for `/requirements` consumption: HTML classifies as `Markitdown-text` tier and converts cleanly to Markdown while preserving the inline `[SRC: <filename>]` markers (the audit trail end-to-end is the load-bearing reason for the marker discipline).
+**Output file:** `analyse-inputs/JOURNEY-MAPPING/journey-mapping.html` — self-contained HTML (inline `<style>`, inline SVG, no external JS, no CDN, no remote font). Mirrors the precedent set by `analyse-requirements/USER-JOURNEYS/user-journeys-map.html`. Re-ingestible into `documentation/` for `/requirements` consumption: HTML classifies as `Markitdown-text` tier and converts cleanly to Markdown while preserving the inline `[SRC: <filename>]` markers (the audit trail end-to-end is the load-bearing reason for the marker discipline).
 
 **Analyser agent:** `framework/agents/analyses-inputs/journey-mapping-analyser.md`
 
@@ -40,7 +40,7 @@ The codebase already ships a `USER-JOURNEYS` analyser under `/analyse-requiremen
 | Lens | Pipeline | Source material | Temporal pose | Downstream use |
 |---|---|---|---|---|
 | `USER-JOURNEYS` (requirements side) | `/analyse-requirement` | `requirements/requirements.md` (synthesised spec) | **Future-state** (current-of-the-spec — system to be built) | Verify the spec covers the right experience |
-| `JOURNEY-MAPPING` (inputs side, this analyser) | `/analyse-inputs` | Raw `input/` (briefs, decks, interview notes) | **Current-state** (current-of-the-world — as-is workflow) | Inform the spec by providing a structured experience map of what exists today |
+| `JOURNEY-MAPPING` (inputs side, this analyser) | `/analyse-inputs` | Raw `documentation/` (briefs, decks, interview notes) | **Current-state** (current-of-the-world — as-is workflow) | Inform the spec by providing a structured experience map of what exists today |
 
 Same column shape, different source material at different pipeline stages, different downstream uses. Compare: `opportunity-solution-trees` exists on both sides too (reverse-discovery for requirements, forward-discovery for inputs).
 
@@ -345,7 +345,7 @@ Run at Round 6 close, before render. Each gate captures `{gate_id, status: pass 
 
 On any hard-gate failure: do **not** write the artefact. Surface `AskUserQuestion` with three options:
 
-1. `Revise — exit so the consultant can enrich input/ and re-invoke /analyse-inputs (Recommended)`
+1. `Revise — exit so the consultant can enrich documentation/ and re-invoke /analyse-inputs (Recommended)`
 2. `Override — proceed and write a known-defective artefact (Run-history bullet records every violation)`
 3. `Restart — re-run from Round 1 with a fresh manifest pass`
 
@@ -417,7 +417,7 @@ The analyser does not author requirements; the downstream mapping documents how 
 | **Sentiment curve** | Prioritisation signal — low-sentiment phases get higher requirements-drafting priority |
 | **Moments of truth** | Reliability + observability requirements (P0 priority annotation; these touchpoints must not fail silently) |
 
-When the consultant re-drops `journey-mapping.html` into `input/`, the drafter reads it as a `Markitdown-text`-tier source. The drafter's claim-citation traces *through* the journey map to the original brief filenames via the `[SRC: <filename>]` markers preserved through markitdown conversion. The audit trail is end-to-end.
+When the consultant re-drops `journey-mapping.html` into `documentation/`, the drafter reads it as a `Markitdown-text`-tier source. The drafter's claim-citation traces *through* the journey map to the original brief filenames via the `[SRC: <filename>]` markers preserved through markitdown conversion. The audit trail is end-to-end.
 
 `framework/skills/map-journey-mapping-from-inputs-to-ui.md` is a stub at MVP — the mapping is documented here for the analyser's character file and for future downstream design-spec authors.
 

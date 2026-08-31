@@ -12,7 +12,7 @@
   Self-contained: `<!doctype html>` + inline `<style>` + `<body>`. No
   external CSS / JS / fonts / CDN dependencies. Viewable by opening
   `file://` in a browser; shareable with clients without tooling.
-  Re-ingestible into `input/` for the /requirements drafter via markitdown
+  Re-ingestible into `documentation/` for the /requirements drafter via markitdown
   conversion — the structured YAML tree lives in a <pre><code> block
   (which survives the HTML→MD round-trip as a fenced code block, unlike
   <script type="application/json"> which is stripped). Inline
@@ -47,7 +47,7 @@
                                                  /requirements drafter
                                                  reads after the consultant
                                                  copies the artefact into
-                                                 input/).
+                                                 documentation/).
     5. Plans table (id="plans-table")          — {{PLANS_TABLE_BODY}}.
                                                  Every non-terminal's Plan
                                                  in tabular form, with
@@ -68,7 +68,7 @@
                                                  8 gate results, source
                                                  roster, run history.
     9. Next-steps banner (after diagnostics)   — instructions to copy the
-                                                 artefact into input/ for
+                                                 artefact into documentation/ for
                                                  /requirements re-ingestion.
 
   Placeholders the analyser substitutes (string substitution; all values
@@ -1126,14 +1126,14 @@
 
     <section class="next-steps" aria-label="Next steps">
       <h2>Next steps</h2>
-      <p>To feed this task analysis into <code>/requirements</code>, copy this file into <code>input/</code> and re-run <code>/requirements</code>. See the "For downstream use" section below for the full re-ingestion details.</p>
+      <p>To feed this task analysis into <code>/requirements</code>, copy this file into <code>documentation/</code> and re-run <code>/requirements</code>. See the "For downstream use" section below for the full re-ingestion details.</p>
     </section>
 
     <details class="downstream-toggle">
       <summary>For downstream use — re-ingesting this artefact into /requirements</summary>
       <div class="downstream-note">
         <p>
-          Copy this file into <code>input/</code> (e.g. <code>input/task-analysis.html</code>) and re-run <code>/requirements</code>. The input-handler classifies it as <code>Supported-via-MCP</code>; markitdown converts it to <code>input/task-analysis.html.converted.md</code>. The structured YAML block (inside <code>&lt;pre&gt;&lt;code class="language-yaml"&gt;</code>) survives the HTML→MD round-trip as a fenced code block and is what the drafter consumes — the visual tree becomes indented bullets; <code>[SRC: &lt;filename&gt;]</code> markers survive as plain text; <code>[AI-SUGGESTED: AI-NNN | blocking]</code> markers flow into the resolver as consultant questions. The YAML structured tree becomes a bijection target for the completeness gap pass; the Plans table seeds acceptance-criteria branches; the information-requirements table hints at <code>§7 Data entities</code>.
+          Copy this file into <code>documentation/</code> (e.g. <code>documentation/task-analysis.html</code>) and re-run <code>/requirements</code>. The input-handler classifies it as <code>Supported-via-MCP</code>; markitdown converts it to <code>documentation/task-analysis.html.converted.md</code>. The structured YAML block (inside <code>&lt;pre&gt;&lt;code class="language-yaml"&gt;</code>) survives the HTML→MD round-trip as a fenced code block and is what the drafter consumes — the visual tree becomes indented bullets; <code>[SRC: &lt;filename&gt;]</code> markers survive as plain text; <code>[AI-SUGGESTED: AI-NNN | blocking]</code> markers flow into the resolver as consultant questions. The YAML structured tree becomes a bijection target for the completeness gap pass; the Plans table seeds acceptance-criteria branches; the information-requirements table hints at <code>§7 Data entities</code>.
         </p>
       </div>
     </details>

@@ -16,7 +16,7 @@ The model is concrete: codes are short noun-phrases anchored to a verbatim extra
 
 ## Reader & plain language
 
-This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `input/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
+This artefact is read by a human (the consultant, sometimes a client stakeholder) **and** re-ingested downstream by `/requirements` (when the consultant copies it into `documentation/` for a downstream run, via markitdown round-trip). Apply the standard in `framework/shared/output-readability.md` — it is additive and does **not** relax the rules above. Concretely:
 
 - **Write the "In plain terms" lead (`{{PLAIN_SUMMARY}}`)** as 2–5 plain-English sentences: what this analysis is, what it found, and what the consultant should do with it. A faithful condensation of the content below — it introduces no fact, count, or citation not already present, and carries no `[SRC]` of its own.
 - **Gloss methodology jargon at first use** in human-readable prose (the lead, the handback line) — e.g. theme (a recurring pattern across the inputs), code (a tag on a piece of text anchored to a verbatim extract), inductive/deductive coding (letting codes arise from the data vs checking the data against a fixed frame), code frequency (how many codes support a theme), saturation (the point at which new sources add no new codes). **Do not gloss client domain terms** — defining those is the GLOSSARY methodology's job.
@@ -29,7 +29,7 @@ This artefact is read by a human (the consultant, sometimes a client stakeholder
 - **State structural reasons out loud.** When you flag a violation or a gate failure, say which gate fired and which item triggered it: *"Quality gate 2 failed: theme `Reporting-needs` is supported by only 1 code (`c47` from `brief.docx`). Drop it, merge it into `Audit-trail-completeness`, or override and write a single-code theme."* — don't apologise; don't editorialise.
 - **No marketing language, no chatbot warmth.** Forbidden phrases: *"emerging themes"* (Braun & Clarke's actual position: themes are constructed by clustering codes, not emergent in the data), *"key insights"*, *"executive summary"*, *"strategic implications"*, *"I've discovered some really interesting patterns"*, *"the rich tapestry of stakeholder concerns"*, *"it's worth noting that …"*. Permitted phrases: *"Phase 2 generated 47 codes across 4 sources (brief.docx: 18, whiteboard-photo.png: 9, interview-notes.md: 14, slack-export.md: 6). Phase 3 clustered them into 6 candidate themes; Phase 4 collapsed one (insufficient cross-source support); Phase 5 named the final 5 themes. Coverage frame: 8 covered, 2 gap-deductive (Compliance, Operations), 0 silent."*, *"Wrote `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html` (run #2) — added 3 new codes, 1 new theme; preserved all 4 prior themes. Quality checks: 6/6 pass. Ready, or want changes?"*
 - **Use extraction verbs only.** Permitted: *surface*, *code*, *cluster*, *name*, *map*, *flag*, *cite*. Forbidden: *propose*, *infer*, *hypothesise*, *recommend*, *suggest*, *author*. (The framework's `feedback_analyses_are_extraction_not_authoring` rule is the load-bearing invariant; thematic analysis is the analyser most exposed to authoring temptation because raw inputs are narrative-shaped — the cleanest defence is the verb discipline.)
-- **Don't editorialise about the methodology.** Thematic analysis is a venerable qualitative-research method (Braun & Clarke 2006 *Using thematic analysis in psychology*). Its discipline is what makes it trustworthy. If the inputs are thin, the analysis will produce few themes — that is a **signal**, not a failure. The right consultant action is to add more elicitation material to `input/` and re-run; the wrong action is to invent themes from world knowledge to make the artefact look complete.
+- **Don't editorialise about the methodology.** Thematic analysis is a venerable qualitative-research method (Braun & Clarke 2006 *Using thematic analysis in psychology*). Its discipline is what makes it trustworthy. If the inputs are thin, the analysis will produce few themes — that is a **signal**, not a failure. The right consultant action is to add more elicitation material to `documentation/` and re-run; the wrong action is to invent themes from world knowledge to make the artefact look complete.
 
 ## Six-phase discipline
 
@@ -52,7 +52,7 @@ The six quality checks in `framework/assets/analyses-inputs/thematic-analysis-re
 
 1. State which gate fired and which items triggered it. List items by `{code_id | theme_id, reason}`.
 2. Do **not** write `analyse-inputs/THEMATIC-ANALYSIS/thematic-analysis.html`.
-3. Surface a structured error to the consultant with options to revise the inputs (drop the artefact build, return to `/analyse-inputs` later after enriching `input/`), override the gate (write a known-defective artefact whose Run-history bullet records every violation), or restart from Phase 1.
+3. Surface a structured error to the consultant with options to revise the inputs (drop the artefact build, return to `/analyse-inputs` later after enriching `documentation/`), override the gate (write a known-defective artefact whose Run-history bullet records every violation), or restart from Phase 1.
 
 Writing a defective thematic analysis silently is the worst failure mode — its candidate-requirement lines feed directly into the next `/requirements` run, and a fabricated theme will propagate fabricated requirements into the merged spec without traceability.
 
@@ -84,7 +84,7 @@ The 10-area concern frame (Functional, Data, NFR, Integration, Security, Workflo
 
 - **Inductive Phases 1–5 generate themes.** Data shapes the codes; codes shape the themes.
 - **Deductive Phase 6 sub-step B checks coverage.** For each concern, look up its keyword list (defined in the reference) and lexically scan the consumed sources. If any source mentions the concern AND no inductive theme touches it → `[GAP-DEDUCTIVE: <concern>]`. If no source mentions it → `silent`. If at least one inductive theme touches it → `covered`.
-- **A coverage gap is a signal, not a defect.** The right consultant action is to add elicitation material covering the missing concern (a brief, an interview note, a screenshot of a related screen) to `input/` and re-run. The wrong action is to override the gate and write a theme to cover the gap — that fabricates a finding the data does not support.
+- **A coverage gap is a signal, not a defect.** The right consultant action is to add elicitation material covering the missing concern (a brief, an interview note, a screenshot of a related screen) to `documentation/` and re-run. The wrong action is to override the gate and write a theme to cover the gap — that fabricates a finding the data does not support.
 
 The deductive pass **never** adds themes. `final_themes` is closed at the end of Phase 5 and stays closed.
 
@@ -114,6 +114,6 @@ The analyser does **not** halt the orchestrator on a quality-gate failure — it
 
 The theme-map is a pre-rendered inline `<svg>` (no `mmdc` / Mermaid-render dependency); the Mermaid source beneath it is an unvalidated export adjunct, so there is no Mermaid-validation halt path.
 
-A thin manifest — one with few sources or many `Unsupported` rows — is **not** a failure mode of the analyser; it is a **signal** the analyser is built to surface in the `Coverage gaps and silent areas` and `Source roster` sections. The right consultant action is to enrich `input/` and re-run.
+A thin manifest — one with few sources or many `Unsupported` rows — is **not** a failure mode of the analyser; it is a **signal** the analyser is built to surface in the `Coverage gaps and silent areas` and `Source roster` sections. The right consultant action is to enrich `documentation/` and re-run.
 
 The consultant sees every flagged item in the artefact's `Diagnostics` block (gate violations under Override, coverage gaps, skipped rows); they don't see a stack trace.

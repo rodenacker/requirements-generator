@@ -19,7 +19,7 @@
   (non-collapsed) `#body` section — this form survives the markitdown HTML->MD round-trip as
   a fenced ```json block (a `<script type="application/json">` block would NOT). Every
   completeness gap marked `[AI-SUGGESTED: AI-NNN | blocking]` reaches the /requirements
-  resolver as a mandatory confirmation when the artefact is re-dropped into input/.
+  resolver as a mandatory confirmation when the artefact is re-dropped into documentation/.
 
   Section order (top-to-bottom) — DIAGRAMS FIRST:
     0. In plain terms (id="plain-terms") — {{PLAIN_SUMMARY}}: a short human-readable lead
@@ -348,7 +348,7 @@
     <summary>For downstream use — re-ingesting this artefact into /requirements</summary>
     <div class="downstream-note">
       <p>
-        To re-ingest this artefact into <code>/requirements</code>, copy this file into <code>input/</code> (e.g. <code>input/decision-tables.html</code>) and re-run <code>/requirements</code>. The input-handler classifies it as <code>Supported-via-MCP</code>; markitdown converts it to a <code>.converted.md</code> sibling. The embedded JSON body block (the <code>language-json</code> code block inside <code>#body</code>) survives verbatim as a fenced code block; <code>[SRC: C-NNN]</code> markers survive as plain text. Every completeness gap marked <code>[AI-SUGGESTED: AI-NNN | blocking]</code> reaches the <code>/requirements</code> resolver as a mandatory confirmation.
+        To re-ingest this artefact into <code>/requirements</code>, copy this file into <code>documentation/</code> (e.g. <code>documentation/decision-tables.html</code>) and re-run <code>/requirements</code>. The input-handler classifies it as <code>Supported-via-MCP</code>; markitdown converts it to a <code>.converted.md</code> sibling. The embedded JSON body block (the <code>language-json</code> code block inside <code>#body</code>) survives verbatim as a fenced code block; <code>[SRC: C-NNN]</code> markers survive as plain text. Every completeness gap marked <code>[AI-SUGGESTED: AI-NNN | blocking]</code> reaches the <code>/requirements</code> resolver as a mandatory confirmation.
       </p>
     </div>
   </details>

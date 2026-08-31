@@ -30,7 +30,7 @@ The rendered artefact is laid out top-to-bottom as:
 7. **Affinity-map body** (`{{AFFINITY_MAP_JSON_BLOCK}}`) — `<section id="affinity-map-body">`: a single `<pre><code class="language-json" id="affinity-map-body">` with the full JSON hierarchy serialised per the reference's JSON schema. **The load-bearing markitdown-survival contract.**
 8. **Diagnostics** (`<details id="diagnostics" class="diagnostics-toggle">`) — collapsed by default. Pass-1/Pass-2 Jaccard drift log table, 10 gate-result lines, cluster-size distribution table, irrelevant-to-domain rows, recommended consultant follow-up questions, diagram-validity status, run history.
 9. **Next steps** (`<section class="next-steps">`) — visible reader guidance (audit the drift log, Revise loop).
-10. **Downstream use** (`<details class="downstream-toggle">`) — collapsed footer with re-ingestion instructions (copy to `input/`, `/requirements` re-run, markitdown survival contract). Machinery prose only; not visible by default.
+10. **Downstream use** (`<details class="downstream-toggle">`) — collapsed footer with re-ingestion instructions (copy to `documentation/`, `/requirements` re-run, markitdown survival contract). Machinery prose only; not visible by default.
 
 Plus the `<head>` carries a small `<script type="application/json" id="affinity-map-meta">` block with counts + manifest fingerprint + run number (drift-detection on subsequent runs; stripped by markitdown).
 
@@ -100,8 +100,8 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
   - `Native-text` → `Read row.original_path` as text; capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Native-multimodal` / `Vector-renderable` / `Supported-via-MCP` → `Read row.converted_sibling` as text — a frozen textual description (vision description for `Native-multimodal` / `Vector-renderable`; markitdown rendering for `Supported-via-MCP`) prepared by the input-handler. Treat it as the canonical text source; do **not** re-interpret pixels or re-invoke `markitdown-mcp` — the manifest's `converted_sibling` is the contract. The description already carries a faithful transcription (object labels, ERD entity names, sticky-note captions, screen-mock copy naming data fields or actions) plus a structured what/how breakdown. **The boundary still holds at the note level:** a Round 1 note's text must be supported by what the frozen description actually records, not extrapolated from surrounding context the description does not contain. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
-- If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `input/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
-- If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `input/` and re-invoke `/analyse-inputs`."*
+- If `consumed_rows` is empty AND `skipped_rows` is empty, halt: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* (RF-03 analogue.)
+- If `consumed_rows` is empty AND `skipped_rows` is non-empty, halt: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."*
 - State per-tier ingest decisions aloud:
 
   > *"Step 2: read manifest (`manifest_sha256 = <first 12 chars>…`, target = prototype, domain = `<from-meta-or-null>`). 4 consumable rows: `brief.docx` (Supported-via-MCP), `interview-1.md` (Native-text), `whiteboard.jpg` (Native-multimodal), `analytics-summary.csv` (Supported-via-MCP). 1 skipped row: `legacy.pages` (Unsupported)."*
@@ -436,7 +436,7 @@ Every consultant-supplied string is **HTML-escaped** before injection (`<` → `
 
 **Substitutions:**
 
-- `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences for the "In plain terms" lead: what this affinity map is, what it found, and what the consultant should do with it (e.g. audit drifted notes, confirm orphan placements, copy to `input/` for re-ingestion). A faithful condensation of the closed `model` — it names no cluster, super-theme, count, or `[SRC]` not already in the body and introduces no new fact. Gloss methodology jargon at first use — e.g. *"affinity cluster (notes grouped because they relate)"*, *"super-theme (a higher-level grouping of clusters)"*, *"drifted note (a note whose cluster placement shifted between Pass-1 and Pass-2)"*, *"insight-statement label (a label that says what the data reveals, not just a category name)"*; do **not** gloss client domain terms. HTML-escaped. Per the character's *Reader & plain language* block.
+- `{{PLAIN_SUMMARY}}` — 2–5 plain-English sentences for the "In plain terms" lead: what this affinity map is, what it found, and what the consultant should do with it (e.g. audit drifted notes, confirm orphan placements, copy to `documentation/` for re-ingestion). A faithful condensation of the closed `model` — it names no cluster, super-theme, count, or `[SRC]` not already in the body and introduces no new fact. Gloss methodology jargon at first use — e.g. *"affinity cluster (notes grouped because they relate)"*, *"super-theme (a higher-level grouping of clusters)"*, *"drifted note (a note whose cluster placement shifted between Pass-1 and Pass-2)"*, *"insight-statement label (a label that says what the data reveals, not just a category name)"*; do **not** gloss client domain terms. HTML-escaped. Per the character's *Reader & plain language* block.
 - `{{TITLE}}` — *"Affinity Map (inputs) — `<domain>`"* if a domain string is available, else *"Affinity Map (inputs)"*.
 - `{{DOMAIN}}` — verbatim from manifest meta if present, else *"(not declared in manifest)"*.
 - `{{GENERATED_AT}}` — ISO-8601 UTC, captured at render time.
@@ -503,8 +503,8 @@ Variants:
 - If Pass-2 sub-agent invocation failed (the degraded `pass-2-skipped` path), append: *"Pass-2 sub-agent re-cluster failed to return parseable JSON twice; anti-anchoring control was bypassed for this run. Cluster placements have `confidence: unknown` — recommend a Revise to re-run Round 3 once the sub-agent issue is investigated."*
 - If `drift_mode == "append-new-notes-only"`, append: *"Drift handling: prior clusters preserved verbatim; {n_new_notes} new notes assigned to existing clusters (or new clusters spawned); Pass-2 sub-agent skipped per methodology (incremental mode)."*
 - If `drift_mode == "re-run-full"`, append: *"Drift handling: Rounds 1–6 re-executed from scratch on the current manifest."*
-- If `prior_run == null`, append: *"This is the first run; re-run after enriching `input/` to extend the map."*
-- Always append: *"To re-ingest into `/requirements`, copy `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` into `input/` and re-run `/requirements` — instructions are in the Next-steps banner of the artefact."*
+- If `prior_run == null`, append: *"This is the first run; re-run after enriching `documentation/` to extend the map."*
+- Always append: *"To re-ingest into `/requirements`, copy `analyse-inputs/AFFINITY-MAPPING/affinity-map.html` into `documentation/` and re-run `/requirements` — instructions are in the Next-steps banner of the artefact."*
 
 **B. Accept / Revise / Restart loop.**
 

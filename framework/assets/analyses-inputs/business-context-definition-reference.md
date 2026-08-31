@@ -18,7 +18,7 @@
 
 Business Context Definition answers one question: **"Why is the sponsoring organisation funding any change at all?"** It operates at the **enterprise / sponsor altitude** — market position, cost, compliance, revenue, capability, risk — and produces a causal account of the organisation's problem, need, goal, and a solution-neutral problem framing.
 
-**Hard boundary against `user-goal-analysis` (the load-bearing scope rule).** A **Business Goal** is an *organisational end-state* (BMM sense — *"become the most reliable next-day supplier in the region"*). A **user goal** is an *actor's task / life / experience goal* (Cooper sense — *"find a supplier in under a minute"*, *"feel confident the order will arrive"*). The two methods are **complementary, not overlapping**: run both on one `input/` and get the sponsor's "why fund this" (BCD) and the actor's "what do I want to do" (User Goal Analysis) as two clean registers. BCD never extracts actor goals; any actor-goal material it encounters is **routed, not lost** — recorded in Diagnostics as `deferred-to-user-goal-analysis` and ejected before classification (decision tree D0) and re-checked at gate time (Q6). The disambiguator: *organisational subject (market / cost / compliance / capability / revenue)* → enterprise → BCD; *a person doing a task at their desk* → actor → User Goal Analysis.
+**Hard boundary against `user-goal-analysis` (the load-bearing scope rule).** A **Business Goal** is an *organisational end-state* (BMM sense — *"become the most reliable next-day supplier in the region"*). A **user goal** is an *actor's task / life / experience goal* (Cooper sense — *"find a supplier in under a minute"*, *"feel confident the order will arrive"*). The two methods are **complementary, not overlapping**: run both on one `documentation/` and get the sponsor's "why fund this" (BCD) and the actor's "what do I want to do" (User Goal Analysis) as two clean registers. BCD never extracts actor goals; any actor-goal material it encounters is **routed, not lost** — recorded in Diagnostics as `deferred-to-user-goal-analysis` and ejected before classification (decision tree D0) and re-checked at gate time (Q6). The disambiguator: *organisational subject (market / cost / compliance / capability / revenue)* → enterprise → BCD; *a person doing a task at their desk* → actor → User Goal Analysis.
 
 ---
 
@@ -42,11 +42,11 @@ This analyser sits in the **bounded-inference** camp, not the pure-extraction ca
 
 | Lens | Methodology | Question answered | Operates on |
 |---|---|---|---|
-| Cross-cutting pattern recognition | thematic-analysis | What recurring patterns do the inputs carry? | raw `input/` |
-| Outcome-tree discovery | opportunity-solution-trees | What desired outcomes do the inputs name and which **solutions** ladder down? | raw `input/` |
-| Jobs × situations × outcomes × forces | jtbd | What jobs are users hiring the product to do? (extraction only) | raw `input/` |
-| **User** goals — stated + inferred — classified + refined | user-goal-analysis | What do the **actors** want to achieve (of what Cooper type, in what hierarchy)? | raw `input/` |
-| **Enterprise** motivation — problem → need → goal → problem-statement | **business-context-definition** | **Why is the sponsoring organisation funding any change at all?** | **raw `input/`** |
+| Cross-cutting pattern recognition | thematic-analysis | What recurring patterns do the inputs carry? | raw `documentation/` |
+| Outcome-tree discovery | opportunity-solution-trees | What desired outcomes do the inputs name and which **solutions** ladder down? | raw `documentation/` |
+| Jobs × situations × outcomes × forces | jtbd | What jobs are users hiring the product to do? (extraction only) | raw `documentation/` |
+| **User** goals — stated + inferred — classified + refined | user-goal-analysis | What do the **actors** want to achieve (of what Cooper type, in what hierarchy)? | raw `documentation/` |
+| **Enterprise** motivation — problem → need → goal → problem-statement | **business-context-definition** | **Why is the sponsoring organisation funding any change at all?** | **raw `documentation/`** |
 
 The scope boundaries are **hard** — enforced as analyser anti-patterns, the character's discipline, and quality gate Q6:
 
@@ -278,7 +278,7 @@ Run at Pass 6 close, before render. Each operates on the in-memory state and cap
 
 On any hard-gate failure: do **not** write the artefact. Surface `AskUserQuestion` with three options:
 
-1. `Revise — exit so the consultant can enrich input/ and re-invoke /analyse-inputs (Recommended)`
+1. `Revise — exit so the consultant can enrich documentation/ and re-invoke /analyse-inputs (Recommended)`
 2. `Override — proceed and write a known-defective report (Run-history bullet records every violation)`
 3. `Restart — re-run from Pass 1 with a fresh manifest pass`
 
@@ -401,7 +401,7 @@ Emitted into `<pre><code class="language-json" id="bcd-body">`. Survives markitd
 
 The Business Context Definition report is **re-ingestible by `/requirements`** as a fresh source. The contract (consultant-driven, not automated):
 
-1. Consultant copies `analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html` into `input/`.
+1. Consultant copies `analyse-inputs/BUSINESS-CONTEXT-DEFINITION/business-context-definition.html` into `documentation/`.
 2. Consultant re-invokes `/requirements` (or `/analyse-inputs`, `/review-inputs`, `/generate-prd`).
 3. The shared `framework/agents/input-handler.md` detects the new file, surfaces the manifest-refresh prompt, classifies it via `framework/skills/classify-input-tier.md` as `Native-text` (HTML passes the UTF-8 / printable-ratio sniff), and adds it as a manifest row.
 4. The `/requirements` drafter reads the report:

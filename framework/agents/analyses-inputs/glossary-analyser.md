@@ -100,9 +100,9 @@ Twelve steps in order. Do not skip steps; do not collapse steps. Each step's suc
   - `Native-multimodal` / `Vector-renderable` → `Read row.converted_sibling` as text — a frozen textual description of the visual prepared by the input-handler. The description already transcribes the visible text and enumerates the glossary-relevant material it depicts (glossary slides, definition tables, org charts, screenshot annotations are transcribed verbatim and structured). Treat it as the canonical text source; do **not** re-interpret pixels. Capture `(filename, tier, sha256[:8], content)` to `consumed_rows`.
   - `Supported-via-MCP` → `Read row.converted_sibling` as text (the input-handler has already converted via markitdown); capture `(filename, tier, sha256[:8], content)` to `consumed_rows`. Do **not** re-invoke `markitdown-mcp`.
   - `Unsupported` → skip; capture `(filename, reason: row.conversions_applied)` to `skipped_rows`.
-- If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no rows at all), halt with: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `input/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; hard halt analogous to RF-03.
-- If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row `Unsupported`), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `input/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
-- State the per-tier ingest decisions aloud, e.g.: *"Step 2: read manifest (`manifest_fingerprint = <first 12 chars>…`). 3 consumable rows: `brief.docx` (Supported-via-MCP, reading `input/brief.docx.converted.md`), `discovery-notes.md` (Native-text), `domain-glossary.png` (Native-multimodal). 1 skipped: `pricing.xlsx` (Unsupported, reason: `markitdown: spreadsheet not configured`)."*
+- If after the iteration `consumed_rows` is empty AND `skipped_rows` is empty (no rows at all), halt with: *"`requirements/source-manifest.json` enumerates zero input files. Drop input material in `documentation/` and re-invoke `/analyse-inputs`."* No `AskUserQuestion`; hard halt analogous to RF-03.
+- If `consumed_rows` is empty AND `skipped_rows` is non-empty (every row `Unsupported`), halt with: *"Every manifest row is `Unsupported`. Add at least one consumable source file to `documentation/` and re-invoke `/analyse-inputs`."* — also analogous to RF-03.
+- State the per-tier ingest decisions aloud, e.g.: *"Step 2: read manifest (`manifest_fingerprint = <first 12 chars>…`). 3 consumable rows: `brief.docx` (Supported-via-MCP, reading `documentation/brief.docx.converted.md`), `discovery-notes.md` (Native-text), `domain-glossary.png` (Native-multimodal). 1 skipped: `pricing.xlsx` (Unsupported, reason: `markitdown: spreadsheet not configured`)."*
 
 ### Step 3 — Detect prior artefact (additive vs re-extract)
 
@@ -228,7 +228,7 @@ State the proposal shape aloud (count by kind + technique, e.g. "Round 4: 16 pro
 10. **G10 Self-containment / round-trip.** Artefact begins `<!doctype html>`; no `<script>`, no external `href`/`src`, no Mermaid; exactly one `glossary-meta` comment; the `glossary-body` JSON parses and contains every term, every proposal (with full `ai_proposal`/anchor), and every register; no literal `{{...}}` remain. (This gate is finalised against the composed string in Sub-step C.)
 
 **On any gate failure:** surface `AskUserQuestion` with three options:
-1. `Revise — exit so the consultant can enrich input/ and re-invoke /analyse-inputs (Recommended)`
+1. `Revise — exit so the consultant can enrich documentation/ and re-invoke /analyse-inputs (Recommended)`
 2. `Override — proceed and write a known-defective report (Run-history records every violation)`
 3. `Restart — re-run from Round 1`
 
@@ -324,11 +324,11 @@ Variants:
 - If `to_reconcile > 0`, append: *"Synonym note: {to_reconcile} concepts are named by multiple terms; a canonical term is proposed for each so the spec uses one name per concept."*
 - If `drift_mode == "re-extract"`, append: *"Drift handling: Rounds 1–5 re-run from scratch; AI-NN ids re-minted; {n_dropped} prior terms dropped (recorded in Run-history)."*
 - If `drift_mode == "append-only"`, append: *"Drift handling: prior terms, confirmed agreements, and resolutions preserved verbatim; only new terms from new manifest rows were appended."*
-- If `prior_run == null`, append: *"This is the first run; re-run after enriching `input/` to widen coverage additively."*
+- If `prior_run == null`, append: *"This is the first run; re-run after enriching `documentation/` to widen coverage additively."*
 
 **B. Round-trip instruction (always emitted).**
 
-> *"To feed this glossary into a subsequent `/requirements` run, copy `analyse-inputs/GLOSSARY/glossary.html` into `input/`; the input-handler will surface a manifest-refresh prompt and the drafter will ingest it. Settled definitions become the project's canonical vocabulary — the drafter uses one agreed term per concept and seeds `§2 Domain model` / `§7 Data entities` from them. Every `[AI-SUGGESTED: AI-NNN | blocking]` proposal surfaces to the resolver as a mandatory confirmation, so you agree each proposed meaning and each canonical-term choice before it anchors a requirement. The `[SRC: <filename>]` markers preserve the audit trail back to the original briefs / notes / decks."*
+> *"To feed this glossary into a subsequent `/requirements` run, copy `analyse-inputs/GLOSSARY/glossary.html` into `documentation/`; the input-handler will surface a manifest-refresh prompt and the drafter will ingest it. Settled definitions become the project's canonical vocabulary — the drafter uses one agreed term per concept and seeds `§2 Domain model` / `§7 Data entities` from them. Every `[AI-SUGGESTED: AI-NNN | blocking]` proposal surfaces to the resolver as a mandatory confirmation, so you agree each proposed meaning and each canonical-term choice before it anchors a requirement. The `[SRC: <filename>]` markers preserve the audit trail back to the original briefs / notes / decks."*
 
 **C. Accept / Revise / Restart loop.** Use `AskUserQuestion`:
 

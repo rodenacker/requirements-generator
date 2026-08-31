@@ -102,5 +102,5 @@ Emit `substep_start`/`substep_end` to `framework/state/timing.ndjson` (`stage: "
 - Do not cite a non-existent ID/surface/variant; the reference-integrity check is the anti-fabrication gate.
 - Do not author routes or React code — that is the generator's job; the spec is the instruction set.
 - Do not skip the reference-check or the `verify-artifact-write`.
-- Do not read raw `input/` files directly — use the manifest-referenced docs listed in `supporting-inputs.json` only.
+- Do not read raw `documentation/` files directly — use the manifest-referenced docs listed in `supporting-inputs.json` only.
 - Do not use assets/skills/tools not listed here.
